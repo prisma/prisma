@@ -142,8 +142,8 @@ testMatrix.setupTestSuite(
                         ? 'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`'
                         : // DEFAULT
                           'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_authorId_fkey"',
-                      // [ProviderFlavors.JS_NEON]:
-                      //   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                      [ProviderFlavors.JS_NEON]:
+                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                       [Providers.SQLSERVER]:
@@ -365,7 +365,7 @@ testMatrix.setupTestSuite(
                         ? 'Unique constraint failed on the fields: (`id`)'
                         : // DEFAULT
                           'duplicate key value violates unique constraint "UserOneToMany_pkey"',
-                      // [ProviderFlavors.JS_NEON]:'Unique constraint failed on the fields: (`id`)',
+                      [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]: ['DEFAULT', 'Cascade', 'SetNull'].includes(onUpdate)
                         ? // DEFAULT / Cascade / SetNull
@@ -385,7 +385,7 @@ testMatrix.setupTestSuite(
                             ? 'Unique constraint failed on the fields: (`id`)'
                             : // DEFAULT
                               'duplicate key value violates unique constraint "UserOneToMany_pkey"',
-                          // [ProviderFlavors.JS_NEON]:'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
@@ -560,7 +560,8 @@ testMatrix.setupTestSuite(
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [ProviderFlavors.PG]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                      // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                      [ProviderFlavors.JS_NEON]:
+                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                       [Providers.SQLSERVER]:
@@ -655,7 +656,8 @@ testMatrix.setupTestSuite(
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                   [ProviderFlavors.PG]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  // [ProviderFlavors.JS_NEON]:'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  [ProviderFlavors.JS_NEON]:
+                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                   [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                   [Providers.SQLSERVER]:

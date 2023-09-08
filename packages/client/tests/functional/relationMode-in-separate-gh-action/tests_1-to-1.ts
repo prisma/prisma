@@ -125,7 +125,8 @@ testMatrix.setupTestSuite(
                       [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
                         ? 'insert or update on table "ProfileOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey"'
                         : 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [ProviderFlavors.JS_NEON]:
+                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                       [Providers.SQLSERVER]:
@@ -513,8 +514,8 @@ testMatrix.setupTestSuite(
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [ProviderFlavors.PG]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      // [ProviderFlavors.JS_NEON]:
-                      //   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [ProviderFlavors.JS_NEON]:
+                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                       [Providers.SQLSERVER]:
@@ -594,7 +595,7 @@ testMatrix.setupTestSuite(
                       [ProviderFlavors.PG]: ['Restrict', 'NoAction', 'SetNull'].includes(onUpdate)
                         ? 'Unique constraint failed on the fields: (`id`)'
                         : 'duplicate key value violates unique constraint "UserOneToOne_pkey"',
-                      // [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
+                      [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]: ['Restrict', 'NoAction'].includes(onUpdate)
                         ? // Restrict / NoAction
@@ -622,7 +623,7 @@ testMatrix.setupTestSuite(
                           [ProviderFlavors.PG]: ['SetNull'].includes(onUpdate)
                             ? 'Unique constraint failed on the fields: (`userId`)'
                             : 'duplicate key value violates unique constraint "ProfileOneToOne_userId_key"',
-                          // [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`userId`)',
+                          [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`userId`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
                           [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
@@ -706,7 +707,7 @@ testMatrix.setupTestSuite(
                           [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
                             ? 'duplicate key value violates unique constraint "ProfileOneToOne_pkey"'
                             : 'Unique constraint failed on the fields: (`id`)',
-                          // [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
@@ -717,7 +718,7 @@ testMatrix.setupTestSuite(
                           [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
                             ? 'duplicate key value violates unique constraint "ProfileOneToOne_pkey"'
                             : 'Unique constraint failed on the fields: (`id`)',
-                          // [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
@@ -916,7 +917,8 @@ testMatrix.setupTestSuite(
                       [ProviderFlavors.PG]: ['Restrict', 'NoAction'].includes(onDelete)
                         ? 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`'
                         : 'update or delete on table "UserOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey" on table "ProfileOneToOne"',
-                      // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [ProviderFlavors.JS_NEON]:
+                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                       [Providers.SQLSERVER]:
@@ -984,8 +986,8 @@ testMatrix.setupTestSuite(
                       'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                     [ProviderFlavors.PG]:
                       'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    // [ProviderFlavors.JS_NEON]:
-                    //   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                    [ProviderFlavors.JS_NEON]:
+                      'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                     [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                     [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                     [Providers.SQLSERVER]:

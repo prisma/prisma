@@ -153,6 +153,8 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.PG]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                [ProviderFlavors.JS_NEON]:
+                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                 [Providers.SQLSERVER]:
@@ -229,6 +231,8 @@ testMatrix.setupTestSuite(
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.PG]:
+                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                [ProviderFlavors.JS_NEON]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
