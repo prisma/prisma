@@ -150,11 +150,11 @@ jobs:
         run: sh start.sh &
 
       # Run the functional test suite
-      - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --shard ${{ matrix.shard }}
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
-      - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }}
+      - run: pnpm run test-notypes --shard ${{ matrix.shard }}
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
 
@@ -428,21 +428,21 @@ jobs:
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
         working-directory: packages/client
 
       # shouldn't take more than 15 minutes
       - name: 1 to n
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
+        run: pnpm run test:functional:code  --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
         working-directory: packages/client
 
       # shouldn't take more than 15 minutes
       - name: m to n (SQL databases)
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
+        run: pnpm run test:functional:code  --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
         working-directory: packages/client
 
       - name: m to n (MongoDB)
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
+        run: pnpm run test:functional:code  --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
         working-directory: packages/client
 
       - name: Upload test results to BuildPulse for flaky test detection
@@ -880,7 +880,7 @@ jobs:
           skip-tsc: true
 
       - name: Test packages/client
-        run: pnpm run test:functional:code --silent --shard ${{matrix.shard}}
+        run: pnpm run test:functional:code  --shard ${{matrix.shard}}
         working-directory: packages/client
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
@@ -973,7 +973,7 @@ jobs:
 
       - name: Test packages/client (old suite)
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
-        run: pnpm run test-notypes --silent --testTimeout=40000
+        run: pnpm run test-notypes  --testTimeout=40000
         working-directory: packages/client
         env:
           # Allow Node.js to allocate at most a certain amount heap on macOS and a different amount on Windows
