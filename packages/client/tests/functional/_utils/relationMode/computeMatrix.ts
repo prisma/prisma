@@ -61,6 +61,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
       [Providers.SQLSERVER]: ['Restrict'],
       [Providers.POSTGRESQL]: ['NoAction'],
       [ProviderFlavors.PG]: ['NoAction'],
+      [ProviderFlavors.JS_NEON]: ['NoAction'],
       [Providers.SQLITE]: ['NoAction'],
     },
   }
