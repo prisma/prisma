@@ -7,7 +7,7 @@ import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite((suiteConfig) => {
+testMatrix.setupTestSuite(({ provider }) => {
   let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
 
   test('should log queries on a method call', async () => {
@@ -37,7 +37,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     expect(queryLogEvents).toHaveProperty('params')
     expect(queryLogEvents).toHaveProperty('target')
 
-    if (suiteConfig.provider === 'mongodb') {
+    if (provider === 'mongodb') {
       expect(queryLogEvents.query).toContain('db.User.aggregate')
     } else {
       expect(queryLogEvents.query).toContain('SELECT')
@@ -61,7 +61,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
         if ('query' in data) {
           logs.push(data)
 
-          if (suiteConfig.provider === 'mongodb' && logs.length === 3) {
+          if (provider === 'mongodb' && logs.length === 3) {
             resolve(logs)
           }
 
@@ -73,7 +73,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+      const id = provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await tx.user.create({
         data: {
@@ -90,7 +90,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const logs = await queryLogs
 
-    if (suiteConfig.provider === 'mongodb') {
+    if (provider === 'mongodb') {
       expect(logs).toHaveLength(3)
 
       expect(logs[0].query).toContain('User.insertOne')
@@ -99,7 +99,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     } else {
       // Since https://github.com/prisma/prisma-engines/pull/4041
       // We skip a read when possible, on CockroachDB and PostgreSQL
-      if (['postgresql', 'cockroachdb'].includes(suiteConfig.provider)) {
+      if (['postgresql', 'cockroachdb'].includes(provider)) {
         expect(logs).toHaveLength(4)
         expect(logs[0].query).toContain('BEGIN')
         expect(logs[1].query).toContain('INSERT')
@@ -133,7 +133,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
         if ('query' in data) {
           logs.push(data)
 
-          if (suiteConfig.provider === 'mongodb' && logs.length === 2) {
+          if (provider === 'mongodb' && logs.length === 2) {
             resolve(logs)
           }
 
@@ -145,7 +145,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+      const id = provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await Promise.all([
         tx.user.findMany({
@@ -163,7 +163,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const logs = await queryLogs
 
-    if (suiteConfig.provider === 'mongodb') {
+    if (provider === 'mongodb') {
       expect(logs).toHaveLength(2)
 
       expect(logs[0].query).toContain('User.aggregate')
@@ -195,7 +195,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
         if ('query' in data) {
           logs.push(data)
 
-          if (suiteConfig.provider === 'mongodb' && logs.length === 2) {
+          if (provider === 'mongodb' && logs.length === 2) {
             resolve(logs)
           }
 
@@ -206,7 +206,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
       })
     })
 
-    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+    const id = provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
     const q1 = client.user.findMany({
       where: {
@@ -224,7 +224,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const logs = await queryLogs
 
-    if (suiteConfig.provider === 'mongodb') {
+    if (provider === 'mongodb') {
       expect(logs).toHaveLength(2)
 
       expect(logs[0].query).toContain('User.aggregate')
