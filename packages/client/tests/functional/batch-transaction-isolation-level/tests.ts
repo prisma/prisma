@@ -8,7 +8,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  (_suiteConfig, _suiteMeta, clientMeta) => {
+  ({ provider }, _suiteMeta, clientMeta) => {
     const queries: string[] = []
     let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
 
@@ -47,20 +47,27 @@ testMatrix.setupTestSuite(
       })
     }
 
-    testIsolationLevel('ReadUncommitted', {
-      level: () => Prisma.TransactionIsolationLevel.ReadUncommitted,
-      expectSql: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
-    })
+    // Skipped for CockroachDB because it fails with
+    // TypeError: Invalid enum value: ReadUncommitted
+    // TypeError: Invalid enum value: ReadCommitted
+    // TypeError: Invalid enum value: RepeatableRead
+    // https://www.cockroachlabs.com/docs/stable/transactions#comparison-to-ansi-sql-isolation-levels
+    if (provider !== 'cockroachdb') {
+      testIsolationLevel('ReadUncommitted', {
+        level: () => Prisma.TransactionIsolationLevel.ReadUncommitted,
+        expectSql: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
+      })
 
-    testIsolationLevel('ReadCommitted', {
-      level: () => Prisma.TransactionIsolationLevel.ReadCommitted,
-      expectSql: 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
-    })
+      testIsolationLevel('ReadCommitted', {
+        level: () => Prisma.TransactionIsolationLevel.ReadCommitted,
+        expectSql: 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
+      })
 
-    testIsolationLevel('RepeatableRead', {
-      level: () => Prisma.TransactionIsolationLevel.RepeatableRead,
-      expectSql: 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
-    })
+      testIsolationLevel('RepeatableRead', {
+        level: () => Prisma.TransactionIsolationLevel.RepeatableRead,
+        expectSql: 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
+      })
+    }
 
     testIsolationLevel('Serializable', {
       level: () => Prisma.TransactionIsolationLevel.Serializable,
