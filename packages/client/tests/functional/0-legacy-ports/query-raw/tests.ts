@@ -62,11 +62,11 @@ testMatrix.setupTestSuite(
       `)
 
       const results = {
-        postgresql: [{ number: 1 }],
-        cockroachdb: [{ number: BigInt('1') }],
-        mysql: [{ number: BigInt('1') }],
-        sqlite: [{ number: BigInt('1') }],
-        sqlserver: [{ number: 1 }],
+        postgresql: [{ '?column?': 1 }],
+        cockroachdb: [{ '?column?': BigInt('1') }],
+        mysql: [{ '1': BigInt('1') }],
+        sqlite: [{ '1': BigInt('1') }],
+        sqlserver: [{ '': 1 }],
       }
 
       expect(result).toStrictEqual(results[suiteConfig.provider])
@@ -93,11 +93,11 @@ testMatrix.setupTestSuite(
       `)
 
       const results = {
-        postgresql: [{ '?column?': 1 }],
-        cockroachdb: [{ '?column?': BigInt('1') }],
-        mysql: [{ '1': BigInt('1') }],
-        sqlite: [{ '1': BigInt('1') }],
-        sqlserver: [{ '': 1 }],
+        postgresql: [{ number: 1 }],
+        cockroachdb: [{ number: BigInt('1') }],
+        mysql: [{ number: BigInt('1') }],
+        sqlite: [{ number: BigInt('1') }],
+        sqlserver: [{ number: 1 }],
       }
 
       expect(result).toStrictEqual(results[suiteConfig.provider])
