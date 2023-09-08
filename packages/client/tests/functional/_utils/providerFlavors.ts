@@ -4,7 +4,7 @@ export enum ProviderFlavors {
   PG = 'pg',
   VITESS_8 = 'vitess_8',
   JS_PLANETSCALE = 'js_planetscale',
-  // JS_NEON = 'js_neon',
+  JS_NEON = 'js_neon',
 }
 
 const allProviderFlavors = [...Object.values(Providers), ...Object.values(ProviderFlavors)] as const
@@ -33,7 +33,7 @@ export type ProviderFlavor = (typeof allProviderFlavors)[number]
 
 export function getProviderFromFlavor(providerFlavor: ProviderFlavor): Providers {
   switch (providerFlavor) {
-    // case ProviderFlavors.JS_NEON:
+    case ProviderFlavors.JS_NEON:
     case ProviderFlavors.PG:
       return Providers.POSTGRESQL
     case ProviderFlavors.VITESS_8:

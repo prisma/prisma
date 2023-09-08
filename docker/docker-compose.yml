@@ -18,6 +18,18 @@ services:
     ports:
       - '5432:5432'
 
+  pg_proxy:
+    image: ghcr.io/neondatabase/wsproxy:latest
+    environment:
+      APPEND_PORT: 'postgres:5432'
+      ALLOW_ADDR_REGEX: '.*'
+      LOG_TRAFFIC: 'true'
+      LOG_CONN_INFO: 'true'
+    ports:
+      - '5488:80'
+    depends_on:
+      - postgres
+
   postgres_isolated:
     image: postgres:10
     restart: unless-stopped

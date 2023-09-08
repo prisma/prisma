@@ -1,14 +1,14 @@
 import { afterAll, beforeAll, test } from '@jest/globals'
-// import { PrismaNeon } from '@jkomyno/prisma-adapter-neon' // TODO rename to `@prisma/adapter-neon`
+import { PrismaNeon } from '@jkomyno/prisma-adapter-neon' // TODO rename to `@prisma/adapter-neon`
 import { PrismaPg } from '@jkomyno/prisma-adapter-pg' // rename to `@prisma/adapter-pg`
 import { PrismaPlanetScale } from '@jkomyno/prisma-adapter-planetscale'
-// import { neonConfig, Pool as neonPool } from '@neondatabase/serverless'
+import { neonConfig, Pool as neonPool } from '@neondatabase/serverless'
 import { connect } from '@planetscale/database'
 import fs from 'fs-extra'
 import path from 'path'
 import { Pool as pgPool } from 'pg'
-// WebSocket
-import { fetch as undiciFetch } from 'undici'
+// TODO remove once support for Node.js v16 is dropped.
+import { fetch as undiciFetch, WebSocket } from 'undici'
 
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
@@ -129,24 +129,32 @@ function setupTestSuiteMatrix(
             const adapter = new PrismaPlanetScale(connection)
 
             client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
-          }
-          // else if (providerFlavor === ProviderFlavors.JS_NEON) {
-          //   const connectionString = `${process.env.TEST_FUNCTIONAL_JS_NEON_URI as string}`.replace(
-          //     'PRISMA_DB_NAME',
-          //     'tests',
-          //   )
+          } else if (providerFlavor === ProviderFlavors.JS_NEON) {
+            const connectionString = `${process.env.TEST_FUNCTIONAL_JS_NEON_URI as string}`.replace(
+              'PRISMA_DB_NAME',
+              'tests',
+            )
 
-          //   neonConfig.webSocketConstructor = WebSocket
-          //   neonConfig.fetchFunction = undiciFetch
+            // When using HTTP on Node.js <18
+            // neonConfig.fetchFunction = undiciFetch
+            neonConfig.webSocketConstructor = WebSocket
+            // client.neonConfig.webSocketConstructor = ws;
+            // Disable all authentication and encryption
+            neonConfig.useSecureWebSocket = false
+            // neonConfig.pipelineTLS = false;
+            neonConfig.pipelineConnect = false
+            neonConfig.wsProxy = () => {
+              return `127.0.0.1:5488/v1`
+            }
 
-          //   const pool = new Pool({
-          //     connectionString,
-          //   })
-          //   const adapter = new PrismaNeon(pool)
+            const pool = new neonPool({
+              connectionString,
+            })
 
-          //   client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
-          // }
-          else {
+            const adapter = new PrismaNeon(pool)
+
+            client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
+          } else {
             client = new globalThis['loaded']['PrismaClient']({ ...args })
           }
 
@@ -196,7 +204,7 @@ function setupTestSuiteMatrix(
           ![
             // ProviderFlavors.VITESS_8,
             ProviderFlavors.JS_PLANETSCALE,
-            // ProviderFlavors.JS_NEON
+            ProviderFlavors.JS_NEON,
           ].includes(providerFlavor)
         ) {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo

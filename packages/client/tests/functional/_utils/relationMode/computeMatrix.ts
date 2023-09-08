@@ -15,7 +15,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     Providers.MYSQL,
     ProviderFlavors.VITESS_8,
     ProviderFlavors.JS_PLANETSCALE,
-    // ProviderFlavors.JS_NEON,
+    ProviderFlavors.JS_NEON,
     ProviderFlavors.PG,
   ] as const
   // Note: SetDefault is not implemented in the emulation (relationMode="prisma")

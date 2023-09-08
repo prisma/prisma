@@ -21,12 +21,12 @@ export default defineMatrix(() => [
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
-    // {
-    //   provider: 'postgresql',
-    //   providerFlavor: ProviderFlavors.JS_NEON,
-    //   id: 'Int @id @default(autoincrement())',
-    //   providerFeatures: '',
-    // },
+    {
+      provider: 'postgresql',
+      providerFlavor: ProviderFlavors.JS_NEON,
+      id: 'Int @id @default(autoincrement())',
+      providerFeatures: '',
+    },
     {
       provider: 'mysql',
       providerFlavor: '',
