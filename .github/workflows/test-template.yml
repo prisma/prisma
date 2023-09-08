@@ -137,7 +137,8 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+      - name: Start databases in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -147,10 +148,12 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
+      - name: Start Neon Proxy in background
+        run: docker compose -f docker/docker-compose.yml up --detach pg_proxy
+
       - name: Start PlanetScale Proxy in background
         working-directory: packages/client/tests/functional/_utils/proxy-planetscale
-        run: |
-          sh start.sh &
+        run: sh start.sh &
 
       # Run the functional test suite
       - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
@@ -207,7 +210,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - name: Start databases in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -276,7 +280,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+      - name: Start databases in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -365,7 +370,8 @@ jobs:
       - uses: actions/checkout@v4
 
       # Not currently needed, but we might need it in the future
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - name: Start databases in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -409,7 +415,8 @@ jobs:
           echo "RELATION_MODE=${{ matrix.relationMode }}"
           if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - name: Start databases in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -418,10 +425,12 @@ jobs:
           pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
 
+      - name: Start Neon Proxy in background
+        run: docker compose -f docker/docker-compose.yml up --detach pg_proxy
+
       - name: Start PlanetScale Proxy in background
         working-directory: packages/client/tests/functional/_utils/proxy-planetscale
-        run: |
-          sh start.sh &
+        run: sh start.sh &
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1
@@ -548,7 +557,8 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
+      - name: Start databases in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -595,7 +605,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+      - name: Start databases in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
 
       - name: Set CLI Engine Type
         run: |
@@ -650,7 +661,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+      - name: Start databases in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
       - name: Set CLI Engine Type
         run: |
@@ -705,7 +717,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres
+      - name: Start PostgreSQL database in background
+        run: docker compose -f docker/docker-compose.yml up --detach postgres
 
       - name: Set CLI Engine Type
         run: |
