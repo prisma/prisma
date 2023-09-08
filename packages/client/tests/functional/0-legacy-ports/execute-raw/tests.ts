@@ -2,12 +2,12 @@
 import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
-import type * as $ from './node_modules/@prisma/client'
+import type $ from './node_modules/@prisma/client'
 
 declare let prisma: $.PrismaClient
 declare let Prisma: typeof $.Prisma
 
-// from: blog
+// ported from: blog
 testMatrix.setupTestSuite(
   (suiteConfig) => {
     beforeEach(async () => {
