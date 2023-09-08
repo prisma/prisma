@@ -35,12 +35,6 @@ on:
         type: string
         default: '8'
     secrets:
-      # TODO Remove once testing against the proxy
-      TEST_FUNCTIONAL_JS_NEON_URI:
-        required: false
-      # TODO Remove once testing against the proxy
-      TEST_FUNCTIONAL_JS_PLANETSCALE_URI:
-        required: false
       BUILDPULSE_ACCESS_KEY_ID:
         required: false
       BUILDPULSE_SECRET_ACCESS_KEY:
@@ -868,6 +862,7 @@ jobs:
           echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
           echo "TEST_SKIP_VITESS=true" >> $GITHUB_ENV
           echo "TEST_SKIP_JS_PLANETSCALE=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_JS_NEON=true" >> $GITHUB_ENV
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
@@ -943,6 +938,7 @@ jobs:
           echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
           echo "TEST_SKIP_VITESS=true" >> $GITHUB_ENV
           echo "TEST_SKIP_JS_PLANETSCALE=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_JS_NEON=true" >> $GITHUB_ENV
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 

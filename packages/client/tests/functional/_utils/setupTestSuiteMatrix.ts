@@ -111,15 +111,11 @@ function setupTestSuiteMatrix(
             })
             const adapter = new PrismaPg(pool)
 
+            console.debug('Using PrismaPg adapter.')
             client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
           } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-            // When using a remote database
-            // const connectionString = `${process.env.TEST_FUNCTIONAL_JS_PLANETSCALE_URI as string}`
-
             const connection = connect({
-              // url: connectionString,
               url: 'http://root:root@127.0.0.1:8085',
-
               /**
                * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
                */
@@ -128,6 +124,7 @@ function setupTestSuiteMatrix(
 
             const adapter = new PrismaPlanetScale(connection)
 
+            console.debug('Using PrismaPlanetScale adapter.')
             client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
           } else if (providerFlavor === ProviderFlavors.JS_NEON) {
             // When using HTTP on Node.js <18
@@ -148,6 +145,7 @@ function setupTestSuiteMatrix(
 
             const adapter = new PrismaNeon(pool)
 
+            console.debug('Using PrismaNeon adapter.')
             client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
           } else {
             client = new globalThis['loaded']['PrismaClient']({ ...args })
@@ -199,7 +197,6 @@ function setupTestSuiteMatrix(
           ![
             // ProviderFlavors.VITESS_8,
             ProviderFlavors.JS_PLANETSCALE,
-            // ProviderFlavors.JS_NEON,
           ].includes(providerFlavor)
         ) {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
