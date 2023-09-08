@@ -9,12 +9,12 @@ export default defineMatrix(() => [
     },
     {
       provider: 'postgresql',
-      providerFlavor: 'pg',
+      providerFlavor: ProviderFlavors.PG,
       url: '"postgresql://invalid:invalid@invalid.org:123/invalid"',
     },
     {
       provider: 'postgresql',
-      providerFlavor: 'js_neon',
+      providerFlavor: ProviderFlavors.JS_NEON,
       url: '"postgresql://invalid:invalid@invalid.org:123/invalid"',
     },
     {

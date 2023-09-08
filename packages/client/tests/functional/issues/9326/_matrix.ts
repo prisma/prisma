@@ -1,18 +1,19 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 
 export default defineMatrix(() => [
   [
     {
       provider: 'postgresql',
     },
-    {
-      provider: 'postgresql',
-      providerFlavor: 'pg',
-    },
     // TODO cockroachdb?
     {
       provider: 'postgresql',
-      providerFlavor: 'js_neon',
+      providerFlavor: ProviderFlavors.PG,
+    },
+    {
+      provider: 'postgresql',
+      providerFlavor: ProviderFlavors.JS_NEON,
     },
   ],
 ])

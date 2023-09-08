@@ -32,11 +32,11 @@ export default defineMatrix(() => [
     postgresqlProvider,
     {
       ...postgresqlProvider,
-      providerFlavor: 'pg',
+      providerFlavor: ProviderFlavors.PG,
     },
     {
       ...postgresqlProvider,
-      providerFlavor: 'js_neon',
+      providerFlavor: ProviderFlavors.JS_NEON,
     },
     mysqlProvider,
     {

@@ -13,12 +13,12 @@ export default defineMatrix(() => [
     },
     {
       provider: 'postgresql',
-      providerFlavor: 'pg',
+      providerFlavor: ProviderFlavors.PG,
       foreignKeyId: 'String?',
     },
     {
       provider: 'postgresql',
-      providerFlavor: 'js_neon',
+      providerFlavor: ProviderFlavors.JS_NEON,
       foreignKeyId: 'String?',
     },
     {

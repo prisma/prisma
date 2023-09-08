@@ -9,11 +9,11 @@ export default defineMatrix(() => [
     },
     {
       provider: 'postgresql',
-      providerFlavor: 'pg',
+      providerFlavor: ProviderFlavors.PG,
     },
     {
       provider: 'postgresql',
-      providerFlavor: 'js_neon',
+      providerFlavor: ProviderFlavors.JS_NEON,
     },
     {
       provider: 'mysql',
