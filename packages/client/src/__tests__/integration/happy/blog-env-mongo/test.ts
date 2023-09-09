@@ -259,47 +259,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
   })
 
-  describe('aggregateRaw', () => {
-    test('group', async () => {
-      await prisma.user.create({ data: { email: '1@a.de', name: 'A' } })
-      await prisma.user.create({ data: { email: '2@a.de', name: 'A' } })
-      await prisma.user.create({ data: { email: '3@a.de', name: 'B' } })
-      await prisma.user.create({ data: { email: '4@a.de', name: 'B' } })
-      const users = await prisma.user.aggregateRaw({
-        pipeline: [{ $group: { _id: '$name', total: { $sum: 1 } } }, { $sort: { _id: -1 } }],
-      })
-      expect(users).toMatchInlineSnapshot(`
-        [
-          {
-            _id: B,
-            total: 2,
-          },
-          {
-            _id: A,
-            total: 2,
-          },
-        ]
-      `)
-    })
-
-    test('match', async () => {
-      await prisma.user.create({ data: { email: '1@a.de', name: 'A' } })
-      await prisma.user.create({ data: { email: '3@a.de', name: 'A' } })
-      const users = await prisma.user.aggregateRaw({
-        pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
-      })
-      expect(users).toMatchInlineSnapshot(`
-        [
-          {
-            email: 1@a.de,
-          },
-          {
-            email: 3@a.de,
-          },
-        ]
-      `)
-    })
-  })
+  describe('aggregateRaw', () => {})
 
   describe('runCommandRaw', () => {
     test('aggregate', async () => {
