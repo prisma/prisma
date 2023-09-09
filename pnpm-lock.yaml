@@ -559,8 +559,8 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
       undici:
-        specifier: 5.23.0
-        version: 5.23.0
+        specifier: 5.24.0
+        version: 5.24.0
       yeoman-generator:
         specifier: 5.9.0
         version: 5.9.0
@@ -13433,8 +13433,8 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  /undici@5.23.0:
-    resolution: {integrity: sha512-1D7w+fvRsqlQ9GscLBwcAJinqcZGHUKjbOmXdlE/v8BvEGXjeWAax+341q44EuTcHXXnfyKNbKRq4Lg7OzhMmg==}
+  /undici@5.24.0:
+    resolution: {integrity: sha512-OKlckxBjFl0oXxcj9FU6oB8fDAaiRUq+D8jrFWGmOfI/gIyjk/IeS75LMzgYKUaeHzLUcYvf9bbJGSrUwTfwwQ==}
     engines: {node: '>=14.0'}
     dependencies:
       busboy: 1.6.0
