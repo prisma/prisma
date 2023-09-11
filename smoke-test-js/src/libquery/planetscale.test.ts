@@ -1,19 +1,15 @@
 import { connect } from '@planetscale/database'
 import { PrismaPlanetScale } from '@jkomyno/prisma-adapter-planetscale'
 import { bindAdapter } from '@jkomyno/prisma-driver-adapter-utils'
+import { describe } from 'node:test'
 import { smokeTestLibquery } from './libquery' 
 
-async function main() {
+describe('planetscale', () => {
   const connectionString = `${process.env.JS_PLANETSCALE_DATABASE_URL as string}`
 
-  const planetscale = connect({ url: connectionString })
-  const adapter = new PrismaPlanetScale(planetscale)
+  const connnection = connect({ url: connectionString })
+  const adapter = new PrismaPlanetScale(connnection)
   const driverAdapter = bindAdapter(adapter)
-
-  await smokeTestLibquery(driverAdapter, '../../prisma/mysql/schema.prisma')
-}
-
-main().catch((e) => {
-  console.error(e)
-  process.exit(1)
+  
+  smokeTestLibquery(driverAdapter, '../../prisma/mysql/schema.prisma')
 })

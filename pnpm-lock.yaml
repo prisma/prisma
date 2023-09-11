@@ -82,8 +82,8 @@ importers:
         specifier: ^1.11.0
         version: 1.11.0
       '@prisma/client':
-        specifier: 5.3.0-integration-feat-driver-adapters-in-client.1
-        version: 5.3.0-integration-feat-driver-adapters-in-client.1(prisma@5.3.0-integration-feat-driver-adapters-in-client.1)
+        specifier: 5.3.0-integration-feat-driver-adapters-in-client.3
+        version: 5.3.0-integration-feat-driver-adapters-in-client.3(prisma@5.3.0-integration-feat-driver-adapters-in-client.3)
       pg:
         specifier: ^8.11.3
         version: 8.11.3
@@ -104,8 +104,8 @@ importers:
         specifier: ^7.0.3
         version: 7.0.3
       prisma:
-        specifier: 5.3.0-integration-feat-driver-adapters-in-client.1
-        version: 5.3.0-integration-feat-driver-adapters-in-client.1
+        specifier: 5.3.0-integration-feat-driver-adapters-in-client.3
+        version: 5.3.0-integration-feat-driver-adapters-in-client.3
       tsx:
         specifier: ^3.12.7
         version: 3.12.7
@@ -391,8 +391,8 @@ packages:
     resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
     engines: {node: '>=16'}
 
-  /@prisma/client@5.3.0-integration-feat-driver-adapters-in-client.1(prisma@5.3.0-integration-feat-driver-adapters-in-client.1):
-    resolution: {integrity: sha512-izGFo8RFgmHibBzQGRx66xfh08LcGaOysNWvMRgqT018kZ8c98qqfI0/E+LFgxb3Ar0hqz2zX8M4Fa56KvI6cw==}
+  /@prisma/client@5.3.0-integration-feat-driver-adapters-in-client.3(prisma@5.3.0-integration-feat-driver-adapters-in-client.3):
+    resolution: {integrity: sha512-L/y90JbrWyJGXiXvtKfRKDgqTjTEQ2rkzdb0tlf4Uu9jIyBxiKr5qmDl7vRagN1JXeOkYqinsi+598MtJ7pGFA==}
     engines: {node: '>=16.13'}
     requiresBuild: true
     peerDependencies:
@@ -402,15 +402,15 @@ packages:
         optional: true
     dependencies:
       '@prisma/engines-version': 5.3.0-28.3457e5de04da1741c969a80068702ad103e99553
-      prisma: 5.3.0-integration-feat-driver-adapters-in-client.1
+      prisma: 5.3.0-integration-feat-driver-adapters-in-client.3
     dev: false
 
   /@prisma/engines-version@5.3.0-28.3457e5de04da1741c969a80068702ad103e99553:
     resolution: {integrity: sha512-eb+8hgURyTu1qAWmTxgZCgBjf0UV6REC525fa1XnPpL6hxMZ7cEtFCX0f9GDopa/piCM9pq5H2ttthGOKQyVLA==}
     dev: false
 
-  /@prisma/engines@5.3.0-integration-feat-driver-adapters-in-client.1:
-    resolution: {integrity: sha512-euFOT9Wq0dVVXZjcLP/6/XRPr04dm4t9DtKJXUCk5Kja87bAy+knLdcC6Pkmbbjhi0fTThiKQOOxKxWBfXrr4A==}
+  /@prisma/engines@5.3.0-integration-feat-driver-adapters-in-client.3:
+    resolution: {integrity: sha512-Nt+lbsiE4jj4GGIyhLrcNy8fVwBjsZeQqNI2oMbgoCyMSZwkcUmMRuK7OJdzbxHBKpivnneF0WMhbv/fZTRGig==}
     requiresBuild: true
 
   /@types/debug@4.1.8:
@@ -1020,13 +1020,13 @@ packages:
     resolution: {integrity: sha512-VdlZoocy5lCP0c/t66xAfclglEapXPCIVhqqJRncYpvbCgImF0w67aPKfbqUMr72tO2k5q0TdTZwCLjPTI6C9g==}
     dev: true
 
-  /prisma@5.3.0-integration-feat-driver-adapters-in-client.1:
-    resolution: {integrity: sha512-M5EjBFZ3P3mjgYOfRBLqg5wKKeXq/VTv2wF9Ft4YCMMsHlcIJJ9IMV1UkzZLmP1yTdMxougJcLeDA9QGmdpsMA==}
+  /prisma@5.3.0-integration-feat-driver-adapters-in-client.3:
+    resolution: {integrity: sha512-M9FQjLmJL7g4GnHwcsuf2WPqE3/B3k/laBkaq5XCxJcBMjoipNIGW0ZlZKY9t+TdJ14asGrv4+7o7mAmKLZqrw==}
     engines: {node: '>=16.13'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      '@prisma/engines': 5.3.0-integration-feat-driver-adapters-in-client.1
+      '@prisma/engines': 5.3.0-integration-feat-driver-adapters-in-client.3
 
   /punycode@2.3.0:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}

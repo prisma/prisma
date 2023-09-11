@@ -18,8 +18,7 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
     describe(isUsingDriverAdapters ? `using Driver Adapters` : `using Rust drivers`, () => {
       it('batch queries', async () => {
         const prisma = new PrismaClient({
-          // @ts-ignore
-          jsConnector: adapter,
+          adapter,
           log,
         })
     
@@ -48,15 +47,6 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
           '-- Implicit "COMMIT" query via underlying driver',
         ]
 
-        const postgresExpectedQueries = [
-          'BEGIN',
-          'DEALLOCATE ALL',
-          'SELECT 1',
-          'SELECT 2',
-          'SELECT 3',
-          'COMMIT',
-        ]
-
         if (['mysql'].includes(provider)) {
           if (isUsingDriverAdapters) {
             assert.deepEqual(queries, driverAdapterExpectedQueries)
@@ -64,18 +54,18 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
             assert.deepEqual(queries, defaultExpectedQueries)
           }
         } else if (['postgres'].includes(provider)) {
-          if (isUsingDriverAdapters) {
-            assert.deepEqual(queries, defaultExpectedQueries)
-          } else {
-            assert.deepEqual(queries, postgresExpectedQueries)
-          }
+          // Note: the "DEALLOCATE ALL" query is only present after "BEGIN" when using Rust Postgres with pgbouncer.
+          assert.deepEqual(queries.at(0), defaultExpectedQueries.at(0))
+          assert.deepEqual(
+            queries.filter((q) => q !== 'DEALLOCATE ALL'),
+            defaultExpectedQueries
+          )
         }
       })
     
       it('applies isolation level when using batch $transaction', async () => {
         const prisma = new PrismaClient({
-          // @ts-ignore
-          jsConnector: adapter,
+          adapter,
           log,
         })
     
