@@ -151,7 +151,7 @@ testMatrix.setupTestSuite(
               foreignKeys: {
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [ProviderFlavors.PG]:
+                [ProviderFlavors.JS_PG]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.JS_NEON]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
@@ -230,7 +230,7 @@ testMatrix.setupTestSuite(
               foreignKeys: {
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [ProviderFlavors.PG]:
+                [ProviderFlavors.JS_PG]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.JS_NEON]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',

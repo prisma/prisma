@@ -122,7 +122,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
+                      [ProviderFlavors.JS_PG]: ['DEFAULT'].includes(onUpdate)
                         ? 'insert or update on table "ProfileOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey"'
                         : 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [ProviderFlavors.JS_NEON]:
@@ -512,7 +512,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [ProviderFlavors.PG]:
+                      [ProviderFlavors.JS_PG]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [ProviderFlavors.JS_NEON]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
@@ -592,7 +592,7 @@ testMatrix.setupTestSuite(
                     // see _utils/relationMode/computeMatrix.ts
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                      [ProviderFlavors.PG]: ['Restrict', 'NoAction', 'SetNull'].includes(onUpdate)
+                      [ProviderFlavors.JS_PG]: ['Restrict', 'NoAction', 'SetNull'].includes(onUpdate)
                         ? 'Unique constraint failed on the fields: (`id`)'
                         : 'duplicate key value violates unique constraint "UserOneToOne_pkey"',
                       [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
@@ -620,7 +620,7 @@ testMatrix.setupTestSuite(
                       : // DEFAULT / SetNull
                         {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`userId`)',
-                          [ProviderFlavors.PG]: ['SetNull'].includes(onUpdate)
+                          [ProviderFlavors.JS_PG]: ['SetNull'].includes(onUpdate)
                             ? 'Unique constraint failed on the fields: (`userId`)'
                             : 'duplicate key value violates unique constraint "ProfileOneToOne_userId_key"',
                           [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`userId`)',
@@ -704,7 +704,7 @@ testMatrix.setupTestSuite(
                     : conditionalError.snapshot({
                         foreignKeys: {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
+                          [ProviderFlavors.JS_PG]: ['DEFAULT'].includes(onUpdate)
                             ? 'duplicate key value violates unique constraint "ProfileOneToOne_pkey"'
                             : 'Unique constraint failed on the fields: (`id`)',
                           [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
@@ -715,7 +715,7 @@ testMatrix.setupTestSuite(
                         },
                         prisma: {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
+                          [ProviderFlavors.JS_PG]: ['DEFAULT'].includes(onUpdate)
                             ? 'duplicate key value violates unique constraint "ProfileOneToOne_pkey"'
                             : 'Unique constraint failed on the fields: (`id`)',
                           [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
@@ -914,7 +914,7 @@ testMatrix.setupTestSuite(
                         "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [ProviderFlavors.PG]: ['Restrict', 'NoAction'].includes(onDelete)
+                      [ProviderFlavors.JS_PG]: ['Restrict', 'NoAction'].includes(onDelete)
                         ? 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`'
                         : 'update or delete on table "UserOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey" on table "ProfileOneToOne"',
                       [ProviderFlavors.JS_NEON]:
@@ -984,7 +984,7 @@ testMatrix.setupTestSuite(
                   foreignKeys: {
                     [Providers.POSTGRESQL]:
                       'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    [ProviderFlavors.PG]:
+                    [ProviderFlavors.JS_PG]:
                       'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                     [ProviderFlavors.JS_NEON]:
                       'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',

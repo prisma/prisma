@@ -105,7 +105,7 @@ function setupTestSuiteMatrix(
 
         globalThis['newPrismaClient'] = (args) => {
           let client
-          if (providerFlavor === ProviderFlavors.PG) {
+          if (providerFlavor === ProviderFlavors.JS_PG) {
             const pool = new pgPool({
               connectionString: datasourceInfo.databaseUrl,
             })

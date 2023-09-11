@@ -200,7 +200,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
       })
     })
 
-    if (providerFlavor === ProviderFlavors.PG) {
+    if (providerFlavor === ProviderFlavors.JS_PG) {
       const dataproxyError = 'Unique constraint failed on the fields: (`email`)'
       const adapterError = `duplicate key value violates unique constraint \"User_email_key\"`
       const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
@@ -301,7 +301,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
         }),
       ])
 
-      if (providerFlavor === ProviderFlavors.PG) {
+      if (providerFlavor === ProviderFlavors.JS_PG) {
         const dataproxyError = 'Unique constraint failed on the fields: (`email`)'
         const adapterError = `duplicate key value violates unique constraint \"User_email_key\"`
         const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
@@ -343,7 +343,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
       })
     })
 
-    if (providerFlavor === ProviderFlavors.PG) {
+    if (providerFlavor === ProviderFlavors.JS_PG) {
       const dataproxyError = 'Unique constraint failed on the fields: (`email`)'
       const adapterError = `duplicate key value violates unique constraint \"User_email_key\"`
       const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
@@ -398,7 +398,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
               prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
             ])
 
-      if (providerFlavor === ProviderFlavors.PG) {
+      if (providerFlavor === ProviderFlavors.JS_PG) {
         const dataproxyError = 'Raw query failed. Code: `23505`. Message: `Key (id)=(1) already exists.'
         const adapterError = 'duplicate key value violates unique constraint "User_pkey"'
         const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError

@@ -1,7 +1,7 @@
 import { Providers } from './providers'
 
 export enum ProviderFlavors {
-  PG = 'pg',
+  JS_PG = 'js_pg',
   VITESS_8 = 'vitess_8',
   JS_PLANETSCALE = 'js_planetscale',
   JS_NEON = 'js_neon',
@@ -34,7 +34,7 @@ export type ProviderFlavor = (typeof allProviderFlavors)[number]
 export function getProviderFromFlavor(providerFlavor: ProviderFlavor): Providers {
   switch (providerFlavor) {
     case ProviderFlavors.JS_NEON:
-    case ProviderFlavors.PG:
+    case ProviderFlavors.JS_PG:
       return Providers.POSTGRESQL
     case ProviderFlavors.VITESS_8:
     case ProviderFlavors.JS_PLANETSCALE:

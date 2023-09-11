@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
 
         const result = prisma.$transaction([query, query])
 
-        if (providerFlavor === ProviderFlavors.PG) {
+        if (providerFlavor === ProviderFlavors.JS_PG) {
           if (clientMeta.dataProxy) {
             await expect(result).rejects.toThrow('Unique constraint failed on the fields: (`email`)')
           } else {
@@ -49,7 +49,7 @@ testMatrix.setupTestSuite(
           await (query as any).requestTransaction({ kind: 'batch', lock: Promise.resolve() })
         }
 
-        if (providerFlavor === ProviderFlavors.PG) {
+        if (providerFlavor === ProviderFlavors.JS_PG) {
           if (clientMeta.dataProxy) {
             await expect(fn()).rejects.toThrow('Unique constraint failed on the fields: (`email`)')
           } else {

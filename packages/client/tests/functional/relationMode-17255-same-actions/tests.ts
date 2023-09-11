@@ -88,7 +88,7 @@ testMatrix.setupTestSuite(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
-                  [ProviderFlavors.PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
+                  [ProviderFlavors.JS_PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `aliceId`',

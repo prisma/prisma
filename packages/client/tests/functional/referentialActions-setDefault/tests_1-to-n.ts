@@ -153,7 +153,8 @@ testMatrix.setupTestSuite(
               foreignKeys: {
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [ProviderFlavors.PG]: 'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
+                [ProviderFlavors.JS_PG]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [ProviderFlavors.JS_NEON]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
@@ -231,7 +232,8 @@ testMatrix.setupTestSuite(
               foreignKeys: {
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [ProviderFlavors.PG]: 'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
+                [ProviderFlavors.JS_PG]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [ProviderFlavors.JS_NEON]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',

@@ -4,7 +4,7 @@ import { Providers } from '../_utils/providers'
 
 const providerFlavors = [
   Providers.POSTGRESQL,
-  ProviderFlavors.PG,
+  ProviderFlavors.JS_PG,
   ProviderFlavors.JS_NEON,
   Providers.COCKROACHDB,
   Providers.SQLSERVER,

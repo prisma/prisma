@@ -138,7 +138,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                      [ProviderFlavors.PG]: ['SetNull', 'Cascade', 'Restrict', 'NoAction'].includes(onUpdate)
+                      [ProviderFlavors.JS_PG]: ['SetNull', 'Cascade', 'Restrict', 'NoAction'].includes(onUpdate)
                         ? 'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`'
                         : // DEFAULT
                           'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_authorId_fkey"',
@@ -361,7 +361,7 @@ testMatrix.setupTestSuite(
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                      [ProviderFlavors.PG]: ['SetNull', 'Cascade', 'Restrict', 'NoAction'].includes(onUpdate)
+                      [ProviderFlavors.JS_PG]: ['SetNull', 'Cascade', 'Restrict', 'NoAction'].includes(onUpdate)
                         ? 'Unique constraint failed on the fields: (`id`)'
                         : // DEFAULT
                           'duplicate key value violates unique constraint "UserOneToMany_pkey"',
@@ -381,7 +381,7 @@ testMatrix.setupTestSuite(
                       : // Other
                         {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.PG]: ['SetNull', 'Cascade'].includes(onUpdate)
+                          [ProviderFlavors.JS_PG]: ['SetNull', 'Cascade'].includes(onUpdate)
                             ? 'Unique constraint failed on the fields: (`id`)'
                             : // DEFAULT
                               'duplicate key value violates unique constraint "UserOneToMany_pkey"',
@@ -558,7 +558,7 @@ testMatrix.setupTestSuite(
                         "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                      [ProviderFlavors.PG]:
+                      [ProviderFlavors.JS_PG]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [ProviderFlavors.JS_NEON]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
@@ -654,7 +654,7 @@ testMatrix.setupTestSuite(
                 foreignKeys: {
                   [Providers.POSTGRESQL]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [ProviderFlavors.PG]:
+                  [ProviderFlavors.JS_PG]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                   [ProviderFlavors.JS_NEON]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',

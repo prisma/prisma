@@ -12,7 +12,7 @@ export default defineMatrix(() => [
     //   error: Environment variable not found: DATABASE_URI_postgresql
     // {
     //   provider: 'postgresql',
-    //   providerFlavor: ProviderFlavors.PG,
+    //   providerFlavor: ProviderFlavors.JS_PG,
     // },
     // {
     //   provider: 'postgresql',
