@@ -37,7 +37,7 @@ import { getInteractiveTransactionId } from '../common/utils/getInteractiveTrans
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
-const JS_CONNECTOR_EXTERNAL_ERROR = 'P2036'
+const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
 const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
@@ -543,7 +543,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       )
     }
 
-    if (error.user_facing_error.error_code === JS_CONNECTOR_EXTERNAL_ERROR && this.config.adapter) {
+    if (error.user_facing_error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
       const id = error.user_facing_error.meta?.id
       assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
       const errorRecord = this.config.adapter.errorRegistry.consumeError(id)

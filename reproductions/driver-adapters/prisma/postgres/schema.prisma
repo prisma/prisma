@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../../node_modules/.prisma/client"
-  previewFeatures = ["jsConnectors"]
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -90,7 +90,7 @@ model Author {
   firstName String
   lastName  String
   age       Int
-  posts Post[]
+  posts     Post[]
 
   @@map("authors")
 }
