@@ -66,7 +66,7 @@
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "2.2.0",
     "@faker-js/faker": "8.0.2",
-    "@fast-check/jest": "1.7.1",
+    "@fast-check/jest": "1.7.2",
     "@jest/create-cache-key-function": "29.6.3",
     "@jest/globals": "29.6.4",
     "@jest/test-sequencer": "29.6.4",
@@ -120,7 +120,7 @@
     "klona": "2.0.6",
     "mariadb": "3.2.0",
     "memfs": "4.2.1",
-    "mssql": "9.2.0",
+    "mssql": "9.3.0",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.7.0",
     "p-retry": "4.6.2",
@@ -138,7 +138,7 @@
     "strip-indent": "3.0.0",
     "ts-node": "10.9.1",
     "ts-pattern": "4.3.0",
-    "tsd": "0.28.1",
+    "tsd": "0.29.0",
     "typescript": "5.2.2",
     "undici": "5.23.0",
     "yeoman-generator": "5.9.0",
@@ -154,7 +154,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0"
+    "@prisma/engines-version": "5.3.0-36.e90b936d84779543cbe0e494bc8b9d7337fad8e4"
   },
   "sideEffects": false
 }
