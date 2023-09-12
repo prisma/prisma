@@ -48,7 +48,8 @@ testMatrix.setupTestSuite(
         explain: false,
       })
 
-      delete users.cursor.ns
+      delete users?.['cursor']?.['ns'] // delete irrelevant field
+
       expect(users).toMatchInlineSnapshot(`
         {
           cursor: {
