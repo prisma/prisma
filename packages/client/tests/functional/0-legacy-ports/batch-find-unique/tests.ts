@@ -56,7 +56,7 @@ testMatrix.setupTestSuite(() => {
     expect.assertions(2)
 
     prisma.$on('query', (event) => {
-      expect(event.query.replace(mySqlSchemaIdRegex, '')).toMatchSnapshot()
+      expect(event.query.replace(mySqlSchemaIdRegex, '').trim()).toMatchSnapshot()
     })
 
     const results = await Promise.all([
