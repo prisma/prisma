@@ -220,8 +220,8 @@ ${bold('Examples')}
         }
 
         const message = args['--create-only']
-          ? 'Are you sure you want create this migration?'
-          : 'Are you sure you want create and apply this migration?'
+          ? 'Are you sure you want to create this migration?'
+          : 'Are you sure you want to create and apply this migration?'
         const confirmation = await prompt({
           type: 'confirm',
           name: 'value',
