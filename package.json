@@ -32,7 +32,7 @@
   "devDependencies": {
     "@microsoft/api-extractor": "7.36.4",
     "@sindresorhus/slugify": "1.1.2",
-    "@size-limit/file": "8.2.6",
+    "@size-limit/file": "9.0.0",
     "@slack/webhook": "6.1.0",
     "@types/benchmark": "2.1.2",
     "@types/fs-extra": "9.0.13",
