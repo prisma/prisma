@@ -8,7 +8,7 @@ import {
   trace,
   TraceFlags,
 } from '@opentelemetry/api'
-import { Span as SpanConstructor, Tracer } from '@opentelemetry/sdk-trace-base'
+import { Tracer } from '@opentelemetry/sdk-trace-base'
 import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 // If true, will publish internal spans as well
@@ -45,12 +45,6 @@ export class ActiveTracingHelper implements TracingHelper {
     const tracer = trace.getTracer('prisma') as Tracer
 
     engineSpanEvent.spans.forEach((engineSpan) => {
-      const spanContext: SpanContext = {
-        traceId: engineSpan.trace_id,
-        spanId: engineSpan.span_id,
-        traceFlags: TraceFlags.SAMPLED,
-      }
-
       const links = engineSpan.links?.map((link) => {
         return {
           context: {
@@ -61,20 +55,22 @@ export class ActiveTracingHelper implements TracingHelper {
         }
       })
 
-      const span = new SpanConstructor(
-        tracer,
-        ROOT_CONTEXT,
-        engineSpan.name,
-        spanContext,
-        SpanKind.INTERNAL,
-        engineSpan.parent_span_id,
-        links,
-        engineSpan.start_time,
-      )
-
-      if (engineSpan.attributes) {
-        span.setAttributes(engineSpan.attributes)
+      const parentSpanContext: SpanContext = {
+        traceId: engineSpan.trace_id,
+        spanId: engineSpan.parent_span_id,
+        traceFlags: TraceFlags.SAMPLED,
       }
+      const parentContext = trace.setSpanContext(ROOT_CONTEXT, parentSpanContext)
+      const span = tracer.startSpan(
+        engineSpan.name,
+        {
+          links,
+          kind: SpanKind.INTERNAL,
+          startTime: engineSpan.start_time,
+          attributes: engineSpan.attributes,
+        },
+        parentContext,
+      )
 
       span.end(engineSpan.end_time)
     })
