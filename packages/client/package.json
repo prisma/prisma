@@ -93,7 +93,7 @@
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.5.4",
     "@types/js-levenshtein": "1.1.1",
-    "@types/mssql": "8.1.2",
+    "@types/mssql": "9.1.0",
     "@types/node": "18.17.15",
     "@types/pg": "8.10.2",
     "@types/yeoman-generator": "5.2.11",
