@@ -33,7 +33,7 @@
     "@types/node": "18.17.15",
     "@types/resolve": "1.20.2",
     "esbuild": "0.19.2",
-    "jest": "29.6.4",
+    "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "mock-stdin": "1.0.0",
     "ts-node": "10.9.1",
