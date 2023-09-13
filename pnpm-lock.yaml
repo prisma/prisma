@@ -418,8 +418,8 @@ importers:
         specifier: 1.1.1
         version: 1.1.1
       '@types/mssql':
-        specifier: 8.1.2
-        version: 8.1.2
+        specifier: 9.1.0
+        version: 9.1.0
       '@types/node':
         specifier: 18.17.15
         version: 18.17.15
@@ -891,8 +891,8 @@ importers:
         specifier: 29.5.4
         version: 29.5.4
       '@types/mssql':
-        specifier: 8.1.2
-        version: 8.1.2
+        specifier: 9.1.0
+        version: 9.1.0
       '@types/node':
         specifier: 18.17.15
         version: 18.17.15
@@ -4632,8 +4632,8 @@ packages:
   /@types/ms@0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
 
-  /@types/mssql@8.1.2:
-    resolution: {integrity: sha512-hoDM+mZUClfXu0J1pyVdbhv2Ve0dl0TdagAE3M5rd1slqoVEEHuNObPD+giwtJgyo99CcS58qbF9ektVKdxSfQ==}
+  /@types/mssql@9.1.0:
+    resolution: {integrity: sha512-baIM1T0D5LkFmQKxzDgHaNLgUowXPYcSMXzERmG6TLb0AGJshGCEx5u2Gr/7KpNZyL6Bj7cfPh/mte4wtZNFAA==}
     dependencies:
       '@types/node': 18.17.15
       '@types/tedious': 4.0.9
