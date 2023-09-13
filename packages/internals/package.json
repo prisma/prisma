@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@antfu/ni": "0.21.8",
-    "@opentelemetry/api": "1.4.1",
+    "@opentelemetry/api": "1.6.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
