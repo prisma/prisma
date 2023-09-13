@@ -6,24 +6,54 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
+const executeOneQuery = async () => {
+  const email = 'user@example.com'
+  await prisma.user.create({
+    data: {
+      email,
+    },
+  })
+  await prisma.user.findFirst({ where: { email } })
+}
+
 testMatrix.setupTestSuite(
   ({ provider }) => {
     describe('empty', () => {
-      test('does not crash before client is connected', async () => {
+      test('$metrics.prometheus() does not crash before client is connected', async () => {
         await expect(prisma.$metrics.prometheus()).resolves.not.toThrow()
+      })
+      test('$metrics.json() does not crash before client is connected', async () => {
+        await expect(prisma.$metrics.json()).resolves.not.toThrow()
       })
     })
 
-    describe('with data', () => {
-      beforeAll(async () => {
-        const email = 'user@example.com'
-        await prisma.user.create({
-          data: {
-            email,
-          },
-        })
+    describe('before a query', () => {
+      // TODO: this is currently failing
+      // See https://github.com/prisma/prisma/issues/21070
+      test.failing('should have the same keys, before and after a query', async () => {
+        const {
+          counters: countersBefore,
+          gauges: gaugesBefore,
+          histograms: histogramsBefore,
+        } = await prisma.$metrics.json()
 
-        await prisma.user.findFirst({ where: { email } })
+        await executeOneQuery()
+
+        const {
+          counters: countersAfter,
+          gauges: gaugesAfter,
+          histograms: histogramsAfter,
+        } = await prisma.$metrics.json()
+
+        expect(countersBefore.length).toEqual(countersAfter.length)
+        expect(gaugesBefore.length).toEqual(gaugesAfter.length)
+        expect(histogramsBefore.length).toEqual(histogramsAfter.length)
+      })
+    })
+
+    describe('after a query', () => {
+      beforeAll(async () => {
+        await executeOneQuery()
       })
 
       test('returns metrics in prometheus format', async () => {
