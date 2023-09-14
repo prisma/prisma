@@ -406,7 +406,7 @@ async function warnOnMismatchOfGlobalAndLocalVersions(globalPackageVersion: stri
   }
 }
 
-async function getLocalPrismaVersion(cwd: string = process.cwd()): Promise<string | null> {
+export async function getLocalPrismaVersion(cwd: string = process.cwd()): Promise<string | null> {
   try {
     const pkgJsonPath = await pkgUp({ cwd })
 

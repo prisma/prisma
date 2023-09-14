@@ -1,8 +1,9 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { getClientEngineType } from '@prisma/internals'
+import { getClientEngineType, isCurrentBinInstalledGlobally } from '@prisma/internals'
 import path from 'path'
 
-import { Generate } from '../../Generate'
+import { Generate, getLocalPrismaVersion } from '../../Generate'
+import { getInstalledPrismaClientVersion } from '../../utils/getClientVersion'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -348,6 +349,32 @@ describe('using cli', () => {
 
     expect(data.stdout).toContain(`I am a minimal generator`)
   }, 75_000) // timeout
+
+  it('should warn on mismatch of global version and local prisma version', async () => {
+    ctx.fixture('example-project')
+
+    const versions = { getInstalledPrismaClientVersion, isCurrentBinInstalledGlobally, getLocalPrismaVersion }
+    jest.spyOn(versions, 'isCurrentBinInstalledGlobally').mockReturnValue('npm')
+    jest.spyOn(versions, 'getLocalPrismaVersion').mockReturnValue(Promise.resolve('0.0.2'))
+
+    const data = await ctx.cli('generate')
+    expect(data.stdout).toMatchInlineSnapshot(
+      `warn Global prisma@0.0.0 and Local prisma@0.0.2 don't match. This might lead to unexpected behavior. Would you like to proceed ? [yes/no]`,
+    )
+  }, 75_000)
+
+  it('should warn on mismatch of global version and local client version', async () => {
+    ctx.fixture('example-project')
+
+    const versions = { getInstalledPrismaClientVersion, isCurrentBinInstalledGlobally, getLocalPrismaVersion }
+    jest.spyOn(versions, 'getInstalledPrismaClientVersion').mockReturnValue(Promise.resolve('0.0.1'))
+    jest.spyOn(versions, 'isCurrentBinInstalledGlobally').mockReturnValue('npm')
+
+    const data = await ctx.cli('generate')
+    expect(data.stdout).toMatchInlineSnapshot(
+      `warn Global prisma@0.0.0 and Local @prisma/client@0.0.1 don't match. This might lead to unexpected behavior. Would you like to proceed ? [yes/no]`,
+    )
+  }, 75_000)
 })
 
 describe('--schema from project directory', () => {
