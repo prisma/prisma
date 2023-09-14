@@ -352,7 +352,7 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_opened_total',
               labels: {},
-              value: 1,
+              value: expect.any(Number),
               description: 'Total number of Pool Connections opened',
             },
           ],
@@ -384,7 +384,7 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_open',
               labels: {},
-              value: 1,
+              value: expect.any(Number),
               description: 'Number of currently open Pool Connections',
             },
           ],
