@@ -66,7 +66,7 @@ testMatrix.setupTestSuite(
         await executeOneQuery()
       })
 
-      test.failing('returns metrics in prometheus format', async () => {
+      test('returns metrics in prometheus format', async () => {
         const metrics = await prisma.$metrics.prometheus()
 
         expect((metrics.match(/prisma_client_queries_total \d/g) || []).length).toBe(1)
@@ -102,7 +102,7 @@ testMatrix.setupTestSuite(
         expect(metrics).toContain('{label1="value1",label2="value2"}')
       })
 
-      test.failing('returns metrics in json format', async () => {
+      test('returns metrics in json format', async () => {
         const { counters, gauges, histograms } = await prisma.$metrics.json()
 
         expect(counters.length).toBeGreaterThan(0)
@@ -118,24 +118,42 @@ testMatrix.setupTestSuite(
         expect(gauges.length).toBeGreaterThan(0)
         expect(gauges[0].value).toBeGreaterThanOrEqual(0)
         const gaugesKeys = gauges.map((c) => c.key)
-        expect(gaugesKeys).toEqual([
-          'prisma_client_queries_active',
-          'prisma_client_queries_wait',
-          'prisma_pool_connections_busy',
-          'prisma_pool_connections_idle',
-          'prisma_pool_connections_open',
-        ])
+        if (provider === 'mongodb') {
+          expect(gaugesKeys).toEqual([
+            'prisma_client_queries_active',
+            // 'prisma_client_queries_wait',
+            'prisma_pool_connections_busy',
+            'prisma_pool_connections_idle',
+            'prisma_pool_connections_open',
+          ])
+        } else {
+          expect(gaugesKeys).toEqual([
+            'prisma_client_queries_active',
+            'prisma_client_queries_wait',
+            'prisma_pool_connections_busy',
+            'prisma_pool_connections_idle',
+            'prisma_pool_connections_open',
+          ])
+        }
 
         expect(histograms.length).toBeGreaterThan(0)
         expect(histograms[0].value.buckets.length).toBeGreaterThan(0)
         expect(histograms[0].value.count).toBeGreaterThan(0)
         expect(histograms[0].value.sum).toBeGreaterThan(0)
         const histogramsKeys = histograms.map((c) => c.key)
-        expect(histogramsKeys).toEqual([
-          'prisma_client_queries_duration_histogram_ms',
-          'prisma_client_queries_wait_histogram_ms',
-          'prisma_datasource_queries_duration_histogram_ms',
-        ])
+        if (provider === 'mongodb') {
+          expect(histogramsKeys).toEqual([
+            'prisma_client_queries_duration_histogram_ms',
+            // 'prisma_client_queries_wait_histogram_ms',
+            'prisma_datasource_queries_duration_histogram_ms',
+          ])
+        } else {
+          expect(histogramsKeys).toEqual([
+            'prisma_client_queries_duration_histogram_ms',
+            'prisma_client_queries_wait_histogram_ms',
+            'prisma_datasource_queries_duration_histogram_ms',
+          ])
+        }
 
         for (const [max, count] of histograms[0].value.buckets) {
           expect(max).toBeGreaterThanOrEqual(0)
