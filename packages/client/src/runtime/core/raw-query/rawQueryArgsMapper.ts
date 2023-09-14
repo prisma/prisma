@@ -39,7 +39,7 @@ export const rawQueryArgsMapper =
   ({ clientMethod, activeProvider, activeProviderFlavour }: RawQueryArgsMapperInput) =>
   (args: RawQueryArgs) => {
     if (activeProviderFlavour !== undefined) {
-      // When using the JS connector, we need to use the flavour of the connector,
+      // When using the driver adapter, we need to use the flavour of the adapter,
       // in order to avoid enumerating all the possible `@prisma/*` provider names.
       activeProvider = activeProviderFlavour
     }
