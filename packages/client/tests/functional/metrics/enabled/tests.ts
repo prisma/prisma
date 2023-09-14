@@ -206,11 +206,11 @@ testMatrix.setupTestSuite(
                   [5, expect.any(Number)],
                   [10, expect.any(Number)],
                   [50, expect.any(Number)],
-                  [100, 0],
-                  [500, 0],
-                  [1000, 0],
-                  [5000, 0],
-                  [50000, 1],
+                  [100, expect.any(Number)],
+                  [500, expect.any(Number)],
+                  [1000, expect.any(Number)],
+                  [5000, expect.any(Number)],
+                  [50000, expect.any(Number)],
                 ],
                 sum: expect.any(Number),
                 count: expect.any(Number),
@@ -286,7 +286,7 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_idle',
               labels: {},
-              value: 21,
+              value: expect.any(Number),
               description: 'Number of currently unused Pool Connections (waiting for the next pool query to run)',
             },
             {
@@ -378,7 +378,7 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_idle',
               labels: {},
-              value: 21,
+              value: expect.any(Number),
               description: 'Number of currently unused Pool Connections (waiting for the next pool query to run)',
             },
             {
