@@ -23,7 +23,7 @@ In the current directory:
 - Run `pnpm prisma:planetscale` to push the Prisma schema, insert the test data, and generate the Prisma Client.
 - Run `pnpm planetscale` to run smoke tests against the PlanetScale database.
 
-You can also observe more logs by specifying the environment variable `DEBUG="prisma:js-connector:planetscale"`.
+You can also observe more logs by specifying the environment variable `DEBUG="prisma:driver-adapter:planetscale"`.
 
 ### Neon
 
@@ -35,7 +35,7 @@ In the current directory:
 - Run `pnpm prisma:neon` to push the Prisma schema, insert the test data, and generate the Prisma Client.
 - Run `pnpm neon` to run smoke tests against the Neon database.
 
-You can also observe more logs by specifying the environment variable `DEBUG="prisma:js-connector:neon"`.
+You can also observe more logs by specifying the environment variable `DEBUG="prisma:driver-adapter:neon"`.
 
 ## How to use
 
