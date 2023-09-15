@@ -81,6 +81,7 @@
     "@opentelemetry/resources": "1.17.0",
     "@opentelemetry/sdk-trace-base": "1.17.0",
     "@opentelemetry/semantic-conventions": "1.17.0",
+    "@planetscale/database": "1.11.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",

@@ -356,7 +356,7 @@ importers:
         version: 0.2.1(pg@8.11.2)
       '@jkomyno/prisma-adapter-planetscale':
         specifier: 0.2.1
-        version: 0.2.1
+        version: 0.2.1(@planetscale/database@1.11.0)
       '@jkomyno/prisma-driver-adapter-utils':
         specifier: 0.2.1
         version: 0.2.1
@@ -381,6 +381,9 @@ importers:
       '@opentelemetry/semantic-conventions':
         specifier: 1.17.0
         version: 1.17.0
+      '@planetscale/database':
+        specifier: ^1.11.0
+        version: 1.11.0
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -2369,12 +2372,13 @@ packages:
       - supports-color
     dev: true
 
-  /@jkomyno/prisma-adapter-planetscale@0.2.1:
+  /@jkomyno/prisma-adapter-planetscale@0.2.1(@planetscale/database@1.11.0):
     resolution: {integrity: sha512-Qv6LGuMvVk+s8CId38+eI05hhc+SW8ZR7jxow2abYg+HrukAgeSTS9b4nrn/M5vuIKOX3ZTgQ+JXAuTQTNjkGQ==}
     peerDependencies:
       '@planetscale/database': ^1.11.0
     dependencies:
       '@jkomyno/prisma-driver-adapter-utils': 0.2.1
+      '@planetscale/database': 1.11.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -2923,6 +2927,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@planetscale/database@1.11.0:
+    resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
+    engines: {node: '>=16'}
+    dev: true
 
   /@prisma/engines-version@5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb:
     resolution: {integrity: sha512-PWVOGskL5RCzV6LHTOUJUjFjPMQSOxDmchuvFVOhvVD0vg7RcML0XO9/P7wW+ncY00HUDoo7yvqqTidHCp6OAg==}
@@ -8038,7 +8047,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.17.15)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.17.15)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
