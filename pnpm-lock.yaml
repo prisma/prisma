@@ -327,8 +327,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
-        version: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
+        specifier: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
+        version: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -382,7 +382,7 @@ importers:
         specifier: 1.17.0
         version: 1.17.0
       '@planetscale/database':
-        specifier: ^1.11.0
+        specifier: 1.11.0
         version: 1.11.0
       '@prisma/debug':
         specifier: workspace:*
@@ -411,6 +411,9 @@ importers:
       '@prisma/mini-proxy':
         specifier: 0.9.4
         version: 0.9.4
+      '@snaplet/copycat':
+        specifier: 0.16.0
+        version: 0.16.0
       '@swc-node/register':
         specifier: 1.6.6
         version: 1.6.6(@swc/core@1.3.75)(typescript@5.2.2)
@@ -626,8 +629,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
-        version: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
+        specifier: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
+        version: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -711,8 +714,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
-        version: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
+        specifier: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
+        version: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
       '@swc/core':
         specifier: 1.3.75
         version: 1.3.75
@@ -993,8 +996,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
-        version: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
+        specifier: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
+        version: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
       archiver:
         specifier: 5.3.2
         version: 5.3.2
@@ -1202,8 +1205,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
-        version: 5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb
+        specifier: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
+        version: 5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -2933,8 +2936,8 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/engines-version@5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb:
-    resolution: {integrity: sha512-PWVOGskL5RCzV6LHTOUJUjFjPMQSOxDmchuvFVOhvVD0vg7RcML0XO9/P7wW+ncY00HUDoo7yvqqTidHCp6OAg==}
+  /@prisma/engines-version@5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d:
+    resolution: {integrity: sha512-zg5L4jLE9xN+rXonWyCpOX+8z2c3/QKtdsiOBZig5vG4Bn9X3WV2iL552Sf83ixHAo3G1DWHusROrIFXapR9jw==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -2942,8 +2945,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.4.0-4.3ef05ffb36cba7bf2d6b2a395abfe466195b6fbb:
-    resolution: {integrity: sha512-+UlhFgx2fnx//V/vBRhD4QNVmTeEmtrB6CPM8MrTtUFzw/owvuFkPgiYbAYTu234kknrEeBAeglQQZSNUYzSaQ==}
+  /@prisma/prisma-schema-wasm@5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d:
+    resolution: {integrity: sha512-DNPiXMBjmqIYEj1aDiXq+F3K0S1EGXVunXgXrdoq9By55LtjMeTGdCIOS5UVw9iEwgY8MmJ/V46t80+FLJ6F9g==}
     dev: false
 
   /@prisma/studio-common@0.494.0:
@@ -3101,6 +3104,14 @@ packages:
       axios: 0.21.4
     transitivePeerDependencies:
       - debug
+    dev: true
+
+  /@snaplet/copycat@0.16.0:
+    resolution: {integrity: sha512-4BererZXhzz3HT4cbTrHOwH5N7w519VYRIXgZV74O3a7VAe/SncE6r5vBQlWUMwIKlovMpJe1JosFdNzlYRhjw==}
+    dependencies:
+      '@faker-js/faker': 8.0.2
+      fictional: 0.8.1
+      uuid: 8.3.2
     dev: true
 
   /@swc-node/core@1.10.4(@swc/core@1.3.75):
@@ -6498,6 +6509,15 @@ packages:
       web-streams-polyfill: 3.2.1
     dev: true
 
+  /fictional@0.8.1:
+    resolution: {integrity: sha512-BIDqu4ICuSgrbBDMD3+h176GO62WYEHSPaAxuC1TN13nDkqztlzZoqVKa7YWFHFraBSKYwJNLi3rn9u3win3Jg==}
+    dependencies:
+      decimal.js: 10.4.3
+      fast-json-stable-stringify: 2.1.0
+      fnv-plus: 1.3.1
+      siphash: 1.1.0
+    dev: true
+
   /figures@1.7.0:
     resolution: {integrity: sha512-UxKlfCRuCBxSXU4C6t9scbDyWZ4VlaFFdojKtzJuSkuOBQ5CNFum+zZXFwHjo+CxBC1t6zlYPgHIgFjL8ggoEQ==}
     engines: {node: '>=0.10.0'}
@@ -6631,6 +6651,10 @@ packages:
 
   /flatted@3.2.7:
     resolution: {integrity: sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==}
+    dev: true
+
+  /fnv-plus@1.3.1:
+    resolution: {integrity: sha512-Gz1EvfOneuFfk4yG458dJ3TLJ7gV19q3OM/vVvvHf7eT02Hm1DleB4edsia6ahbKgAYxO9gvyQ1ioWZR+a00Yw==}
     dev: true
 
   /follow-redirects@1.15.2:
@@ -8047,7 +8071,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.17.15)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.17.15)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -11517,6 +11541,10 @@ packages:
 
   /simple-statistics@7.8.3:
     resolution: {integrity: sha512-JFvMY00t6SBGtwMuJ+nqgsx9ylkMiJ5JlK9bkj8AdvniIe5615wWQYkKHXe84XtSuc40G/tlrPu0A5/NlJvv8A==}
+    dev: true
+
+  /siphash@1.1.0:
+    resolution: {integrity: sha512-QXQOIeN7Lq1uAVfppZukylZ2tAGedZ49Xpu39Zfyb6JJqVFrP7GfbVc7kxTAyoHGi3/c0y7yIG6lmSwxapEKqA==}
     dev: true
 
   /sisteransi@1.0.5:
