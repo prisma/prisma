@@ -396,6 +396,9 @@ importers:
       '@prisma/mini-proxy':
         specifier: 0.9.4
         version: 0.9.4
+      '@snaplet/copycat':
+        specifier: 0.16.0
+        version: 0.16.0
       '@swc-node/register':
         specifier: 1.6.6
         version: 1.6.6(@swc/core@1.3.75)(typescript@5.2.2)
@@ -3997,6 +4000,14 @@ packages:
       - debug
     dev: true
 
+  /@snaplet/copycat@0.16.0:
+    resolution: {integrity: sha512-4BererZXhzz3HT4cbTrHOwH5N7w519VYRIXgZV74O3a7VAe/SncE6r5vBQlWUMwIKlovMpJe1JosFdNzlYRhjw==}
+    dependencies:
+      '@faker-js/faker': 8.0.2
+      fictional: 0.8.1
+      uuid: 8.3.2
+    dev: true
+
   /@swc-node/core@1.10.4(@swc/core@1.3.75):
     resolution: {integrity: sha512-ixZCb4LsSUPflnOxj4a8T5yTPzKbgvP+tF0N59Rk2+68ikFRt9Qci2qy9xfuDIQbuiONzXersrNpd+p598uH0A==}
     engines: {node: '>= 10'}
@@ -7382,6 +7393,15 @@ packages:
       web-streams-polyfill: 3.2.1
     dev: true
 
+  /fictional@0.8.1:
+    resolution: {integrity: sha512-BIDqu4ICuSgrbBDMD3+h176GO62WYEHSPaAxuC1TN13nDkqztlzZoqVKa7YWFHFraBSKYwJNLi3rn9u3win3Jg==}
+    dependencies:
+      decimal.js: 10.4.3
+      fast-json-stable-stringify: 2.1.0
+      fnv-plus: 1.3.1
+      siphash: 1.1.0
+    dev: true
+
   /figures@1.7.0:
     resolution: {integrity: sha512-UxKlfCRuCBxSXU4C6t9scbDyWZ4VlaFFdojKtzJuSkuOBQ5CNFum+zZXFwHjo+CxBC1t6zlYPgHIgFjL8ggoEQ==}
     engines: {node: '>=0.10.0'}
@@ -7515,6 +7535,10 @@ packages:
 
   /flatted@3.2.7:
     resolution: {integrity: sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==}
+    dev: true
+
+  /fnv-plus@1.3.1:
+    resolution: {integrity: sha512-Gz1EvfOneuFfk4yG458dJ3TLJ7gV19q3OM/vVvvHf7eT02Hm1DleB4edsia6ahbKgAYxO9gvyQ1ioWZR+a00Yw==}
     dev: true
 
   /follow-redirects@1.15.2:
@@ -12441,6 +12465,10 @@ packages:
 
   /simple-statistics@7.8.3:
     resolution: {integrity: sha512-JFvMY00t6SBGtwMuJ+nqgsx9ylkMiJ5JlK9bkj8AdvniIe5615wWQYkKHXe84XtSuc40G/tlrPu0A5/NlJvv8A==}
+    dev: true
+
+  /siphash@1.1.0:
+    resolution: {integrity: sha512-QXQOIeN7Lq1uAVfppZukylZ2tAGedZ49Xpu39Zfyb6JJqVFrP7GfbVc7kxTAyoHGi3/c0y7yIG6lmSwxapEKqA==}
     dev: true
 
   /sisteransi@1.0.5:
