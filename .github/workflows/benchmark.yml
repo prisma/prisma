@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
