@@ -165,7 +165,7 @@ export class BinaryEngine extends Engine<undefined> {
 
     if (this.config.adapter) {
       throw new PrismaClientInitializationError(
-        `Cannot use JS Connectors with the query engine binary. Please use the query engine library.`,
+        `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
         this.clientVersion!,
       )
     }
