@@ -9,7 +9,7 @@ import {
   TraceFlags,
 } from '@opentelemetry/api'
 import { Tracer } from '@opentelemetry/sdk-trace-base'
-import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import { EngineSpan, EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 // If true, will publish internal spans as well
 const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
@@ -25,6 +25,8 @@ type Options = {
 
 export class ActiveTracingHelper implements TracingHelper {
   private traceMiddleware: boolean
+  private engineSpansToProcess = new Map<string, EngineSpan[]>()
+
   constructor({ traceMiddleware }: Options) {
     this.traceMiddleware = traceMiddleware
   }
@@ -42,38 +44,59 @@ export class ActiveTracingHelper implements TracingHelper {
   }
 
   createEngineSpan(engineSpanEvent: EngineSpanEvent) {
+    const rootEngineSpans = ['prisma:engine', 'prisma:engine:itx_runner']
+
+    for (const span of engineSpanEvent.spans) {
+      // We receive engine spans as soon as they end. So the parent nodes are received after the children.
+      // Because of that we cannot process the spans immediately, as creating spans affects them a random SpanId and that
+      // breaks the `parent_span_id` relationship.
+      // To circumvent this issue we accumulate engine spans and only process them once a full span tree is acquired.
+      const currentValue = this.engineSpansToProcess.get(span.parent_span_id) ?? []
+      this.engineSpansToProcess.set(span.parent_span_id, [...currentValue, span])
+
+      if (rootEngineSpans.includes(span.name)) {
+        this.processEngineSpanTreeRecursively(span, span.parent_span_id)
+      }
+    }
+  }
+
+  processEngineSpanTreeRecursively(engineSpan: EngineSpan, parentSpanId: string) {
     const tracer = trace.getTracer('prisma') as Tracer
 
-    engineSpanEvent.spans.forEach((engineSpan) => {
-      const links = engineSpan.links?.map((link) => {
-        return {
-          context: {
-            traceId: link.trace_id,
-            spanId: link.span_id,
-            traceFlags: TraceFlags.SAMPLED,
-          },
-        }
-      })
-
-      const parentSpanContext: SpanContext = {
-        traceId: engineSpan.trace_id,
-        spanId: engineSpan.parent_span_id,
-        traceFlags: TraceFlags.SAMPLED,
-      }
-      const parentContext = trace.setSpanContext(ROOT_CONTEXT, parentSpanContext)
-      const span = tracer.startSpan(
-        engineSpan.name,
-        {
-          links,
-          kind: SpanKind.INTERNAL,
-          startTime: engineSpan.start_time,
-          attributes: engineSpan.attributes,
+    const links = engineSpan.links?.map((link) => {
+      return {
+        context: {
+          traceId: link.trace_id,
+          spanId: link.span_id,
+          traceFlags: TraceFlags.SAMPLED,
         },
-        parentContext,
-      )
-
-      span.end(engineSpan.end_time)
+      }
     })
+
+    const parentSpanContext: SpanContext = {
+      traceId: engineSpan.trace_id,
+      spanId: parentSpanId,
+      traceFlags: TraceFlags.SAMPLED,
+    }
+    const parentContext = trace.setSpanContext(ROOT_CONTEXT, parentSpanContext)
+    const span = tracer.startSpan(
+      engineSpan.name,
+      {
+        links,
+        kind: SpanKind.INTERNAL,
+        startTime: engineSpan.start_time,
+        attributes: engineSpan.attributes,
+      },
+      parentContext,
+    )
+
+    span.end(engineSpan.end_time)
+
+    const childrenSpans = this.engineSpansToProcess.get(engineSpan.span_id) ?? []
+    for (const childSpan of childrenSpans) {
+      this.processEngineSpanTreeRecursively(childSpan, span.spanContext().spanId)
+    }
+    this.engineSpansToProcess.delete(engineSpan.span_id)
   }
 
   getActiveContext(): Context | undefined {
