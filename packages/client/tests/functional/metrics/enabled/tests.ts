@@ -41,27 +41,25 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_total',
             labels: {},
             value: 0,
-            description: 'Total number of Prisma Client queries executed',
+            description: 'The total number of Prisma Client queries executed',
           },
           {
             key: 'prisma_datasource_queries_total',
             labels: {},
             value: 0,
-            description: 'Total number of Datasource Queries executed',
+            description: 'The total number of datasource queries executed',
           },
           {
             key: 'prisma_pool_connections_closed_total',
             labels: {},
             value: 0,
-            description: '',
-            // description: 'Total number of Pool Connections closed',
+            description: 'The total number of pool connections closed',
           },
           {
             key: 'prisma_pool_connections_opened_total',
             labels: {},
             value: 0, // different from SQL providers
-            description: '',
-            // description: 'Total number of Pool Connections opened',
+            description: 'The total number of pool connections opened',
           },
         ])
         expect(gaugesBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
@@ -69,36 +67,31 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_active',
             labels: {},
             value: 0,
-            // description: '',
-            description: 'Number of currently active Prisma Client queries',
+            description: 'The number of currently active Prisma Client queries',
           },
-          // {
-          //   key: 'prisma_client_queries_wait',
-          //   labels: {},
-          //   value: 0,
-          //   description: '',
-          //   description: 'Number of queries currently waiting for a connection',
-          // },
+          {
+            key: 'prisma_client_queries_wait',
+            labels: {},
+            value: 0,
+            description: 'The number of datasource queries currently waiting for an free connection',
+          },
           {
             key: 'prisma_pool_connections_busy',
             labels: {},
             value: 0,
-            description: '',
-            // description: 'Number of currently busy Pool Connections (executing a database query)',
+            description: 'The number of pool connections currently executing datasource queries',
           },
           {
             key: 'prisma_pool_connections_idle',
             labels: {},
             value: 0, // different from SQL providers
-            description: '',
-            // description: 'Number of currently unused Pool Connections (waiting for the next pool query to run)',
+            description: 'The number of pool connections that are not busy running a query',
           },
           {
             key: 'prisma_pool_connections_open',
             labels: {},
             value: 0, // different from SQL providers
-            description: '',
-            // description: 'Number of currently open Pool Connections',
+            description: 'The number of pool connections currently open',
           },
         ])
         expect(histogramsBefore).toEqual([])
@@ -113,27 +106,25 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_total',
             labels: {},
             value: 2, // different from before
-            description: 'Total number of Prisma Client queries executed',
+            description: 'The total number of Prisma Client queries executed',
           },
           {
             key: 'prisma_datasource_queries_total',
             labels: {},
             value: expect.any(Number), // different from before
-            description: 'Total number of Datasource Queries executed',
+            description: 'The total number of datasource queries executed',
           },
           {
             key: 'prisma_pool_connections_closed_total',
             labels: {},
             value: 0,
-            description: '',
-            // description: 'Total number of Pool Connections closed',
+            description: 'The total number of pool connections closed',
           },
           {
             key: 'prisma_pool_connections_opened_total',
             labels: {},
             value: 0,
-            description: '',
-            // description: 'Total number of Pool Connections opened',
+            description: 'The total number of pool connections opened',
           },
         ])
         expect(gaugesAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
@@ -141,34 +132,31 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_active',
             labels: {},
             value: 0,
-            description: 'Number of currently active Prisma Client queries',
+            description: 'The number of currently active Prisma Client queries',
           },
-          // {
-          //   key: 'prisma_client_queries_wait',
-          //   labels: {},
-          //   value: 0,
-          //   description: 'Number of queries currently waiting for a connection',
-          // },
+          {
+            key: 'prisma_client_queries_wait',
+            labels: {},
+            value: 0,
+            description: 'The number of datasource queries currently waiting for an free connection',
+          },
           {
             key: 'prisma_pool_connections_busy',
             labels: {},
             value: 0,
-            description: '',
-            // description: 'Number of currently busy Pool Connections (executing a database query)',
+            description: 'The number of pool connections currently executing datasource queries',
           },
           {
             key: 'prisma_pool_connections_idle',
             labels: {},
             value: 0, // different from SQL providers
-            description: '',
-            // description: 'Number of currently unused Pool Connections (waiting for the next pool query to run)',
+            description: 'The number of pool connections that are not busy running a query',
           },
           {
             key: 'prisma_pool_connections_open',
             labels: {},
             value: 0, // different from SQL providers
-            description: '',
-            // description: 'Number of currently open Pool Connections',
+            description: 'The number of pool connections currently open',
           },
         ])
         expect(histogramsAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
@@ -191,7 +179,7 @@ testMatrix.setupTestSuite(
               sum: expect.any(Number),
               count: expect.any(Number),
             },
-            description: 'Histogram of the duration of all executed Prisma Client queries in ms',
+            description: 'The distribution of the time Prisma Client queries took to run end to end',
           },
           {
             key: 'prisma_datasource_queries_duration_histogram_ms',
@@ -212,7 +200,7 @@ testMatrix.setupTestSuite(
               sum: expect.any(Number),
               count: expect.any(Number),
             },
-            description: 'Histogram of the duration of all executed Datasource Queries in ms',
+            description: 'The distribution of the time datasource queries took to run',
           },
         ])
 
@@ -237,25 +225,25 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_total',
             labels: {},
             value: 0,
-            description: 'Total number of Prisma Client queries executed',
+            description: 'The total number of Prisma Client queries executed',
           },
           {
             key: 'prisma_datasource_queries_total',
             labels: {},
             value: 0,
-            description: 'Total number of Datasource Queries executed',
+            description: 'The total number of datasource queries executed',
           },
           {
             key: 'prisma_pool_connections_closed_total',
             labels: {},
             value: 0,
-            description: 'Total number of Pool Connections closed',
+            description: 'The total number of pool connections closed',
           },
           {
             key: 'prisma_pool_connections_opened_total',
             labels: {},
             value: 1,
-            description: 'Total number of Pool Connections opened',
+            description: 'The total number of pool connections opened',
           },
         ])
         expect(gaugesBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
@@ -263,31 +251,31 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_active',
             labels: {},
             value: 0,
-            description: 'Number of currently active Prisma Client queries',
+            description: 'The number of currently active Prisma Client queries',
           },
           {
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'Number of queries currently waiting for a connection',
+            description: 'The number of datasource queries currently waiting for an free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
             labels: {},
             value: 0,
-            description: 'Number of currently busy Pool Connections (executing a database query)',
+            description: 'The number of pool connections currently executing datasource queries',
           },
           {
             key: 'prisma_pool_connections_idle',
             labels: {},
             value: expect.any(Number),
-            description: 'Number of currently unused Pool Connections (waiting for the next pool query to run)',
+            description: 'The number of pool connections that are not busy running a query',
           },
           {
             key: 'prisma_pool_connections_open',
             labels: {},
             value: 1,
-            description: 'Number of currently open Pool Connections',
+            description: 'The number of pool connections currently open',
           },
         ])
         expect(histogramsBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
@@ -310,7 +298,7 @@ testMatrix.setupTestSuite(
               sum: expect.any(Number),
               count: 1,
             },
-            description: 'Histogram of the wait time of all queries in ms',
+            description: 'The distribution of the time all datasource queries spent waiting for a free connection',
           },
         ])
 
@@ -320,31 +308,30 @@ testMatrix.setupTestSuite(
         const metricAfter = await prisma.$metrics.json()
         // console.log(JSON.stringify(metricAfter, null, 2))
         const { counters: countersAfter, gauges: gaugesAfter, histograms: histogramsAfter } = metricAfter
-
         expect(countersAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
           {
             key: 'prisma_client_queries_total',
             labels: {},
             value: 2, // different from before
-            description: 'Total number of Prisma Client queries executed',
+            description: 'The total number of Prisma Client queries executed',
           },
           {
             key: 'prisma_datasource_queries_total',
             labels: {},
             value: expect.any(Number), // different from before
-            description: 'Total number of Datasource Queries executed',
+            description: 'The total number of datasource queries executed',
           },
           {
             key: 'prisma_pool_connections_closed_total',
             labels: {},
             value: 0,
-            description: 'Total number of Pool Connections closed',
+            description: 'The total number of pool connections closed',
           },
           {
             key: 'prisma_pool_connections_opened_total',
             labels: {},
             value: expect.any(Number),
-            description: 'Total number of Pool Connections opened',
+            description: 'The total number of pool connections opened',
           },
         ])
         expect(gaugesAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
@@ -352,31 +339,31 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_active',
             labels: {},
             value: 0,
-            description: 'Number of currently active Prisma Client queries',
+            description: 'The number of currently active Prisma Client queries',
           },
           {
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'Number of queries currently waiting for a connection',
+            description: 'The number of datasource queries currently waiting for an free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
             labels: {},
             value: 0,
-            description: 'Number of currently busy Pool Connections (executing a database query)',
+            description: 'The number of pool connections currently executing datasource queries',
           },
           {
             key: 'prisma_pool_connections_idle',
             labels: {},
             value: expect.any(Number),
-            description: 'Number of currently unused Pool Connections (waiting for the next pool query to run)',
+            description: 'The number of pool connections that are not busy running a query',
           },
           {
             key: 'prisma_pool_connections_open',
             labels: {},
             value: expect.any(Number),
-            description: 'Number of currently open Pool Connections',
+            description: 'The number of pool connections currently open',
           },
         ])
         expect(histogramsAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
@@ -399,7 +386,7 @@ testMatrix.setupTestSuite(
               sum: expect.any(Number),
               count: expect.any(Number),
             },
-            description: 'Histogram of the duration of all executed Prisma Client queries in ms',
+            description: 'The distribution of the time Prisma Client queries took to run end to end',
           },
           {
             key: 'prisma_client_queries_wait_histogram_ms',
@@ -420,7 +407,7 @@ testMatrix.setupTestSuite(
               sum: expect.any(Number),
               count: expect.any(Number),
             },
-            description: 'Histogram of the wait time of all queries in ms',
+            description: 'The distribution of the time all datasource queries spent waiting for a free connection',
           },
           {
             key: 'prisma_datasource_queries_duration_histogram_ms',
@@ -441,7 +428,7 @@ testMatrix.setupTestSuite(
               sum: expect.any(Number),
               count: expect.any(Number),
             },
-            description: 'Histogram of the duration of all executed Datasource Queries in ms',
+            description: 'The distribution of the time datasource queries took to run',
           },
         ])
 
@@ -465,6 +452,7 @@ testMatrix.setupTestSuite(
 
         expect((metrics.match(/prisma_client_queries_total \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_client_queries_active \d/g) || []).length).toBe(1)
+        expect((metrics.match(/prisma_client_queries_wait \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_bucket/g) || []).length).toBe(11)
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_sum .*/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_count \d/g) || []).length).toBe(1)
@@ -475,18 +463,20 @@ testMatrix.setupTestSuite(
         expect((metrics.match(/prisma_datasource_queries_duration_histogram_ms_sum .*/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_datasource_queries_duration_histogram_ms_count \d/g) || []).length).toBe(1)
 
+        expect((metrics.match(/prisma_pool_connections_busy \d/g) || []).length).toBe(1)
+        expect((metrics.match(/prisma_pool_connections_open \d/g) || []).length).toBe(1)
+        expect((metrics.match(/prisma_pool_connections_idle \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_pool_connections_closed_total \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_pool_connections_opened_total \d/g) || []).length).toBe(1)
-        expect((metrics.match(/prisma_pool_connections_busy \d/g) || []).length).toBe(1)
 
-        if (provider !== 'mongodb') {
-          expect((metrics.match(/prisma_client_queries_wait \d/g) || []).length).toBe(1)
+        if (provider === 'mongodb') {
+          expect((metrics.match(/prisma_client_queries_wait_histogram_ms_bucket/g) || []).length).toBe(0)
+          expect((metrics.match(/prisma_client_queries_wait_histogram_ms_sum .*/g) || []).length).toBe(0)
+          expect((metrics.match(/prisma_client_queries_wait_histogram_ms_count \d/g) || []).length).toBe(0)
+        } else {
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_bucket/g) || []).length).toBe(11)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_sum .*/g) || []).length).toBe(1)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_count \d/g) || []).length).toBe(1)
-
-          expect((metrics.match(/prisma_pool_connections_open \d/g) || []).length).toBe(1)
-          expect((metrics.match(/prisma_pool_connections_idle \d/g) || []).length).toBe(1)
         }
       })
 
@@ -512,23 +502,13 @@ testMatrix.setupTestSuite(
         expect(gauges.length).toBeGreaterThan(0)
         expect(gauges[0].value).toBeGreaterThanOrEqual(0)
         const gaugesKeys = gauges.map((c) => c.key)
-        if (provider === 'mongodb') {
-          expect(gaugesKeys).toEqual([
-            'prisma_client_queries_active',
-            // 'prisma_client_queries_wait',
-            'prisma_pool_connections_busy',
-            'prisma_pool_connections_idle',
-            'prisma_pool_connections_open',
-          ])
-        } else {
-          expect(gaugesKeys).toEqual([
-            'prisma_client_queries_active',
-            'prisma_client_queries_wait',
-            'prisma_pool_connections_busy',
-            'prisma_pool_connections_idle',
-            'prisma_pool_connections_open',
-          ])
-        }
+        expect(gaugesKeys).toEqual([
+          'prisma_client_queries_active',
+          'prisma_client_queries_wait',
+          'prisma_pool_connections_busy',
+          'prisma_pool_connections_idle',
+          'prisma_pool_connections_open',
+        ])
 
         expect(histograms.length).toBeGreaterThan(0)
         expect(histograms[0].value.buckets.length).toBeGreaterThan(0)
