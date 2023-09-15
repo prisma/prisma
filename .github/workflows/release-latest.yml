@@ -9,7 +9,7 @@ on:
         type: string
         required: true
       skipEcosystemTestsChecks:
-        description: 'Check to skip ecosystem tests checks'
+        description: 'Skip ecosystem tests checks'
         type: boolean
       skipPackages:
         description: 'Skip publishing some packages? (e.g. `@prisma/debug,@prisma/internals`)'
