@@ -150,7 +150,7 @@ jobs:
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
@@ -220,7 +220,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},dataproxy
@@ -466,7 +466,7 @@ jobs:
       - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client-types,${{ matrix.os }},library,binary
@@ -544,7 +544,7 @@ jobs:
       - run: pnpm run test
         working-directory: packages/integration-tests
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/integration-tests/src/__tests__/coverage/clover.xml
           flags: integration-tests,${{ matrix.node }},${{ matrix.queryEngine }}
@@ -599,7 +599,7 @@ jobs:
       - run: pnpm run test
         working-directory: packages/internals
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/internals/src/__tests__/coverage/clover.xml
           flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
@@ -654,7 +654,7 @@ jobs:
       - run: pnpm run test
         working-directory: packages/migrate
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
@@ -709,7 +709,7 @@ jobs:
       - run: pnpm run test
         working-directory: packages/cli
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
@@ -744,7 +744,7 @@ jobs:
         name: 'debug'
         working-directory: packages/debug
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
@@ -754,7 +754,7 @@ jobs:
         name: 'generator-helper'
         working-directory: packages/generator-helper
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
@@ -764,7 +764,7 @@ jobs:
         name: 'get-platform'
         working-directory: packages/get-platform
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
           flags: get-platform,${{ matrix.os }},library,binary
@@ -774,7 +774,7 @@ jobs:
         name: 'fetch-engine'
         working-directory: packages/fetch-engine
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
           flags: fetch-engine,${{ matrix.os }},library,binary
@@ -784,7 +784,7 @@ jobs:
         name: 'engines'
         working-directory: packages/engines
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
@@ -794,7 +794,7 @@ jobs:
         name: 'instrumentation'
         working-directory: packages/instrumentation
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
           flags: instrumentation,${{ matrix.os }},library,binary
@@ -864,7 +864,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
@@ -936,7 +936,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'internals'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') }} || contains(inputs.jobsToRun, '-internals-') }}
         with:
           files: ./packages/internals/src/__tests__/coverage/clover.xml
@@ -955,7 +955,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/old'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
@@ -970,7 +970,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'migrate'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-') }}
         with:
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
@@ -985,7 +985,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'cli'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-') }}
         with:
           files: ./packages/cli/src/__tests__/coverage/clover.xml
@@ -1000,7 +1000,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'debug'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/debug/src/__tests__/coverage/clover.xml
@@ -1015,7 +1015,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'generator-helper'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
@@ -1030,7 +1030,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'get-platform'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
@@ -1045,7 +1045,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'fetch-engine'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
@@ -1060,7 +1060,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'engines'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/engines/src/__tests__/coverage/clover.xml
