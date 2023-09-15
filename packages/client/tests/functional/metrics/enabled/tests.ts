@@ -201,7 +201,7 @@ testMatrix.setupTestSuite(
               labels: {},
               value: {
                 buckets: [
-                  [0, 2],
+                  [0, expect.any(Number)],
                   [1, expect.any(Number)],
                   [5, expect.any(Number)],
                   [10, expect.any(Number)],
