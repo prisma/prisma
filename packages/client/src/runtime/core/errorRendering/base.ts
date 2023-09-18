@@ -11,7 +11,7 @@ export type Colors = {
   dim: ColorFn
 }
 
-const noop = (str: string) => str
+export const noop = (str: string) => str
 
 export const inactiveColors: Colors = {
   bold: noop,
