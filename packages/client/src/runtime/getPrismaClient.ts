@@ -36,8 +36,8 @@ import {
 } from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromiseFactory } from './core/request/createPrismaPromise'
 import {
-  PrismaPromise,
   PrismaPromiseInteractiveTransaction,
+  PrismaPromiseInternal,
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
@@ -665,7 +665,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       promises,
       options,
     }: {
-      promises: Array<PrismaPromise<any>>
+      promises: Array<PrismaPromiseInternal<any>>
       options?: BatchTransactionOptions
     }): Promise<any> {
       const id = BatchTxIdCounter.nextId()

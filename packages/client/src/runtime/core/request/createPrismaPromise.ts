@@ -1,6 +1,6 @@
-import type { PrismaPromise, PrismaPromiseTransaction } from './PrismaPromise'
+import type { PrismaPromiseInternal, PrismaPromiseTransaction } from './PrismaPromise'
 
-export type PrismaPromiseCallback = (transaction?: PrismaPromiseTransaction) => PrismaPromise<unknown>
+export type PrismaPromiseCallback = (transaction?: PrismaPromiseTransaction) => PrismaPromiseInternal<unknown>
 
 /**
  * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
@@ -11,7 +11,7 @@ export type PrismaPromiseCallback = (transaction?: PrismaPromiseTransaction) => 
  * @see [[PrismaPromise]]
  * @returns
  */
-export type PrismaPromiseFactory = (callback: PrismaPromiseCallback) => PrismaPromise<unknown>
+export type PrismaPromiseFactory = (callback: PrismaPromiseCallback) => PrismaPromiseInternal<unknown>
 
 /**
  * Creates a factory, that allows creating PrismaPromises, bound to a specific transactions
@@ -20,7 +20,7 @@ export type PrismaPromiseFactory = (callback: PrismaPromiseCallback) => PrismaPr
  */
 export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransaction): PrismaPromiseFactory {
   return function createPrismaPromise(callback) {
-    let promise: PrismaPromise<unknown> | undefined
+    let promise: PrismaPromiseInternal<unknown> | undefined
     const _callback = (callbackTransaction = transaction) => {
       try {
         // promises cannot be triggered twice after resolving
@@ -33,7 +33,7 @@ export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransactio
       } catch (error) {
         // if the callback throws, then we reject the promise
         // and that is because exceptions are not always async
-        return Promise.reject(error) as PrismaPromise<unknown>
+        return Promise.reject(error) as PrismaPromiseInternal<unknown>
       }
     }
 
@@ -63,7 +63,7 @@ export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransactio
   }
 }
 
-function valueToPromise<T>(thing: T): PrismaPromise<T> {
+function valueToPromise<T>(thing: T): PrismaPromiseInternal<T> {
   if (typeof thing['then'] === 'function') {
     return thing as Promise<T>
   }

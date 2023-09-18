@@ -10,7 +10,7 @@ import {
   CompositeProxyLayer,
   createCompositeProxy,
 } from '../compositeProxy'
-import type { PrismaPromise } from '../request/PrismaPromise'
+import type { PrismaPromiseInternal } from '../request/PrismaPromise'
 import type { UserArgs } from '../request/UserArgs'
 import { applyAggregates } from './applyAggregates'
 import { applyFieldsProxy } from './applyFieldsProxy'
@@ -20,7 +20,7 @@ import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
-) => (userArgs?: UserArgs) => PrismaPromise<unknown>
+) => (userArgs?: UserArgs) => PrismaPromiseInternal<unknown>
 
 const fluentProps = [
   'findUnique',

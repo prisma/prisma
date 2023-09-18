@@ -23,7 +23,7 @@ export type PrismaPromiseTransaction<PayloadType = unknown> =
  * original `Promise` are optional so that it can be backwards-compatible.
  * @see [[createPrismaPromise]]
  */
-export interface PrismaPromise<A> extends Promise<A> {
+export interface PrismaPromiseInternal<A> extends Promise<A> {
   /**
    * Extension of the original `.then` function
    * @param onfulfilled same as regular promises

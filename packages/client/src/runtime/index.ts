@@ -34,5 +34,6 @@ export { Types }
 export { Extensions }
 export { Public }
 
+export type * from './core/types'
 export type { ITXClientDenyList } from './itxClientDenyList'
 export { warnOnce } from '@prisma/internals'

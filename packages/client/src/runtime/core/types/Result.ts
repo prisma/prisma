@@ -45,7 +45,7 @@ export type FluentOperation =
   | 'upsert'
   | 'delete'
 
-type Count<O> = { [K in keyof O]: Count<number> } & {}
+export type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
 export type GetFindResult<P extends Payload, A> =
@@ -76,12 +76,12 @@ export type GetFindResult<P extends Payload, A> =
   : DefaultSelection<P>
 
 // prettier-ignore
-type SelectablePayloadFields<K extends PropertyKey, O> =
+export type SelectablePayloadFields<K extends PropertyKey, O> =
   | { objects: { [k in K]: O } }
   | { composites: { [k in K]: O } }
 
 // prettier-ignore
-type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> =
+export type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> =
   P extends { objects: Record<K, any> } 
   ? P['objects'][K]
   : P extends { composites: Record<K, any> }
@@ -92,7 +92,7 @@ type SelectField<P extends SelectablePayloadFields<any, any>, K extends Property
 export type DefaultSelection<P> = UnwrapPayload<{ default: P }>['default']
 
 // prettier-ignore
-type UnwrapPayload<P> = {} extends P ? unknown : {
+export type UnwrapPayload<P> = {} extends P ? unknown : {
   [K in keyof P]: 
     P[K] extends { scalars: infer S, composites: infer C }[]
     ? Array<S & UnwrapPayload<C>>
@@ -101,22 +101,22 @@ type UnwrapPayload<P> = {} extends P ? unknown : {
       : never
 };
 
-type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
+export type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
 
-type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum'
+export type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum'
 
 // prettier-ignore
-type GetAggregateResult<P extends Payload, A> = {
+export type GetAggregateResult<P extends Payload, A> = {
   [K in keyof A as K extends Aggregate ? K : never]:
     K extends '_count'
     ? A[K] extends true ? number : Count<A[K]>
     : { [J in keyof A[K] & string]: P['scalars'][J] | null }
 }
 
-type GetBatchResult = { count: number }
+export type GetBatchResult = { count: number }
 
 // prettier-ignore
-type GetGroupByResult<P extends Payload, A> =
+export type GetGroupByResult<P extends Payload, A> =
   A extends { by: string[] }
   ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
   : A extends { by: string } 
