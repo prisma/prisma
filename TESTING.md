@@ -453,7 +453,7 @@ By default, some tests are tested only during daily builds (e.g. `binary` engine
 ### Publishing all the packages to npm on the `integration` tag
 
 If a branch name starts with `integration/` like `integration/fix-all-the-things` the [GitHub Actions - npm - release to dev/integration](https://github.com/prisma/prisma/blob/main/.github/workflows/release-ci.yml) pipeline will be triggered.
-This workflow will directly publish (without running tests) the packages to npm on the `integration` tag with a version like `3.12.0-integration-fix-all-the-things.1` (where `3.12.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this branch)
+This workflow will directly publish (without running tests) the packages to npm on the `integration` tag with a version like `5.3.0-integration-fix-all-the-things.1` (where `5.3.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this branch)
 
 To make a Pull Request which will release a version to the `integration` tag automatically, the name of the branch of the PR would need to start with `integration/`.
 Alternatively, add `/integration` in the Pull Request description:
@@ -473,10 +473,10 @@ Example:
 Once published to npm the version will need to be installed with the exact version like:
 
 ```
-npm install -D prisma@3.12.0-fix-all-the-things.1
+npm install -D prisma@5.3.0-fix-all-the-things.1
 
 # or executed with npx like
-npx prisma@3.12.0-fix-all-the-things.1
+npx prisma@5.3.0-fix-all-the-things.1
 ```
 
 (Note that npm version upgrades or the update notifier in Prisma CLI might behave weird and unexpectedly with these integration versions.)
