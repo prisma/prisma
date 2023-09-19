@@ -250,12 +250,14 @@ Please make sure they have the same version.`
 
         const isTS = fs.existsSync(path.resolve(cwd, 'tsconfig.json'))
 
-        const clientImport = isDeno || isTS ? 
-          `import { PrismaClient } from '${importPath}'` : 
-          `const { PrismaClient } = require('${importPath}')`
-        const edgeImport = isDeno || isTS ?
-          `import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'` :
-          `const { PrismaClient } = require('@prisma/client/edge')`
+        const clientImport =
+          isDeno || isTS
+            ? `import { PrismaClient } from '${importPath}'`
+            : `const { PrismaClient } = require('${importPath}')`
+        const edgeImport =
+          isDeno || isTS
+            ? `import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`
+            : `const { PrismaClient } = require('@prisma/client/edge')`
 
         hint = `
 Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
