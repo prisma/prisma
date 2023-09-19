@@ -1,6 +1,6 @@
 {
   "name": "@jkomyno/prisma-driver-adapter-utils",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Internal set of utilities and types for Prisma's driver adapters.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

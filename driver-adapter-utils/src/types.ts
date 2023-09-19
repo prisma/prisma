@@ -46,7 +46,7 @@ export type Result<T> = {
 }
 
 export interface Queryable  {
-  readonly flavour: 'mysql' | 'postgres'
+  readonly flavour: 'mysql' | 'postgres' | 'sqlite'
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
