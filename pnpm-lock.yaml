@@ -349,8 +349,8 @@ importers:
         specifier: 29.7.0
         version: 29.7.0
       '@jkomyno/prisma-driver-adapter-utils':
-        specifier: 0.2.1
-        version: 0.2.1
+        specifier: 0.3.0
+        version: 0.3.0
       '@opentelemetry/api':
         specifier: 1.6.0
         version: 1.6.0
@@ -2338,8 +2338,8 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@jkomyno/prisma-driver-adapter-utils@0.2.1:
-    resolution: {integrity: sha512-wijRWfwLVIs/hJi4Plrc3JHBW3I4bVvgWM6uLvybQUWTtz4LwzdcPt3inZsPXr6qLkwqkjVe9q+XbeHCMPsLdg==}
+  /@jkomyno/prisma-driver-adapter-utils@0.3.0:
+    resolution: {integrity: sha512-RPoAqYIzVqlIqiuCNG+YMCY1jdLWeMChZBaebJu75FhStMxkUwHNRyo0dXTZi/NaC6unvifO7w9w6eK5KId8ww==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
