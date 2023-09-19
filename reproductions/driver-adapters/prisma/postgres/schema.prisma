@@ -1,0 +1,116 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../../node_modules/.prisma/client"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model type_test {
+  id                    Int                         @id @default(autoincrement())
+  smallint_column       Int                         @db.SmallInt
+  smallint_column_null  Int?                        @db.SmallInt
+  int_column            Int
+  int_column_null       Int?
+  bigint_column         BigInt
+  bigint_column_null    BigInt?
+  float_column          Float                       @db.Real
+  float_column_null     Float?                      @db.Real
+  double_column         Float
+  double_column_null    Float?
+  decimal_column        Decimal                     @db.Decimal(10, 2)
+  decimal_column_null   Decimal?                    @db.Decimal(10, 2)
+  boolean_column        Boolean
+  boolean_column_null   Boolean?
+  char_column           String                      @db.Char(10)
+  char_column_null      String?                     @db.Char(10)
+  varchar_column        String                      @db.VarChar(255)
+  varchar_column_null   String?                     @db.VarChar(255)
+  text_column           String
+  text_column_null      String?
+  date_column           DateTime                    @db.Date
+  date_column_null      DateTime?                   @db.Date
+  time_column           DateTime                    @db.Time(0)
+  time_column_null      DateTime?                   @db.Time(0)
+  datetime_column       DateTime                    @db.Timestamp(3)
+  datetime_column_null  DateTime?                   @db.Timestamp(3)
+  timestamp_column      DateTime                    @db.Timestamp(0)
+  timestamp_column_null DateTime?                   @db.Timestamp(0)
+  json_column           Json
+  json_column_null      Json?
+  enum_column           type_test_enum_column
+  enum_column_null      type_test_enum_column_null?
+}
+
+// This will eventually supersede type_test
+model type_test_2 {
+  id                   String    @id @default(cuid())
+  datetime_column      DateTime  @default(now()) @db.Timestamp(3)
+  datetime_column_null DateTime? @db.Timestamp(3)
+}
+
+model Child {
+  c          String  @unique
+  c_1        String
+  c_2        String
+  parentId   String? @unique
+  non_unique String?
+  id         String  @id
+
+  @@unique([c_1, c_2])
+}
+
+model Parent {
+  p          String  @unique
+  p_1        String
+  p_2        String
+  non_unique String?
+  id         String  @id
+
+  @@unique([p_1, p_2])
+}
+
+enum type_test_enum_column {
+  value1
+  value2
+  value3
+}
+
+enum type_test_enum_column_null {
+  value1
+  value2
+  value3
+}
+
+model Author {
+  id        Int    @id @default(autoincrement())
+  firstName String
+  lastName  String
+  age       Int
+  posts     Post[]
+
+  @@map("authors")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String?
+  published Boolean @default(false)
+  authorId  Int?
+  author    Author? @relation(fields: [authorId], references: [id])
+
+  @@index([authorId], name: "author_id")
+}
+
+model Product {
+  id              String @id @default(cuid())
+  properties      Json
+  properties_null Json?
+}
+
+model leak_test {
+  id String @id @default(cuid())
+}
