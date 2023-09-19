@@ -128,5 +128,8 @@
       "path": "packages/cli/build/index.js",
       "gzip": false
     }
-  ]
+  ],
+  "dependencies": {
+    "@prisma/client": "^5.3.1"
+  }
 }

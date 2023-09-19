@@ -12,6 +12,10 @@ patchedDependencies:
 importers:
 
   .:
+    dependencies:
+      '@prisma/client':
+        specifier: ^5.3.1
+        version: 5.3.1
     devDependencies:
       '@microsoft/api-extractor':
         specifier: 7.37.0
@@ -2865,6 +2869,23 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@prisma/client@5.3.1:
+    resolution: {integrity: sha512-ArOKjHwdFZIe1cGU56oIfy7wRuTn0FfZjGuU/AjgEBOQh+4rDkB6nF+AGHP8KaVpkBIiHGPQh3IpwQ3xDMdO0Q==}
+    engines: {node: '>=16.13'}
+    requiresBuild: true
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+    dependencies:
+      '@prisma/engines-version': 5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59
+    dev: false
+
+  /@prisma/engines-version@5.3.1-2.61e140623197a131c2a6189271ffee05a7aa9a59:
+    resolution: {integrity: sha512-y5qbUi3ql2Xg7XraqcXEdMHh0MocBfnBzDn5GbV1xk23S3Mq8MGs+VjacTNiBh3dtEdUERCrUUG7Z3QaJ+h79w==}
+    dev: false
 
   /@prisma/engines-version@5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d:
     resolution: {integrity: sha512-zg5L4jLE9xN+rXonWyCpOX+8z2c3/QKtdsiOBZig5vG4Bn9X3WV2iL552Sf83ixHAo3G1DWHusROrIFXapR9jw==}
