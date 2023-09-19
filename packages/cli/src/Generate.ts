@@ -266,7 +266,6 @@ ${highlightTS(`\
 ${clientImport}
 const prisma = new PrismaClient()`)}
 ${dim('```')}
-
 or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/accelerate')})
 ${dim('```')}
 ${highlightTS(`\
