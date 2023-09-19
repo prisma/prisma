@@ -5,7 +5,7 @@
   "description": "",
   "engines": {
     "node": ">=16.13",
-    "pnpm": ">=8.6.7 <9"
+    "pnpm": ">=8.6.6 <9"
   },
   "license": "Apache-2.0",
   "scripts": {

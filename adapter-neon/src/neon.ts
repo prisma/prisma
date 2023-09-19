@@ -57,7 +57,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     const { sql, args: values } = query
 
     try {
-      return await this.client.query(sql, values)
+      return await this.client.query({ text: sql, values, rowMode: 'array'})
     } catch (e) {
       const error = e as Error
       debug('Error in performIO: %O', error)

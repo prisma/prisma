@@ -22,13 +22,14 @@ class PgQueryable<ClientT extends StdClient | TransactionClient>
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const { fields, rows: results } = await this.performIO(query)
+    const { fields, rows } = await this.performIO(query)
 
     const columns = fields.map((field) => field.name)
+    const columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID));
     const resultSet: ResultSet = {
       columnNames: columns,
-      columnTypes: fields.map((field) => fieldToColumnType(field.dataTypeID)),
-      rows: results.map((result) => columns.map((column) => result[column])),
+      columnTypes,
+      rows,
     }
 
     return { ok: true, value: resultSet }
@@ -58,7 +59,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient>
     const { sql, args: values } = query
 
     try {
-      const result = await this.client.query(sql, values)
+      const result = await this.client.query({ text: sql, values, rowMode: 'array' })
       return result
     } catch (e) {
       const error = e as Error
