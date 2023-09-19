@@ -121,14 +121,14 @@ testMatrix.setupTestSuite(
         prismaMock.user.findUniqueOrThrow.calledWith({ where: { id: 1 } })
         prismaMock.user.groupBy.calledWith({ where: { id: 1 } })
 
-        expectTypeOf(prismaMock.user.aggregate.calledWith).parameter(0).toEqualTypeOf<{}>()
-        expectTypeOf(prismaMock.user.count.calledWith).parameter(0).toEqualTypeOf<{} | undefined>()
-        expectTypeOf(prismaMock.user.findFirst.calledWith).parameter(0).toEqualTypeOf<{} | undefined>()
-        expectTypeOf(prismaMock.user.findFirstOrThrow.calledWith).parameter(0).toEqualTypeOf<{} | undefined>()
-        expectTypeOf(prismaMock.user.findMany.calledWith).parameter(0).toEqualTypeOf<{} | undefined>()
-        expectTypeOf(prismaMock.user.findUnique.calledWith).parameter(0).toEqualTypeOf<{}>()
-        expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith).parameter(0).toEqualTypeOf<{}>()
-        expectTypeOf(prismaMock.user.groupBy.calledWith).parameter(0).toEqualTypeOf<{}>()
+        expectTypeOf(prismaMock.user.aggregate.calledWith).parameter(0).toEqualTypeOf<any>()
+        expectTypeOf(prismaMock.user.count.calledWith).parameter(0).toEqualTypeOf<any>()
+        expectTypeOf(prismaMock.user.findFirst.calledWith).parameter(0).toEqualTypeOf<any>()
+        expectTypeOf(prismaMock.user.findFirstOrThrow.calledWith).parameter(0).toEqualTypeOf<any>()
+        expectTypeOf(prismaMock.user.findMany.calledWith).parameter(0).toEqualTypeOf<any>()
+        expectTypeOf(prismaMock.user.findUnique.calledWith).parameter(0).toEqualTypeOf<any>()
+        expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith).parameter(0).toEqualTypeOf<any>()
+        expectTypeOf(prismaMock.user.groupBy.calledWith).parameter(0).toEqualTypeOf<any>()
       }
     })
   },
