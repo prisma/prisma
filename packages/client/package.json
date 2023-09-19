@@ -155,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.4.0-5.79f2257e754a7450abd79d6e93b60f1b2f53203d"
+    "@prisma/engines-version": "5.4.0-7.libsql-adapter-80b70c2ed99e6febf0f4a3832eaa12c73c53d083"
   },
   "sideEffects": false
 }
