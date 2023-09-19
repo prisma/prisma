@@ -26,67 +26,67 @@ type DeepMockProxy<T> = {
 }
 
 // this is ma minimal representation of a mocking proxy, doesn't do anything
-function mockDeep<T>(_mockImplementation?: T): DeepMockProxy<T> {
-  return new Proxy({}, { get: mockDeep }) as any
+declare function mockDeep<T>(_mockImplementation?: T): DeepMockProxy<T>
+
+function getExtendedPrisma(prisma: $.PrismaClient) {
+  return prisma.$extends({
+    model: {
+      $allModels: {
+        aggregate<T, A>(
+          this: T,
+          _args: $.Prisma.Exact<A, $.Prisma.Args<T, 'aggregate'>>,
+        ): $.Prisma.Result<T, A, 'aggregate'> {
+          return {} as any
+        },
+        count<T, A>(this: T, _args?: $.Prisma.Exact<A, $.Prisma.Args<T, 'count'>>): $.Prisma.Result<T, A, 'count'> {
+          return {} as any
+        },
+        findFirst<T, A>(
+          this: T,
+          _args?: $.Prisma.Exact<A, $.Prisma.Args<T, 'findFirst'>>,
+        ): $.Prisma.Result<T, A, 'findFirst'> {
+          return {} as any
+        },
+        findFirstOrThrow<T, A>(
+          this: T,
+          _args?: $.Prisma.Exact<A, $.Prisma.Args<T, 'findFirstOrThrow'>>,
+        ): $.Prisma.Result<T, A, 'findFirstOrThrow'> {
+          return {} as any
+        },
+        findMany<T, A>(
+          this: T,
+          _args?: $.Prisma.Exact<A, $.Prisma.Args<T, 'findMany'>>,
+        ): $.Prisma.Result<T, A, 'findMany'> {
+          return {} as any
+        },
+        findUnique<T, A>(
+          this: T,
+          _args: $.Prisma.Exact<A, $.Prisma.Args<T, 'findUnique'>>,
+        ): $.Prisma.Result<T, A, 'findUnique'> {
+          return {} as any
+        },
+        findUniqueOrThrow<T, A>(
+          this: T,
+          _args: $.Prisma.Exact<A, $.Prisma.Args<T, 'findUniqueOrThrow'>>,
+        ): $.Prisma.Result<T, A, 'findUniqueOrThrow'> {
+          return {} as any
+        },
+        groupBy<T, A>(
+          this: T,
+          _args: $.Prisma.Exact<A, $.Prisma.Args<T, 'groupBy'>>,
+        ): $.Prisma.Result<T, A, 'groupBy'> {
+          return {} as any
+        },
+      },
+    },
+  })
 }
 
 testMatrix.setupTestSuite(
   () => {
-    describe('model extension overrides', () => {
-      const xprisma = prisma.$extends({
-        model: {
-          $allModels: {
-            aggregate<T, A>(
-              this: T,
-              _args: $.Prisma.Exact<A, $.Prisma.Args<T, 'aggregate'>>,
-            ): $.Prisma.Result<T, A, 'aggregate'> {
-              return {} as any
-            },
-            count<T, A>(this: T, _args?: $.Prisma.Exact<A, $.Prisma.Args<T, 'count'>>): $.Prisma.Result<T, A, 'count'> {
-              return {} as any
-            },
-            findFirst<T, A>(
-              this: T,
-              _args?: $.Prisma.Exact<A, $.Prisma.Args<T, 'findFirst'>>,
-            ): $.Prisma.Result<T, A, 'findFirst'> {
-              return {} as any
-            },
-            findFirstOrThrow<T, A>(
-              this: T,
-              _args?: $.Prisma.Exact<A, $.Prisma.Args<T, 'findFirstOrThrow'>>,
-            ): $.Prisma.Result<T, A, 'findFirstOrThrow'> {
-              return {} as any
-            },
-            findMany<T, A>(
-              this: T,
-              _args?: $.Prisma.Exact<A, $.Prisma.Args<T, 'findMany'>>,
-            ): $.Prisma.Result<T, A, 'findMany'> {
-              return {} as any
-            },
-            findUnique<T, A>(
-              this: T,
-              _args: $.Prisma.Exact<A, $.Prisma.Args<T, 'findUnique'>>,
-            ): $.Prisma.Result<T, A, 'findUnique'> {
-              return {} as any
-            },
-            findUniqueOrThrow<T, A>(
-              this: T,
-              _args: $.Prisma.Exact<A, $.Prisma.Args<T, 'findUniqueOrThrow'>>,
-            ): $.Prisma.Result<T, A, 'findUniqueOrThrow'> {
-              return {} as any
-            },
-            groupBy<T, A>(
-              this: T,
-              _args: $.Prisma.Exact<A, $.Prisma.Args<T, 'groupBy'>>,
-            ): $.Prisma.Result<T, A, 'groupBy'> {
-              return {} as any
-            },
-          },
-        },
-      })
-
-      test('output inference (via `mockResolvedValue`)', () => {
-        const prismaMock = mockDeep(xprisma)
+    test('output inference (via `mockResolvedValue`)', () => {
+      ;() => {
+        const prismaMock = mockDeep(getExtendedPrisma(prisma))
 
         prismaMock.user.aggregate.mockResolvedValue({})
         prismaMock.user.count.mockResolvedValue(0)
@@ -105,10 +105,12 @@ testMatrix.setupTestSuite(
         expectTypeOf(prismaMock.user.findUnique.mockResolvedValue).parameter(0).toEqualTypeOf<{} | null>()
         expectTypeOf(prismaMock.user.findUniqueOrThrow.mockResolvedValue).parameter(0).toEqualTypeOf<{}>()
         expectTypeOf(prismaMock.user.groupBy.mockResolvedValue).parameter(0).toEqualTypeOf<{}[]>()
-      })
+      }
+    })
 
-      test('input inference (via `calledWith`)', () => {
-        const prismaMock = mockDeep(xprisma)
+    test('input inference (via `calledWith`)', () => {
+      ;() => {
+        const prismaMock = mockDeep(getExtendedPrisma(prisma))
 
         prismaMock.user.aggregate.calledWith({ where: { id: 1 } })
         prismaMock.user.count.calledWith({ where: { id: 1 } })
@@ -127,7 +129,7 @@ testMatrix.setupTestSuite(
         expectTypeOf(prismaMock.user.findUnique.calledWith).parameter(0).toEqualTypeOf<{}>()
         expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith).parameter(0).toEqualTypeOf<{}>()
         expectTypeOf(prismaMock.user.groupBy.calledWith).parameter(0).toEqualTypeOf<{}>()
-      })
+      }
     })
   },
   {
