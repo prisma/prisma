@@ -162,7 +162,7 @@ describe('using cli', () => {
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        const { PrismaClient } = require('./generated/client')
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
