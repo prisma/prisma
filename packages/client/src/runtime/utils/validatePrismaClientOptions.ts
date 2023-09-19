@@ -3,7 +3,7 @@ import leven from 'js-levenshtein'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'log', '__internal']
+const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'adapter', 'log', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -50,7 +50,9 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
-
+  adapter: (_options: any) => {
+    return
+  },
   datasourceUrl: (options: unknown) => {
     if (typeof options !== 'undefined' && typeof options !== 'string') {
       throw new PrismaClientConstructorValidationError(

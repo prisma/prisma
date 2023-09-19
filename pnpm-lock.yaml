@@ -348,6 +348,9 @@ importers:
       '@jest/test-sequencer':
         specifier: 29.7.0
         version: 29.7.0
+      '@jkomyno/prisma-driver-adapter-utils':
+        specifier: 0.3.0
+        version: 0.3.0
       '@opentelemetry/api':
         specifier: 1.6.0
         version: 1.6.0
@@ -2335,6 +2338,14 @@ packages:
       chalk: 4.1.2
     dev: true
 
+  /@jkomyno/prisma-driver-adapter-utils@0.3.0:
+    resolution: {integrity: sha512-RPoAqYIzVqlIqiuCNG+YMCY1jdLWeMChZBaebJu75FhStMxkUwHNRyo0dXTZi/NaC6unvifO7w9w6eK5KId8ww==}
+    dependencies:
+      debug: 4.3.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@jridgewell/gen-mapping@0.1.1:
     resolution: {integrity: sha512-sQXCasFk+U8lWYEe66WxRDOE9PjVz4vSM51fTu3Hw+ClTpUSQb718772vH3pyS5pShp6lvQM7SxgIDXXXmOX7w==}
     engines: {node: '>=6.0.0'}
@@ -3040,7 +3051,7 @@ packages:
     resolution: {integrity: sha512-4BererZXhzz3HT4cbTrHOwH5N7w519VYRIXgZV74O3a7VAe/SncE6r5vBQlWUMwIKlovMpJe1JosFdNzlYRhjw==}
     dependencies:
       '@faker-js/faker': 8.0.2
-      fictional: 0.8.1
+      fictional: 0.8.2
       uuid: 8.3.2
     dev: true
 
@@ -4666,8 +4677,8 @@ packages:
       node-int64: 0.4.0
     dev: true
 
-  /bson@5.4.0:
-    resolution: {integrity: sha512-WRZ5SQI5GfUuKnPTNmAYPiKIof3ORXAF4IRU5UcgmivNIon01rWQlw5RUH954dpu8yGL8T59YShVddIPaU/gFA==}
+  /bson@5.5.0:
+    resolution: {integrity: sha512-B+QB4YmDx9RStKv8LLSl/aVIEV3nYJc3cJNNTK2Cd1TL+7P+cNpw9mAPeCgc5K+j01Dv6sxUzcITXDx7ZU3F0w==}
     engines: {node: '>=14.20.1'}
     dev: false
 
@@ -6298,6 +6309,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       '@jest/expect-utils': 29.6.3
+      '@types/node': 18.17.15
       jest-get-type: 29.6.3
       jest-matcher-utils: 29.6.3
       jest-message-util: 29.6.3
@@ -6431,8 +6443,8 @@ packages:
       web-streams-polyfill: 3.2.1
     dev: true
 
-  /fictional@0.8.1:
-    resolution: {integrity: sha512-BIDqu4ICuSgrbBDMD3+h176GO62WYEHSPaAxuC1TN13nDkqztlzZoqVKa7YWFHFraBSKYwJNLi3rn9u3win3Jg==}
+  /fictional@0.8.2:
+    resolution: {integrity: sha512-bYjYBew0K8Pm727U5eiDUfhXrrZ+SOCAK714j1Lj/ml9yxcZA0lcHWFK/0GYjieySmOiGS9qZyMcyEXRKuuNzg==}
     dependencies:
       decimal.js: 10.4.3
       fast-json-stable-stringify: 2.1.0
@@ -7999,16 +8011,6 @@ packages:
       - supports-color
     dev: true
 
-  /jest-diff@29.6.3:
-    resolution: {integrity: sha512-3sw+AdWnwH9sSNohMRKA7JiYUJSRr/WS6+sEFfBuhxU5V5GlEVKfvUn8JuMHE0wqKowemR1C2aHy8VtXbaV8dQ==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      chalk: 4.1.2
-      diff-sequences: 29.6.3
-      jest-get-type: 29.6.3
-      pretty-format: 29.6.3
-    dev: true
-
   /jest-diff@29.6.4:
     resolution: {integrity: sha512-9F48UxR9e4XOEZvoUXEHSWY4qC4zERJaOfrbBg9JpbJOO43R1vN76REt/aMGZoY6GD5g84nnJiBIVlscegefpw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -8106,7 +8108,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       chalk: 4.1.2
-      jest-diff: 29.6.3
+      jest-diff: 29.6.4
       jest-get-type: 29.6.3
       pretty-format: 29.6.3
     dev: true
@@ -9380,7 +9382,7 @@ packages:
       snappy:
         optional: true
     dependencies:
-      bson: 5.4.0
+      bson: 5.5.0
       mongodb-connection-string-url: 2.6.0
       socks: 2.7.1
     optionalDependencies:
@@ -9391,7 +9393,7 @@ packages:
     resolution: {integrity: sha512-gJCkUtW3KgAu7Uf8HTVv+S3wf9+xldR5LFYM6mABJJQHQB0aWUGyC3bWsl2X/6dVHZSoQq3wh5UV7rWC4FrewA==}
     engines: {node: '>=14.20.1'}
     dependencies:
-      bson: 5.4.0
+      bson: 5.5.0
       kareem: 2.5.1
       mongodb: 5.8.1
       mpath: 0.9.0
