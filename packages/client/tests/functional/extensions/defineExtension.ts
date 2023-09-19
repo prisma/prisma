@@ -619,14 +619,12 @@ testMatrix.setupTestSuite(() => {
       })
       expectTypeOf<typeof _upsert>().toEqualTypeOf<typeof upsert>()
 
-      // @ts-test-if: provider === 'mongodb'
       const _findRaw = xprisma.user._findRaw({})
       // @ts-test-if: provider === 'mongodb'
       const findRaw = await prisma.user.findRaw({})
       // @ts-test-if: provider === 'mongodb'
       expectTypeOf<typeof _findRaw>().toEqualTypeOf<typeof findRaw>()
 
-      // @ts-test-if: provider === 'mongodb'
       const _aggregateRaw = xprisma.user._aggregateRaw({})
       // @ts-test-if: provider === 'mongodb'
       const aggregateRaw = await prisma.user.aggregateRaw({})
