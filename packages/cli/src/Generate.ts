@@ -257,7 +257,7 @@ Please make sure they have the same version.`
         const edgeImport =
           isDeno || isTS
             ? `import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`
-            : `const { PrismaClient } = require('@prisma/client/edge')`
+            : `const { PrismaClient } = require('${importPath}/edge')`
 
         hint = `
 Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
