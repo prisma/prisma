@@ -23,7 +23,7 @@
     "@jkomyno/prisma-adapter-neon": "0.2.1",
     "@jkomyno/prisma-adapter-pg": "0.2.1",
     "@jkomyno/prisma-adapter-planetscale": "0.2.1",
-    "@jkomyno/prisma-driver-adapter-utils": "0.2.1",
+    "@jkomyno/prisma-driver-adapter-utils": "0.3.0",
     "@neondatabase/serverless": "^0.6.0",
     "@planetscale/database": "^1.11.0",
     "@prisma/client": "../../packages/client",
