@@ -1,4 +1,4 @@
-import type { Connector } from '@jkomyno/prisma-pg-js-connector'
+import type { DriverAdapter } from '@prisma/driver-adapter-utils'
 import type { QueryEngineConfig } from './QueryEngine'
 
 export type QueryEngineInstance = {
@@ -18,7 +18,7 @@ export type QueryEngineInstance = {
 }
 
 export interface QueryEngineConstructor {
-  new(config: QueryEngineConfig, logger: (log: string) => void, nodejsFnCtx?: Connector): QueryEngineInstance
+  new(config: QueryEngineConfig, logger: (log: string) => void, nodejsFnCtx?: DriverAdapter): QueryEngineInstance
 }
 
 export interface LibraryLoader {

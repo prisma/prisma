@@ -1,10 +1,10 @@
 import pgDriver from 'pg'
-import * as pg from '@jkomyno/prisma-adapter-pg'
+import * as pg from '@prisma/adapter-pg'
 import * as qe from './qe'
 import * as engines from './engines/Library'
 import * as readline from 'node:readline'
 import * as jsonRpc from './jsonRpc'
-import {bindAdapter, ErrorCapturingDriverAdapter} from "@jkomyno/prisma-driver-adapter-utils";
+import {bindAdapter, ErrorCapturingDriverAdapter} from "@prisma/driver-adapter-utils";
 
 async function main(): Promise<void> {
     const iface = readline.createInterface({
