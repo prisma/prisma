@@ -1,7 +1,6 @@
-import type { DriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
-import { bindAdapter } from '@jkomyno/prisma-driver-adapter-utils'
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
+import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
