@@ -54,6 +54,7 @@ import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
 import { deserializeRawResults } from './utils/deserializeRawResults'
+import { getPreviewFeatures } from './utils/getPreviewFeatures'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
 
@@ -330,7 +331,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       })
 
       this._extensions = MergedExtensionsList.empty()
-      this._previewFeatures = config.generator?.previewFeatures ?? []
+      this._previewFeatures = getPreviewFeatures(config)
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._tracingHelper = getTracingHelper(this._previewFeatures)
