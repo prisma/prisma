@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "5.4.0-13.e0844c11b731a9d90600e927ee5548f24b179ed3",
+    "@prisma/engines-version": "5.4.0-15.libsql-adapter-037ce403b001dacf99a1532070d6a18a3879bc65",
     "@swc/core": "1.3.75",
     "@swc/jest": "0.2.29",
     "@types/jest": "29.5.4",
