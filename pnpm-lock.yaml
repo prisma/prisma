@@ -53,10 +53,10 @@ importers:
 
   connector-test-kit-executor:
     dependencies:
-      '@jkomyno/prisma-adapter-pg':
+      '@prisma/adapter-pg':
         specifier: workspace:*
         version: link:../adapter-pg
-      '@jkomyno/prisma-driver-adapter-utils':
+      '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@types/pg':
