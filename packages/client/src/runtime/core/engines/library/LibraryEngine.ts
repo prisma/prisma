@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
-import { EngineSpanEvent } from '@prisma/internals'
+import { assertAlways, EngineSpanEvent } from '@prisma/internals'
 import fs from 'fs'
 import { bold, green, red, yellow } from 'kleur/colors'
 
@@ -37,6 +37,7 @@ import { getInteractiveTransactionId } from '../common/utils/getInteractiveTrans
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
+const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
 const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
@@ -238,6 +239,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         // same time, `this.engine` field will prevent native instance from
         // being GCed. Using weak ref helps to avoid this cycle
         const weakThis = new WeakRef(this)
+        const { adapter } = this.config
+
+        if (adapter) {
+          debug('Using driver adapter: %O', adapter)
+        }
+
         this.engine = new this.QueryEngineConstructor(
           {
             datamodel: this.datamodel,
@@ -252,6 +259,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           (log) => {
             weakThis.deref()?.logger(log)
           },
+          adapter,
         )
         engineInstanceCount++
       } catch (_e) {
@@ -533,6 +541,14 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         this.getErrorMessageWithLink(error.user_facing_error.message),
         this.config.clientVersion!,
       )
+    }
+
+    if (error.user_facing_error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
+      const id = error.user_facing_error.meta?.id
+      assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
+      const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
+      assertAlways(errorRecord, `External error with reported id was not registered`)
+      return errorRecord.error
     }
 
     return prismaGraphQLToJSError(error, this.config.clientVersion!)
