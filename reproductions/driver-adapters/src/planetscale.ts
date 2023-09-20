@@ -1,6 +1,6 @@
 import { connect } from '@planetscale/database'
-import { PrismaPlanetScale } from '@jkomyno/prisma-adapter-planetscale'
-import { smokeTest } from './test' 
+import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
+import { smokeTest } from './test'
 
 async function main() {
   const connectionString = `${process.env.JS_PLANETSCALE_DATABASE_URL as string}`
