@@ -1,14 +1,22 @@
 import type neon from '@neondatabase/serverless'
 import { Debug } from '@prisma/driver-adapter-utils'
-import type { DriverAdapter, ResultSet, Query, Queryable, Transaction, Result, TransactionOptions } from '@prisma/driver-adapter-utils'
+import type {
+  DriverAdapter,
+  ResultSet,
+  Query,
+  Queryable,
+  Transaction,
+  Result,
+  TransactionOptions,
+} from '@prisma/driver-adapter-utils'
 import { fieldToColumnType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:neon')
 
-type ARRAY_MODE_DISABLED = false
+type ARRAY_MODE_ENABLED = true
 type FULL_RESULTS_ENABLED = true
 
-type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_DISABLED>
+type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_ENABLED>
 
 /**
  * Base class for http client, ws client and ws transaction
@@ -20,13 +28,13 @@ abstract class NeonQueryable implements Queryable {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const { fields, rows: results } = await this.performIO(query)
+    const { fields, rows } = await this.performIO(query)
 
-    const columns = fields.map(field => field.name)
+    const columns = fields.map((field) => field.name)
     const resultSet: ResultSet = {
       columnNames: columns,
-      columnTypes: fields.map(field => fieldToColumnType(field.dataTypeID)),
-      rows: results.map(result => columns.map(column => result[column])),
+      columnTypes: fields.map((field) => fieldToColumnType(field.dataTypeID)),
+      rows,
     }
 
     return { ok: true, value: resultSet }
@@ -57,7 +65,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     const { sql, args: values } = query
 
     try {
-      return await this.client.query({ text: sql, values, rowMode: 'array'})
+      return await this.client.query({ text: sql, values, rowMode: 'array' })
     } catch (e) {
       const error = e as Error
       debug('Error in performIO: %O', error)
@@ -115,10 +123,7 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
 }
 
 export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
-  constructor(private client: neon.NeonQueryFunction<
-    ARRAY_MODE_DISABLED,
-    FULL_RESULTS_ENABLED
-  >) {
+  constructor(private client: neon.NeonQueryFunction<ARRAY_MODE_ENABLED, FULL_RESULTS_ENABLED>) {
     super()
   }
 

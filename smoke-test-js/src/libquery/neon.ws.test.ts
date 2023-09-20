@@ -13,6 +13,6 @@ describe('neon (WebSocket)', () => {
   const pool = new Pool({ connectionString })
   const adapter = new PrismaNeon(pool)
   const driverAdapter = bindAdapter(adapter)
-  
+
   smokeTestLibquery(driverAdapter, '../../prisma/postgres/schema.prisma')
 })

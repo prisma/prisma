@@ -8,12 +8,12 @@ describe('neon (HTTP)', () => {
   const connectionString = `${process.env.JS_NEON_DATABASE_URL as string}`
 
   const neonConnection = neon(connectionString, {
-    arrayMode: false,
+    arrayMode: true,
     fullResults: true,
   })
 
   const adapter = new PrismaNeonHTTP(neonConnection)
   const driverAdapter = bindAdapter(adapter)
-  
+
   smokeTestLibquery(driverAdapter, '../../prisma/postgres/schema.prisma')
 })
