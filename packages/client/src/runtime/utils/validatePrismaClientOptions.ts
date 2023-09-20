@@ -1,14 +1,16 @@
 import leven from 'js-levenshtein'
 
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
-import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
+import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
 const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'adapter', 'log', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
-const validators = {
-  datasources: (options: any, datasourceNames: string[]) => {
+const validators: {
+  [K in keyof PrismaClientOptions]-?: (option: PrismaClientOptions[K], config: GetPrismaClientConfig) => void
+} = {
+  datasources: (options, { datasourceNames }) => {
     if (!options) {
       return
     }
@@ -50,10 +52,10 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
-  adapter: (_options: any) => {
+  adapter: (_options) => {
     return
   },
-  datasourceUrl: (options: unknown) => {
+  datasourceUrl: (options) => {
     if (typeof options !== 'undefined' && typeof options !== 'string') {
       throw new PrismaClientConstructorValidationError(
         `Invalid value ${JSON.stringify(options)} for "datasourceUrl" provided to PrismaClient constructor.
@@ -61,7 +63,7 @@ Expected string or undefined.`,
       )
     }
   },
-  errorFormat: (options: any) => {
+  errorFormat: (options) => {
     if (!options) {
       return
     }
@@ -77,7 +79,7 @@ Expected string or undefined.`,
       )
     }
   },
-  log: (options: any) => {
+  log: (options) => {
     if (!options) {
       return
     }
@@ -152,7 +154,7 @@ Expected string or undefined.`,
   },
 }
 
-export function validatePrismaClientOptions(options: PrismaClientOptions, datasourceNames: string[]) {
+export function validatePrismaClientOptions(options: PrismaClientOptions, config: GetPrismaClientConfig) {
   for (const [key, value] of Object.entries(options)) {
     if (!knownProperties.includes(key)) {
       const didYouMean = getDidYouMean(key, knownProperties)
@@ -160,7 +162,7 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, dataso
         `Unknown property ${key} provided to PrismaClient constructor.${didYouMean}`,
       )
     }
-    validators[key](value, datasourceNames)
+    validators[key](value, config)
   }
   if (options.datasourceUrl && options.datasources) {
     throw new PrismaClientConstructorValidationError(

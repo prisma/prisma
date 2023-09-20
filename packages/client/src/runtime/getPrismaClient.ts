@@ -317,7 +317,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       checkPlatformCaching(config)
 
       if (optionsArg) {
-        validatePrismaClientOptions(optionsArg, config.datasourceNames)
+        validatePrismaClientOptions(optionsArg, config)
       }
 
       const logEmitter = new EventEmitter().on('error', () => {
