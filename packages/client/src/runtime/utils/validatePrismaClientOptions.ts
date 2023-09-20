@@ -8,8 +8,15 @@ const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'adapter
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
+/**
+ * Subset of `GetPrismaClientConfig` which is used during validation.
+ * Feel free to allow more properties when necessary but don't forget to add
+ * them in the mock config in `validatePrismaClientOptions.test.ts`.
+ */
+type ClientConfig = Pick<GetPrismaClientConfig, 'datasourceNames' | 'generator'>
+
 const validators: {
-  [K in keyof PrismaClientOptions]-?: (option: PrismaClientOptions[K], config: GetPrismaClientConfig) => void
+  [K in keyof PrismaClientOptions]-?: (option: PrismaClientOptions[K], config: ClientConfig) => void
 } = {
   datasources: (options, { datasourceNames }) => {
     if (!options) {
@@ -163,7 +170,7 @@ Expected string or undefined.`,
   },
 }
 
-export function validatePrismaClientOptions(options: PrismaClientOptions, config: GetPrismaClientConfig) {
+export function validatePrismaClientOptions(options: PrismaClientOptions, config: ClientConfig) {
   for (const [key, value] of Object.entries(options)) {
     if (!knownProperties.includes(key)) {
       const didYouMean = getDidYouMean(key, knownProperties)
