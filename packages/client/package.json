@@ -96,7 +96,7 @@
     "@types/jest": "29.5.4",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "9.1.0",
-    "@types/node": "18.17.15",
+    "@types/node": "18.17.18",
     "@types/pg": "8.10.2",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
