@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "private": true,
   "scripts": {
     "build": "tsup ./src/index.ts --format cjs,esm --dts",
     "lint": "tsc -p ./tsconfig.build.json"
@@ -12,9 +13,9 @@
   "sideEffects": false,
   "license": "Apache-2.0",
   "dependencies": {
-      "@jkomyno/prisma-adapter-pg": "workspace:*",
-      "@jkomyno/prisma-driver-adapter-utils": "workspace:*",
-      "pg": "^8.11.3",
-      "@types/pg": "^8.10.2"
+    "@jkomyno/prisma-adapter-pg": "workspace:*",
+    "@jkomyno/prisma-driver-adapter-utils": "workspace:*",
+    "pg": "^8.11.3",
+    "@types/pg": "^8.10.2"
   }
 }
