@@ -22,6 +22,7 @@ export type NewPrismaClient<T extends new (...args: any) => any> = (
 export type ClientRuntime = 'node' | 'edge'
 
 export type ClientMeta = {
+  driverAdapter: boolean
   dataProxy: boolean
   runtime: 'node' | 'edge'
 }

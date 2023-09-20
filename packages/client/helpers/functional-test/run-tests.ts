@@ -38,6 +38,8 @@ const args = arg(
     // Also the typescript tests fail and it might not be easily fixable
     // This flag is used for this purpose
     '--relation-mode-tests-only': Boolean,
+    // Testing driver adapters
+    '--driver-adapter': Boolean,
     //
     // Jest flags
     //
@@ -69,6 +71,18 @@ async function main(): Promise<number | void> {
       process.exit(1)
     }
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
+  }
+
+  if (args['--driver-adapter']) {
+    if (args['--data-proxy']) {
+      throw new Error('--driver-adapter is only available when --data-proxy is used')
+    }
+
+    if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary' || process.env.PRISMA_CLIENT_ENGINE_TYPE === 'binary') {
+      throw new Error('--driver-adapter is only available when library query engine is used')
+    }
+
+    jestCli = jestCli.withEnv({ TEST_DRIVER_ADAPTER: 'true' })
   }
 
   if (args['--data-proxy']) {

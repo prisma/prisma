@@ -45,13 +45,19 @@ export async function setupTestSuiteClient({
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
 
   process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
+  process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
 
-  if (!skipDb) {
-    process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
+  if (skipDb !== true) {
     await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
   }
 
-  process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl ?? datasourceInfo.databaseUrl
+  if (clientMeta.dataProxy === true) {
+    process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl
+  } else if (clientMeta.driverAdapter === true) {
+    process.env[datasourceInfo.envVarName] = datasourceInfo.driverAdapterUrl
+  } else {
+    process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
+  }
 
   await generateClient({
     datamodel: schema,
@@ -89,6 +95,7 @@ export async function setupTestSuiteClient({
  */
 export function getClientMeta(): ClientMeta {
   const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
+  const driverAdapter = Boolean(process.env.TEST_DRIVER_ADAPTER)
   const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
 
   if (edge && !dataProxy) {
@@ -97,6 +104,7 @@ export function getClientMeta(): ClientMeta {
 
   return {
     dataProxy,
+    driverAdapter,
     runtime: edge ? 'edge' : 'node',
   }
 }

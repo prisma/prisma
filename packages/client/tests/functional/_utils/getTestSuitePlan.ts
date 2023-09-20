@@ -1,4 +1,5 @@
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
+import { ProviderFlavors } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -31,11 +32,42 @@ export function getTestSuitePlan(
 
   const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
 
-  return suiteConfig.map((namedConfig, configIndex) => ({
-    name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
-    suiteConfig: namedConfig,
-  }))
+  const testPlanEntries = suiteConfig.flatMap((namedConfig, configIndex) => {
+    const testPlanEntries: TestPlanEntry[] = []
+
+    const testPlanEntry: TestPlanEntry = {
+      name: getTestSuiteFullName(suiteMeta, namedConfig),
+      skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
+      suiteConfig: namedConfig,
+    }
+
+    // driver adapters further expand the matrix, we do it automatically here
+    if (clientMeta.driverAdapter === true) {
+      if (namedConfig.matrixOptions?.provider === 'postgresql') {
+        const pgTestPlan = { ...testPlanEntry, suiteConfig: { ...namedConfig } }
+        pgTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_PG
+        testPlanEntries.push(pgTestPlan)
+
+        const neonTestPlan = { ...testPlanEntry, suiteConfig: { ...namedConfig } }
+        neonTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_NEON
+        testPlanEntries.push(neonTestPlan)
+      }
+
+      if (namedConfig.matrixOptions?.provider === 'mysql') {
+        const mysqlTestPlan = { ...testPlanEntry, suiteConfig: { ...namedConfig } }
+        mysqlTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_PLANETSCALE
+        testPlanEntries.push(mysqlTestPlan)
+      }
+    } else {
+      testPlanEntries.push(testPlanEntry)
+    }
+
+    return testPlanEntries
+  })
+
+  console.log(JSON.stringify(testPlanEntries, null, 2))
+
+  return testPlanEntries
 }
 
 function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
@@ -69,6 +101,10 @@ function shouldSkipProvider(
   }
 
   if (clientMeta.dataProxy && provider === 'sqlite') {
+    return true
+  }
+
+  if (clientMeta.driverAdapter && ['mysql', 'postgresql'].includes(provider) === false) {
     return true
   }
 
