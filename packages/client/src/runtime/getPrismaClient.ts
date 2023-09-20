@@ -1,3 +1,5 @@
+import type { DriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
+import { bindAdapter } from '@jkomyno/prisma-driver-adapter-utils'
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
@@ -79,6 +81,11 @@ export type PrismaClientOptions = {
    * Overwrites the primary datasource url from your schema.prisma file
    */
   datasourceUrl?: string
+  /**
+   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
+   */
+  adapter?: DriverAdapter
+
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
@@ -403,6 +410,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
+          adapter: options?.adapter ? bindAdapter(options.adapter) : undefined,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -506,12 +514,15 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
+      const activeProvider = this._activeProvider
+      const activeProviderFlavour = this._engineConfig.adapter?.flavour
+
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -603,12 +614,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
+      const activeProvider = this._activeProvider
+      const activeProviderFlavour = this._engineConfig.adapter?.flavour
+
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
