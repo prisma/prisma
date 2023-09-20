@@ -348,9 +348,6 @@ importers:
       '@jest/test-sequencer':
         specifier: 29.7.0
         version: 29.7.0
-      '@jkomyno/prisma-driver-adapter-utils':
-        specifier: 0.3.0
-        version: 0.3.0
       '@opentelemetry/api':
         specifier: 1.6.0
         version: 1.6.0
@@ -372,6 +369,9 @@ importers:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
+      '@prisma/driver-adapter-utils':
+        specifier: 0.3.2
+        version: 0.3.2
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -2338,14 +2338,6 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@jkomyno/prisma-driver-adapter-utils@0.3.0:
-    resolution: {integrity: sha512-RPoAqYIzVqlIqiuCNG+YMCY1jdLWeMChZBaebJu75FhStMxkUwHNRyo0dXTZi/NaC6unvifO7w9w6eK5KId8ww==}
-    dependencies:
-      debug: 4.3.4
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
   /@jridgewell/gen-mapping@0.1.1:
     resolution: {integrity: sha512-sQXCasFk+U8lWYEe66WxRDOE9PjVz4vSM51fTu3Hw+ClTpUSQb718772vH3pyS5pShp6lvQM7SxgIDXXXmOX7w==}
     engines: {node: '>=6.0.0'}
@@ -2876,6 +2868,14 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@prisma/driver-adapter-utils@0.3.2:
+    resolution: {integrity: sha512-YTkHq49qiIkCeyazWOt3/8bCTYeER7aZMfrMAj6SQXyg/g+2EsRG5YLjEAgPAaOpDfzBak0BS4SKKxFKwdBnvg==}
+    dependencies:
+      debug: 4.3.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
 
   /@prisma/engines-version@5.4.0-11.f5a416b0e8c3b9ec1f10b6d6eeeb5e67797a9147:
     resolution: {integrity: sha512-ORd9ocdowhJDtPnzTd9YASfAfhdkQMB7UHj0S4UKOyqqqfWkPuUCwv46BqCA4HVeQH6RrZK6/x/5Ry+xY1XnQQ==}
