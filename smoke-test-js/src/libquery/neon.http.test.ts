@@ -7,10 +7,7 @@ import { smokeTestLibquery } from './libquery'
 describe('neon (HTTP)', () => {
   const connectionString = `${process.env.JS_NEON_DATABASE_URL as string}`
 
-  const neonConnection = neon(connectionString, {
-    arrayMode: true,
-    fullResults: true,
-  })
+  const neonConnection = neon(connectionString)
 
   const adapter = new PrismaNeonHTTP(neonConnection)
   const driverAdapter = bindAdapter(adapter)

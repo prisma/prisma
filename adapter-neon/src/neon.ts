@@ -14,7 +14,6 @@ import { fieldToColumnType } from './conversion'
 const debug = Debug('prisma:driver-adapter:neon')
 
 type ARRAY_MODE_ENABLED = true
-type FULL_RESULTS_ENABLED = true
 
 type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_ENABLED>
 
@@ -123,13 +122,16 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
 }
 
 export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
-  constructor(private client: neon.NeonQueryFunction<ARRAY_MODE_ENABLED, FULL_RESULTS_ENABLED>) {
+  constructor(private client: neon.NeonQueryFunction<any, any>) {
     super()
   }
 
   override async performIO(query: Query): Promise<PerformIOResult> {
     const { sql, args: values } = query
-    return await this.client(sql, values)
+    return await this.client(sql, values, {
+      arrayMode: true,
+      fullResults: true,
+    })
   }
 
   startTransaction(): Promise<Result<Transaction>> {
