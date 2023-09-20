@@ -1,6 +1,6 @@
 import { describe } from 'node:test'
 import { Pool, neonConfig } from '@neondatabase/serverless'
-import { PrismaNeon } from '@jkomyno/prisma-adapter-neon'
+import { PrismaNeon } from '@prisma/adapter-neon'
 import { WebSocket } from 'undici'
 import { smokeTestClient } from './client'
 

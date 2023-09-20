@@ -1,6 +1,6 @@
 import { describe } from 'node:test'
 import pg from 'pg'
-import { PrismaPg } from '@jkomyno/prisma-adapter-pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { smokeTestClient } from './client'
 
 describe('pg with @prisma/client', async () => {

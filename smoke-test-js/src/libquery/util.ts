@@ -1,7 +1,7 @@
 import path from 'node:path'
 import os from 'node:os'
 import fs from 'node:fs'
-import type { ErrorCapturingDriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
+import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Library, QueryEngineInstance } from '../engines/types/Library'
 
 export function initQueryEngine(driver: ErrorCapturingDriverAdapter, prismaSchemaRelativePath: string): QueryEngineInstance {

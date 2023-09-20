@@ -1,4 +1,4 @@
-import { ColumnTypeEnum, type ColumnType } from '@jkomyno/prisma-driver-adapter-utils'
+import { ColumnTypeEnum, type ColumnType } from '@prisma/driver-adapter-utils'
 import { types } from '@neondatabase/serverless'
 
 const NeonColumnType = types.builtins

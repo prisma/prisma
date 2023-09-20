@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { PrismaClient } from '@prisma/client'
-import type { DriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
+import type { DriverAdapter } from '@prisma/driver-adapter-utils'
 
 export async function smokeTestClient(driverAdapter: DriverAdapter) {
   const provider = driverAdapter.flavour

@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert'
-import type { ErrorCapturingDriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
+import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import type { QueryEngineInstance } from '../engines/types/Library'
 import { initQueryEngine } from './util'
 import { JsonQuery } from '../engines/types/JsonProtocol'

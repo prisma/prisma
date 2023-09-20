@@ -1,6 +1,6 @@
 import type neon from '@neondatabase/serverless'
-import { Debug } from '@jkomyno/prisma-driver-adapter-utils'
-import type { DriverAdapter, ResultSet, Query, Queryable, Transaction, Result, TransactionOptions } from '@jkomyno/prisma-driver-adapter-utils'
+import { Debug } from '@prisma/driver-adapter-utils'
+import type { DriverAdapter, ResultSet, Query, Queryable, Transaction, Result, TransactionOptions } from '@prisma/driver-adapter-utils'
 import { fieldToColumnType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:neon')

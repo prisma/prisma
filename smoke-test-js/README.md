@@ -1,4 +1,4 @@
-# @prisma/smoke-test-js
+# @prisma/driver-adapters-smoke-tests-js
 
 This is a playground for testing the `libquery` client with the experimental Node.js drivers.
 It contains a subset of `@prisma/client`, plus some handy executable smoke tests:

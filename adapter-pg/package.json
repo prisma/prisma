@@ -1,5 +1,5 @@
 {
-  "name": "@jkomyno/prisma-adapter-pg",
+  "name": "@prisma/adapter-pg",
   "version": "0.3.1",
   "description": "Prisma's driver adapter for \"pg\"",
   "main": "dist/index.js",
@@ -18,7 +18,7 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "@jkomyno/prisma-driver-adapter-utils": "workspace:*"
+    "@prisma/driver-adapter-utils": "workspace:*"
   },
   "devDependencies": {
     "pg": "^8.11.3",

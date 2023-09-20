@@ -20,7 +20,7 @@ importers:
 
   adapter-neon:
     dependencies:
-      '@jkomyno/prisma-driver-adapter-utils':
+      '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
     devDependencies:
@@ -30,7 +30,7 @@ importers:
 
   adapter-pg:
     dependencies:
-      '@jkomyno/prisma-driver-adapter-utils':
+      '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
     devDependencies:
@@ -43,7 +43,7 @@ importers:
 
   adapter-planetscale:
     dependencies:
-      '@jkomyno/prisma-driver-adapter-utils':
+      '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
     devDependencies:
@@ -78,27 +78,27 @@ importers:
 
   smoke-test-js:
     dependencies:
-      '@jkomyno/prisma-adapter-neon':
-        specifier: workspace:*
-        version: link:../adapter-neon
-      '@jkomyno/prisma-adapter-pg':
-        specifier: workspace:*
-        version: link:../adapter-pg
-      '@jkomyno/prisma-adapter-planetscale':
-        specifier: workspace:*
-        version: link:../adapter-planetscale
-      '@jkomyno/prisma-driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
       '@neondatabase/serverless':
         specifier: ^0.6.0
         version: 0.6.0
       '@planetscale/database':
         specifier: ^1.11.0
         version: 1.11.0
+      '@prisma/adapter-neon':
+        specifier: workspace:*
+        version: link:../adapter-neon
+      '@prisma/adapter-pg':
+        specifier: workspace:*
+        version: link:../adapter-pg
+      '@prisma/adapter-planetscale':
+        specifier: workspace:*
+        version: link:../adapter-planetscale
       '@prisma/client':
         specifier: 5.3.0-integration-feat-driver-adapters-in-client.3
         version: 5.3.0-integration-feat-driver-adapters-in-client.3(prisma@5.3.0-integration-feat-driver-adapters-in-client.3)
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
       pg:
         specifier: ^8.11.3
         version: 8.11.3

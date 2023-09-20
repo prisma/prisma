@@ -1,5 +1,5 @@
 {
-  "name": "@jkomyno/smoke-test-js",
+  "name": "@prisma/driver-adapters-smoke-tests-js",
   "private": true,
   "type": "module",
   "version": "0.0.0",
@@ -35,10 +35,10 @@
   "license": "Apache-2.0",
   "sideEffects": true,
   "dependencies": {
-    "@jkomyno/prisma-adapter-neon": "workspace:*",
-    "@jkomyno/prisma-adapter-planetscale": "workspace:*",
-    "@jkomyno/prisma-adapter-pg": "workspace:*",
-    "@jkomyno/prisma-driver-adapter-utils": "workspace:*",
+    "@prisma/adapter-neon": "workspace:*",
+    "@prisma/adapter-planetscale": "workspace:*",
+    "@prisma/adapter-pg": "workspace:*",
+    "@prisma/driver-adapter-utils": "workspace:*",
     "@neondatabase/serverless": "^0.6.0",
     "@planetscale/database": "^1.11.0",
     "@prisma/client": "5.3.0-integration-feat-driver-adapters-in-client.3",

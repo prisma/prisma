@@ -1,5 +1,5 @@
 import { connect } from '@planetscale/database'
-import { PrismaPlanetScale } from '@jkomyno/prisma-adapter-planetscale'
+import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { describe } from 'node:test'
 import { smokeTestClient } from './client'
 
