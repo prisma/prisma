@@ -1,3 +1,4 @@
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
@@ -72,10 +73,13 @@ function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuite
 }
 
 function shouldSkipTestSuite(clientMeta: TestCliMeta, options?: MatrixOptions): boolean {
-  if (!clientMeta.dataProxy || !options?.skipDataProxy) {
-    return false
+  if (options?.skipBinary && getClientEngineType() === ClientEngineType.Binary) {
+    return true
   }
-  return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
+  if (options?.skipDataProxy && clientMeta.dataProxy) {
+    return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
+  }
+  return false
 }
 
 function shouldSkipSuiteConfig(
