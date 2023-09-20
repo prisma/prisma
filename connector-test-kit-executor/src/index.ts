@@ -27,8 +27,8 @@ async function main(): Promise<void> {
                     message: err.toString(),
                 })
             }
-        } catch (_) {
-            // skip non-JSON line
+        } catch (err) {
+            console.error("Received non-json line: ", line);
         }
 
     });
