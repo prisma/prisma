@@ -10,7 +10,7 @@ import { ClientMeta } from './types'
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
-  matrixOptions: Record<string, string> & { provider?: Providers; providerFlavor?: ProviderFlavors }
+  matrixOptions: Record<string, string> & { provider: Providers; providerFlavor?: ProviderFlavors }
 }
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>

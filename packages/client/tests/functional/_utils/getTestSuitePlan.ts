@@ -92,7 +92,7 @@ function shouldSkipProvider(
   configIndex: number,
   clientMeta: ClientMeta,
 ): boolean {
-  const provider = config.matrixOptions['provider'].toLocaleLowerCase()
+  const provider = config.matrixOptions.provider?.toLocaleLowerCase()
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
     // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
@@ -105,7 +105,7 @@ function shouldSkipProvider(
     return true
   }
 
-  if (includedProviders && !includedProviders.includes(provider)) {
+  if (includedProviders && !includedProviders.includes(provider!)) {
     return true
   }
 
@@ -113,11 +113,11 @@ function shouldSkipProvider(
     return true
   }
 
-  if (clientMeta.driverAdapter && ['mysql', 'postgresql'].includes(provider) === false) {
+  if (clientMeta.driverAdapter && ['mysql', 'postgresql'].includes(provider!) === false) {
     return true
   }
 
-  return excludedProviders.includes(provider)
+  return excludedProviders.includes(provider!)
 }
 
 function buildPlanContext(): SuitePlanContext {
