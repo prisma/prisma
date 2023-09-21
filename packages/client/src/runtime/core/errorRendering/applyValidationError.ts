@@ -18,7 +18,7 @@ import {
 import { IncludeAndSelectError, IncludeOnScalarError, ValidationError } from '../types/ValidationError'
 import { applyUnionError } from './applyUnionError'
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
-import { Colors, noop } from './base'
+import { Colors } from './base'
 import { ObjectField } from './ObjectField'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { ObjectValue } from './ObjectValue'
@@ -468,8 +468,8 @@ function splitPath(path: string[]): [parentPath: string[], fieldName: string] {
   return [selectionPath, fieldName]
 }
 
-function availableOptionsMessage({ green }: Colors) {
-  return `Available options are ` + (green === noop ? `marked with ?` : `listed in ${green('green')}`) + '.'
+function availableOptionsMessage({ green, enabled }: Colors) {
+  return `Available options are ` + (enabled ? `listed in ${green('green')}` : `marked with ?`) + '.'
 }
 
 function joinWithPreposition(preposition: 'and' | 'or', items: string[]): string {
