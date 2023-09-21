@@ -123,7 +123,7 @@ export async function setupTestSuiteDatabase(
     await DbPush.new().parse(dbPushParams)
 
     if (alterStatementCallback) {
-      const provider = suiteConfig['provider'] as Providers
+      const provider = suiteConfig.matrixOptions['provider'] as Providers
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
 
