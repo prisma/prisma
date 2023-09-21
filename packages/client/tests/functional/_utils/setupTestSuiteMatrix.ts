@@ -138,7 +138,7 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        if (options?.skipDb !== true || process.env.JEST_MAX_WORKERS !== '1') {
+        if (options?.skipDb !== true && process.env.JEST_MAX_WORKERS !== '1') {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
