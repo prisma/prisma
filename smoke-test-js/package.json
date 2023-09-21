@@ -24,6 +24,7 @@
     "pg:libquery": "cross-env-shell DATABASE_URL=\"${JS_PG_DATABASE_URL}\" node --test --loader=tsx ./src/libquery/pg.test.ts",
     "pg:client": "DATABASE_URL=\"${JS_PG_DATABASE_URL}\" node --test --loader=tsx ./src/client/pg.test.ts",
     "pg": "pnpm pg:libquery && pnpm pg:client",
+    "errors": "DATABASE_URL=\"${JS_PG_DATABASE_URL}\" node --test --loader=tsx ./src/libquery/errors.test.ts",
     "prisma:planetscale": "cross-env-shell DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"pnpm prisma:db:push:mysql && pnpm prisma:db:execute:mysql\"",
     "studio:planetscale": "cross-env-shell DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"pnpm prisma:studio:mysql\"",
     "planetscale:libquery": "DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" node --test --loader=tsx ./src/libquery/planetscale.test.ts",

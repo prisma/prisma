@@ -3,8 +3,12 @@ import os from 'node:os'
 import fs from 'node:fs'
 import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Library, QueryEngineInstance } from '../engines/types/Library'
+import { JsonQuery } from '../engines/types/JsonProtocol'
 
-export function initQueryEngine(driver: ErrorCapturingDriverAdapter, prismaSchemaRelativePath: string): QueryEngineInstance {
+export function initQueryEngine(
+  driver: ErrorCapturingDriverAdapter,
+  prismaSchemaRelativePath: string,
+): QueryEngineInstance {
   // I assume nobody will run this on Windows ¯\_(ツ)_/¯
   const libExt = os.platform() === 'darwin' ? 'dylib' : 'so'
   const dirname = path.dirname(new URL(import.meta.url).pathname)
@@ -37,4 +41,27 @@ export function initQueryEngine(driver: ErrorCapturingDriverAdapter, prismaSchem
   const engine = new QueryEngine(queryEngineOptions, logCallback, driver)
 
   return engine
+}
+
+export function createQueryFn(engine: QueryEngineInstance, adapter: ErrorCapturingDriverAdapter) {
+  return async function doQuery(query: JsonQuery, tx_id?: string) {
+    const result = await engine.query(JSON.stringify(query), 'trace', tx_id)
+    const parsedResult = JSON.parse(result)
+    if (parsedResult.errors) {
+      throwAdapterError(parsedResult.errors[0]?.user_facing_error, adapter)
+    }
+    return parsedResult
+  }
+}
+
+export function throwAdapterError(error: any, adapter: ErrorCapturingDriverAdapter) {
+  if (error.error_code === 'P2036') {
+    const jsError = adapter.errorRegistry.consumeError(error.meta.id)
+    if (!jsError) {
+      throw new Error(
+        `Something went wrong. Engine reported external error with id ${error.meta.id}, but it was not registered.`,
+      )
+    }
+    throw jsError.error
+  }
 }

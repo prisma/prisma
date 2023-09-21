@@ -98,3 +98,8 @@ model Product {
   properties      Json
   properties_null Json?
 }
+
+model User {
+  id    String @id @default(uuid())
+  email String
+}
