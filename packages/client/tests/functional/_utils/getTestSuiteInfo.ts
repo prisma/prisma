@@ -3,13 +3,14 @@ import path from 'path'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
+import { ProviderFlavors, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
-  matrixOptions: Record<string, string> & { providerFlavor?: string }
+  matrixOptions: Record<string, string> & { provider?: Providers; providerFlavor?: ProviderFlavors }
 }
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>

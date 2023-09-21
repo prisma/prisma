@@ -14,6 +14,15 @@ export enum ProviderFlavors {
   VITESS_8 = 'vitess_8',
 }
 
+export const flavorsForProvider = {
+  [Providers.POSTGRESQL]: [ProviderFlavors.JS_PG, ProviderFlavors.JS_NEON],
+  [Providers.MYSQL]: [ProviderFlavors.JS_PLANETSCALE],
+  [Providers.SQLITE]: [],
+  [Providers.MONGODB]: [],
+  [Providers.COCKROACHDB]: [],
+  [Providers.SQLSERVER]: [],
+} as Record<Providers, ProviderFlavors[]>
+
 export type AllProviders = { provider: Providers }[]
 
 export const allProviders: AllProviders = Object.values(Providers).map((p) => ({ provider: p }))

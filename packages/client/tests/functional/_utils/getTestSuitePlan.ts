@@ -1,7 +1,7 @@
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
-import { ProviderFlavors } from './providers'
+import { flavorsForProvider } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -23,10 +23,9 @@ type SuitePlanContext = {
  * @param suiteMeta
  * @returns [test-suite-title: string, test-suite-config: object]
  */
-
 export function getTestSuitePlan(
   suiteMeta: TestSuiteMeta,
-  suiteConfig: NamedTestSuiteConfig[],
+  suiteConfigs: NamedTestSuiteConfig[],
   clientMeta: ClientMeta,
   options?: MatrixOptions,
 ): TestPlanEntry[] {
@@ -34,48 +33,50 @@ export function getTestSuitePlan(
 
   const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
 
-  const testPlanEntries = suiteConfig.flatMap((namedConfig, configIndex) => {
-    const testPlanEntries: TestPlanEntry[] = []
-
+  const testPlanEntry = suiteConfigs.flatMap((namedConfig, configIndex) => {
     const testPlanEntry: TestPlanEntry = {
       name: getTestSuiteFullName(suiteMeta, namedConfig),
       skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
       suiteConfig: namedConfig,
     }
 
-    // driver adapters further expand the matrix, we do it automatically here
     if (clientMeta.driverAdapter === true) {
-      if (namedConfig.matrixOptions?.provider === 'postgresql') {
-        const pgTestPlan = klona(testPlanEntry)
-        pgTestPlan.name += ` (pg)`
-        pgTestPlan.suiteConfig.parametersString += `, pg`
-        pgTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_PG
-        testPlanEntries.push(pgTestPlan)
-
-        const neonTestPlan = klona(testPlanEntry)
-        neonTestPlan.name += ` (neon)`
-        neonTestPlan.suiteConfig.parametersString += `, neon`
-        neonTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_NEON
-        testPlanEntries.push(neonTestPlan)
-      }
-
-      if (namedConfig.matrixOptions?.provider === 'mysql') {
-        const mysqlTestPlan = klona(testPlanEntry)
-        mysqlTestPlan.name += ` (pg)`
-        mysqlTestPlan.suiteConfig.parametersString += `, planetscale`
-        mysqlTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_PLANETSCALE
-        testPlanEntries.push(mysqlTestPlan)
-      }
-    } else {
-      testPlanEntries.push(testPlanEntry)
+      return getExpandedTestSuitePlanEntryForDriverAdapter(testPlanEntry)
     }
 
-    return testPlanEntries
+    return [testPlanEntry]
   })
 
-  console.log(JSON.stringify(testPlanEntries, null, 2))
+  // console.log(JSON.stringify(testPlanEntry, null, 2))
 
-  return testPlanEntries
+  return testPlanEntry
+}
+
+/**
+ * This function takes a regular `testPlanEntry` and expands this into the
+ * multiple flavors of driver adapters that exist for a given provider. For
+ * example, [postgres] => [postgres (pg), postgres (neon)], put very simply. In
+ * other words, a given test matrix is expanded with the provider flavors.
+ * @param testPlanEntry
+ * @returns
+ */
+function getExpandedTestSuitePlanEntryForDriverAdapter(testPlanEntry: TestPlanEntry) {
+  const provider = testPlanEntry.suiteConfig.matrixOptions.provider
+
+  if (provider === undefined) return [testPlanEntry]
+
+  const expandedTestSuitePlan = flavorsForProvider[provider].map((flavor) => {
+    const newTestPlanEntry = klona(testPlanEntry)
+
+    newTestPlanEntry.name += ` (${flavor})`
+    newTestPlanEntry.suiteConfig.parametersString += `, ${flavor}`
+    newTestPlanEntry.suiteConfig.matrixOptions.providerFlavor = flavor
+
+    return newTestPlanEntry
+  })
+
+  // we skip the original test in favor of running the flavored ones
+  return [{ ...testPlanEntry, skip: true }, ...expandedTestSuitePlan]
 }
 
 function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
