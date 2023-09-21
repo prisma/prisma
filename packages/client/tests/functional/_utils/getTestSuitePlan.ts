@@ -47,8 +47,6 @@ export function getTestSuitePlan(
     return [testPlanEntry]
   })
 
-  // console.log(JSON.stringify(testPlanEntry, null, 2))
-
   return testPlanEntry
 }
 
@@ -110,10 +108,6 @@ function shouldSkipProvider(
   }
 
   if (clientMeta.dataProxy && provider === 'sqlite') {
-    return true
-  }
-
-  if (clientMeta.driverAdapter && ['mysql', 'postgresql'].includes(provider!) === false) {
     return true
   }
 
