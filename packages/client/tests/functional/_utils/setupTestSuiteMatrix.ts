@@ -5,7 +5,6 @@ import path from 'path'
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { ProviderFlavors } from './providers'
 import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
@@ -133,7 +132,7 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        if (!options?.skipDb && suiteConfig.matrixOptions['providerFlavor'] !== ProviderFlavors.VITESS_8) {
+        if (options?.skipDb !== true || process.env.JEST_MAX_WORKERS !== '1') {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
