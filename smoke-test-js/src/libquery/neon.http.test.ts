@@ -5,7 +5,7 @@ import { describe } from 'node:test'
 import { smokeTestLibquery } from './libquery'
 
 describe('neon (HTTP)', () => {
-  const connectionString = `${process.env.JS_NEON_DATABASE_URL as string}`
+  const connectionString = process.env.JS_NEON_DATABASE_URL ?? ''
 
   const neonConnection = neon(connectionString)
 

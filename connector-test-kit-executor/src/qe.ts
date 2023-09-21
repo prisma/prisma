@@ -28,14 +28,18 @@ export function initQueryEngine(adapter: ErrorCapturingDriverAdapter, datamodel:
         ignoreEnvVarErrors: false,
     }
 
+
     const logCallback = (event: any) => {
         const parsed = JSON.parse(event)
         if (parsed.is_query) {
             queryLogCallback(parsed.query)
         }
-        console.error("[nodejs] ", parsed)
-    }
-    const engine = new QueryEngine(queryEngineOptions, logCallback, adapter)
 
-    return engine
+        const level = process.env.LOG_LEVEL ?? ''
+        if (level.toLowerCase() == 'debug') {
+            console.error("[nodejs] ", parsed)
+        }
+    }
+
+    return new QueryEngine(queryEngineOptions, logCallback, adapter)
 }

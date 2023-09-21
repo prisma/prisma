@@ -8,7 +8,7 @@ import { smokeTestLibquery } from './libquery'
 neonConfig.webSocketConstructor = WebSocket
 
 describe('neon (WebSocket)', () => {
-  const connectionString = `${process.env.JS_NEON_DATABASE_URL as string}`
+  const connectionString = process.env.JS_NEON_DATABASE_URL ?? ''
 
   const pool = new Pool({ connectionString })
   const adapter = new PrismaNeon(pool)

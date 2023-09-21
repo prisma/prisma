@@ -4,7 +4,7 @@ import { PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { smokeTestClient } from './client'
 
 describe('neon with @prisma/client', async () => {
-  const connectionString = `${process.env.JS_NEON_DATABASE_URL as string}`
+  const connectionString = process.env.JS_NEON_DATABASE_URL ?? ''
 
   const connection = neon(connectionString, {
     arrayMode: false,

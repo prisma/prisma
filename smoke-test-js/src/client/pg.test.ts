@@ -4,10 +4,10 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { smokeTestClient } from './client'
 
 describe('pg with @prisma/client', async () => {
-  const connectionString = `${process.env.JS_PG_DATABASE_URL as string}`
+  const connectionString = process.env.JS_PG_DATABASE_URL ?? ''
 
   const pool = new pg.Pool({ connectionString })
   const adapter = new PrismaPg(pool)
-  
+
   smokeTestClient(adapter)
 })

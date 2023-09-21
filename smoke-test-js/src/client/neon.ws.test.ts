@@ -7,7 +7,7 @@ import { smokeTestClient } from './client'
 neonConfig.webSocketConstructor = WebSocket
 
 describe('neon with @prisma/client', async () => {
-  const connectionString = `${process.env.JS_NEON_DATABASE_URL as string}`
+  const connectionString = process.env.JS_NEON_DATABASE_URL ?? ''
 
   const pool = new Pool({ connectionString })
   const adapter = new PrismaNeon(pool)

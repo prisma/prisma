@@ -53,6 +53,12 @@ importers:
 
   connector-test-kit-executor:
     dependencies:
+      '@neondatabase/serverless':
+        specifier: ^0.6.0
+        version: 0.6.0
+      '@prisma/adapter-neon':
+        specifier: workspace:*
+        version: link:../adapter-neon
       '@prisma/adapter-pg':
         specifier: workspace:*
         version: link:../adapter-pg
@@ -65,6 +71,9 @@ importers:
       pg:
         specifier: ^8.11.3
         version: 8.11.3
+      undici:
+        specifier: ^5.23.0
+        version: 5.23.0
 
   driver-adapter-utils:
     dependencies:

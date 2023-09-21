@@ -13,9 +13,12 @@
   "sideEffects": false,
   "license": "Apache-2.0",
   "dependencies": {
+    "@neondatabase/serverless": "^0.6.0",
+    "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
+    "@types/pg": "^8.10.2",
     "pg": "^8.11.3",
-    "@types/pg": "^8.10.2"
+    "undici": "^5.23.0"
   }
 }
