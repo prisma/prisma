@@ -216,7 +216,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   let databaseUrl: string | undefined
   if (process.env.JEST_MAX_WORKERS === '1') {
     // we reuse and clean the same db when running in single-threaded mode
-    databaseUrl = databaseUrlTpl.replace(DB_NAME_VAR, 'test')
+    databaseUrl = databaseUrlTpl.replace(DB_NAME_VAR, 'test-0000-00000000')
   } else {
     const dbId = `${faker.string.alphanumeric(5)}-${process.pid}-${Date.now()}`
     databaseUrl = databaseUrlTpl.replace(DB_NAME_VAR, dbId)
