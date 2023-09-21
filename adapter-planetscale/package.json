@@ -1,6 +1,6 @@
 {
   "name": "@prisma/adapter-planetscale",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Prisma's driver adapter for \"@planetscale/database\"",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
