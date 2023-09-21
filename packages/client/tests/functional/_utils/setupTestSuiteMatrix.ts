@@ -86,9 +86,6 @@ function setupTestSuiteMatrix(
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
         const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
-        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
-
-        globalThis['datasourceInfo'] = datasourceInfo
 
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
@@ -99,15 +96,20 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
+        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+
         globalThis['newPrismaClient'] = (args: any) => {
           const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
           clients.push(client)
           return client
         }
+
         if (!options?.skipDefaultClientInstance) {
           globalThis['prisma'] = globalThis['newPrismaClient']({ ...driverAdapter })
         }
+
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
+        globalThis['datasourceInfo'] = datasourceInfo
       })
 
       // for better type dx, copy a client into the test suite root node_modules
@@ -138,7 +140,7 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        if (options?.skipDb !== true && process.env.JEST_MAX_WORKERS !== '1') {
+        if (!options?.skipDb || process.env.JEST_MAX_WORKERS !== '1') {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl

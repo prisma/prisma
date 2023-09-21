@@ -122,6 +122,10 @@ export async function setupTestSuiteDatabase(
     }
     await DbPush.new().parse(dbPushParams)
 
+    if (suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8) {
+      await new Promise((r) => setTimeout(r, 300)) // wait for vitess to catch up
+    }
+
     if (alterStatementCallback) {
       const provider = suiteConfig.matrixOptions['provider'] as Providers
       const prismaDir = path.dirname(schemaPath)
