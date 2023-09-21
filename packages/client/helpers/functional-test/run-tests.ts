@@ -53,6 +53,8 @@ const args = arg(
     '--shard': String,
     // Passes the same flag to Jest to silence the output
     '--silent': Boolean,
+    // Passes the same flag to Jest to silence the output
+    '--runInBand': Boolean,
   },
   true,
   true,
@@ -62,6 +64,10 @@ async function main(): Promise<number | void> {
   let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
   const jestArgs = ['--testPathIgnorePatterns', 'typescript']
+
+  if (args['--runInBand']) {
+    jestArgs.push('--runInBand')
+  }
 
   if (args['--provider']) {
     const providers = args['--provider'] as Providers[]
