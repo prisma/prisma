@@ -2,7 +2,7 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
-import { Operation } from '../../runtime/core/types/Result'
+import { Operation } from '../../runtime/core/types/exported/Result'
 import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import {
