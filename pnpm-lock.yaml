@@ -358,7 +358,7 @@ importers:
         specifier: 0.2.1
         version: 0.2.1(@planetscale/database@1.11.0)
       '@neondatabase/serverless':
-        specifier: ^0.6.0
+        specifier: 0.6.0
         version: 0.6.0
       '@opentelemetry/api':
         specifier: 1.6.0
@@ -379,8 +379,17 @@ importers:
         specifier: 1.17.0
         version: 1.17.0
       '@planetscale/database':
-        specifier: ^1.11.0
+        specifier: 1.11.0
         version: 1.11.0
+      '@prisma/adapter-neon':
+        specifier: 0.3.3
+        version: 0.3.3(@neondatabase/serverless@0.6.0)
+      '@prisma/adapter-pg':
+        specifier: 0.3.3
+        version: 0.3.3(pg@8.11.2)
+      '@prisma/adapter-planetscale':
+        specifier: 0.3.3
+        version: 0.3.3(@planetscale/database@1.11.0)
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -2936,8 +2945,49 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
+  /@prisma/adapter-neon@0.3.3(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-HTUIDBL4r7z21YJ2ZPMZC8Mh8fbkAaajtbIMNsx6epoe/D268jXzora9qstWidgV6XW2D8IvKAhWLURvkMKSjw==}
+    peerDependencies:
+      '@neondatabase/serverless': ^0.6.0
+    dependencies:
+      '@neondatabase/serverless': 0.6.0
+      '@prisma/driver-adapter-utils': 0.3.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@prisma/adapter-pg@0.3.3(pg@8.11.2):
+    resolution: {integrity: sha512-IWMbThuOCrDN6PPBUYs/Mm1mja2a+rM4JK2nBbYHko6fx+CJ4QAR3Vj04lE/xoTr0mr1VYdzpuZ7dEk1/ZhmdA==}
+    peerDependencies:
+      pg: ^8.11.3
+    dependencies:
+      '@prisma/driver-adapter-utils': 0.3.3
+      pg: 8.11.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@prisma/adapter-planetscale@0.3.3(@planetscale/database@1.11.0):
+    resolution: {integrity: sha512-tdQlWTEUHLrSGnSeYtwgwKgG8STkFLqA7MYee2e5ptvculVXiD/Z6tcRU26alZxzC8x+TywZPkP1FjyKpgIUiA==}
+    peerDependencies:
+      '@planetscale/database': ^1.11.0
+    dependencies:
+      '@planetscale/database': 1.11.0
+      '@prisma/driver-adapter-utils': 0.3.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@prisma/driver-adapter-utils@0.3.2:
     resolution: {integrity: sha512-YTkHq49qiIkCeyazWOt3/8bCTYeER7aZMfrMAj6SQXyg/g+2EsRG5YLjEAgPAaOpDfzBak0BS4SKKxFKwdBnvg==}
+    dependencies:
+      debug: 4.3.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@prisma/driver-adapter-utils@0.3.3:
+    resolution: {integrity: sha512-Vvh3PeslpuRJFRb8MEQYZnbNWaedvOQFo0YNj/YXs4nTfFZP56nNzYQgc+x9sbGlqnFvCITZ3Pav77VzreAw8Q==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
@@ -8080,7 +8130,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.17.15)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.17.15)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color

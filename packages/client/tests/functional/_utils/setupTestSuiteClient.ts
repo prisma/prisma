@@ -1,8 +1,8 @@
-import { PrismaNeon } from '@jkomyno/prisma-adapter-neon' // TODO rename to `@prisma/adapter-neon`
-import { PrismaPg } from '@jkomyno/prisma-adapter-pg' // rename to `@prisma/adapter-pg`
-import { PrismaPlanetScale } from '@jkomyno/prisma-adapter-planetscale'
 import { neonConfig, Pool as neonPool } from '@neondatabase/serverless'
 import { connect } from '@planetscale/database'
+import { PrismaNeon } from '@prisma/adapter-neon' // TODO rename to `@prisma/adapter-neon`
+import { PrismaPg } from '@prisma/adapter-pg' // rename to `@prisma/adapter-pg`
+import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import path from 'path'
 import { Pool as pgPool } from 'pg'
