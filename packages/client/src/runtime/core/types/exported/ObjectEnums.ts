@@ -77,7 +77,7 @@ export const objectEnumValues = {
  * @param classObject
  * @param name
  */
-export function setClassName(classObject: Function, name: string) {
+function setClassName(classObject: Function, name: string) {
   Object.defineProperty(classObject, 'name', {
     value: name,
     configurable: true,
