@@ -43,8 +43,8 @@ export async function setupTestSuiteClient({
   alterStatementCallback?: AlterStatementCallback
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
-  const previewFeatures = getTestSuitePreviewFeatures(suiteConfig.matrixOptions)
   const schema = getTestSuiteSchema(suiteMeta, suiteConfig.matrixOptions)
+  const previewFeatures = getTestSuitePreviewFeatures(schema)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
