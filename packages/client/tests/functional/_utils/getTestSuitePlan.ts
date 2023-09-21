@@ -1,3 +1,5 @@
+import { klona } from 'klona'
+
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { ProviderFlavors } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
@@ -44,17 +46,23 @@ export function getTestSuitePlan(
     // driver adapters further expand the matrix, we do it automatically here
     if (clientMeta.driverAdapter === true) {
       if (namedConfig.matrixOptions?.provider === 'postgresql') {
-        const pgTestPlan = { ...testPlanEntry, suiteConfig: { ...namedConfig } }
+        const pgTestPlan = klona(testPlanEntry)
+        pgTestPlan.name += ` (pg)`
+        pgTestPlan.suiteConfig.parametersString += `, pg`
         pgTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_PG
         testPlanEntries.push(pgTestPlan)
 
-        const neonTestPlan = { ...testPlanEntry, suiteConfig: { ...namedConfig } }
+        const neonTestPlan = klona(testPlanEntry)
+        neonTestPlan.name += ` (neon)`
+        neonTestPlan.suiteConfig.parametersString += `, neon`
         neonTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_NEON
         testPlanEntries.push(neonTestPlan)
       }
 
       if (namedConfig.matrixOptions?.provider === 'mysql') {
-        const mysqlTestPlan = { ...testPlanEntry, suiteConfig: { ...namedConfig } }
+        const mysqlTestPlan = klona(testPlanEntry)
+        mysqlTestPlan.name += ` (pg)`
+        mysqlTestPlan.suiteConfig.parametersString += `, planetscale`
         mysqlTestPlan.suiteConfig.matrixOptions.providerFlavor = ProviderFlavors.JS_PLANETSCALE
         testPlanEntries.push(mysqlTestPlan)
       }
