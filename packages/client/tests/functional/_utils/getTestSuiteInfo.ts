@@ -91,7 +91,7 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
  * @param suiteMeta
  * @returns
  */
-export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteConfig[] {
+export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
   const matrixModule = require(suiteMeta._matrixPath).default as MatrixModule
 
   let rawMatrix: TestSuiteMatrix
@@ -105,12 +105,14 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteCon
     exclude = matrixModule.matrixOptions?.exclude ?? (() => false)
   }
 
-  return matrix(rawMatrix)
+  const configs = matrix(rawMatrix)
     .map((configs) => ({
       parametersString: getTestSuiteParametersString(configs),
       matrixOptions: merge(configs),
     }))
     .filter(({ matrixOptions }) => !exclude(matrixOptions))
+
+  return configs as NamedTestSuiteConfig[]
 }
 
 /**
