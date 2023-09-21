@@ -327,7 +327,7 @@ testMatrix.setupTestSuite(
         ? where?: UserWhereUniqueInput
         }
 
-        Unknown argument \`badInput\`. Available options are listed in green.
+        Unknown argument \`badInput\`. Available options are marked with ?.
       `)
     })
 
