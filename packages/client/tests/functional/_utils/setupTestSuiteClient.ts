@@ -1,5 +1,12 @@
+import { PrismaNeon } from '@jkomyno/prisma-adapter-neon' // TODO rename to `@prisma/adapter-neon`
+import { PrismaPg } from '@jkomyno/prisma-adapter-pg' // rename to `@prisma/adapter-pg`
+import { PrismaPlanetScale } from '@jkomyno/prisma-adapter-planetscale'
+import { neonConfig, Pool as neonPool } from '@neondatabase/serverless'
+import { connect } from '@planetscale/database'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import path from 'path'
+import { Pool as pgPool } from 'pg'
+import { fetch, WebSocket } from 'undici'
 
 import { generateClient } from '../../../src/generation/generateClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
@@ -9,6 +16,7 @@ import {
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
 } from './getTestSuiteInfo'
+import { ProviderFlavors } from './providers'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta, ClientRuntime } from './types'
@@ -53,8 +61,6 @@ export async function setupTestSuiteClient({
 
   if (clientMeta.dataProxy === true) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl
-  } else if (clientMeta.driverAdapter === true) {
-    process.env[datasourceInfo.envVarName] = datasourceInfo.driverAdapterUrl
   } else {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
   }
@@ -72,7 +78,7 @@ export async function setupTestSuiteClient({
     clientVersion: '0.0.0',
     transpile: false,
     testMode: true,
-    activeProvider: suiteConfig.matrixOptions['provider'] as string,
+    activeProvider: suiteConfig['provider'] as string,
     // Change \\ to / for windows support
     runtimeDirs: {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
@@ -91,20 +97,54 @@ export async function setupTestSuiteClient({
 }
 
 /**
- * Get `ClientMeta` from the environment variables
+ * Automatically loads the driver adapter for the test suite client.
  */
-export function getClientMeta(): ClientMeta {
-  const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
-  const driverAdapter = Boolean(process.env.TEST_DRIVER_ADAPTER)
-  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+export function setupTestSuiteClientDriverAdapter({
+  suiteConfig,
+  datasourceInfo,
+  clientMeta,
+}: {
+  suiteConfig: NamedTestSuiteConfig
+  datasourceInfo: DatasourceInfo
+  clientMeta: ClientMeta
+}) {
+  const providerFlavor = suiteConfig.matrixOptions.providerFlavor
 
-  if (edge && !dataProxy) {
-    throw new Error('Edge client requires Data Proxy')
+  if (clientMeta.driverAdapter !== true) return {}
+
+  if (providerFlavor === undefined) {
+    throw new Error(`Missing provider flavor`)
   }
 
-  return {
-    dataProxy,
-    driverAdapter,
-    runtime: edge ? 'edge' : 'node',
+  if (providerFlavor === ProviderFlavors.JS_PG) {
+    const pool = new pgPool({
+      connectionString: datasourceInfo.databaseUrl,
+    })
+
+    return { adapter: new PrismaPg(pool) }
   }
+
+  if (providerFlavor === ProviderFlavors.JS_NEON) {
+    neonConfig.wsProxy = () => `127.0.0.1:5488/v1`
+    neonConfig.webSocketConstructor = WebSocket
+    neonConfig.useSecureWebSocket = false // disable tls
+    neonConfig.pipelineConnect = false
+
+    const pool = new neonPool({
+      connectionString: datasourceInfo.databaseUrl,
+    })
+
+    return { adapter: new PrismaNeon(pool) }
+  }
+
+  if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+    const connection = connect({
+      url: 'http://root:root@127.0.0.1:8085',
+      fetch, // TODO remove when Node 16 is deprecated
+    })
+
+    return { adapter: new PrismaPlanetScale(connection) }
+  }
+
+  throw new Error(`Unsupported provider flavor ${providerFlavor}`)
 }

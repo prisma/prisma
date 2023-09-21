@@ -123,7 +123,7 @@ export async function setupTestSuiteDatabase(
     await DbPush.new().parse(dbPushParams)
 
     if (alterStatementCallback) {
-      const provider = suiteConfig.matrixOptions['provider'] as Providers
+      const provider = suiteConfig['provider'] as Providers
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
 
@@ -190,7 +190,6 @@ export type DatasourceInfo = {
   envVarName: string
   databaseUrl: string
   dataProxyUrl?: string
-  driverAdapterUrl?: string
 }
 
 /**
@@ -209,17 +208,16 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   const envVarName = `DATABASE_URI_${provider}`
   const directEnvVarName = `DIRECT_${envVarName}`
 
-  const { databaseUrlTpl, driverAdapterUrl } = match(providerFlavor)
+  let databaseUrl = match(providerFlavor)
     .with(undefined, () => getDbUrl(provider))
     .otherwise(() => getDbUrlFromFlavor(providerFlavor, provider))
 
-  let databaseUrl: string | undefined
   if (process.env.JEST_MAX_WORKERS === '1') {
     // we reuse and clean the same db when running in single-threaded mode
-    databaseUrl = databaseUrlTpl.replace(DB_NAME_VAR, 'test-0000-00000000')
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-0000-00000000')
   } else {
     const dbId = `${faker.string.alphanumeric(5)}-${process.pid}-${Date.now()}`
-    databaseUrl = databaseUrlTpl.replace(DB_NAME_VAR, dbId)
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
   }
 
   let dataProxyUrl: string | undefined
@@ -236,7 +234,6 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
     envVarName,
     databaseUrl,
     dataProxyUrl,
-    driverAdapterUrl,
   }
 }
 
@@ -245,20 +242,20 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
  * @param provider
  * @returns
  */
-function getDbUrl(provider: Providers): { databaseUrlTpl: string; driverAdapterUrl?: string } {
+function getDbUrl(provider: Providers): string {
   switch (provider) {
     case Providers.SQLITE:
-      return { databaseUrlTpl: `file:${DB_NAME_VAR}.db` }
+      return `file:${DB_NAME_VAR}.db`
     case Providers.MONGODB:
-      return { databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_MONGO_URI') }
+      return requireEnvVariable('TEST_FUNCTIONAL_MONGO_URI')
     case Providers.POSTGRESQL:
-      return { databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI') }
+      return requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI')
     case Providers.MYSQL:
-      return { databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_MYSQL_URI') }
+      return requireEnvVariable('TEST_FUNCTIONAL_MYSQL_URI')
     case Providers.COCKROACHDB:
-      return { databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_COCKROACH_URI') }
+      return requireEnvVariable('TEST_FUNCTIONAL_COCKROACH_URI')
     case Providers.SQLSERVER:
-      return { databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_MSSQL_URI') }
+      return requireEnvVariable('TEST_FUNCTIONAL_MSSQL_URI')
     default:
       assertNever(provider, `No URL for provider ${provider} configured`)
   }
@@ -270,26 +267,12 @@ function getDbUrl(provider: Providers): { databaseUrlTpl: string; driverAdapterU
  * @param providerFlavor provider variant, e.g. `vitess` for `mysql`
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
-function getDbUrlFromFlavor(
-  providerFlavor: ProviderFlavors | undefined,
-  provider: Providers,
-): { databaseUrlTpl: string; driverAdapterUrl?: string } {
+function getDbUrlFromFlavor(providerFlavor: ProviderFlavors | undefined, provider: Providers): string {
   return match(providerFlavor)
-    .with(ProviderFlavors.VITESS_8, () => ({
-      databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'),
-    }))
-    .with(ProviderFlavors.JS_PG, () => ({
-      databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'),
-      driverAdapterUrl: requireEnvVariable('TEST_FUNCTIONAL_JS_PG_URI'),
-    }))
-    .with(ProviderFlavors.JS_NEON, () => ({
-      databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'),
-      driverAdapterUrl: requireEnvVariable('TEST_FUNCTIONAL_JS_NEON_URI'),
-    }))
-    .with(ProviderFlavors.JS_PLANETSCALE, () => ({
-      databaseUrlTpl: requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'),
-      driverAdapterUrl: requireEnvVariable('TEST_FUNCTIONAL_JS_PLANETSCALE_URI'),
-    }))
+    .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+    .with(ProviderFlavors.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+    .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+    .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
     .otherwise(() => getDbUrl(provider))
 }
 

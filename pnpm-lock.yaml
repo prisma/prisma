@@ -348,6 +348,18 @@ importers:
       '@jest/test-sequencer':
         specifier: 29.7.0
         version: 29.7.0
+      '@jkomyno/prisma-adapter-neon':
+        specifier: 0.2.1
+        version: 0.2.1(@neondatabase/serverless@0.6.0)
+      '@jkomyno/prisma-adapter-pg':
+        specifier: 0.2.1
+        version: 0.2.1(pg@8.11.2)
+      '@jkomyno/prisma-adapter-planetscale':
+        specifier: 0.2.1
+        version: 0.2.1(@planetscale/database@1.11.0)
+      '@neondatabase/serverless':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@opentelemetry/api':
         specifier: 1.6.0
         version: 1.6.0
@@ -366,6 +378,9 @@ importers:
       '@opentelemetry/semantic-conventions':
         specifier: 1.17.0
         version: 1.17.0
+      '@planetscale/database':
+        specifier: ^1.11.0
+        version: 1.11.0
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -2338,6 +2353,47 @@ packages:
       chalk: 4.1.2
     dev: true
 
+  /@jkomyno/prisma-adapter-neon@0.2.1(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-YgIe5dv12sMzW8ToIfuyonDTUCwrM0mDiQ/f6hF/0vuZ7u10E189yP04oibn0fb1KpbV+Bj+a1iX0+vJ600fag==}
+    peerDependencies:
+      '@neondatabase/serverless': ^0.6.0
+    dependencies:
+      '@jkomyno/prisma-driver-adapter-utils': 0.2.1
+      '@neondatabase/serverless': 0.6.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@jkomyno/prisma-adapter-pg@0.2.1(pg@8.11.2):
+    resolution: {integrity: sha512-4UEEpmzjCGInvjsJTw7Us5n6J3iDaht/oYGtJrqpbSv+tjhB/yDHzZ3KSwmbNfl2nDL20rQUJC3+te5ADoSf6g==}
+    peerDependencies:
+      pg: ^8.11.3
+    dependencies:
+      '@jkomyno/prisma-driver-adapter-utils': 0.2.1
+      pg: 8.11.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@jkomyno/prisma-adapter-planetscale@0.2.1(@planetscale/database@1.11.0):
+    resolution: {integrity: sha512-Qv6LGuMvVk+s8CId38+eI05hhc+SW8ZR7jxow2abYg+HrukAgeSTS9b4nrn/M5vuIKOX3ZTgQ+JXAuTQTNjkGQ==}
+    peerDependencies:
+      '@planetscale/database': ^1.11.0
+    dependencies:
+      '@jkomyno/prisma-driver-adapter-utils': 0.2.1
+      '@planetscale/database': 1.11.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@jkomyno/prisma-driver-adapter-utils@0.2.1:
+    resolution: {integrity: sha512-wijRWfwLVIs/hJi4Plrc3JHBW3I4bVvgWM6uLvybQUWTtz4LwzdcPt3inZsPXr6qLkwqkjVe9q+XbeHCMPsLdg==}
+    dependencies:
+      debug: 4.3.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@jridgewell/gen-mapping@0.1.1:
     resolution: {integrity: sha512-sQXCasFk+U8lWYEe66WxRDOE9PjVz4vSM51fTu3Hw+ClTpUSQb718772vH3pyS5pShp6lvQM7SxgIDXXXmOX7w==}
     engines: {node: '>=6.0.0'}
@@ -2461,6 +2517,12 @@ packages:
       sparse-bitfield: 3.0.3
     dev: false
     optional: true
+
+  /@neondatabase/serverless@0.6.0:
+    resolution: {integrity: sha512-qXxBRYN0m2v8kVQBfMxbzNGn2xFAhTXFibzQlE++NfJ56Shz3m7+MyBBtXDlEH+3Wfa6lToDXf1MElocY4sJ3w==}
+    dependencies:
+      '@types/pg': 8.6.6
+    dev: true
 
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -2868,6 +2930,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@planetscale/database@1.11.0:
+    resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
+    engines: {node: '>=16'}
+    dev: true
 
   /@prisma/driver-adapter-utils@0.3.2:
     resolution: {integrity: sha512-YTkHq49qiIkCeyazWOt3/8bCTYeER7aZMfrMAj6SQXyg/g+2EsRG5YLjEAgPAaOpDfzBak0BS4SKKxFKwdBnvg==}
@@ -3705,6 +3772,14 @@ packages:
       '@types/node': 18.17.15
       pg-protocol: 1.6.0
       pg-types: 4.0.1
+    dev: true
+
+  /@types/pg@8.6.6:
+    resolution: {integrity: sha512-O2xNmXebtwVekJDD+02udOncjVcMZQuTEQEMpKJ0ZRf5E7/9JJX3izhKUcUifBkyKpljyUM6BTgy2trmviKlpw==}
+    dependencies:
+      '@types/node': 18.17.15
+      pg-protocol: 1.6.0
+      pg-types: 2.2.0
     dev: true
 
   /@types/progress@2.0.5:
@@ -8005,7 +8080,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.17.15)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.17.15)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color

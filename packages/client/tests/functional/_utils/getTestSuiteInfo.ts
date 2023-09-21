@@ -4,11 +4,12 @@ import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
-  matrixOptions: Record<string, string>
+  matrixOptions: Record<string, string> & { providerFlavor?: string }
 }
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
@@ -130,7 +131,7 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
         const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
         return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
       } else {
-        const firstKey = Object.keys(config)[0]
+        const firstKey = Object.keys(config)[0] // ! TODO this can actually produce incorrect tests and break type checks ! \\ Replace with hash
         return `${firstKey}=${config[firstKey]}`
       }
     })
@@ -190,5 +191,24 @@ export function getTestSuiteMeta() {
     prismaPath,
     _matrixPath,
     _schemaPath,
+  }
+}
+
+/**
+ * Get `ClientMeta` from the environment variables
+ */
+export function getTestSuiteClientMeta(): ClientMeta {
+  const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
+  const driverAdapter = Boolean(process.env.TEST_DRIVER_ADAPTER)
+  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+
+  if (edge && !dataProxy) {
+    throw new Error('Edge client requires Data Proxy')
+  }
+
+  return {
+    dataProxy,
+    driverAdapter,
+    runtime: edge ? 'edge' : 'node',
   }
 }

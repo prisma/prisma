@@ -3,9 +3,14 @@ import fs from 'fs-extra'
 import path from 'path'
 
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
+import {
+  getTestSuiteClientMeta,
+  getTestSuiteConfigs,
+  getTestSuiteFolderPath,
+  getTestSuiteMeta,
+} from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
+import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
@@ -55,7 +60,7 @@ function setupTestSuiteMatrix(
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const clientMeta = getClientMeta()
+  const clientMeta = getTestSuiteClientMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
   const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
 
@@ -81,6 +86,7 @@ function setupTestSuiteMatrix(
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
         const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
+        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['datasourceInfo'] = datasourceInfo
 
@@ -93,13 +99,13 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        globalThis['newPrismaClient'] = (...args) => {
-          const client = new globalThis['loaded']['PrismaClient'](...args)
+        globalThis['newPrismaClient'] = (args: any) => {
+          const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
           clients.push(client)
           return client
         }
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']()
+          globalThis['prisma'] = globalThis['newPrismaClient']({ ...driverAdapter })
         }
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
       })
