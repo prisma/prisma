@@ -251,7 +251,7 @@ jobs:
       fail-fast: false
       matrix:
         #shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        #node: [16, 18, 20]
+        node: [20] #[16, 18, 20]
         provider: ['postgresql'] #'sqlite', 'mysql']
 
     steps:
