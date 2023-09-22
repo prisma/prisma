@@ -34,17 +34,15 @@ export function getTestSuitePlan(
 
   const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
 
-  const testPlanEntry = suiteConfigs.flatMap((namedConfig, configIndex) => {
-    const testPlanEntry: TestPlanEntry = {
-      name: getTestSuiteFullName(suiteMeta, namedConfig),
-      skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, clientMeta),
-      suiteConfig: namedConfig,
-    }
-
-    return getExpandedTestSuitePlanWithProviderFlavors(testPlanEntry)
+  const expandedSuiteConfigs = suiteConfigs.flatMap((config) => {
+    return getExpandedTestSuitePlanWithProviderFlavors(config)
   })
 
-  return testPlanEntry
+  return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
+    name: getTestSuiteFullName(suiteMeta, namedConfig),
+    skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, clientMeta),
+    suiteConfig: namedConfig,
+  }))
 }
 
 /**
@@ -52,29 +50,24 @@ export function getTestSuitePlan(
  * multiple flavors of driver adapters that exist for a given provider. For
  * example, postgres => [postgres (pg), postgres (neon)], put very simply. In
  * other words, a given test matrix is expanded with the provider flavors.
- * @param testPlanEntry
+ * @param suiteConfig
  * @returns
  */
-function getExpandedTestSuitePlanWithProviderFlavors(testPlanEntry: TestPlanEntry) {
-  const provider = testPlanEntry.suiteConfig.matrixOptions.provider
+function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuiteConfig) {
+  const provider = suiteConfig.matrixOptions.provider
 
-  const expandedTestSuitePlan = flavorsForProvider[provider].map((flavor) => {
-    const newTestPlanEntry = klona(testPlanEntry)
+  const suiteConfigExpansions = flavorsForProvider[provider].map((flavor) => {
+    const newSuiteConfig = klona(suiteConfig)
 
-    newTestPlanEntry.name += ` (${flavor})`
-    newTestPlanEntry.suiteConfig.parametersString += `, ${flavor}`
-    newTestPlanEntry.suiteConfig.matrixOptions.providerFlavor = flavor
+    newSuiteConfig.matrixOptions.providerFlavor = flavor
+    newSuiteConfig.parametersString += `, ${flavor}`
+    // ^^^ temporary until I get to the TODO in getTestSuiteParametersString
 
-    return newTestPlanEntry
+    return newSuiteConfig
   })
 
-  if (process.env.TEST_DRIVER_ADAPTER === 'true') {
-    // we skip the original test in favor of running the flavored ones
-    return [{ ...testPlanEntry, skip: true }, ...expandedTestSuitePlan]
-  } else {
-    // we run the original test and skip running the flavored ones
-    return [testPlanEntry, ...expandedTestSuitePlan.map((entry) => ({ ...entry, skip: true }))]
-  }
+  // add the original suite config to the list of expanded configs
+  return [suiteConfig, ...suiteConfigExpansions]
 }
 
 function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
@@ -113,7 +106,18 @@ function shouldSkipSuiteConfig(
     return true
   }
 
+  // if there is a flavor and it is in the list of excluded flavors, skip
   if (flavor && excludedProviderFlavors.includes(flavor)) {
+    return true
+  }
+
+  // if we are running driver adapter tests and its not a driver test, skip
+  if (process.env.TEST_DRIVER_ADAPTER === 'true' && flavor === undefined) {
+    return true
+  }
+
+  // if we are running non-driver adapter tests and its a driver test, skip
+  if (process.env.TEST_DRIVER_ADAPTER !== 'true' && flavor !== undefined) {
     return true
   }
 

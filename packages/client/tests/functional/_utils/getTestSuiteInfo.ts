@@ -28,7 +28,6 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Name
   let name = ``
 
   name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
-
   name += ` (${suiteConfig.parametersString})`
 
   // replace illegal chars with empty string
