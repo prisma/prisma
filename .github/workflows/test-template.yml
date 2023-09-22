@@ -279,10 +279,11 @@ jobs:
       - run: pnpm run test:functional --flavor ${{ matrix.flavor }} --shard ${{ matrix.shard }} --runInBand
         working-directory: packages/client
         env:
+          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
 
       - uses: codecov/codecov-action@v3
         with:
