@@ -7,5 +7,6 @@ dist/
 /packages/client/runtime
 /packages/client/generator-build
 /packages/client/declaration
+/packages/client/scripts/default-index.js
 /reproductions
 .cache
