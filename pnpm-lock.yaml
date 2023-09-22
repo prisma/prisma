@@ -385,8 +385,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 0.3.2
-        version: 0.3.2
+        specifier: 0.3.3
+        version: 0.3.3
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -2924,14 +2924,6 @@ packages:
     dependencies:
       '@planetscale/database': 1.11.0
       '@prisma/driver-adapter-utils': 0.3.3
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/driver-adapter-utils@0.3.2:
-    resolution: {integrity: sha512-YTkHq49qiIkCeyazWOt3/8bCTYeER7aZMfrMAj6SQXyg/g+2EsRG5YLjEAgPAaOpDfzBak0BS4SKKxFKwdBnvg==}
-    dependencies:
-      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: true
