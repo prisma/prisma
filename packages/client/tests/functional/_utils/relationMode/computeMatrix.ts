@@ -68,7 +68,7 @@ export function computeMatrix({ relationMode }: ComputeMatrix) {
     relationMode,
   })
 
-  let referentialActionsMatrix = providersMatrix.flatMap((entry) => {
+  const referentialActionsMatrix = providersMatrix.flatMap((entry) => {
     const denyList =
       referentialActionsDenylistByProviderFlavor[relationMode || 'foreignKeys'][
         entry.providerFlavor ?? entry.provider
@@ -120,25 +120,6 @@ export function computeMatrix({ relationMode }: ComputeMatrix) {
 
     return [...referentialActionMatrixForSQL, ...referentialActionMatrixForMongoDB]
   })
-
-  const skipSQLServer = process.env.TEST_SKIP_MSSQL
-  const skipMongodb = process.env.TEST_SKIP_MONGODB
-  const skipCockroachdb = process.env.TEST_SKIP_COCKROACHDB
-  const skipVitess = process.env.TEST_SKIP_VITESS
-
-  // in "no-docker" tests we want to skip some databases
-  if (skipSQLServer) {
-    referentialActionsMatrix = referentialActionsMatrix.filter((it) => it.provider !== Providers.SQLSERVER)
-  }
-  if (skipMongodb) {
-    referentialActionsMatrix = referentialActionsMatrix.filter((it) => it.provider !== Providers.MONGODB)
-  }
-  if (skipCockroachdb) {
-    referentialActionsMatrix = referentialActionsMatrix.filter((it) => it.provider !== Providers.COCKROACHDB)
-  }
-  if (skipVitess) {
-    referentialActionsMatrix = referentialActionsMatrix.filter((it) => it.providerFlavor !== ProviderFlavors.VITESS_8)
-  }
 
   return referentialActionsMatrix
 }

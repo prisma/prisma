@@ -1,7 +1,7 @@
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
-import { flavorsForProvider } from './providers'
+import { flavorsForProvider, ProviderFlavors } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -14,6 +14,7 @@ export type TestPlanEntry = {
 type SuitePlanContext = {
   includedProviders?: string[]
   excludedProviders: string[]
+  excludedProviderFlavors: string[]
   updateSnapshots: 'inline' | 'external' | undefined
 }
 
@@ -36,7 +37,7 @@ export function getTestSuitePlan(
   const testPlanEntry = suiteConfigs.flatMap((namedConfig, configIndex) => {
     const testPlanEntry: TestPlanEntry = {
       name: getTestSuiteFullName(suiteMeta, namedConfig),
-      skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
+      skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, clientMeta),
       suiteConfig: namedConfig,
     }
 
@@ -83,13 +84,15 @@ function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): b
   return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
 }
 
-function shouldSkipProvider(
-  { updateSnapshots, includedProviders, excludedProviders }: SuitePlanContext,
+function shouldSkipSuiteConfig(
+  { updateSnapshots, includedProviders, excludedProviders, excludedProviderFlavors }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
   clientMeta: ClientMeta,
 ): boolean {
-  const provider = config.matrixOptions.provider?.toLocaleLowerCase()
+  const provider = config.matrixOptions.provider.toLocaleLowerCase()
+  const flavor = config.matrixOptions.providerFlavor?.toLocaleLowerCase()
+
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
     // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
@@ -102,7 +105,7 @@ function shouldSkipProvider(
     return true
   }
 
-  if (includedProviders && !includedProviders.includes(provider!)) {
+  if (includedProviders && !includedProviders.includes(provider)) {
     return true
   }
 
@@ -110,13 +113,18 @@ function shouldSkipProvider(
     return true
   }
 
-  return excludedProviders.includes(provider!)
+  if (flavor && excludedProviderFlavors.includes(flavor)) {
+    return true
+  }
+
+  return excludedProviders.includes(provider)
 }
 
 function buildPlanContext(): SuitePlanContext {
   return {
     includedProviders: process.env.ONLY_TEST_PROVIDERS?.split(','),
-    excludedProviders: getExcludedProviders(),
+    excludedProviders: getExclusionsFromEnv(excludeEnvToProviderMap),
+    excludedProviderFlavors: getExclusionsFromEnv(excludeEnvToProviderFlavorMap),
     updateSnapshots: process.env.UPDATE_SNAPSHOTS as 'inline' | 'external' | undefined,
   }
 }
@@ -129,10 +137,17 @@ const excludeEnvToProviderMap = {
   TEST_SKIP_SQLITE: 'sqlite',
 }
 
-function getExcludedProviders() {
-  return Object.entries(excludeEnvToProviderMap).reduce((acc, [envVarName, provider]) => {
+const excludeEnvToProviderFlavorMap = {
+  TEST_SKIP_VITESS: ProviderFlavors.VITESS_8,
+  TEST_SKIP_PG: ProviderFlavors.JS_PG,
+  TEST_SKIP_NEON: ProviderFlavors.JS_NEON,
+  TEST_SKIP_PLANETSCALE: ProviderFlavors.JS_PLANETSCALE,
+}
+
+function getExclusionsFromEnv(exclusionMap: Record<string, string>) {
+  return Object.entries(exclusionMap).reduce((acc, [envVarName, exclusionName]) => {
     if (process.env[envVarName]) {
-      acc.push(provider)
+      acc.push(exclusionName.toLowerCase())
     }
     return acc
   }, [] as string[])
