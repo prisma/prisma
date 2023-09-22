@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+dist/
+/.prisma
+/packages/cli/build
+/packages/cli/prisma-client
+/packages/cli/preinstall
+/packages/client/runtime
+/packages/client/generator-build
+/packages/client/declaration
+/reproductions
+.cache
