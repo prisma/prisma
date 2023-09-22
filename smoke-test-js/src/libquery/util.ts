@@ -9,11 +9,9 @@ export function initQueryEngine(
   driver: ErrorCapturingDriverAdapter,
   prismaSchemaRelativePath: string,
 ): QueryEngineInstance {
-  // I assume nobody will run this on Windows ¯\_(ツ)_/¯
-  const libExt = os.platform() === 'darwin' ? 'dylib' : 'so'
   const dirname = path.dirname(new URL(import.meta.url).pathname)
+  const libQueryEnginePath = getLibQueryEnginePath(dirname)
 
-  const libQueryEnginePath = path.join(dirname, `../../../../../../target/debug/libquery_engine.${libExt}`)
   const schemaPath = path.join(dirname, prismaSchemaRelativePath)
 
   console.log('[nodejs] read Prisma schema from', schemaPath)
@@ -41,6 +39,12 @@ export function initQueryEngine(
   const engine = new QueryEngine(queryEngineOptions, logCallback, driver)
 
   return engine
+}
+
+export function getLibQueryEnginePath(dirname: String) {
+  // I assume nobody will run this on Windows ¯\_(ツ)_/¯
+  const libExt = os.platform() === 'darwin' ? 'dylib' : 'so'
+  return path.join(dirname, `../../../../../../target/debug/libquery_engine.${libExt}`)
 }
 
 export function createQueryFn(engine: QueryEngineInstance, adapter: ErrorCapturingDriverAdapter) {

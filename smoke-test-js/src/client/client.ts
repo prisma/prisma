@@ -1,7 +1,9 @@
 import { describe, it } from 'node:test'
+import path from 'node:path'
 import assert from 'node:assert'
 import { PrismaClient } from '@prisma/client'
 import type { DriverAdapter } from '@prisma/driver-adapter-utils'
+import { getLibQueryEnginePath } from '../libquery/util'
 
 export async function smokeTestClient(driverAdapter: DriverAdapter) {
   const provider = driverAdapter.flavour
@@ -12,6 +14,9 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
       level: 'query',
     } as const,
   ]
+
+  const dirname = path.dirname(new URL(import.meta.url).pathname)
+  process.env.PRISMA_QUERY_ENGINE_LIBRARY = getLibQueryEnginePath(dirname)
 
   for (const adapter of [driverAdapter, undefined]) {
     const isUsingDriverAdapters = adapter !== undefined
