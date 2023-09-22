@@ -5,7 +5,7 @@ import * as path from 'node:path'
 
 export type QueryLogCallback = (log: string) => void
 
-export function initQueryEngine(adapter: ErrorCapturingDriverAdapter, datamodel: string, queryLogCallback: QueryLogCallback): lib.QueryEngineInstance {
+export function initQueryEngine(adapter: ErrorCapturingDriverAdapter, datamodel: string, queryLogCallback: QueryLogCallback, debug: (...args: any[]) => void): lib.QueryEngineInstance {
     // I assume nobody will run this on Windows ¯\_(ツ)_/¯
     const libExt = os.platform() === 'darwin' ? 'dylib' : 'so'
     const dirname = path.dirname(new URL(import.meta.url).pathname)
@@ -22,7 +22,7 @@ export function initQueryEngine(adapter: ErrorCapturingDriverAdapter, datamodel:
         datamodel,
         configDir: '.',
         engineProtocol: 'json' as const,
-        logLevel: process.env["RUST_LOG"] as any,
+        logLevel: process.env["RUST_LOG"] ?? 'info' as any,
         logQueries: true,
         env: process.env,
         ignoreEnvVarErrors: false,
@@ -34,11 +34,7 @@ export function initQueryEngine(adapter: ErrorCapturingDriverAdapter, datamodel:
         if (parsed.is_query) {
             queryLogCallback(parsed.query)
         }
-
-        const level = process.env.LOG_LEVEL ?? ''
-        if (level.toLowerCase() == 'debug') {
-            console.error("[nodejs] ", parsed)
-        }
+        debug(parsed)
     }
 
     return new QueryEngine(queryEngineOptions, logCallback, adapter)
