@@ -348,6 +348,9 @@ importers:
       '@jest/test-sequencer':
         specifier: 29.7.0
         version: 29.7.0
+      '@libsql/client':
+        specifier: 0.3.5-pre.11
+        version: 0.3.5-pre.11
       '@neondatabase/serverless':
         specifier: 0.6.0
         version: 0.6.0
@@ -372,6 +375,9 @@ importers:
       '@planetscale/database':
         specifier: 1.11.0
         version: 1.11.0
+      '@prisma/adapter-libsql':
+        specifier: 0.2.0
+        version: 0.2.0(@libsql/client@0.3.5-pre.11)
       '@prisma/adapter-neon':
         specifier: 0.3.3
         version: 0.3.3(@neondatabase/serverless@0.6.0)
@@ -2408,6 +2414,74 @@ packages:
   /@js-joda/core@5.4.2:
     resolution: {integrity: sha512-QIDIZ9a0NfDStgD47VaTgwiPjlw1p4QPLwjOB/9+/DqIztoQopPNNAd+HdtQMHgE+ibP3dJacd8/TVL/A1RaaA==}
 
+  /@libsql/client@0.3.5-pre.11:
+    resolution: {integrity: sha512-nfCuTXeSnUi8giQtxhsjSZx3DMwuVgNQEpLLNAZbStX8hZEHenHHntoNri07DnrCxC7PWkVV5hio8Inr1Xa46g==}
+    dependencies:
+      '@libsql/hrana-client': 0.5.5
+      js-base64: 3.7.5
+      libsql: 0.1.17
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+    dev: true
+
+  /@libsql/darwin-arm64@0.1.17:
+    resolution: {integrity: sha512-zv8+PQU72kqGzfWIA9PnliywanFvH3i928eMmBaiOcmeffygtGEUaAohqcRF4uWUyWG6xK7XF9XglM34YdkgRA==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@libsql/hrana-client@0.5.5:
+    resolution: {integrity: sha512-i+hDBpiV719poqEiHupUUZYKJ9YSbCRFe5Q2PQ0v3mHIftePH6gayLjp2u6TXbqbO/Dv6y8yyvYlBXf/kFfRZA==}
+    dependencies:
+      '@libsql/isomorphic-fetch': 0.1.10
+      '@libsql/isomorphic-ws': 0.1.5
+      js-base64: 3.7.5
+      node-fetch: 3.3.2
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+    dev: true
+
+  /@libsql/isomorphic-fetch@0.1.10:
+    resolution: {integrity: sha512-dH0lMk50gKSvEKD78xWMu60SY1sjp1sY//iFLO0XMmBwfVfG136P9KOk06R4maBdlb8KMXOzJ1D28FR5ZKnHTA==}
+    dependencies:
+      '@types/node-fetch': 2.6.4
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /@libsql/isomorphic-ws@0.1.5:
+    resolution: {integrity: sha512-DtLWIH29onUYR00i0GlQ3UdcTRC6EP4u9w/h9LxpUZJWRMARk6dQwZ6Jkd+QdwVpuAOrdxt18v0K2uIYR3fwFg==}
+    dependencies:
+      '@types/ws': 8.5.5
+      ws: 8.14.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
+
+  /@libsql/linux-x64-gnu@0.1.17:
+    resolution: {integrity: sha512-kjjJq3VQ4AbwGwqHHk2eAyH4G4oVfb+S9ByR7xAIOkIGTWFkUzIAh4Gz5tdUqopglmm5Vur55i7C7TLa+pK15g==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@libsql/linux-x64-musl@0.1.17:
+    resolution: {integrity: sha512-y5pmoZt93fawiC8PB6JEQvLHcmdjB5WoYB7OyKiDKGwrX0xA7rewASObb0s2Q/zsh/rjUDFOfuRyNCScGed6Lw==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /@mapbox/node-pre-gyp@1.0.10:
     resolution: {integrity: sha512-4ySo4CjzStuprMwk35H5pPbkymjv1SF3jGLj6rAHp/xT/RF7TL7bd9CTm1xDY49K2qF7jmR/g7k+SkLETP6opA==}
     hasBin: true
@@ -2476,6 +2550,10 @@ packages:
       sparse-bitfield: 3.0.3
     dev: false
     optional: true
+
+  /@neon-rs/load@0.0.4:
+    resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
+    dev: true
 
   /@neondatabase/serverless@0.6.0:
     resolution: {integrity: sha512-qXxBRYN0m2v8kVQBfMxbzNGn2xFAhTXFibzQlE++NfJ56Shz3m7+MyBBtXDlEH+3Wfa6lToDXf1MElocY4sJ3w==}
@@ -2893,6 +2971,17 @@ packages:
   /@planetscale/database@1.11.0:
     resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
     engines: {node: '>=16'}
+    dev: true
+
+  /@prisma/adapter-libsql@0.2.0(@libsql/client@0.3.5-pre.11):
+    resolution: {integrity: sha512-SyDc2WlCJKuM4UFIXGhLYmZy+ftO50Bh2NiNcRlpMtdVudMnLuNQpemsBB935osrGEepSlEIjsmvS3KzWGGAmg==}
+    peerDependencies:
+      '@libsql/client': ^0.3.5-pre.11
+    dependencies:
+      '@libsql/client': 0.3.5-pre.11
+      '@prisma/driver-adapter-utils': 0.3.3
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /@prisma/adapter-neon@0.3.3(@neondatabase/serverless@0.6.0):
@@ -3870,6 +3959,12 @@ packages:
 
   /@types/which@3.0.0:
     resolution: {integrity: sha512-ASCxdbsrwNfSMXALlC3Decif9rwDMu+80KGp5zI2RLRotfMsTv7fHL8W8VDp24wymzDyIFudhUeSCugrgRFfHQ==}
+    dev: true
+
+  /@types/ws@8.5.5:
+    resolution: {integrity: sha512-lwhs8hktwxSjf9UaZ9tG5M03PGogvFaH8gUgLNbN9HKIg0dvv6q+gkSuJ8HN4/VbyxkuLzCjlN7GquQ0gUJfIg==}
+    dependencies:
+      '@types/node': 18.17.15
     dev: true
 
   /@types/yargs-parser@21.0.0:
@@ -5663,6 +5758,11 @@ packages:
 
   /detect-libc@2.0.1:
     resolution: {integrity: sha512-463v3ZeIrcWtdgIg6vI6XUncguvr2TnGl4SzDXinkt9mSLpBJKXT3mW6xT3VQdDN11+WVs29pgvivTc4Lp8v+w==}
+    engines: {node: '>=8'}
+    dev: true
+
+  /detect-libc@2.0.2:
+    resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
     dev: true
 
@@ -8457,6 +8557,10 @@ packages:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
     dev: true
 
+  /js-base64@3.7.5:
+    resolution: {integrity: sha512-3MEt5DTINKqfScXKfJFrRbxkrnk2AxPWGBL/ycjz4dK8iqiSJ06UxD8jh8xuh6p10TX4t2+7FsBYVxxQbMg+qA==}
+    dev: true
+
   /js-levenshtein@1.1.6:
     resolution: {integrity: sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g==}
     engines: {node: '>=0.10.0'}
@@ -8692,6 +8796,19 @@ packages:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+    dev: true
+
+  /libsql@0.1.17:
+    resolution: {integrity: sha512-wRT215eaTkbgErrYwJZ8E3L9xKvy6BTsYVhjnE/g75feumnjqxUTVrsC4eAqaOy4FNMzMVghN9v7RFLMcDlomw==}
+    cpu: [x64, arm64]
+    os: [darwin, linux]
+    dependencies:
+      '@neon-rs/load': 0.0.4
+      detect-libc: 2.0.2
+    optionalDependencies:
+      '@libsql/darwin-arm64': 0.1.17
+      '@libsql/linux-x64-gnu': 0.1.17
+      '@libsql/linux-x64-musl': 0.1.17
     dev: true
 
   /lilconfig@2.1.0:
@@ -9620,6 +9737,15 @@ packages:
 
   /node-fetch@3.3.1:
     resolution: {integrity: sha512-cRVc/kyto/7E5shrWca1Wsea4y6tL9iYJE5FBCius3JQfb/4P4I295PfhgbJQBLTx6lATE4z+wK0rPM4VS2uow==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      data-uri-to-buffer: 4.0.1
+      fetch-blob: 3.2.0
+      formdata-polyfill: 4.0.10
+    dev: true
+
+  /node-fetch@3.3.2:
+    resolution: {integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       data-uri-to-buffer: 4.0.1
@@ -13041,6 +13167,19 @@ packages:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 3.0.7
+    dev: true
+
+  /ws@8.14.2:
+    resolution: {integrity: sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
     dev: true
 
   /xdg-basedir@4.0.0:
