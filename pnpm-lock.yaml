@@ -327,8 +327,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
-        version: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
+        specifier: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
+        version: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -629,8 +629,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
-        version: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
+        specifier: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
+        version: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -714,8 +714,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
-        version: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
+        specifier: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
+        version: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
       '@swc/core':
         specifier: 1.3.75
         version: 1.3.75
@@ -996,8 +996,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
-        version: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
+        specifier: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
+        version: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
       archiver:
         specifier: 5.3.2
         version: 5.3.2
@@ -1205,8 +1205,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
-        version: 5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419
+        specifier: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
+        version: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -2936,8 +2936,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/engines-version@5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419:
-    resolution: {integrity: sha512-6qgjyvmru90p7sn+mWQlZDmX8WgYTZ/cB2kpDShjbg1ymF4dIszqUm6RZqESoZ39Mgp5d620AgDtZqfFQ8sWRQ==}
+  /@prisma/engines-version@5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16:
+    resolution: {integrity: sha512-VHALPt2kqwT59alfyvcPj5YcAP9Y+ayK9Tn4i+B/qsqVVj7mstJ93wFNTMzVUF8C3O/1DKxq8ggC9XRUyOOczA==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -2945,8 +2945,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.4.0-18.32692fd2ce90d456c093eb8eae68511575243419:
-    resolution: {integrity: sha512-HHCK4s1/mwMOWINJK246tYA5LCctCa3pSSMthX8YRsHlt5JITfKJ3/QtJDPOgBDNCqEeEAIqnHOoQBgt+DvdLw==}
+  /@prisma/prisma-schema-wasm@5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16:
+    resolution: {integrity: sha512-sMhWddAjC9q0yt7SXPheQpsrLVL3SkDYM0jWKNaW30pHqzOaV0I5nIjztylzOoiaARJHTrc/zwPctyjlIeb7Cw==}
     dev: false
 
   /@prisma/studio-common@0.494.0:
