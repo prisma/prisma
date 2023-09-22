@@ -3,7 +3,7 @@ import { klona } from 'klona'
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { flavorsForProvider, ProviderFlavors } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, MatrixOptions } from './types'
+import { MatrixOptions, TestCliMeta } from './types'
 
 export type TestPlanEntry = {
   name: string
@@ -13,6 +13,7 @@ export type TestPlanEntry = {
 
 type SuitePlanContext = {
   includedProviders?: string[]
+  includedProviderFlavors?: string[]
   excludedProviders: string[]
   excludedProviderFlavors: string[]
   updateSnapshots: 'inline' | 'external' | undefined
@@ -27,12 +28,12 @@ type SuitePlanContext = {
 export function getTestSuitePlan(
   suiteMeta: TestSuiteMeta,
   suiteConfigs: NamedTestSuiteConfig[],
-  clientMeta: ClientMeta,
+  testCliMeta: TestCliMeta,
   options?: MatrixOptions,
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
+  const shouldSkipAll = shouldSkipTestSuite(testCliMeta, options)
 
   const expandedSuiteConfigs = suiteConfigs.flatMap((config) => {
     return getExpandedTestSuitePlanWithProviderFlavors(config)
@@ -40,7 +41,7 @@ export function getTestSuitePlan(
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, clientMeta),
+    skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta),
     suiteConfig: namedConfig,
   }))
 }
@@ -70,7 +71,7 @@ function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuite
   return [suiteConfig, ...suiteConfigExpansions]
 }
 
-function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
+function shouldSkipTestSuite(clientMeta: TestCliMeta, options?: MatrixOptions): boolean {
   if (!clientMeta.dataProxy || !options?.skipDataProxy) {
     return false
   }
@@ -78,10 +79,16 @@ function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): b
 }
 
 function shouldSkipSuiteConfig(
-  { updateSnapshots, includedProviders, excludedProviders, excludedProviderFlavors }: SuitePlanContext,
+  {
+    updateSnapshots,
+    includedProviders,
+    includedProviderFlavors,
+    excludedProviders,
+    excludedProviderFlavors,
+  }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
-  clientMeta: ClientMeta,
+  testCliMeta: TestCliMeta,
 ): boolean {
   const provider = config.matrixOptions.provider.toLocaleLowerCase()
   const flavor = config.matrixOptions.providerFlavor?.toLocaleLowerCase()
@@ -98,35 +105,43 @@ function shouldSkipSuiteConfig(
     return true
   }
 
+  // if the client doesn't support the provider, skip
+  if (testCliMeta.dataProxy && provider === 'sqlite') {
+    return true
+  }
+
+  // if the provider is not included, skip
   if (includedProviders && !includedProviders.includes(provider)) {
     return true
   }
 
-  if (clientMeta.dataProxy && provider === 'sqlite') {
+  // if the provider is excluded, skip
+  if (excludedProviders.includes(provider)) {
     return true
   }
 
-  // if there is a flavor and it is in the list of excluded flavors, skip
+  // if there is a flavor to run and it's not included, skip
+  if (flavor && !includedProviderFlavors?.includes(flavor)) {
+    return true
+  }
+
+  // if there is a flavor to run and it's excluded, skip
   if (flavor && excludedProviderFlavors.includes(flavor)) {
     return true
   }
 
-  // if we are running driver adapter tests and its not a driver test, skip
-  if (process.env.TEST_DRIVER_ADAPTER === 'true' && flavor === undefined) {
+  // if flavors are enabled and test has no flavor, skip
+  if (includedProviderFlavors && flavor === undefined) {
     return true
   }
 
-  // if we are running non-driver adapter tests and its a driver test, skip
-  if (process.env.TEST_DRIVER_ADAPTER !== 'true' && flavor !== undefined) {
-    return true
-  }
-
-  return excludedProviders.includes(provider)
+  return false
 }
 
 function buildPlanContext(): SuitePlanContext {
   return {
     includedProviders: process.env.ONLY_TEST_PROVIDERS?.split(','),
+    includedProviderFlavors: process.env.ONLY_TEST_PROVIDER_FLAVORS?.split(','),
     excludedProviders: getExclusionsFromEnv(excludeEnvToProviderMap),
     excludedProviderFlavors: getExclusionsFromEnv(excludeEnvToProviderFlavorMap),
     updateSnapshots: process.env.UPDATE_SNAPSHOTS as 'inline' | 'external' | undefined,

@@ -3,9 +3,9 @@ import path from 'path'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
-import { ProviderFlavors, Providers } from './providers'
+import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta } from './types'
+import { ClientMeta, TestCliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
@@ -162,7 +162,7 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
 
   // in some cases we may add more preview features automatically to the schema
   // when we are running tests for driver adapters, auto add the preview feature
-  if (process.env.TEST_DRIVER_ADAPTER) previewFeatures.push('driverAdapters')
+  if (isDriverAdapterProviderFlavor(matrixOptions.providerFlavor)) previewFeatures.push('driverAdapters')
 
   const previewFeaturesStr = `previewFeatures = ${JSON.stringify(previewFeatures)}`
 
@@ -218,12 +218,11 @@ export function getTestSuiteMeta() {
 }
 
 /**
- * Get `ClientMeta` from the environment variables
+ * Get `TestCliMeta` from the environment variables created by the test CLI.
  */
-export function getTestSuiteClientMeta(): ClientMeta {
-  const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
-  const driverAdapter = Boolean(process.env.TEST_DRIVER_ADAPTER)
+export function getTestSuiteCliMeta(): TestCliMeta {
   const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+  const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
 
   if (edge && !dataProxy) {
     throw new Error('Edge client requires Data Proxy')
@@ -231,7 +230,16 @@ export function getTestSuiteClientMeta(): ClientMeta {
 
   return {
     dataProxy,
-    driverAdapter,
     runtime: edge ? 'edge' : 'node',
+  }
+}
+
+/**
+ * Get `ClientMeta` information to be passed down into the test suite.
+ */
+export function getTestSuiteClientMeta(suiteConfig: NamedTestSuiteConfig['matrixOptions']): ClientMeta {
+  return {
+    ...getTestSuiteCliMeta(),
+    driverAdapter: isDriverAdapterProviderFlavor(suiteConfig.providerFlavor),
   }
 }
