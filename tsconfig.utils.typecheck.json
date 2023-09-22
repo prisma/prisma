@@ -1,8 +1,6 @@
 {
   "extends": "./tsconfig.build.bundle.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
     "emitDeclarationOnly": false,
     "noEmit": true
   }
