@@ -397,8 +397,8 @@ importers:
         specifier: 0.9.4
         version: 0.9.4
       '@snaplet/copycat':
-        specifier: 0.16.0
-        version: 0.16.0
+        specifier: 0.17.3
+        version: 0.17.3
       '@swc-node/register':
         specifier: 1.6.6
         version: 1.6.6(@swc/core@1.3.75)(typescript@5.2.2)
@@ -3047,11 +3047,11 @@ packages:
       - debug
     dev: true
 
-  /@snaplet/copycat@0.16.0:
-    resolution: {integrity: sha512-4BererZXhzz3HT4cbTrHOwH5N7w519VYRIXgZV74O3a7VAe/SncE6r5vBQlWUMwIKlovMpJe1JosFdNzlYRhjw==}
+  /@snaplet/copycat@0.17.3:
+    resolution: {integrity: sha512-cwX6zphBd1KNuOPmILggXkddLf+juIrXsFhfOz0nMDIIAkWyoFQAqwt4pn5lS2RNMJTzT7IZRKplnFt/D2t8zw==}
     dependencies:
       '@faker-js/faker': 8.0.2
-      fictional: 0.8.2
+      fictional: 0.8.4
       uuid: 8.3.2
     dev: true
 
@@ -6443,8 +6443,8 @@ packages:
       web-streams-polyfill: 3.2.1
     dev: true
 
-  /fictional@0.8.2:
-    resolution: {integrity: sha512-bYjYBew0K8Pm727U5eiDUfhXrrZ+SOCAK714j1Lj/ml9yxcZA0lcHWFK/0GYjieySmOiGS9qZyMcyEXRKuuNzg==}
+  /fictional@0.8.4:
+    resolution: {integrity: sha512-wSYTdLJkQ/h4NOMI6FCp9xxjMzEcCxwSjIK4f5zZveOKFUPAxi4/sAb3pyjaiz3fCSA2PGEGLY6ZWQplRl7ygQ==}
     dependencies:
       decimal.js: 10.4.3
       fast-json-stable-stringify: 2.1.0
