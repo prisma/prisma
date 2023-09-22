@@ -348,15 +348,6 @@ importers:
       '@jest/test-sequencer':
         specifier: 29.7.0
         version: 29.7.0
-      '@jkomyno/prisma-adapter-neon':
-        specifier: 0.2.1
-        version: 0.2.1(@neondatabase/serverless@0.6.0)
-      '@jkomyno/prisma-adapter-pg':
-        specifier: 0.2.1
-        version: 0.2.1(pg@8.11.2)
-      '@jkomyno/prisma-adapter-planetscale':
-        specifier: 0.2.1
-        version: 0.2.1(@planetscale/database@1.11.0)
       '@neondatabase/serverless':
         specifier: 0.6.0
         version: 0.6.0
@@ -2360,47 +2351,6 @@ packages:
       '@types/node': 18.17.15
       '@types/yargs': 17.0.13
       chalk: 4.1.2
-    dev: true
-
-  /@jkomyno/prisma-adapter-neon@0.2.1(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-YgIe5dv12sMzW8ToIfuyonDTUCwrM0mDiQ/f6hF/0vuZ7u10E189yP04oibn0fb1KpbV+Bj+a1iX0+vJ600fag==}
-    peerDependencies:
-      '@neondatabase/serverless': ^0.6.0
-    dependencies:
-      '@jkomyno/prisma-driver-adapter-utils': 0.2.1
-      '@neondatabase/serverless': 0.6.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@jkomyno/prisma-adapter-pg@0.2.1(pg@8.11.2):
-    resolution: {integrity: sha512-4UEEpmzjCGInvjsJTw7Us5n6J3iDaht/oYGtJrqpbSv+tjhB/yDHzZ3KSwmbNfl2nDL20rQUJC3+te5ADoSf6g==}
-    peerDependencies:
-      pg: ^8.11.3
-    dependencies:
-      '@jkomyno/prisma-driver-adapter-utils': 0.2.1
-      pg: 8.11.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@jkomyno/prisma-adapter-planetscale@0.2.1(@planetscale/database@1.11.0):
-    resolution: {integrity: sha512-Qv6LGuMvVk+s8CId38+eI05hhc+SW8ZR7jxow2abYg+HrukAgeSTS9b4nrn/M5vuIKOX3ZTgQ+JXAuTQTNjkGQ==}
-    peerDependencies:
-      '@planetscale/database': ^1.11.0
-    dependencies:
-      '@jkomyno/prisma-driver-adapter-utils': 0.2.1
-      '@planetscale/database': 1.11.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@jkomyno/prisma-driver-adapter-utils@0.2.1:
-    resolution: {integrity: sha512-wijRWfwLVIs/hJi4Plrc3JHBW3I4bVvgWM6uLvybQUWTtz4LwzdcPt3inZsPXr6qLkwqkjVe9q+XbeHCMPsLdg==}
-    dependencies:
-      debug: 4.3.4
-    transitivePeerDependencies:
-      - supports-color
     dev: true
 
   /@jridgewell/gen-mapping@0.1.1:
