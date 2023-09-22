@@ -87,6 +87,8 @@ function setupTestSuiteMatrix(
       beforeAll(async () => {
         const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
 
+        globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
+
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
           suiteConfig,
@@ -109,7 +111,6 @@ function setupTestSuiteMatrix(
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
-        globalThis['datasourceInfo'] = datasourceInfo
       })
 
       // for better type dx, copy a client into the test suite root node_modules
