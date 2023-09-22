@@ -3,7 +3,7 @@ import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
+import { defaultEnv, defaultGitIgnore, defaultSchema, withModelSchema } from '../../Init'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -197,6 +197,16 @@ test('errors with invalid provider param', async () => {
   ctx.fixture('init')
   const result = ctx.cli('init', '--datasource-provider', 'INVALID')
   await expect(result).rejects.toThrow()
+})
+
+test('works with --with-model param', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--with-model')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(withModelSchema('postgresql'))
+  expect(schema).toMatchSnapshot()
 })
 
 test('warns when DATABASE_URL present in .env ', async () => {
