@@ -1,5 +1,5 @@
 import type planetScale from '@planetscale/database'
-import { Debug } from '@prisma/driver-adapter-utils'
+import { Debug, ok } from '@prisma/driver-adapter-utils'
 import type {
   DriverAdapter,
   ResultSet,
@@ -46,7 +46,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Connection | planetScale.
       lastInsertId,
     }
 
-    return { ok: true, value: resultSet }
+    return ok(resultSet)
   }
 
   /**
@@ -59,7 +59,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Connection | planetScale.
     debug(`${tag} %O`, query)
 
     const { rowsAffected } = await this.performIO(query)
-    return { ok: true, value: rowsAffected }
+    return ok(rowsAffected)
   }
 
   /**
@@ -97,14 +97,14 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     debug(`[js::commit]`)
 
     this.txDeferred.resolve()
-    return Promise.resolve({ ok: true, value: await this.txResultPromise })
+    return Promise.resolve(ok(await this.txResultPromise))
   }
 
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
     this.txDeferred.reject(new RollbackError())
-    return Promise.resolve({ ok: true, value: await this.txResultPromise })
+    return Promise.resolve(ok(await this.txResultPromise))
   }
 }
 
@@ -127,7 +127,7 @@ export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Connecti
           const [txDeferred, deferredPromise] = createDeferred<void>()
           const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
 
-          resolve({ ok: true, value: txWrapper })
+          resolve(ok(txWrapper))
           return deferredPromise
         })
         .catch((error) => {
@@ -143,6 +143,6 @@ export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Connecti
   }
 
   async close() {
-    return { ok: true as const, value: undefined }
+    return ok(undefined)
   }
 }

@@ -1,11 +1,5 @@
-import type {
-  ErrorCapturingDriverAdapter,
-  DriverAdapter,
-  Transaction,
-  ErrorRegistry,
-  ErrorRecord,
-  Result,
-} from './types'
+import { Result, err, ok } from './result'
+import type { ErrorCapturingDriverAdapter, DriverAdapter, Transaction, ErrorRegistry, ErrorRecord } from './types'
 
 class ErrorRegistryInternal implements ErrorRegistry {
   private registeredErrors: ErrorRecord[] = []
@@ -37,10 +31,7 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
     flavour: adapter.flavour,
     startTransaction: async (...args) => {
       const result = await startTransaction(...args)
-      if (result.ok) {
-        return { ok: true, value: bindTransaction(errorRegistry, result.value) }
-      }
-      return result
+      return result.map((tx) => bindTransaction(errorRegistry, tx))
     },
     close: wrapAsync(errorRegistry, adapter.close.bind(adapter)),
   }
@@ -68,7 +59,7 @@ function wrapAsync<A extends unknown[], R>(
       return await fn(...args)
     } catch (error) {
       const id = registry.registerNewError(error)
-      return { ok: false, error: { kind: 'GenericJsError', id } }
+      return err({ kind: 'GenericJsError', id })
     }
   }
 }

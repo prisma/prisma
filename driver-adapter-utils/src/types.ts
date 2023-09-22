@@ -1,6 +1,7 @@
 import { ColumnTypeEnum } from './const'
+import { Result } from './result'
 
-export type ColumnType = typeof ColumnTypeEnum[keyof typeof ColumnTypeEnum]
+export type ColumnType = (typeof ColumnTypeEnum)[keyof typeof ColumnTypeEnum]
 
 export interface ResultSet {
   /**
@@ -33,25 +34,17 @@ export type Query = {
 }
 
 export type Error = {
-  kind: 'GenericJsError',
+  kind: 'GenericJsError'
   id: number
 }
 
-export type Result<T> = {
-  ok: true,
-  value: T
-} | {
-  ok: false,
-  error: Error
-}
-
-export interface Queryable  {
+export interface Queryable {
   readonly flavour: 'mysql' | 'postgres' | 'sqlite'
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the type-aware result set of the query.
-   * 
+   *
    * This is the preferred way of executing `SELECT` queries.
    */
   queryRaw(params: Query): Promise<Result<ResultSet>>
@@ -59,7 +52,7 @@ export interface Queryable  {
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the number of affected rows.
-   * 
+   *
    * This is the preferred way of executing `INSERT`, `UPDATE`, `DELETE` queries,
    * as well as transactional queries.
    */

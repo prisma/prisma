@@ -1,6 +1,14 @@
 import type pg from 'pg'
-import { Debug } from '@prisma/driver-adapter-utils'
-import type { DriverAdapter, Query, Queryable, Result, ResultSet, Transaction, TransactionOptions } from '@prisma/driver-adapter-utils'
+import { Debug, ok } from '@prisma/driver-adapter-utils'
+import type {
+  DriverAdapter,
+  Query,
+  Queryable,
+  Result,
+  ResultSet,
+  Transaction,
+  TransactionOptions,
+} from '@prisma/driver-adapter-utils'
 import { fieldToColumnType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:pg')
@@ -8,12 +16,10 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
-class PgQueryable<ClientT extends StdClient | TransactionClient>
-  implements Queryable {
+class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly flavour = 'postgres'
 
-  constructor(protected readonly client: ClientT) {
-  }
+  constructor(protected readonly client: ClientT) {}
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -25,14 +31,14 @@ class PgQueryable<ClientT extends StdClient | TransactionClient>
     const { fields, rows } = await this.performIO(query)
 
     const columns = fields.map((field) => field.name)
-    const columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID));
+    const columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
     const resultSet: ResultSet = {
       columnNames: columns,
       columnTypes,
       rows,
     }
 
-    return { ok: true, value: resultSet }
+    return ok(resultSet)
   }
 
   /**
@@ -45,9 +51,9 @@ class PgQueryable<ClientT extends StdClient | TransactionClient>
     debug(`${tag} %O`, query)
 
     const { rowCount: rowsAffected } = await this.performIO(query)
-    
+
     // Note: `rowsAffected` can sometimes be null (e.g., when executing `"BEGIN"`)
-    return { ok: true, value: rowsAffected ?? 0 }
+    return ok(rowsAffected ?? 0)
   }
 
   /**
@@ -69,8 +75,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient>
   }
 }
 
-class PgTransaction extends PgQueryable<TransactionClient>
-  implements Transaction {
+class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
   constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -79,14 +84,14 @@ class PgTransaction extends PgQueryable<TransactionClient>
     debug(`[js::commit]`)
 
     this.client.release()
-    return Promise.resolve({ ok: true, value: undefined })
+    return ok(undefined)
   }
 
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
     this.client.release()
-    return Promise.resolve({ ok: true, value: undefined })
+    return ok(undefined)
   }
 }
 
@@ -104,10 +109,10 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
     debug(`${tag} options: %O`, options)
 
     const connection = await this.client.connect()
-    return { ok: true, value: new PgTransaction(connection, options) }
+    return ok(new PgTransaction(connection, options))
   }
 
   async close() {
-    return { ok: true as const, value: undefined }
+    return ok(undefined)
   }
 }

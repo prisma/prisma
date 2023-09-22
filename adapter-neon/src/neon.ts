@@ -1,5 +1,5 @@
 import type neon from '@neondatabase/serverless'
-import { Debug } from '@prisma/driver-adapter-utils'
+import { Debug, ok, err } from '@prisma/driver-adapter-utils'
 import type {
   DriverAdapter,
   ResultSet,
@@ -36,7 +36,7 @@ abstract class NeonQueryable implements Queryable {
       rows,
     }
 
-    return { ok: true, value: resultSet }
+    return ok(resultSet)
   }
 
   async executeRaw(query: Query): Promise<Result<number>> {
@@ -46,7 +46,7 @@ abstract class NeonQueryable implements Queryable {
     const { rowCount: rowsAffected } = await this.performIO(query)
 
     // Note: `rowsAffected` can sometimes be null (e.g., when executing `"BEGIN"`)
-    return { ok: true, value: rowsAffected ?? 0 }
+    return ok(rowsAffected ?? 0)
   }
 
   abstract performIO(query: Query): Promise<PerformIOResult>
@@ -82,14 +82,14 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
     debug(`[js::commit]`)
 
     this.client.release()
-    return Promise.resolve({ ok: true, value: undefined })
+    return Promise.resolve(ok(undefined))
   }
 
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
     this.client.release()
-    return Promise.resolve({ ok: true, value: undefined })
+    return Promise.resolve(ok(undefined))
   }
 }
 
@@ -109,7 +109,7 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
     debug(`${tag} options: %O`, options)
 
     const connection = await this.client.connect()
-    return { ok: true, value: new NeonTransaction(connection, options) }
+    return ok(new NeonTransaction(connection, options))
   }
 
   async close() {
@@ -117,7 +117,7 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
       await this.client.end()
       this.isRunning = false
     }
-    return { ok: true as const, value: undefined }
+    return ok(undefined)
   }
 }
 
@@ -139,6 +139,6 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
   }
 
   async close() {
-    return { ok: true as const, value: undefined }
+    return ok(undefined)
   }
 }
