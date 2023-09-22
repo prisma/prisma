@@ -5,6 +5,7 @@ import path from 'path'
 import { checkMissingProviders } from './checkMissingProviders'
 import {
   getTestSuiteClientMeta,
+  getTestSuiteCliMeta,
   getTestSuiteConfigs,
   getTestSuiteFolderPath,
   getTestSuiteMeta,
@@ -60,9 +61,9 @@ function setupTestSuiteMatrix(
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const clientMeta = getTestSuiteClientMeta()
+  const suiteCliMeta = getTestSuiteCliMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, suiteCliMeta, options)
 
   if (originalEnv.TEST_GENERATE_ONLY === 'true') {
     options = options ?? {}
@@ -77,6 +78,7 @@ function setupTestSuiteMatrix(
   })
 
   for (const { name, suiteConfig, skip } of testPlan) {
+    const clientMeta = getTestSuiteClientMeta(suiteConfig.matrixOptions)
     const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
 

@@ -4,10 +4,11 @@ import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
-import { Providers } from '../../tests/functional/_utils/providers'
+import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
 
 const allProviders = new Set(Object.values(Providers))
+const allProviderFlavors = new Set(Object.values(ProviderFlavors))
 
 const args = arg(
   process.argv.slice(2),
@@ -20,7 +21,7 @@ const args = arg(
     '--types-only': Boolean,
     // Generates all the clients to run the type tests
     '--generate-only': Boolean,
-    // Restrict the list of providers
+    // Restrict the list of providers (does not run --flavor by default)
     '--provider': [String],
     '-p': '--provider',
     // Generate Data Proxy client and run tests using Mini-Proxy
@@ -38,8 +39,8 @@ const args = arg(
     // Also the typescript tests fail and it might not be easily fixable
     // This flag is used for this purpose
     '--relation-mode-tests-only': Boolean,
-    // Testing driver adapters
-    '--driver-adapter': Boolean,
+    // Run tests for specific provider flavors (and excludes regular provider tests)
+    '--flavor': [String],
     //
     // Jest flags
     //
@@ -73,22 +74,25 @@ async function main(): Promise<number | void> {
     const providers = args['--provider'] as Providers[]
     const unknownProviders = providers.filter((provider) => !allProviders.has(provider))
     if (unknownProviders.length > 0) {
-      console.error(`Unknown providers: ${unknownProviders.join(', ')}`)
-      process.exit(1)
+      throw new Error(`Unknown providers: ${unknownProviders.join(', ')}`)
     }
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
   }
 
-  if (args['--driver-adapter']) {
-    if (args['--data-proxy']) {
-      throw new Error('--driver-adapter is only available when --data-proxy is used')
+  if (args['--flavor']) {
+    const providerFlavors = args['--flavor'] as ProviderFlavors[]
+    const unknownFlavor = providerFlavors.filter((flavor) => !allProviderFlavors.has(flavor))
+    if (unknownFlavor.length > 0) {
+      throw new Error(`Unknown flavors: ${unknownFlavor.join(', ')}`)
     }
 
-    if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary' || process.env.PRISMA_CLIENT_ENGINE_TYPE === 'binary') {
-      throw new Error('--driver-adapter is only available when library query engine is used')
+    if (providerFlavors.some(isDriverAdapterProviderFlavor)) {
+      if (args['--data-proxy'] || process.env.PRISMA_CLIENT_ENGINE_TYPE === 'binary') {
+        throw new Error('Driver adapters are not compatible with --data-proxy or the binary engine')
+      }
     }
 
-    jestCli = jestCli.withEnv({ TEST_DRIVER_ADAPTER: 'true' })
+    jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_FLAVORS: providerFlavors.join(',') })
   }
 
   if (args['--data-proxy']) {

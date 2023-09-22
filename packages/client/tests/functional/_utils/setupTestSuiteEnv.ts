@@ -205,9 +205,11 @@ export type DatasourceInfo = {
  * @param clientMeta
  * @returns
  */
-export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientMeta: ClientMeta): DatasourceInfo {
-  const provider = suiteConfig['provider'] as Providers
-  const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavors | undefined
+export function setupTestSuiteDbURI(
+  suiteConfig: NamedTestSuiteConfig['matrixOptions'],
+  clientMeta: ClientMeta,
+): DatasourceInfo {
+  const { provider, providerFlavor } = suiteConfig
 
   const envVarName = `DATABASE_URI_${provider}`
   const directEnvVarName = `DIRECT_${envVarName}`

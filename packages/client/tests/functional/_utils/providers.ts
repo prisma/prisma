@@ -27,3 +27,7 @@ export const flavorsForProvider = {
 export type AllProviders = { provider: Providers }[]
 
 export const allProviders: AllProviders = Object.values(Providers).map((p) => ({ provider: p }))
+
+export function isDriverAdapterProviderFlavor(flavor?: ProviderFlavors) {
+  return Boolean(flavor?.startsWith('js_'))
+}
