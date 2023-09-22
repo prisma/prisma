@@ -36,6 +36,14 @@ export type Query = {
 export type Error = {
   kind: 'GenericJsError'
   id: number
+} | {
+  kind: 'PostgresError'
+  code: string,
+  severity: string
+  message: string
+  detail: string | undefined
+  column: string | undefined
+  hint: string | undefined
 }
 
 export interface Queryable {

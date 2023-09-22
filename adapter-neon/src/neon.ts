@@ -27,29 +27,25 @@ abstract class NeonQueryable implements Queryable {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const { fields, rows } = await this.performIO(query)
-
-    const columns = fields.map((field) => field.name)
-    const resultSet: ResultSet = {
-      columnNames: columns,
-      columnTypes: fields.map((field) => fieldToColumnType(field.dataTypeID)),
-      rows,
-    }
-
-    return ok(resultSet)
+    return (await this.performIO(query)).map(({ fields, rows }) => {
+      const columns = fields.map((field) => field.name)
+      return {
+        columnNames: columns,
+        columnTypes: fields.map((field) => fieldToColumnType(field.dataTypeID)),
+        rows,
+      }
+    })
   }
 
   async executeRaw(query: Query): Promise<Result<number>> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    const { rowCount: rowsAffected } = await this.performIO(query)
-
     // Note: `rowsAffected` can sometimes be null (e.g., when executing `"BEGIN"`)
-    return ok(rowsAffected ?? 0)
+    return (await this.performIO(query)).map((r) => r.rowCount ?? 0)
   }
 
-  abstract performIO(query: Query): Promise<PerformIOResult>
+  abstract performIO(query: Query): Promise<Result<PerformIOResult>>
 }
 
 /**
@@ -60,15 +56,25 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     super()
   }
 
-  override async performIO(query: Query): Promise<PerformIOResult> {
+  override async performIO(query: Query): Promise<Result<PerformIOResult>> {
     const { sql, args: values } = query
 
     try {
-      return await this.client.query({ text: sql, values, rowMode: 'array' })
+      return ok(await this.client.query({ text: sql, values, rowMode: 'array' }))
     } catch (e) {
-      const error = e as Error
-      debug('Error in performIO: %O', error)
-      throw error
+      debug('Error in performIO: %O', e)
+      if (e && e.code) {
+        return err({
+          kind: 'PostgresError',
+          code: e.code,
+          severity: e.severity,
+          message: e.message,
+          detail: e.detail,
+          column: e.column,
+          hint: e.hint,
+        })
+      }
+      throw e
     }
   }
 }
@@ -126,12 +132,14 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
     super()
   }
 
-  override async performIO(query: Query): Promise<PerformIOResult> {
+  override async performIO(query: Query): Promise<Result<PerformIOResult>> {
     const { sql, args: values } = query
-    return await this.client(sql, values, {
-      arrayMode: true,
-      fullResults: true,
-    })
+    return ok(
+      await this.client(sql, values, {
+        arrayMode: true,
+        fullResults: true,
+      }),
+    )
   }
 
   startTransaction(): Promise<Result<Transaction>> {

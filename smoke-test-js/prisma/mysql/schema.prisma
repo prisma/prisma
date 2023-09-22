@@ -114,3 +114,7 @@ model Product {
   properties      Json
   properties_null Json?
 }
+
+model Unique {
+  email String @id
+}

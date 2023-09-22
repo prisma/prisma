@@ -103,3 +103,7 @@ model User {
   id    String @id @default(uuid())
   email String
 }
+
+model Unique {
+  email String @id
+}

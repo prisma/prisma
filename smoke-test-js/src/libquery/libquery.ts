@@ -21,21 +21,6 @@ export function smokeTestLibquery(adapter: ErrorCapturingDriverAdapter, prismaSc
       await adapter.close()
     })
 
-    it('raw error', async () => {
-      await assert.rejects(async () => {
-        await doQuery({
-          action: 'queryRaw',
-          query: {
-            selection: { $scalars: true },
-            arguments: {
-              query: 'NOT A VALID SQL, THIS WILL FAIL',
-              parameters: '[]',
-            },
-          },
-        })
-      })
-    })
-
     it('create JSON values', async () => {
       const json = JSON.stringify({
         foo: 'bar',
@@ -292,6 +277,23 @@ export function smokeTestLibquery(adapter: ErrorCapturingDriverAdapter, prismaSc
 
       const commitResponse = await engine.commitTransaction(tx_id, 'trace')
       console.log('[nodejs] commited', commitResponse)
+    })
+
+    it('expected error', async () => {
+      const result = await doQuery({
+        modelName: 'Unique',
+        action: 'createMany',
+        query: {
+          arguments: {
+            data: [{ email: 'duplicate@example.com' }, { email: 'duplicate@example.com' }],
+          },
+          selection: {
+            $scalars: true,
+          },
+        },
+      })
+
+      console.log('[nodejs] error result', JSON.stringify(result, null, 2))
     })
 
     describe('read scalar and non scalar types', () => {
