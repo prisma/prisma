@@ -45,5 +45,9 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
       reason: 'json lists are supported only on postgresql',
     },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason: "I think json types don't work. Unsupported column type: 3807",
+    },
   },
 )

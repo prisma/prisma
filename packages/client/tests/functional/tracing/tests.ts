@@ -99,13 +99,42 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     })
   }
 
-  function dbQuery(statement: string): Tree {
-    return {
+  function dbQuery(statement: string, hasDriverAdapterResultSpan = true): Tree {
+    const span = {
       name: 'prisma:engine:db_query',
       attributes: {
         'db.statement': statement,
       },
     }
+
+    // extra children spans for driver adapters
+    if (clientMeta.driverAdapter) {
+      const children = [] as Tree[]
+
+      // args span always exists for any query
+      children.push({
+        name: 'js:query:args',
+      })
+
+      // result span only exists for returning queries
+      if (hasDriverAdapterResultSpan === true) {
+        children.push({
+          name: 'js:query:result',
+        })
+      }
+
+      // sql span always exists for any query
+      children.push({
+        name: 'js:query:sql',
+        attributes: {
+          'db.statement': statement,
+        },
+      })
+
+      span['children'] = children
+    }
+
+    return span
   }
 
   function operation(model: string | undefined, method: string, children: Tree[]) {
@@ -162,13 +191,13 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     }
     const dbQueries: Tree[] = []
     if (tx) {
-      dbQueries.push(dbQuery(expect.stringContaining('BEGIN')))
+      dbQueries.push(dbQuery(expect.stringContaining('BEGIN'), false))
     }
 
     dbQueries.push(dbQuery(expect.stringContaining('INSERT')), dbQuery(expect.stringContaining('SELECT')))
 
     if (tx) {
-      dbQueries.push(dbQuery('COMMIT'))
+      dbQueries.push(dbQuery('COMMIT', false))
     }
     return dbQueries
   }
@@ -232,11 +261,11 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
         dbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
       } else {
         dbQueries = [
-          dbQuery(expect.stringContaining('BEGIN')),
+          dbQuery(expect.stringContaining('BEGIN'), false),
           dbQuery(expect.stringContaining('SELECT')),
           dbQuery(expect.stringContaining('UPDATE')),
           dbQuery(expect.stringContaining('SELECT')),
-          dbQuery('COMMIT'),
+          dbQuery('COMMIT', false),
         ]
       }
 
@@ -262,11 +291,11 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
         ]
       } else {
         dbQueries = [
-          dbQuery(expect.stringContaining('BEGIN')),
+          dbQuery(expect.stringContaining('BEGIN'), false),
           dbQuery(expect.stringContaining('SELECT')),
           dbQuery(expect.stringContaining('SELECT')),
-          dbQuery(expect.stringContaining('DELETE')),
-          dbQuery('COMMIT'),
+          dbQuery(expect.stringContaining('DELETE'), false),
+          dbQuery('COMMIT', false),
         ]
       }
       await waitForSpanTree(
@@ -298,10 +327,10 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
         dbQueries = [...createDbQueries(false), findManyDbQuery()]
       } else {
         dbQueries = [
-          dbQuery(expect.stringContaining('BEGIN')),
+          dbQuery(expect.stringContaining('BEGIN'), false),
           ...createDbQueries(false),
           findManyDbQuery(),
-          dbQuery('COMMIT'),
+          dbQuery('COMMIT', false),
         ]
       }
 
@@ -337,7 +366,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       let txQueries: Tree[] = []
 
       if (provider !== 'mongodb') {
-        txQueries = [dbQuery(expect.stringContaining('BEGIN')), dbQuery('COMMIT')]
+        txQueries = [dbQuery(expect.stringContaining('BEGIN'), false), dbQuery('COMMIT', false)]
       }
 
       // skipping on data proxy because the functionality is broken
@@ -377,7 +406,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       await waitForSpanTree(
         operation(undefined, 'queryRaw', [
           clientSerialize(),
-          engine([engineConnection(), dbQuery('SELECT 1 + 1;'), engineSerialize()]),
+          engine([engineConnection(), dbQuery('SELECT 1 + 1;', true), engineSerialize()]),
         ]),
       )
     })
@@ -394,7 +423,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       await waitForSpanTree(
         operation(undefined, 'executeRaw', [
           clientSerialize(),
-          engine([engineConnection(), dbQuery('SELECT 1 + 1;'), engineSerialize()]),
+          engine([engineConnection(), dbQuery('SELECT 1 + 1;', false), engineSerialize()]),
         ]),
       )
     })

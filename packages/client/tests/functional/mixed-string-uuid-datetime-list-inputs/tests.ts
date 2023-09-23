@@ -70,5 +70,9 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'mysql', 'sqlserver'],
       reason: 'Scalar lists are not supported in all databases',
     },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason: "I think scalar lists don't work. Error: Unsupported column type: 1009",
+    },
   },
 )

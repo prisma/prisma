@@ -40,5 +40,9 @@ setupTestSuiteMatrix(
         sqlserver: Field "decimals" in model "User" can't be a list. The current connector does not support lists of primitive types.
       `,
     },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason: "I think decimals don't work. Error: Unsupported column type: 1231",
+    },
   },
 )
