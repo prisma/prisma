@@ -41,7 +41,7 @@ export function getTestSuitePlan(
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta),
+    skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
     suiteConfig: namedConfig,
   }))
 }
@@ -89,9 +89,10 @@ function shouldSkipSuiteConfig(
   config: NamedTestSuiteConfig,
   configIndex: number,
   testCliMeta: TestCliMeta,
+  options?: MatrixOptions,
 ): boolean {
-  const provider = config.matrixOptions.provider.toLocaleLowerCase()
-  const flavor = config.matrixOptions.providerFlavor?.toLocaleLowerCase()
+  const provider = config.matrixOptions.provider
+  const flavor = config.matrixOptions.providerFlavor
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
@@ -132,6 +133,11 @@ function shouldSkipSuiteConfig(
 
   // if flavors are enabled and test has no flavor, skip
   if (includedProviderFlavors && flavor === undefined) {
+    return true
+  }
+
+  // if the flavor is explicitly skipped in the matrix options, skip
+  if (flavor && options?.skipProviderFlavor?.from.includes(flavor)) {
     return true
   }
 

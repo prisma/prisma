@@ -1,4 +1,4 @@
-import { Providers } from './providers'
+import { ProviderFlavors, Providers } from './providers'
 
 export type MatrixOptions = {
   optOut?: {
@@ -8,6 +8,10 @@ export type MatrixOptions = {
   skipDefaultClientInstance?: boolean
   skipDataProxy?: {
     runtimes: ClientRuntime[]
+    reason: string
+  }
+  skipProviderFlavor?: {
+    from: `${ProviderFlavors}`[]
     reason: string
   }
   skipDb?: boolean
