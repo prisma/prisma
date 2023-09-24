@@ -239,7 +239,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserMinAggregateOutputType\`. Available options are listed in green.
+      Unknown field \`posts\` for select statement on model \`UserMinAggregateOutputType\`. Available options are marked with ?.
     `)
   })
 
@@ -275,7 +275,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserMaxAggregateOutputType\`. Available options are listed in green.
+      Unknown field \`posts\` for select statement on model \`UserMaxAggregateOutputType\`. Available options are marked with ?.
     `)
   })
 
@@ -308,7 +308,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`email\` for select statement on model \`UserSumAggregateOutputType\`. Available options are listed in green.
+      Unknown field \`email\` for select statement on model \`UserSumAggregateOutputType\`. Available options are marked with ?.
     `)
   })
 
@@ -345,7 +345,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are listed in green.
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?.
     `)
   })
 
@@ -378,7 +378,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`email\` for select statement on model \`UserAvgAggregateOutputType\`. Available options are listed in green.
+      Unknown field \`email\` for select statement on model \`UserAvgAggregateOutputType\`. Available options are marked with ?.
     `)
   })
 })

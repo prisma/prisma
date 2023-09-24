@@ -70,7 +70,6 @@
     "@jest/create-cache-key-function": "29.7.0",
     "@jest/globals": "29.7.0",
     "@jest/test-sequencer": "29.7.0",
-    "@jkomyno/prisma-driver-adapter-utils": "0.3.0",
     "@opentelemetry/api": "1.6.0",
     "@opentelemetry/context-async-hooks": "1.17.0",
     "@opentelemetry/instrumentation": "0.43.0",
@@ -78,6 +77,7 @@
     "@opentelemetry/sdk-trace-base": "1.17.0",
     "@opentelemetry/semantic-conventions": "1.17.0",
     "@prisma/debug": "workspace:*",
+    "@prisma/driver-adapter-utils": "0.3.2",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -156,7 +156,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.4.0-8.6784900dc9768ad7b51e4e5c656e904941376ff9"
+    "@prisma/engines-version": "5.4.0-20.53b99985c86f73501feb5d050668b0debee7afed"
   },
   "sideEffects": false
 }

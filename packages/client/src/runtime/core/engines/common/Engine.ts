@@ -1,4 +1,4 @@
-import type { ErrorCapturingDriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
+import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 

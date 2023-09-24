@@ -1,5 +1,5 @@
-import type { ErrorCapturingDriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
 import Debug from '@prisma/debug'
+import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Sql } from 'sql-template-tag'
 
 import { MiddlewareArgsMapper } from '../../getPrismaClient'

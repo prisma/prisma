@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless'
-import { PrismaNeonHTTP } from '@jkomyno/prisma-adapter-neon'
+import { PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { smokeTest } from './test'
 
 async function main() {
