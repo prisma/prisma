@@ -334,8 +334,8 @@ importers:
         specifier: 2.2.0
         version: 2.2.0(benchmark@2.1.4)
       '@faker-js/faker':
-        specifier: 8.0.2
-        version: 8.0.2
+        specifier: 8.1.0
+        version: 8.1.0
       '@fast-check/jest':
         specifier: 1.7.3
         version: 1.7.3(@jest/globals@29.7.0)
@@ -2015,8 +2015,8 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
-  /@faker-js/faker@8.0.2:
-    resolution: {integrity: sha512-Uo3pGspElQW91PCvKSIAXoEgAUlRnH29sX2/p89kg7sP1m2PzCufHINd0FhTXQf6DYGiUlVncdSPa2F9wxed2A==}
+  /@faker-js/faker@8.1.0:
+    resolution: {integrity: sha512-38DT60rumHfBYynif3lmtxMqMqmsOQIxQgEuPZxCk2yUYN0eqWpTACgxi0VpidvsJB8CRxCpvP7B3anK85FjtQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
     dev: true
 
@@ -3050,7 +3050,7 @@ packages:
   /@snaplet/copycat@0.17.3:
     resolution: {integrity: sha512-cwX6zphBd1KNuOPmILggXkddLf+juIrXsFhfOz0nMDIIAkWyoFQAqwt4pn5lS2RNMJTzT7IZRKplnFt/D2t8zw==}
     dependencies:
-      '@faker-js/faker': 8.0.2
+      '@faker-js/faker': 8.1.0
       fictional: 0.8.4
       uuid: 8.3.2
     dev: true
