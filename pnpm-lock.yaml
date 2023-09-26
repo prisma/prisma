@@ -2450,7 +2450,7 @@ packages:
   /@libsql/isomorphic-fetch@0.1.10:
     resolution: {integrity: sha512-dH0lMk50gKSvEKD78xWMu60SY1sjp1sY//iFLO0XMmBwfVfG136P9KOk06R4maBdlb8KMXOzJ1D28FR5ZKnHTA==}
     dependencies:
-      '@types/node-fetch': 2.6.4
+      '@types/node-fetch': 2.6.5
       node-fetch: 2.7.0
     transitivePeerDependencies:
       - encoding
