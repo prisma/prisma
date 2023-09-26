@@ -125,17 +125,18 @@ https://pris.ly/d/getting-started
 `;
 
 exports[`works with --with-model param 2`] = `
-This is your Prisma schema file,
+// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
-  
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
- 
+
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique

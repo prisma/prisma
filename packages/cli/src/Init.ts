@@ -36,23 +36,13 @@ datasource db {
 }
 
 export const withModelSchema = (provider: ConnectorType = 'postgresql') => {
-  return `This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-generator client {
-  provider = "prisma-client-js"
-}
-  
-datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URL")
-}
- 
+  return defaultSchema(provider).concat(`
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
   name  String?
 }
-`
+`)
 }
 
 export const defaultEnv = (
@@ -131,7 +121,7 @@ export class Init implements Command {
              -h, --help   Display this help message
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
                   --url   Define a custom datasource url
-           --with-model   Set an example schema.prisma
+           --with-model   Add example model to created schema file
 
   ${bold('Examples')}
 
