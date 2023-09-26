@@ -72,7 +72,7 @@ testMatrix.setupTestSuite(
     },
     skipProviderFlavor: {
       from: ['js_neon', 'js_pg'],
-      reason: "I think scalar lists don't work. Error: Unsupported column type: 1009",
+      reason: "scalar lists, here a string array, don't work yet. Error: Unsupported column type: 1009 - tracked in https://github.com/prisma/team-orm/issues/374",
     },
   },
 )
