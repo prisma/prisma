@@ -448,10 +448,10 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              db error: ERROR: syntax error at or near "ThisisnotSQLitshouldfail"
+        ERROR: syntax error at or near "ThisisnotSQLitshouldfail"
 
 
-            `)
+      `)
     })
   })
 
@@ -644,7 +644,7 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        db error: ERROR: at or near "thisisnotsqlitshouldfail": syntax error
+        ERROR: at or near "thisisnotsqlitshouldfail": syntax error
         DETAIL: source SQL:
         ThisisnotSQLitshouldfail
         ^
