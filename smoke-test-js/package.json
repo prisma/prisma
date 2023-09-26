@@ -10,6 +10,8 @@
     "prisma:studio:postgres": "prisma studio --schema ./prisma/postgres/schema.prisma",
     "prisma:db:push:mysql": "prisma db push --schema ./prisma/mysql/schema.prisma --force-reset",
     "prisma:db:execute:mysql": "prisma db execute --schema ./prisma/mysql/schema.prisma --file ./prisma/mysql/commands/type_test/insert.sql",
+    "prisma:db:push:sqlite": "prisma db push --schema ./prisma/sqlite/schema.prisma --force-reset",
+    "prisma:db:execute:sqlite": "prisma db execute --schema ./prisma/sqlite/schema.prisma --file ./prisma/sqlite/commands/type_test/insert.sql",
     "prisma:studio:mysql": "prisma studio --schema ./prisma/mysql/schema.prisma",
     "prisma:neon:ws": "pnpm prisma:neon",
     "prisma:neon:http": "pnpm prisma:neon",
@@ -31,19 +33,25 @@
     "studio:planetscale": "cross-env-shell DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"pnpm prisma:studio:mysql\"",
     "planetscale:libquery": "DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" node --test --test-reporter spec --loader=tsx ./src/libquery/planetscale.test.ts",
     "planetscale:client": "DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" node --test --test-reporter spec --loader=tsx ./src/client/planetscale.test.ts",
-    "planetscale": "pnpm planetscale:libquery && pnpm planetscale:client"
+    "planetscale": "pnpm planetscale:libquery && pnpm planetscale:client",
+    "prisma:libsql": "cross-env-shell DATABASE_URL=\"${JS_LIBSQL_DATABASE_URL}\" \"pnpm prisma:db:push:sqlite && pnpm prisma:db:execute:sqlite\"",
+    "libsql:libquery": "cross-env-shell DATABASE_URL=\"${JS_LIBSQL_DATABASE_URL}\" node --test --loader=tsx ./src/libquery/libsql.test.ts",
+    "libsql:client": "cross-env-shell DATABASE_URL=\"${JS_LIBSQL_DATABASE_URL}\" node --test --loader=tsx ./src/client/libsql.test.ts",
+    "libsql": "pnpm libsql:libquery && pnpm libsql:client"
   },
   "keywords": [],
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": true,
   "dependencies": {
+    "@libsql/client": "0.3.5",
     "@neondatabase/serverless": "^0.6.0",
     "@planetscale/database": "^1.11.0",
+    "@prisma/adapter-libsql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
-    "@prisma/client": "5.4.0-dev.29",
+    "@prisma/client": "5.4.0-integration-libsql-adapter.7",
     "@prisma/driver-adapter-utils": "workspace:*",
     "pg": "^8.11.3",
     "superjson": "^1.13.1",
@@ -53,7 +61,7 @@
     "@types/node": "^20.5.1",
     "@types/pg": "^8.10.2",
     "cross-env": "^7.0.3",
-    "prisma": "5.4.0-dev.29",
+    "prisma": "5.4.0-integration-libsql-adapter.7",
     "tsx": "^3.12.7"
   }
 }

@@ -43,7 +43,10 @@ export function smokeTestLibquery(adapter: ErrorCapturingDriverAdapter, prismaSc
         },
       })
 
-      assert.strictEqual(created.data.createOneProduct.properties.$type, 'Json')
+      if (flavour !== 'sqlite') {
+        assert.strictEqual(created.data.createOneProduct.properties.$type, 'Json')
+      }
+
       console.log('[nodejs] created', JSON.stringify(created, null, 2))
 
       const resultSet = await doQuery({
@@ -359,9 +362,64 @@ export function smokeTestLibquery(adapter: ErrorCapturingDriverAdapter, prismaSc
           })
           console.log('[nodejs] findMany resultSet', JSON.stringify(resultSet, null, 2))
         })
+      } else if (['sqlite'].includes(flavour)) {
+        it('sqlite', async () => {
+          const resultSet = await doQuery(
+            {
+              "action": "findMany",
+              "modelName": "type_test",
+              "query": {
+                "selection": {
+                  "int_column": true,
+                  "bigint_column": true,
+                  "double_column": true,
+                  "decimal_column": true,
+                  "boolean_column": true,
+                  "text_column": true,
+                  "datetime_column": true,
+                }
+              }
+            }
+          )
+          console.log('[nodejs] findMany resultSet', JSON.stringify((resultSet), null, 2))
+        })
       } else {
         throw new Error(`Missing test for flavour ${flavour}`)
       }
+    })
+
+    it('write and read back bytes', async () => {
+      const createResultSet = await doQuery({
+        action: 'createOne',
+        modelName: 'type_test_3',
+        query: {
+          selection: {
+            bytes: true,
+          },
+          arguments:  {
+            data: {
+              bytes: {
+                $type: 'Bytes',
+                value: 'AQID',
+              },
+            },
+          },
+        },
+      })
+      console.log('[nodejs] createOne resultSet:')
+      console.dir(createResultSet, { depth: Infinity })
+
+      const findResultSet = await doQuery({
+        action: 'findMany',
+        modelName: 'type_test_3',
+        query: {
+          selection: {
+            bytes: true,
+          },
+        },
+      })
+      console.log('[nodejs] findMany resultSet:')
+      console.dir(findResultSet, { depth: Infinity })
     })
   })
 }

@@ -3,3 +3,18 @@ export JS_NEON_DATABASE_URL="postgres://USER:PASSWORD@DATABASE-pooler.eu-central
 
 # Note: if you use hosted Postgres instances (e.g., from PDP provision), you need `?sslmode=disable`
 export JS_PG_DATABASE_URL="postgres://postgres:prisma@localhost:5438"
+
+# Set this to a `file:` URL when using a local sqlite database (either
+# standalone or as an embedded replica). Otherwise, when using a remote Turso
+# (or sqld) database in HTTP mode directly without an embedded replica, set its
+# URL here.
+export JS_LIBSQL_DATABASE_URL="file:${PWD}/libsql.db"
+ 
+# # Set this to the URL of remote Turso database when using an embedded replica.
+# export JS_LIBSQL_SYNC_URL=""
+ 
+# # Provide an auth token when using a remote Turso database.
+# export JS_LIBSQL_AUTH_TOKEN=""
+ 
+# Can be one of "number" (the default when nothing is specified), "bigint" or "string". "bigint" works best with Prisma.
+export JS_LIBSQL_INT_MODE="bigint"

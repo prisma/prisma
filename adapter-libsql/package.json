@@ -1,0 +1,30 @@
+{
+  "name": "@prisma/adapter-libsql",
+  "version": "0.2.3",
+  "description": "Prisma's driver adapter for libsql and Turso",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup ./src/index.ts --format cjs,esm --dts",
+    "lint": "tsc -p ./tsconfig.build.json",
+    "test": "node --loader tsx --test tests/*.test.mts"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [],
+  "author": "Alexey Orlenko <orlenko@prisma.io>",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "dependencies": {
+    "@prisma/driver-adapter-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@libsql/client": "0.3.5"
+  },
+  "peerDependencies": {
+    "@libsql/client": "^0.3.5"
+  }
+}

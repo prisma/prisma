@@ -1,0 +1,75 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model type_test {
+  id                    Int                         @id @default(autoincrement())
+  int_column            Int
+  int_column_null       Int?
+  bigint_column         BigInt
+  bigint_column_null    BigInt?
+  double_column         Float
+  double_column_null    Float?
+  decimal_column        Decimal
+  decimal_column_null   Decimal?
+  boolean_column        Boolean
+  boolean_column_null   Boolean?
+  text_column           String
+  text_column_null      String?
+  datetime_column       DateTime
+  datetime_column_null  DateTime?
+}
+
+// This will eventually supersede type_test
+model type_test_2 {
+  id                   String    @id @default(cuid())
+  datetime_column      DateTime  @default(now())
+  datetime_column_null DateTime?
+}
+
+model type_test_3 {
+  id    Int   @id @default(autoincrement())
+  bytes Bytes
+}
+
+model Child {
+  c          String  @unique
+  c_1        String
+  c_2        String
+  parentId   String? @unique
+  non_unique String?
+  id         String  @id
+
+  @@unique([c_1, c_2])
+}
+
+model Parent {
+  p          String  @unique
+  p_1        String
+  p_2        String
+  non_unique String?
+  id         String  @id
+
+  @@unique([p_1, p_2])
+}
+
+model Author {
+  id        Int    @id @default(autoincrement())
+  firstName String
+  lastName  String
+  age       Int
+
+  @@map("authors")
+}
+
+model Product {
+  id              String @id @default(cuid())
+  properties      String
+  properties_null String?
+}
