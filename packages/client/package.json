@@ -77,7 +77,7 @@
     "@opentelemetry/sdk-trace-base": "1.17.0",
     "@opentelemetry/semantic-conventions": "1.17.0",
     "@prisma/debug": "workspace:*",
-    "@prisma/driver-adapter-utils": "0.3.2",
+    "@prisma/driver-adapter-utils": "0.4.0",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",

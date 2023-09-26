@@ -370,8 +370,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 0.3.2
-        version: 0.3.2
+        specifier: 0.4.0
+        version: 0.4.0
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -2869,8 +2869,8 @@ packages:
     dev: true
     optional: true
 
-  /@prisma/driver-adapter-utils@0.3.2:
-    resolution: {integrity: sha512-YTkHq49qiIkCeyazWOt3/8bCTYeER7aZMfrMAj6SQXyg/g+2EsRG5YLjEAgPAaOpDfzBak0BS4SKKxFKwdBnvg==}
+  /@prisma/driver-adapter-utils@0.4.0:
+    resolution: {integrity: sha512-ZX9LIbFiWEkA21Gcw8WdClzbY90Yhp6sUfV1Lgv8nAXieoH274ju+ON4EhUpXMSQqATPaO9NCjcoUhncEms4Dg==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
