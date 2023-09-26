@@ -70,7 +70,7 @@
     "@jest/create-cache-key-function": "29.7.0",
     "@jest/globals": "29.7.0",
     "@jest/test-sequencer": "29.7.0",
-    "@libsql/client": "0.3.5-pre.11",
+    "@libsql/client": "0.3.5",
     "@neondatabase/serverless": "0.6.0",
     "@opentelemetry/api": "1.6.0",
     "@opentelemetry/context-async-hooks": "1.17.0",
@@ -79,7 +79,7 @@
     "@opentelemetry/sdk-trace-base": "1.17.0",
     "@opentelemetry/semantic-conventions": "1.17.0",
     "@planetscale/database": "1.11.0",
-    "@prisma/adapter-libsql": "0.2.0",
+    "@prisma/adapter-libsql": "0.2.3",
     "@prisma/adapter-neon": "0.3.3",
     "@prisma/adapter-pg": "0.3.3",
     "@prisma/adapter-planetscale": "0.3.3",
@@ -163,7 +163,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16"
+    "@prisma/engines-version": "5.4.0-26.4bf3cce422a49f49c661da32d4016a5be81d28b4"
   },
   "sideEffects": false
 }
