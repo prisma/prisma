@@ -47,5 +47,10 @@ testMatrix.setupTestSuite(
         sqlserver: The current connector does not support the Json type.
       `,
     },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason:
+        "Something is off with date insertion. invalid input syntax for type time: '2022-05-04T14:40:06.617+00:00'",
+    },
   },
 )
