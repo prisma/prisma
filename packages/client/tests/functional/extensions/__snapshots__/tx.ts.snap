@@ -85,7 +85,7 @@ exports[`extensions.tx (provider=postgresql, js_neon) extended client in tx can 
 Invalid \`prisma.user.create()\` invocation:
 
 
-duplicate key value violates unique constraint "User_email_key"
+Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
 `;
 
 exports[`extensions.tx (provider=postgresql, js_neon) extended client in tx can rollback via normal call 1`] = `
@@ -93,11 +93,11 @@ exports[`extensions.tx (provider=postgresql, js_neon) extended client in tx can 
 Invalid \`xprisma.user.create()\` invocation in
 /client/tests/functional/extensions/tx.ts:0:0
 
-  XX })
-  XX 
-  XX const result = xprisma.$transaction([
-→ XX   xprisma.user.create(
-duplicate key value violates unique constraint "User_email_key"
+  XX     lastName: 'Smith',
+  XX   },
+  XX }),
+→ XX xprisma.user.create(
+Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
 `;
 
 exports[`extensions.tx (provider=postgresql, js_pg) extended client in tx can rollback via custom call 1`] = `

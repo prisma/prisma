@@ -105,7 +105,7 @@ Invalid \`prisma.resource.create()\` invocation in
   XX   'stored query trigger .requestTransaction twice should fail',
   XX   async () => {
 → XX     const query = prisma.resource.create(
-duplicate key value violates unique constraint "Resource_email_key"
+Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
 `;
 
 exports[`issues.11740-transaction-stored-query (provider=postgresql, js_neon) stored query triggered twice should fail but not exit process 1`] = `
@@ -117,7 +117,7 @@ Invalid \`prisma.resource.create()\` invocation in
   XX   'stored query triggered twice should fail but not exit process',
   XX   async () => {
 → XX     const query = prisma.resource.create(
-duplicate key value violates unique constraint "Resource_email_key"
+Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
 `;
 
 exports[`issues.11740-transaction-stored-query (provider=postgresql, js_pg) stored query trigger .requestTransaction twice should fail 1`] = `

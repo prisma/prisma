@@ -158,7 +158,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 [ProviderFlavors.JS_NEON]:
-                  'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_userId_fkey"',
+                  'Raw query failed. Code: `InvalidArg`. Message: `unknown variant `PostgresError`, expected `GenericJsError``',
                 [ProviderFlavors.JS_PG]:
                   'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_userId_fkey"',
               },
@@ -237,7 +237,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 [ProviderFlavors.JS_NEON]:
-                  'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_userId_fkey"',
+                  'Raw query failed. Code: `InvalidArg`. Message: `unknown variant `PostgresError`, expected `GenericJsError``',
                 [ProviderFlavors.JS_PG]:
                   'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_userId_fkey"',
               },
