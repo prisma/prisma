@@ -88,7 +88,7 @@ testMatrix.setupTestSuite(
   {
     skipProviderFlavor: {
       from: ['js_neon', 'js_pg'],
-      reason: 'Some type in the schema is not supported, probably a scalar list. Unsupported column type: 1009',
+      reason: 'scalar lists, here a text array, don't work yet. Unsupported column type: 1009 - tracked in https://github.com/prisma/team-orm/issues/374',
     },
   },
 )

@@ -91,7 +91,7 @@ testMatrix.setupTestSuite(
     },
     skipProviderFlavor: {
       from: ['js_neon', 'js_pg'],
-      reason: "I think bytes/buffer don't work. Error: Unsupported column type: 17",
+      reason: "I think bytes/buffer don't work. Error: Unsupported column type: 17 - tracked in https://github.com/prisma/team-orm/issues/374",
     },
   },
 )
