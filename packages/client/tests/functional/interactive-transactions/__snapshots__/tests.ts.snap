@@ -173,7 +173,7 @@ exports[`interactive-transactions (provider=postgresql, js_neon) batching raw ro
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`N/A\`
+Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_neon) batching rollback 1`] = `
@@ -185,7 +185,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX   },
   XX }),
 → XX prisma.user.create(
-Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
+Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_neon) batching rollback within callback 1`] = `
@@ -197,7 +197,7 @@ Invalid \`tx.user.create()\` invocation in
   XX ])
   XX 
 → XX await tx.user.create(
-Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
+Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_neon) rollback query 1`] = `
@@ -209,7 +209,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX })
   XX 
 → XX await prisma.user.create(
-Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
+Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_pg) batching raw rollback 1`] = `

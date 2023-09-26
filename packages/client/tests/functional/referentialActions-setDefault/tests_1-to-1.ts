@@ -156,7 +156,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 [ProviderFlavors.JS_NEON]:
-                  'Raw query failed. Code: `InvalidArg`. Message: `unknown variant `PostgresError`, expected `GenericJsError``',
+                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.JS_PG]:
                   'insert or update on table "ProfileOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey"',
               },
@@ -235,7 +235,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 [ProviderFlavors.JS_NEON]:
-                  'Raw query failed. Code: `InvalidArg`. Message: `unknown variant `PostgresError`, expected `GenericJsError``',
+                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.JS_PG]:
                   'insert or update on table "ProfileOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey"',
               },

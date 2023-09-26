@@ -35,7 +35,8 @@ Invalid \`.findMany()\` invocation in
   XX testIf(process.platform !== 'win32' && clientMeta.runtime !== 'edge')('bad query', async () => {
   XX   const result = prisma.user
 → XX     .findMany(
-Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "42601", message: "syntax error in tsquery: \\"John Smith\\"", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
 `;
 
 exports[`fulltext-search (provider=postgresql, js_pg) bad query 1`] = `

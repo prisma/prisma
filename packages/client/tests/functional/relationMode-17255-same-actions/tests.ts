@@ -91,8 +91,7 @@ testMatrix.setupTestSuite(
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `aliceId`',
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                  [ProviderFlavors.JS_NEON]:
-                    'Raw query failed. Code: `InvalidArg`. Message: `unknown variant `PostgresError`, expected `GenericJsError``',
+                  [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [ProviderFlavors.JS_PG]:
                     'update or delete on table "Alice" violates foreign key constraint "Main_aliceId_fkey" on table "Main"',
                 },

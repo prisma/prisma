@@ -85,7 +85,7 @@ exports[`extensions.tx (provider=postgresql, js_neon) extended client in tx can 
 Invalid \`prisma.user.create()\` invocation:
 
 
-Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
+Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`extensions.tx (provider=postgresql, js_neon) extended client in tx can rollback via normal call 1`] = `
@@ -97,7 +97,7 @@ Invalid \`xprisma.user.create()\` invocation in
   XX   },
   XX }),
 → XX xprisma.user.create(
-Raw query failed. Code: \`InvalidArg\`. Message: \`unknown variant \`PostgresError\`, expected \`GenericJsError\`\`
+Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`extensions.tx (provider=postgresql, js_pg) extended client in tx can rollback via custom call 1`] = `
