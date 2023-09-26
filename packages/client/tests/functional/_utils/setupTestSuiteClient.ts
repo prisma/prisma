@@ -2,8 +2,8 @@ import { createClient as createLibSqlClient } from '@libsql/client'
 import { neonConfig, Pool as neonPool } from '@neondatabase/serverless'
 import { connect } from '@planetscale/database'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { PrismaNeon } from '@prisma/adapter-neon' // TODO rename to `@prisma/adapter-neon`
-import { PrismaPg } from '@prisma/adapter-pg' // rename to `@prisma/adapter-pg`
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import path from 'path'

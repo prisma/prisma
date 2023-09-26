@@ -54,7 +54,7 @@ const args = arg(
     '--shard': String,
     // Passes the same flag to Jest to silence the output
     '--silent': Boolean,
-    // Passes the same flag to Jest to silence the output
+    // Tell Jest to run tests sequentially
     '--runInBand': Boolean,
   },
   true,
