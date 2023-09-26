@@ -1002,8 +1002,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
-        version: 5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16
+        specifier: 5.4.0-20.53b99985c86f73501feb5d050668b0debee7afed
+        version: 5.4.0-20.53b99985c86f73501feb5d050668b0debee7afed
       archiver:
         specifier: 5.3.2
         version: 5.3.2
@@ -3058,8 +3058,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.4.0-17.libsql-adapter-4bdd9f5982a2a7e03a9d18b798a260989a71bb16:
-    resolution: {integrity: sha512-sMhWddAjC9q0yt7SXPheQpsrLVL3SkDYM0jWKNaW30pHqzOaV0I5nIjztylzOoiaARJHTrc/zwPctyjlIeb7Cw==}
+  /@prisma/prisma-schema-wasm@5.4.0-20.53b99985c86f73501feb5d050668b0debee7afed:
+    resolution: {integrity: sha512-H4hlLq65tTgv0Si7ST6eVz3J8bR1Cj0tC999213VjEJiC002e/vpLLjSdJmdI61Smk3gaC66Rmv8107WkmCLPA==}
     dev: false
 
   /@prisma/studio-common@0.494.0:
