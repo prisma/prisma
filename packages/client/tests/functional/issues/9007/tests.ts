@@ -11,6 +11,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   ({ providerFlavor }) => {
     // TODO it seems like adapters cannot handle uuid. Unsupported column type: 2950
+    // tracked in https://github.com/prisma/team-orm/issues/374
     skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
       'should throw an error if using contains filter on uuid type',
       async () => {

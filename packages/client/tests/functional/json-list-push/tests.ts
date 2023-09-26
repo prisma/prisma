@@ -47,7 +47,7 @@ testMatrix.setupTestSuite(
     },
     skipProviderFlavor: {
       from: ['js_neon', 'js_pg'],
-      reason: "scalar lists, here a json array, don't work yet. Unsupported column type: 3807",
+      reason: "scalar lists, here a json array, don't work yet. Unsupported column type: 3807 - tracked in https://github.com/prisma/team-orm/issues/374",
     },
   },
 )
