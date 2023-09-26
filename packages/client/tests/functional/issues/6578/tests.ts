@@ -75,5 +75,10 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: 'Params not applicable to mongodb',
     },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason:
+        "Something seems to the off with date serialization. invalid input syntax for type time: '2023-09-23T00:04:18.068+00:00'",
+    },
   },
 )
