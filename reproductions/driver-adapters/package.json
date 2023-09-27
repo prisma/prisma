@@ -32,7 +32,7 @@
     "undici": "5.25.2"
   },
   "devDependencies": {
-    "@types/node": "18.17.19",
+    "@types/node": "18.18.0",
     "@types/pg": "8.10.3",
     "cross-env": "7.0.3",
     "prisma": "../../packages/cli",
