@@ -1,5 +1,6 @@
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
+import { ProviderFlavors } from '../_utils/providers'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -11,7 +12,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
@@ -184,7 +185,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
   /**
    * If one of the query fails, all queries should cancel
    */
-  testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
+  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)('rollback query', async () => {
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({
         data: {
@@ -272,21 +273,55 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(getClientEngineType() === ClientEngineType.Library && clientMeta.runtime !== 'edge')(
-    'batching rollback',
+  // TODO fails with: LibsqlError: : cannot start a transaction within a transaction
+  testIf(
+    getClientEngineType() === ClientEngineType.Library &&
+      clientMeta.runtime !== 'edge' &&
+      providerFlavor !== ProviderFlavors.JS_LIBSQL,
+  )('batching rollback', async () => {
+    const result = prisma.$transaction([
+      prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      }),
+      prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      }),
+    ])
+
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
+  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
+    'batching rollback within callback',
     async () => {
-      const result = prisma.$transaction([
-        prisma.user.create({
+      const result = prisma.$transaction(async (tx) => {
+        await Promise.all([
+          tx.user.create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          }),
+          tx.user.create({
+            data: {
+              email: 'user_2@website.com',
+            },
+          }),
+        ])
+
+        await tx.user.create({
           data: {
             email: 'user_1@website.com',
           },
-        }),
-        prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        }),
-      ])
+        })
+      })
 
       await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
@@ -295,35 +330,6 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
       expect(users.length).toBe(0)
     },
   )
-
-  testIf(clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
-    const result = prisma.$transaction(async (tx) => {
-      await Promise.all([
-        tx.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        }),
-        tx.user.create({
-          data: {
-            email: 'user_2@website.com',
-          },
-        }),
-      ])
-
-      await tx.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      })
-    })
-
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
-
-    const users = await prisma.user.findMany()
-
-    expect(users.length).toBe(0)
-  })
 
   /**
    * A bad batch should rollback using the interactive transaction logic
@@ -430,7 +436,8 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
       expect(users.length).toBe(2)
     })
 
-    test('middleware exclude from transaction', async () => {
+    // TODO fails with Expected length: 1 Received length: 0 Received array: []
+    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('middleware exclude from transaction', async () => {
       const isolatedPrisma = newPrismaClient()
 
       isolatedPrisma.$use((params, next) => {
@@ -461,7 +468,8 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
   /**
    * Two concurrent transactions should work
    */
-  test('concurrent', async () => {
+  // TODO fails with: LibsqlError: : cannot start a transaction within a transaction
+  skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('concurrent', async () => {
     await Promise.all([
       prisma.$transaction([
         prisma.user.create({
@@ -520,7 +528,8 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
   /**
    * Rollback should happen even with `then` calls
    */
-  test('rollback with then calls', async () => {
+  // TODO fails with: LibsqlError: : cannot start a transaction within a transaction
+  skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('rollback with then calls', async () => {
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user
         .create({

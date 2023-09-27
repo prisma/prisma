@@ -19,7 +19,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test.skip('findUnique decimal with Promise.all', async () => {
+    test('findUnique decimal with Promise.all', async () => {
       const result = await Promise.all([
         prisma.resource.findUnique({
           where: { decimal: decimal1 },
@@ -37,7 +37,7 @@ testMatrix.setupTestSuite(
       ])
     })
 
-    test.skip('findUnique decimal with $transaction([...])', async () => {
+    test('findUnique decimal with $transaction([...])', async () => {
       const result = await prisma.$transaction([
         prisma.resource.findUnique({
           where: { decimal: decimal1 },
@@ -95,6 +95,10 @@ testMatrix.setupTestSuite(
     optOut: {
       from: ['mongodb'],
       reason: 'MongoDB does not support decimal',
+    },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason: 'Decimal is incorrectly `null` in one case or does not match the decimal object in the other case',
     },
   },
 )

@@ -3,15 +3,20 @@ import path from 'path'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
+import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta, TestCliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
-  matrixOptions: Record<string, string>
+  matrixOptions: Record<string, string> & { provider: Providers; providerFlavor?: ProviderFlavors }
 }
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
+
+const schemaPreviewFeaturesRegex = /previewFeatures\s*=\s*(.*)/
+const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-js"/
 
 /**
  * Get the generated test suite name, used for the folder name.
@@ -23,7 +28,6 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Name
   let name = ``
 
   name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
-
   name += ` (${suiteConfig.parametersString})`
 
   // replace illegal chars with empty string
@@ -35,11 +39,10 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Name
  * @param suiteConfig
  * @returns
  */
-export function getTestSuitePreviewFeatures(matrixOptions: Record<string, string>) {
-  return [
-    ...(matrixOptions['providerFeatures']?.split(', ') ?? []),
-    ...(matrixOptions['previewFeatures']?.split(', ') ?? []),
-  ]
+export function getTestSuitePreviewFeatures(schema: string): string[] {
+  const match = schema.match(schemaPreviewFeaturesRegex)
+
+  return match === null ? [] : JSON.parse(match[1])
 }
 
 /**
@@ -87,7 +90,7 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
  * @param suiteMeta
  * @returns
  */
-export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteConfig[] {
+export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
   const matrixModule = require(suiteMeta._matrixPath).default as MatrixModule
 
   let rawMatrix: TestSuiteMatrix
@@ -101,12 +104,14 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteCon
     exclude = matrixModule.matrixOptions?.exclude ?? (() => false)
   }
 
-  return matrix(rawMatrix)
+  const configs = matrix(rawMatrix)
     .map((configs) => ({
       parametersString: getTestSuiteParametersString(configs),
       matrixOptions: merge(configs),
     }))
     .filter(({ matrixOptions }) => !exclude(matrixOptions))
+
+  return configs as NamedTestSuiteConfig[]
 }
 
 /**
@@ -130,7 +135,7 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
         const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
         return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
       } else {
-        const firstKey = Object.keys(config)[0]
+        const firstKey = Object.keys(config)[0] // ! TODO this can actually produce incorrect tests and break type checks ! \\ Replace with hash
         return `${firstKey}=${config[firstKey]}`
       }
     })
@@ -143,16 +148,35 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Record<string, string>) {
-  const schemaStr = require(suiteMeta._schemaPath).default(matrixOptions)
+export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: NamedTestSuiteConfig['matrixOptions']) {
+  let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
+  const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
+  const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
+  const previewFeatures = getTestSuitePreviewFeatures(schema)
 
-  // By default, mini-proxy distinguishes different engine instances using inline schema hash
-  // In case 2 tests are running in parallel with identical schema, this can cause all kinds of problems
-  // Adding a unique comment at the top of schema file forces them to have different hash and avoids
-  // those problems
-  const header = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}`
+  // By default, mini-proxy distinguishes different engine instances using
+  // inline schema hash. In case 2 tests are running in parallel with identical
+  // schema, this can cause all kinds of problems. Adding a unique comment at
+  // the top of schema file forces them to have different hash and fixes this.
+  schema = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}\n${schema}`
 
-  return `${header}\n${schemaStr}`
+  // in some cases we may add more preview features automatically to the schema
+  // when we are running tests for driver adapters, auto add the preview feature
+  if (isDriverAdapterProviderFlavor(matrixOptions.providerFlavor)) previewFeatures.push('driverAdapters')
+
+  const previewFeaturesStr = `previewFeatures = ${JSON.stringify(previewFeatures)}`
+
+  // if there's already a preview features block, replace it with the updated one
+  if (previewFeatureMatch !== null) {
+    schema = schema.replace(previewFeatureMatch[0], previewFeaturesStr)
+  }
+
+  // if there's no preview features, append them to the default generator block
+  if (previewFeatureMatch === null && defaultGeneratorMatch !== null) {
+    schema = schema.replace(defaultGeneratorMatch[0], `${defaultGeneratorMatch[0]}\n${previewFeaturesStr}`)
+  }
+
+  return schema
 }
 
 /**
@@ -190,5 +214,32 @@ export function getTestSuiteMeta() {
     prismaPath,
     _matrixPath,
     _schemaPath,
+  }
+}
+
+/**
+ * Get `TestCliMeta` from the environment variables created by the test CLI.
+ */
+export function getTestSuiteCliMeta(): TestCliMeta {
+  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+  const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
+
+  if (edge && !dataProxy) {
+    throw new Error('Edge client requires Data Proxy')
+  }
+
+  return {
+    dataProxy,
+    runtime: edge ? 'edge' : 'node',
+  }
+}
+
+/**
+ * Get `ClientMeta` information to be passed down into the test suite.
+ */
+export function getTestSuiteClientMeta(suiteConfig: NamedTestSuiteConfig['matrixOptions']): ClientMeta {
+  return {
+    ...getTestSuiteCliMeta(),
+    driverAdapter: isDriverAdapterProviderFlavor(suiteConfig.providerFlavor),
   }
 }
