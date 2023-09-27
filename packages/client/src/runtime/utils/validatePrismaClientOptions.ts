@@ -1,8 +1,8 @@
 import leven from 'js-levenshtein'
 
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
+import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
 import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
-import { getPreviewFeatures } from './getPreviewFeatures'
 
 const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'adapter', 'log', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
