@@ -376,23 +376,23 @@ importers:
         specifier: 1.11.0
         version: 1.11.0
       '@prisma/adapter-libsql':
-        specifier: 0.2.3
-        version: 0.2.3(@libsql/client@0.3.5)
+        specifier: 0.3.1
+        version: 0.3.1(@libsql/client@0.3.5)
       '@prisma/adapter-neon':
-        specifier: 0.3.4
-        version: 0.3.4(@neondatabase/serverless@0.6.0)
+        specifier: 0.4.0
+        version: 0.4.0(@neondatabase/serverless@0.6.0)
       '@prisma/adapter-pg':
-        specifier: 0.3.4
-        version: 0.3.4(pg@8.11.2)
+        specifier: 0.4.0
+        version: 0.4.0(pg@8.11.2)
       '@prisma/adapter-planetscale':
-        specifier: 0.3.4
-        version: 0.3.4(@planetscale/database@1.11.0)
+        specifier: 0.4.0
+        version: 0.4.0(@planetscale/database@1.11.0)
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 0.4.0
-        version: 0.4.0
+        specifier: 0.5.0
+        version: 0.5.0
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -2968,52 +2968,53 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/adapter-libsql@0.2.3(@libsql/client@0.3.5):
-    resolution: {integrity: sha512-hA1a7C7s9p+THyK1AoKRtEv+afSyDKSR/zC+ZSHgpTPT86r0M5kSSQGR87tPHvLFpprdTJc96PBb2iRpUKmk2g==}
+  /@prisma/adapter-libsql@0.3.1(@libsql/client@0.3.5):
+    resolution: {integrity: sha512-hEpS2qjMAlKt9LlUf/P0bgFCgF4ekEfECuGQjONeulhJHF4+woN1vSO/g8F3Z7pR9ZM9v+MUKEd5si3nMoWOnw==}
     peerDependencies:
       '@libsql/client': ^0.3.5
     dependencies:
       '@libsql/client': 0.3.5
-      '@prisma/driver-adapter-utils': 0.4.0
+      '@prisma/driver-adapter-utils': 0.5.0
+      async-mutex: 0.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-neon@0.3.4(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-WuD32vJMv1S/SLN6BjWK2XadEbMD/FZKMO1iH1B/gTppgWkoE+7znBLoVejYW008tO4g7kXITw/29ji3cOnZtg==}
+  /@prisma/adapter-neon@0.4.0(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-PlbHRz1batWjhuvYz13hVQmT651tP9/Ch9YBXYbk6ITcDeV/Xs8VMo2tRfUhHbReP2cWE6gi4aWEBAh6M3DldA==}
     peerDependencies:
       '@neondatabase/serverless': ^0.6.0
     dependencies:
       '@neondatabase/serverless': 0.6.0
-      '@prisma/driver-adapter-utils': 0.4.0
+      '@prisma/driver-adapter-utils': 0.5.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-pg@0.3.4(pg@8.11.2):
-    resolution: {integrity: sha512-AhxBioeaIHJPwQuZDxfoZzhbuBiOtIlEIAemsotAw85EOkJpX1oCHhr1dHrBi4TI3VyWqkLET9fBRxpJ7y+QBQ==}
+  /@prisma/adapter-pg@0.4.0(pg@8.11.2):
+    resolution: {integrity: sha512-XBUmxjGR0iAcVHhSAz1l1D2Vv9HXpEhf0RdUJ/PdgjgoOm3NnxmwIz+Q0jU9SNUkL/nYhq7PrbBD52bK4mkzuQ==}
     peerDependencies:
       pg: ^8.11.3
     dependencies:
-      '@prisma/driver-adapter-utils': 0.4.0
+      '@prisma/driver-adapter-utils': 0.5.0
       pg: 8.11.2
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-planetscale@0.3.4(@planetscale/database@1.11.0):
-    resolution: {integrity: sha512-B7Sicb7zcV40pbo2bdsshvtJUcdiCm7yMbWUTusx7IRjqFU7+J6Hkpt5XNMWk5Ol3JMw/YISSi2TvOjd+38hrQ==}
+  /@prisma/adapter-planetscale@0.4.0(@planetscale/database@1.11.0):
+    resolution: {integrity: sha512-nwj0C2Xfz62UC8v1SQg0IgBlYkmgwh1i7NuL75pmUWFVMO2SSB5bVqVzbfuuEiFacQrpiDESUZAizrtQVQtvvQ==}
     peerDependencies:
       '@planetscale/database': ^1.11.0
     dependencies:
       '@planetscale/database': 1.11.0
-      '@prisma/driver-adapter-utils': 0.4.0
+      '@prisma/driver-adapter-utils': 0.5.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/driver-adapter-utils@0.4.0:
-    resolution: {integrity: sha512-ZX9LIbFiWEkA21Gcw8WdClzbY90Yhp6sUfV1Lgv8nAXieoH274ju+ON4EhUpXMSQqATPaO9NCjcoUhncEms4Dg==}
+  /@prisma/driver-adapter-utils@0.5.0:
+    resolution: {integrity: sha512-Yfz7G6vnllGSkm964iH1/6Hd+LBesF9421m2ZOs2nR77ykjs2B/uXYKG8Mhf6TonFC/8fftwTncDLx5iUAzqyA==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
@@ -4627,6 +4628,12 @@ packages:
   /astral-regex@2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
     engines: {node: '>=8'}
+
+  /async-mutex@0.4.0:
+    resolution: {integrity: sha512-eJFZ1YhRR8UN8eBLoNzcDPcy/jqjsg6I1AP+KvWQX80BqOSW1oJPJXDylPUEeMr2ZQvHgnQ//Lp6f3RQ1zI7HA==}
+    dependencies:
+      tslib: 2.6.2
+    dev: true
 
   /async@3.2.4:
     resolution: {integrity: sha512-iAB+JbDEGXhyIUavoDl9WP/Jj106Kz9DEn1DPgYw5ruDn0e3Wgi3sKFm55sASdGBNOQB8F59d9qQ7deqrHA8wQ==}
