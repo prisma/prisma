@@ -391,8 +391,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 0.5.0
-        version: 0.5.0
+        specifier: 0.6.0
+        version: 0.6.0
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
