@@ -118,7 +118,7 @@ export async function setupTestSuiteDatabase(
 
     // we reuse and clean the db when running in single-threaded mode
     if (process.env.JEST_MAX_WORKERS === '1') {
-      await DbPush.new().parse([...dbPushParams, '--force-reset'])
+      dbPushParams.push('--force-reset')
     }
     await DbPush.new().parse(dbPushParams)
 
