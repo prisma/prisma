@@ -1,5 +1,7 @@
+import { createClient as createLibSqlClient } from '@libsql/client'
 import { neonConfig, Pool as neonPool } from '@neondatabase/serverless'
 import { connect } from '@planetscale/database'
+import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
@@ -144,6 +146,15 @@ export function setupTestSuiteClientDriverAdapter({
     })
 
     return { adapter: new PrismaPlanetScale(connection) }
+  }
+
+  if (providerFlavor === ProviderFlavors.JS_LIBSQL) {
+    const client = createLibSqlClient({
+      url: datasourceInfo.databaseUrl,
+      intMode: 'bigint',
+    })
+
+    return { adapter: new PrismaLibSQL(client) }
   }
 
   throw new Error(`Unsupported provider flavor ${providerFlavor}`)

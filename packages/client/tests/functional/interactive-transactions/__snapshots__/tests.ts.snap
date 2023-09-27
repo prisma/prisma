@@ -225,8 +225,8 @@ exports[`interactive-transactions (provider=postgresql, js_pg) batching rollback
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-  XX 'batching rollback',
-  XX async () => {
+  XX     providerFlavor !== ProviderFlavors.JS_LIBSQL,
+  XX )('batching rollback', async () => {
   XX   const result = prisma.$transaction([
 → XX     prisma.user.create(
 duplicate key value violates unique constraint "User_email_key"
@@ -299,6 +299,8 @@ Invalid \`prisma.user.create()\` invocation in
 → XX await prisma.user.create(
 Unique constraint failed on the fields: (\`email\`)
 `;
+
+exports[`interactive-transactions (provider=sqlite, js_libsql) batching raw rollback 1`] = `: UNIQUE constraint failed: User.email`;
 
 exports[`interactive-transactions (provider=sqlserver) batching raw rollback 1`] = `
 
