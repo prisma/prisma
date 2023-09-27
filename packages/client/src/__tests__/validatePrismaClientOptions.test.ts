@@ -1,9 +1,13 @@
 import { validatePrismaClientOptions } from '../runtime/utils/validatePrismaClientOptions'
 
+const config = {
+  datasourceNames: ['db'],
+}
+
 describe('valid options', () => {
   test('empty', () => {
     expect.assertions(0)
-    validatePrismaClientOptions({}, ['db'])
+    validatePrismaClientOptions({}, config)
   })
   test('full', () => {
     expect.assertions(0)
@@ -17,7 +21,7 @@ describe('valid options', () => {
         errorFormat: 'pretty',
         log: ['error'],
       },
-      ['db'],
+      config,
     )
 
     validatePrismaClientOptions(
@@ -35,7 +39,7 @@ describe('valid options', () => {
           },
         ],
       },
-      ['db'],
+      config,
     )
   })
 })
@@ -47,7 +51,7 @@ describe('invalid options', () => {
         {
           errorsFormat: 'minimal',
         } as any,
-        ['db'],
+        config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
       Unknown property errorsFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
@@ -61,7 +65,7 @@ describe('invalid options', () => {
             asd: {},
           },
         },
-        ['db'],
+        config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
       Unknown datasource asd provided to PrismaClient constructor. Available datasources: db
@@ -75,7 +79,7 @@ describe('invalid options', () => {
             db: { murl: '' },
           },
         } as any,
-        ['db'],
+        config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
       Invalid value {"db":{"murl":""}} for datasource "db" provided to PrismaClient constructor.
@@ -88,7 +92,7 @@ describe('invalid options', () => {
           errorFormat: 'minimal',
           log: [{ helo: 'world' }],
         } as any,
-        ['db'],
+        config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
       Invalid property helo for "log" provided to PrismaClient constructor
@@ -100,7 +104,7 @@ describe('invalid options', () => {
           errorFormat: 'minimal',
           log: ['muery'],
         } as any,
-        ['db'],
+        config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
       Invalid log level "muery" provided to PrismaClient constructor. Did you mean "query"?

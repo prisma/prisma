@@ -21,6 +21,7 @@ import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
 import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
+import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -317,7 +318,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       checkPlatformCaching(config)
 
       if (optionsArg) {
-        validatePrismaClientOptions(optionsArg, config.datasourceNames)
+        validatePrismaClientOptions(optionsArg, config)
       }
 
       const logEmitter = new EventEmitter().on('error', () => {
@@ -330,7 +331,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       })
 
       this._extensions = MergedExtensionsList.empty()
-      this._previewFeatures = config.generator?.previewFeatures ?? []
+      this._previewFeatures = getPreviewFeatures(config)
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._tracingHelper = getTracingHelper(this._previewFeatures)
