@@ -72,9 +72,20 @@ globalThis.afterAll = process.env.TEST_GENERATE_ONLY === 'true' ? () => {} : aft
 globalThis.beforeEach = process.env.TEST_GENERATE_ONLY === 'true' ? () => {} : beforeEach
 globalThis.afterEach = process.env.TEST_GENERATE_ONLY === 'true' ? () => {} : afterEach
 globalThis.test = process.env.TEST_GENERATE_ONLY === 'true' ? skip : test
-globalThis.testIf = (condition: boolean) => (condition && process.env.TEST_GENERATE_ONLY !== 'true' ? test : skip)
-globalThis.skipTestIf = (condition: boolean) => (condition || process.env.TEST_GENERATE_ONLY === 'true' ? skip : test)
-globalThis.describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+globalThis.testIf = (condition) => (condition && process.env.TEST_GENERATE_ONLY !== 'true' ? test : skip)
+globalThis.describeIf = (condition) => (condition ? describe : describe.skip)
 globalThis.testRepeat = testRepeat
+globalThis.$test = (config) => {
+  if (config.runIf === false) {
+    return test.skip
+  }
+  if (config.skipIf === true) {
+    return test.skip
+  }
+  if (config.failIf === true) {
+    return test.failing
+  }
+  return test
+}
 
 export {}

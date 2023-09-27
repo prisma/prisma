@@ -1,6 +1,6 @@
 declare function testIf(condition: boolean): jest.It
 declare function describeIf(condition: boolean): jest.Describe
-declare function skipTestIf(condition: boolean): jest.It
+declare function $test(config: { runIf?: boolean; skipIf?: boolean; failIf?: boolean }): jest.It
 declare function testRepeat(times: number): jest.It
 
 declare namespace jest {

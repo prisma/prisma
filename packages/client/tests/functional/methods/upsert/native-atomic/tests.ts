@@ -66,7 +66,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })(
       'should only use ON CONFLICT when update arguments do not have any nested queries',
       async () => {
         const name = faker.person.firstName()
@@ -193,7 +193,7 @@ testMatrix.setupTestSuite(
     )
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })(
       'should only use ON CONFLICT when there is only 1 unique field in the where clause',
       async () => {
         const name = faker.person.firstName()
@@ -235,7 +235,7 @@ testMatrix.setupTestSuite(
     )
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })(
       'should only use ON CONFLICT when the unique field defined in where clause has the same value as defined in the create arguments',
       async () => {
         const name = faker.person.firstName()
@@ -277,45 +277,48 @@ testMatrix.setupTestSuite(
     )
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('should perform an upsert using ON CONFLICT', async () => {
-      const name = faker.person.firstName()
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })(
+      'should perform an upsert using ON CONFLICT',
+      async () => {
+        const name = faker.person.firstName()
 
-      const checker = new UpsertChecker(client)
+        const checker = new UpsertChecker(client)
 
-      const user = await client.user.upsert({
-        where: {
-          name,
-        },
-        create: {
-          name,
-        },
-        update: {
-          name: `${name}-updated`,
-        },
-      })
+        const user = await client.user.upsert({
+          where: {
+            name,
+          },
+          create: {
+            name,
+          },
+          update: {
+            name: `${name}-updated`,
+          },
+        })
 
-      expect(user.name).toEqual(name)
+        expect(user.name).toEqual(name)
 
-      expect(checker.usedNative()).toBeTruthy()
+        expect(checker.usedNative()).toBeTruthy()
 
-      const userUpdated = await client.user.upsert({
-        where: {
-          name,
-        },
-        create: {
-          name,
-        },
-        update: {
-          name: `${name}-updated`,
-        },
-      })
+        const userUpdated = await client.user.upsert({
+          where: {
+            name,
+          },
+          create: {
+            name,
+          },
+          update: {
+            name: `${name}-updated`,
+          },
+        })
 
-      expect(userUpdated.name).toEqual(`${name}-updated`)
-      expect(checker.usedNative()).toBeTruthy()
-    })
+        expect(userUpdated.name).toEqual(`${name}-updated`)
+        expect(checker.usedNative()).toBeTruthy()
+      },
+    )
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })(
       'should perform an upsert using ON CONFLICT with id',
       async () => {
         const name = faker.person.firstName()
@@ -357,7 +360,7 @@ testMatrix.setupTestSuite(
     )
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })(
       'should perform an upsert using ON CONFLICT with compound id',
       async () => {
         const checker = new UpsertChecker(client)
@@ -410,7 +413,7 @@ testMatrix.setupTestSuite(
     )
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })(
       'should perform an upsert using ON CONFLICT with compound uniques',
       async () => {
         const checker = new UpsertChecker(client)

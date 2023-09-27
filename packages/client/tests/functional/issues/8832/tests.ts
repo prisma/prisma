@@ -119,7 +119,7 @@ testMatrix.setupTestSuite(
        */
       describe('unhandled filters', () => {
         // TODO this test does not fail as expected
-        skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
+        $test({ failIf: providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG })(
           'should fail with `Assertion violation` when "in" is repeated at least twice and "n" is the default value of $QUERY_BATCH_SIZE',
           async () => {
             expect.assertions(3)
@@ -154,7 +154,7 @@ testMatrix.setupTestSuite(
         )
 
         // TODO this test does not fail as expected
-        skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
+        $test({ failIf: providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG })(
           'should fail with `Assertion violation` when "in" has 32766 ids and a "take" filter',
           async () => {
             expect.assertions(3)

@@ -215,11 +215,12 @@ testMatrix.setupTestSuite(
       })
 
       // TODO test fails with Expected `"value": 1"` but got `"value": 0` for key "prisma_pool_connections_opened_total" See https://github.com/prisma/team-orm/issues/372
-      skipTestIf(
-        providerFlavor === ProviderFlavors.JS_NEON ||
+      $test({
+        failIf:
+          providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
           providerFlavor === ProviderFlavors.JS_LIBSQL,
-      )('SQL Providers: should have the same keys, before and after a query', async () => {
+      })('SQL Providers: should have the same keys, before and after a query', async () => {
         if (provider === 'mongodb') {
           return
         }
@@ -455,11 +456,12 @@ testMatrix.setupTestSuite(
       })
 
       // TODO test fails with Expected `11` but got `0` for key "/prisma_client_queries_wait_histogram_ms_bucket/g" See https://github.com/prisma/team-orm/issues/372
-      skipTestIf(
-        providerFlavor === ProviderFlavors.JS_NEON ||
+      $test({
+        failIf:
+          providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
           providerFlavor === ProviderFlavors.JS_LIBSQL,
-      )('returns metrics in prometheus format', async () => {
+      })('returns metrics in prometheus format', async () => {
         const metrics = await prisma.$metrics.prometheus()
 
         expect((metrics.match(/prisma_client_queries_total \d/g) || []).length).toBe(1)
@@ -499,11 +501,12 @@ testMatrix.setupTestSuite(
       })
 
       // TODO test fails with missing `prisma_client_queries_wait_histogram_ms` counter key See https://github.com/prisma/team-orm/issues/372
-      skipTestIf(
-        providerFlavor === ProviderFlavors.JS_NEON ||
+      $test({
+        failIf:
+          providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
           providerFlavor === ProviderFlavors.JS_LIBSQL,
-      )('returns metrics in json format', async () => {
+      })('returns metrics in json format', async () => {
         const { counters, gauges, histograms } = await prisma.$metrics.json()
 
         expect(counters.length).toBeGreaterThan(0)
