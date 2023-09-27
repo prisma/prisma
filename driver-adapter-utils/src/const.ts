@@ -20,6 +20,7 @@ export const ColumnTypeEnum = {
   // 'Set': 14,
   // 'Array': 15,
   // ...
+  'UnknownNumber': 128
 } as const
 
 // This string value paired with `ColumnType.Json` will be treated as JSON `null`

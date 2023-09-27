@@ -101,19 +101,11 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
     case 'boolean':
       return ColumnTypeEnum.Boolean
     case 'number':
-      return inferNumericType(value)
+      return ColumnTypeEnum.UnknownNumber
     case 'object':
       return inferObjectType(value)
     default:
       throw new UnexpectedTypeError(value)
-  }
-}
-
-function inferNumericType(value: number): ColumnType {
-  if (Number.isInteger(value)) {
-    return ColumnTypeEnum.Int64
-  } else {
-    return ColumnTypeEnum.Double
   }
 }
 
