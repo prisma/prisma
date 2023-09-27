@@ -39,11 +39,15 @@ ${bold('Options')}
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
+      --seed-file   Seed files that needs to be included
 
 ${bold('Examples')}
 
   Reset your database and apply all migrations, all data will be lost
   ${dim('$')} prisma migrate reset
+
+  To apply a custom seed file
+  ${dim('$')} prisma migrate reset --seed-file prisma/customSeed.ts
 
   Specify a schema
   ${dim('$')} prisma migrate reset --schema=./schema.prisma 
@@ -62,6 +66,7 @@ ${bold('Examples')}
       '--skip-seed': Boolean,
       '--schema': String,
       '--telemetry-information': String,
+      '--seed-file': String,
     })
 
     if (isError(args)) {
@@ -158,6 +163,16 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
         // but we still want to run it for `legacyTsNodeScriptWarning()`
         await verifySeedConfigAndReturnMessage(schemaPath)
       }
+    }
+
+    // Running the custom seed file
+    if (args['--seed-file']) {
+      console.info()
+      console.info(`Running the seed file: ${args['--seed-file']}`)
+
+      const doesSeedSuccessful = await executeSeedCommand({ commandFromConfig: `ts-node ${args['--seed-file']}` })
+      if (!doesSeedSuccessful) process.exit(1)
+      console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
     }
 
     return ``
