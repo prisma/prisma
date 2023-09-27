@@ -122,7 +122,7 @@
     "klona": "2.0.6",
     "mariadb": "3.2.0",
     "memfs": "4.5.0",
-    "mssql": "9.3.0",
+    "mssql": "10.0.1",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.7.0",
     "p-retry": "4.6.2",
