@@ -84,7 +84,7 @@
     "@prisma/adapter-pg": "0.3.4",
     "@prisma/adapter-planetscale": "0.3.4",
     "@prisma/debug": "workspace:*",
-    "@prisma/driver-adapter-utils": "0.4.0",
+    "@prisma/driver-adapter-utils": "0.5.0-pre.2",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
