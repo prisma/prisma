@@ -1,3 +1,9 @@
+# Uncomment "source_up" if you need to load the .envrc at the root of the
+# `prisma-engines` repository before loading this one (for example, if you
+# are using Nix).
+#
+# source_up
+
 export JS_PLANETSCALE_DATABASE_URL="mysql://USER:PASSWORD@aws.connect.psdb.cloud/DATABASE?sslaccept=strict"
 export JS_NEON_DATABASE_URL="postgres://USER:PASSWORD@DATABASE-pooler.eu-central-1.aws.neon.tech/neondb?pgbouncer=true&connect_timeout=10"
 
