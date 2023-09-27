@@ -80,6 +80,8 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 }
 
 class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
+  finished = false
+
   constructor(
     client: neon.PoolClient,
     readonly options: TransactionOptions,
@@ -90,6 +92,7 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
+    this.finished = true
     this.client.release()
     return Promise.resolve(ok(undefined))
   }
@@ -97,12 +100,15 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
+    this.finished = true
     this.client.release()
     return Promise.resolve(ok(undefined))
   }
 
   dispose(): Result<void> {
-    this.client.release()
+    if (!this.finished) {
+      this.client.release()
+    }
     return ok(undefined)
   }
 }

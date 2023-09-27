@@ -76,6 +76,8 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 }
 
 class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
+  finished = false
+
   constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -83,6 +85,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
+    this.finished = true
     this.client.release()
     return ok(undefined)
   }
@@ -90,12 +93,15 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
+    this.finished = true
     this.client.release()
     return ok(undefined)
   }
 
   dispose(): Result<void> {
-    this.client.release()
+    if (!this.finished) {
+      this.client.release()
+    }
     return ok(undefined)
   }
 }
