@@ -348,6 +348,12 @@ importers:
       '@jest/test-sequencer':
         specifier: 29.7.0
         version: 29.7.0
+      '@libsql/client':
+        specifier: 0.3.5
+        version: 0.3.5
+      '@neondatabase/serverless':
+        specifier: 0.6.0
+        version: 0.6.0
       '@opentelemetry/api':
         specifier: 1.6.0
         version: 1.6.0
@@ -366,6 +372,21 @@ importers:
       '@opentelemetry/semantic-conventions':
         specifier: 1.17.0
         version: 1.17.0
+      '@planetscale/database':
+        specifier: 1.11.0
+        version: 1.11.0
+      '@prisma/adapter-libsql':
+        specifier: 0.2.3
+        version: 0.2.3(@libsql/client@0.3.5)
+      '@prisma/adapter-neon':
+        specifier: 0.3.4
+        version: 0.3.4(@neondatabase/serverless@0.6.0)
+      '@prisma/adapter-pg':
+        specifier: 0.3.4
+        version: 0.3.4(pg@8.11.2)
+      '@prisma/adapter-planetscale':
+        specifier: 0.3.4
+        version: 0.3.4(@planetscale/database@1.11.0)
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -2386,6 +2407,90 @@ packages:
   /@js-joda/core@5.5.3:
     resolution: {integrity: sha512-7dqNYwG8gCt4hfg5PKgM7xLEcgSBcx/UgC92OMnhMmvAnq11QzDFPrxUkNR/u5kn17WWLZ8beZ4A3Qrz4pZcmQ==}
 
+  /@libsql/client@0.3.5:
+    resolution: {integrity: sha512-4fZxGh0qKW5dtp1yuQLRvRAtbt02V4jzjM9sHSmz5k25xZTLg7/GlNudKdqKZrjJXEV5PvDNsczupBtedZZovw==}
+    dependencies:
+      '@libsql/hrana-client': 0.5.5
+      js-base64: 3.7.5
+      libsql: 0.1.23
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+    dev: true
+
+  /@libsql/darwin-arm64@0.1.23:
+    resolution: {integrity: sha512-+V9aoOrZ47iYbY5NrcS0F2bDOCH407QI0wxAtss0CLOcFxlz/T6Nw0ryLK31GabklJQAmOXIyqkumLfz5HT64w==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@libsql/darwin-x64@0.1.23:
+    resolution: {integrity: sha512-toHo7s0HiMl4VCIfjhGXDe9bGWWo78eP8fxIbwU6RlaLO6MNV9fjHY/GjTWccWOwyxcT+q6X/kUc957HnoW3bg==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@libsql/hrana-client@0.5.5:
+    resolution: {integrity: sha512-i+hDBpiV719poqEiHupUUZYKJ9YSbCRFe5Q2PQ0v3mHIftePH6gayLjp2u6TXbqbO/Dv6y8yyvYlBXf/kFfRZA==}
+    dependencies:
+      '@libsql/isomorphic-fetch': 0.1.10
+      '@libsql/isomorphic-ws': 0.1.5
+      js-base64: 3.7.5
+      node-fetch: 3.3.2
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+    dev: true
+
+  /@libsql/isomorphic-fetch@0.1.10:
+    resolution: {integrity: sha512-dH0lMk50gKSvEKD78xWMu60SY1sjp1sY//iFLO0XMmBwfVfG136P9KOk06R4maBdlb8KMXOzJ1D28FR5ZKnHTA==}
+    dependencies:
+      '@types/node-fetch': 2.6.6
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /@libsql/isomorphic-ws@0.1.5:
+    resolution: {integrity: sha512-DtLWIH29onUYR00i0GlQ3UdcTRC6EP4u9w/h9LxpUZJWRMARk6dQwZ6Jkd+QdwVpuAOrdxt18v0K2uIYR3fwFg==}
+    dependencies:
+      '@types/ws': 8.5.6
+      ws: 8.14.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
+
+  /@libsql/linux-x64-gnu@0.1.23:
+    resolution: {integrity: sha512-U11LdjayakOj0lQCHDYkTgUfe4Q+7AjZZh8MzgEDF/9l0bmKNI3eFLWA3JD2Xm98yz65lUx95om0WKOKu5VW/w==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@libsql/linux-x64-musl@0.1.23:
+    resolution: {integrity: sha512-8UcCK2sPVzcafHsEmcU5IDp/NxjD6F6JFS5giijsMX5iGgxYQiiwTUMOmSxW0AWBeT4VY5U7G6rG5PC8JSFtfg==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@libsql/win32-x64-msvc@0.1.23:
+    resolution: {integrity: sha512-HAugD66jTmRRRGNMLKRiaFeMOC3mgUsAiuO6NRdRz3nM6saf9e5QqN/Ppuu9yqHHcZfv7VhQ9UGlAvzVK64Itg==}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /@mapbox/node-pre-gyp@1.0.10:
     resolution: {integrity: sha512-4ySo4CjzStuprMwk35H5pPbkymjv1SF3jGLj6rAHp/xT/RF7TL7bd9CTm1xDY49K2qF7jmR/g7k+SkLETP6opA==}
     hasBin: true
@@ -2454,6 +2559,16 @@ packages:
       sparse-bitfield: 3.0.3
     dev: false
     optional: true
+
+  /@neon-rs/load@0.0.4:
+    resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
+    dev: true
+
+  /@neondatabase/serverless@0.6.0:
+    resolution: {integrity: sha512-qXxBRYN0m2v8kVQBfMxbzNGn2xFAhTXFibzQlE++NfJ56Shz3m7+MyBBtXDlEH+3Wfa6lToDXf1MElocY4sJ3w==}
+    dependencies:
+      '@types/pg': 8.6.6
+    dev: true
 
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -2861,6 +2976,55 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@planetscale/database@1.11.0:
+    resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
+    engines: {node: '>=16'}
+    dev: true
+
+  /@prisma/adapter-libsql@0.2.3(@libsql/client@0.3.5):
+    resolution: {integrity: sha512-hA1a7C7s9p+THyK1AoKRtEv+afSyDKSR/zC+ZSHgpTPT86r0M5kSSQGR87tPHvLFpprdTJc96PBb2iRpUKmk2g==}
+    peerDependencies:
+      '@libsql/client': ^0.3.5
+    dependencies:
+      '@libsql/client': 0.3.5
+      '@prisma/driver-adapter-utils': 0.4.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@prisma/adapter-neon@0.3.4(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-WuD32vJMv1S/SLN6BjWK2XadEbMD/FZKMO1iH1B/gTppgWkoE+7znBLoVejYW008tO4g7kXITw/29ji3cOnZtg==}
+    peerDependencies:
+      '@neondatabase/serverless': ^0.6.0
+    dependencies:
+      '@neondatabase/serverless': 0.6.0
+      '@prisma/driver-adapter-utils': 0.4.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@prisma/adapter-pg@0.3.4(pg@8.11.2):
+    resolution: {integrity: sha512-AhxBioeaIHJPwQuZDxfoZzhbuBiOtIlEIAemsotAw85EOkJpX1oCHhr1dHrBi4TI3VyWqkLET9fBRxpJ7y+QBQ==}
+    peerDependencies:
+      pg: ^8.11.3
+    dependencies:
+      '@prisma/driver-adapter-utils': 0.4.0
+      pg: 8.11.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@prisma/adapter-planetscale@0.3.4(@planetscale/database@1.11.0):
+    resolution: {integrity: sha512-B7Sicb7zcV40pbo2bdsshvtJUcdiCm7yMbWUTusx7IRjqFU7+J6Hkpt5XNMWk5Ol3JMw/YISSi2TvOjd+38hrQ==}
+    peerDependencies:
+      '@planetscale/database': ^1.11.0
+    dependencies:
+      '@planetscale/database': 1.11.0
+      '@prisma/driver-adapter-utils': 0.4.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
 
   /@prisma/driver-adapter-utils@0.4.0:
     resolution: {integrity: sha512-ZX9LIbFiWEkA21Gcw8WdClzbY90Yhp6sUfV1Lgv8nAXieoH274ju+ON4EhUpXMSQqATPaO9NCjcoUhncEms4Dg==}
@@ -3662,6 +3826,13 @@ packages:
       form-data: 4.0.0
     dev: true
 
+  /@types/node-fetch@2.6.6:
+    resolution: {integrity: sha512-95X8guJYhfqiuVVhRFxVQcf4hW/2bCuoPwDasMf/531STFoNoWTT7YDnWdXHEZKqAGUigmpG31r2FE70LwnzJw==}
+    dependencies:
+      '@types/node': 18.17.18
+      form-data: 4.0.0
+    dev: true
+
   /@types/node@15.14.9:
     resolution: {integrity: sha512-qjd88DrCxupx/kJD5yQgZdcYKZKSIGBVDIBE1/LTGcNm3d2Np/jxojkdePDdfnBHJc5W7vSMpbJ1aB7p/Py69A==}
     dev: true
@@ -3693,6 +3864,14 @@ packages:
       '@types/node': 18.18.0
       pg-protocol: 1.6.0
       pg-types: 4.0.1
+    dev: true
+
+  /@types/pg@8.6.6:
+    resolution: {integrity: sha512-O2xNmXebtwVekJDD+02udOncjVcMZQuTEQEMpKJ0ZRf5E7/9JJX3izhKUcUifBkyKpljyUM6BTgy2trmviKlpw==}
+    dependencies:
+      '@types/node': 18.17.15
+      pg-protocol: 1.6.0
+      pg-types: 2.2.0
     dev: true
 
   /@types/progress@2.0.5:
@@ -3791,6 +3970,12 @@ packages:
 
   /@types/which@3.0.0:
     resolution: {integrity: sha512-ASCxdbsrwNfSMXALlC3Decif9rwDMu+80KGp5zI2RLRotfMsTv7fHL8W8VDp24wymzDyIFudhUeSCugrgRFfHQ==}
+    dev: true
+
+  /@types/ws@8.5.6:
+    resolution: {integrity: sha512-8B5EO9jLVCy+B58PLHvLDuOD8DRVMgQzq8d55SjLCOn9kqGyqOvy27exVaTio1q1nX5zLu8/6N0n2ThSxOM6tg==}
+    dependencies:
+      '@types/node': 18.17.18
     dev: true
 
   /@types/yargs-parser@21.0.0:
@@ -5607,6 +5792,11 @@ packages:
 
   /detect-libc@2.0.1:
     resolution: {integrity: sha512-463v3ZeIrcWtdgIg6vI6XUncguvr2TnGl4SzDXinkt9mSLpBJKXT3mW6xT3VQdDN11+WVs29pgvivTc4Lp8v+w==}
+    engines: {node: '>=8'}
+    dev: true
+
+  /detect-libc@2.0.2:
+    resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
     dev: true
 
@@ -8343,6 +8533,10 @@ packages:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
     dev: true
 
+  /js-base64@3.7.5:
+    resolution: {integrity: sha512-3MEt5DTINKqfScXKfJFrRbxkrnk2AxPWGBL/ycjz4dK8iqiSJ06UxD8jh8xuh6p10TX4t2+7FsBYVxxQbMg+qA==}
+    dev: true
+
   /js-levenshtein@1.1.6:
     resolution: {integrity: sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g==}
     engines: {node: '>=0.10.0'}
@@ -8578,6 +8772,21 @@ packages:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+    dev: true
+
+  /libsql@0.1.23:
+    resolution: {integrity: sha512-Nf/1B2Glxvcnba4jYFhXcaYmicyBA3RRm0LVwBkTl8UWCIDbX+Ad7c1ecrQwixPLPffWOVxKIqyCNTuUHUkVgA==}
+    cpu: [x64, arm64]
+    os: [darwin, linux, win32]
+    dependencies:
+      '@neon-rs/load': 0.0.4
+      detect-libc: 2.0.2
+    optionalDependencies:
+      '@libsql/darwin-arm64': 0.1.23
+      '@libsql/darwin-x64': 0.1.23
+      '@libsql/linux-x64-gnu': 0.1.23
+      '@libsql/linux-x64-musl': 0.1.23
+      '@libsql/win32-x64-msvc': 0.1.23
     dev: true
 
   /lilconfig@2.1.0:
@@ -9490,6 +9699,15 @@ packages:
 
   /node-fetch@3.3.1:
     resolution: {integrity: sha512-cRVc/kyto/7E5shrWca1Wsea4y6tL9iYJE5FBCius3JQfb/4P4I295PfhgbJQBLTx6lATE4z+wK0rPM4VS2uow==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      data-uri-to-buffer: 4.0.1
+      fetch-blob: 3.2.0
+      formdata-polyfill: 4.0.10
+    dev: true
+
+  /node-fetch@3.3.2:
+    resolution: {integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       data-uri-to-buffer: 4.0.1
@@ -12923,6 +13141,19 @@ packages:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 3.0.7
+    dev: true
+
+  /ws@8.14.2:
+    resolution: {integrity: sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
     dev: true
 
   /xdg-basedir@4.0.0:

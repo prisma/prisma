@@ -1,20 +1,18 @@
-import { Providers } from '../providers'
-import { getProviderFromFlavor, ProviderFlavor, ProviderFlavors } from './ProviderFlavor'
+import { ProviderFlavors, Providers } from '../providers'
 
 type ComputeMatrix = {
   relationMode: 'prisma' | 'foreignKeys' | ''
-  providersDenyList?: ProviderFlavor[]
 }
 
-export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix) {
-  const providerFlavorsBase = [
+export function computeMatrix({ relationMode }: ComputeMatrix) {
+  const providerFlavors = [
     Providers.POSTGRESQL,
     Providers.COCKROACHDB,
     Providers.SQLSERVER,
     Providers.SQLITE,
     Providers.MYSQL,
-    ProviderFlavors.VITESS_8,
   ] as const
+
   // Note: SetDefault is not implemented in the emulation (relationMode="prisma")
 
   // Note: testing 'SetDefault' requires a relation with a scalar field having the "@default" attribute.
@@ -23,10 +21,6 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   // See https://www.notion.so/prismaio/Phase-1-Report-on-findings-f21c7bb079c5414296286973fdcd62c2#ac4d9f6a5d3842b5b6ff5b877e7e6782
 
   const referentialActionsBase = ['DEFAULT', 'Cascade', 'NoAction', 'Restrict', 'SetNull'] as const
-
-  const providerFlavors = providerFlavorsBase.filter(
-    (provideFlavor) => !(providersDenyList || []).includes(provideFlavor),
-  )
 
   // "foreignKeys"
   //
@@ -60,35 +54,25 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     },
   }
 
-  let providersMatrix = providerFlavors.map((providerFlavor) => ({
-    provider: getProviderFromFlavor(providerFlavor),
-    providerFlavor,
+  const providersMatrix = providerFlavors.map((provider) => ({
+    provider,
+    providerFlavor: undefined as ProviderFlavors | undefined,
     id: 'String @id',
     relationMode,
   }))
 
-  const skipSQLServer = process.env.TEST_SKIP_MSSQL
-  const skipMongodb = process.env.TEST_SKIP_MONGODB
-  const skipCockroachdb = process.env.TEST_SKIP_COCKROACHDB
-  const skipVitess = process.env.TEST_SKIP_VITESS
-
-  // in "no-docker" tests we want to skip some databases
-  if (skipSQLServer) {
-    providersMatrix = providersMatrix.filter((it) => it.provider !== Providers.SQLSERVER)
-  }
-  if (skipMongodb) {
-    providersMatrix = providersMatrix.filter((it) => it.provider !== Providers.MONGODB)
-  }
-  if (skipCockroachdb) {
-    providersMatrix = providersMatrix.filter((it) => it.provider !== Providers.COCKROACHDB)
-  }
-  if (skipVitess) {
-    providersMatrix = providersMatrix.filter((it) => it.providerFlavor !== ProviderFlavors.VITESS_8)
-  }
+  providersMatrix.push({
+    provider: Providers.MYSQL,
+    providerFlavor: ProviderFlavors.VITESS_8,
+    id: 'String @id',
+    relationMode,
+  })
 
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {
     const denyList =
-      referentialActionsDenylistByProviderFlavor[relationMode || 'foreignKeys'][entry.providerFlavor] || []
+      referentialActionsDenylistByProviderFlavor[relationMode || 'foreignKeys'][
+        entry.providerFlavor ?? entry.provider
+      ] || []
     const referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
     const referentialActionMatrixForSQL = referentialActions.map((referentialAction) => ({
@@ -106,7 +90,6 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     if (!relationMode || relationMode === 'prisma') {
       const mongoDBMatrixBase = {
         provider: Providers.MONGODB,
-        providerFlavor: getProviderFromFlavor(Providers.MONGODB),
         id: 'String @id @map("_id")',
         relationMode: 'prisma',
       }

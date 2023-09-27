@@ -1,3 +1,4 @@
+import { ProviderFlavors } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -9,8 +10,8 @@ declare let prisma: PrismaClient
  * Stored queries in variables for batched tx
  */
 testMatrix.setupTestSuite(
-  () => {
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
+  ({ providerFlavor }) => {
+    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
       'stored query triggered twice should fail but not exit process',
       async () => {
         const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
@@ -21,7 +22,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
+    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
       'stored query trigger .requestTransaction twice should fail',
       async () => {
         const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
