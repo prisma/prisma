@@ -52,7 +52,7 @@ testMatrix.setupTestSuite(
       })
 
       // TODO this test does not fail on adapters, and has zero assertions. Are we creating prepared statements?
-      skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
+      $test({ failIf: providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG })(
         'should fail with `Assertion violation` when the number of params is 32768+',
         async () => {
           expect.assertions(3)

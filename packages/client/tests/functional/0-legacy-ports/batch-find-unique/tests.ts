@@ -53,7 +53,7 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
   })
 
   // TODO this test has to be skipped as is seems polluted by some state in a previous test or above, does not fail locally
-  skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('findUnique batching', async () => {
+  $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })('findUnique batching', async () => {
     // regex for 0wCIl-826241-1694134591596
     const mySqlSchemaIdRegex = /\w+-\d+-\d+/g
 

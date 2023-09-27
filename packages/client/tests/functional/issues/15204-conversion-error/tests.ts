@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   ({ providerFlavor }) => {
     // TODO fails with "number must be an i64" or "number must be an i32" depending on the matrix
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('should return a descriptive error', async () => {
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })('should return a descriptive error', async () => {
       await prisma.$executeRaw`INSERT INTO "TestModel" ("id", "field") VALUES ("1", 1.84467440724388e+19)`
 
       await expect(prisma.testModel.findMany()).rejects.toThrow(
