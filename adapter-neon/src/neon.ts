@@ -80,7 +80,10 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 }
 
 class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
-  constructor(client: neon.PoolClient, readonly options: TransactionOptions) {
+  constructor(
+    client: neon.PoolClient,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
@@ -96,6 +99,11 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
 
     this.client.release()
     return Promise.resolve(ok(undefined))
+  }
+
+  dispose(): Result<void> {
+    this.client.release()
+    return ok(undefined)
   }
 }
 

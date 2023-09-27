@@ -96,6 +96,13 @@ export interface Transaction extends Queryable {
    * Rolls back the transaction.
    */
   rollback(): Promise<Result<void>>
+  /**
+   * Discards and closes the transaction which may or may not have been committed or rolled back.
+   * This operation must be synchronous. If the implementation requires calling creating new
+   * asynchronous tasks on the event loop, the driver is responsible for handling the errors
+   * appropriately to ensure they don't crash the application.
+   */
+  dispose(): Result<void>
 }
 
 export interface ErrorCapturingDriverAdapter extends DriverAdapter {

@@ -1,6 +1,6 @@
 {
   "name": "@prisma/adapter-libsql",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Prisma's driver adapter for libsql and Turso",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

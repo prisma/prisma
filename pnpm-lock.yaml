@@ -128,8 +128,8 @@ importers:
         specifier: workspace:*
         version: link:../adapter-planetscale
       '@prisma/client':
-        specifier: 5.4.0-integration-libsql-adapter.7
-        version: 5.4.0-integration-libsql-adapter.7(prisma@5.4.0-integration-libsql-adapter.7)
+        specifier: 5.4.0-integration-dispose-tx.2
+        version: 5.4.0-integration-dispose-tx.2(prisma@5.4.0-integration-dispose-tx.2)
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -153,8 +153,8 @@ importers:
         specifier: ^7.0.3
         version: 7.0.3
       prisma:
-        specifier: 5.4.0-integration-libsql-adapter.7
-        version: 5.4.0-integration-libsql-adapter.7
+        specifier: 5.4.0-integration-dispose-tx.2
+        version: 5.4.0-integration-dispose-tx.2
       tsx:
         specifier: ^3.12.7
         version: 3.12.7
@@ -518,8 +518,8 @@ packages:
     resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
     engines: {node: '>=16'}
 
-  /@prisma/client@5.4.0-integration-libsql-adapter.7(prisma@5.4.0-integration-libsql-adapter.7):
-    resolution: {integrity: sha512-0WNHV37C16IPoE0cgBtX4heYDHaLXQhq4IIB50RMw/WJyzozhigEIizaFKbBdZ4PjxpekohHvPgTH6r4QfiTrA==}
+  /@prisma/client@5.4.0-integration-dispose-tx.2(prisma@5.4.0-integration-dispose-tx.2):
+    resolution: {integrity: sha512-MShiYnvIUS/5ThfLRjyGaKGrhtzj69f38EqEksph7KckbLzfPQ7VWAJ2ZwKoi5DGJXEPaeb3S0lQpXl2KyuGxA==}
     engines: {node: '>=16.13'}
     requiresBuild: true
     peerDependencies:
@@ -528,16 +528,16 @@ packages:
       prisma:
         optional: true
     dependencies:
-      '@prisma/engines-version': 5.4.0-24.libsql-adapter-8337c6b372b0f4eb2500403a7cf450885aee4cdc
-      prisma: 5.4.0-integration-libsql-adapter.7
+      '@prisma/engines-version': 5.4.0-26.4bf3cce422a49f49c661da32d4016a5be81d28b4
+      prisma: 5.4.0-integration-dispose-tx.2
     dev: false
 
-  /@prisma/engines-version@5.4.0-24.libsql-adapter-8337c6b372b0f4eb2500403a7cf450885aee4cdc:
-    resolution: {integrity: sha512-Yr2GeXHTK2FdxF5o0lLyZk0oJC8L1QMADZyPn+wTNcG9kfMCCs3cvQwPLDdvsMUHfwJ0c31r6w0mEpM4c37Ejw==}
+  /@prisma/engines-version@5.4.0-26.4bf3cce422a49f49c661da32d4016a5be81d28b4:
+    resolution: {integrity: sha512-6yhw/P2lWJOljh3QIkqeBNgLPBLVca08YjKPTyOlQ771vnA3pH+EYpIi2VOb2+3NsIM9zlX1NvFadd4qSbtubA==}
     dev: false
 
-  /@prisma/engines@5.4.0-integration-libsql-adapter.7:
-    resolution: {integrity: sha512-QRNhAeLw4EqSE+N6tzpOSlkqW9XO1Zf3aUO4wNH3LJTjG153oIJDnGfahijF93PjuyIOSHEFGZ7mfKeAaq7FiA==}
+  /@prisma/engines@5.4.0-integration-dispose-tx.2:
+    resolution: {integrity: sha512-3kYPptQRiyDARcJIZudak7naHlTo0qYB/8ObxlIyw9IjbKax2m4MiPZuVasVpdcspXYj+ayzomFmCDptjZrjzg==}
     requiresBuild: true
 
   /@types/debug@4.1.8:
@@ -1244,13 +1244,13 @@ packages:
   /postgres-range@1.1.3:
     resolution: {integrity: sha512-VdlZoocy5lCP0c/t66xAfclglEapXPCIVhqqJRncYpvbCgImF0w67aPKfbqUMr72tO2k5q0TdTZwCLjPTI6C9g==}
 
-  /prisma@5.4.0-integration-libsql-adapter.7:
-    resolution: {integrity: sha512-B7nkAnHFAxEMPS/o3jpUeUOp97Js3HlRThfXMfYILrVML/MMy18HwjQrVzxfF/QSq7UxbUQAyGLFrqSypTPAzw==}
+  /prisma@5.4.0-integration-dispose-tx.2:
+    resolution: {integrity: sha512-FBI46emn8rBapyTN6cwM0KNtmK94D9mucnQh2g+VhjWqD1SpFwFTVLXiT25tOFwEK0M/UQQ+eBsXn65BNBoisQ==}
     engines: {node: '>=16.13'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      '@prisma/engines': 5.4.0-integration-libsql-adapter.7
+      '@prisma/engines': 5.4.0-integration-dispose-tx.2
 
   /punycode@2.3.0:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}

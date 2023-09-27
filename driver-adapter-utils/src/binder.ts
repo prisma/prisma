@@ -47,6 +47,7 @@ const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Tran
     executeRaw: wrapAsync(errorRegistry, transaction.executeRaw.bind(transaction)),
     commit: wrapAsync(errorRegistry, transaction.commit.bind(transaction)),
     rollback: wrapAsync(errorRegistry, transaction.rollback.bind(transaction)),
+    dispose: wrapSync(errorRegistry, transaction.dispose.bind(transaction)),
   }
 }
 
@@ -57,6 +58,20 @@ function wrapAsync<A extends unknown[], R>(
   return async (...args) => {
     try {
       return await fn(...args)
+    } catch (error) {
+      const id = registry.registerNewError(error)
+      return err({ kind: 'GenericJsError', id })
+    }
+  }
+}
+
+function wrapSync<A extends unknown[], R>(
+  registry: ErrorRegistryInternal,
+  fn: (...args: A) => Result<R>,
+): (...args: A) => Result<R> {
+  return (...args) => {
+    try {
+      return fn(...args)
     } catch (error) {
       const id = registry.registerNewError(error)
       return err({ kind: 'GenericJsError', id })

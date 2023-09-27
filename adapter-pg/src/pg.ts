@@ -93,6 +93,11 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     this.client.release()
     return ok(undefined)
   }
+
+  dispose(): Result<void> {
+    this.client.release()
+    return ok(undefined)
+  }
 }
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {

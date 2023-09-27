@@ -51,7 +51,7 @@
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
-    "@prisma/client": "5.4.0-integration-libsql-adapter.7",
+    "@prisma/client": "5.4.0-integration-dispose-tx.2",
     "@prisma/driver-adapter-utils": "workspace:*",
     "pg": "^8.11.3",
     "superjson": "^1.13.1",
@@ -61,7 +61,7 @@
     "@types/node": "^20.5.1",
     "@types/pg": "^8.10.2",
     "cross-env": "^7.0.3",
-    "prisma": "5.4.0-integration-libsql-adapter.7",
+    "prisma": "5.4.0-integration-dispose-tx.2",
     "tsx": "^3.12.7"
   }
 }

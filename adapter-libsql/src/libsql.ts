@@ -72,6 +72,8 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 }
 
 class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction {
+  finished = false
+
   constructor(
     client: TransactionClient,
     readonly options: TransactionOptions,
@@ -82,6 +84,8 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
+    this.finished = true
+
     await this.client.commit()
     return ok(undefined)
   }
@@ -89,12 +93,22 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
+    this.finished = true
+
     try {
       await this.client.rollback()
     } catch (error) {
       debug('error in rollback:', error)
     }
 
+    return ok(undefined)
+  }
+
+  dispose(): Result<void> {
+    if (!this.finished) {
+      this.finished = true
+      this.rollback().catch(console.error)
+    }
     return ok(undefined)
   }
 }
