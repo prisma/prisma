@@ -9,6 +9,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import type { InStatement, Client as LibSqlClientRaw, Transaction as LibSqlTransactionRaw } from '@libsql/client'
+import { Mutex } from 'async-mutex'
 import { getColumnTypes, mapRow } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:libsql')
@@ -16,8 +17,12 @@ const debug = Debug('prisma:driver-adapter:libsql')
 type StdClient = LibSqlClientRaw
 type TransactionClient = LibSqlTransactionRaw
 
+const LOCK_TAG = Symbol()
+
 class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly flavour = 'sqlite'
+  readonly flavour = 'sqlite';
+
+  [LOCK_TAG] = new Mutex()
 
   constructor(protected readonly client: ClientT) {}
 
@@ -60,6 +65,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
    * marked as unhealthy.
    */
   private async performIO(query: Query) {
+    const release = await this[LOCK_TAG].acquire()
     try {
       const result = await this.client.execute(query as InStatement)
       return result
@@ -67,6 +73,8 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
       const error = e as Error
       debug('Error in performIO: %O', error)
       throw error
+    } finally {
+      release()
     }
   }
 }
@@ -77,6 +85,7 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   constructor(
     client: TransactionClient,
     readonly options: TransactionOptions,
+    readonly unlockParent: () => void,
   ) {
     super(client)
   }
@@ -86,7 +95,12 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
 
     this.finished = true
 
-    await this.client.commit()
+    try {
+      await this.client.commit()
+    } finally {
+      this.unlockParent()
+    }
+
     return ok(undefined)
   }
 
@@ -99,6 +113,8 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
       await this.client.rollback()
     } catch (error) {
       debug('error in rollback:', error)
+    } finally {
+      this.unlockParent()
     }
 
     return ok(undefined)
@@ -126,11 +142,21 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAd
     const tag = '[js::startTransaction]'
     debug(`${tag} options: %O`, options)
 
-    const tx = await this.client.transaction('deferred')
-    return ok(new LibSqlTransaction(tx, options))
+    const release = await this[LOCK_TAG].acquire()
+
+    try {
+      const tx = await this.client.transaction('deferred')
+      return ok(new LibSqlTransaction(tx, options, release))
+    } catch (e) {
+      // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
+      // hence `catch` and rethrowing the error and not `finally`.
+      release()
+      throw e
+    }
   }
 
   async close(): Promise<Result<void>> {
+    await this[LOCK_TAG].acquire()
     this.client.close()
     return ok(undefined)
   }
