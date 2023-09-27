@@ -29,7 +29,7 @@
   "devDependencies": {
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.29",
-    "@types/jest": "29.5.4",
+    "@types/jest": "29.5.5",
     "@types/node": "18.17.18",
     "@types/resolve": "1.20.2",
     "esbuild": "0.19.2",
