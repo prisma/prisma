@@ -7,8 +7,10 @@ import { PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite((suiteConfig) => {
-  test('enforce driverAdapters preview feature', () => {
+testMatrix.setupTestSuite((suiteConfig, _, clientMeta) => {
+  // Skip testing with driver adapters configured by the test setup
+  // because we need full control over the preview features in this test.
+  testIf(!clientMeta.driverAdapter)('enforce driverAdapters preview feature', () => {
     const initialize = () => {
       // @ts-test-if: previewFeatures.includes('driverAdapters')
       newPrismaClient({ adapter: mockAdapter(suiteConfig.provider) })
