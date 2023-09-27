@@ -159,6 +159,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.JS_PG]:
                   'insert or update on table "ProfileOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey"',
+                [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
               },
             }),
           )
@@ -238,6 +239,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.JS_PG]:
                   'insert or update on table "ProfileOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey"',
+                [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
               },
             }),
           )

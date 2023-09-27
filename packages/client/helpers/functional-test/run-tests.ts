@@ -87,6 +87,8 @@ async function main(): Promise<number | void> {
     }
 
     if (providerFlavors.some(isDriverAdapterProviderFlavor)) {
+      jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
+
       if (args['--data-proxy'] || process.env.PRISMA_CLIENT_ENGINE_TYPE === 'binary') {
         throw new Error('Driver adapters are not compatible with --data-proxy or the binary engine')
       }

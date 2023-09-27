@@ -94,6 +94,7 @@ testMatrix.setupTestSuite(
                   [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [ProviderFlavors.JS_PG]:
                     'update or delete on table "Alice" violates foreign key constraint "Main_aliceId_fkey" on table "Main"',
+                  [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
                 },
                 prisma: errors[onDelete],
               }),
