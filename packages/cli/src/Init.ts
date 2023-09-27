@@ -116,11 +116,15 @@ export class Init implements Command {
   ${bold('Usage')}
 
     ${dim('$')} prisma init [options]
+
   ${bold('Options')}
     
              -h, --help   Display this help message
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
                   --url   Define a custom datasource url
+
+  ${bold('Flags')}
+
            --with-model   Add example model to created schema file
 
   ${bold('Examples')}
