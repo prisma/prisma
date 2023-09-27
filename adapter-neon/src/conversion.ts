@@ -1,4 +1,4 @@
-import { ColumnTypeEnum, type ColumnType } from '@prisma/driver-adapter-utils'
+import { ColumnTypeEnum, type ColumnType, JsonNullMarker } from '@prisma/driver-adapter-utils'
 import { types } from '@neondatabase/serverless'
 
 const NeonColumnType = types.builtins
@@ -45,7 +45,24 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
   }
 }
 
+/**
+ * JsonNull are stored in JSON strings as the string "null", distinguishable from
+ * the `null` value which is used by the driver to represent the database NULL.
+ * By default, JSON and JSONB columns use JSON.parse to parse a JSON column value
+ * and this will lead to serde_json::Value::Null in Rust, which will be interpreted
+ * as DbNull.
+ *
+ * By converting "null" to JsonNullMarker, we can signal JsonNull in Rust side and
+ * convert it to QuaintValue::Json(Some(Null)).
+ */
+function convertJson(json: string): unknown {
+  return (json === 'null') ? JsonNullMarker : JSON.parse(json)
+}
+
 // return string instead of JavaScript Date object
 types.setTypeParser(NeonColumnType.DATE, date => date)
 types.setTypeParser(NeonColumnType.TIME, date => date)
 types.setTypeParser(NeonColumnType.TIMESTAMP, date => date)
+
+types.setTypeParser(NeonColumnType.JSONB, convertJson)
+types.setTypeParser(NeonColumnType.JSON, convertJson)

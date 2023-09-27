@@ -21,3 +21,8 @@ export const ColumnTypeEnum = {
   // 'Array': 15,
   // ...
 } as const
+
+// This string value paired with `ColumnType.Json` will be treated as JSON `null`
+// when convering to a quaint value. This is to work around JS/JSON null values
+// already being used to represent database NULLs.
+export const JsonNullMarker = '$__prisma_null'
