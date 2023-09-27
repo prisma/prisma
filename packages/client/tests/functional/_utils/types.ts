@@ -5,7 +5,9 @@ export type MatrixOptions = {
     from: `${Providers}`[]
     reason: string
   }
-  skipBinary?: boolean
+  skipBinary?: {
+    reason: string
+  }
   skipDefaultClientInstance?: boolean
   skipDataProxy?: {
     runtimes: ClientRuntime[]
