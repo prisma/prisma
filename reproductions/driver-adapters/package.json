@@ -22,7 +22,7 @@
   "dependencies": {
     "@neondatabase/serverless": "0.6.0",
     "@planetscale/database": "1.11.0",
-    "@prisma/adapter-neon": "0.3.2",
+    "@prisma/adapter-neon": "0.4.2",
     "@prisma/adapter-pg": "0.3.2",
     "@prisma/adapter-planetscale": "0.3.2",
     "@prisma/client": "../../packages/client",
