@@ -76,16 +76,31 @@ globalThis.testIf = (condition) => (condition && process.env.TEST_GENERATE_ONLY 
 globalThis.describeIf = (condition) => (condition ? describe : describe.skip)
 globalThis.testRepeat = testRepeat
 globalThis.$test = (config) => {
-  if (config.runIf === false) {
-    return test.skip
-  }
-  if (config.skipIf === true) {
-    return test.skip
-  }
-  if (config.failIf === true) {
-    return test.failing
-  }
+  // the order of the if statements is important here
+  if (process.env.TEST_GENERATE_ONLY === 'true') return skip
+  if (config.runIf === false) return test.skip
+  if (config.skipIf === true) return test.skip
+  if (config.failIf === true) return test.failing
+
   return test
+}
+globalThis.$beforeAll = (config) => createCustomJestLifecycleFunction(config, beforeAll)
+globalThis.$beforeEach = (config) => createCustomJestLifecycleFunction(config, beforeEach)
+globalThis.$afterAll = (config) => createCustomJestLifecycleFunction(config, afterAll)
+globalThis.$afterEach = (config) => createCustomJestLifecycleFunction(config, afterEach)
+
+function createCustomJestLifecycleFunction(config: any, jestCall: jest.Lifecycle): jest.Lifecycle {
+  return (fn, timeout) => {
+    if (config.failIf === true) {
+      return jestCall(async () => {
+        try {
+          await (jestCall as any)()
+        } catch (e) {}
+      }, timeout)
+    }
+
+    return jestCall(fn, timeout)
+  }
 }
 
 export {}
