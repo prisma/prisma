@@ -67,7 +67,7 @@ async function main(): Promise<void> {
 const state: Record<number, {
     engine: engines.QueryEngineInstance,
     adapter: ErrorCapturingDriverAdapter,
-    queryLogs: string[]
+    logs: string[]
 }> = {}
 
 async function handleRequest(method: string, params: unknown): Promise<unknown> {
@@ -177,7 +177,7 @@ async function handleRequest(method: string, params: unknown): Promise<unknown> 
             }
 
             const castParams = params as GetLogsPayload
-            return state[castParams.schemaId].queryLogs ?? []
+            return state[castParams.schemaId].logs
         }
         default: {
             throw new Error(`Unknown method: \`${method}\``)
