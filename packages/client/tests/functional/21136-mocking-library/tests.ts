@@ -28,7 +28,7 @@ type DeepMockProxy<T> = {
 // this is ma minimal representation of a mocking proxy, doesn't do anything
 declare function mockDeep<T>(_mockImplementation?: T): DeepMockProxy<T>
 
-function getExtendedPrisma(prisma: $.PrismaClient) {
+function getOverrideExtension(prisma: $.PrismaClient) {
   return prisma.$extends({
     model: {
       $allModels: {
@@ -84,52 +84,136 @@ function getExtendedPrisma(prisma: $.PrismaClient) {
 
 testMatrix.setupTestSuite(
   () => {
-    test('output inference (via `mockResolvedValue`)', () => {
-      ;() => {
-        const prismaMock = mockDeep(getExtendedPrisma(prisma))
+    describe('with full override extension', () => {
+      test('output inference (via `mockResolvedValue`)', () => {
+        ;() => {
+          const prismaMock = mockDeep(getOverrideExtension(prisma))
 
-        prismaMock.user.aggregate.mockResolvedValue({})
-        prismaMock.user.count.mockResolvedValue(0)
-        prismaMock.user.findFirst.mockResolvedValue({})
-        prismaMock.user.findFirstOrThrow.mockResolvedValue({})
-        prismaMock.user.findMany.mockResolvedValue([{}])
-        prismaMock.user.findUnique.mockResolvedValue({})
-        prismaMock.user.findUniqueOrThrow.mockResolvedValue({})
-        prismaMock.user.groupBy.mockResolvedValue([{}])
+          prismaMock.user.aggregate.mockResolvedValue({})
+          prismaMock.user.count.mockResolvedValue(0)
+          prismaMock.user.findFirst.mockResolvedValue({})
+          prismaMock.user.findFirstOrThrow.mockResolvedValue({})
+          prismaMock.user.findMany.mockResolvedValue([{}])
+          prismaMock.user.findUnique.mockResolvedValue({})
+          prismaMock.user.findUniqueOrThrow.mockResolvedValue({})
+          prismaMock.user.groupBy.mockResolvedValue([{}])
 
-        expectTypeOf(prismaMock.user.aggregate.mockResolvedValue).parameter(0).toEqualTypeOf<{}>()
-        expectTypeOf(prismaMock.user.count.mockResolvedValue).parameter(0).toEqualTypeOf<number>()
-        expectTypeOf(prismaMock.user.findFirst.mockResolvedValue).parameter(0).toEqualTypeOf<{} | null>()
-        expectTypeOf(prismaMock.user.findFirstOrThrow.mockResolvedValue).parameter(0).toEqualTypeOf<{}>()
-        expectTypeOf(prismaMock.user.findMany.mockResolvedValue).parameter(0).toEqualTypeOf<{}[]>()
-        expectTypeOf(prismaMock.user.findUnique.mockResolvedValue).parameter(0).toEqualTypeOf<{} | null>()
-        expectTypeOf(prismaMock.user.findUniqueOrThrow.mockResolvedValue).parameter(0).toEqualTypeOf<{}>()
-        expectTypeOf(prismaMock.user.groupBy.mockResolvedValue).parameter(0).toEqualTypeOf<{}[]>()
-      }
+          expectTypeOf(prismaMock.user.aggregate.mockResolvedValue).parameter(0).toEqualTypeOf<{}>()
+          expectTypeOf(prismaMock.user.count.mockResolvedValue).parameter(0).toEqualTypeOf<number>()
+          expectTypeOf(prismaMock.user.findFirst.mockResolvedValue).parameter(0).toEqualTypeOf<{} | null>()
+          expectTypeOf(prismaMock.user.findFirstOrThrow.mockResolvedValue).parameter(0).toEqualTypeOf<{}>()
+          expectTypeOf(prismaMock.user.findMany.mockResolvedValue).parameter(0).toEqualTypeOf<{}[]>()
+          expectTypeOf(prismaMock.user.findUnique.mockResolvedValue).parameter(0).toEqualTypeOf<{} | null>()
+          expectTypeOf(prismaMock.user.findUniqueOrThrow.mockResolvedValue).parameter(0).toEqualTypeOf<{}>()
+          expectTypeOf(prismaMock.user.groupBy.mockResolvedValue).parameter(0).toEqualTypeOf<{}[]>()
+        }
+      })
+
+      test('input inference (via `calledWith`)', () => {
+        ;() => {
+          const prismaMock = mockDeep(getOverrideExtension(prisma))
+
+          prismaMock.user.aggregate.calledWith({ where: { id: 1 } })
+          prismaMock.user.count.calledWith({ where: { id: 1 } })
+          prismaMock.user.findFirst.calledWith({ where: { id: 1 } })
+          prismaMock.user.findFirstOrThrow.calledWith({ where: { id: 1 } })
+          prismaMock.user.findMany.calledWith({ where: { id: 1 } })
+          prismaMock.user.findUnique.calledWith({ where: { id: 1 } })
+          prismaMock.user.findUniqueOrThrow.calledWith({ where: { id: 1 } })
+          prismaMock.user.groupBy.calledWith({ where: { id: 1 } })
+
+          expectTypeOf(prismaMock.user.aggregate.calledWith).parameter(0).toEqualTypeOf<any>()
+          expectTypeOf(prismaMock.user.count.calledWith).parameter(0).toEqualTypeOf<any>()
+          expectTypeOf(prismaMock.user.findFirst.calledWith).parameter(0).toEqualTypeOf<any>()
+          expectTypeOf(prismaMock.user.findFirstOrThrow.calledWith).parameter(0).toEqualTypeOf<any>()
+          expectTypeOf(prismaMock.user.findMany.calledWith).parameter(0).toEqualTypeOf<any>()
+          expectTypeOf(prismaMock.user.findUnique.calledWith).parameter(0).toEqualTypeOf<any>()
+          expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith).parameter(0).toEqualTypeOf<any>()
+          expectTypeOf(prismaMock.user.groupBy.calledWith).parameter(0).toEqualTypeOf<any>()
+        }
+      })
     })
 
-    test('input inference (via `calledWith`)', () => {
-      ;() => {
-        const prismaMock = mockDeep(getExtendedPrisma(prisma))
+    describe('with empty extension', () => {
+      test('output inference (via `mockResolvedValue`)', () => {
+        ;() => {
+          const xprisma = prisma.$extends({})
+          const prismaMock = mockDeep(xprisma)
 
-        prismaMock.user.aggregate.calledWith({ where: { id: 1 } })
-        prismaMock.user.count.calledWith({ where: { id: 1 } })
-        prismaMock.user.findFirst.calledWith({ where: { id: 1 } })
-        prismaMock.user.findFirstOrThrow.calledWith({ where: { id: 1 } })
-        prismaMock.user.findMany.calledWith({ where: { id: 1 } })
-        prismaMock.user.findUnique.calledWith({ where: { id: 1 } })
-        prismaMock.user.findUniqueOrThrow.calledWith({ where: { id: 1 } })
-        prismaMock.user.groupBy.calledWith({ where: { id: 1 } })
+          prismaMock.user.aggregate.mockResolvedValue({})
+          prismaMock.user.count.mockResolvedValue(0)
+          prismaMock.user.findFirst.mockResolvedValue({ id: '1' })
+          prismaMock.user.findFirstOrThrow.mockResolvedValue({ id: '1' })
+          prismaMock.user.findMany.mockResolvedValue([{ id: '1' }])
+          prismaMock.user.findUnique.mockResolvedValue({ id: '1' })
+          prismaMock.user.findUniqueOrThrow.mockResolvedValue({ id: '1' })
+          prismaMock.user.groupBy.mockResolvedValue([{}])
 
-        expectTypeOf(prismaMock.user.aggregate.calledWith).parameter(0).toEqualTypeOf<any>()
-        expectTypeOf(prismaMock.user.count.calledWith).parameter(0).toEqualTypeOf<any>()
-        expectTypeOf(prismaMock.user.findFirst.calledWith).parameter(0).toEqualTypeOf<any>()
-        expectTypeOf(prismaMock.user.findFirstOrThrow.calledWith).parameter(0).toEqualTypeOf<any>()
-        expectTypeOf(prismaMock.user.findMany.calledWith).parameter(0).toEqualTypeOf<any>()
-        expectTypeOf(prismaMock.user.findUnique.calledWith).parameter(0).toEqualTypeOf<any>()
-        expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith).parameter(0).toEqualTypeOf<any>()
-        expectTypeOf(prismaMock.user.groupBy.calledWith).parameter(0).toEqualTypeOf<any>()
-      }
+          expectTypeOf(prismaMock.user.aggregate.mockResolvedValue)
+            .parameter(0)
+            .toEqualTypeOf<Awaited<ReturnType<typeof xprisma.user.aggregate>>>()
+          expectTypeOf(prismaMock.user.count.mockResolvedValue).parameter(0).toEqualTypeOf<number>()
+          expectTypeOf(prismaMock.user.findFirst.mockResolvedValue)
+            .parameter(0)
+            .toEqualTypeOf<Awaited<ReturnType<typeof xprisma.user.findFirst>>>()
+          expectTypeOf(prismaMock.user.findFirstOrThrow.mockResolvedValue)
+            .parameter(0)
+            .toEqualTypeOf<Awaited<ReturnType<typeof xprisma.user.findFirstOrThrow>>>()
+          expectTypeOf(prismaMock.user.findMany.mockResolvedValue)
+            .parameter(0)
+            .toEqualTypeOf<Awaited<ReturnType<typeof xprisma.user.findMany>>>()
+          expectTypeOf(prismaMock.user.findUnique.mockResolvedValue)
+            .parameter(0)
+            .toEqualTypeOf<Awaited<ReturnType<typeof xprisma.user.findUnique>>>()
+          expectTypeOf(prismaMock.user.findUniqueOrThrow.mockResolvedValue)
+            .parameter(0)
+            .toEqualTypeOf<Awaited<ReturnType<typeof xprisma.user.findUniqueOrThrow>>>()
+          expectTypeOf(prismaMock.user.groupBy.mockResolvedValue)
+            .parameter(0)
+            .toEqualTypeOf<Awaited<ReturnType<typeof xprisma.user.groupBy>>>()
+        }
+      })
+
+      test('input inference (via `calledWith`)', () => {
+        ;() => {
+          const xprisma = prisma.$extends({})
+          const prismaMock = mockDeep(xprisma)
+
+          prismaMock.user.aggregate.calledWith({ where: { id: '1' } })
+          prismaMock.user.count.calledWith({ where: { id: '1' } })
+          prismaMock.user.findFirst.calledWith({ where: { id: '1' } })
+          prismaMock.user.findFirstOrThrow.calledWith({ where: { id: '1' } })
+          prismaMock.user.findMany.calledWith({ where: { id: '1' } })
+          prismaMock.user.findUnique.calledWith({ where: { id: '1' } })
+          prismaMock.user.findUniqueOrThrow.calledWith({ where: { id: '1' } })
+          prismaMock.user.groupBy.calledWith({ by: ['id'] })
+
+          expectTypeOf(prismaMock.user.aggregate.calledWith)
+            .parameter(0)
+            .toEqualTypeOf<Parameters<typeof xprisma.user.aggregate>[0]>()
+          expectTypeOf(prismaMock.user.count.calledWith)
+            .parameter(0)
+            .toEqualTypeOf<Parameters<typeof xprisma.user.count>[0]>()
+          expectTypeOf(prismaMock.user.findFirst.calledWith)
+            .parameter(0)
+            .toEqualTypeOf<Parameters<typeof xprisma.user.findFirst>[0]>()
+          expectTypeOf(prismaMock.user.findFirstOrThrow.calledWith)
+            .parameter(0)
+            .toEqualTypeOf<Parameters<typeof xprisma.user.findFirstOrThrow>[0]>()
+          expectTypeOf(prismaMock.user.findMany.calledWith)
+            .parameter(0)
+            .toEqualTypeOf<Parameters<typeof xprisma.user.findMany>[0]>()
+          expectTypeOf(prismaMock.user.findUnique.calledWith)
+            .parameter(0)
+            .toEqualTypeOf<Parameters<typeof xprisma.user.findUnique>[0]>()
+          expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith)
+            .parameter(0)
+            .toEqualTypeOf<Parameters<typeof xprisma.user.findUniqueOrThrow>[0]>()
+          expectTypeOf(prismaMock.user.groupBy.calledWith)
+            .parameter(0)
+            .toEqualTypeOf<Parameters<typeof xprisma.user.groupBy>[0]>()
+        }
+      })
     })
   },
   {
