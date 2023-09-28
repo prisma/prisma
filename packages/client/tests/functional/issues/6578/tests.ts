@@ -1,5 +1,4 @@
 import { QueryEvent } from '../../../../src/runtime/getPrismaClient'
-import { ProviderFlavors } from '../../_utils/providers'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -9,7 +8,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 // https://github.com/prisma/prisma/issues/6578
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
+  ({ provider }) => {
     let _prisma: ReturnType<typeof newPrismaClient>
 
     beforeAll(() => {
@@ -27,53 +26,49 @@ testMatrix.setupTestSuite(
       await _prisma.$disconnect()
     })
 
-    // TODO SyntaxError: Unexpected end of JSON input on CI, does not fail locally, needs investigation
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
-      'should assert Dates, DateTimes, Times and UUIDs are wrapped in quotes and are deserializable',
-      async () => {
-        const date = new Date()
+    test('should assert Dates, DateTimes, Times and UUIDs are wrapped in quotes and are deserializable', async () => {
+      const date = new Date()
 
-        let paramsString = ''
-        _prisma.$on('query', (e) => {
-          const event = e as unknown as QueryEvent
-          if (event.query.includes('INSERT')) {
-            paramsString = event.params
-          }
-        })
-
-        if (provider === 'sqlite') {
-          await _prisma.user.create({
-            // @ts-test-if: provider === 'sqlite'
-            data: {
-              dateTime: date,
-            },
-          })
-        } else {
-          await _prisma.user.create({
-            data: {
-              dateTime: date,
-              // @ts-test-if: provider !== 'sqlite'
-              date: date,
-              time: date,
-            },
-          })
+      let paramsString = ''
+      _prisma.$on('query', (e) => {
+        const event = e as unknown as QueryEvent
+        if (event.query.includes('INSERT')) {
+          paramsString = event.params
         }
+      })
 
-        // This test is asserting that JSON.parse does not throw because quotes are used
-        const params = JSON.parse(paramsString)
-
-        if (provider === 'sqlite') {
-          expect(params).toHaveLength(3)
-        } else {
-          expect(params).toHaveLength(5)
-        }
-
-        params.forEach((param) => {
-          const isString = typeof param === 'string'
-          expect(isString).toEqual(true)
+      if (provider === 'sqlite') {
+        await _prisma.user.create({
+          // @ts-test-if: provider === 'sqlite'
+          data: {
+            dateTime: date,
+          },
         })
-      },
-    )
+      } else {
+        await _prisma.user.create({
+          data: {
+            dateTime: date,
+            // @ts-test-if: provider !== 'sqlite'
+            date: date,
+            time: date,
+          },
+        })
+      }
+
+      // This test is asserting that JSON.parse does not throw because quotes are used
+      const params = JSON.parse(paramsString)
+
+      if (provider === 'sqlite') {
+        expect(params).toHaveLength(3)
+      } else {
+        expect(params).toHaveLength(5)
+      }
+
+      params.forEach((param) => {
+        const isString = typeof param === 'string'
+        expect(isString).toEqual(true)
+      })
+    })
   },
   {
     optOut: {
