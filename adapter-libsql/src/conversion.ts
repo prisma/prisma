@@ -125,7 +125,7 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-export function mapRow(row: Row): unknown[] {
+export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
   // `Row` doesn't have map, so we copy the array once and modify it in-place
   // to avoid allocating and copying twice if we used `Array.from(row).map(...)`.
   const result: unknown[] = Array.from(row)
@@ -144,6 +144,16 @@ export function mapRow(row: Row): unknown[] {
     // implemented for other adapters.
     if (isArrayBuffer(value)) {
       result[i] = Array.from(new Uint8Array(value))
+    }
+
+    // If an integer is required and the current number isn't one,
+    // discard the fractional part.
+    if (
+      typeof value === 'number' &&
+      (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64) &&
+      !Number.isInteger(value)
+    ) {
+      result[i] = Math.trunc(value)
     }
   }
 

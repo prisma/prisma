@@ -40,7 +40,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
     const resultSet: ResultSet = {
       columnNames: columns,
       columnTypes,
-      rows: rows.map(mapRow),
+      rows: rows.map((row) => mapRow(row, columnTypes)),
     }
 
     return ok(resultSet)
