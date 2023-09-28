@@ -146,9 +146,9 @@ type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends PropertyKey
 
 type DynamicModelExtensionOperationFn<TypeMap extends TypeMapDef, M extends PropertyKey, P extends PropertyKey> =
   {} extends TypeMap['model'][M]['operations'][P]['args'] // will match fully optional args
-  ? <A>(args?: Exact<A, TypeMap['model'][M]['operations'][P]['args']>) =>
+  ? <A extends TypeMap['model'][M]['operations'][P]['args']>(args?: Exact<A, TypeMap['model'][M]['operations'][P]['args']>) =>
       DynamicModelExtensionFnResult<TypeMap, M, A, P>
-  : <A>(args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>) =>
+  : <A extends TypeMap['model'][M]['operations'][P]['args']>(args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>) =>
       DynamicModelExtensionFnResult<TypeMap, M, A, P>
 
 type DynamicModelExtensionFnResult<TypeMap extends TypeMapDef, M extends PropertyKey, A, P extends PropertyKey, Null = DynamicModelExtensionFnResultNull<P>> =
