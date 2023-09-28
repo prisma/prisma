@@ -1,35 +1,48 @@
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
-import { setupTestSuiteMatrix } from '../../_utils/setupTestSuiteMatrix'
+import { ProviderFlavors } from '../../_utils/providers'
+import testMatrix from './_matrix'
 
 declare let prisma: PrismaClient
 
-setupTestSuiteMatrix(
-  () => {
-    test('with decimal instances', async () => {
-      await prisma.user.create({
-        data: {
-          decimals: [12.3, 45.6],
-        },
-      })
-    })
+testMatrix.setupTestSuite(
+  ({ providerFlavor }) => {
+    // TODO scalar lists, don't work yet. Error: Unsupported column type: 1231 - tracked in https://github.com/prisma/team-orm/issues/374
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_PG || providerFlavor === ProviderFlavors.JS_NEON })(
+      'with decimal instances',
+      async () => {
+        await prisma.user.create({
+          data: {
+            decimals: [12.3, 45.6],
+          },
+        })
+      },
+    )
 
-    test('with numbers', async () => {
-      await prisma.user.create({
-        data: {
-          decimals: [12.3, 45.6],
-        },
-      })
-    })
+    // TODO scalar lists, don't work yet. Error: Unsupported column type: 1231 - tracked in https://github.com/prisma/team-orm/issues/374
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_PG || providerFlavor === ProviderFlavors.JS_NEON })(
+      'with numbers',
+      async () => {
+        await prisma.user.create({
+          data: {
+            decimals: [12.3, 45.6],
+          },
+        })
+      },
+    )
 
-    test('create with strings', async () => {
-      await prisma.user.create({
-        data: {
-          decimals: ['12.3', '45.6'],
-        },
-      })
-    })
+    // TODO scalar lists, don't work yet. Error: Unsupported column type: 1231 - tracked in https://github.com/prisma/team-orm/issues/374
+    $test({ failIf: providerFlavor === ProviderFlavors.JS_PG || providerFlavor === ProviderFlavors.JS_NEON })(
+      'create with strings',
+      async () => {
+        await prisma.user.create({
+          data: {
+            decimals: ['12.3', '45.6'],
+          },
+        })
+      },
+    )
   },
   {
     optOut: {
@@ -39,10 +52,6 @@ setupTestSuiteMatrix(
         mysql & sqlite: connectors do not support lists of primitive types.
         sqlserver: Field "decimals" in model "User" can't be a list. The current connector does not support lists of primitive types.
       `,
-    },
-    skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
-      reason: "scalar lists, here a decimal array, don't work yet. Error: Unsupported column type: 1231 - tracked in https://github.com/prisma/team-orm/issues/374",
     },
   },
 )
