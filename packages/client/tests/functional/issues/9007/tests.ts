@@ -12,7 +12,7 @@ testMatrix.setupTestSuite(
   ({ providerFlavor }) => {
     // TODO it seems like adapters cannot handle uuid. Unsupported column type: 2950
     // tracked in https://github.com/prisma/team-orm/issues/374
-    $test({ failIf: providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG })(
+    skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
       'should throw an error if using contains filter on uuid type',
       async () => {
         await prisma.user.create({ data: {} })
