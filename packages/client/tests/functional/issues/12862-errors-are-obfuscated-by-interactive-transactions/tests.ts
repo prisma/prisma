@@ -82,7 +82,7 @@ testMatrix.setupTestSuite(
       ADD CONSTRAINT Post_viewCount_check CHECK ("viewCount" >= 0);
     `,
     skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
+      from: ['js_pg'],
       reason: 'The error is correct, it does not match the query engine error format',
     },
   },

@@ -60,7 +60,7 @@ testMatrix.setupTestSuite(
       `,
     },
     skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
+      from: ['js_pg'],
       reason: 'Error: could not serialize access due to concurrent update',
     },
   },

@@ -11,6 +11,7 @@ declare let prisma: PrismaClient
  */
 testMatrix.setupTestSuite(
   ({ providerFlavor }) => {
+    // TODO fails with: Expected instance of error
     testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
       'stored query triggered twice should fail but not exit process',
       async () => {
@@ -22,6 +23,7 @@ testMatrix.setupTestSuite(
       },
     )
 
+    // TODO fails with: Expected instance of error
     testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
       'stored query trigger .requestTransaction twice should fail',
       async () => {

@@ -185,6 +185,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
   /**
    * If one of the query fails, all queries should cancel
    */
+  // TODO fails with: Expected instance of error
   testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)('rollback query', async () => {
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({
@@ -273,7 +274,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  // TODO fails with: LibsqlError: : cannot start a transaction within a transaction
+  // TODO fails with: Expected instance of error
   testIf(
     getClientEngineType() === ClientEngineType.Library &&
       clientMeta.runtime !== 'edge' &&
@@ -299,6 +300,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
     expect(users.length).toBe(0)
   })
 
+  // TODO fails with expected instance of error
   testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
     'batching rollback within callback',
     async () => {
@@ -436,8 +438,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
       expect(users.length).toBe(2)
     })
 
-    // TODO fails with Expected length: 1 Received length: 0 Received array: []
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('middleware exclude from transaction', async () => {
+    test('middleware exclude from transaction', async () => {
       const isolatedPrisma = newPrismaClient()
 
       isolatedPrisma.$use((params, next) => {
@@ -468,8 +469,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
   /**
    * Two concurrent transactions should work
    */
-  // TODO fails with: LibsqlError: : cannot start a transaction within a transaction
-  skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('concurrent', async () => {
+  test('concurrent', async () => {
     await Promise.all([
       prisma.$transaction([
         prisma.user.create({
@@ -528,8 +528,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
   /**
    * Rollback should happen even with `then` calls
    */
-  // TODO fails with: LibsqlError: : cannot start a transaction within a transaction
-  skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('rollback with then calls', async () => {
+  test('rollback with then calls', async () => {
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user
         .create({
