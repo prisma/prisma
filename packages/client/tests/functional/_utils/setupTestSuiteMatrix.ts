@@ -3,10 +3,15 @@ import fs from 'fs-extra'
 import path from 'path'
 
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
+import {
+  getTestSuiteClientMeta,
+  getTestSuiteCliMeta,
+  getTestSuiteConfigs,
+  getTestSuiteFolderPath,
+  getTestSuiteMeta,
+} from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { ProviderFlavors } from './relationMode/ProviderFlavor'
-import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
+import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
@@ -56,9 +61,9 @@ function setupTestSuiteMatrix(
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const clientMeta = getClientMeta()
+  const suiteCliMeta = getTestSuiteCliMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, suiteCliMeta, options)
 
   if (originalEnv.TEST_GENERATE_ONLY === 'true') {
     options = options ?? {}
@@ -73,6 +78,7 @@ function setupTestSuiteMatrix(
   })
 
   for (const { name, suiteConfig, skip } of testPlan) {
+    const clientMeta = getTestSuiteClientMeta(suiteConfig.matrixOptions)
     const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
 
@@ -83,7 +89,7 @@ function setupTestSuiteMatrix(
       beforeAll(async () => {
         const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
 
-        globalThis['datasourceInfo'] = datasourceInfo
+        globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
@@ -94,14 +100,18 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        globalThis['newPrismaClient'] = (...args) => {
-          const client = new globalThis['loaded']['PrismaClient'](...args)
+        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+
+        globalThis['newPrismaClient'] = (args: any) => {
+          const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
           clients.push(client)
           return client
         }
+
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']()
+          globalThis['prisma'] = globalThis['newPrismaClient']({ ...driverAdapter })
         }
+
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
       })
 
@@ -133,7 +143,7 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        if (!options?.skipDb && suiteConfig.matrixOptions['providerFlavor'] !== ProviderFlavors.VITESS_8) {
+        if (options?.skipDb !== true || (options?.skipDb !== true && process.env.JEST_MAX_WORKERS !== '1')) {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
