@@ -96,9 +96,5 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: 'MongoDB does not support decimal',
     },
-    skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
-      reason: 'Decimal is incorrectly `null` in one case or does not match the decimal object in the other case',
-    },
   },
 )

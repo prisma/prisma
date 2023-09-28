@@ -38,7 +38,7 @@ testMatrix.setupTestSuite(
     },
     skipProviderFlavor: {
       from: ['js_neon', 'js_pg'],
-      reason: 'Expected two assertions to be called but received zero assertion calls (no error thrown).',
+      reason: 'driver adapters dont get their url from the schema, so it does not fail',
     },
   },
 )
