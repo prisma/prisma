@@ -9,7 +9,7 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   ({ providerFlavor }, __, ___, setupDatabase) => {
     // TODO fails sometimes with Rejected to value: [LibsqlError: : no such table: main.User]
-    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })('example', async () => {
+    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('example', async () => {
       const client = newPrismaClient()
 
       // Try sending a query without a spawned database

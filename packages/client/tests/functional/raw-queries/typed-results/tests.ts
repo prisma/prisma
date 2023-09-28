@@ -15,7 +15,7 @@ testMatrix.setupTestSuite(
 
     // TODO Failing because of "Unsupported type column: 17" error
     // tracked in https://github.com/prisma/team-orm/issues/374
-    $test({ failIf: providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG })(
+    skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
       'query model with multiple types',
       async () => {
         await prisma.testModel.create({

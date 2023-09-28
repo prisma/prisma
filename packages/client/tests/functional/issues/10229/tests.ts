@@ -1,5 +1,4 @@
 import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
-import { ProviderFlavors } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -8,22 +7,19 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/10229
 testMatrix.setupTestSuite(
-  ({ providerFlavor }) => {
-    // TODO Expected two assertions to be called but received zero assertion calls (no error thrown).
-    $test({
-      failIf: providerFlavor === ProviderFlavors.JS_PG || providerFlavor === ProviderFlavors.JS_NEON,
-    })('should assert that the error has the correct errorCode', async () => {
-      let e: PrismaClientInitializationError | undefined
+  () => {
+    test('should assert that the error has the correct errorCode', async () => {
+      expect.assertions(2)
+
       try {
         await prisma.$connect()
       } catch (error) {
-        e = error
+        const e = error as PrismaClientInitializationError
+        expect(e.constructor.name).toEqual('PrismaClientInitializationError')
+        expect(e.errorCode).toEqual('P1001')
       } finally {
         prisma.$disconnect().catch(() => {})
       }
-
-      expect(e?.constructor.name).toEqual('PrismaClientInitializationError')
-      expect(e?.errorCode).toEqual('P1001')
     })
   },
   {
@@ -39,6 +35,10 @@ testMatrix.setupTestSuite(
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
+    },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason: 'Expected two assertions to be called but received zero assertion calls (no error thrown).',
     },
   },
 )

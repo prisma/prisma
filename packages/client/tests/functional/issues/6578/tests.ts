@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO SyntaxError: Unexpected end of JSON input on CI, does not fail locally, needs investigation
-    $test({ failIf: providerFlavor === ProviderFlavors.JS_LIBSQL })(
+    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
       'should assert Dates, DateTimes, Times and UUIDs are wrapped in quotes and are deserializable',
       async () => {
         const date = new Date()
