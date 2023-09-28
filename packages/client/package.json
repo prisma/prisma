@@ -79,7 +79,7 @@
     "@opentelemetry/sdk-trace-base": "1.17.0",
     "@opentelemetry/semantic-conventions": "1.17.0",
     "@planetscale/database": "1.11.0",
-    "@prisma/adapter-libsql": "0.3.1",
+    "@prisma/adapter-libsql": "0.4.0",
     "@prisma/adapter-neon": "0.4.2",
     "@prisma/adapter-pg": "0.4.2",
     "@prisma/adapter-planetscale": "0.4.0",
