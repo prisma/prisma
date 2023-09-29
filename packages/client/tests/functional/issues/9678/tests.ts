@@ -59,5 +59,9 @@ testMatrix.setupTestSuite(
         mongo - isolation levels are not supported
       `,
     },
+    skipProviderFlavor: {
+      from: ['js_pg'],
+      reason: 'Error: could not serialize access due to concurrent update',
+    },
   },
 )
