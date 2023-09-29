@@ -132,7 +132,7 @@ function setupTestSuiteMatrix(
         })
       })
 
-      beforeEach(async () => {
+      beforeEach(() => {
         const testName = expect.getState().currentTestName
         // console.log({ testName })
         globalThis['testName'] = testName
