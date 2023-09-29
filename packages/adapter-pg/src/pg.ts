@@ -127,10 +127,13 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
         const resultString = await this.readExpectedResponse(recordingFileName, sql)
         // console.log("found this result: ", resultString)
         result = JSON.parse(resultString)
-      } else if (recordings == 'write') {
+      } else {
+        
         result = await this.client.query({ text: sql, values, rowMode: 'array' })
-
-        await fsPromises.appendFile(recordingFileName, sql + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
+        
+        if (recordings == 'write') {
+          await fsPromises.appendFile(recordingFileName, sql + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
+        }
       }
 
       return result
