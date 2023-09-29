@@ -379,11 +379,11 @@ importers:
         specifier: 0.4.1
         version: 0.4.1(@libsql/client@0.3.5)
       '@prisma/adapter-neon':
-        specifier: 0.4.2
-        version: 0.4.2(@neondatabase/serverless@0.6.0)
+        specifier: 0.5.0
+        version: 0.5.0(@neondatabase/serverless@0.6.0)
       '@prisma/adapter-pg':
-        specifier: 0.4.2
-        version: 0.4.2(pg@8.11.2)
+        specifier: 0.5.0
+        version: 0.5.0(pg@8.11.2)
       '@prisma/adapter-planetscale':
         specifier: 0.4.0
         version: 0.4.0(@planetscale/database@1.11.0)
@@ -2981,23 +2981,23 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/adapter-neon@0.4.2(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-cCYa1gAXe9nUmm49f8ro1Obp2+4omxD/gMBi9wZYq8hBjsDde+Qm87+6tmsc7Xj10ssigUygCDUI3uNQxBrUTA==}
+  /@prisma/adapter-neon@0.5.0(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-RfQptnAB0Cn3fRmR0ZayMYo6AxfJH3frf7lcjYg8lu5ocT6BCo5bu50L4Lp/RoP0LwVmoyMGlWwFBcjpb2OU/g==}
     peerDependencies:
       '@neondatabase/serverless': ^0.6.0
     dependencies:
       '@neondatabase/serverless': 0.6.0
-      '@prisma/driver-adapter-utils': 0.6.0
+      '@prisma/driver-adapter-utils': 0.8.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-pg@0.4.2(pg@8.11.2):
-    resolution: {integrity: sha512-yLJ9FUPnGEREQMjRh2+8lTN0sRPSJgYlPXrYV/9j2sn5PJ/5NdruOsg4nURpLcI0z4CwL79s/cBuXZZPLS1oVQ==}
+  /@prisma/adapter-pg@0.5.0(pg@8.11.2):
+    resolution: {integrity: sha512-NmSHU5xPiwIxRAGslNAkRFcECQvx9BQ1pMWU3X09CCqS2Um6cfy0fS+ZMUdQyNQKz5Eqigr13x4Q4Q3mH7pKGA==}
     peerDependencies:
       pg: ^8.11.3
     dependencies:
-      '@prisma/driver-adapter-utils': 0.6.0
+      '@prisma/driver-adapter-utils': 0.8.0
       pg: 8.11.2
     transitivePeerDependencies:
       - supports-color
@@ -3022,16 +3022,16 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/driver-adapter-utils@0.6.0:
-    resolution: {integrity: sha512-/MAbTWPPdrrQ5upoMRkUCSpQEHSLDmKofBMRst6CQhEdMYpq5p61hfJf1OGmh78BmzPOyuEOCDryZoUNB5uSnA==}
+  /@prisma/driver-adapter-utils@0.7.0:
+    resolution: {integrity: sha512-rx/1LYPn8AzJxMLqoAIfnoKdr06YxXKYh2sE9XP9iLjyvy6z+GOH+abRcRzXoEZ0zfUM+YHaaO4VFwKtq6Yk3g==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/driver-adapter-utils@0.7.0:
-    resolution: {integrity: sha512-rx/1LYPn8AzJxMLqoAIfnoKdr06YxXKYh2sE9XP9iLjyvy6z+GOH+abRcRzXoEZ0zfUM+YHaaO4VFwKtq6Yk3g==}
+  /@prisma/driver-adapter-utils@0.8.0:
+    resolution: {integrity: sha512-lSnJovRSlqi4/fb1GdEfZXBkpjPW85NsE1KoHB1XI3OaaXVpX9ZYZCVsT2xiNbVSOPO8yuF8xKji2PA8Eo2+2Q==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
