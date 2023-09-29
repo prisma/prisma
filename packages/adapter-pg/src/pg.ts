@@ -108,8 +108,8 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
     const testSuiteName = this.testSuiteName
     const testName = globalThis['testName']
-    console.log('!!!testSuiteName!!!', testSuiteName)
-    console.log('!!!testName!!!', testName)
+    // console.log('!!!testSuiteName!!!', testSuiteName)
+    // console.log('!!!testName!!!', testName)
     try {
       let recordingFileName = ''
       if (testSuiteName && testName) {

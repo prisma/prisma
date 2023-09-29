@@ -123,7 +123,7 @@ export function setupTestSuiteClientDriverAdapter({
 
   if (providerFlavor === ProviderFlavors.JS_PG) {
     const testName = getTestSuiteFullName(suiteMeta, suiteConfig)
-    console.log('###', testName)
+    // console.log('###', testName)
 
     const pool = new pgPool({
       connectionString: datasourceInfo.databaseUrl,
