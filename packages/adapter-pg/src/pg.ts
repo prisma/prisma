@@ -8,7 +8,10 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, ok } from '@prisma/driver-adapter-utils'
+import { createReadStream, existsSync, promises as fsPromises } from 'fs'
+import path from 'path'
 import type pg from 'pg'
+import { createInterface } from 'readline'
 
 import { fieldToColumnType } from './conversion'
 
@@ -20,7 +23,11 @@ type TransactionClient = pg.PoolClient
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly flavour = 'postgres'
 
-  constructor(protected readonly client: ClientT) {}
+  testName: any
+
+  constructor(protected readonly client: ClientT, testName) {
+    this.testName = testName
+  }
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -58,6 +65,39 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     return ok(rowsAffected ?? 0)
   }
 
+  // Worst code ever :shrug: Thanks ChatGPT though!
+  private async readExpectedResponse(filePath: string, searchString: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      if (!existsSync(filePath)) {
+        resolve('')
+        return
+      }
+
+      const fileStream = createReadStream(filePath)
+      const rl = createInterface({
+        input: fileStream,
+      })
+
+      let found = false
+
+      rl.on('line', (line) => {
+        if (found) {
+          rl.close()
+          resolve(line) // Resolve the promise with the found line
+        } else if (line.includes(searchString)) {
+          found = true
+        }
+      })
+
+      rl.on('close', () => {
+        if (!found) {
+          console.log('Search string not found in the file.')
+          reject(new Error(`Search string not found: ${searchString}, (${filePath})`))
+        }
+      })
+    })
+  }
+
   /**
    * Run a query against the database, returning the result set.
    * Should the query fail due to a connection error, the connection is
@@ -66,8 +106,30 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
   private async performIO(query: Query) {
     const { sql, args: values } = query
 
+    // console.log("!!!!!!!!!!!!!!!!!!!!!!", this.testName)
     try {
-      const result = await this.client.query({ text: sql, values, rowMode: 'array' })
+      let recordingFileName = ''
+      if (this.testName) {
+        recordingFileName = path.resolve('recordings', `${this.testName.replace(/[\/:*?"<>|]/g, '_')}.recording`)
+      } else {
+        throw Error('this.testName is undefined')
+      }
+
+      let result: any = ''
+
+      const recordings = process.env.RECORDINGS
+      //console.log({ recordings })
+
+      if (recordings == 'read') {
+        const resultString = await this.readExpectedResponse(recordingFileName, sql)
+        // console.log("found this result: ", resultString)
+        result = JSON.parse(resultString)
+      } else if (recordings == 'write') {
+        result = await this.client.query({ text: sql, values, rowMode: 'array' })
+
+        await fsPromises.appendFile(recordingFileName, sql + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
+      }
+
       return result
     } catch (e) {
       const error = e as Error
@@ -111,8 +173,8 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 }
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
-  constructor(client: pg.Pool) {
-    super(client)
+  constructor(client: pg.Pool, testName) {
+    super(client, testName)
   }
 
   async startTransaction(): Promise<Result<Transaction>> {
