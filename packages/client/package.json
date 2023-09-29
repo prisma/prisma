@@ -81,7 +81,7 @@
     "@planetscale/database": "1.11.0",
     "@prisma/adapter-libsql": "0.4.2",
     "@prisma/adapter-neon": "0.5.0",
-    "@prisma/adapter-pg": "0.5.0",
+    "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "0.4.0",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "0.8.0",

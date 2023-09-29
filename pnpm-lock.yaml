@@ -194,6 +194,19 @@ importers:
         specifier: 7.2.3
         version: 7.2.3
 
+  packages/adapter-pg:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: ^0.8.0
+        version: 0.8.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.10.2
+        version: 8.10.3
+      pg:
+        specifier: ^8.11.3
+        version: 8.11.3
+
   packages/cli:
     dependencies:
       '@prisma/engines':
@@ -382,8 +395,8 @@ importers:
         specifier: 0.5.0
         version: 0.5.0(@neondatabase/serverless@0.6.0)
       '@prisma/adapter-pg':
-        specifier: 0.5.0
-        version: 0.5.0(pg@8.11.2)
+        specifier: workspace:*
+        version: link:../adapter-pg
       '@prisma/adapter-planetscale':
         specifier: 0.4.0
         version: 0.4.0(@planetscale/database@1.11.0)
@@ -2992,17 +3005,6 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/adapter-pg@0.5.0(pg@8.11.2):
-    resolution: {integrity: sha512-NmSHU5xPiwIxRAGslNAkRFcECQvx9BQ1pMWU3X09CCqS2Um6cfy0fS+ZMUdQyNQKz5Eqigr13x4Q4Q3mH7pKGA==}
-    peerDependencies:
-      pg: ^8.11.3
-    dependencies:
-      '@prisma/driver-adapter-utils': 0.8.0
-      pg: 8.11.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
   /@prisma/adapter-planetscale@0.4.0(@planetscale/database@1.11.0):
     resolution: {integrity: sha512-nwj0C2Xfz62UC8v1SQg0IgBlYkmgwh1i7NuL75pmUWFVMO2SSB5bVqVzbfuuEiFacQrpiDESUZAizrtQVQtvvQ==}
     peerDependencies:
@@ -3036,7 +3038,6 @@ packages:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
-    dev: true
 
   /@prisma/engines-version@5.4.0-41.18f3e4017174e7e4731539d4d97cadb72b10ae73:
     resolution: {integrity: sha512-R4XRXgEJeTCMAntQkmPhyUHyA1gAMy7i5KLqE7uJ6Rs+ICaCqXMDZKeYBrssxeWnWQ9A0I5U4HVtc3caY4Zpmw==}
@@ -8211,7 +8212,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.18.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.18.0)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8252,7 +8253,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.18.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.18.0)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -10677,7 +10678,6 @@ packages:
       pg: '>=8.0'
     dependencies:
       pg: 8.11.3
-    dev: false
 
   /pg-protocol@1.6.0:
     resolution: {integrity: sha512-M+PDm637OY5WM307051+bsDia5Xej6d9IR4GwJse1qA1DIhiKlksvrneZOYQq42OM+spubpcNYEo2FcKQrDk+Q==}
@@ -10743,7 +10743,6 @@ packages:
       pgpass: 1.0.5
     optionalDependencies:
       pg-cloudflare: 1.1.1
-    dev: false
 
   /pgpass@1.0.5:
     resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
