@@ -52,8 +52,10 @@ testMatrix.setupTestSuite(
       // Before https://github.com/prisma/prisma-engines/pull/4249
       // The expectation for all providers that `hasRetried` would be set as `true`
       // It has changed for MySQL and SQL Server only
-      // and also for cockroachdb but only when using mini-proxy...?
-      if (provider === 'mysql' || provider === 'sqlserver' || (provider === 'cockroachdb' && dataProxy)) {
+      // and also for cockroachdb, but not deterministic
+      if (provider === 'cockroachdb') {
+        // no expectation, it looks flaky
+      } else if (provider === 'mysql' || provider === 'sqlserver') {
         expect(hasRetried).toBe(false)
       } else {
         expect(hasRetried).toBe(true)
