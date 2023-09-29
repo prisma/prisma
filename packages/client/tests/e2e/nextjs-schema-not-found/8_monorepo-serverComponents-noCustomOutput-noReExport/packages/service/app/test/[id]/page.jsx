@@ -20,5 +20,5 @@ async function doPrismaQuery(params) {
 }
 
 export default async function Page({ params }) {
-  return <div>{`${await doPrismaQuery(params)}`}</div>
+  return <div>{await doPrismaQuery(params)}</div>
 }
