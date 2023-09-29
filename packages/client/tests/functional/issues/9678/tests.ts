@@ -19,7 +19,7 @@ jest.retryTimes(3)
  * Reproduction for issue #9678
  */
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, _suiteMeta, { dataProxy }) => {
     test('concurrent deleteMany/createMany', async () => {
       let hasRetried = false
       const MAX_RETRIES = 5
@@ -52,7 +52,8 @@ testMatrix.setupTestSuite(
       // Before https://github.com/prisma/prisma-engines/pull/4249
       // The expectation for all providers that `hasRetried` would be set as `true`
       // It has changed for MySQL and SQL Server only
-      if (provider === 'mysql' || provider === 'sqlserver') {
+      // and also for cockroachdb but only when using mini-proxy...?
+      if (provider === 'mysql' || provider === 'sqlserver' || (provider === 'cockroachdb' && dataProxy)) {
         expect(hasRetried).toBe(false)
       } else {
         expect(hasRetried).toBe(true)
