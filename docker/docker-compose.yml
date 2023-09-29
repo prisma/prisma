@@ -124,6 +124,7 @@ services:
       MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
+    restart: always # restart between reboots
 
   neon_wsproxy:
     image: ghcr.io/neondatabase/wsproxy:latest
@@ -136,6 +137,7 @@ services:
       - '5488:80'
     depends_on:
       - postgres
+    restart: always # restart between reboots
 
   planetscale_proxy:
     build: ./planetscale_proxy
