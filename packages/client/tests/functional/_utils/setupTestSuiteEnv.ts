@@ -111,6 +111,7 @@ export async function setupTestSuiteDatabase(
   alterStatementCallback?: AlterStatementCallback,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+  if(process.env.RECORDINGS == "read") return
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
@@ -173,7 +174,8 @@ export async function dropTestSuiteDatabase(
   errors: Error[] = [],
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
-
+  if(process.env.RECORDINGS == "read") return
+  
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
