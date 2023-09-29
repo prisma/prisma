@@ -1,3 +1,5 @@
 # @prisma/adapter-libsql
 
-**INTERNAL PACKAGE, DO NOT USE**
+Prisma driver adapter for Turso and libSQL.
+
+See https://prisma.io/turso for details.
