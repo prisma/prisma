@@ -297,7 +297,6 @@ testMatrix.setupTestSuite(
           dbQueries = [
             dbQuery(expect.stringContaining('BEGIN'), false),
             dbQuery(expect.stringContaining('SELECT')),
-            dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), false),
             dbQuery('COMMIT', false),
           ]
