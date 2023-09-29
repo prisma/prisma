@@ -20,7 +20,7 @@
     },
     {
       "groupName": ["Prisma Driver Adapters"],
-      "matchPackagePatterns": "@prisma/*adapter*",
+      "matchPackagePatterns": ["@prisma/.*adapter.*"],
       "schedule": ["at any time"]
     },
     {
