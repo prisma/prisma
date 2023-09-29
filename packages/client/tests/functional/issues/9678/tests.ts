@@ -19,7 +19,7 @@ jest.retryTimes(3)
  * Reproduction for issue #9678
  */
 testMatrix.setupTestSuite(
-  ({ provider }, _suiteMeta, { dataProxy }) => {
+  ({ provider }) => {
     test('concurrent deleteMany/createMany', async () => {
       let hasRetried = false
       const MAX_RETRIES = 5
