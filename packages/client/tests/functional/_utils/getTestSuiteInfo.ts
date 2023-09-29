@@ -17,6 +17,8 @@ type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
 const schemaPreviewFeaturesRegex = /previewFeatures\s*=\s*(.*)/
 const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-js"/
+const schemaMySqlProviderRegex = /provider\s*=\s*"mysql"/
+const schemaPrismaRelationModeRegex = /relationMode\s*=\s*".*"/
 
 /**
  * Get the generated test suite name, used for the folder name.
@@ -152,6 +154,8 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
   const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
   const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
+  const prismaRelationModeMatch = schema.match(schemaPrismaRelationModeRegex)
+  const mySqlProviderMatch = schema.match(schemaMySqlProviderRegex)
   const previewFeatures = getTestSuitePreviewFeatures(schema)
 
   // By default, mini-proxy distinguishes different engine instances using
@@ -174,6 +178,17 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   // if there's no preview features, append them to the default generator block
   if (previewFeatureMatch === null && defaultGeneratorMatch !== null) {
     schema = schema.replace(defaultGeneratorMatch[0], `${defaultGeneratorMatch[0]}\n${previewFeaturesStr}`)
+  }
+
+  // for PlanetScale, we need to add `relationMode = "prisma"` to the schema
+  if (matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE && mySqlProviderMatch !== null) {
+    const relationModeStr = `relationMode = "prisma"`
+
+    if (prismaRelationModeMatch === null) {
+      schema = schema.replace(mySqlProviderMatch![0], `${mySqlProviderMatch![0]}\n${relationModeStr}`)
+    } else {
+      schema = schema.replace(prismaRelationModeMatch[0], relationModeStr)
+    }
   }
 
   return schema
