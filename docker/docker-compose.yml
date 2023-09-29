@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     # Uncomment the following line to enable query logging
     # Then restart the container.
-    # command: ['postgres', '-c', 'log_statement=all']
+    command: ['postgres', '-c', 'log_statement=all']
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
