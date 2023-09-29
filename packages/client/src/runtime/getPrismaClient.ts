@@ -321,6 +321,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         validatePrismaClientOptions(optionsArg, config)
       }
 
+      const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
       const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
         //
@@ -343,7 +344,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
+        (NODE_CLIENT && adapter && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -410,7 +411,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
-          adapter: options?.adapter ? bindAdapter(options.adapter) : undefined,
+          adapter,
         }
 
         debug('clientVersion', config.clientVersion)
