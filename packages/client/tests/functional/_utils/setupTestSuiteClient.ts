@@ -122,13 +122,14 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_PG) {
-    console.log('###', getTestSuiteFullName(suiteMeta, suiteConfig))
+    const testName = getTestSuiteFullName(suiteMeta, suiteConfig)
+    console.log('###', testName)
 
     const pool = new pgPool({
       connectionString: datasourceInfo.databaseUrl,
     })
 
-    return { adapter: new PrismaPg(pool) }
+    return { adapter: new PrismaPg(pool, testName) }
   }
 
   if (providerFlavor === ProviderFlavors.JS_NEON) {

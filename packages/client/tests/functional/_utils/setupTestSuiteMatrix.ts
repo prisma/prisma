@@ -100,7 +100,7 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo, suiteMeta })
 
         globalThis['newPrismaClient'] = (args: any) => {
           const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
@@ -131,6 +131,11 @@ function setupTestSuiteMatrix(
           await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true })
         })
       })
+
+      // beforeEach(async () => {
+      //   const testName = expect.getState().testPath
+      //   console.log({ testName })
+      // })
 
       afterAll(async () => {
         for (const client of clients) {
