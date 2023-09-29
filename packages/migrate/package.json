@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "5.4.0-39.2b2ffb48c15c4644d39591fed77b43f8af89ad56",
+    "@prisma/engines-version": "5.4.0-40.janpio-shadow-drop-with-force-134b510303ababf88da061a7d13b598a4b8f9c95",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.75",
