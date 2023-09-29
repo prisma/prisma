@@ -1,6 +1,6 @@
 # Exported types
 
-When types from `@prisma/runtime` are used in third party type declaration (for example, extensions that are published to `npm`) we need to ensure that whole type tree is exported from the runtime too. Otherwise, non-exported type can be inlined at each instance they are used in declaration file. That in turn will either affect typechecking performance or simply crash TS compiler if inlined type is too big.
+When types from `@prisma/client/runtime` are used in third party type declaration (for example, extensions that are published to `npm`) we need to ensure that whole type tree is exported from the runtime too. Otherwise, non-exported type can be inlined at each instance they are used in declaration file. That in turn will either affect typechecking performance or simply crash TS compiler if inlined type is too big.
 
 In order to ensure that does not happen, this directory is governed by strict set of rules, enforced by eslint:
 
