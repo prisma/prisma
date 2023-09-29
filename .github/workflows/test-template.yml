@@ -85,7 +85,16 @@ jobs:
           echo "::remove-matcher owner=eslint-compact::"
           echo "::remove-matcher owner=eslint-stylish::"
 
-      - run: pnpm run lint && pnpm run prettier-check && pnpm run check-engines-override
+      - name: Run eslint
+        run: pnpm run lint
+        working-directory: ./
+
+      - name: Run prettier-check
+        run: pnpm run prettier-check
+        working-directory: ./
+
+      - name: Run check-engines-override
+        run: pnpm run check-engines-override
         working-directory: ./
 
   #
