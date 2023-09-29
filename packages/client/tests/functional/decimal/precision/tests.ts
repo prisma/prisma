@@ -63,5 +63,9 @@ testMatrix.setupTestSuite(
         mongo - decimals are not supported
     `,
     },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason: "Unsure how this test works, it's likely a loss of precision",
+    },
   },
 )

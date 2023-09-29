@@ -11,8 +11,7 @@ import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
-import { Providers } from './providers'
-import { ProviderFlavor, ProviderFlavors } from './relationMode/ProviderFlavor'
+import { ProviderFlavors, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta } from './types'
 
@@ -116,18 +115,19 @@ export async function setupTestSuiteDatabase(
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const dbPushParams = ['--schema', schemaPath, '--skip-generate']
-    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavor | undefined
-    // `--force-reset` is great but only using it where it's necessary makes the
-    // tests faster Since we have full isolation of tests / database, we do not
-    // need to force reset but we currently break isolation for Vitess (for
-    // faster tests), so it's good to force reset in this case
-    if (providerFlavor === ProviderFlavors.VITESS_8) {
+
+    // we reuse and clean the db when running in single-threaded mode
+    if (process.env.JEST_MAX_WORKERS === '1') {
       dbPushParams.push('--force-reset')
     }
     await DbPush.new().parse(dbPushParams)
 
+    if (suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8) {
+      await new Promise((r) => setTimeout(r, 300)) // wait for vitess to catch up
+    }
+
     if (alterStatementCallback) {
-      const provider = suiteConfig.matrixOptions['provider'] as Providers
+      const { provider } = suiteConfig.matrixOptions
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
 
@@ -205,39 +205,28 @@ export type DatasourceInfo = {
  * @param clientMeta
  * @returns
  */
-export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientMeta: ClientMeta): DatasourceInfo {
-  const provider = suiteConfig['provider'] as Providers
-  const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
-  const dbId = `${faker.string.alphanumeric(5)}-${process.pid}-${Date.now()}`
+export function setupTestSuiteDbURI(
+  suiteConfig: NamedTestSuiteConfig['matrixOptions'],
+  clientMeta: ClientMeta,
+): DatasourceInfo {
+  const { provider, providerFlavor } = suiteConfig
 
-  const { envVarName, newURI } = match(providerFlavor)
-    .with(undefined, () => {
-      const envVarName = `DATABASE_URI_${provider}`
-      const newURI = getDbUrl(provider)
-      return { envVarName, newURI }
-    })
-    .otherwise(() => {
-      const envVarName = `DATABASE_URI_${providerFlavor!}`
-      const newURI = getDbUrlFromFlavor(providerFlavor, provider)
-      return { envVarName, newURI }
-    })
-
-  // when testing with `directUrl` is required
+  const envVarName = `DATABASE_URI_${provider}`
   const directEnvVarName = `DIRECT_${envVarName}`
 
-  let databaseUrl = newURI
-  // Vitess takes about 1 minute to create a database the first time
-  // So we can reuse the same database for all tests
-  // It has a significant impact on the test runtime
-  // Example: 60s -> 3s
-  if (providerFlavor === ProviderFlavors.VITESS_8) {
-    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
+  let databaseUrl = match(providerFlavor)
+    .with(undefined, () => getDbUrl(provider))
+    .otherwise(() => getDbUrlFromFlavor(providerFlavor, provider))
+
+  if (process.env.JEST_MAX_WORKERS === '1') {
+    // we reuse and clean the same db when running in single-threaded mode
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-0000-00000000')
   } else {
+    const dbId = `${faker.string.alphanumeric(5)}-${process.pid}-${Date.now()}`
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
   }
 
   let dataProxyUrl: string | undefined
-
   if (clientMeta.dataProxy) {
     dataProxyUrl = miniProxy.generateConnectionString({
       databaseUrl,
@@ -284,9 +273,13 @@ function getDbUrl(provider: Providers): string {
  * @param providerFlavor provider variant, e.g. `vitess` for `mysql`
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
-function getDbUrlFromFlavor(providerFlavor: ProviderFlavor | undefined, provider: Providers): string {
+function getDbUrlFromFlavor(providerFlavor: ProviderFlavors | undefined, provider: Providers): string {
   return match(providerFlavor)
     .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+    .with(ProviderFlavors.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+    .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+    .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+    .with(ProviderFlavors.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
     .otherwise(() => getDbUrl(provider))
 }
 
