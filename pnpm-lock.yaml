@@ -376,8 +376,8 @@ importers:
         specifier: 1.11.0
         version: 1.11.0
       '@prisma/adapter-libsql':
-        specifier: 0.4.1
-        version: 0.4.1(@libsql/client@0.3.5)
+        specifier: 0.4.2
+        version: 0.4.2(@libsql/client@0.3.5)
       '@prisma/adapter-neon':
         specifier: 0.5.0
         version: 0.5.0(@neondatabase/serverless@0.6.0)
@@ -2969,8 +2969,8 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/adapter-libsql@0.4.1(@libsql/client@0.3.5):
-    resolution: {integrity: sha512-yaiifJNfOkxMk8V/SbxUH6lAKJkcEP9qFBxFwKcDgCjggI7GAAmL0932h9H4KhREOe859UEmT9eX6mLWTs1hyg==}
+  /@prisma/adapter-libsql@0.4.2(@libsql/client@0.3.5):
+    resolution: {integrity: sha512-T/dfVleYK6VTCqgcmLk/6auR3iGizaorocXj54Nmt6uM4d8aiWOVVhXPzfgdlSEplGC7zD9XvbWpVJbLZVrv0Q==}
     peerDependencies:
       '@libsql/client': ^0.3.5
     dependencies:
@@ -8211,7 +8211,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.18.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.18.0)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8252,7 +8252,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.18.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.18.0)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
