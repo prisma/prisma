@@ -43,11 +43,10 @@ services:
     ports:
       - 33807:33807
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P33577']
+      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P33807']
       interval: 5s
       timeout: 2s
-      retries: 5
-      start_period: 25s
+      retries: 20
     environment:
       PORT: '33804' # unused in testing, but required by vttestserver
       KEYSPACES: 'unsharded' # unused in testing, but required by vttestserver
@@ -137,3 +136,19 @@ services:
       - '5488:80'
     depends_on:
       - postgres
+
+  planetscale_proxy:
+    build: ./planetscale_proxy
+    environment:
+      MYSQL_HOST: 'vitess-8' # docker url
+      MYSQL_PORT: 33807
+      MYSQL_DATABASE: 'test-0000-00000000'
+    ports:
+      - '8085:8085'
+    depends_on:
+      - vitess-8
+    healthcheck:
+      test: ['CMD', 'nc', '-z', '127.0.0.1', '8085']
+      interval: 5s
+      timeout: 2s
+      retries: 20

@@ -294,7 +294,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
 
       - name: Install & build
         uses: ./.github/actions/setup
