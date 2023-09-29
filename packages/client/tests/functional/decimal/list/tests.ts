@@ -40,5 +40,10 @@ setupTestSuiteMatrix(
         sqlserver: Field "decimals" in model "User" can't be a list. The current connector does not support lists of primitive types.
       `,
     },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason:
+        "scalar lists, here a decimal array, don't work yet. Error: Unsupported column type: 1231 - tracked in https://github.com/prisma/team-orm/issues/374",
+    },
   },
 )

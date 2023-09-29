@@ -45,5 +45,10 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
       reason: 'json lists are supported only on postgresql',
     },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason:
+        "scalar lists, here a json array, don't work yet. Unsupported column type: 3807 - tracked in https://github.com/prisma/team-orm/issues/374",
+    },
   },
 )

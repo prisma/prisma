@@ -1,6 +1,10 @@
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { klona } from 'klona'
+
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
+import { flavorsForProvider, ProviderFlavors } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, MatrixOptions } from './types'
+import { MatrixOptions, TestCliMeta } from './types'
 
 export type TestPlanEntry = {
   name: string
@@ -10,7 +14,9 @@ export type TestPlanEntry = {
 
 type SuitePlanContext = {
   includedProviders?: string[]
+  includedProviderFlavors?: string[]
   excludedProviders: string[]
+  excludedProviderFlavors: string[]
   updateSnapshots: 'inline' | 'external' | undefined
 }
 
@@ -20,38 +26,78 @@ type SuitePlanContext = {
  * @param suiteMeta
  * @returns [test-suite-title: string, test-suite-config: object]
  */
-
 export function getTestSuitePlan(
   suiteMeta: TestSuiteMeta,
-  suiteConfig: NamedTestSuiteConfig[],
-  clientMeta: ClientMeta,
+  suiteConfigs: NamedTestSuiteConfig[],
+  testCliMeta: TestCliMeta,
   options?: MatrixOptions,
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
+  const shouldSkipAll = shouldSkipTestSuite(testCliMeta, options)
 
-  return suiteConfig.map((namedConfig, configIndex) => ({
+  const expandedSuiteConfigs = suiteConfigs.flatMap((config) => {
+    return getExpandedTestSuitePlanWithProviderFlavors(config)
+  })
+
+  return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
+    skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
     suiteConfig: namedConfig,
   }))
 }
 
-function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
-  if (!clientMeta.dataProxy || !options?.skipDataProxy) {
-    return false
-  }
-  return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
+/**
+ * This function takes a regular `testPlanEntry` and expands this into the
+ * multiple flavors of driver adapters that exist for a given provider. For
+ * example, postgres => [postgres (pg), postgres (neon)], put very simply. In
+ * other words, a given test matrix is expanded with the provider flavors.
+ * @param suiteConfig
+ * @returns
+ */
+function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuiteConfig) {
+  const provider = suiteConfig.matrixOptions.provider
+
+  const suiteConfigExpansions = flavorsForProvider[provider].map((flavor) => {
+    const newSuiteConfig = klona(suiteConfig)
+
+    newSuiteConfig.matrixOptions.providerFlavor = flavor
+    newSuiteConfig.parametersString += `, ${flavor}`
+    // ^^^ temporary until I get to the TODO in getTestSuiteParametersString
+
+    return newSuiteConfig
+  })
+
+  // add the original suite config to the list of expanded configs
+  return [suiteConfig, ...suiteConfigExpansions]
 }
 
-function shouldSkipProvider(
-  { updateSnapshots, includedProviders, excludedProviders }: SuitePlanContext,
+function shouldSkipTestSuite(clientMeta: TestCliMeta, options?: MatrixOptions): boolean {
+  if (options?.skipBinary && getClientEngineType() === ClientEngineType.Binary) {
+    return true
+  }
+  if (options?.skipDataProxy && clientMeta.dataProxy) {
+    return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
+  }
+  return false
+}
+
+function shouldSkipSuiteConfig(
+  {
+    updateSnapshots,
+    includedProviders,
+    includedProviderFlavors,
+    excludedProviders,
+    excludedProviderFlavors,
+  }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
-  clientMeta: ClientMeta,
+  testCliMeta: TestCliMeta,
+  options?: MatrixOptions,
 ): boolean {
-  const provider = config.matrixOptions['provider'].toLocaleLowerCase()
+  const provider = config.matrixOptions.provider
+  const flavor = config.matrixOptions.providerFlavor
+
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
     // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
@@ -64,21 +110,50 @@ function shouldSkipProvider(
     return true
   }
 
+  // if the client doesn't support the provider, skip
+  if (testCliMeta.dataProxy && provider === 'sqlite') {
+    return true
+  }
+
+  // if the provider is not included, skip
   if (includedProviders && !includedProviders.includes(provider)) {
     return true
   }
 
-  if (clientMeta.dataProxy && provider === 'sqlite') {
+  // if the provider is excluded, skip
+  if (excludedProviders.includes(provider)) {
     return true
   }
 
-  return excludedProviders.includes(provider)
+  // if there is a flavor to run and it's not included, skip
+  if (flavor && !includedProviderFlavors?.includes(flavor)) {
+    return true
+  }
+
+  // if there is a flavor to run and it's excluded, skip
+  if (flavor && excludedProviderFlavors.includes(flavor)) {
+    return true
+  }
+
+  // if flavors are enabled and test has no flavor, skip
+  if (includedProviderFlavors && flavor === undefined) {
+    return true
+  }
+
+  // if the flavor is explicitly skipped in the matrix options, skip
+  if (flavor && options?.skipProviderFlavor?.from.includes(flavor)) {
+    return true
+  }
+
+  return false
 }
 
 function buildPlanContext(): SuitePlanContext {
   return {
     includedProviders: process.env.ONLY_TEST_PROVIDERS?.split(','),
-    excludedProviders: getExcludedProviders(),
+    includedProviderFlavors: process.env.ONLY_TEST_PROVIDER_FLAVORS?.split(','),
+    excludedProviders: getExclusionsFromEnv(excludeEnvToProviderMap),
+    excludedProviderFlavors: getExclusionsFromEnv(excludeEnvToProviderFlavorMap),
     updateSnapshots: process.env.UPDATE_SNAPSHOTS as 'inline' | 'external' | undefined,
   }
 }
@@ -91,10 +166,18 @@ const excludeEnvToProviderMap = {
   TEST_SKIP_SQLITE: 'sqlite',
 }
 
-function getExcludedProviders() {
-  return Object.entries(excludeEnvToProviderMap).reduce((acc, [envVarName, provider]) => {
+const excludeEnvToProviderFlavorMap = {
+  TEST_SKIP_VITESS: ProviderFlavors.VITESS_8,
+  TEST_SKIP_PG: ProviderFlavors.JS_PG,
+  TEST_SKIP_NEON: ProviderFlavors.JS_NEON,
+  TEST_SKIP_PLANETSCALE: ProviderFlavors.JS_PLANETSCALE,
+  TEST_SKIP_LIBSQL: ProviderFlavors.JS_LIBSQL,
+}
+
+function getExclusionsFromEnv(exclusionMap: Record<string, string>) {
+  return Object.entries(exclusionMap).reduce((acc, [envVarName, exclusionName]) => {
     if (process.env[envVarName]) {
-      acc.push(provider)
+      acc.push(exclusionName.toLowerCase())
     }
     return acc
   }, [] as string[])

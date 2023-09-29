@@ -1,3 +1,4 @@
+import { ProviderFlavors } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -7,7 +8,7 @@ declare let Prisma: typeof PrismaNamespace
 
 // https://github.com/prisma/prisma/issues/11233
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider, providerFlavor }) => {
     test('should not throw when using Prisma.empty inside $executeRaw', async () => {
       expect.assertions(1)
 
@@ -21,7 +22,10 @@ testMatrix.setupTestSuite(
 
       switch (provider) {
         case 'sqlite':
-          expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+          // TODO the error does not match to the usual one
+          providerFlavor === ProviderFlavors.JS_LIBSQL
+            ? expect((result as Error).message).toContain(': not an error')
+            : expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
           break
 
         case 'postgresql':
@@ -52,7 +56,10 @@ testMatrix.setupTestSuite(
 
       switch (provider) {
         case 'sqlite':
-          expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+          // TODO the error does not match to the usual one
+          providerFlavor === ProviderFlavors.JS_LIBSQL
+            ? expect((result as Error).message).toContain(': not an error')
+            : expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
           break
 
         case 'postgresql':
