@@ -44,7 +44,7 @@ concurrency:
 
 jobs:
   benchmark:
-    name: all
+    name: Benchmark
     runs-on: ubuntu-latest
     # Only run on main repo (not on forks)
     # This avoids notifications to be sent to `alert-comment-cc-users`, see below
