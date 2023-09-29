@@ -308,6 +308,24 @@ testMatrix.setupTestSuite(
           ]),
         )
       })
+
+      test('deleteMany()', async () => {
+        await prisma.user.deleteMany()
+
+        let dbQueries: Tree[]
+
+        if (provider === 'mongodb') {
+          dbQueries = [dbQuery(expect.stringContaining('db.User.findMany(*)'))]
+        } else {
+          dbQueries = [dbQuery(expect.stringContaining('DELETE'), false)]
+        }
+        await waitForSpanTree(
+          operation('User', 'deleteMany', [
+            clientSerialize(),
+            engine([engineConnection(), ...dbQueries, engineSerialize()]),
+          ]),
+        )
+      })
     })
 
     describe('tracing on transactions', () => {
