@@ -14,6 +14,7 @@ import { generateClient } from '../../../src/generation/generateClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
+  getTestSuiteFullName,
   getTestSuitePreviewFeatures,
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
@@ -105,10 +106,12 @@ export function setupTestSuiteClientDriverAdapter({
   suiteConfig,
   datasourceInfo,
   clientMeta,
+  suiteMeta,
 }: {
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
+  suiteMeta: TestSuiteMeta
 }) {
   const providerFlavor = suiteConfig.matrixOptions.providerFlavor
 
@@ -119,6 +122,8 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_PG) {
+    console.log('###', getTestSuiteFullName(suiteMeta, suiteConfig))
+
     const pool = new pgPool({
       connectionString: datasourceInfo.databaseUrl,
     })
