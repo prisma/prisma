@@ -132,10 +132,11 @@ function setupTestSuiteMatrix(
         })
       })
 
-      // beforeEach(async () => {
-      //   const testName = expect.getState().testPath
-      //   console.log({ testName })
-      // })
+      beforeEach(async () => {
+        const testName = expect.getState().currentTestName
+        // console.log({ testName })
+        globalThis['testName'] = testName
+      })
 
       afterAll(async () => {
         for (const client of clients) {
