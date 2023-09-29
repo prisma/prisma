@@ -122,7 +122,10 @@ export async function setupTestSuiteDatabase(
     }
     await DbPush.new().parse(dbPushParams)
 
-    if (suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8) {
+    if (
+      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8 ||
+      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE
+    ) {
       await new Promise((r) => setTimeout(r, 300)) // wait for vitess to catch up
     }
 
