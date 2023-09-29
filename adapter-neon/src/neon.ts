@@ -29,9 +29,11 @@ abstract class NeonQueryable implements Queryable {
 
     return (await this.performIO(query)).map(({ fields, rows }) => {
       const columns = fields.map((field) => field.name)
+      const columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
+
       return {
         columnNames: columns,
-        columnTypes: fields.map((field) => fieldToColumnType(field.dataTypeID)),
+        columnTypes,
         rows,
       }
     })

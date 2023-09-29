@@ -32,6 +32,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
     const columns = fields.map((field) => field.name)
     const columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
+
     const resultSet: ResultSet = {
       columnNames: columns,
       columnTypes,

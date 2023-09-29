@@ -28,14 +28,22 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case NeonColumnType['TIMESTAMP']:
       return ColumnTypeEnum.DateTime
     case NeonColumnType['NUMERIC']:
+    case NeonColumnType['MONEY']:
       return ColumnTypeEnum.Numeric
-    case NeonColumnType['BPCHAR']:
-      return ColumnTypeEnum.Char
-    case NeonColumnType['TEXT']:
-    case NeonColumnType['VARCHAR']:
-      return ColumnTypeEnum.Text
     case NeonColumnType['JSONB']:
       return ColumnTypeEnum.Json
+    case NeonColumnType['UUID']:
+      return ColumnTypeEnum.Uuid
+    case NeonColumnType['OID']:
+      return ColumnTypeEnum.Int64
+    case NeonColumnType['BPCHAR']:
+    case NeonColumnType['TEXT']:
+    case NeonColumnType['VARCHAR']:
+    case NeonColumnType['BIT']:
+    case NeonColumnType['VARBIT']:
+    case NeonColumnType['INET']:
+    case NeonColumnType['CIDR']:
+      return ColumnTypeEnum.Text
     default:
       if (fieldTypeId >= 10000) {
         // Postgres Custom Types
@@ -60,9 +68,9 @@ function convertJson(json: string): unknown {
 }
 
 // return string instead of JavaScript Date object
-types.setTypeParser(NeonColumnType.DATE, date => date)
 types.setTypeParser(NeonColumnType.TIME, date => date)
+types.setTypeParser(NeonColumnType.DATE, date => date)
 types.setTypeParser(NeonColumnType.TIMESTAMP, date => date)
-
 types.setTypeParser(NeonColumnType.JSONB, convertJson)
 types.setTypeParser(NeonColumnType.JSON, convertJson)
+types.setTypeParser(NeonColumnType.MONEY, (money: string) => money.slice(1))

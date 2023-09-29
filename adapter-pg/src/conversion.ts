@@ -28,14 +28,22 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case PgColumnType['TIMESTAMP']:
       return ColumnTypeEnum.DateTime
     case PgColumnType['NUMERIC']:
+    case PgColumnType['MONEY']:
       return ColumnTypeEnum.Numeric
-    case PgColumnType['BPCHAR']:
-      return ColumnTypeEnum.Char
-    case PgColumnType['TEXT']:
-    case PgColumnType['VARCHAR']:
-      return ColumnTypeEnum.Text
     case PgColumnType['JSONB']:
       return ColumnTypeEnum.Json
+    case PgColumnType['UUID']:
+      return ColumnTypeEnum.Uuid
+    case PgColumnType['OID']:
+      return ColumnTypeEnum.Int64
+    case PgColumnType['BPCHAR']:
+    case PgColumnType['TEXT']:
+    case PgColumnType['VARCHAR']:
+    case PgColumnType['BIT']:
+    case PgColumnType['VARBIT']:
+    case PgColumnType['INET']:
+    case PgColumnType['CIDR']:
+      return ColumnTypeEnum.Text
     default:
       if (fieldTypeId >= 10000) {
         // Postgres Custom Types
@@ -60,9 +68,9 @@ function convertJson(json: string): unknown {
 }
 
 // return string instead of JavaScript Date object
-types.setTypeParser(PgColumnType.DATE, date => date)
 types.setTypeParser(PgColumnType.TIME, date => date)
+types.setTypeParser(PgColumnType.DATE, date => date)
 types.setTypeParser(PgColumnType.TIMESTAMP, date => date)
-
 types.setTypeParser(PgColumnType.JSONB, convertJson)
 types.setTypeParser(PgColumnType.JSON, convertJson)
+types.setTypeParser(PgColumnType.MONEY, (money: string) => money.slice(1))

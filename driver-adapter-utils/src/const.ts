@@ -17,8 +17,8 @@ export const ColumnTypeEnum = {
   'Json': 11,
   'Enum': 12,
   'Bytes': 13,
-  // 'Set': 14,
-  // 'Array': 15,
+  'Set': 14,
+  'Uuid': 15,
   // ...
   'UnknownNumber': 128
 } as const
