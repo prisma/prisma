@@ -87,17 +87,17 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
       let found = false
       let done = false
-      let lineNumber = 0; 
+      let lineNumber = 0;
 
       // read the lines
       rl.on('line', (line) => {
         lineNumber++
-        
+
         // get linesReadCache
         const lineNumbersUsed = this.lineNumbersUsedByFile.get(filePath);
 
         if (lineNumbersUsed && !lineNumbersUsed.has(lineNumber)) { // Check if the line has already been found
-          if(!done) {
+          if (!done) {
             if (found) {
               rl.close()
               // mark line as used as well
@@ -136,15 +136,30 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const testName = globalThis['testName']
     // console.log('!!!testSuiteName!!!', testSuiteName)
     // console.log('!!!testName!!!', testName)
-    
+
     try {
       let recordingFileName = ''
 
       if (testName) {
-        recordingFileName = path.resolve('recordings', `${testName.replace(/[\/:*?"<>|]/g, '_')}.recording`)
+        recordingFileName = path.join('recordings', `${testName.replace(/[\/:*?"<>|]/g, '_')}.recording`)
+
         // avoid ENAMETOLONG with terrible hack
-        if(recordingFileName.length > 250)
-          recordingFileName.replace("undefined", "u").replace("undefined", "u").replace("undefined", "u").replace("relationMode", "rM").replace("provider","p").replace("onUpdate", "oU").replace("onDelete", "oD")
+        if (recordingFileName.length > 250) {
+          const replaceDict = {
+            "relationMode": "rM",
+            "provider": "p",
+            "onUpdate": "oU",
+            "onDelete": "oD",
+          };
+
+          for (const [key, value] of Object.entries(replaceDict)) {
+            recordingFileName = recordingFileName.replace(new RegExp(key, 'g'), value);
+
+            if (recordingFileName.length < 250) {
+              break;
+            }
+          }
+        }
       } else {
         throw Error('testName is undefined')
       }
@@ -158,16 +173,16 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
         result = JSON.parse(resultString)
 
         // Throw error if the result was marked as en exception
-        if(result.__type == "exception") {
+        if (result.__type == "exception") {
           throw new Error(result)
         }
       } else {
-        
+
         // console.log("### query", sql, values)
         try {
           result = await this.client.query({ text: sql, values, rowMode: 'array' })
         } catch (error) {
-          
+
           // console.log("### error", error)
 
           // mark error object as exception
@@ -178,7 +193,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
           // then throw anyway of course
           throw error
         }
-        
+
         // console.log("### result", result)
 
         if (process.env.RECORDINGS == 'write') {
@@ -207,7 +222,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     debug(`[js::commit]`)
 
     this.finished = true
-    if(process.env.RECORDINGS != "read") this.client.release()
+    if (process.env.RECORDINGS != "read") this.client.release()
     return ok(undefined)
   }
 
@@ -216,13 +231,13 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     debug(`[js::rollback]`)
 
     this.finished = true
-    if(process.env.RECORDINGS != "read") this.client.release()
+    if (process.env.RECORDINGS != "read") this.client.release()
     return ok(undefined)
   }
 
   dispose(): Result<void> {
     if (!this.finished) {
-      if(process.env.RECORDINGS != "read") this.client.release()
+      if (process.env.RECORDINGS != "read") this.client.release()
     }
     return ok(undefined)
   }
@@ -242,7 +257,7 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
     debug(`${tag} options: %O`, options)
 
     let connection: any = undefined
-    if(process.env.RECORDINGS != "read") connection = await this.client.connect()
+    if (process.env.RECORDINGS != "read") connection = await this.client.connect()
 
     return ok(new PgTransaction(connection, options)) //this.testSuiteName, options))
   }
