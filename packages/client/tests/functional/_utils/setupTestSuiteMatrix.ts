@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, test } from '@jest/globals'
+import { afterAll, beforeAll, beforeEach, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
 
@@ -8,6 +8,7 @@ import {
   getTestSuiteCliMeta,
   getTestSuiteConfigs,
   getTestSuiteFolderPath,
+  getTestSuiteFullName,
   getTestSuiteMeta,
 } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
@@ -80,6 +81,7 @@ function setupTestSuiteMatrix(
   for (const { name, suiteConfig, skip } of testPlan) {
     const clientMeta = getTestSuiteClientMeta(suiteConfig.matrixOptions)
     const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+    const suiteName = getTestSuiteFullName(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
 
     describeFn(name, () => {
@@ -87,6 +89,10 @@ function setupTestSuiteMatrix(
 
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
+
+        console.log("setupTextSuiteMatrix beforeAll", suiteName)
+        globalThis['testName'] = suiteName
+
         const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
 
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
@@ -133,12 +139,16 @@ function setupTestSuiteMatrix(
       })
 
       beforeEach(() => {
+
+        console.log("setupTextSuiteMatrix beforeEach")
+
         const testName = expect.getState().currentTestName
-        // console.log({ testName })
+        console.log({ testName })
         globalThis['testName'] = testName
       })
 
       afterAll(async () => {
+        console.log("setupTextSuiteMatrix afterAll")
         for (const client of clients) {
           await client.$disconnect().catch(() => {
             // sometimes we test connection errors. In that case,
