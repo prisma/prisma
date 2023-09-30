@@ -82,13 +82,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -106,6 +100,9 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
+      - run: docker compose -f docker/docker-compose.yml down
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres
+
       - run: pnpm run test:functional --flavor ${{ matrix.flavor }} --shard ${{ matrix.shard }} --runInBand
         working-directory: packages/client
         env:
@@ -115,6 +112,9 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
           RECORDINGS: write
+
+      - run: docker compose -f docker/docker-compose.yml down
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres
 
       - run: pnpm run test:functional --flavor ${{ matrix.flavor }} --shard ${{ matrix.shard }} --runInBand
         working-directory: packages/client
