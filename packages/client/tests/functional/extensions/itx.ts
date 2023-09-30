@@ -165,6 +165,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
       const result = xprisma.$transaction(async (tx) => {
         await tx.user.createAlt({
           data: {
+            id: copycat.uuid(0).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -173,6 +174,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
 
         await tx.user.createAlt({
           data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
