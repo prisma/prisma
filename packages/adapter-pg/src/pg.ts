@@ -179,7 +179,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
           throw error
         }
         
-        console.log("### result", result)
+        // console.log("### result", result)
 
         if (process.env.RECORDINGS == 'write') {
           await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
