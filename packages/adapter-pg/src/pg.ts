@@ -110,21 +110,23 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const testName = globalThis['testName']
     // console.log('!!!testSuiteName!!!', testSuiteName)
     // console.log('!!!testName!!!', testName)
+    
     try {
       let recordingFileName = ''
+
       if (testName) {
         recordingFileName = path.resolve('recordings', `${testName.replace(/[\/:*?"<>|]/g, '_')}.recording`)
-        if(recordingFileName.length > 250) recordingFileName.replace("undefined", "u").replace("undefined", "u").replace("undefined", "u").replace("relationMode", "rM").replace("provider","p").replace("onUpdate", "oU").replace("onDelete", "oD")
+        // avoid ENAMETOLONG with terrible hack
+        if(recordingFileName.length > 250)
+          recordingFileName.replace("undefined", "u").replace("undefined", "u").replace("undefined", "u").replace("relationMode", "rM").replace("provider","p").replace("onUpdate", "oU").replace("onDelete", "oD")
       } else {
         throw Error('testName is undefined')
       }
 
       let result: any = ''
-
-      const recordings = process.env.RECORDINGS
       //console.log({ recordings })
 
-      if (recordings == 'read') {
+      if (process.env.RECORDINGS == 'read') {
         const resultString = await this.readExpectedResponse(recordingFileName, sql.trim())
         // console.log("found this result: ", resultString)
         result = JSON.parse(resultString)
@@ -132,7 +134,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
         
         result = await this.client.query({ text: sql, values, rowMode: 'array' })
         
-        if (recordings == 'write') {
+        if (process.env.RECORDINGS == 'write') {
           await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
         }
       }

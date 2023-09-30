@@ -90,7 +90,7 @@ function setupTestSuiteMatrix(
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
 
-        console.log("setupTextSuiteMatrix beforeAll", suiteName)
+        // console.log("setupTextSuiteMatrix beforeAll", suiteName)
         globalThis['testName'] = suiteName
 
         const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
