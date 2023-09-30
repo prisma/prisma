@@ -17,9 +17,9 @@ on:
         default: buildjet-4vcpu-ubuntu-2004
         required: false
       jobTimeout:
-        description: Timeout for the jobs. Default is 35 minutes
+        description: Timeout for the jobs. Default is 90 minutes
         type: number
-        default: 35
+        default: 90
         required: false
       jobsToRun:
         description: Jobs to run. See .github/workflows/scripts/detect-jobs-to-run.js script
