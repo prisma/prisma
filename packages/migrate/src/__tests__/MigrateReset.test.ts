@@ -2,14 +2,131 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { MigrateReset } from '../commands/MigrateReset'
+import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
 
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
+jest.mock('../utils/seed')
+
 function removeSeedlingEmoji(str: string) {
   return str.replace('🌱  ', '')
 }
+
+describe('Enable seed args in reset', () => {
+  const mockedExecuteSeedCommand = jest.mocked(executeSeedCommand)
+  const mockedGetSeedCommandFromPackageJson = jest.mocked(getSeedCommandFromPackageJson)
+
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
+
+  it('Should execute the `executeSeedCommand` with extraArgs as undefined when no seed args provided', async () => {
+    // Given
+    ctx.fixture('reset')
+    prompt.inject(['y']) // simulate user yes input
+    mockedGetSeedCommandFromPackageJson.mockResolvedValue('seedCommandToExecute')
+    mockedExecuteSeedCommand.mockResolvedValue(true)
+
+    const result = MigrateReset.new().parse(['--allow-seed-args'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+      Applying migration \`20201231000000_init\`
+
+      Database reset successful
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+
+
+      🌱  The seed command has been executed.
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(mockedExecuteSeedCommand).toHaveBeenCalledWith({
+      commandFromConfig: 'seedCommandToExecute',
+      extraArgs: undefined,
+    })
+    expect(mockedGetSeedCommandFromPackageJson).toHaveBeenCalled()
+  })
+
+  it('Should execute the `executeSeedCommand` with extraArgs as when provided', async () => {
+    // Given
+    ctx.fixture('reset')
+    prompt.inject(['y']) // simulate user yes input
+    mockedGetSeedCommandFromPackageJson.mockResolvedValue('seedCommandToExecute')
+    mockedExecuteSeedCommand.mockResolvedValue(true)
+
+    const result = MigrateReset.new().parse(['--allow-seed-args', '--environment', 'development'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+      Applying migration \`20201231000000_init\`
+
+      Database reset successful
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+
+
+      🌱  The seed command has been executed.
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(mockedExecuteSeedCommand).toHaveBeenCalledWith({
+      commandFromConfig: 'seedCommandToExecute',
+      extraArgs: '--environment development',
+    })
+    expect(mockedGetSeedCommandFromPackageJson).toHaveBeenCalled()
+  })
+
+  it('Should execute the `executeSeedCommand` with extraArgs and prevent the system defined args to reach executeSeed', async () => {
+    // Given
+    ctx.fixture('reset')
+    prompt.inject(['y']) // simulate user yes input
+    mockedGetSeedCommandFromPackageJson.mockResolvedValue('seedCommandToExecute')
+    mockedExecuteSeedCommand.mockResolvedValue(true)
+
+    const result = MigrateReset.new().parse(['--allow-seed-args', '--environment', 'development', '--skip-generate'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+      Applying migration \`20201231000000_init\`
+
+      Database reset successful
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+
+
+      🌱  The seed command has been executed.
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(mockedExecuteSeedCommand).toHaveBeenCalledWith({
+      commandFromConfig: 'seedCommandToExecute',
+      extraArgs: '--environment development',
+    })
+    expect(mockedGetSeedCommandFromPackageJson).toHaveBeenCalled()
+  })
+})
 
 describe('common', () => {
   it('wrong flag', async () => {
@@ -242,9 +359,9 @@ describe('reset', () => {
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-            An error occurred while running the seed command:
-            Error: Command failed with exit code 1: node prisma/seed.js
-        `)
+                  An error occurred while running the seed command:
+                  Error: Command failed with exit code 1: node prisma/seed.js
+            `)
     expect(mockExit).toHaveBeenCalledWith(1)
   })
 
