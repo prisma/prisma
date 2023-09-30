@@ -35,7 +35,7 @@ describe('getProxyAgent', () => {
     expect(getProxyAgent('http://example.com')).toBeUndefined()
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "An error occurred in getProxyAgent(), no proxy agent will be used.,Error: Error while instantiating HttpProxyAgent with URL: "proxy.example.com"
-      TypeError [ERR_INVALID_URL]: Invalid URL
+      TypeError: Invalid URL
       Check the following env vars "http_proxy" or "HTTP_PROXY". The value should be a valid URL starting with "http://""
     `)
   })
@@ -44,7 +44,7 @@ describe('getProxyAgent', () => {
     expect(getProxyAgent('https://example.com')).toBeUndefined()
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "An error occurred in getProxyAgent(), no proxy agent will be used.,Error: Error while instantiating HttpsProxyAgent with URL: "proxy.example.com"
-      TypeError [ERR_INVALID_URL]: Invalid URL
+      TypeError: Invalid URL
       Check the following env vars "https_proxy" or "HTTPS_PROXY". The value should be a valid URL starting with "https://""
     `)
   })
@@ -54,7 +54,7 @@ describe('getProxyAgent', () => {
     expect(getProxyAgent('http://example.com')).toBeUndefined()
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "An error occurred in getProxyAgent(), no proxy agent will be used.,Error: Error while instantiating HttpProxyAgent with URL: "proxy.example.com"
-      TypeError [ERR_INVALID_URL]: Invalid URL
+      TypeError: Invalid URL
       Check the following env vars "http_proxy" or "HTTP_PROXY". The value should be a valid URL starting with "http://""
     `)
   })
@@ -63,7 +63,7 @@ describe('getProxyAgent', () => {
     expect(getProxyAgent('https://example.com')).toBeUndefined()
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "An error occurred in getProxyAgent(), no proxy agent will be used.,Error: Error while instantiating HttpsProxyAgent with URL: "proxy.example.com"
-      TypeError [ERR_INVALID_URL]: Invalid URL
+      TypeError: Invalid URL
       Check the following env vars "https_proxy" or "HTTPS_PROXY". The value should be a valid URL starting with "https://""
     `)
   })
