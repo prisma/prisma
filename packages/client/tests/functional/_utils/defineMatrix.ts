@@ -25,6 +25,7 @@ type TestsFactoryFn<MatrixT extends TestSuiteMatrix> = (
   suiteMeta: TestCallbackSuiteMeta,
   clientMeta: ClientMeta,
   setupDatabase: () => Promise<void>,
+  dropDatabase: () => Promise<void>,
 ) => void
 
 export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
