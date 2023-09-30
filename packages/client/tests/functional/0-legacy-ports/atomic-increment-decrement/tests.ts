@@ -6,12 +6,14 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
+let email = copycat.email(12)
+
 testMatrix.setupTestSuite(() => {
   beforeEach(async () => {
     await prisma.user.deleteMany({})
     await prisma.user.create({
       data: {
-        email: copycat.email(12),
+        email: email,
         age: 20,
         credit: 10.0,
       },
@@ -21,7 +23,7 @@ testMatrix.setupTestSuite(() => {
   test('atomic increment', async () => {
     const result = await prisma.user.update({
       where: {
-        email: copycat.email(71),
+        email: email,
       },
       data: {
         credit: {
@@ -40,7 +42,7 @@ testMatrix.setupTestSuite(() => {
   test('atomic decrement', async () => {
     const result = await prisma.user.update({
       where: {
-        email: copycat.email(11),
+        email: email,
       },
       data: {
         credit: {
@@ -59,7 +61,7 @@ testMatrix.setupTestSuite(() => {
   test('atomic increment with negative value', async () => {
     const result = await prisma.user.update({
       where: {
-        email: copycat.email(61),
+        email: email,
       },
       data: {
         credit: {
@@ -78,7 +80,7 @@ testMatrix.setupTestSuite(() => {
   test('atomic decrement with negative', async () => {
     const result = await prisma.user.update({
       where: {
-        email: copycat.email(81),
+        email: email,
       },
       data: {
         credit: {
