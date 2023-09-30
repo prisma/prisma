@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -9,8 +9,8 @@ declare let prisma: PrismaClient
 // https://github.com/prisma/prisma/issues/15044
 testMatrix.setupTestSuite(() => {
   test('should not throw error when using connect inside transaction', async () => {
-    const userName = faker.person.firstName()
-    const walletName = faker.person.firstName()
+    const userName = copycat.firstName("user")
+    const walletName = copycat.firstName("wallet")
 
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
