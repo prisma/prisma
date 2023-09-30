@@ -130,10 +130,31 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
         const resultString = await this.readExpectedResponse(recordingFileName, sql.trim())
         // console.log("found this result: ", resultString)
         result = JSON.parse(resultString)
+
+        // Throw error if the result was marked as en exception
+        if(result.__type == "exception") {
+          throw new Error(result)
+        }
       } else {
         
-        result = await this.client.query({ text: sql, values, rowMode: 'array' })
+        // console.log("### query", sql, values)
+        try {
+          result = await this.client.query({ text: sql, values, rowMode: 'array' })
+        } catch (error) {
+          
+          // console.log("### error", error)
+
+          // mark error object as exception
+          error.__type = "exception"
+          // write error to file as usual
+          await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(error) + '\n\n', { flag: 'a' })
+
+          // then throw anyway of course
+          throw error
+        }
         
+        console.log("### result", result)
+
         if (process.env.RECORDINGS == 'write') {
           await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
         }
