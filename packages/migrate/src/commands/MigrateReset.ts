@@ -95,6 +95,8 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
+    if (!args['--allow-seed-args'] && userPassedArgList.length) return this.help()
+
     await checkUnsupportedDataProxy('migrate reset', args, true)
 
     if (args['--help']) {
