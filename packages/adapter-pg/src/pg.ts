@@ -114,6 +114,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
       let recordingFileName = ''
       if (testName) {
         recordingFileName = path.resolve('recordings', `${testName.replace(/[\/:*?"<>|]/g, '_')}.recording`)
+        if(recordingFileName.length > 250) recordingFileName.replaceAll("undefined", "u").replace("relationMode", "rM").replace("provider","p").replace("onUpdate", "oU").replace("onDelete", "oD")
       } else {
         throw Error('testName is undefined')
       }
