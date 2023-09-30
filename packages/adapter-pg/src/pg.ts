@@ -105,7 +105,11 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
               lineNumbersUsed.add(lineNumber); // Add the found line number to the set
               resolve(line) // Resolve the promise with the found line
               done = true
-            } else if (line.includes(searchString)) {
+            } else if (
+              line.includes(searchString) ||
+              this.matchesScrambledSQL(line, searchString)
+            ) {
+              // TODO Also add values here to be sure
               found = true
               // mark line as used
               // console.log("# mark as used (as query)", lineNumber, searchString, line)
@@ -117,12 +121,56 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
       rl.on('close', () => {
         if (!found) {
-          console.log('Search string not found in the file.')
+          console.log(`Search string not found in the file: ${searchString}, (${filePath})`)
           reject(new Error(`Search string not found: ${searchString}, (${filePath})`))
         }
       })
     })
   }
+  private matchesScrambledSQL(lineString: string, searchString: string): boolean {
+    if (searchString.substring(0, 11) != 'INSERT INTO')
+      return false
+
+    const extractInfo = (query: string) => {
+      const tableNameMatch = query.match(/INSERT INTO "(.*?)"/);
+      const columnsMatch = query.match(/\("(.+?)"\)/);
+      const valuesMatch = query.match(/VALUES \((.*?)\)/);
+
+      if (tableNameMatch && columnsMatch && valuesMatch) {
+        const tableName = tableNameMatch[1];
+        const columns = columnsMatch[1].split('","');
+        const values = valuesMatch[1].split(',');
+
+        return { tableName, columns, values };
+      }
+
+      return null;
+    };
+
+    const lineDetails = extractInfo(lineString);
+    const searchDetails = extractInfo(searchString);
+
+    if (!lineDetails || !searchDetails) {
+      return false; // Queries couldn't be parsed
+    }
+
+    // Check if the essential components match, regardless of the order of fields
+    return (
+      // same table
+      lineDetails.tableName === searchDetails.tableName &&
+      // same amount of columns
+      lineDetails.columns.length === searchDetails.columns.length &&
+      // all columns are present in both
+      lineDetails.columns.every(column => searchDetails.columns.includes(column)) &&
+      // same amount of values
+      lineDetails.values.length === searchDetails.values.length &&
+      // and all values are present in both
+      lineDetails.values.every(value => searchDetails.values.includes(value))
+    );
+  }
+
+
+
 
   /**
    * Run a query against the database, returning the result set.
@@ -138,11 +186,10 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     // console.log('!!!testName!!!', testName)
 
     try {
-      let recordingFileName = ''
 
+      let recordingFileName = ''
       if (testName) {
         recordingFileName = path.join('recordings', `${testName.replace(/[\/:*?"<>|]/g, '_')}.recording`)
-
         // avoid ENAMETOLONG with terrible hack
         if (recordingFileName.length > 250) {
           const replaceDict = {
@@ -168,11 +215,17 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
       //console.log({ recordings })
 
       if (process.env.RECORDINGS == 'read') {
-        const resultString = await this.readExpectedResponse(recordingFileName, sql.trim())
-        // console.log("found this result: ", resultString)
-        result = JSON.parse(resultString)
+        try {
+          const resultString = await this.readExpectedResponse(recordingFileName, sql.trim())
+          // console.log("found this result: ", sql.trim(), resultString)
+          result = JSON.parse(resultString)
+        } catch (error) {
+          // Throw when SQL was not found
+          // console.log("readExpectedResponse error", error)
+          throw new Error(error)
+        }
 
-        // Throw error if the result was marked as en exception
+        // Throw error if the result was marked as an exception
         if (result.__type == "exception") {
           throw new Error(result)
         }
@@ -182,13 +235,15 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
         try {
           result = await this.client.query({ text: sql, values, rowMode: 'array' })
         } catch (error) {
-
+          // allow recording of exception
           // console.log("### error", error)
 
-          // mark error object as exception
-          error.__type = "exception"
-          // write error to file as usual
-          await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(error) + '\n\n', { flag: 'a' })
+          if (process.env.RECORDINGS == 'write') {
+            // mark error object as exception
+            error.__type = "exception"
+            // write error to file as usual
+            await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(error) + '\n\n', { flag: 'a' })
+          }
 
           // then throw anyway of course
           throw error
@@ -197,6 +252,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
         // console.log("### result", result)
 
         if (process.env.RECORDINGS == 'write') {
+          // TODO also write values
           await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
         }
       }
