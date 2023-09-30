@@ -34,12 +34,12 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-       -h, --help   Display this help message
-         --schema   Custom path to your Prisma schema
-  --skip-generate   Skip triggering generators (e.g. Prisma Client)
-      --skip-seed   Skip triggering seed
-      -f, --force   Skip the confirmation prompt
-      --seed-file   Seed files that needs to be included
+        -h, --help   Display this help message
+          --schema   Custom path to your Prisma schema
+   --skip-generate   Skip triggering generators (e.g. Prisma Client)
+       --skip-seed   Skip triggering seed
+--custom-seed-args   Custom args that need to passed during seed (Same as -- argument in prisma db seed)
+       -f, --force   Skip the confirmation prompt
 
 ${bold('Examples')}
 
@@ -66,7 +66,7 @@ ${bold('Examples')}
       '--skip-seed': Boolean,
       '--schema': String,
       '--telemetry-information': String,
-      '--seed-file': String,
+      '--custom-seed-args': String,
     })
 
     if (isError(args)) {
@@ -150,7 +150,10 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
 
       if (seedCommandFromPkgJson) {
         console.info() // empty line
-        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
+        const successfulSeeding = await executeSeedCommand({
+          commandFromConfig: seedCommandFromPkgJson,
+          extraArgs: args['--custom-seed-args'] ?? undefined,
+        })
         if (successfulSeeding) {
           console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
         } else {
@@ -163,16 +166,6 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
         // but we still want to run it for `legacyTsNodeScriptWarning()`
         await verifySeedConfigAndReturnMessage(schemaPath)
       }
-    }
-
-    // Running the custom seed file
-    if (args['--seed-file']) {
-      console.info()
-      console.info(`Running the seed file: ${args['--seed-file']}`)
-
-      const doesSeedSuccessful = await executeSeedCommand({ commandFromConfig: `ts-node ${args['--seed-file']}` })
-      if (!doesSeedSuccessful) process.exit(1)
-      console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
     }
 
     return ``
