@@ -124,7 +124,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
       //console.log({ recordings })
 
       if (recordings == 'read') {
-        const resultString = await this.readExpectedResponse(recordingFileName, sql)
+        const resultString = await this.readExpectedResponse(recordingFileName, sql.trim())
         // console.log("found this result: ", resultString)
         result = JSON.parse(resultString)
       } else {
@@ -132,7 +132,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
         result = await this.client.query({ text: sql, values, rowMode: 'array' })
         
         if (recordings == 'write') {
-          await fsPromises.appendFile(recordingFileName, sql + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
+          await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
         }
       }
 
@@ -157,7 +157,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     debug(`[js::commit]`)
 
     this.finished = true
-    this.client.release()
+    if(process.env.RECORDINGS != "read") this.client.release()
     return ok(undefined)
   }
 
@@ -166,13 +166,13 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     debug(`[js::rollback]`)
 
     this.finished = true
-    this.client.release()
+    if(process.env.RECORDINGS != "read") this.client.release()
     return ok(undefined)
   }
 
   dispose(): Result<void> {
     if (!this.finished) {
-      this.client.release()
+      if(process.env.RECORDINGS != "read") this.client.release()
     }
     return ok(undefined)
   }
@@ -191,7 +191,9 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
     const tag = '[js::startTransaction]'
     debug(`${tag} options: %O`, options)
 
-    const connection = await this.client.connect()
+    let connection: any = undefined
+    if(process.env.RECORDINGS != "read") connection = await this.client.connect()
+
     return ok(new PgTransaction(connection, options)) //this.testSuiteName, options))
   }
 
