@@ -119,7 +119,7 @@ Invalid \`prisma.resource.create()\` invocation in
 
   XX     providerFlavor !== ProviderFlavors.JS_LIBSQL &&
   XX     providerFlavor !== ProviderFlavors.JS_PLANETSCALE,
-  XX )('stored query trigger .requestTransaction twice should fail', async () => {
+  XX )('stored query triggered twice should fail but not exit process', async () => {
 → XX   const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)
 `;
