@@ -22,29 +22,29 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
 
     await prisma.user.create({
       data: {
-        id: copycat.uuid(0).replaceAll('-', '').slice(-24),
-        email: copycat.email(1),
+        id: copycat.uuid(10).replaceAll('-', '').slice(-24),
+        email: copycat.email(51),
         age: 20,
       },
     })
     await prisma.user.create({
       data: {
-        id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+        id: copycat.uuid(41).replaceAll('-', '').slice(-24),
         email: copycat.email(2),
         age: 45,
       },
     })
     await prisma.user.create({
       data: {
-        id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-        email: copycat.email(3),
+        id: copycat.uuid(28).replaceAll('-', '').slice(-24),
+        email: copycat.email(23),
         age: 60,
       },
     })
     await prisma.user.create({
       data: {
-        id: copycat.uuid(3).replaceAll('-', '').slice(-24),
-        email: copycat.email(4),
+        id: copycat.uuid(93).replaceAll('-', '').slice(-24),
+        email: copycat.email(44),
         age: 63,
       },
     })
@@ -64,10 +64,10 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
     })
 
     const results = await Promise.all([
-      prisma.user.findUnique({ where: { email: copycat.email(1) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(2) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(3) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(4) } }),
+      prisma.user.findUnique({ where: { email: copycat.email(12) } }),
+      prisma.user.findUnique({ where: { email: copycat.email(92) } }),
+      prisma.user.findUnique({ where: { email: copycat.email(73) } }),
+      prisma.user.findUnique({ where: { email: copycat.email(54) } }),
     ])
 
     expect(results).toMatchInlineSnapshot(`

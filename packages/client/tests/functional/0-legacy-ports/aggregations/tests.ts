@@ -10,25 +10,25 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({
       data: {
-        email: copycat.email(1),
+        email: copycat.email(51),
         age: 20,
       },
     })
     await prisma.user.create({
       data: {
-        email: copycat.email(2),
+        email: copycat.email(12),
         age: 45,
       },
     })
     await prisma.user.create({
       data: {
-        email: copycat.email(3),
+        email: copycat.email(36),
         age: 60,
       },
     })
     await prisma.user.create({
       data: {
-        email: copycat.email(4),
+        email: copycat.email(84),
         age: 63,
       },
     })

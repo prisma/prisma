@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(
     test('create required json', async () => {
       const result = await prisma.resource.create({
         data: {
-          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+          id: copycat.uuid(11).replaceAll('-', '').slice(-24),
           requiredJson,
         },
       })
@@ -128,7 +128,7 @@ testMatrix.setupTestSuite(
     test('update required json with where equals', async () => {
       const result = await prisma.resource.update({
         where: {
-          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+          id: copycat.uuid(11).replaceAll('-', '').slice(-24),
         },
         data: {
           requiredJson: {},

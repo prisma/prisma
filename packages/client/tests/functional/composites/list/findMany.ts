@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { setupTestSuite } from './_matrix'
 import { commentListDataA, commentListDataB } from './_testData'
@@ -7,8 +7,8 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-const id1 = faker.database.mongodbObjectId()
-const id2 = faker.database.mongodbObjectId()
+const id1 = copycat.uuid(19).replaceAll('-', '').slice(-24)
+const id2 = copycat.uuid(27).replaceAll('-', '').slice(-24)
 
 setupTestSuite(() => {
   beforeAll(async () => {

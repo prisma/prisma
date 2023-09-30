@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
@@ -6,8 +6,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 
-const id1 = faker.database.mongodbObjectId()
-const id2 = faker.database.mongodbObjectId()
+const id1 = copycat.uuid(16).replaceAll('-', '').slice(-24)
+const id2 = copycat.uuid(22).replaceAll('-', '').slice(-24)
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 

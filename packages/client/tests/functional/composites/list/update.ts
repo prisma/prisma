@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { setupTestSuite } from './_matrix'
 import { commentListDataB } from './_testData'
@@ -10,7 +10,7 @@ declare let prisma: PrismaClient
 setupTestSuite(() => {
   let id
   beforeEach(async () => {
-    id = faker.database.mongodbObjectId()
+    id = copycat.uuid(18).replaceAll('-', '').slice(-24)
     await prisma.commentRequiredList.create({ data: commentListDataB(id) })
   })
 

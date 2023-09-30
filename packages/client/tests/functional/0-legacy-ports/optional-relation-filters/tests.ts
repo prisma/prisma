@@ -20,14 +20,14 @@ testMatrix.setupTestSuite(
 
       await prisma.user.create({
         data: {
-          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-          email: copycat.email(1),
+          id: copycat.uuid(31).replaceAll('-', '').slice(-24),
+          email: copycat.email(21),
         },
       })
       await prisma.user.create({
         data: {
-          id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-          email: copycat.email(2),
+          id: copycat.uuid(62).replaceAll('-', '').slice(-24),
+          email: copycat.email(52),
           bio: {
             create: {},
           },
@@ -35,8 +35,8 @@ testMatrix.setupTestSuite(
       })
       await prisma.user.create({
         data: {
-          id: copycat.uuid(3).replaceAll('-', '').slice(-24),
-          email: copycat.email(3),
+          id: copycat.uuid(31).replaceAll('-', '').slice(-24),
+          email: copycat.email(37),
           bio: {
             create: {
               text: 'Hello World',

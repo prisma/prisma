@@ -4,13 +4,13 @@ import { copycat } from '@snaplet/copycat'
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 export async function setup(_prisma: unknown) {
-  const userId1 = copycat.uuid(1).replaceAll('-', '').slice(-24)
-  const referralId = copycat.uuid(2).replaceAll('-', '').slice(-24)
-  const postId1 = `01${copycat.uuid(3).replaceAll('-', '').slice(-26)}`
-  const postId2 = `02${copycat.uuid(4).replaceAll('-', '').slice(-26)}`
-  const postId3 = `03${copycat.uuid(5).replaceAll('-', '').slice(-26)}`
-  const profileId = copycat.uuid(6).replaceAll('-', '').slice(-24)
-  const ccn = copycat.uuid(7).replaceAll('-', '').slice(-24)
+  const userId1 = copycat.uuid(67).replaceAll('-', '').slice(-24)
+  const referralId = copycat.uuid(24).replaceAll('-', '').slice(-24)
+  const postId1 = `01${copycat.uuid(91).replaceAll('-', '').slice(-26)}`
+  const postId2 = `02${copycat.uuid(57).replaceAll('-', '').slice(-26)}`
+  const postId3 = `03${copycat.uuid(60).replaceAll('-', '').slice(-26)}`
+  const profileId = copycat.uuid(80).replaceAll('-', '').slice(-24)
+  const ccn = copycat.uuid(70).replaceAll('-', '').slice(-24)
 
   const prisma = _prisma as PrismaClient
 

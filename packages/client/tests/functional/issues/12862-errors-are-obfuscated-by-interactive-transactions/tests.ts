@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
@@ -12,8 +12,8 @@ testMatrix.setupTestSuite(
     test('should propagate the correct error when a method fails', async () => {
       const user = await prisma.user.create({
         data: {
-          email: faker.internet.email(),
-          name: faker.person.firstName(),
+          email: copycat.email(91),
+          name: copycat.firstName(12),
         },
       })
 
@@ -21,7 +21,7 @@ testMatrix.setupTestSuite(
         prisma.post.create({
           data: {
             authorId: user.id,
-            title: faker.lorem.sentence(),
+            title: copycat.words(3),
             viewCount: -1, // should fail, must be >= 0
           },
         }),
@@ -31,8 +31,8 @@ testMatrix.setupTestSuite(
     test('should propagate the correct error when a method fails inside an transaction', async () => {
       const user = await prisma.user.create({
         data: {
-          email: faker.internet.email(),
-          name: faker.person.firstName(),
+          email: copycat.email(47),
+          name: copycat.firstName(96),
         },
       })
 
@@ -41,7 +41,7 @@ testMatrix.setupTestSuite(
           prisma.post.create({
             data: {
               authorId: user.id,
-              title: faker.lorem.sentence(),
+              title: copycat.words(18),
               viewCount: -1, // should fail, must be >= 0
             },
           }),
@@ -54,15 +54,15 @@ testMatrix.setupTestSuite(
         prisma.$transaction(async (client) => {
           const user = await client.user.create({
             data: {
-              email: faker.internet.email(),
-              name: faker.person.firstName(),
+              email: copycat.email(76),
+              name: copycat.firstName(4),
             },
           })
 
           const post = await client.post.create({
             data: {
               authorId: user.id,
-              title: faker.lorem.sentence(),
+              title: copycat.words(22),
               viewCount: -1, // should fail, must be >= 0
             },
           })

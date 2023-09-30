@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -206,7 +206,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   ] as Array<[string, (email: string) => any]>
 
   describe.each(tests)('%s', (name, fn) => {
-    const email = faker.internet.email()
+    const email = copycat.email(75)
     const createPromise = () => {
       return fn(email)
     }

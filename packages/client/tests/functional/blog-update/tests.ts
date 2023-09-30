@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -8,9 +8,9 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   test('should create a user and update that field on that user', async () => {
-    const email = faker.internet.email()
-    const name = faker.person.firstName()
-    const newEmail = faker.internet.email()
+    const email = copycat.email(16)
+    const name = copycat.firstName(41)
+    const newEmail = copycat.email(82)
 
     await prisma.user.create({
       data: {
@@ -41,9 +41,9 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('should create a user and post and connect them together', async () => {
-    const email = faker.internet.email()
-    const name = faker.person.firstName()
-    const title = faker.lorem.slug()
+    const email = copycat.email(16)
+    const name = copycat.firstName(12)
+    const title = copycat.words(81)
     const published = true
 
     const user = await prisma.user.create({
@@ -102,9 +102,9 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('should create a user and post and disconnect them', async () => {
-    const email = faker.internet.email()
-    const name = faker.person.firstName()
-    const title = faker.lorem.slug()
+    const email = copycat.email(19)
+    const name = copycat.firstName(41)
+    const title = copycat.words(18)
     const published = true
 
     const user = await prisma.user.create({
@@ -167,14 +167,14 @@ testMatrix.setupTestSuite(() => {
 
   test('should create a user with posts and a profile and update itself and nested connections setting fields to null', async () => {
     const someDate = new Date('2020-01-01T00:00:00.348Z')
-    const email = faker.internet.email()
-    const name = faker.person.firstName()
-    const newEmail = faker.internet.email()
-    const title = faker.lorem.slug()
-    const content = faker.lorem.sentence()
-    const optional = faker.lorem.sentence()
-    const bio = faker.lorem.sentence()
-    const notrequired = faker.lorem.word()
+    const email = copycat.email(61)
+    const name = copycat.firstName(41)
+    const newEmail = copycat.email(72)
+    const title = copycat.words(21)
+    const content = copycat.paragraph(91)
+    const optional = copycat.paragraph(25)
+    const bio = copycat.paragraph(63)
+    const notrequired = copycat.paragraph(74)
 
     await prisma.user.create({
       data: {

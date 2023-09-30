@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { createMemoryTest } from '../_utils/createMemoryTest'
 
@@ -15,7 +15,7 @@ void createMemoryTest({
   async run(client) {
     const data = Array.from({ length: 50 }, () => {
       return {
-        email: faker.internet.email(),
+        email: copycat.email(81),
       }
     })
 

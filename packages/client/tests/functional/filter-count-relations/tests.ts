@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -6,8 +6,8 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-const email = faker.internet.email()
-const title = faker.lorem.sentence()
+const email = copycat.email(21)
+const title = copycat.paragraph(10)
 
 testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
@@ -17,7 +17,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
 
     await prisma.user.create({
       data: {
-        email: faker.internet.email(),
+        email: copycat.email(12),
         blocked: true,
         balance: 50,
         groups: { connect: { id: groupId } },
@@ -26,7 +26,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
 
     await prisma.user.create({
       data: {
-        email: faker.internet.email(),
+        email: copycat.email(43),
         balance: 10,
         groups: { connect: { id: groupId } },
       },

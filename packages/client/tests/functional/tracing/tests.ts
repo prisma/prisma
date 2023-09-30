@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { Attributes, context, trace } from '@opentelemetry/api'
 import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
@@ -204,7 +204,7 @@ testMatrix.setupTestSuite(
     }
 
     describe('tracing on crud methods', () => {
-      let sharedEmail = faker.internet.email()
+      let sharedEmail = copycat.email(16)
 
       test('create', async () => {
         await prisma.user.create({
@@ -237,7 +237,7 @@ testMatrix.setupTestSuite(
       })
 
       test('update', async () => {
-        const newEmail = faker.internet.email()
+        const newEmail = copycat.email(18)
 
         await prisma.user.update({
           data: {
@@ -343,7 +343,7 @@ testMatrix.setupTestSuite(
 
     describe('tracing on transactions', () => {
       test('$transaction', async () => {
-        const email = faker.internet.email()
+        const email = copycat.email(80)
 
         await prisma.$transaction([
           prisma.user.create({
@@ -385,7 +385,7 @@ testMatrix.setupTestSuite(
       })
 
       test('interactive-transactions', async () => {
-        const email = faker.internet.email()
+        const email = copycat.email(52)
 
         await prisma.$transaction(async (client) => {
           await client.user.create({
@@ -468,7 +468,7 @@ testMatrix.setupTestSuite(
 
     test('tracing with custom span', async () => {
       const tracer = trace.getTracer('MyApp')
-      const email = faker.internet.email()
+      const email = copycat.email(53)
 
       await tracer.startActiveSpan('create-user', async (span) => {
         try {
@@ -503,7 +503,7 @@ testMatrix.setupTestSuite(
       })
 
       test('should succeed', async () => {
-        const email = faker.internet.email()
+        const email = copycat.email(97)
 
         _prisma.$use(async (params, next) => {
           // Manipulate params here
@@ -548,7 +548,7 @@ testMatrix.setupTestSuite(
       })
 
       test('should trace the implicit $connect call', async () => {
-        const email = faker.internet.email()
+        const email = copycat.email(52)
 
         await _prisma.user.findMany({
           where: {

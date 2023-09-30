@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
@@ -9,7 +9,7 @@ import testMatrix from './_matrix'
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'error' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-const email = faker.internet.email()
+const email = copycat.email(57)
 
 testMatrix.setupTestSuite(
   () => {

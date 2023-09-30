@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
@@ -8,8 +8,8 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@pr
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
-const existingEmail = faker.internet.email()
-const nonExistingEmail = faker.internet.email()
+const existingEmail = copycat.email(71)
+const nonExistingEmail = copycat.email(80)
 
 testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   })
 
   testIf(clientMeta.runtime !== 'edge')('works with transactions', async () => {
-    const newEmail = faker.internet.email()
+    const newEmail = copycat.email(90)
     const result = prisma.$transaction([
       prisma.user.create({ data: { email: newEmail } }),
       prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } }),
@@ -41,7 +41,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   })
 
   testIf(clientMeta.runtime !== 'edge')('works with interactive transactions', async () => {
-    const newEmail = faker.internet.email()
+    const newEmail = copycat.email(99)
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({ data: { email: newEmail } })
       await prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } })

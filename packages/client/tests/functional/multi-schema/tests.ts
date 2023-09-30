@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -8,11 +8,11 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
-    const email = faker.internet.email()
-    const title = faker.person.jobTitle()
+    const email = copycat.email(41)
+    const title = copycat.word(82)
 
-    const newEmail = faker.internet.email()
-    const newTitle = faker.person.jobTitle()
+    const newEmail = copycat.email(13)
+    const newTitle = copycat.word(17)
 
     describe('multischema', () => {
       test('create', async () => {

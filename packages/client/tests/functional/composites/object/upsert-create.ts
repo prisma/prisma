@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { setupTestSuite } from './_matrix'
 // @ts-ignore
@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
 setupTestSuite(({ contentProperty }) => {
   let id: string
   beforeEach(() => {
-    id = faker.database.mongodbObjectId()
+    id = copycat.uuid(17).replaceAll('-', '').slice(-24)
   })
 
   test('set', async () => {

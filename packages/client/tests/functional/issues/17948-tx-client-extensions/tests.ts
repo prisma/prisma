@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -9,7 +9,7 @@ declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(() => {
   test('extension method is bound to transaction client within itx', async () => {
-    const email = faker.internet.email()
+    const email = copycat.email(84)
 
     const xprisma = prisma.$extends({
       model: {

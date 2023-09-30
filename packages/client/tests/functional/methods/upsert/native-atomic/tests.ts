@@ -1,10 +1,10 @@
-import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
 import { ProviderFlavors } from '../../../_utils/providers'
 import { NewPrismaClient } from '../../../_utils/types'
 import testMatrix from './_matrix'
+import { copycat } from '@snaplet/copycat'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -69,9 +69,9 @@ testMatrix.setupTestSuite(
     skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
       'should only use ON CONFLICT when update arguments do not have any nested queries',
       async () => {
-        const name = faker.person.firstName()
-        const title = faker.person.jobTitle()
-        const title2 = faker.person.jobTitle()
+        const name = copycat.firstName(34)
+        const title = copycat.word(60)
+        const title2 = copycat.word(82)
 
         await client.user.create({
           data: {
@@ -196,7 +196,7 @@ testMatrix.setupTestSuite(
     skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
       'should only use ON CONFLICT when there is only 1 unique field in the where clause',
       async () => {
-        const name = faker.person.firstName()
+        const name = copycat.firstName(74)
 
         const checker = new UpsertChecker(client)
 
@@ -238,7 +238,7 @@ testMatrix.setupTestSuite(
     skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
       'should only use ON CONFLICT when the unique field defined in where clause has the same value as defined in the create arguments',
       async () => {
-        const name = faker.person.firstName()
+        const name = copycat.firstName(37)
 
         const checker = new UpsertChecker(client)
 
@@ -278,7 +278,7 @@ testMatrix.setupTestSuite(
 
     // TODO flaky on CI, never fails locally, reason unknown
     skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('should perform an upsert using ON CONFLICT', async () => {
-      const name = faker.person.firstName()
+      const name = copycat.firstName(17)
 
       const checker = new UpsertChecker(client)
 
@@ -318,7 +318,7 @@ testMatrix.setupTestSuite(
     skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
       'should perform an upsert using ON CONFLICT with id',
       async () => {
-        const name = faker.person.firstName()
+        const name = copycat.firstName(58)
 
         const checker = new UpsertChecker(client)
 

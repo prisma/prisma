@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { createMemoryTest } from '../_utils/createMemoryTest'
 
@@ -13,8 +13,8 @@ void createMemoryTest({
     for (let i = 0; i < 5000; i++) {
       await client.teams.create({
         data: {
-          key: faker.lorem.word(),
-          title: faker.lorem.sentence(),
+          key: copycat.word(28),
+          title: copycat.words(16),
           created_at: new Date(),
           updated_at: new Date(),
           country_id: 0,

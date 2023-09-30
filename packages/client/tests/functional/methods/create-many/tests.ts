@@ -9,10 +9,10 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   () => {
     test('should create many records', async () => {
-      const email1 = copycat.email(1)
-      const email2 = copycat.email(2)
-      const email3 = copycat.email(3)
-      const email4 = copycat.email(4)
+      const email1 = copycat.email(32)
+      const email2 = copycat.email(65)
+      const email3 = copycat.email(38)
+      const email4 = copycat.email(47)
 
       const created = await prisma.user.createMany({
         data: [
@@ -35,9 +35,9 @@ testMatrix.setupTestSuite(
     })
 
     test('should create a single record with a single nested create', async () => {
-      const email = copycat.email(5)
-      const name = copycat.firstName(6)
-      const title = copycat.firstName(7)
+      const email = copycat.email(45)
+      const name = copycat.firstName(62)
+      const title = copycat.firstName(97)
 
       const res = await prisma.user.create({
         include: {
@@ -64,11 +64,11 @@ testMatrix.setupTestSuite(
 
     test('should create a single record with many nested create', async () => {
       const email = copycat.email(19)
-      const name = copycat.firstName(2)
-      const title1 = copycat.firstName(3)
-      const title2 = copycat.firstName(4)
-      const title3 = copycat.firstName(5)
-      const title4 = copycat.firstName(6)
+      const name = copycat.firstName(28)
+      const title1 = copycat.firstName(63)
+      const title2 = copycat.firstName(47)
+      const title3 = copycat.firstName(50)
+      const title4 = copycat.firstName(60)
 
       const res = await prisma.user.create({
         include: {

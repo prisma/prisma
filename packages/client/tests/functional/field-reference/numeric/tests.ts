@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const prisma: PrismaClient
 
-const name = faker.lorem.sentence()
+const name = copycat.paragraph(97)
 testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
   beforeAll(async () => {
     const { id: storeId } = await prisma.store.create({

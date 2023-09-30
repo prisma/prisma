@@ -9,14 +9,14 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   (suiteConfig) => {
     const fakeUser = {
-      id: copycat.uuid(3).replaceAll('-', '').slice(-24),
-      email: copycat.email(1),
-      name: copycat.firstName(1),
+      id: copycat.uuid(30).replaceAll('-', '').slice(-24),
+      email: copycat.email(82),
+      name: copycat.firstName(10),
     }
 
     const fakeProfile = {
-      id: copycat.uuid(3).replaceAll('-', '').slice(-24),
-      bio: copycat.word(1),
+      id: copycat.uuid(37).replaceAll('-', '').slice(-24),
+      bio: copycat.word(19),
     }
 
     beforeAll(async () => {

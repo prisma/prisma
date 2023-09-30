@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -73,7 +73,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+      const id = suiteConfig.provider === 'mongodb' ? copycat.uuid(24).replaceAll('-', '').slice(-24) : copycat.uuid(28)
 
       await tx.user.create({
         data: {
@@ -145,7 +145,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+      const id = suiteConfig.provider === 'mongodb' ? copycat.uuid(71).replaceAll('-', '').slice(-24) : copycat.uuid(13)
 
       await Promise.all([
         tx.user.findMany({
@@ -206,7 +206,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
       })
     })
 
-    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+    const id = suiteConfig.provider === 'mongodb' ? copycat.uuid(58).replaceAll('-', '').slice(-24) : copycat.uuid(38)
 
     const q1 = client.user.findMany({
       where: {

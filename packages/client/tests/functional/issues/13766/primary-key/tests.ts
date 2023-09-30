@@ -11,8 +11,8 @@ declare let prisma: PrismaClient
 // https://github.com/prisma/prisma/issues/13766
 testMatrix.setupTestSuite(({ provider }) => {
   test('relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation', async () => {
-    const orderId = copycat.uuid(1).replaceAll('-', '').slice(-24)
-    const orderStatusHistoryId = copycat.uuid(2).replaceAll('-', '').slice(-24)
+    const orderId = copycat.uuid(13).replaceAll('-', '').slice(-24)
+    const orderStatusHistoryId = copycat.uuid(25).replaceAll('-', '').slice(-24)
 
     await prisma.order.create({
       data: {
@@ -44,9 +44,9 @@ testMatrix.setupTestSuite(({ provider }) => {
     'relationMode=prisma should prevent updates on a model if any other relation references a field',
     async () => {
       const orderId1 = copycat.uuid(3).replaceAll('-', '').slice(-24)
-      const orderId2 = copycat.uuid(4).replaceAll('-', '').slice(-24)
-      const orderStatusHistoryId1 = copycat.uuid(5).replaceAll('-', '').slice(-24)
-      const orderStatusHistoryId2 = copycat.uuid(6).replaceAll('-', '').slice(-24)
+      const orderId2 = copycat.uuid(44).replaceAll('-', '').slice(-24)
+      const orderStatusHistoryId1 = copycat.uuid(50).replaceAll('-', '').slice(-24)
+      const orderStatusHistoryId2 = copycat.uuid(76).replaceAll('-', '').slice(-24)
 
       await prisma.order.create({
         data: {

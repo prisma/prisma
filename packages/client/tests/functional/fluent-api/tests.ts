@@ -1,12 +1,12 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { House, Post, PrismaClient, Property } from './node_modules/@prisma/client'
 
-const email = faker.internet.email()
-const title = faker.lorem.sentence()
+const email = copycat.email(25)
+const title = copycat.words(21)
 
 declare let prisma: PrismaClient
 
@@ -220,7 +220,7 @@ testMatrix.setupTestSuite(() => {
       const posts = await prisma.user
         .create({
           data: {
-            email: faker.internet.email(),
+            email: copycat.email(67),
           },
         })
         .posts()
@@ -541,7 +541,7 @@ testMatrix.setupTestSuite(() => {
         .$extends({})
         .user.create({
           data: {
-            email: faker.internet.email(),
+            email: copycat.email(53),
           },
         })
         .posts()

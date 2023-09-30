@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
 import { ProviderFlavors } from '../_utils/providers'
@@ -9,7 +9,7 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@pr
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
-const email = faker.internet.email()
+const email = copycat.email(81)
 
 testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
   beforeEach(async () => {

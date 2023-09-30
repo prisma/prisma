@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { ChildProcess } from 'child_process'
 
@@ -38,7 +38,7 @@ testMatrix.setupTestSuite(() => {
     client = newPrismaClient()
     await client.$connect()
 
-    const username = faker.internet.userName()
+    const username = copycat.username(51)
 
     await client.user.create({ data: { username } })
 

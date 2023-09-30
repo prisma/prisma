@@ -11,7 +11,7 @@ testMatrix.setupTestSuite(() => {
     await prisma.user.deleteMany({})
     await prisma.user.create({
       data: {
-        email: copycat.email(1),
+        email: copycat.email(12),
         age: 20,
         credit: 10.0,
       },
@@ -21,7 +21,7 @@ testMatrix.setupTestSuite(() => {
   test('atomic increment', async () => {
     const result = await prisma.user.update({
       where: {
-        email: copycat.email(1),
+        email: copycat.email(71),
       },
       data: {
         credit: {
@@ -40,7 +40,7 @@ testMatrix.setupTestSuite(() => {
   test('atomic decrement', async () => {
     const result = await prisma.user.update({
       where: {
-        email: copycat.email(1),
+        email: copycat.email(11),
       },
       data: {
         credit: {
@@ -59,7 +59,7 @@ testMatrix.setupTestSuite(() => {
   test('atomic increment with negative value', async () => {
     const result = await prisma.user.update({
       where: {
-        email: copycat.email(1),
+        email: copycat.email(61),
       },
       data: {
         credit: {
@@ -78,7 +78,7 @@ testMatrix.setupTestSuite(() => {
   test('atomic decrement with negative', async () => {
     const result = await prisma.user.update({
       where: {
-        email: copycat.email(1),
+        email: copycat.email(81),
       },
       data: {
         credit: {

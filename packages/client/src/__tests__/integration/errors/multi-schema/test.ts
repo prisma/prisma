@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupPostgres'
@@ -9,10 +9,10 @@ import type { PrismaClient } from './node_modules/.prisma/client'
 let prisma: PrismaClient
 const baseUri = process.env.TEST_POSTGRES_URI
 
-const email = faker.internet.email()
-const title = faker.person.jobTitle()
-const newEmail = faker.internet.email()
-const newTitle = faker.person.jobTitle()
+const email = copycat.email(13)
+const title = copycat.word(91)
+const newEmail = copycat.email(82)
+const newTitle = copycat.word(32)
 
 describe('multischema', () => {
   beforeAll(async () => {

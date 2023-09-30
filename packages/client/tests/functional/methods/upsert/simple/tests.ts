@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   test('should create a record using upsert', async () => {
-    const name = faker.person.firstName()
+    const name = copycat.firstName(31)
 
     await prisma.user.upsert({
       where: {
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('should update a record using upsert', async () => {
-    const name = faker.person.firstName()
+    const name = copycat.firstName(82)
 
     await prisma.user.create({
       data: {
