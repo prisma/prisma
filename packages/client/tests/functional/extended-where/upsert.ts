@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto'
+import { copycat } from '@snaplet/copycat'
 
 import testMatrix from './_matrix'
 import { setup } from './_setup'
@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('upsert with where 1 unique (PK)', async () => {
-    const referralId = randomBytes(12).toString('hex')
+    const referralId = copycat.uuid(3).replaceAll('-', '').slice(-24)
     const data = await prisma.user.upsert({
       where: {
         id: vars.userId,
