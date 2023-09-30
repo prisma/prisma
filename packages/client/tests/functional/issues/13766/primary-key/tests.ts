@@ -1,4 +1,5 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
+
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
@@ -10,8 +11,8 @@ declare let prisma: PrismaClient
 // https://github.com/prisma/prisma/issues/13766
 testMatrix.setupTestSuite(({ provider }) => {
   test('relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation', async () => {
-    const orderId = faker.database.mongodbObjectId()
-    const orderStatusHistoryId = faker.database.mongodbObjectId()
+    const orderId = copycat.uuid(3).replaceAll('-', '').slice(-24)
+    const orderStatusHistoryId = copycat.uuid(3).replaceAll('-', '').slice(-24)
 
     await prisma.order.create({
       data: {
@@ -42,10 +43,10 @@ testMatrix.setupTestSuite(({ provider }) => {
   testIf(provider !== Providers.MONGODB)(
     'relationMode=prisma should prevent updates on a model if any other relation references a field',
     async () => {
-      const orderId1 = faker.database.mongodbObjectId()
-      const orderId2 = faker.database.mongodbObjectId()
-      const orderStatusHistoryId1 = faker.database.mongodbObjectId()
-      const orderStatusHistoryId2 = faker.database.mongodbObjectId()
+      const orderId1 = copycat.uuid(3).replaceAll('-', '').slice(-24)
+      const orderId2 = copycat.uuid(3).replaceAll('-', '').slice(-24)
+      const orderStatusHistoryId1 = copycat.uuid(3).replaceAll('-', '').slice(-24)
+      const orderStatusHistoryId2 = copycat.uuid(3).replaceAll('-', '').slice(-24)
 
       await prisma.order.create({
         data: {
