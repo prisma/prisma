@@ -9,6 +9,11 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
+let email1 = copycat.email(51)
+let email2 = copycat.email(2)
+let email3 = copycat.email(23)
+let email4 = copycat.email(44)
+
 testMatrix.setupTestSuite(({ providerFlavor }) => {
   beforeAll(async () => {
     prisma = newPrismaClient({
@@ -23,28 +28,28 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
     await prisma.user.create({
       data: {
         id: copycat.uuid(10).replaceAll('-', '').slice(-24),
-        email: copycat.email(51),
+        email: email1,
         age: 20,
       },
     })
     await prisma.user.create({
       data: {
         id: copycat.uuid(41).replaceAll('-', '').slice(-24),
-        email: copycat.email(2),
+        email: email2,
         age: 45,
       },
     })
     await prisma.user.create({
       data: {
         id: copycat.uuid(28).replaceAll('-', '').slice(-24),
-        email: copycat.email(23),
+        email: email3,
         age: 60,
       },
     })
     await prisma.user.create({
       data: {
         id: copycat.uuid(93).replaceAll('-', '').slice(-24),
-        email: copycat.email(44),
+        email: email4,
         age: 63,
       },
     })
@@ -64,36 +69,36 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
     })
 
     const results = await Promise.all([
-      prisma.user.findUnique({ where: { email: copycat.email(12) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(92) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(73) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(54) } }),
+      prisma.user.findUnique({ where: { email: email1 } }),
+      prisma.user.findUnique({ where: { email: email2 } }),
+      prisma.user.findUnique({ where: { email: email3 } }),
+      prisma.user.findUnique({ where: { email: email4 } }),
     ])
 
     expect(results).toMatchInlineSnapshot(`
       [
         {
           age: 20,
-          email: Pete.Runte93767@broaden-dungeon.info,
-          id: 341952ef935455f20a169c25,
+          email: Katrina.Kerluke91513@mediumillusion.com,
+          id: e1035a36b771b86ec5eb82a9,
           name: null,
         },
         {
           age: 45,
           email: Sam.Mills50272@oozeastronomy.net,
-          id: 02d25579a73a72373fa4e846,
+          id: efa355e5a0b1857a933bde51,
           name: null,
         },
         {
           age: 60,
-          email: Kyla_Beer587@fraternise-assassination.name,
-          id: a85d5d75a3a886cb61eb3a0e,
+          email: Christina_Mohr19867@pongregistry.org,
+          id: 006b529d9c066b318dfc84e3,
           name: null,
         },
         {
           age: 63,
-          email: Arielle.Reichel85426@hunker-string.org,
-          id: a7fe5dac91ab6b0f529430c5,
+          email: Alva_Quitzon71654@worrisomemedium.org,
+          id: b2625b09a5ec62b8d83fcd5b,
           name: null,
         },
       ]
