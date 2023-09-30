@@ -23,10 +23,10 @@ type TransactionClient = pg.PoolClient
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly flavour = 'postgres'
 
-  testSuiteName: any
+  // testSuiteName: any
 
-  constructor(protected readonly client: ClientT, testSuiteName) {
-    this.testSuiteName = testSuiteName
+  constructor(protected readonly client: ClientT) { //, testSuiteName) {
+    // this.testSuiteName = testSuiteName
   }
 
   /**
@@ -106,16 +106,16 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
   private async performIO(query: Query) {
     const { sql, args: values } = query
 
-    const testSuiteName = this.testSuiteName
+    // const testSuiteName = this.testSuiteName
     const testName = globalThis['testName']
     // console.log('!!!testSuiteName!!!', testSuiteName)
     // console.log('!!!testName!!!', testName)
     try {
       let recordingFileName = ''
-      if (testSuiteName && testName) {
+      if (testName) {
         recordingFileName = path.resolve('recordings', `${testName.replace(/[\/:*?"<>|]/g, '_')}.recording`)
       } else {
-        throw Error('testSuiteName or testName is undefined')
+        throw Error('testName is undefined')
       }
 
       let result: any = ''
@@ -148,8 +148,8 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
   finished = false
 
-  constructor(client: pg.PoolClient, testName, readonly options: TransactionOptions) {
-    super(client, testName)
+  constructor(client: pg.PoolClient, /*testName,*/ readonly options: TransactionOptions) {
+    super(client) //, testName)
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -179,8 +179,8 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 }
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
-  constructor(client: pg.Pool, testSuiteName) {
-    super(client, testSuiteName)
+  constructor(client: pg.Pool) { //, testSuiteName) {
+    super(client) //, testSuiteName)
   }
 
   async startTransaction(): Promise<Result<Transaction>> {
@@ -192,7 +192,7 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
     debug(`${tag} options: %O`, options)
 
     const connection = await this.client.connect()
-    return ok(new PgTransaction(connection, this.testSuiteName, options))
+    return ok(new PgTransaction(connection, options)) //this.testSuiteName, options))
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
