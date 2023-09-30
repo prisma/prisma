@@ -140,15 +140,15 @@ function setupTestSuiteMatrix(
 
       beforeEach(() => {
 
-        console.log("setupTextSuiteMatrix beforeEach")
+        // console.log("setupTextSuiteMatrix beforeEach")
 
         const testName = expect.getState().currentTestName
-        console.log({ testName })
+        // console.log({ testName })
         globalThis['testName'] = testName
       })
 
       afterAll(async () => {
-        console.log("setupTextSuiteMatrix afterAll")
+        // console.log("setupTextSuiteMatrix afterAll")
         for (const client of clients) {
           await client.$disconnect().catch(() => {
             // sometimes we test connection errors. In that case,
