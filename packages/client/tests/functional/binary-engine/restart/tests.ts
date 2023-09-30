@@ -1,5 +1,5 @@
-import { copycat } from '@snaplet/copycat'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { copycat } from '@snaplet/copycat'
 import { ChildProcess } from 'child_process'
 
 import { NewPrismaClient } from '../../_utils/types'

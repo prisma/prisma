@@ -10,7 +10,6 @@ testMatrix.setupTestSuite(
   ({ providerFlavor }, __, ___, setupDatabase, dropDatabase) => {
     // TODO fails sometimes with Rejected to value: [LibsqlError: : no such table: main.User]
     skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('example', async () => {
-
       // Clean out database to make sure this can be run repeatedly
       try {
         await dropDatabase()

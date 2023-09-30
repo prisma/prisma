@@ -1,7 +1,6 @@
-import { copycat } from '@snaplet/copycat'
-
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
+import { copycat } from '@snaplet/copycat'
 
 import { Providers } from '../../../_utils/providers'
 import testMatrix from './_matrix'

@@ -1,6 +1,6 @@
-import { copycat } from '@snaplet/copycat'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
+import { copycat } from '@snaplet/copycat'
 
 import { LogEvent } from '../../../src/runtime/getPrismaClient'
 import { NewPrismaClient } from '../_utils/types'

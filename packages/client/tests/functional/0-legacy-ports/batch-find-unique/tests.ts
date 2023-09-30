@@ -9,10 +9,10 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-let email1 = copycat.email(51)
-let email2 = copycat.email(2)
-let email3 = copycat.email(23)
-let email4 = copycat.email(44)
+const email1 = copycat.email(51)
+const email2 = copycat.email(2)
+const email3 = copycat.email(23)
+const email4 = copycat.email(44)
 
 testMatrix.setupTestSuite(({ providerFlavor }) => {
   beforeAll(async () => {

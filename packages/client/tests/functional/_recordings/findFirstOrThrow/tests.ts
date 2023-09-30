@@ -13,7 +13,7 @@ const nonExistingEmail = copycat.email(72)
 
 testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
-    console.log("findfirstOrThrow beforeAll")
+    console.log('findfirstOrThrow beforeAll')
     await prisma.user.create({ data: { email: existingEmail, posts: { create: { title: 'How to exist?' } } } })
   })
 

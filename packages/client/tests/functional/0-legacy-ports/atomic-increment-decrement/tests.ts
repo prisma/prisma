@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-let email = copycat.email(12)
+const email = copycat.email(12)
 
 testMatrix.setupTestSuite(() => {
   beforeEach(async () => {

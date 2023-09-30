@@ -25,7 +25,8 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
   // testSuiteName: any
 
-  constructor(protected readonly client: ClientT) { //, testSuiteName) {
+  constructor(protected readonly client: ClientT) {
+    //, testSuiteName) {
     // this.testSuiteName = testSuiteName
   }
 
@@ -66,7 +67,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
   }
 
   // Worst code ever :shrug: Thanks ChatGPT though!
-  private lineNumbersUsedByFile: Map<string, Set<number>> = new Map();
+  private lineNumbersUsedByFile: Map<string, Set<number>> = new Map()
   private async readExpectedResponse(filePath: string, searchString: string): Promise<string> {
     // console.log("readExpectedResponse", filePath, searchString)
     return new Promise<string>((resolve, reject) => {
@@ -77,7 +78,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
       // console.log("% open", filePath, this.lineNumbersUsedByFile)
       if (!this.lineNumbersUsedByFile.has(filePath)) {
-        this.lineNumbersUsedByFile.set(filePath, new Set());
+        this.lineNumbersUsedByFile.set(filePath, new Set())
       }
 
       const fileStream = createReadStream(filePath)
@@ -87,33 +88,31 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
       let found = false
       let done = false
-      let lineNumber = 0;
+      let lineNumber = 0
 
       // read the lines
       rl.on('line', (line) => {
         lineNumber++
 
         // get linesReadCache
-        const lineNumbersUsed = this.lineNumbersUsedByFile.get(filePath);
+        const lineNumbersUsed = this.lineNumbersUsedByFile.get(filePath)
 
-        if (lineNumbersUsed && !lineNumbersUsed.has(lineNumber)) { // Check if the line has already been found
+        if (lineNumbersUsed && !lineNumbersUsed.has(lineNumber)) {
+          // Check if the line has already been found
           if (!done) {
             if (found) {
               rl.close()
               // mark line as used as well
               // console.log("# mark as used (as result)", lineNumber, searchString, line)
-              lineNumbersUsed.add(lineNumber); // Add the found line number to the set
+              lineNumbersUsed.add(lineNumber) // Add the found line number to the set
               resolve(line) // Resolve the promise with the found line
               done = true
-            } else if (
-              line.includes(searchString) ||
-              this.matchesScrambledSQL(line, searchString)
-            ) {
+            } else if (line.includes(searchString) || this.matchesScrambledSQL(line, searchString)) {
               // TODO Also add values here to be sure
               found = true
               // mark line as used
               // console.log("# mark as used (as query)", lineNumber, searchString, line)
-              lineNumbersUsed.add(lineNumber); // Add the found line number to the set
+              lineNumbersUsed.add(lineNumber) // Add the found line number to the set
             }
           }
         }
@@ -128,30 +127,29 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     })
   }
   private matchesScrambledSQL(lineString: string, searchString: string): boolean {
-    if (searchString.substring(0, 11) != 'INSERT INTO')
-      return false
+    if (searchString.substring(0, 11) != 'INSERT INTO') return false
 
     const extractInfo = (query: string) => {
-      const tableNameMatch = query.match(/INSERT INTO "(.*?)"/);
-      const columnsMatch = query.match(/\("(.+?)"\)/);
-      const valuesMatch = query.match(/VALUES \((.*?)\)/);
+      const tableNameMatch = query.match(/INSERT INTO "(.*?)"/)
+      const columnsMatch = query.match(/\("(.+?)"\)/)
+      const valuesMatch = query.match(/VALUES \((.*?)\)/)
 
       if (tableNameMatch && columnsMatch && valuesMatch) {
-        const tableName = tableNameMatch[1];
-        const columns = columnsMatch[1].split('","');
-        const values = valuesMatch[1].split(',');
+        const tableName = tableNameMatch[1]
+        const columns = columnsMatch[1].split('","')
+        const values = valuesMatch[1].split(',')
 
-        return { tableName, columns, values };
+        return { tableName, columns, values }
       }
 
-      return null;
-    };
+      return null
+    }
 
-    const lineDetails = extractInfo(lineString);
-    const searchDetails = extractInfo(searchString);
+    const lineDetails = extractInfo(lineString)
+    const searchDetails = extractInfo(searchString)
 
     if (!lineDetails || !searchDetails) {
-      return false; // Queries couldn't be parsed
+      return false // Queries couldn't be parsed
     }
 
     // Check if the essential components match, regardless of the order of fields
@@ -161,16 +159,13 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
       // same amount of columns
       lineDetails.columns.length === searchDetails.columns.length &&
       // all columns are present in both
-      lineDetails.columns.every(column => searchDetails.columns.includes(column)) &&
+      lineDetails.columns.every((column) => searchDetails.columns.includes(column)) &&
       // same amount of values
       lineDetails.values.length === searchDetails.values.length &&
       // and all values are present in both
-      lineDetails.values.every(value => searchDetails.values.includes(value))
-    );
+      lineDetails.values.every((value) => searchDetails.values.includes(value))
+    )
   }
-
-
-
 
   /**
    * Run a query against the database, returning the result set.
@@ -186,24 +181,23 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     // console.log('!!!testName!!!', testName)
 
     try {
-
       let recordingFileName = ''
       if (testName) {
         recordingFileName = path.join('recordings', `${testName.replace(/[\/:*?"<>|]/g, '_')}.recording`)
         // avoid ENAMETOLONG with terrible hack
         if (recordingFileName.length > 250) {
           const replaceDict = {
-            "relationMode": "rM",
-            "provider": "p",
-            "onUpdate": "oU",
-            "onDelete": "oD",
-          };
+            relationMode: 'rM',
+            provider: 'p',
+            onUpdate: 'oU',
+            onDelete: 'oD',
+          }
 
           for (const [key, value] of Object.entries(replaceDict)) {
-            recordingFileName = recordingFileName.replace(new RegExp(key, 'g'), value);
+            recordingFileName = recordingFileName.replace(new RegExp(key, 'g'), value)
 
             if (recordingFileName.length < 250) {
-              break;
+              break
             }
           }
         }
@@ -226,11 +220,10 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
         }
 
         // Throw error if the result was marked as an exception
-        if (result.__type == "exception") {
+        if (result.__type == 'exception') {
           throw new Error(result)
         }
       } else {
-
         // console.log("### query", sql, values)
         try {
           result = await this.client.query({ text: sql, values, rowMode: 'array' })
@@ -240,9 +233,11 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
           if (process.env.RECORDINGS == 'write') {
             // mark error object as exception
-            error.__type = "exception"
+            error.__type = 'exception'
             // write error to file as usual
-            await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(error) + '\n\n', { flag: 'a' })
+            await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(error) + '\n\n', {
+              flag: 'a',
+            })
           }
 
           // then throw anyway of course
@@ -253,7 +248,9 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 
         if (process.env.RECORDINGS == 'write') {
           // TODO also write values
-          await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(result) + '\n\n', { flag: 'a' })
+          await fsPromises.appendFile(recordingFileName, sql.trim() + '\n' + JSON.stringify(result) + '\n\n', {
+            flag: 'a',
+          })
         }
       }
 
@@ -278,7 +275,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     debug(`[js::commit]`)
 
     this.finished = true
-    if (process.env.RECORDINGS != "read") this.client.release()
+    if (process.env.RECORDINGS != 'read') this.client.release()
     return ok(undefined)
   }
 
@@ -287,20 +284,21 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     debug(`[js::rollback]`)
 
     this.finished = true
-    if (process.env.RECORDINGS != "read") this.client.release()
+    if (process.env.RECORDINGS != 'read') this.client.release()
     return ok(undefined)
   }
 
   dispose(): Result<void> {
     if (!this.finished) {
-      if (process.env.RECORDINGS != "read") this.client.release()
+      if (process.env.RECORDINGS != 'read') this.client.release()
     }
     return ok(undefined)
   }
 }
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
-  constructor(client: pg.Pool) { //, testSuiteName) {
+  constructor(client: pg.Pool) {
+    //, testSuiteName) {
     super(client) //, testSuiteName)
   }
 
@@ -313,7 +311,7 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
     debug(`${tag} options: %O`, options)
 
     let connection: any = undefined
-    if (process.env.RECORDINGS != "read") connection = await this.client.connect()
+    if (process.env.RECORDINGS != 'read') connection = await this.client.connect()
 
     return ok(new PgTransaction(connection, options)) //this.testSuiteName, options))
   }

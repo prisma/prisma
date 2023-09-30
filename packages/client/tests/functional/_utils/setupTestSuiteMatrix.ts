@@ -90,7 +90,6 @@ function setupTestSuiteMatrix(
 
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-
         // console.log("setupTextSuiteMatrix beforeAll", suiteName)
         globalThis['testName'] = suiteName
 
@@ -140,7 +139,6 @@ function setupTestSuiteMatrix(
       })
 
       beforeEach(() => {
-
         // console.log("setupTextSuiteMatrix beforeEach")
 
         const testName = expect.getState().currentTestName

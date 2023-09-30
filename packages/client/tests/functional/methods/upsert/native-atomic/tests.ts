@@ -1,10 +1,10 @@
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
+import { copycat } from '@snaplet/copycat'
 
 import { ProviderFlavors } from '../../../_utils/providers'
 import { NewPrismaClient } from '../../../_utils/types'
 import testMatrix from './_matrix'
-import { copycat } from '@snaplet/copycat'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
