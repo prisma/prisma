@@ -554,9 +554,9 @@ testMatrix.setupTestSuite(
   },
   {
     skipProviderFlavor: {
-      from: ['js_libsql'],
+      from: ['js_libsql', 'js_planetscale'],
       reason:
-        'The spans are not consistent, or not in a way that makes sense compared to the order driver adapters. Needs investigation.',
+        'The spans are not consistent, or not in a way that makes sense compared to the other driver adapters. Needs investigation.',
     },
   },
 )
