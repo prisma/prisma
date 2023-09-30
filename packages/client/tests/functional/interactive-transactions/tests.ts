@@ -327,6 +327,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
 
         await tx.user.create({
           data: {
+            id: copycat.uuid(3).replaceAll('-', '').slice(-24),
             email: 'user_1@website.com',
           },
         })
