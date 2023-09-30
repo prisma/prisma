@@ -12,7 +12,11 @@ testMatrix.setupTestSuite(
     skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('example', async () => {
 
       // Clean out database to make sure this can be run repeatedly
-      await dropDatabase()
+      try {
+        await dropDatabase()
+      } catch (error) {
+        // well, fine if this does not work
+      }
 
       const client = newPrismaClient()
 
