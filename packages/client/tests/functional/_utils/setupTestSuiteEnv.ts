@@ -126,7 +126,7 @@ export async function setupTestSuiteDatabase(
       suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8 ||
       suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE
     ) {
-      await new Promise((r) => setTimeout(r, 300)) // wait for vitess to catch up
+      await new Promise((r) => setTimeout(r, 1000)) // wait for vitess to catch up
     }
 
     if (alterStatementCallback) {
