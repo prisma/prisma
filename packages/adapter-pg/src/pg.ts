@@ -66,11 +66,18 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
   }
 
   // Worst code ever :shrug: Thanks ChatGPT though!
+  private lineNumbersUsedByFile: Map<string, Set<number>> = new Map();
   private async readExpectedResponse(filePath: string, searchString: string): Promise<string> {
+    // console.log("readExpectedResponse", filePath, searchString)
     return new Promise<string>((resolve, reject) => {
       if (!existsSync(filePath)) {
         resolve('')
         return
+      }
+
+      // console.log("% open", filePath, this.lineNumbersUsedByFile)
+      if (!this.lineNumbersUsedByFile.has(filePath)) {
+        this.lineNumbersUsedByFile.set(filePath, new Set());
       }
 
       const fileStream = createReadStream(filePath)
@@ -79,13 +86,32 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
       })
 
       let found = false
+      let done = false
+      let lineNumber = 0; 
 
+      // read the lines
       rl.on('line', (line) => {
-        if (found) {
-          rl.close()
-          resolve(line) // Resolve the promise with the found line
-        } else if (line.includes(searchString)) {
-          found = true
+        lineNumber++
+        
+        // get linesReadCache
+        const lineNumbersUsed = this.lineNumbersUsedByFile.get(filePath);
+
+        if (lineNumbersUsed && !lineNumbersUsed.has(lineNumber)) { // Check if the line has already been found
+          if(!done) {
+            if (found) {
+              rl.close()
+              // mark line as used as well
+              // console.log("# mark as used (as result)", lineNumber, searchString, line)
+              lineNumbersUsed.add(lineNumber); // Add the found line number to the set
+              resolve(line) // Resolve the promise with the found line
+              done = true
+            } else if (line.includes(searchString)) {
+              found = true
+              // mark line as used
+              // console.log("# mark as used (as query)", lineNumber, searchString, line)
+              lineNumbersUsed.add(lineNumber); // Add the found line number to the set
+            }
+          }
         }
       })
 
