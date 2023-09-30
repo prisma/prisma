@@ -14,7 +14,6 @@ import { generateClient } from '../../../src/generation/generateClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
-  getTestSuiteFullName,
   getTestSuitePreviewFeatures,
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
@@ -106,7 +105,7 @@ export function setupTestSuiteClientDriverAdapter({
   suiteConfig,
   datasourceInfo,
   clientMeta,
-  suiteMeta,
+  _suiteMeta,
 }: {
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
