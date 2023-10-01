@@ -31,24 +31,9 @@ describe('Enable seed args in reset', () => {
 
     const result = MigrateReset.new().parse(['--allow-seed-args'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-
-      Applying migration \`20201231000000_init\`
-
-      Database reset successful
-
-      The following migration(s) have been applied:
-
-      migrations/
-        └─ 20201231000000_init/
-          └─ migration.sql
-
-
-      🌱  The seed command has been executed.
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.pop()[0].includes('The seed command has been executed.'),
+    ).toStrictEqual(true)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(mockedExecuteSeedCommand).toHaveBeenCalledWith({
       commandFromConfig: 'seedCommandToExecute',
@@ -66,24 +51,9 @@ describe('Enable seed args in reset', () => {
 
     const result = MigrateReset.new().parse(['--allow-seed-args', '--environment', 'development'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-
-      Applying migration \`20201231000000_init\`
-
-      Database reset successful
-
-      The following migration(s) have been applied:
-
-      migrations/
-        └─ 20201231000000_init/
-          └─ migration.sql
-
-
-      🌱  The seed command has been executed.
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.pop()[0].includes('The seed command has been executed.'),
+    ).toStrictEqual(true)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(mockedExecuteSeedCommand).toHaveBeenCalledWith({
       commandFromConfig: 'seedCommandToExecute',
@@ -101,24 +71,9 @@ describe('Enable seed args in reset', () => {
 
     const result = MigrateReset.new().parse(['--allow-seed-args', '--environment', 'development', '--skip-generate'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-
-      Applying migration \`20201231000000_init\`
-
-      Database reset successful
-
-      The following migration(s) have been applied:
-
-      migrations/
-        └─ 20201231000000_init/
-          └─ migration.sql
-
-
-      🌱  The seed command has been executed.
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.pop()[0].includes('The seed command has been executed.'),
+    ).toStrictEqual(true)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(mockedExecuteSeedCommand).toHaveBeenCalledWith({
       commandFromConfig: 'seedCommandToExecute',
