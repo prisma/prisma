@@ -1,7 +1,6 @@
-import { Providers } from '../_utils/providers'
+import { ProviderFlavors, Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
-import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
@@ -46,7 +45,7 @@ testMatrix.setupTestSuite(
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
-    // @ts-expect-error
+
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
     const isRelationMode_foreignKeys = !isRelationMode_prisma

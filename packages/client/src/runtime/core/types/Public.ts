@@ -9,16 +9,19 @@ import { Exact } from './Utils'
  * TODO: Move more hardcoded types from generation into here
  */
 
+// prettier-ignore
 export type Args<T, F extends Operation> =
   T extends { [K: symbol]: { types: { operations: { [K in F]: { args: any } } } } }
   ? T[symbol]['types']['operations'][F]['args']
   : never
 
+// prettier-ignore
 export type Result<T, A, F extends Operation> =
   T extends { [K: symbol]: { types: { payload: any } } }
   ? GetResult<T[symbol]['types']['payload'], A, F>
   : never
 
+// prettier-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type Payload<T, F extends Operation = never> =
   T extends { [K: symbol]: { types: { payload: any } } }

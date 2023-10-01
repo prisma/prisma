@@ -247,7 +247,7 @@ describe('includeOnScalar', () => {
               }
             }
 
-            Invalid scalar field \`id\` for include statement on model User. Available options are listed in green.
+            Invalid scalar field \`id\` for include statement on model User. Available options are marked with ?.
             Note that include statements only accept relation fields.
 
             ------------------------------------
@@ -376,7 +376,7 @@ describe('includeOnScalar', () => {
               }
             }
 
-            Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
+            Invalid scalar field \`id\` for include statement on model Post. Available options are marked with ?.
             Note that include statements only accept relation fields.
 
             ------------------------------------
@@ -431,7 +431,7 @@ describe('EmptySelection', () => {
               }
             }
 
-            The \`select\` statement for type Post must not be empty. Available options are listed in green.
+            The \`select\` statement for type Post must not be empty. Available options are marked with ?.
 
             ------------------------------------
 
@@ -530,7 +530,7 @@ describe('EmptySelection', () => {
               }
             }
 
-            The \`select\` statement for type Post must not be empty. Available options are listed in green.
+            The \`select\` statement for type Post must not be empty. Available options are marked with ?.
 
             ------------------------------------
 
@@ -583,7 +583,7 @@ describe('UnknownSelectionField', () => {
               }
             }
 
-            Unknown field \`notThere\` for select statement on model \`Post\`. Available options are listed in green.
+            Unknown field \`notThere\` for select statement on model \`Post\`. Available options are marked with ?.
 
             ------------------------------------
 
@@ -628,7 +628,7 @@ describe('UnknownSelectionField', () => {
               }
             }
 
-            Unknown field \`notThere\` for include statement on model \`Post\`. Available options are listed in green.
+            Unknown field \`notThere\` for include statement on model \`Post\`. Available options are marked with ?.
 
             ------------------------------------
 
@@ -681,7 +681,7 @@ describe('UnknownSelectionField', () => {
               }
             }
 
-            Unknown field \`notThere\` for select statement on model \`Post\`. Available options are listed in green.
+            Unknown field \`notThere\` for select statement on model \`Post\`. Available options are marked with ?.
 
             ------------------------------------
 
@@ -742,7 +742,7 @@ describe('UnknownSelectionField', () => {
               }
             }
 
-            Unknown field \`notThere\` for include statement on model \`Post\`. Available options are listed in green.
+            Unknown field \`notThere\` for include statement on model \`Post\`. Available options are marked with ?.
 
             ------------------------------------
 
@@ -802,7 +802,7 @@ describe('UnknownArgument', () => {
             ? take?: Int
             }
 
-            Unknown argument \`wher\`. Did you mean \`where\`? Available options are listed in green.
+            Unknown argument \`wher\`. Did you mean \`where\`? Available options are marked with ?.
 
             ------------------------------------
 
@@ -892,7 +892,7 @@ describe('UnknownArgument', () => {
             ? take?: Int
             }
 
-            Unknown argument \`completelyNotThere\`. Available options are listed in green.
+            Unknown argument \`completelyNotThere\`. Available options are marked with ?.
 
             ------------------------------------
 
@@ -953,7 +953,7 @@ describe('UnknownArgument', () => {
               }
             }
 
-            Unknown argument \`wherr\`. Did you mean \`where\`? Available options are listed in green.
+            Unknown argument \`wherr\`. Did you mean \`where\`? Available options are marked with ?.
 
             ------------------------------------
 
@@ -1019,7 +1019,7 @@ describe('UnknownInputField', () => {
               }
             }
 
-            Unknown argument \`upvote\`. Did you mean \`upvotes\`? Available options are listed in green.
+            Unknown argument \`upvote\`. Did you mean \`upvotes\`? Available options are marked with ?.
 
             ------------------------------------
 
@@ -1077,7 +1077,7 @@ describe('UnknownInputField', () => {
               }
             }
 
-            Unknown argument \`somethingCompletelyDifferent\`. Available options are listed in green.
+            Unknown argument \`somethingCompletelyDifferent\`. Available options are marked with ?.
 
             ------------------------------------
 
@@ -1139,7 +1139,7 @@ describe('UnknownInputField', () => {
               }
             }
 
-            Unknown argument \`upvote\`. Did you mean \`upvotes\`? Available options are listed in green.
+            Unknown argument \`upvote\`. Did you mean \`upvotes\`? Available options are marked with ?.
 
             ------------------------------------
 
@@ -2427,7 +2427,7 @@ describe('SomeFieldsMissing', () => {
               }
             }
 
-            Argument \`where\` of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
+            Argument \`where\` of type UserWhereUniqueInput needs at least one argument. Available options are marked with ?.
 
             ------------------------------------
 
@@ -2475,7 +2475,7 @@ describe('SomeFieldsMissing', () => {
               }
             }
 
-            Argument \`where\` of type UserWhereUniqueInput needs at least 2 arguments. Available options are listed in green.
+            Argument \`where\` of type UserWhereUniqueInput needs at least 2 arguments. Available options are marked with ?.
 
             ------------------------------------
 
@@ -2527,7 +2527,7 @@ describe('SomeFieldsMissing', () => {
               }
             }
 
-            Argument \`where\` of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
+            Argument \`where\` of type UserWhereUniqueInput needs at least one argument. Available options are marked with ?.
 
             ------------------------------------
 
@@ -2579,7 +2579,7 @@ describe('SomeFieldsMissing', () => {
               }
             }
 
-            Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\` or \`email\` arguments. Available options are listed in green.
+            Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\` or \`email\` arguments. Available options are marked with ?.
 
             ------------------------------------
 

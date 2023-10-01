@@ -8,7 +8,7 @@ declare let Prisma: typeof PrismaNamespace
 testMatrix.setupTestSuite(
   (suiteConfig) => {
     test('Buffer ($queryRaw)', async () => {
-      if (suiteConfig['provider'] === 'mysql') {
+      if (suiteConfig.provider === 'mysql') {
         await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('1', ${Buffer.from('hello')})`
       } else {
         await prisma.$queryRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('1', ${Buffer.from('hello')})`
@@ -24,7 +24,7 @@ testMatrix.setupTestSuite(
     })
 
     test('Buffer ($executeRaw)', async () => {
-      if (suiteConfig['provider'] === 'mysql') {
+      if (suiteConfig.provider === 'mysql') {
         await prisma.$executeRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('2', ${Buffer.from('hello')})`
       } else {
         await prisma.$executeRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('2', ${Buffer.from('hello')})`
@@ -40,7 +40,7 @@ testMatrix.setupTestSuite(
     })
 
     test('Buffer ($queryRaw + Prisma.sql)', async () => {
-      if (suiteConfig['provider'] === 'mysql') {
+      if (suiteConfig.provider === 'mysql') {
         await prisma.$queryRaw(
           Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('3', ${Buffer.from('hello')})`,
         )
@@ -58,7 +58,7 @@ testMatrix.setupTestSuite(
     })
 
     test('Buffer ($executeRaw + Prisma.sql)', async () => {
-      if (suiteConfig['provider'] === 'mysql') {
+      if (suiteConfig.provider === 'mysql') {
         await prisma.$executeRaw(
           Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('4', ${Buffer.from('hello')})`,
         )
@@ -88,6 +88,11 @@ testMatrix.setupTestSuite(
         to be fixed to return ArrayBuffers and not polyfilled Buffers in
         query results.
       `,
+    },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason:
+        "I think bytes/buffer don't work. Error: Unsupported column type: 17 - tracked in https://github.com/prisma/team-orm/issues/374",
     },
   },
 )

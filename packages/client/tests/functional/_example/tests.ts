@@ -47,6 +47,7 @@ testMatrix.setupTestSuite(
     })
 
     test('getTestSuiteSchema', () => {
+      // @ts-expect-error
       const schemaString = getTestSuiteSchema(suiteMeta, suiteConfig)
 
       expect(schemaString).toContain('generator')

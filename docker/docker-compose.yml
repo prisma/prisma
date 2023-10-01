@@ -38,7 +38,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:0c7fdda8171f41a0f6ef8ac9d8614fc3bbd34863c402041f1a7549eb8527bba5
+    image: vitess/vttestserver:mysql80@sha256:c172eed243250a3d910ab9a0af5030c8e0a1ffe902c1012ab443ab3572a28711
     restart: unless-stopped
     ports:
       - 33807:33807
@@ -125,3 +125,15 @@ services:
       MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
+
+  neon_wsproxy:
+    image: ghcr.io/neondatabase/wsproxy:latest
+    environment:
+      APPEND_PORT: 'postgres:5432'
+      ALLOW_ADDR_REGEX: '.*'
+      LOG_TRAFFIC: 'true'
+      LOG_CONN_INFO: 'true'
+    ports:
+      - '5488:80'
+    depends_on:
+      - postgres

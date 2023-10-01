@@ -8,6 +8,12 @@ exports[`0-legacy-ports.batch-find-unique (provider=mysql) findUnique batching 1
 
 exports[`0-legacy-ports.batch-find-unique (provider=postgresql) findUnique batching 1`] = `SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5`;
 
+exports[`0-legacy-ports.batch-find-unique (provider=postgresql, js_neon) findUnique batching 1`] = `SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5`;
+
+exports[`0-legacy-ports.batch-find-unique (provider=postgresql, js_pg) findUnique batching 1`] = `SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5`;
+
 exports[`0-legacy-ports.batch-find-unique (provider=sqlite) findUnique batching 1`] = `SELECT \`main\`.\`User\`.\`id\`, \`main\`.\`User\`.\`email\`, \`main\`.\`User\`.\`age\`, \`main\`.\`User\`.\`name\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`email\` IN (?,?,?,?) LIMIT ? OFFSET ?`;
+
+exports[`0-legacy-ports.batch-find-unique (provider=sqlite, js_libsql) findUnique batching 1`] = `SELECT \`main\`.\`User\`.\`id\`, \`main\`.\`User\`.\`email\`, \`main\`.\`User\`.\`age\`, \`main\`.\`User\`.\`name\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`email\` IN (?,?,?,?) LIMIT ? OFFSET ?`;
 
 exports[`0-legacy-ports.batch-find-unique (provider=sqlserver) findUnique batching 1`] = `SELECT [dbo].[User].[id], [dbo].[User].[email], [dbo].[User].[age], [dbo].[User].[name] FROM [dbo].[User] WHERE [dbo].[User].[email] IN (@P1,@P2,@P3,@P4)`;
