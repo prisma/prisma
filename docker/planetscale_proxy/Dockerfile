@@ -1,9 +1,10 @@
 FROM golang:1
 
 RUN apt update && apt install netcat-openbsd -y
-RUN git clone https://github.com/mattrobenolt/ps-http-sim.git
+RUN cd /go/src && git clone https://github.com/mattrobenolt/ps-http-sim.git
+RUN cd /go/src/ps-http-sim && go install .
 
-ENTRYPOINT cd /go/ps-http-sim && go run . \
+ENTRYPOINT /go/bin/ps-http-sim \
   -http-addr=0.0.0.0 \
   -http-port=8085 \
   -mysql-addr=$MYSQL_HOST \
