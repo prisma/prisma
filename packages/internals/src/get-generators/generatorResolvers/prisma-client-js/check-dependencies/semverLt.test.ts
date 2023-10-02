@@ -1,4 +1,4 @@
-import { semverLt } from '../../../get-generators/generatorResolvers/prisma-client-js/check-dependencies/semverLt'
+import { semverLt } from './semverLt'
 
 describe('compare semverLt as numbers', () => {
   test('compare semverLt version is working correct', () => {
@@ -8,5 +8,11 @@ describe('compare semverLt as numbers', () => {
     // semverLt returns true if currentVersion is lower than the minVersion
     const results = semverLt(testVersion, minVersion)
     expect(results).toBe(true)
+  })
+  test('compare semverLt with higer versions', () => {
+    const minVersion = '1.19.2'
+    const testVersion = '1.19.3'
+    const results = semverLt(testVersion, minVersion)
+    expect(results).toBe(false)
   })
 })
