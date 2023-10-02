@@ -15,6 +15,11 @@ export enum ProviderFlavors {
   VITESS_8 = 'vitess_8',
 }
 
+export enum RelationModes {
+  FOREIGN_KEYS = 'foreignKeys',
+  PRISMA = 'prisma',
+}
+
 export const flavorsForProvider = {
   [Providers.POSTGRESQL]: [ProviderFlavors.JS_PG, ProviderFlavors.JS_NEON],
   [Providers.MYSQL]: [ProviderFlavors.JS_PLANETSCALE],
@@ -23,6 +28,14 @@ export const flavorsForProvider = {
   [Providers.COCKROACHDB]: [],
   [Providers.SQLSERVER]: [],
 } as Record<Providers, ProviderFlavors[]>
+
+export const relationModesForFlavor = {
+  [ProviderFlavors.JS_PG]: undefined,
+  [ProviderFlavors.JS_PLANETSCALE]: RelationModes.PRISMA,
+  [ProviderFlavors.JS_NEON]: undefined,
+  [ProviderFlavors.JS_LIBSQL]: undefined,
+  [ProviderFlavors.VITESS_8]: RelationModes.PRISMA,
+} as Record<ProviderFlavors, RelationModes | undefined>
 
 export type AllProviders = { provider: Providers }[]
 

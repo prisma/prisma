@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
 import { ProviderFlavors } from '../_utils/providers'
@@ -72,6 +73,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
       const result = xprisma.$transaction(async (tx) => {
         const userA = await tx.user.create({
           data: {
+            id: copycat.uuid(0).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -80,6 +82,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
 
         await tx.user.create({
           data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -162,6 +165,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
       const result = xprisma.$transaction(async (tx) => {
         await tx.user.createAlt({
           data: {
+            id: copycat.uuid(0).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -170,6 +174,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
 
         await tx.user.createAlt({
           data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',

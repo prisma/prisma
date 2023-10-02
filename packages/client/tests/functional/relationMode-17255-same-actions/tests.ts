@@ -95,6 +95,8 @@ testMatrix.setupTestSuite(
                   [ProviderFlavors.JS_PG]:
                     'update or delete on table "Alice" violates foreign key constraint "Main_aliceId_fkey" on table "Main"',
                   [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
+                  [ProviderFlavors.JS_PLANETSCALE]:
+                    "The change you are trying to make would violate the required relation 'AliceToMain' between the `Main` and `Alice` models.",
                 },
                 prisma: errors[onDelete],
               }),
