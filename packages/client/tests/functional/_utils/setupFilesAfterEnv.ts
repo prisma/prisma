@@ -73,6 +73,7 @@ globalThis.beforeEach = process.env.TEST_GENERATE_ONLY === 'true' ? () => {} : b
 globalThis.afterEach = process.env.TEST_GENERATE_ONLY === 'true' ? () => {} : afterEach
 globalThis.test = process.env.TEST_GENERATE_ONLY === 'true' ? skip : test
 globalThis.testIf = (condition: boolean) => (condition && process.env.TEST_GENERATE_ONLY !== 'true' ? test : skip)
+globalThis.skipTestIf = (condition: boolean) => (condition || process.env.TEST_GENERATE_ONLY === 'true' ? skip : test)
 globalThis.describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 globalThis.testRepeat = testRepeat
 

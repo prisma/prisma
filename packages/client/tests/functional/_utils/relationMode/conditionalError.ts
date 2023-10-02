@@ -1,17 +1,16 @@
 import { O } from 'ts-toolbelt'
 
-import { Providers } from '../providers'
-import { ProviderFlavor } from './ProviderFlavor'
+import { ProviderFlavors, Providers } from '../providers'
 
 type RelationMode = 'prisma' | 'foreignKeys'
 
 type Target = {
   provider: Providers
-  providerFlavor: ProviderFlavor
+  providerFlavor?: ProviderFlavors
   relationMode: RelationMode
 }
 
-type ConditionalErrorSnapshotErrors = O.AtLeast<Record<ProviderFlavor, string>> | string
+type ConditionalErrorSnapshotErrors = O.AtLeast<Record<ProviderFlavors | Providers, string>> | string
 
 interface With<Supplied> {
   with<T extends Omit<Target, keyof Supplied>, K extends keyof T>(
@@ -44,7 +43,10 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
       return `TODO: add error for relationMode=${relationMode}`
     }
 
-    return errorBase[providerFlavor] || `TODO: add error for provider=${provider} and providerFlavor=${providerFlavor}`
+    return (
+      errorBase[providerFlavor ?? provider] ||
+      `TODO: add error for provider=${provider} and providerFlavor=${providerFlavor}`
+    )
   }
 }
 

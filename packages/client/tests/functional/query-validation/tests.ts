@@ -54,7 +54,7 @@ testMatrix.setupTestSuite(
                                                        }
                                                      })
 
-                                              Invalid scalar field \`id\` for include statement on model User. Available options are listed in green.
+                                              Invalid scalar field \`id\` for include statement on model User. Available options are marked with ?.
                                               Note that include statements only accept relation fields.
                                     `)
     })
@@ -119,7 +119,7 @@ testMatrix.setupTestSuite(
                                                        }
                                                      })
 
-                                              Unknown field \`notThere\` for select statement on model \`User\`. Available options are listed in green.
+                                              Unknown field \`notThere\` for select statement on model \`User\`. Available options are marked with ?.
                                     `)
     })
 
@@ -148,7 +148,7 @@ testMatrix.setupTestSuite(
                           }
                         })
 
-                The \`select\` statement for type User must not be empty. Available options are listed in green.
+                The \`select\` statement for type User must not be empty. Available options are marked with ?.
             `)
     })
 
@@ -177,7 +177,7 @@ testMatrix.setupTestSuite(
                                   ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
                                   })
 
-                          Unknown argument \`notAnArgument\`. Available options are listed in green.
+                          Unknown argument \`notAnArgument\`. Available options are marked with ?.
                     `)
     })
 
@@ -214,7 +214,7 @@ testMatrix.setupTestSuite(
                                               }
                                             })
 
-                                    Unknown argument \`notAValidField\`. Available options are listed in green.
+                                    Unknown argument \`notAValidField\`. Available options are marked with ?.
                             `)
     })
 
@@ -433,7 +433,7 @@ testMatrix.setupTestSuite(
                                                         }
                                                       })
 
-                                              Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`email\` or \`organizationId\` arguments. Available options are listed in green.
+                                              Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`email\` or \`organizationId\` arguments. Available options are marked with ?.
                                     `)
     })
 

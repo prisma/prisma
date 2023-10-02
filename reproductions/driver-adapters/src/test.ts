@@ -1,7 +1,7 @@
 import superjson from 'superjson'
 import { PrismaClient } from '.prisma/client'
 import { setImmediate, setTimeout } from 'node:timers/promises'
-import type { DriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
+import type { DriverAdapter } from '@prisma/driver-adapter-utils'
 
 export async function smokeTest(adapter: DriverAdapter) {
   // wait for the database pool to be initialized
@@ -15,7 +15,7 @@ export async function smokeTest(adapter: DriverAdapter) {
   console.log('[nodejs] connected')
 
   const test = new SmokeTest(prisma, adapter.flavour)
-  
+
   await test.testJSON()
   await test.testTypeTest2()
   await test.$raw()
@@ -40,7 +40,6 @@ export async function smokeTest(adapter: DriverAdapter) {
   console.log('[nodejs] re-disconnected')
 }
 
-
 class SmokeTest {
   constructor(private readonly prisma: PrismaClient, readonly flavour: DriverAdapter['flavour']) {}
 
@@ -56,7 +55,7 @@ class SmokeTest {
       },
       select: {
         properties: true,
-      }
+      },
     })
 
     console.log('[nodejs] created', superjson.serialize(created).json)
@@ -77,23 +76,23 @@ class SmokeTest {
         throw new Error('Abort the mission')
       })
     }
-    
+
     const two = async () => {
       await setTimeout(500)
       await this.prisma.leak_test.create({ data: {} })
     }
-    
+
     await this.prisma.leak_test.deleteMany()
     await Promise.allSettled([one(), two()])
   }
 
   async explicitTransaction() {
-    const [children, totalChildren] = await this.prisma.$transaction([
-      this.prisma.child.findMany(),
-      this.prisma.child.count(),
-    ], {
-      isolationLevel: 'Serializable',
-    })
+    const [children, totalChildren] = await this.prisma.$transaction(
+      [this.prisma.child.findMany(), this.prisma.child.count()],
+      {
+        isolationLevel: 'Serializable',
+      },
+    )
 
     console.log('[nodejs] children', superjson.serialize(children).json)
     console.log('[nodejs] totalChildren', totalChildren)
@@ -123,7 +122,7 @@ class SmokeTest {
     })
     console.log('[nodejs] author', superjson.serialize(author).json)
 
-    const result = await this.prisma.$transaction(async tx => {
+    const result = await this.prisma.$transaction(async (tx) => {
       await tx.author.deleteMany()
       await tx.post.deleteMany()
 
@@ -141,7 +140,7 @@ class SmokeTest {
           author: {
             connect: {
               id: author.id,
-            }
+            },
           },
         },
       })
@@ -175,31 +174,31 @@ class SmokeTest {
 
     const resultSet = await this.prisma.type_test.findMany({
       select: {
-        'tinyint_column': true,
-        'smallint_column': true,
-        'mediumint_column': true,
-        'int_column': true,
-        'bigint_column': true,
-        'float_column': true,
-        'double_column': true,
-        'decimal_column': true,
-        'boolean_column': true,
-        'char_column': true,
-        'varchar_column': true,
-        'text_column': true,
-        'date_column': true,
-        'time_column': true,
-        'datetime_column': true,
-        'timestamp_column': true,
-        'json_column': true,
-        'enum_column': true,
-        'binary_column': true,
-        'varbinary_column': true,
-        'blob_column': true
-      }
+        tinyint_column: true,
+        smallint_column: true,
+        mediumint_column: true,
+        int_column: true,
+        bigint_column: true,
+        float_column: true,
+        double_column: true,
+        decimal_column: true,
+        boolean_column: true,
+        char_column: true,
+        varchar_column: true,
+        text_column: true,
+        date_column: true,
+        time_column: true,
+        datetime_column: true,
+        timestamp_column: true,
+        json_column: true,
+        enum_column: true,
+        binary_column: true,
+        varbinary_column: true,
+        blob_column: true,
+      },
     })
     console.log('[nodejs] findMany resultSet', superjson.serialize(resultSet).json)
-  
+
     return resultSet
   }
 
@@ -210,26 +209,26 @@ class SmokeTest {
 
     const resultSet = await this.prisma.type_test.findMany({
       select: {
-        'smallint_column': true,
-        'int_column': true,
-        'bigint_column': true,
-        'float_column': true,
-        'double_column': true,
-        'decimal_column': true,
-        'boolean_column': true,
-        'char_column': true,
-        'varchar_column': true,
-        'text_column': true,
-        'date_column': true,
-        'time_column': true,
-        'datetime_column': true,
-        'timestamp_column': true,
-        'json_column': true,
-        'enum_column': true
-      }
+        smallint_column: true,
+        int_column: true,
+        bigint_column: true,
+        float_column: true,
+        double_column: true,
+        decimal_column: true,
+        boolean_column: true,
+        char_column: true,
+        varchar_column: true,
+        text_column: true,
+        date_column: true,
+        time_column: true,
+        datetime_column: true,
+        timestamp_column: true,
+        json_column: true,
+        enum_column: true,
+      },
     })
     console.log('[nodejs] findMany resultSet', superjson.serialize(resultSet).json)
-  
+
     return resultSet
   }
 
@@ -238,9 +237,9 @@ class SmokeTest {
 
     await this.prisma.child.deleteMany()
     await this.prisma.parent.deleteMany()
-  
+
     /* Create a parent with some new children */
-  
+
     await this.prisma.child.create({
       data: {
         c: 'c1',
@@ -258,13 +257,13 @@ class SmokeTest {
         id: '0001',
       },
     })
-  
+
     /* Delete the parent */
-  
+
     const resultDeleteMany = await this.prisma.parent.deleteMany({
       where: {
-        p: 'p1'
-      }
+        p: 'p1',
+      },
     })
     console.log('[nodejs] resultDeleteMany', superjson.serialize(resultDeleteMany).json)
   }

@@ -142,7 +142,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are listed in green.
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?.
     `)
   })
 })
