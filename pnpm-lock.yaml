@@ -327,8 +327,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
-        version: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
+        specifier: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
+        version: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -635,8 +635,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
-        version: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
+        specifier: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
+        version: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -720,8 +720,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
-        version: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
+        specifier: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
+        version: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
       '@swc/core':
         specifier: 1.3.75
         version: 1.3.75
@@ -1002,8 +1002,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
-        version: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
+        specifier: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
+        version: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
       archiver:
         specifier: 5.3.2
         version: 5.3.2
@@ -1211,8 +1211,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
-        version: 5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5
+        specifier: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
+        version: 5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3038,8 +3038,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/engines-version@5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5:
-    resolution: {integrity: sha512-1p35cf6scGTu62W4Pj1oAQ7XXyG3EDoUyd8Uv/9Vn9UbLb4x0C4J2pZZAGy7KWnO8A3PeremOg2dK6mnK/WYuA==}
+  /@prisma/engines-version@5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2:
+    resolution: {integrity: sha512-+BnnutTKOf+H9krT2riygWngW7VY4xYNBe4DMcVr+S5W0g8krOhFem1Av/xNrJxJq55cligRnBhbBzdEm46yug==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3047,8 +3047,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.4.0-43.6b4d2fc685ddd87d33b4efa5b8ff961f4cf2fec5:
-    resolution: {integrity: sha512-hatRS9GaFz6Pz59/tH4pnEWnzYcRt/0WhZG7hdnM2WOcG49gl+IkDBmPhzT1eIP3xJDb0ypfdXLkKHA9DDRewA==}
+  /@prisma/prisma-schema-wasm@5.4.0-44.a39bb2dcb9f2ca75c528537d32de238eb9096ed2:
+    resolution: {integrity: sha512-7yab9weUA/D2PP1PEuaIkLRUzd4FkrAhO/PqSavQqv7VerXjzq9yoevb32kfrN/I8xNjZ9q/rHppbpBqknbSXg==}
     dev: false
 
   /@prisma/studio-common@0.494.0:
@@ -8211,7 +8211,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.18.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.18.0)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8252,7 +8252,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.18.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.18.0)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
