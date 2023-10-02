@@ -66,7 +66,7 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     }
     if (adapter === undefined) {
       throw new PrismaClientConstructorValidationError(
-        `"adapter" property must not be undefined, use null to conditionally disable driver adapters`,
+        `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
       )
     }
     const previewFeatures = getPreviewFeatures(config)
