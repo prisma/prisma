@@ -16,7 +16,7 @@
     "@prisma/client": "../../packages/client"
   },
   "devDependencies": {
-    "@types/node": "17.0.45",
+    "@types/node": "18.18.0",
     "prisma": "../../packages/cli",
     "ts-node": "10.9.1",
     "typescript": "5.2.2"

@@ -12,7 +12,7 @@ testMatrix.setupTestSuite(
         // Start from a clean state
         await prisma.item.deleteMany({})
         await prisma.category.deleteMany({})
-        if (suiteConfig['provider'] === 'mysql') {
+        if (suiteConfig.provider === 'mysql') {
           await prisma.$executeRaw`TRUNCATE TABLE \`_CategoryToItem\`;`
         } else {
           await prisma.$executeRaw`TRUNCATE TABLE "_CategoryToItem";`
@@ -56,7 +56,7 @@ testMatrix.setupTestSuite(
 
         // Check the pivot table entries
         let pivotTable
-        if (suiteConfig['provider'] === 'mysql') {
+        if (suiteConfig.provider === 'mysql') {
           pivotTable = await prisma.$queryRaw`SELECT * FROM \`_CategoryToItem\`;`
         } else {
           pivotTable = await prisma.$queryRaw`SELECT * FROM "_CategoryToItem";`
@@ -117,7 +117,7 @@ testMatrix.setupTestSuite(
 
         // Check the pivot table entries
         let pivotTableAfterDelete
-        if (suiteConfig['provider'] === 'mysql') {
+        if (suiteConfig.provider === 'mysql') {
           pivotTableAfterDelete = await prisma.$queryRaw`SELECT * FROM \`_CategoryToItem\`;`
         } else {
           pivotTableAfterDelete = await prisma.$queryRaw`SELECT * FROM "_CategoryToItem";`
@@ -173,7 +173,7 @@ testMatrix.setupTestSuite(
 
       // Check the pivot table entries
       let pivotTable
-      if (suiteConfig['provider'] === 'mysql') {
+      if (suiteConfig.provider === 'mysql') {
         pivotTable = await prisma.$queryRaw`SELECT * FROM \`_CategoryToItem\`;`
       } else {
         pivotTable = await prisma.$queryRaw`SELECT * FROM "_CategoryToItem";`
@@ -234,7 +234,7 @@ testMatrix.setupTestSuite(
 
       // Check the pivot table entries
       let pivotTableAfterDelete
-      if (suiteConfig['provider'] === 'mysql') {
+      if (suiteConfig.provider === 'mysql') {
         pivotTableAfterDelete = await prisma.$queryRaw`SELECT * FROM \`_CategoryToItem\`;`
       } else {
         pivotTableAfterDelete = await prisma.$queryRaw`SELECT * FROM "_CategoryToItem";`
