@@ -9,7 +9,8 @@ describe('compare semverLt as numbers', () => {
     const results = semverLt(testVersion, minVersion)
     expect(results).toBe(true)
   })
-  test('compare semverLt with higer versions', () => {
+
+  test('compare semverLt with higher versions', () => {
     const minVersion = '1.19.2'
     const testVersion = '1.19.3'
     const results = semverLt(testVersion, minVersion)
