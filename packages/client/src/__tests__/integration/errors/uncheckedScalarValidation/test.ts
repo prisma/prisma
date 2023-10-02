@@ -70,7 +70,7 @@ test('uncheckedScalarInputs validation', async () => {
               }
             })
 
-      Unknown argument \`tripId\`. Available options are listed in green.
+      Unknown argument \`tripId\`. Available options are marked with ?.
     `)
   }
 
