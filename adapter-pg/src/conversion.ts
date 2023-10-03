@@ -30,6 +30,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case PgColumnType['NUMERIC']:
     case PgColumnType['MONEY']:
       return ColumnTypeEnum.Numeric
+    case PgColumnType['JSON']:
     case PgColumnType['JSONB']:
       return ColumnTypeEnum.Json
     case PgColumnType['UUID']:

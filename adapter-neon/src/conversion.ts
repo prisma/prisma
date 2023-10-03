@@ -30,6 +30,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case NeonColumnType['NUMERIC']:
     case NeonColumnType['MONEY']:
       return ColumnTypeEnum.Numeric
+    case NeonColumnType['JSON']:
     case NeonColumnType['JSONB']:
       return ColumnTypeEnum.Json
     case NeonColumnType['UUID']:
