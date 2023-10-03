@@ -99,10 +99,10 @@ jobs:
         working-directory: ./
 
   #
-  # CLIENT (without types test)
+  # CLIENT (functional and legacy tests without types test)
   #
   client:
-    name: Client (without types test)
+    name: Client (functional and legacy tests without types test)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
