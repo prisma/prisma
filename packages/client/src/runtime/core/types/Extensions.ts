@@ -255,7 +255,7 @@ type DynamicClientExtensionThisBuiltin<
   ): Promise<R>
   $disconnect(): Promise<void>
   $connect(): Promise<void>
-}
+} 
 
 /** $extends, defineExtension */
 
