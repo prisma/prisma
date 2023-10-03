@@ -25,7 +25,8 @@ describe('format', () => {
     ctx.fixture('example-project/prisma')
     const CRLF = '\r\n'
     const LF = '\n'
-    const schema = (await Format.new().parse([])) as string
+    await Format.new().parse([])
+    const schema = fs.read('schema.prisma')!
     // schema not contains CRLF
     expect(schema.includes(CRLF)).toBeFalsy()
     // schema end with LF and not in CRLF

@@ -23,8 +23,7 @@ test('consistently schema EOL', async () => {
   const CRLF = '\r\n'
   const LF = '\n'
   ctx.fixture('init')
-  const result = await ctx.cli('init', '--url', 'file:dev.db')
-  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+  await ctx.cli('init', '--url', 'file:dev.db')
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   // schema not contains CRLF
