@@ -7,8 +7,6 @@ import { PrismaPromise } from './Public'
 import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './Result'
 import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, ToTuple, UnwrapTuple } from './Utils'
 
-/* eslint-disable prettier/prettier */
-
 export type InternalArgs<
   R = { [K in string]: { [K in string]: unknown } },
   M = { [K in string]: { [K in string]: unknown } },
@@ -216,6 +214,7 @@ type DynamicClientExtensionArgs<
   }
 }
 
+// prettier-ignore
 type DynamicClientExtensionThis<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
