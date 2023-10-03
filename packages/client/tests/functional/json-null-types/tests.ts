@@ -29,19 +29,15 @@ testMatrix.setupTestSuite(
     })
 
     describe('requiredJsonField', () => {
-      // TODO adapter does not seem to make a difference between JsonNull and DbNull
-      // Error converting field "json" of expected non-nullable type "Json", found incompatible value of "null".
-      skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
-        'JsonNull',
-        async () => {
-          const data = await prisma.requiredJsonField.create({
-            data: {
-              json: Prisma.JsonNull,
-            },
-          })
-          expect(data.json).toBe(null)
-        },
-      )
+      // TODO Error converting field "json" of expected non-nullable type "Json", found incompatible value of "null".
+      skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('JsonNull', async () => {
+        const data = await prisma.requiredJsonField.create({
+          data: {
+            json: Prisma.JsonNull,
+          },
+        })
+        expect(data.json).toBe(null)
+      })
 
       // TODO: Edge: skipped because of the error snapshot
       testIf(clientMeta.runtime !== 'edge')('DbNull', async () => {

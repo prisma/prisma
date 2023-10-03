@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
 import { ProviderFlavors } from '../_utils/providers'
@@ -52,8 +53,8 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
     })
   })
 
-  // TODO Fails with Transaction API error: Transaction not found. Transaction ID is invalid, refers to an old closed transaction Prisma
-  testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL && clientMeta.runtime !== 'edge')(
+  // TODO Fails with: UNIQUE constraint failed: User.email
+  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
     'extended client in itx can rollback via normal call',
     async () => {
       const xprisma = prisma.$extends({
@@ -72,6 +73,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
       const result = xprisma.$transaction(async (tx) => {
         const userA = await tx.user.create({
           data: {
+            id: copycat.uuid(0).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -80,6 +82,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
 
         await tx.user.create({
           data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -100,7 +103,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
     },
   )
 
-  // TODO Fails with LibsqlError: : cannot start a transaction within a transaction
+  // TODO Fails with: UNIQUE constraint failed: User.email
   testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL)('extended client in itx works via normal call', async () => {
     const xprisma = prisma.$extends({
       result: {
@@ -132,7 +135,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
-  // TODO Fails with LibsqlError: : cannot start a transaction within a transaction
+  // TODO Fails with: Expected instance of error on snapshot
   testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
     'extended client in itx can rollback via custom call',
     async () => {
@@ -162,6 +165,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
       const result = xprisma.$transaction(async (tx) => {
         await tx.user.createAlt({
           data: {
+            id: copycat.uuid(0).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -170,6 +174,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
 
         await tx.user.createAlt({
           data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -224,7 +229,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
-  // TODO Fails with LibsqlError: : cannot start a transaction within a transaction
+  // TODO Fails with: UNIQUE constraint failed: User.email
   testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL && provider !== 'mongodb')(
     'itx works with extended client + queryRawUnsafe',
     async () => {
@@ -239,43 +244,39 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
     },
   )
 
-  // TODO Fails with LibsqlError: : cannot start a transaction within a transaction
-  testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL)(
-    'middleware exclude from transaction also works with extended client',
-    async () => {
-      const xprisma = prisma.$extends({})
+  test('middleware exclude from transaction also works with extended client', async () => {
+    const xprisma = prisma.$extends({})
 
-      prisma.$use((params, next) => {
-        return next({ ...params, runInTransaction: false })
-      })
+    prisma.$use((params, next) => {
+      return next({ ...params, runInTransaction: false })
+    })
 
-      const usersBefore = await xprisma.user.findMany()
+    const usersBefore = await xprisma.user.findMany()
 
-      await xprisma
-        .$transaction(async (prisma) => {
-          await prisma.user.create({
-            data: {
-              email: 'jane@smith.com',
-              firstName: 'Jane',
-              lastName: 'Smith',
-            },
-          })
-
-          await prisma.user.create({
-            data: {
-              email: 'jane@smith.com',
-              firstName: 'Jane',
-              lastName: 'Smith',
-            },
-          })
+    await xprisma
+      .$transaction(async (prisma) => {
+        await prisma.user.create({
+          data: {
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
         })
-        .catch(() => {})
 
-      const usersAfter = await xprisma.user.findMany()
+        await prisma.user.create({
+          data: {
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        })
+      })
+      .catch(() => {})
 
-      expect(usersAfter).toHaveLength(usersBefore.length + 1)
-    },
-  )
+    const usersAfter = await xprisma.user.findMany()
+
+    expect(usersAfter).toHaveLength(usersBefore.length + 1)
+  })
 
   // TODO Fails with LibsqlError: : cannot start a transaction within a transaction
   testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL)(
@@ -297,76 +298,68 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
     },
   )
 
-  // TODO Fails with LibsqlError: : cannot start a transaction within a transaction
-  testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL)(
-    'methods from itx client denylist are optional within client extensions',
-    async () => {
-      expect.assertions(12)
+  test('methods from itx client denylist are optional within client extensions', async () => {
+    expect.assertions(12)
 
-      const xprisma = prisma.$extends({
-        client: {
-          testContextMethods(isTransaction: boolean) {
-            const ctx = Prisma.getExtensionContext(this)
+    const xprisma = prisma.$extends({
+      client: {
+        testContextMethods(isTransaction: boolean) {
+          const ctx = Prisma.getExtensionContext(this)
 
-            expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
-            expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
-            expectTypeOf(ctx.$transaction).toMatchTypeOf<Function | undefined>()
-            expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
-            expectTypeOf(ctx).not.toHaveProperty('$use')
-            expectTypeOf(ctx).not.toHaveProperty('$on')
+          expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
+          expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
+          expectTypeOf(ctx.$transaction).toMatchTypeOf<Function | undefined>()
+          expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
+          expectTypeOf(ctx).not.toHaveProperty('$use')
+          expectTypeOf(ctx).not.toHaveProperty('$on')
 
-            expect(ctx['$use']).toBeUndefined()
-            expect(ctx['$on']).toBeUndefined()
+          expect(ctx['$use']).toBeUndefined()
+          expect(ctx['$on']).toBeUndefined()
 
-            if (isTransaction) {
-              expect(ctx.$connect).toBeUndefined()
-              expect(ctx.$disconnect).toBeUndefined()
-              expect(ctx.$transaction).toBeUndefined()
-              expect(ctx.$extends).toBeUndefined()
-            } else {
-              expect(ctx.$connect).toBeDefined()
-              expect(ctx.$disconnect).toBeDefined()
-              expect(ctx.$transaction).toBeDefined()
-              expect(ctx.$extends).toBeDefined()
-            }
-          },
+          if (isTransaction) {
+            expect(ctx.$connect).toBeUndefined()
+            expect(ctx.$disconnect).toBeUndefined()
+            expect(ctx.$transaction).toBeUndefined()
+            expect(ctx.$extends).toBeUndefined()
+          } else {
+            expect(ctx.$connect).toBeDefined()
+            expect(ctx.$disconnect).toBeDefined()
+            expect(ctx.$transaction).toBeDefined()
+            expect(ctx.$extends).toBeDefined()
+          }
         },
-        model: {
-          user: {
-            helper() {},
-          },
+      },
+      model: {
+        user: {
+          helper() {},
         },
-      })
+      },
+    })
 
-      xprisma.testContextMethods(false)
+    xprisma.testContextMethods(false)
 
-      await xprisma.$transaction((tx) => {
-        tx.testContextMethods(true)
-        return Promise.resolve()
-      })
-    },
-  )
+    await xprisma.$transaction((tx) => {
+      tx.testContextMethods(true)
+      return Promise.resolve()
+    })
+  })
 
-  // TODO Fails with LibsqlError: : cannot start a transaction within a transaction
-  testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL)(
-    'isolation level is properly reflected in extended client',
-    () => {
-      ;async () => {
-        const xprisma = prisma.$extends({})
+  test('isolation level is properly reflected in extended client', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
 
-        // @ts-test-if: provider !== 'mongodb'
-        const data = await xprisma.$transaction(
-          () => {
-            return Promise.resolve(42)
-          },
-          {
-            isolationLevel: 'Serializable',
-          },
-        )
+      // @ts-test-if: provider !== 'mongodb'
+      const data = await xprisma.$transaction(
+        () => {
+          return Promise.resolve(42)
+        },
+        {
+          isolationLevel: 'Serializable',
+        },
+      )
 
-        // @ts-test-if: provider !== 'mongodb'
-        expectTypeOf(data).toEqualTypeOf<number>()
-      }
-    },
-  )
+      // @ts-test-if: provider !== 'mongodb'
+      expectTypeOf(data).toEqualTypeOf<number>()
+    }
+  })
 })

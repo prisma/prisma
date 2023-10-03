@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
 import { ProviderFlavors } from '../_utils/providers'
@@ -49,6 +50,7 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
       const result = xprisma.$transaction([
         xprisma.user.create({
           data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -56,6 +58,7 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
         }),
         xprisma.user.create({
           data: {
+            id: copycat.uuid(2).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -71,40 +74,36 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
     },
   )
 
-  // TODO fails with SqliteError: cannot start a transaction within a transaction AND Expected instance of error
-  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
-    'extended client in tx works via normal call',
-    async () => {
-      const xprisma = prisma.$extends({
-        result: {
-          user: {
-            fullName: {
-              needs: { firstName: true, lastName: true },
-              compute(user) {
-                return `${user.firstName} ${user.lastName}`
-              },
+  testIf(clientMeta.runtime !== 'edge')('extended client in tx works via normal call', async () => {
+    const xprisma = prisma.$extends({
+      result: {
+        user: {
+          fullName: {
+            needs: { firstName: true, lastName: true },
+            compute(user) {
+              return `${user.firstName} ${user.lastName}`
             },
           },
         },
-      })
+      },
+    })
 
-      await xprisma.$transaction([
-        xprisma.user.create({
-          data: {
-            email: 'jane@smith.com',
-            firstName: 'Jane',
-            lastName: 'Smith',
-          },
-        }),
-      ])
+    await xprisma.$transaction([
+      xprisma.user.create({
+        data: {
+          email: 'jane@smith.com',
+          firstName: 'Jane',
+          lastName: 'Smith',
+        },
+      }),
+    ])
 
-      const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
+    const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
-      expect(users).toHaveLength(1)
-    },
-  )
+    expect(users).toHaveLength(1)
+  })
 
-  // TODO fails with SqliteError: cannot start a transaction within a transaction AND Expected instance of error
+  // TODO fails with: Expected instance of error
   testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
     'extended client in tx can rollback via custom call',
     async () => {
@@ -134,6 +133,7 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
       const result = xprisma.$transaction([
         xprisma.user.createAlt({
           data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -141,6 +141,7 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
         }),
         xprisma.user.createAlt({
           data: {
+            id: copycat.uuid(2).replaceAll('-', '').slice(-24),
             email: 'jane@smith.com',
             firstName: 'Jane',
             lastName: 'Smith',
@@ -156,8 +157,7 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
     },
   )
 
-  // TODO fails with SqliteError: cannot start a transaction within a transaction
-  testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL)('extended client in tx works via custom call', async () => {
+  test('extended client in tx works via custom call', async () => {
     const xprisma = prisma
       .$extends({
         result: {
@@ -196,25 +196,20 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
-  // TODO fails with SqliteError: cannot start a transaction within a transaction
-  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
-    'isolation level is properly reflected in extended client',
-    () => {
-      ;async () => {
-        const xprisma = prisma.$extends({})
+  testIf(clientMeta.runtime !== 'edge')('isolation level is properly reflected in extended client', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
 
-        // @ts-test-if: provider !== 'mongodb'
-        const data = await xprisma.$transaction([xprisma.user.findFirst({ select: { id: true } })], {
-          isolationLevel: 'Serializable',
-        })
+      // @ts-test-if: provider !== 'mongodb'
+      const data = await xprisma.$transaction([xprisma.user.findFirst({ select: { id: true } })], {
+        isolationLevel: 'Serializable',
+      })
 
-        expectTypeOf(data).toEqualTypeOf<[{ id: string } | null]>()
-      }
-    },
-  )
+      expectTypeOf(data).toEqualTypeOf<[{ id: string } | null]>()
+    }
+  })
 
-  // TODO fails with SqliteError: cannot start a transaction within a transaction
-  testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL)('type inference allows for destructuring the array', () => {
+  test('type inference allows for destructuring the array', () => {
     ;async () => {
       const xprisma = prisma.$extends({})
 

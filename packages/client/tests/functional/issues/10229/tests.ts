@@ -37,8 +37,8 @@ testMatrix.setupTestSuite(
       reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
     },
     skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
-      reason: 'Expected two assertions to be called but received zero assertion calls (no error thrown).',
+      from: ['js_neon', 'js_pg', 'js_planetscale'],
+      reason: "driver adapters don't get their url from the schema, so it does not fail",
     },
   },
 )

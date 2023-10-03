@@ -84,11 +84,19 @@ testMatrix.setupTestSuite(
         // eslint-disable-next-line prettier/prettier
         affected = await prisma.$executeRawUnsafe(`UPDATE User SET age = ? WHERE age >= ? AND age <= ?`, 65, 45, 60)
       } else if (suiteConfig.provider === 'sqlserver') {
-        // eslint-disable-next-line prettier/prettier
-        affected = await prisma.$executeRawUnsafe(`UPDATE "User" SET age = @P1 WHERE age >= @P2 AND age <= @P3`, 65, 45, 60)
+        affected = await prisma.$executeRawUnsafe(
+          `UPDATE "User" SET age = @P1 WHERE age >= @P2 AND age <= @P3`,
+          65,
+          45,
+          60,
+        )
       } else {
-        // eslint-disable-next-line prettier/prettier
-        affected = await prisma.$executeRawUnsafe(`UPDATE "User" SET age = $1 WHERE age >= $2 AND age <= $3`, 65, 45, 60)
+        affected = await prisma.$executeRawUnsafe(
+          `UPDATE "User" SET age = $1 WHERE age >= $2 AND age <= $3`,
+          65,
+          45,
+          60,
+        )
       }
 
       const result = await prisma.user.findMany({ where: { age: 65 } })

@@ -107,7 +107,8 @@ testMatrix.setupTestSuite(
     },
     skipProviderFlavor: {
       from: ['js_neon', 'js_pg'],
-      reason: "scalar lists, here a int array, don't work yet. Error: Unsupported column type: 1007 - tracked in https://github.com/prisma/team-orm/issues/374",
+      reason:
+        "scalar lists, here a int array, don't work yet. Error: Unsupported column type: 1007 - tracked in https://github.com/prisma/team-orm/issues/374",
     },
   },
 )

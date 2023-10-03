@@ -2,7 +2,6 @@ import { assertNever } from '@prisma/internals'
 import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'
 
-import { ProviderFlavors } from '../_utils/providers'
 import { wait } from '../_utils/tests/wait'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
@@ -22,7 +21,7 @@ const randomId3 = randomBytes(12).toString('hex')
 jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
+  ({ provider }) => {
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -528,8 +527,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    // TODO COMMIT does not seem to be included in the logs
-    testIf(provider !== 'mongodb' && process.platform !== 'win32' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
+    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
       'hijacking a batch transaction into another one with a simple call',
       async () => {
         const fnEmitter = jest.fn()
