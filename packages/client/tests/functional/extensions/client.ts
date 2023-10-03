@@ -276,6 +276,9 @@ testMatrix.setupTestSuite(() => {
     })
 
     xprisma.$executeRawCustom(Prisma.sql`SELECT * FROM User`, { extra: true })
+
+    // @ts-expect-error
+    xprisma.$executeRawCustom(42, { extra: true })
   })
 
   test('raw queries can override their default output types', () => {

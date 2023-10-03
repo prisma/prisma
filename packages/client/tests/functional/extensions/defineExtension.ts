@@ -539,7 +539,7 @@ testMatrix.setupTestSuite(() => {
     const data = xprisma.myGenericMethodViaDefault`SELECT * FROM User WHERE id = ${1}`
 
     expectTypeOf<(typeof data)['args']>().toEqualTypeOf<[TemplateStringsArray, number]>()
-    expectTypeOf<(typeof data)['payload']>().toEqualTypeOf<unknown>()
+    expectTypeOf<(typeof data)['payload']>().toEqualTypeOf<any>()
     expectTypeOf<(typeof data)['result']>().toEqualTypeOf<number>()
   })
 

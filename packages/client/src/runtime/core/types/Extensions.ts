@@ -223,11 +223,8 @@ type DynamicClientExtensionThis<
 > = {
   [P in keyof ExtArgs['client']]: Return<ExtArgs['client'][P]>
 } & {
-  [P in Exclude<TypeMap['meta']['modelProps'], keyof ExtArgs['client']>]: DynamicModelExtensionThis<
-    TypeMap,
-    ModelKey<TypeMap, P>,
-    ExtArgs
-  >
+  [P in Exclude<TypeMap['meta']['modelProps'], keyof ExtArgs['client']>]:
+    DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs>
 } & {
   [P in Exclude<keyof TypeMap['other']['operations'], keyof ExtArgs['client']>]: <
     R = GetOperationResult<TypeMap['other']['payload'], any, P & Operation>,
@@ -235,11 +232,10 @@ type DynamicClientExtensionThis<
     ...args: ToTuple<TypeMap['other']['operations'][P]['args']>
   ) => PrismaPromise<R>
 } & {
-  [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]: DynamicClientExtensionThisBuiltin<
-    TypeMap,
-    TypeMapCb,
-    ExtArgs
-  >[P]
+  [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]:
+    DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs>[P]
+} & {
+  [K: symbol]: { types: TypeMap['other'] }
 }
 
 type ClientBuiltInProp = keyof DynamicClientExtensionThisBuiltin<never, never, never>
