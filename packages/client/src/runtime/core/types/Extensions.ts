@@ -7,8 +7,6 @@ import { PrismaPromise } from './Public'
 import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './Result'
 import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, ToTuple, UnwrapTuple } from './Utils'
 
-/* eslint-disable prettier/prettier */
-
 export type InternalArgs<
   R = { [K in string]: { [K in string]: unknown } },
   M = { [K in string]: { [K in string]: unknown } },
@@ -164,10 +162,12 @@ type DynamicModelExtensionOperationFn<
   M extends PropertyKey,
   P extends PropertyKey,
 > = {} extends TypeMap['model'][M]['operations'][P]['args'] // will match fully optional args
-  ? <A>(
+  ? <A extends TypeMap['model'][M]['operations'][P]['args']>(
       args?: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
     ) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
-  : <A>(args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
+  : <A extends TypeMap['model'][M]['operations'][P]['args']>(
+      args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
+    ) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
 
 type DynamicModelExtensionFnResult<
   TypeMap extends TypeMapDef,
@@ -214,6 +214,7 @@ type DynamicClientExtensionArgs<
   }
 }
 
+// prettier-ignore
 type DynamicClientExtensionThis<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
@@ -221,11 +222,8 @@ type DynamicClientExtensionThis<
 > = {
   [P in keyof ExtArgs['client']]: Return<ExtArgs['client'][P]>
 } & {
-  [P in Exclude<TypeMap['meta']['modelProps'], keyof ExtArgs['client']>]: DynamicModelExtensionThis<
-    TypeMap,
-    ModelKey<TypeMap, P>,
-    ExtArgs
-  >
+  [P in Exclude<TypeMap['meta']['modelProps'], keyof ExtArgs['client']>]:
+    DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs>
 } & {
   [P in Exclude<keyof TypeMap['other']['operations'], keyof ExtArgs['client']>]: <
     R = GetOperationResult<TypeMap['other']['payload'], any, P & Operation>,
@@ -233,11 +231,10 @@ type DynamicClientExtensionThis<
     ...args: ToTuple<TypeMap['other']['operations'][P]['args']>
   ) => PrismaPromise<R>
 } & {
-  [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]: DynamicClientExtensionThisBuiltin<
-    TypeMap,
-    TypeMapCb,
-    ExtArgs
-  >[P]
+  [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]:
+    DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs>[P]
+} & {
+  [K: symbol]: { types: TypeMap['other'] }
 }
 
 type ClientBuiltInProp = keyof DynamicClientExtensionThisBuiltin<never, never, never>
