@@ -548,7 +548,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     if (this.runtimeName === 'library' && this.generator?.previewFeatures.includes('driverAdapters')) {
       clientOptions.add(
         ts
-          .property('adapter', ts.namedType('runtime.DriverAdapter'))
+          .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))
           .optional()
           .setDocComment(
             ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),

@@ -79,12 +79,12 @@
     "@opentelemetry/sdk-trace-base": "1.17.0",
     "@opentelemetry/semantic-conventions": "1.17.0",
     "@planetscale/database": "1.11.0",
-    "@prisma/adapter-libsql": "0.4.1",
-    "@prisma/adapter-neon": "0.4.2",
-    "@prisma/adapter-pg": "0.4.2",
+    "@prisma/adapter-libsql": "0.4.2",
+    "@prisma/adapter-neon": "0.5.0",
+    "@prisma/adapter-pg": "0.5.0",
     "@prisma/adapter-planetscale": "0.4.0",
     "@prisma/debug": "workspace:*",
-    "@prisma/driver-adapter-utils": "0.7.0",
+    "@prisma/driver-adapter-utils": "0.8.0",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -163,7 +163,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.4.0-39.2b2ffb48c15c4644d39591fed77b43f8af89ad56"
+    "@prisma/engines-version": "5.4.0-46.3b37c318a976ae7ee215b71633a315315b23280f"
   },
   "sideEffects": false
 }

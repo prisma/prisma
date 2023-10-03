@@ -1,5 +1,5 @@
 import * as Extensions from './exported/Extensions'
-import { ModelPayload } from './exported/Payload'
+import { OperationPayload } from './exported/Payload'
 import * as Public from './exported/Public'
 import * as Result from './exported/Result'
 import * as Utils from './exported/Utils'
@@ -11,4 +11,4 @@ export { Utils }
 export { Public }
 
 /** General types */
-export { type ModelPayload as Payload }
+export { type OperationPayload as Payload }

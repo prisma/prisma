@@ -256,5 +256,9 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: 'Only testing relational databases using foreign keys.',
     },
+    skipProviderFlavor: {
+      from: ['js_planetscale'],
+      reason: 'Only testing relational databases using foreign keys.',
+    },
   },
 )

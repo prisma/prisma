@@ -13,6 +13,8 @@ Error occurred during query execution:
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })), transient: false })
 `;
 
+exports[`fulltext-search (provider=mysql, js_planetscale) bad query 1`] = `target: test-0000-00000000.0.primary: vttablet: rpc error: code = InvalidArgument desc = syntax error, unexpected '-' (errno 1064) (sqlstate 42000) (CallerID: userData1): Sql: "select \`User\`.id, \`User\`.email, \`User\`.\`name\` from \`User\` where match(\`User\`.\`name\`) against (:vtg1 /* VARCHAR */ in boolean mode)", BindVars: {#maxLimit: "type:INT64 value:\\"10001\\""vtg1: "type:VARCHAR value:\\"John <--> Smith\\""} (errno 1064) (sqlstate 42000) during query: SELECT \`test-0000-00000000\`.\`User\`.\`id\`, \`test-0000-00000000\`.\`User\`.\`email\`, \`test-0000-00000000\`.\`User\`.\`name\` FROM \`test-0000-00000000\`.\`User\` WHERE MATCH (\`test-0000-00000000\`.\`User\`.\`name\`)AGAINST ('John <--> Smith' IN BOOLEAN MODE)`;
+
 exports[`fulltext-search (provider=postgresql) bad query 1`] = `
 
 Invalid \`.findMany()\` invocation in

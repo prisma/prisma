@@ -1,4 +1,4 @@
-export type ModelPayload = {
+export type OperationPayload = {
   scalars: {
     [ScalarName in string]: unknown
   }
