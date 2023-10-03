@@ -21,6 +21,18 @@ describe('format', () => {
     expect(fs.read('schema.prisma')).toMatchSnapshot()
   })
 
+  it('consistently schema EOL', async () => {
+    ctx.fixture('example-project/prisma')
+    const CRLF = '\r\n'
+    const LF = '\n'
+    const schema = (await Format.new().parse([])) as string
+    // schema not contains CRLF
+    expect(schema.includes(CRLF)).toBeFalsy()
+    // schema end with LF and not in CRLF
+    expect(schema.endsWith(CRLF)).toBeFalsy()
+    expect(schema.endsWith(LF)).toBeTruthy()
+  })
+
   it('should add missing backrelation', async () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse(['--schema=missing-backrelation.prisma'])
