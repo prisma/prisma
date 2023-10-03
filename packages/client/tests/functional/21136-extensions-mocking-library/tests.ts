@@ -23,7 +23,7 @@ interface Mock<A extends any[] = any[], R = any> {
 // functions, and also happened not to play well with Accelerate inference
 type DeepMockProxy<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R ? Mock<A, R> : DeepMockProxy<T[K]>
-}
+} & T
 
 // this is ma minimal representation of a mocking proxy, doesn't do anything
 declare function mockDeep<T>(_mockImplementation?: T): DeepMockProxy<T>
@@ -122,20 +122,23 @@ testMatrix.setupTestSuite(
           prismaMock.user.findUniqueOrThrow.calledWith({ where: { id: 1 } })
           prismaMock.user.groupBy.calledWith({ where: { id: 1 } })
 
-          expectTypeOf(prismaMock.user.aggregate.calledWith).parameter(0).toEqualTypeOf<Record<string, any>>()
-          expectTypeOf(prismaMock.user.count.calledWith).parameter(0).toEqualTypeOf<Record<string, any> | undefined>()
-          expectTypeOf(prismaMock.user.findFirst.calledWith)
-            .parameter(0)
-            .toEqualTypeOf<Record<string, any> | undefined>()
-          expectTypeOf(prismaMock.user.findFirstOrThrow.calledWith)
-            .parameter(0)
-            .toEqualTypeOf<Record<string, any> | undefined>()
-          expectTypeOf(prismaMock.user.findMany.calledWith)
-            .parameter(0)
-            .toEqualTypeOf<Record<string, any> | undefined>()
-          expectTypeOf(prismaMock.user.findUnique.calledWith).parameter(0).toEqualTypeOf<Record<string, any>>()
-          expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith).parameter(0).toEqualTypeOf<Record<string, any>>()
-          expectTypeOf(prismaMock.user.groupBy.calledWith).parameter(0).toEqualTypeOf<Record<string, any>>()
+          expectTypeOf(prismaMock.user.aggregate.calledWith).parameter(0).toEqualTypeOf<{}>()
+          expectTypeOf(prismaMock.user.count.calledWith).parameter(0).toEqualTypeOf<{} | undefined>()
+          expectTypeOf(prismaMock.user.findFirst.calledWith).parameter(0).toEqualTypeOf<{} | undefined>()
+          expectTypeOf(prismaMock.user.findFirstOrThrow.calledWith).parameter(0).toEqualTypeOf<{} | undefined>()
+          expectTypeOf(prismaMock.user.findMany.calledWith).parameter(0).toEqualTypeOf<{} | undefined>()
+          expectTypeOf(prismaMock.user.findUnique.calledWith).parameter(0).toEqualTypeOf<{}>()
+          expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith).parameter(0).toEqualTypeOf<{}>()
+          expectTypeOf(prismaMock.user.groupBy.calledWith).parameter(0).toEqualTypeOf<{}>()
+        }
+      })
+
+      test('call still work as usual', () => {
+        ;() => {
+          const prismaMock = mockDeep(getOverrideExtension(prisma))
+
+          const data = prismaMock.user.findFirst({ where: { id: '1' } })
+          expectTypeOf(data).toEqualTypeOf<{ id: string } | null>()
         }
       })
     })
@@ -218,6 +221,16 @@ testMatrix.setupTestSuite(
           expectTypeOf(prismaMock.user.groupBy.calledWith)
             .parameter(0)
             .toEqualTypeOf<Parameters<typeof xprisma.user.groupBy>[0]>()
+        }
+      })
+
+      test('call still work as usual', () => {
+        ;async () => {
+          const xprisma = prisma.$extends({})
+          const prismaMock = mockDeep(xprisma)
+
+          const data = await prismaMock.user.findFirst({ where: { id: '1' } })
+          expectTypeOf(data).toEqualTypeOf<{ id: string } | null>()
         }
       })
     })
