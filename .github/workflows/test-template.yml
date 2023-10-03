@@ -961,7 +961,7 @@ jobs:
   # minimize the time spent waiting for a free runner.
   #
   no-docker-client-functional:
-    name: TODO
+    name: Client (functional tests running on Windows/macOS, no-docker)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     strategy:
@@ -1032,7 +1032,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   no-docker:
-    name: TODO
+    name: All packages (running on Windows/macOS, no-docker)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
 
