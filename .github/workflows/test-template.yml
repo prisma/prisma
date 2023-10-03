@@ -64,6 +64,7 @@ jobs:
   # Linting
   #
   lint:
+    name: Lint
     timeout-minutes: 7
     runs-on: ubuntu-latest
 
@@ -101,6 +102,7 @@ jobs:
   # CLIENT (without types test)
   #
   client:
+    name: Client (without types test)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -186,7 +188,8 @@ jobs:
   #
   # CLIENT (functional tests with mini-proxy)
   #
-  client-dataproxy:
+  client-miniproxy:
+    name: Client (functional tests with mini-proxy)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -263,6 +266,7 @@ jobs:
   # CLIENT (functional tests with driver adapters)
   #
   client-driveradapters:
+    name: Client (functional tests with driver adapters)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -334,6 +338,7 @@ jobs:
   # CLIENT (memory tests)
   #
   client-memory:
+    name: Client (memory tests)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -437,6 +442,7 @@ jobs:
   # CLIENT test:e2e
   #
   client-e2e:
+    name: Client (test:e2e)
     timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
@@ -477,6 +483,7 @@ jobs:
   # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
   #
   client-relationMode:
+    name: Client (test:functional:code --relation-mode-tests-only)
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
@@ -552,6 +559,7 @@ jobs:
   # CLIENT (types tests only)
   #
   client-types:
+    name: Client (types tests only)
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -586,6 +594,7 @@ jobs:
   # WORKSPACE-TYPES
   #
   workspace-types:
+    name: Workspace types
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -610,6 +619,7 @@ jobs:
   # INTEGRATION-TESTS
   #
   integration-tests:
+    name: Integration tests
     timeout-minutes: 20
     runs-on: ubuntu-latest
 
@@ -670,6 +680,7 @@ jobs:
   # `@prisma/internals`
   #
   internals:
+    name: '@prisma/internals'
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
@@ -731,6 +742,7 @@ jobs:
   # MIGRATE
   #
   migrate:
+    name: Migrate
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
@@ -792,6 +804,7 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
+    name: CLI commands
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
@@ -853,6 +866,7 @@ jobs:
   # All the other packages!
   #
   others:
+    name: Others
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
@@ -947,6 +961,7 @@ jobs:
   # minimize the time spent waiting for a free runner.
   #
   no-docker-client-functional:
+    name: Client (functional tests running on Windows/macOS, no-docker)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     strategy:
@@ -1017,6 +1032,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   no-docker:
+    name: All packages (running on Windows/macOS, no-docker)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
 
