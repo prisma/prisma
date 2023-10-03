@@ -277,7 +277,8 @@ testMatrix.setupTestSuite(() => {
 
     xprisma.$executeRawCustom(Prisma.sql`SELECT * FROM User`, { extra: true })
 
-    // @ts-expect-error
+    // it will not error on mongo, as the param does not exist, becomes `any`
+    // @ts-test-if: provider === 'mongodb'
     xprisma.$executeRawCustom(42, { extra: true })
   })
 
