@@ -43,6 +43,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case PgColumnType['VARBIT']:
     case PgColumnType['INET']:
     case PgColumnType['CIDR']:
+    case PgColumnType['XML']:
       return ColumnTypeEnum.Text
     case PgColumnType['BYTEA']:
       return ColumnTypeEnum.Bytes
