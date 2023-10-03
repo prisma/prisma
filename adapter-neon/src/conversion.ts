@@ -44,6 +44,8 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case NeonColumnType['INET']:
     case NeonColumnType['CIDR']:
       return ColumnTypeEnum.Text
+    case NeonColumnType['BYTEA']:
+      return ColumnTypeEnum.Bytes
     default:
       if (fieldTypeId >= 10000) {
         // Postgres Custom Types
@@ -67,10 +69,29 @@ function convertJson(json: string): unknown {
   return (json === 'null') ? JsonNullMarker : JSON.parse(json)
 }
 
+// Original BYTEA parser
+const parsePgBytes = types.getTypeParser(NeonColumnType.BYTEA) as (_: string) => Buffer
+
+/**
+ * Convert bytes to a JSON-encodable representation since we can't
+ * currently send a parsed Buffer or ArrayBuffer across JS to Rust
+ * boundary.
+ * TODO:
+ * 1. Check if using base64 would be more efficient than this encoding.
+ * 2. Consider the possibility of eliminating re-encoding altogether
+ *    and passing bytea hex format to the engine if that can be aligned
+ *    with other adapter flavours.
+ */
+function convertBytes(serializedBytes: string): number[] {
+  const buffer = parsePgBytes(serializedBytes)
+  return Array.from(new Uint8Array(buffer))
+}
+
 // return string instead of JavaScript Date object
 types.setTypeParser(NeonColumnType.TIME, date => date)
 types.setTypeParser(NeonColumnType.DATE, date => date)
 types.setTypeParser(NeonColumnType.TIMESTAMP, date => date)
 types.setTypeParser(NeonColumnType.JSONB, convertJson)
 types.setTypeParser(NeonColumnType.JSON, convertJson)
-types.setTypeParser(NeonColumnType.MONEY, (money: string) => money.slice(1))
+types.setTypeParser(NeonColumnType.MONEY, money => money.slice(1))
+types.setTypeParser(NeonColumnType.BYTEA, convertBytes)
