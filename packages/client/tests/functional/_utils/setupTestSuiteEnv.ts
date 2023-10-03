@@ -122,8 +122,12 @@ export async function setupTestSuiteDatabase(
     }
     await DbPush.new().parse(dbPushParams)
 
-    if (suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8) {
-      await new Promise((r) => setTimeout(r, 300)) // wait for vitess to catch up
+    if (
+      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8 ||
+      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE
+    ) {
+      // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
+      await new Promise((r) => setTimeout(r, 1000))
     }
 
     if (alterStatementCallback) {

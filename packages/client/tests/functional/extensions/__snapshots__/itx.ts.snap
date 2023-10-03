@@ -60,6 +60,10 @@ Invalid \`tx.user.create()\` invocation in
 Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
+exports[`extensions.itx (provider=mysql, js_planetscale) extended client in itx can rollback via custom call 1`] = `target: test-0000-00000000.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry 'jane@smith.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email, firstName, lastName) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */, :vtg3 /* VARCHAR */, :vtg4 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"02d25579a73a72373fa4e846\\""vtg2: "type:VARCHAR value:\\"jane@smith.com\\""vtg3: "type:VARCHAR value:\\"Jane\\""vtg4: "type:VARCHAR value:\\"Smith\\""} (errno 1062) (sqlstate 23000) during query: INSERT INTO \`test-0000-00000000\`.\`User\` (\`id\`,\`email\`,\`firstName\`,\`lastName\`) VALUES ('02d25579a73a72373fa4e846','jane@smith.com','Jane','Smith')`;
+
+exports[`extensions.itx (provider=mysql, js_planetscale) extended client in itx can rollback via normal call 1`] = `target: test-0000-00000000.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry 'jane@smith.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email, firstName, lastName) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */, :vtg3 /* VARCHAR */, :vtg4 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"02d25579a73a72373fa4e846\\""vtg2: "type:VARCHAR value:\\"jane@smith.com\\""vtg3: "type:VARCHAR value:\\"Jane\\""vtg4: "type:VARCHAR value:\\"Smith\\""} (errno 1062) (sqlstate 23000) during query: INSERT INTO \`test-0000-00000000\`.\`User\` (\`id\`,\`email\`,\`firstName\`,\`lastName\`) VALUES ('02d25579a73a72373fa4e846','jane@smith.com','Jane','Smith')`;
+
 exports[`extensions.itx (provider=postgresql) extended client in itx can rollback via custom call 1`] = `
 
 Invalid \`prisma.user.create()\` invocation:

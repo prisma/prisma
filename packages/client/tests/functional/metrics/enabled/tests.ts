@@ -218,7 +218,8 @@ testMatrix.setupTestSuite(
       skipTestIf(
         providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL,
+          providerFlavor === ProviderFlavors.JS_LIBSQL ||
+          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
       )('SQL Providers: should have the same keys, before and after a query', async () => {
         if (provider === 'mongodb') {
           return
@@ -458,7 +459,8 @@ testMatrix.setupTestSuite(
       skipTestIf(
         providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL,
+          providerFlavor === ProviderFlavors.JS_LIBSQL ||
+          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
       )('returns metrics in prometheus format', async () => {
         const metrics = await prisma.$metrics.prometheus()
 
@@ -502,7 +504,8 @@ testMatrix.setupTestSuite(
       skipTestIf(
         providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL,
+          providerFlavor === ProviderFlavors.JS_LIBSQL ||
+          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
       )('returns metrics in json format', async () => {
         const { counters, gauges, histograms } = await prisma.$metrics.json()
 

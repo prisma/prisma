@@ -297,13 +297,43 @@ testMatrix.setupTestSuite(
           dbQueries = [
             dbQuery(expect.stringContaining('BEGIN'), false),
             dbQuery(expect.stringContaining('SELECT')),
-            dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), false),
             dbQuery('COMMIT', false),
           ]
         }
         await waitForSpanTree(
           operation('User', 'delete', [
+            clientSerialize(),
+            engine([engineConnection(), ...dbQueries, engineSerialize()]),
+          ]),
+        )
+      })
+
+      test('deleteMany()', async () => {
+        // Needed to see `deleteMany` for MongoDB
+        // for context https://github.com/prisma/prisma-engines/blob/a437f71ab038893c0001b09743862e841bedca01/query-engine/connectors/mongodb-query-connector/src/root_queries/write.rs#L259-L261
+        await prisma.user.create({
+          data: {
+            email: sharedEmail,
+          },
+        })
+        inMemorySpanExporter.reset()
+
+        await prisma.user.deleteMany()
+
+        let dbQueries: Tree[]
+
+        if (provider === 'mongodb') {
+          dbQueries = [
+            dbQuery(expect.stringContaining('db.User.findMany(*)')),
+            dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
+          ]
+        } else {
+          dbQueries = [dbQuery(expect.stringContaining('DELETE'), false)]
+        }
+
+        await waitForSpanTree(
+          operation('User', 'deleteMany', [
             clientSerialize(),
             engine([engineConnection(), ...dbQueries, engineSerialize()]),
           ]),
@@ -554,9 +584,9 @@ testMatrix.setupTestSuite(
   },
   {
     skipProviderFlavor: {
-      from: ['js_libsql'],
+      from: ['js_libsql', 'js_planetscale'],
       reason:
-        'The spans are not consistent, or not in a way that makes sense compared to the order driver adapters. Needs investigation.',
+        'The spans are not consistent, or not in a way that makes sense compared to the other driver adapters. Needs investigation.',
     },
   },
 )
