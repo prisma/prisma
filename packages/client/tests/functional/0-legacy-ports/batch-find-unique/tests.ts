@@ -73,8 +73,12 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
     ])
 
     await waitFor(() => {
-      expect(executedBatchQuery).toMatchSnapshot()
+      if (executedBatchQuery === undefined) {
+        throw new Error('executedBatchQuery is undefined')
+      }
     })
+
+    expect(executedBatchQuery).toMatchSnapshot()
 
     expect(results).toMatchInlineSnapshot(`
       [
