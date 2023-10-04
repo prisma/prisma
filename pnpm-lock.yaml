@@ -382,23 +382,23 @@ importers:
         specifier: 1.11.0
         version: 1.11.0
       '@prisma/adapter-libsql':
-        specifier: 0.5.0
-        version: 0.5.0(@libsql/client@0.3.5)
+        specifier: 5.4.0
+        version: 5.4.0(@libsql/client@0.3.5)
       '@prisma/adapter-neon':
-        specifier: 0.6.0
-        version: 0.6.0(@neondatabase/serverless@0.6.0)
+        specifier: 5.4.0
+        version: 5.4.0(@neondatabase/serverless@0.6.0)
       '@prisma/adapter-pg':
-        specifier: 0.6.0
-        version: 0.6.0(pg@8.11.2)
+        specifier: 5.4.0
+        version: 5.4.0(pg@8.11.2)
       '@prisma/adapter-planetscale':
-        specifier: 0.5.0
-        version: 0.5.0(@planetscale/database@1.11.0)
+        specifier: 5.4.0
+        version: 5.4.0(@planetscale/database@1.11.0)
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 0.9.0
-        version: 0.9.0
+        specifier: 5.4.0
+        version: 5.4.0
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -2988,53 +2988,53 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/adapter-libsql@0.5.0(@libsql/client@0.3.5):
-    resolution: {integrity: sha512-dqLaegWnHqdFEUAjUZL5Ty5948vTMglToYDCT2ceEtLQAgnzQ3dTteX2ajfmYza0FtKtyNEBEw8VJXG7Tj+lmw==}
+  /@prisma/adapter-libsql@5.4.0(@libsql/client@0.3.5):
+    resolution: {integrity: sha512-94yIN8WPoHOhdjw1jEfWP4md7QnpVvT6C4Ab1uV6VLtGI8X2SjlvwglNKVpBTfSKhafvteZS1gLzoHj3yqLsOQ==}
     peerDependencies:
       '@libsql/client': ^0.3.5
     dependencies:
       '@libsql/client': 0.3.5
-      '@prisma/driver-adapter-utils': 0.9.0
+      '@prisma/driver-adapter-utils': 5.4.0
       async-mutex: 0.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-neon@0.6.0(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-bPcyS1qzJSjQcjLjMi3oboLewakgJCUFT9tMbGkiWnUbbuKBNqKvuw/5U8xCanA00bsrpq3lgWH8x7Pl3Fv98Q==}
+  /@prisma/adapter-neon@5.4.0(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-Jj0oIycCfEVErn+Kr03AwUhRZJGoWerB5jotN8Iszae+fZHRtc940KyPaIQwFapv3j8hjChXmrDZ+m6jwRm1iA==}
     peerDependencies:
       '@neondatabase/serverless': ^0.6.0
     dependencies:
       '@neondatabase/serverless': 0.6.0
-      '@prisma/driver-adapter-utils': 0.9.0
+      '@prisma/driver-adapter-utils': 5.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-pg@0.6.0(pg@8.11.2):
-    resolution: {integrity: sha512-gL8uysONe+2RHPkRiQqqfDu6OddP4tUdtD594fzbKzuJIf2cAFyADjHj+hipTPizX8lE1BGxA/aGkBS1fLxf+A==}
+  /@prisma/adapter-pg@5.4.0(pg@8.11.2):
+    resolution: {integrity: sha512-JsngML3UA2b9yULSRGYj6GAxih+6WOr0u7iSG0NX4AXnmtPcFKQE9oTErVX3yy4OF75r+1StIp7wBdlpCBHJug==}
     peerDependencies:
       pg: ^8.11.3
     dependencies:
-      '@prisma/driver-adapter-utils': 0.9.0
+      '@prisma/driver-adapter-utils': 5.4.0
       pg: 8.11.2
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-planetscale@0.5.0(@planetscale/database@1.11.0):
-    resolution: {integrity: sha512-6UcxfKIVc4AYvphV2XrfyAcZlUmcf3/fPsoOYZPmF83STM1HiJLGNR/oWn7v7JuYzUqZ/BrF0xOAe4T89OiYVQ==}
+  /@prisma/adapter-planetscale@5.4.0(@planetscale/database@1.11.0):
+    resolution: {integrity: sha512-n1Oy1RoHwOiW3th4Wfwr3kVj+0so36XrTONRK/FVCNUOOCYcGvVT9eqN2kFytb1PrA6fYQpIeEJUl/tpBmVqIg==}
     peerDependencies:
       '@planetscale/database': ^1.11.0
     dependencies:
       '@planetscale/database': 1.11.0
-      '@prisma/driver-adapter-utils': 0.9.0
+      '@prisma/driver-adapter-utils': 5.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/driver-adapter-utils@0.9.0:
-    resolution: {integrity: sha512-zfXTL5h0+EOVGU15I2+PNrgGPRE5mr0hqjFQXsJyW2eFkDcDQRQx80a3JB40zt4fensRKK+1UEfLWXBNeZWJDw==}
+  /@prisma/driver-adapter-utils@5.4.0:
+    resolution: {integrity: sha512-lOdrHuCdOVbUy/jDfG5fqIEwtULRkY0HBS0RoXuV8Sy9D75ZphZOOg/HTBpWk6EiLcXK60o38goEQazNdN4xUA==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
