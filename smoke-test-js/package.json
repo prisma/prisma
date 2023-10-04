@@ -2,7 +2,7 @@
   "name": "@prisma/driver-adapters-smoke-tests-js",
   "private": true,
   "type": "module",
-  "version": "0.0.0",
+  "version": "5.4.0",
   "description": "",
   "scripts": {
     "prisma:db:push:postgres": "prisma db push --schema ./prisma/postgres/schema.prisma --force-reset",

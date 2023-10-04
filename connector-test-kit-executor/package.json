@@ -1,6 +1,6 @@
 {
   "name": "connector-test-kit-executor",
-  "version": "1.0.0",
+  "version": "5.4.0",
   "description": "",
   "main": "dist/index.js",
   "private": true,

@@ -1,6 +1,6 @@
 {
   "name": "@prisma/adapter-pg",
-  "version": "0.6.0",
+  "version": "5.4.0",
   "description": "Prisma's driver adapter for \"pg\"",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
