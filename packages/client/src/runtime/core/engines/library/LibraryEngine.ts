@@ -248,7 +248,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         this.engine = new this.QueryEngineConstructor(
           {
             datamodel: this.datamodel,
-            env: adapter ? {} : process.env,
+            env: process.env,
             logQueries: this.config.logQueries ?? false,
             ignoreEnvVarErrors: true,
             datasourceOverrides: this.datasourceOverrides ?? {},
