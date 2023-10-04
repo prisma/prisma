@@ -28,8 +28,8 @@
     "@prisma/client": "../../packages/client",
     "@prisma/driver-adapter-utils": "0.9.0",
     "pg": "8.11.3",
-    "superjson": "1.13.1",
-    "undici": "5.25.2"
+    "superjson": "1.13.3",
+    "undici": "5.25.4"
   },
   "devDependencies": {
     "@types/node": "18.18.0",
