@@ -1,8 +1,8 @@
 import { Sql } from 'sql-template-tag'
 
-import { ITXClientDenyList } from '../../itxClientDenyList'
-import { RequiredArgs as UserArgs } from '../extensions/$extends'
-import { Payload } from './Payload'
+import { RequiredExtensionArgs as UserArgs } from './ExtensionArgs'
+import { ITXClientDenyList } from './itxClientDenyList'
+import { OperationPayload } from './Payload'
 import { PrismaPromise } from './Public'
 import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './Result'
 import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, ToTuple, UnwrapTuple } from './Utils'
@@ -19,27 +19,35 @@ export type InternalArgs<
   client: { [K in keyof C]: () => C[K] }
 }
 
-export type Args = InternalArgs
-
 export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
-// prettier-ignore
-export type GetResult<Base extends Record<any, any>, R extends Args['result'][string], KR extends keyof R = string extends keyof R ? never : keyof R> =
-  unknown extends R
+export type GetPayloadResult<
+  Base extends Record<any, any>,
+  R extends InternalArgs['result'][string],
+  KR extends keyof R = string extends keyof R ? never : keyof R,
+> = unknown extends R
   ? Base
-  : { [K in KR | keyof Base]: K extends KR ? R[K] extends (() => { compute: (...args: any) => infer C }) ? C : never : Base[K] }
-// ! the intersection with unknown is important, it prevents the result types from showing an ugly `GetResult<...> & {}` type on hover
+  : {
+      [K in KR | keyof Base]: K extends KR
+        ? R[K] extends () => { compute: (...args: any) => infer C }
+          ? C
+          : never
+        : Base[K]
+    }
 
 export type GetSelect<
   Base extends Record<any, any>,
-  R extends Args['result'][string],
+  R extends InternalArgs['result'][string],
   KR extends keyof R = string extends keyof R ? never : keyof R,
 > = { [K in KR | keyof Base]?: K extends KR ? boolean : Base[K] }
 
 /** Query */
 
 // prettier-ignore
-type DynamicQueryExtensionArgs<Q_, TypeMap extends TypeMapDef> = {
+export type DynamicQueryExtensionArgs<
+  Q_, 
+  TypeMap extends TypeMapDef,
+> = {
   [K in keyof Q_]:
     K extends '$allOperations'
     ? (args: { model?: string, operation: string, args: any, query: (args: any) => PrismaPromise<any> }) => Promise<any>
@@ -67,12 +75,22 @@ type DynamicQueryExtensionArgs<Q_, TypeMap extends TypeMapDef> = {
 }
 
 // prettier-ignore
-type DynamicQueryExtensionCb<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
+export type DynamicQueryExtensionCb<
+  TypeMap extends TypeMapDef,
+  _0 extends PropertyKey,
+  _1 extends PropertyKey,
+  _2 extends PropertyKey,
+> =
   <A extends DynamicQueryExtensionCbArgs<TypeMap, _0, _1, _2>>(args: A) =>
     Promise<TypeMap[_0][_1][_2]['result']>
 
 // prettier-ignore
-type DynamicQueryExtensionCbArgs<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
+export type DynamicQueryExtensionCbArgs<
+  TypeMap extends TypeMapDef,
+  _0 extends PropertyKey,
+  _1 extends PropertyKey,
+  _2 extends PropertyKey,
+> =
   ( // we distribute over the union of models and operations to allow narrowing
     _1 extends unknown ? _2 extends unknown ? {
       args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>,
@@ -86,7 +104,7 @@ type DynamicQueryExtensionCbArgs<TypeMap extends TypeMapDef, _0 extends Property
       PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
   }
 
-type DynamicQueryExtensionCbArgsArgs<
+export type DynamicQueryExtensionCbArgsArgs<
   TypeMap extends TypeMapDef,
   _0 extends PropertyKey,
   _1 extends PropertyKey,
@@ -97,7 +115,7 @@ type DynamicQueryExtensionCbArgsArgs<
 
 /** Result */
 
-type DynamicResultExtensionArgs<R_, TypeMap extends TypeMapDef> = {
+export type DynamicResultExtensionArgs<R_, TypeMap extends TypeMapDef> = {
   [K in keyof R_]: {
     [P in keyof R_[K]]?: {
       needs?: DynamicResultExtensionNeeds<TypeMap, ModelKey<TypeMap, K>, R_[K][P]>
@@ -106,13 +124,13 @@ type DynamicResultExtensionArgs<R_, TypeMap extends TypeMapDef> = {
   }
 }
 
-type DynamicResultExtensionNeeds<TypeMap extends TypeMapDef, M extends PropertyKey, S> = {
+export type DynamicResultExtensionNeeds<TypeMap extends TypeMapDef, M extends PropertyKey, S> = {
   [K in keyof S]: K extends keyof TypeMap['model'][M]['payload']['scalars'] ? S[K] : never
 } & {
   [N in keyof TypeMap['model'][M]['payload']['scalars']]?: boolean
 }
 
-type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKey, S> = GetFindResult<
+export type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKey, S> = GetFindResult<
   TypeMap['model'][M]['payload'],
   { select: S }
 >
@@ -120,7 +138,12 @@ type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKe
 /** Model */
 
 // prettier-ignore
-type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
+export type DynamicModelExtensionArgs<
+  M_, 
+  TypeMap extends TypeMapDef, 
+  TypeMapCb extends TypeMapCbDef, 
+  ExtArgs extends Record<string, any>
+> = {
   [K in keyof M_]:
     K extends '$allModels'
     ? & { [P in keyof M_[K]]?: unknown }
@@ -144,7 +167,11 @@ type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, TypeMapCb extends
 }
 
 // prettier-ignore
-type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends PropertyKey, ExtArgs extends Record<string, any>> = {
+export type DynamicModelExtensionThis<
+  TypeMap extends TypeMapDef, 
+  M extends PropertyKey, 
+  ExtArgs extends Record<string, any>,
+> = {
   [P in keyof ExtArgs['model'][Uncapitalize<M & string>]]:
     Return<ExtArgs['model'][Uncapitalize<M & string>][P]>
 } & {
@@ -157,7 +184,7 @@ type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends PropertyKey
   [K: symbol]: { types: TypeMap['model'][M] }
 }
 
-type DynamicModelExtensionOperationFn<
+export type DynamicModelExtensionOperationFn<
   TypeMap extends TypeMapDef,
   M extends PropertyKey,
   P extends PropertyKey,
@@ -169,18 +196,19 @@ type DynamicModelExtensionOperationFn<
       args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
     ) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
 
-type DynamicModelExtensionFnResult<
+// prettier-ignore
+export type DynamicModelExtensionFnResult<
   TypeMap extends TypeMapDef,
   M extends PropertyKey,
   A,
   P extends PropertyKey,
   Null = DynamicModelExtensionFnResultNull<P>,
 > = P extends FluentOperation
-  ? DynamicModelExtensionFluentApi<TypeMap, M, P, Null> &
-      PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P> | Null>
+  ? & DynamicModelExtensionFluentApi<TypeMap, M, P, Null>
+    & PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P> | Null>
   : PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P>>
 
-type DynamicModelExtensionFnResultBase<
+export type DynamicModelExtensionFnResultBase<
   TypeMap extends TypeMapDef,
   M extends PropertyKey,
   A,
@@ -188,18 +216,31 @@ type DynamicModelExtensionFnResultBase<
 > = GetOperationResult<TypeMap['model'][M]['payload'], A, P & Operation>
 
 // prettier-ignore
-type DynamicModelExtensionFluentApi<TypeMap extends TypeMapDef, M extends PropertyKey, P extends PropertyKey, Null> = {
-  [K in keyof TypeMap['model'][M]['payload']['objects']]:
-    <A>(args?: Exact<A, Path<TypeMap['model'][M]['operations'][P]['args']['select'], [K]>>) =>
-      & PrismaPromise<Path<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P>, [K]> | Null>
-      & DynamicModelExtensionFluentApi<TypeMap, (TypeMap['model'][M]['payload']['objects'][K] & {})['name'], P, Null | Select<TypeMap['model'][M]['payload']['objects'][K], null>>
+export type DynamicModelExtensionFluentApi<
+  TypeMap extends TypeMapDef,
+  M extends PropertyKey,
+  P extends PropertyKey,
+  Null,
+> = {
+  [K in keyof TypeMap['model'][M]['payload']['objects']]: <A>(
+    args?: Exact<A, Path<TypeMap['model'][M]['operations'][P]['args']['select'], [K]>>,
+  ) => 
+    & PrismaPromise<Path<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P>, [K]> | Null>
+    & DynamicModelExtensionFluentApi<
+      TypeMap,
+      (TypeMap['model'][M]['payload']['objects'][K] & {})['name'],
+      P,
+      Null | Select<TypeMap['model'][M]['payload']['objects'][K], null>
+    >
 }
 
-type DynamicModelExtensionFnResultNull<P extends PropertyKey> = P extends 'findUnique' | 'findFirst' ? null : never
+// prettier-ignore
+export type DynamicModelExtensionFnResultNull<P extends PropertyKey> =
+  P extends 'findUnique' | 'findFirst' ? null : never
 
 /** Client */
 
-type DynamicClientExtensionArgs<
+export type DynamicClientExtensionArgs<
   C_,
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
@@ -215,7 +256,7 @@ type DynamicClientExtensionArgs<
 }
 
 // prettier-ignore
-type DynamicClientExtensionThis<
+export type DynamicClientExtensionThis<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
   ExtArgs extends Record<string, any>,
@@ -237,8 +278,9 @@ type DynamicClientExtensionThis<
   [K: symbol]: { types: TypeMap['other'] }
 }
 
-type ClientBuiltInProp = keyof DynamicClientExtensionThisBuiltin<never, never, never>
-type DynamicClientExtensionThisBuiltin<
+export type ClientBuiltInProp = keyof DynamicClientExtensionThisBuiltin<never, never, never>
+
+export type DynamicClientExtensionThisBuiltin<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
   ExtArgs extends Record<string, any>,
@@ -299,7 +341,7 @@ export interface ExtendsHook<
   }[Variant]
 }
 
-type MergeExtArgs<
+export type MergeExtArgs<
   TypeMap extends TypeMapDef,
   ExtArgs extends Record<any, any>,
   Args extends Record<any, any>,
@@ -307,7 +349,7 @@ type MergeExtArgs<
   ExtArgs & Args & AllModelsToStringIndex<TypeMap, Args, 'result'> & AllModelsToStringIndex<TypeMap, Args, 'model'>
 >
 
-type AllModelsToStringIndex<
+export type AllModelsToStringIndex<
   TypeMap extends TypeMapDef,
   Args extends Record<string, any>,
   K extends PropertyKey,
@@ -317,10 +359,10 @@ type AllModelsToStringIndex<
 
 /** Shared */
 
-type TypeMapDef = Record<any, any> /* DevTypeMapDef */
+export type TypeMapDef = Record<any, any> /* DevTypeMapDef */
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type DevTypeMapDef = {
+export type DevTypeMapDef = {
   meta: {
     modelProps: string
   }
@@ -334,15 +376,15 @@ type DevTypeMapDef = {
   }
 }
 
-type DevTypeMapFnDef = {
+export type DevTypeMapFnDef = {
   args: any
   result: any
-  payload: Payload
+  payload: OperationPayload
 }
 
-export type TypeMapCbDef = Fn<{ extArgs: Args }, TypeMapDef>
+export type TypeMapCbDef = Fn<{ extArgs: InternalArgs }, TypeMapDef>
 
-type ModelKey<TypeMap extends TypeMapDef, M extends PropertyKey> = M extends keyof TypeMap['model']
+export type ModelKey<TypeMap extends TypeMapDef, M extends PropertyKey> = M extends keyof TypeMap['model']
   ? M
   : Capitalize<M & string>
 

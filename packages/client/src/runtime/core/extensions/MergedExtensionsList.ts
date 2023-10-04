@@ -1,7 +1,8 @@
 import { Cache } from '../../../generation/Cache'
 import { lazyProperty } from '../../../generation/lazyProperty'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { Args, BatchQueryOptionsCb, ClientArg, ModelArg, QueryOptionsCb, QueryOptionsPrivate } from './$extends'
+import { ClientArg, ExtensionArgs, ModelArg, QueryOptionsCb } from '../types/exported/ExtensionArgs'
+import { BatchQueryOptionsCb, QueryOptionsPrivate } from '../types/internal/ExtensionsInternalArgs'
 import { ComputedFieldsMap, getComputedFields } from './resultUtils'
 
 class MergedExtensionsListNode {
@@ -29,7 +30,7 @@ class MergedExtensionsListNode {
     return previous.concat(newCb)
   })
 
-  constructor(public extension: Args, public previous?: MergedExtensionsListNode) {}
+  constructor(public extension: ExtensionArgs, public previous?: MergedExtensionsListNode) {}
 
   getAllComputedFields(dmmfModelName: string): ComputedFieldsMap | undefined {
     return this.computedFieldsCache.getOrCreate(dmmfModelName, () => {
@@ -126,7 +127,7 @@ export class MergedExtensionsList {
     return new MergedExtensionsList()
   }
 
-  static single(extension: Args) {
+  static single(extension: ExtensionArgs) {
     return new MergedExtensionsList(new MergedExtensionsListNode(extension))
   }
 
@@ -134,7 +135,7 @@ export class MergedExtensionsList {
     return this.head === undefined
   }
 
-  append(extension: Args) {
+  append(extension: ExtensionArgs) {
     return new MergedExtensionsList(new MergedExtensionsListNode(extension, this.head))
   }
 

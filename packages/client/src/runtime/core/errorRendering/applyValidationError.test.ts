@@ -2,7 +2,7 @@ import ansiEscapesSerializer from 'jest-serializer-ansi-escapes'
 import { $ as colors } from 'kleur/colors'
 
 import { Writer } from '../../../generation/ts-builders/Writer'
-import { JsArgs } from '../types/JsApi'
+import { JsArgs } from '../types/exported/JsApi'
 import { ValidationError } from '../types/ValidationError'
 import { applyValidationError } from './applyValidationError'
 import { ArgumentsRenderingTree, buildArgumentsRenderingTree } from './ArgumentsRenderingTree'

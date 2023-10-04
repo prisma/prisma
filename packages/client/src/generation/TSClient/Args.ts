@@ -92,7 +92,7 @@ export class ArgsType implements Generatable {
 /**
  * ${this.getGeneratedComment()}
  */
-export type ${generatedName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+export type ${generatedName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, this.context.genericArgsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
@@ -128,7 +128,7 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${typeName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+export type ${typeName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(
   args
     .map((arg) => {

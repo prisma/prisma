@@ -1,8 +1,8 @@
 import Decimal from 'decimal.js'
 
 import { Writer } from '../../../generation/ts-builders/Writer'
-import { objectEnumValues } from '../../object-enums'
 import { FieldRefImpl } from '../model/FieldRef'
+import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { ArgumentsRenderingTree, buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { inactiveColors } from './base'
 import { ObjectValue } from './ObjectValue'

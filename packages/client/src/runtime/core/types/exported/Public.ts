@@ -23,8 +23,7 @@ export type Result<T, A, F extends Operation> =
 
 // prettier-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type Payload<T, F extends Operation = never> =
-  T extends { [K: symbol]: { types: { payload: any } } }
+export type Payload<T, F extends Operation = never> = T extends { [K: symbol]: { types: { payload: any } } }
   ? T[symbol]['types']['payload']
   : any
 

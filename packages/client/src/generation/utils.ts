@@ -237,5 +237,5 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
 
 export const extArgsParam = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('$Extensions.Args'))
+  .extends(ts.namedType('$Extensions.InternalArgs'))
   .default(ts.namedType('$Extensions.DefaultArgs'))
