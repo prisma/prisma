@@ -64,11 +64,5 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'sqlserver'],
       reason: "SQLite and SQLServer don't support enums",
     },
-    skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
-      reason:
-        // now yields: "Unsupported column type: 1009"
-        "Inconsistent column data: List field did not return an Array from database. Type identifier was Enum(EnumId(2)). Value was Enum(Some('{A}')).",
-    },
   },
 )
