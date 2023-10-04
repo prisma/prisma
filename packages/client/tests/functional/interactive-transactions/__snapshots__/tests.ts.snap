@@ -308,7 +308,13 @@ Invalid \`prisma.user.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`interactive-transactions (provider=sqlite, js_libsql) batching raw rollback 1`] = `: UNIQUE constraint failed: User.email`;
+exports[`interactive-transactions (provider=sqlite, js_libsql) batching raw rollback 1`] = `
+
+Invalid \`prisma.$executeRaw()\` invocation:
+
+
+SQLITE_CONSTRAINT_UNIQUE: UNIQUE constraint failed: User.email
+`;
 
 exports[`interactive-transactions (provider=sqlserver) batching raw rollback 1`] = `
 
