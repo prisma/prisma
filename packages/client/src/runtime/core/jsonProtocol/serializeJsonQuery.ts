@@ -1,5 +1,4 @@
 import { ErrorFormat } from '../../getPrismaClient'
-import { ObjectEnumValue, objectEnumValues } from '../../object-enums'
 import { CallSite } from '../../utils/CallSite'
 import { isDate, isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
@@ -16,7 +15,8 @@ import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
 import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
-import { Action, JsArgs, JsInputValue, JsonConvertible, RawParameters, Selection } from '../types/JsApi'
+import { Action, JsArgs, JsInputValue, JsonConvertible, RawParameters, Selection } from '../types/exported/JsApi'
+import { ObjectEnumValue, objectEnumValues } from '../types/exported/ObjectEnums'
 import { ValidationError } from '../types/ValidationError'
 
 const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
