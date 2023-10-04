@@ -182,7 +182,7 @@ services:
       - '5488:80'
     depends_on:
       - postgres
-    restart: always # restart between reboots
+    restart: always
     healthcheck:
       test: ['CMD', 'nc', '-z', '127.0.0.1', '80']
       interval: 5s
@@ -199,6 +199,7 @@ services:
       - '8085:8085'
     depends_on:
       - vitess-8
+    restart: always
     healthcheck:
       test: ['CMD', 'nc', '-z', '127.0.0.1', '8085']
       interval: 5s
