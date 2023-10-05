@@ -189,7 +189,7 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-miniproxy:
-    name: Client (func w mini-proxy)
+    name: Client (func/mini-proxy)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -266,7 +266,7 @@ jobs:
   # CLIENT (functional tests with driver adapters)
   #
   client-driveradapters:
-    name: Client (func w adapters)
+    name: Client (func/adapters)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -483,7 +483,7 @@ jobs:
   # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
   #
   client-relationMode:
-    name: Client (func relationMode)
+    name: Client (func/relationMode)
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
