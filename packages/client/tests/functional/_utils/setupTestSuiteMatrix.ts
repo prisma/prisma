@@ -111,7 +111,7 @@ function setupTestSuiteMatrix(
 
         globalThis['db'] = {
           setupDb: () => setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback),
-          dropDb: () => dropTestSuiteDatabase(suiteMeta, suiteConfig),
+          dropDb: () => dropTestSuiteDatabase(suiteMeta, suiteConfig).catch(() => {}),
         }
       })
 
