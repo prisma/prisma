@@ -321,8 +321,8 @@ importers:
         specifier: 6.0.1
         version: 6.0.1
       ts-pattern:
-        specifier: 4.3.0
-        version: 4.3.0
+        specifier: 5.0.5
+        version: 5.0.5
       typescript:
         specifier: 5.2.2
         version: 5.2.2
@@ -583,8 +583,8 @@ importers:
         specifier: 10.9.1
         version: 10.9.1(@swc/core@1.3.91)(@types/node@18.18.0)(typescript@5.2.2)
       ts-pattern:
-        specifier: 4.3.0
-        version: 4.3.0
+        specifier: 5.0.5
+        version: 5.0.5
       tsd:
         specifier: 0.29.0
         version: 0.29.0
@@ -835,8 +835,8 @@ importers:
         specifier: 2.1.1
         version: 2.1.1
       ts-pattern:
-        specifier: 4.3.0
-        version: 4.3.0
+        specifier: 5.0.5
+        version: 5.0.5
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -1110,8 +1110,8 @@ importers:
         specifier: 0.2.1
         version: 0.2.1
       ts-pattern:
-        specifier: 4.3.0
-        version: 4.3.0
+        specifier: 5.0.5
+        version: 5.0.5
     devDependencies:
       '@swc/core':
         specifier: 1.2.204
@@ -1213,8 +1213,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0
       ts-pattern:
-        specifier: 4.3.0
-        version: 4.3.0
+        specifier: 5.0.5
+        version: 5.0.5
     devDependencies:
       '@prisma/engines-version':
         specifier: 5.5.0-2.c815422ede0692d58c70890066702bae4b466e8c
@@ -12500,8 +12500,8 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-pattern@4.3.0:
-    resolution: {integrity: sha512-pefrkcd4lmIVR0LA49Imjf9DYLK8vtWhqBPA3Ya1ir8xCW0O2yjL9dsCVvI7pCodLC5q7smNpEtDR2yVulQxOg==}
+  /ts-pattern@5.0.5:
+    resolution: {integrity: sha512-tL0w8U/pgaacOmkb9fRlYzWEUDCfVjjv9dD4wHTgZ61MjhuMt46VNWTG747NqW6vRzoWIKABVhFSOJ82FvXrfA==}
 
   /ts-toolbelt@9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}

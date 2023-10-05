@@ -146,7 +146,7 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "ts-node": "10.9.1",
-    "ts-pattern": "4.3.0",
+    "ts-pattern": "5.0.5",
     "tsd": "0.29.0",
     "typescript": "5.2.2",
     "undici": "5.25.4",
