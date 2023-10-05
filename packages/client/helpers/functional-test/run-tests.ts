@@ -62,8 +62,10 @@ const args = arg(
 )
 
 async function main(): Promise<number | void> {
-  let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
+  const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
+
+  let jestCli = jestCliBase
 
   if (args['--runInBand']) {
     jestCli = jestCli.withArgs(['--runInBand'])
@@ -171,7 +173,7 @@ async function main(): Promise<number | void> {
 
       if (!args['--no-types']) {
         // Disable JUnit output for typescript tests
-        jestCli.withArgs(['--', 'typescript']).withEnv({ JEST_JUNIT_DISABLE: 'true' }).run()
+        jestCliBase.withArgs(['typescript']).withEnv({ JEST_JUNIT_DISABLE: 'true' }).run()
       }
     }
   } catch (error) {
