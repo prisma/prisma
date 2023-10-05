@@ -117,9 +117,9 @@ class PrismaPlugin {
           name: 'PrismaPlugin',
           stage: Compilation.PROCESS_ASSETS_STAGE_ANALYSE,
         },
-        async (assets) => {
+        (assets) => {
           const nftAssetNames = Object.keys(assets).filter((k) => k.endsWith('.nft.json'))
-          const nftAsyncActions = nftAssetNames.map((assetName) => {
+          nftAssetNames.forEach((assetName) => {
             // prepare paths
             const outputDir = compiler.outputPath
             const assetPath = path.resolve(outputDir, assetName)
@@ -142,7 +142,7 @@ class PrismaPlugin {
             compilation.updateAsset(assetName, newRawSource)
           })
 
-          await Promise.all(nftAsyncActions)
+          return Promise.resolve()
         },
       )
     })
