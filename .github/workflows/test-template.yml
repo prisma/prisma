@@ -961,7 +961,7 @@ jobs:
   # minimize the time spent waiting for a free runner.
   #
   no-docker-client-functional:
-    name: Client (func Win/mac no-docker)
+    name: Client (func Win/mac)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     strategy:
