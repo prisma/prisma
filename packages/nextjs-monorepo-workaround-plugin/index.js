@@ -149,7 +149,6 @@ class PrismaPlugin {
 
     // copy prisma files to output as the final step (for all users)
     compiler.hooks.done.tapPromise('PrismaPlugin', async () => {
-      console.log(origins, originAssetsToCopies)
       const asyncActions = Object.entries(originAssetsToCopies).map(async ([from, copies]) => {
         await Promise.all(
           copies.map(async (copy) => {
