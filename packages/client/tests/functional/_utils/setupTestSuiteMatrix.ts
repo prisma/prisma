@@ -51,12 +51,7 @@ export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (
-    suiteConfig: Record<string, string>,
-    suiteMeta: TestCallbackSuiteMeta,
-    clientMeta: ClientMeta,
-    setupDatabase: () => Promise<void>,
-  ) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestCallbackSuiteMeta, clientMeta: ClientMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
@@ -113,6 +108,11 @@ function setupTestSuiteMatrix(
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
+
+        globalThis['db'] = {
+          setupDb: () => setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback),
+          dropDb: () => dropTestSuiteDatabase(suiteMeta, suiteConfig),
+        }
       })
 
       // for better type dx, copy a client into the test suite root node_modules
@@ -157,16 +157,6 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       }, 180_000)
 
-      const setupDatabase = async () => {
-        if (!options?.skipDb) {
-          throw new Error(
-            'Pass skipDb: true in the matrix options if you want to manually setup the database in your test.',
-          )
-        }
-
-        return setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback)
-      }
-
       if (originalEnv.TEST_GENERATE_ONLY === 'true') {
         // because we have our own custom `test` global call defined that reacts
         // to this env var already, we import the original jest `test` and call
@@ -174,7 +164,7 @@ function setupTestSuiteMatrix(
         test('generate only', () => {})
       }
 
-      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, setupDatabase)
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta)
     })
   }
 }
