@@ -131,9 +131,9 @@ export class Init implements Command {
     
              -h, --help   Display this help message
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
-   --generator-provider   Define the generator provider to use (by default, it will be prisma-client-js)
-      --preview-feature   Define a preview feature to use (by default, there will be none)
-               --output   Define the output path to use (by default, it will not be defined)
+   --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
+      --preview-feature   Define a preview feature to use.
+               --output   Define Prisma Client generator output path to use.
                   --url   Define a custom datasource url
 
   ${bold('Examples')}
