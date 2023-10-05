@@ -559,7 +559,7 @@ jobs:
   # CLIENT (types tests only)
   #
   client-types:
-    name: Client (types tests)
+    name: Client (types)
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
