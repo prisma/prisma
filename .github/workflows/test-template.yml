@@ -102,7 +102,7 @@ jobs:
   # CLIENT (functional and legacy tests without types test)
   #
   client:
-    name: Client (func+legacy-types)
+    name: Client func/legacy notypes
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
