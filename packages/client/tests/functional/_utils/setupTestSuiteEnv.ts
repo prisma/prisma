@@ -223,7 +223,7 @@ export function setupTestSuiteDbURI(
     .with(undefined, () => getDbUrl(provider))
     .otherwise(() => getDbUrlFromFlavor(providerFlavor, provider))
 
-  if (process.env.JEST_MAX_WORKERS === '1') {
+  if (process.env.TEST_REUSE_DATABASE === 'true') {
     // we reuse and clean the same db when running in single-threaded mode
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-0000-00000000')
   } else {
