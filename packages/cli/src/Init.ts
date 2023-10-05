@@ -35,6 +35,16 @@ datasource db {
 `
 }
 
+export const withModelSchema = (provider: ConnectorType = 'postgresql') => {
+  return defaultSchema(provider).concat(`
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+`)
+}
+
 export const defaultEnv = (
   url = 'postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public',
   comments = true,
@@ -106,11 +116,16 @@ export class Init implements Command {
   ${bold('Usage')}
 
     ${dim('$')} prisma init [options]
+
   ${bold('Options')}
     
              -h, --help   Display this help message
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
                   --url   Define a custom datasource url
+
+  ${bold('Flags')}
+
+           --with-model   Add example model to created schema file
 
   ${bold('Examples')}
 
@@ -122,6 +137,9 @@ export class Init implements Command {
   
   Set up a new Prisma project and specify the url that will be used
     ${dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
+
+  Set up a new Prisma projects with a model example
+    ${dim('$')} prisma init --with-model
   `)
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -131,6 +149,7 @@ export class Init implements Command {
       '-h': '--help',
       '--url': String,
       '--datasource-provider': String,
+      '--with-model': Boolean,
     })
 
     if (isError(args) || args['--help']) {
@@ -236,7 +255,11 @@ export class Init implements Command {
       fs.mkdirSync(prismaFolder)
     }
 
-    fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema(provider))
+    if (args['--with-model']) {
+      fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), withModelSchema(provider))
+    } else {
+      fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema(provider))
+    }
 
     const warnings: string[] = []
     const envPath = path.join(outputDir, '.env')
