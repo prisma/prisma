@@ -65,8 +65,6 @@ async function main(): Promise<number | void> {
   let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
 
-  jestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'typescript'])
-
   if (args['--runInBand']) {
     jestCli = jestCli.withArgs(['--runInBand'])
   }
@@ -166,17 +164,14 @@ async function main(): Promise<number | void> {
     } else {
       if (!args['--types-only']) {
         jestCli
-          .withArgs(['--', args['_']])
-          .withEnv({
-            TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false',
-          })
+          .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
+          .withEnv({ TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false' })
           .run()
       }
 
       if (!args['--no-types']) {
         // Disable JUnit output for typescript tests
-        process.env.JEST_JUNIT_DISABLE = 'true'
-        jestCli.withArgs(['--', 'typescript']).run()
+        jestCli.withArgs(['--', 'typescript']).withEnv({ JEST_JUNIT_DISABLE: 'true' }).run()
       }
     }
   } catch (error) {
