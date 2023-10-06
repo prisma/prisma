@@ -9,7 +9,7 @@ ENTRYPOINT /go/bin/ps-http-sim \
   -http-port=8085 \
   -mysql-addr=$MYSQL_HOST \
   -mysql-port=$MYSQL_PORT \
-  -mysql-idle-timeout=5s \
+  -mysql-idle-timeout=1200s \
   -mysql-no-pass \
   -mysql-max-rows=1000 \
   -mysql-dbname=$MYSQL_DATABASE

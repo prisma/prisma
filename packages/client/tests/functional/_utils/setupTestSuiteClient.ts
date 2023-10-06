@@ -1,13 +1,5 @@
-import { createClient as createLibSqlClient } from '@libsql/client'
-import { neonConfig, Pool as neonPool } from '@neondatabase/serverless'
-import { connect } from '@planetscale/database'
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { PrismaNeon } from '@prisma/adapter-neon'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import path from 'path'
-import { Pool as pgPool } from 'pg'
 import { fetch, WebSocket } from 'undici'
 
 import { generateClient } from '../../../src/generation/generateClient'
@@ -119,7 +111,10 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_PG) {
-    const pool = new pgPool({
+    const { Pool } = require('pg') as typeof import('pg')
+    const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
+
+    const pool = new Pool({
       connectionString: datasourceInfo.databaseUrl,
     })
 
@@ -127,12 +122,15 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_NEON) {
+    const { neonConfig, Pool } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
+    const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
+
     neonConfig.wsProxy = () => `127.0.0.1:5488/v1`
     neonConfig.webSocketConstructor = WebSocket
     neonConfig.useSecureWebSocket = false // disable tls
     neonConfig.pipelineConnect = false
 
-    const pool = new neonPool({
+    const pool = new Pool({
       connectionString: datasourceInfo.databaseUrl,
     })
 
@@ -140,6 +138,9 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+    const { connect } = require('@planetscale/database') as typeof import('@planetscale/database')
+    const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
+
     const connection = connect({
       url: 'http://root:root@127.0.0.1:8085',
       fetch, // TODO remove when Node 16 is deprecated
@@ -149,7 +150,10 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_LIBSQL) {
-    const client = createLibSqlClient({
+    const { createClient } = require('@libsql/client') as typeof import('@libsql/client')
+    const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
+
+    const client = createClient({
       url: datasourceInfo.databaseUrl,
       intMode: 'bigint',
     })
