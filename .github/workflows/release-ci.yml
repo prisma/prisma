@@ -95,7 +95,8 @@ jobs:
 
       # TODO de-duplicate (currently duplicated in release-*.yml)
       # Docs https://octokit.github.io/rest.js/v20#git-create-tag
-      - uses: actions/github-script@v6
+      - name: Create a tag on prisma-engines repository
+        uses: actions/github-script@v6
         id: tag-prisma-engines
         env:
           TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
@@ -106,7 +107,7 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const commitNewTag = await github.git.createTag({
+            const commitNewTag = await github.rest.git.createTag({
               repo: '${{ env.REPO_NAME }}',
               tag: '${{ env.TAG_NAME }}',
               message: '${{ env.MESSAGE }}',
@@ -114,7 +115,7 @@ jobs:
               type: 'commit',
             })
 
-            await github.git.createRef({
+            await github.rest.git.createRef({
               repo: '${{ env.REPO_NAME }}',
               ref: `refs/tags/${{ env.TAG_NAME }}`,
               sha: commitNewTag.data.sha,
