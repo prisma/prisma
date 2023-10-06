@@ -9,18 +9,17 @@ export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientE
     return `config.getQueryEngineWasmModule = undefined`
   }
 
-  // this could work on cf workers without esm support
-  // because dynamic imports work both in CJS and ESM
-  // we need to try this out as soon as possible
+  // this could work on cf workers without esm support because dynamic imports
+  // work both in CJS and ESM we need to try this out as soon as possible
   if (edge === true) {
-    return `config.getQueryEngineWasmModule = () => import('./query-engine.wasm')`
+    return `config.getQueryEngineWasmModule = () => import('./query-engine.wasm').default`
   }
 
-  // by default just make it work on node.js
+  // by default just make it work on node.js by turning the file into a module
   return `config.getQueryEngineWasmModule = () => {
-  const path = require('path').join(config.dirname, 'query-engine.wasm');
-  const bytes = require('fs').readFileSync(path);
+  const queryEngineWasmFilePath = require('path').join(config.dirname, 'query-engine.wasm')
+  const queryEngineWasmFileBytes = require('fs').readFileSync(path)
 
-  return new WebAssembly.Module(bytes);
+  return new WebAssembly.Module(queryEngineWasmFileBytes)
 }`
 }
