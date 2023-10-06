@@ -101,8 +101,8 @@ jobs:
         uses: actions/github-script@v6
         id: tag-prisma-engines
         env:
-          TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
           REPO_NAME: 'prisma-engines'
+          TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
           MESSAGE: '${{ steps.publish.outputs.changelogSanitized }}'
           COMMIT_HASH: '${{ steps.publish.outputs.enginesCommitHash }}'
           github-token: ${{ secrets.BOT_TOKEN }}
@@ -110,6 +110,7 @@ jobs:
           result-encoding: string
           script: |
             const commitNewTag = await github.rest.git.createTag({
+              owner: 'prisma',
               repo: '${{ env.REPO_NAME }}',
               tag: '${{ env.TAG_NAME }}',
               message: '${{ env.MESSAGE }}',
@@ -118,6 +119,7 @@ jobs:
             })
 
             await github.rest.git.createRef({
+              owner: 'prisma',
               repo: '${{ env.REPO_NAME }}',
               ref: `refs/tags/${{ env.TAG_NAME }}`,
               sha: commitNewTag.data.sha,
