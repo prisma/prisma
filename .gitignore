@@ -1,5 +1,4 @@
 node_modules
-.husky/
 
 yarn-error.log
 dist
