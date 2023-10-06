@@ -4,7 +4,7 @@ import '@prisma/driver-adapter-utils'
 // this import points directly to ./mywasmlib_bg.js it is generated with >>>
 // wasm-bindgen --browser. --browser is the leanest and most agnostic option
 // that is also easy to integrate with our bundling.
-import * as wasmBindgenRuntime from '@prisma/query-engine-wasm'
+import * as wasmBindgenRuntime from '@prisma/query-engine-wasm/query_engine_bg.js'
 
 import { EngineConfig } from '../common/Engine'
 import { LibraryEngine } from '../library/LibraryEngine'
