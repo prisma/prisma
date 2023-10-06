@@ -103,9 +103,9 @@ jobs:
           TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
           MESSAGE: '${{ steps.publish.outputs.changelogSanitized }}'
           COMMIT_HASH: '${{ steps.publish.outputs.enginesCommitHash }}'
-          github-token: ${{ secrets.BOT_TOKEN }}
         with:
           result-encoding: string
+          github-token: ${{ secrets.BOT_TOKEN }}
           script: |
             const commitNewTag = await github.rest.git.createTag({
               owner: 'prisma',
