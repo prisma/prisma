@@ -81,6 +81,33 @@ jobs:
         run: |
           echo $THE_OUTPUT
 
+      # TODO de-duplicate (currently duplicated in release-*.yml)
+      # Docs https://octokit.github.io/rest.js/v20#git-create-tag
+      - uses: actions/github-script@v6
+        id: tag-prisma-engines
+        env:
+          TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
+          REPO_NAME: 'prisma-engines'
+          MESSAGE: '${{ steps.publish.outputs.changelogSanitized }}'
+          COMMIT_HASH: '${{ steps.publish.outputs.enginesCommitHash }}'
+          github-token: ${{ secrets.BOT_TOKEN }}
+        with:
+          result-encoding: string
+          script: |
+            const commitNewTag = await github.git.createTag({
+              repo: '${{ env.REPO_NAME }}',
+              tag: '${{ env.TAG_NAME }}',
+              message: '${{ env.MESSAGE }}',
+              object: '${{ env.COMMIT_HASH }}',,
+              type: 'commit'
+            })
+
+            await github.git.createRef({
+              repo: '${{ env.REPO_NAME }}',
+              ref: `refs/tags/${{ env.TAG_NAME }}`,
+              sha: commitNewTag.data.sha
+            })
+
   # We also have `sendSlackMessage()` in publish.ts
   # It uses the #feed-prisma-releases channel and adds more information
   success:

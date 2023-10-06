@@ -709,33 +709,9 @@ async function tagEnginesRepo(
   )
   const changelogSanitized = changelog.replace(/"/gm, '\\"').replace(/`/gm, '\\`')
 
-  const remotes = dryRun ? [] : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
-
-  if (!remotes.includes('origin-push')) {
-    const githubToken = process.env.GITHUB_TOKEN
-
-    await run(
-      'prisma-engines',
-      `git remote add origin-push https://${githubToken}@github.com/prisma/prisma-engines.git`,
-      dryRun,
-      true,
-    )
+  if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelogSanitized=${changelogSanitized}\n`)
   }
-
-  if (process.env.CI) {
-    await run('.', `git config --global user.email "prismabots@gmail.com"`, dryRun)
-    await run('.', `git config --global user.name "prisma-bot"`, dryRun)
-  }
-
-  /** Tag */
-  await run(
-    'prisma-engines',
-    `git tag -a ${prismaVersion} ${engineVersion} -m "${prismaVersion}" -m "${engineVersion}" -m "${changelogSanitized}"`,
-    dryRun,
-  )
-
-  /** Push */
-  await run(`prisma-engines`, `git push origin-push ${prismaVersion}`, dryRun)
 }
 
 /**
