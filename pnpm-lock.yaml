@@ -423,6 +423,9 @@ importers:
       '@prisma/mini-proxy':
         specifier: 0.9.4
         version: 0.9.4
+      '@prisma/query-engine-wasm':
+        specifier: 0.0.5
+        version: 0.0.5
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -3058,6 +3061,10 @@ packages:
   /@prisma/prisma-schema-wasm@5.5.0-3.6e26301fe272ba4ba0598fe43eb5d8df030be4db:
     resolution: {integrity: sha512-tF+AL7U3nXxMOwpNGyXjC4b9ZYm2Rpmr959pwpqz8xyXpmndx85zWXS0+r79W65Pgf/nlAHAEpeYeLxfCB7kcQ==}
     dev: false
+
+  /@prisma/query-engine-wasm@0.0.5:
+    resolution: {integrity: sha512-qKFnFnb/vENyilUnCWBjxQjzKS5PsIuuCBaQ0KJ8RLxxMK1gokNCSeaNuQh4qXuvgPflYCMgIzrfFHZ3b7kOQQ==}
+    dev: true
 
   /@prisma/studio-common@0.494.0:
     resolution: {integrity: sha512-dDkkxLgXRacKw40pmz4NwBhNMoPyrg/PBZHgNKjnW7xkwyqJIxFeQa++o7vXqDDXc4WRDwY2dCJ8HImQR1v3LQ==}
