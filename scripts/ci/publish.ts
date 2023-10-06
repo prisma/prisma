@@ -513,7 +513,7 @@ async function publish() {
   // makes sure that only have 1 publish job running at a time
   let unlock: undefined | (() => void)
   if (process.env.BUILDKITE && args['--publish']) {
-    console.log(`We're in buildkite and will publish, so we will acquire a lock...`)
+    console.info(`Let's try to acquire a lock before continuing. (to avoid concurrent publishing)`)
     const before = Math.round(performance.now())
     // TODO: problem lock might not work for more than 2 jobs
     unlock = await acquireLock(process.env.BUILDKITE_BRANCH)
