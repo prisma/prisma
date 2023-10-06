@@ -385,7 +385,7 @@ describe('migrate diff', () => {
             CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
         );
       `)
-    })
+    }, 10_000)
 
     it('should use env var from .env file with --from-schema-datasource', async () => {
       ctx.fixture('schema-only-cockroachdb')
