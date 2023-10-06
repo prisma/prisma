@@ -2,7 +2,7 @@ import { ColumnTypeEnum, type ColumnType } from '@prisma/driver-adapter-utils'
 
 // See: https://github.com/planetscale/vitess-types/blob/06235e372d2050b4c0fff49972df8111e696c564/src/vitess/query/v16/query.proto#L108-L218
 export type PlanetScaleColumnType
-  = 'NULL_TYPE' // unsupported
+  = 'NULL'
   | 'INT8'
   | 'UINT8'
   | 'INT16'
@@ -89,6 +89,9 @@ export function fieldToColumnType(field: PlanetScaleColumnType): ColumnType {
     case 'HEXVAL':
     case 'GEOMETRY':
       return ColumnTypeEnum.Bytes
+    case 'NULL':
+      // Fall back to Int32 for consistency with quaint.
+      return ColumnTypeEnum.Int32
     default:
       throw new Error(`Unsupported column type: ${field}`)
   }
