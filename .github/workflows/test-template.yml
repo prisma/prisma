@@ -102,7 +102,7 @@ jobs:
   # CLIENT (functional and legacy tests without types test)
   #
   client:
-    name: Client (functional and legacy tests without types test)
+    name: Client func/legacy-notypes
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -189,7 +189,7 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-miniproxy:
-    name: Client (functional tests with mini-proxy)
+    name: Client (func/mini-proxy)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -266,7 +266,7 @@ jobs:
   # CLIENT (functional tests with driver adapters)
   #
   client-driveradapters:
-    name: Client (functional tests with driver adapters)
+    name: Client (func/adapters)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -483,7 +483,7 @@ jobs:
   # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
   #
   client-relationMode:
-    name: Client (test:functional:code --relation-mode-tests-only)
+    name: Client (func/relationMode)
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
@@ -556,10 +556,10 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (types tests only)
+  # CLIENT (legacy types tests only)
   #
-  client-types:
-    name: Client (types tests only)
+  client-legacy-types:
+    name: Client (legacy types)
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -587,8 +587,8 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client-types,${{ matrix.os }},library,binary
-          name: client-types-${{ matrix.os }}
+          flags: client-legacy-types,${{ matrix.os }},library,binary
+          name: client-legacy-types-${{ matrix.os }}
 
   #
   # WORKSPACE-TYPES
@@ -961,7 +961,7 @@ jobs:
   # minimize the time spent waiting for a free runner.
   #
   no-docker-client-functional:
-    name: Client (functional tests running on Windows/macOS, no-docker)
+    name: Client (func/win+mac)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     strategy:
@@ -1032,7 +1032,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   no-docker:
-    name: All packages (running on Windows/macOS, no-docker)
+    name: All pkgs (win+mac)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
 
