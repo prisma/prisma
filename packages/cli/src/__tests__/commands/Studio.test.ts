@@ -137,7 +137,7 @@ describe('studio with default schema.prisma filename', () => {
     ])
 
     // Give Studio time to start
-    await new Promise((r) => setTimeout(() => r(null), 2000))
+    await new Promise((r) => setTimeout(() => r(null), 2_000))
   })
 
   afterAll(() => {
@@ -320,7 +320,7 @@ describe('studio with custom schema.prisma filename', () => {
     ])
 
     // Give Studio time to start
-    await new Promise((r) => setTimeout(() => r(null), 2000))
+    await new Promise((r) => setTimeout(() => r(null), 2_000))
   })
 
   afterAll(() => {

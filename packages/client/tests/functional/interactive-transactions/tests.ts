@@ -674,7 +674,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
 
           return updatedUser
         },
-        { timeout: 60000, maxWait: 60000 },
+        { timeout: 60_000, maxWait: 60_000 },
       ),
     )
 

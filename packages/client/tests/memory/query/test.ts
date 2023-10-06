@@ -10,7 +10,7 @@ void createMemoryTest({
     for (let i = 0; i < 1000; i++) {
       await client.user.create({
         data: {
-          viewCount: Math.floor(Math.random() * 50000),
+          viewCount: Math.floor(Math.random() * 50_000),
         },
       })
     }
