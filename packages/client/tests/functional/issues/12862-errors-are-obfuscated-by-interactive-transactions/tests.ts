@@ -9,6 +9,24 @@ declare let prisma: PrismaClient
 // https://github.com/prisma/prisma/issues/12862
 testMatrix.setupTestSuite(
   () => {
+    /*
+    Note:
+    - Postgres (Rust driver) fails with a ConnectorError:
+    ```
+    → 21   prisma.post.create(
+    Error occurred during query execution:
+    ConnectorError(ConnectorError { ..., kind: QueryError(PostgresError { code: \"23514\", message: \"new row for relation \\\"Post\\\" violates check constraint \\\"post_viewcount_check\\\"\", ... })"
+    ```
+    - Postgres (Driver adapter) fails with a "plain string" error:
+    ```
+    ...
+    → 21   prisma.post.create(
+    new row for relation \"Post\" violates check constraint \"post_viewcount_check\""
+    ```
+
+    Notice how the number of `\` preceding `"post_viewcount_check` varies.
+    */
+
     test('should propagate the correct error when a method fails', async () => {
       const user = await prisma.user.create({
         data: {
@@ -25,7 +43,7 @@ testMatrix.setupTestSuite(
             viewCount: -1, // should fail, must be >= 0
           },
         }),
-      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow(/violates check constraint (\\*)"post_viewcount_check(\\*)"/)
     })
 
     test('should propagate the correct error when a method fails inside an transaction', async () => {
@@ -46,7 +64,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ]),
-      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow(/violates check constraint (\\*)"post_viewcount_check(\\*)"/)
     })
 
     test('should propagate the correct error when a method fails inside an interactive transaction', async () => {
@@ -69,7 +87,7 @@ testMatrix.setupTestSuite(
 
           return post
         }),
-      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow(/violates check constraint (\\*)"post_viewcount_check(\\*)"/)
     })
   },
   {
@@ -81,9 +99,5 @@ testMatrix.setupTestSuite(
       ALTER TABLE "Post" 
       ADD CONSTRAINT Post_viewCount_check CHECK ("viewCount" >= 0);
     `,
-    skipProviderFlavor: {
-      from: ['js_pg'],
-      reason: 'The error is correct, it does not match the query engine error format',
-    },
   },
 )
