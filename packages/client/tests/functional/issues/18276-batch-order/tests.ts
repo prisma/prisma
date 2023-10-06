@@ -58,7 +58,7 @@ testMatrix.setupTestSuite(
       prisma.$on('query', ({ query }) => queries.push(query))
 
       prisma.$use(async (params, next) => {
-        await new Promise((r) => setTimeout(r, Math.random() * 1000))
+        await new Promise((r) => setTimeout(r, Math.random() * 1_000))
         return next(params)
       })
 

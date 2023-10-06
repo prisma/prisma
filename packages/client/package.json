@@ -102,8 +102,8 @@
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.5.5",
     "@types/js-levenshtein": "1.1.1",
-    "@types/mssql": "9.1.0",
-    "@types/node": "18.18.0",
+    "@types/mssql": "9.1.1",
+    "@types/node": "18.18.3",
     "@types/pg": "8.10.3",
     "@types/yeoman-generator": "5.2.12",
     "arg": "5.0.2",
@@ -112,7 +112,7 @@
     "decimal.js": "10.4.3",
     "detect-runtime": "1.0.4",
     "env-paths": "2.2.1",
-    "esbuild": "0.19.2",
+    "esbuild": "0.19.4",
     "execa": "5.1.1",
     "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
@@ -163,7 +163,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.5.0-2.c815422ede0692d58c70890066702bae4b466e8c"
+    "@prisma/engines-version": "5.5.0-5.97f8a055c0b9b9b7240c32f1368615c82d4c9782"
   },
   "sideEffects": false
 }

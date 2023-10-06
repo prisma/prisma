@@ -30,7 +30,7 @@ describe('deserializeRawResults', () => {
       ]),
     ).toEqual([
       {
-        a: BigInt(10000),
+        a: BigInt(10_000),
       },
     ])
   })

@@ -513,7 +513,7 @@ async function publish() {
   // makes sure that only have 1 publish job running at a time
   let unlock: undefined | (() => void)
   if (process.env.BUILDKITE && args['--publish']) {
-    console.log(`We're in buildkite and will publish, so we will acquire a lock...`)
+    console.info(`Let's try to acquire a lock before continuing. (to avoid concurrent publishing)`)
     const before = Math.round(performance.now())
     // TODO: problem lock might not work for more than 2 jobs
     unlock = await acquireLock(process.env.BUILDKITE_BRANCH)
@@ -607,7 +607,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         console.log(`Let's first do a dry run!`)
         await publishPackages(packages, publishOrder, true, prismaVersion, tag, args['--release'])
         console.log(`Waiting 5 sec so you can check it out first...`)
-        await new Promise((r) => setTimeout(r, 5000))
+        await new Promise((r) => setTimeout(r, 5_000))
       }
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])

@@ -20,16 +20,31 @@ import { isError } from 'util'
 
 import { printError } from './utils/prompt/utils/print'
 
-export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
+export const defaultSchema = (props?: {
+  datasourceProvider?: ConnectorType
+  generatorProvider?: string
+  previewFeatures?: string[]
+  output?: string
+}) => {
+  const {
+    datasourceProvider = 'postgresql',
+    generatorProvider = defaultGeneratorProvider,
+    previewFeatures = defaultPreviewFeatures,
+    output = defaultOutput,
+  } = props || {}
   return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-}
+  provider = "${generatorProvider}"
+${
+  previewFeatures.length > 0
+    ? `  previewFeatures = [${previewFeatures.map((feature) => `"${feature}"`).join(', ')}]\n`
+    : ''
+}${output != defaultOutput ? `  output = "${output}"\n` : ''}}
 
 datasource db {
-  provider = "${provider}"
+  provider = "${datasourceProvider}"
   url      = env("DATABASE_URL")
 }
 `
@@ -95,6 +110,12 @@ export const defaultGitIgnore = () => {
 `
 }
 
+export const defaultGeneratorProvider = 'prisma-client-js'
+
+export const defaultPreviewFeatures = []
+
+export const defaultOutput = 'node_modules/.prisma/client'
+
 export class Init implements Command {
   static new(): Init {
     return new Init()
@@ -110,6 +131,9 @@ export class Init implements Command {
     
              -h, --help   Display this help message
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
+   --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
+      --preview-feature   Define a preview feature to use.
+               --output   Define Prisma Client generator output path to use.
                   --url   Define a custom datasource url
 
   ${bold('Examples')}
@@ -119,6 +143,15 @@ export class Init implements Command {
 
   Set up a new Prisma project and specify MySQL as the datasource provider to use
     ${dim('$')} prisma init --datasource-provider mysql
+
+  Set up a new Prisma project and specify prisma-client-go as the generator provider to use
+    ${dim('$')} prisma init --generator-provider prisma-client-go
+
+  Set up a new Prisma project and specify x and y as the preview features to use
+    ${dim('$')} prisma init --preview-feature x --preview-feature y
+
+  Set up a new Prisma project and specify ./generated-client as the output path to use
+    ${dim('$')} prisma init --output ./generated-client
   
   Set up a new Prisma project and specify the url that will be used
     ${dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
@@ -131,6 +164,9 @@ export class Init implements Command {
       '-h': '--help',
       '--url': String,
       '--datasource-provider': String,
+      '--generator-provider': String,
+      '--preview-feature': [String],
+      '--output': String,
     })
 
     if (isError(args) || args['--help']) {
@@ -192,7 +228,10 @@ export class Init implements Command {
           }
           const provider = providerLowercase as ConnectorType
           const url = defaultURL(provider)
-          return Promise.resolve({ provider, url })
+          return Promise.resolve({
+            provider,
+            url,
+          })
         },
       )
       .with(
@@ -221,8 +260,14 @@ export class Init implements Command {
       )
       .otherwise(() => {
         // Default to PostgreSQL
-        return Promise.resolve({ provider: 'postgresql' as ConnectorType, url: undefined })
+        return Promise.resolve({
+          provider: 'postgresql' as ConnectorType,
+          url: undefined,
+        })
       })
+    const generatorProvider = args['--generator-provider']
+    const previewFeatures = args['--preview-feature']
+    const output = args['--output']
 
     /**
      * Validation successful? Let's create everything!
@@ -236,7 +281,15 @@ export class Init implements Command {
       fs.mkdirSync(prismaFolder)
     }
 
-    fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema(provider))
+    fs.writeFileSync(
+      path.join(prismaFolder, 'schema.prisma'),
+      defaultSchema({
+        datasourceProvider: provider,
+        generatorProvider,
+        previewFeatures,
+        output,
+      }),
+    )
 
     const warnings: string[] = []
     const envPath = path.join(outputDir, '.env')

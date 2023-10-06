@@ -9,10 +9,7 @@ module.exports = async (globalConfig) => {
   await setupQueryEngine()
 
   // we clear up all the files before we run the tests that are not type tests
-  const ignorePatternsIndex = process.argv.indexOf('--testPathIgnorePatterns')
-  const ignorePatternsValue = process.argv[ignorePatternsIndex + 1]
-
-  if (ignorePatternsValue === 'typescript') {
+  if (process.argv.join(' ').includes('--testPathIgnorePatterns typescript')) {
     glob
       .sync(['./tests/functional/**/.generated/', './tests/functional/**/node_modules/'], {
         onlyDirectories: true,
