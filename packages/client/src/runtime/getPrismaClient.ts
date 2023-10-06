@@ -278,6 +278,13 @@ export type GetPrismaClientConfig = {
    * runtime, this means the client will be bound to be using the Data Proxy.
    */
   noEngine?: boolean
+
+  /**
+   * Gets the raw wasm module for the query engine. This configurations is
+   * generated specifically for each type of client, eg. Node.js client and Edge
+   * clients will have different implementations.
+   */
+  getQueryEngineWasmModule?: () => Promise<any>
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -400,6 +407,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             ),
           env: loadedEnv?.parsed ?? {},
           flags: [],
+          getQueryEngineWasmModule: config.getQueryEngineWasmModule,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,

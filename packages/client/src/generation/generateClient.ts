@@ -313,6 +313,14 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await fs.copyFile(schemaPath, schemaTargetPath)
   }
 
+  // copy the necessary engine files needed for the wasm/driver-adapter engine
+  if (getClientEngineType(generator) === ClientEngineType.Wasm) {
+    const queryEngineWasmModulePath = path.dirname(require.resolve('@prisma/query-engine-wasm'))
+    const queryEngineWasmFilePath = path.join(queryEngineWasmModulePath, 'query_engine.wasm')
+    const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
+    await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
+  }
+
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
