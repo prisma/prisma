@@ -382,23 +382,23 @@ importers:
         specifier: 1.11.0
         version: 1.11.0
       '@prisma/adapter-libsql':
-        specifier: 5.4.0
-        version: 5.4.0(@libsql/client@0.3.5)
+        specifier: 5.4.1
+        version: 5.4.1(@libsql/client@0.3.5)
       '@prisma/adapter-neon':
-        specifier: 5.4.0
-        version: 5.4.0(@neondatabase/serverless@0.6.0)
+        specifier: 5.4.1
+        version: 5.4.1(@neondatabase/serverless@0.6.0)
       '@prisma/adapter-pg':
-        specifier: 5.4.0
-        version: 5.4.0(pg@8.11.3)
+        specifier: 5.4.1
+        version: 5.4.1(pg@8.11.3)
       '@prisma/adapter-planetscale':
-        specifier: 5.4.0
-        version: 5.4.0(@planetscale/database@1.11.0)
+        specifier: 5.4.1
+        version: 5.4.1(@planetscale/database@1.11.0)
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 5.4.0
-        version: 5.4.0
+        specifier: 5.4.1
+        version: 5.4.1
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -1298,14 +1298,14 @@ packages:
     resolution: {integrity: sha512-TrRLIoSQVzfAJX9H1JeFjzAoDGcoK1IYX1UImfceTZpsyYfWr09Ss1aHW1y5TrrR3iq6RZLBwJ3E24uwPhwahw==}
     engines: {node: '>=12.0.0'}
     dependencies:
-      tslib: 2.5.0
+      tslib: 2.6.2
 
   /@azure/core-auth@1.4.0:
     resolution: {integrity: sha512-HFrcTgmuSuukRf/EdPmqBrc5l6Q5Uu+2TbuhaKbgaCpP2TfAeiNaQPAadxO+CYBRHGUzIDteMAjFspFLDLnKVQ==}
     engines: {node: '>=12.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
-      tslib: 2.5.0
+      tslib: 2.6.2
 
   /@azure/core-client@1.6.1:
     resolution: {integrity: sha512-mZ1MSKhZBYoV8GAWceA+PEJFWV2VpdNSpxxcj1wjIAOi00ykRuIQChT99xlQGZWLY3/NApWhSImlFwsmCEs4vA==}
@@ -1317,7 +1317,7 @@ packages:
       '@azure/core-tracing': 1.0.1
       '@azure/core-util': 1.1.1
       '@azure/logger': 1.0.3
-      tslib: 2.5.0
+      tslib: 2.6.2
     transitivePeerDependencies:
       - supports-color
 
@@ -1337,13 +1337,13 @@ packages:
     dependencies:
       '@azure/abort-controller': 1.1.0
       '@azure/logger': 1.0.3
-      tslib: 2.5.0
+      tslib: 2.6.2
 
   /@azure/core-paging@1.3.0:
     resolution: {integrity: sha512-H6Tg9eBm0brHqLy0OSAGzxIh1t4UL8eZVrSUMJ60Ra9cwq2pOskFqVpz2pYoHDsBY1jZ4V/P8LRGb5D5pmC6rg==}
     engines: {node: '>=12.0.0'}
     dependencies:
-      tslib: 2.5.0
+      tslib: 2.6.2
 
   /@azure/core-rest-pipeline@1.9.2:
     resolution: {integrity: sha512-8rXI6ircjenaLp+PkOFpo37tQ1PQfztZkfVj97BIF3RPxHAsoVSgkJtu3IK/bUEWcb7HzXSoyBe06M7ODRkRyw==}
@@ -1357,7 +1357,7 @@ packages:
       form-data: 4.0.0
       http-proxy-agent: 5.0.0
       https-proxy-agent: 5.0.1
-      tslib: 2.5.0
+      tslib: 2.6.2
       uuid: 8.3.2
     transitivePeerDependencies:
       - supports-color
@@ -1366,14 +1366,14 @@ packages:
     resolution: {integrity: sha512-I5CGMoLtX+pI17ZdiFJZgxMJApsK6jjfm85hpgp3oazCdq5Wxgh4wMr7ge/TTWW1B5WBuvIOI1fMU/FrOAMKrw==}
     engines: {node: '>=12.0.0'}
     dependencies:
-      tslib: 2.5.0
+      tslib: 2.6.2
 
   /@azure/core-util@1.1.1:
     resolution: {integrity: sha512-A4TBYVQCtHOigFb2ETiiKFDocBoI1Zk2Ui1KpI42aJSIDexF7DHQFpnjonltXAIU/ceH+1fsZAWWgvX6/AKzog==}
     engines: {node: '>=12.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
-      tslib: 2.5.0
+      tslib: 2.6.2
 
   /@azure/identity@2.1.0:
     resolution: {integrity: sha512-BPDz1sK7Ul9t0l9YKLEa8PHqWU4iCfhGJ+ELJl6c8CP3TpJt2urNCbm0ZHsthmxRsYoMPbz2Dvzj30zXZVmAFw==}
@@ -1393,7 +1393,7 @@ packages:
       jws: 4.0.0
       open: 8.4.0
       stoppable: 1.1.0
-      tslib: 2.5.0
+      tslib: 2.6.2
       uuid: 8.3.2
     transitivePeerDependencies:
       - supports-color
@@ -1412,7 +1412,7 @@ packages:
       '@azure/core-tracing': 1.0.1
       '@azure/core-util': 1.1.1
       '@azure/logger': 1.0.3
-      tslib: 2.5.0
+      tslib: 2.6.2
     transitivePeerDependencies:
       - supports-color
 
@@ -1420,7 +1420,7 @@ packages:
     resolution: {integrity: sha512-aK4s3Xxjrx3daZr3VylxejK3vG5ExXck5WOHDJ8in/k9AqlfIyFMMT1uG7u8mNjX+QRILTIn0/Xgschfh/dQ9g==}
     engines: {node: '>=12.0.0'}
     dependencies:
-      tslib: 2.5.0
+      tslib: 2.6.2
 
   /@azure/msal-browser@2.30.0:
     resolution: {integrity: sha512-4Y9+rjJiTFP7KEmuq1btmIrBgk0ImNyKsXj6A6NHZALd1X0M6W7L7kxpH6F+d1tEkMv8bYnZdn7IcauXbL8Llw==}
@@ -2993,53 +2993,53 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/adapter-libsql@5.4.0(@libsql/client@0.3.5):
-    resolution: {integrity: sha512-94yIN8WPoHOhdjw1jEfWP4md7QnpVvT6C4Ab1uV6VLtGI8X2SjlvwglNKVpBTfSKhafvteZS1gLzoHj3yqLsOQ==}
+  /@prisma/adapter-libsql@5.4.1(@libsql/client@0.3.5):
+    resolution: {integrity: sha512-KbSLqeCvH4blElRC5+XXTVnv4rXcR2P/NwqtqCT8+1i/n6YImHcPFKT7A8Ev/3DF5IOFYYSoMpOwj/wG2L/Izg==}
     peerDependencies:
       '@libsql/client': ^0.3.5
     dependencies:
       '@libsql/client': 0.3.5
-      '@prisma/driver-adapter-utils': 5.4.0
+      '@prisma/driver-adapter-utils': 5.4.1
       async-mutex: 0.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-neon@5.4.0(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-Jj0oIycCfEVErn+Kr03AwUhRZJGoWerB5jotN8Iszae+fZHRtc940KyPaIQwFapv3j8hjChXmrDZ+m6jwRm1iA==}
+  /@prisma/adapter-neon@5.4.1(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-mIwLmwyAwDV9HXar9lSyM2uVm9H+X8noG4reKLnC3NjFsBxBfSUgW9vS8dPGqGW/rJWX3hg4pIffjEjmX4TDqg==}
     peerDependencies:
       '@neondatabase/serverless': ^0.6.0
     dependencies:
       '@neondatabase/serverless': 0.6.0
-      '@prisma/driver-adapter-utils': 5.4.0
+      '@prisma/driver-adapter-utils': 5.4.1
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-pg@5.4.0(pg@8.11.3):
-    resolution: {integrity: sha512-JsngML3UA2b9yULSRGYj6GAxih+6WOr0u7iSG0NX4AXnmtPcFKQE9oTErVX3yy4OF75r+1StIp7wBdlpCBHJug==}
+  /@prisma/adapter-pg@5.4.1(pg@8.11.3):
+    resolution: {integrity: sha512-+f7/MiVTxE1yZ1ge8K8xSVhUZH9hA86L8H6mTAzNeVZXUjOxAApNB2gaC2ssA5lbXBbKxByzccHTrcqtCDvIlQ==}
     peerDependencies:
       pg: ^8.11.3
     dependencies:
-      '@prisma/driver-adapter-utils': 5.4.0
+      '@prisma/driver-adapter-utils': 5.4.1
       pg: 8.11.3
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-planetscale@5.4.0(@planetscale/database@1.11.0):
-    resolution: {integrity: sha512-n1Oy1RoHwOiW3th4Wfwr3kVj+0so36XrTONRK/FVCNUOOCYcGvVT9eqN2kFytb1PrA6fYQpIeEJUl/tpBmVqIg==}
+  /@prisma/adapter-planetscale@5.4.1(@planetscale/database@1.11.0):
+    resolution: {integrity: sha512-K03+n2YDUUy5nO2m3BNHSaMi0HePpEAd0lNz7dnueyiYY6J0VgNXKmSN9pjaDgxF6df7i+NHeGwXCxw4kNhdzw==}
     peerDependencies:
       '@planetscale/database': ^1.11.0
     dependencies:
       '@planetscale/database': 1.11.0
-      '@prisma/driver-adapter-utils': 5.4.0
+      '@prisma/driver-adapter-utils': 5.4.1
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/driver-adapter-utils@5.4.0:
-    resolution: {integrity: sha512-lOdrHuCdOVbUy/jDfG5fqIEwtULRkY0HBS0RoXuV8Sy9D75ZphZOOg/HTBpWk6EiLcXK60o38goEQazNdN4xUA==}
+  /@prisma/driver-adapter-utils@5.4.1:
+    resolution: {integrity: sha512-muYjkzf6qdxz4uGBi7nKyPaGRGLnSgiRautqAhZiMwbTOr9hMgyNI+aCJTCaKfYfNWjYCx2r5J6R1mJtPhzFhQ==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
@@ -4697,7 +4697,7 @@ packages:
   /async-mutex@0.4.0:
     resolution: {integrity: sha512-eJFZ1YhRR8UN8eBLoNzcDPcy/jqjsg6I1AP+KvWQX80BqOSW1oJPJXDylPUEeMr2ZQvHgnQ//Lp6f3RQ1zI7HA==}
     dependencies:
-      tslib: 2.5.0
+      tslib: 2.6.2
     dev: true
 
   /async@3.2.4:
@@ -11444,7 +11444,7 @@ packages:
   /rxjs@7.8.0:
     resolution: {integrity: sha512-F2+gxDshqmIub1KdvZkaEfGDwLNpPvk9Fs6LD/MyQxNgMds/WH9OdDDXOmxUZpME+iSK3rQCctkL0DYyytUqMg==}
     dependencies:
-      tslib: 2.5.0
+      tslib: 2.6.2
     dev: true
 
   /safe-array-concat@1.0.0:
@@ -12528,6 +12528,10 @@ packages:
 
   /tslib@2.5.0:
     resolution: {integrity: sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==}
+    dev: true
+
+  /tslib@2.6.2:
+    resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
   /tsutils@3.21.0(typescript@5.2.2):
     resolution: {integrity: sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==}
