@@ -12,6 +12,7 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
@@ -170,11 +171,14 @@ testMatrix.setupTestSuite(
     }
 
     function engineSerializeFinalResponse() {
-      return { name: 'prisma:engine:response_json_serialization' }
+      if (clientMeta.dataProxy || getClientEngineType() === ClientEngineType.Binary) {
+        return []
+      }
+      return [{ name: 'prisma:engine:response_json_serialization' }]
     }
 
     function engineSerialize() {
-      return [engineSerializeFinalResponse(), engineSerializeQueryResult()]
+      return [...engineSerializeFinalResponse(), engineSerializeQueryResult()]
     }
 
     function engineConnection() {
@@ -390,7 +394,7 @@ testMatrix.setupTestSuite(
             engine([
               engineConnection(),
               ...dbQueries,
-              engineSerializeFinalResponse(),
+              ...engineSerializeFinalResponse(),
               engineSerializeQueryResult(),
               engineSerializeQueryResult(),
             ]),
