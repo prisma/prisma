@@ -316,7 +316,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (getClientEngineType(generator) === ClientEngineType.Wasm) {
     const queryEngineWasmModulePath = path.dirname(require.resolve('@prisma/query-engine-wasm'))
-    const queryEngineWasmFilePath = path.join(queryEngineWasmModulePath, 'query-engine.wasm')
+    const queryEngineWasmFilePath = path.join(queryEngineWasmModulePath, 'query_engine_bg.wasm')
     const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
     await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
   }
@@ -520,7 +520,13 @@ function getNodeRuntimeName(engineType: ClientEngineType): string {
   if (engineType === ClientEngineType.Binary) {
     return 'binary'
   }
+
   if (engineType === ClientEngineType.Library) {
+    return 'library'
+  }
+
+  // the wasm engine fully depends on the library engine
+  if (engineType === ClientEngineType.Wasm) {
     return 'library'
   }
 
