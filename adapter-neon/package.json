@@ -1,6 +1,6 @@
 {
   "name": "@prisma/adapter-neon",
-  "version": "5.4.0",
+  "version": "0.0.0",
   "description": "Prisma's driver adapter for \"@neondatabase/serverless\"",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
