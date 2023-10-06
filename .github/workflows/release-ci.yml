@@ -81,6 +81,18 @@ jobs:
         run: |
           echo $THE_OUTPUT
 
+      - name: Trigger npm release workflow for Driver Adapters packages
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          repo: prisma/prisma-engines
+          workflow: publish-driver-adapters.yml
+          token: ${{ secrets.BOT_TOKEN }}
+          inputs: '{ "enginesHash": "${{ env.COMMIT_HASH }}", "prismaVersion": "${{ env.PRISMA_VERSION }}", "npmDistTag": "${{ env.NPM_TAG }}" }'
+        env:
+          NPM_TAG: '${{ steps.publish.outputs.tag }}'
+          PRISMA_VERSION: '${{ steps.publish.outputs.prismaVersion }}'
+          COMMIT_HASH: '${{ steps.publish.outputs.enginesCommitHash }}'
+
       # TODO de-duplicate (currently duplicated in release-*.yml)
       # Docs https://octokit.github.io/rest.js/v20#git-create-tag
       - uses: actions/github-script@v6
@@ -98,14 +110,14 @@ jobs:
               repo: '${{ env.REPO_NAME }}',
               tag: '${{ env.TAG_NAME }}',
               message: '${{ env.MESSAGE }}',
-              object: '${{ env.COMMIT_HASH }}',,
-              type: 'commit'
+              object: '${{ env.COMMIT_HASH }}',
+              type: 'commit',
             })
 
             await github.git.createRef({
               repo: '${{ env.REPO_NAME }}',
               ref: `refs/tags/${{ env.TAG_NAME }}`,
-              sha: commitNewTag.data.sha
+              sha: commitNewTag.data.sha,
             })
 
   # We also have `sendSlackMessage()` in publish.ts
