@@ -26,6 +26,11 @@ export type NewPrismaClient<T extends new (...args: any) => any> = (
   ...args: ConstructorParameters<T>
 ) => InstanceType<T>
 
+export type Db = {
+  setupDb: () => Promise<void>
+  dropDb: () => Promise<void>
+}
+
 export type ClientRuntime = 'node' | 'edge'
 
 export type TestCliMeta = {
