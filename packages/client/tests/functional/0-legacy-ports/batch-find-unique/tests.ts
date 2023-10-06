@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
       },
     })
 
-    await new Promise((r) => setTimeout(r, 1000))
+    await new Promise((r) => setTimeout(r, 1_000))
   })
 
   // TODO this test has to be skipped as is seems polluted by some state in a previous test or above, does not fail locally

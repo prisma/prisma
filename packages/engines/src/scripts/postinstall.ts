@@ -15,7 +15,7 @@ const lockFile = path.join(baseDir, 'download-lock')
 
 let createdLockFile = false
 async function main() {
-  if (fs.existsSync(lockFile) && parseInt(fs.readFileSync(lockFile, 'utf-8'), 10) > Date.now() - 20000) {
+  if (fs.existsSync(lockFile) && parseInt(fs.readFileSync(lockFile, 'utf-8'), 10) > Date.now() - 20_000) {
     debug(`Lock file already exists, so we're skipping the download of the prisma binaries`)
   } else {
     createLockFile()

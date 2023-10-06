@@ -128,7 +128,7 @@ export async function setupTestSuiteDatabase(
       suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE
     ) {
       // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
-      await new Promise((r) => setTimeout(r, 1000))
+      await new Promise((r) => setTimeout(r, 1_000))
     }
 
     if (alterStatementCallback) {

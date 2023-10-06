@@ -607,7 +607,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         console.log(`Let's first do a dry run!`)
         await publishPackages(packages, publishOrder, true, prismaVersion, tag, args['--release'])
         console.log(`Waiting 5 sec so you can check it out first...`)
-        await new Promise((r) => setTimeout(r, 5000))
+        await new Promise((r) => setTimeout(r, 5_000))
       }
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
