@@ -131,8 +131,8 @@ importers:
         specifier: workspace:*
         version: link:../adapter-planetscale
       '@prisma/client':
-        specifier: 5.4.0-integration-dispose-tx.2
-        version: 5.4.0-integration-dispose-tx.2(prisma@5.4.0-integration-dispose-tx.2)
+        specifier: 5.4.1
+        version: 5.4.1(prisma@5.4.1)
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -156,8 +156,8 @@ importers:
         specifier: ^7.0.3
         version: 7.0.3
       prisma:
-        specifier: 5.4.0-integration-dispose-tx.2
-        version: 5.4.0-integration-dispose-tx.2
+        specifier: 5.4.1
+        version: 5.4.1
       tsx:
         specifier: ^3.12.7
         version: 3.12.7
@@ -521,8 +521,8 @@ packages:
     resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
     engines: {node: '>=16'}
 
-  /@prisma/client@5.4.0-integration-dispose-tx.2(prisma@5.4.0-integration-dispose-tx.2):
-    resolution: {integrity: sha512-MShiYnvIUS/5ThfLRjyGaKGrhtzj69f38EqEksph7KckbLzfPQ7VWAJ2ZwKoi5DGJXEPaeb3S0lQpXl2KyuGxA==}
+  /@prisma/client@5.4.1(prisma@5.4.1):
+    resolution: {integrity: sha512-xyD0DJ3gRNfLbPsC+YfMBBuLJtZKQfy1OD2qU/PZg+HKrr7SO+09174LMeTlWP0YF2wca9LxtVd4HnAiB5ketQ==}
     engines: {node: '>=16.13'}
     requiresBuild: true
     peerDependencies:
@@ -531,16 +531,16 @@ packages:
       prisma:
         optional: true
     dependencies:
-      '@prisma/engines-version': 5.4.0-26.4bf3cce422a49f49c661da32d4016a5be81d28b4
-      prisma: 5.4.0-integration-dispose-tx.2
+      '@prisma/engines-version': 5.4.1-1.2f302df92bd8945e20ad4595a73def5b96afa54f
+      prisma: 5.4.1
     dev: false
 
-  /@prisma/engines-version@5.4.0-26.4bf3cce422a49f49c661da32d4016a5be81d28b4:
-    resolution: {integrity: sha512-6yhw/P2lWJOljh3QIkqeBNgLPBLVca08YjKPTyOlQ771vnA3pH+EYpIi2VOb2+3NsIM9zlX1NvFadd4qSbtubA==}
+  /@prisma/engines-version@5.4.1-1.2f302df92bd8945e20ad4595a73def5b96afa54f:
+    resolution: {integrity: sha512-+nUQM/y8C+1GG5Ioeqcu6itFslCfxvQSAUVSMC9XM2G2Fcq0F4Afnp6m0pXF6X6iUBWen7jZBPmM9Qlq4Nr3/A==}
     dev: false
 
-  /@prisma/engines@5.4.0-integration-dispose-tx.2:
-    resolution: {integrity: sha512-3kYPptQRiyDARcJIZudak7naHlTo0qYB/8ObxlIyw9IjbKax2m4MiPZuVasVpdcspXYj+ayzomFmCDptjZrjzg==}
+  /@prisma/engines@5.4.1:
+    resolution: {integrity: sha512-vJTdY4la/5V3N7SFvWRmSMUh4mIQnyb/MNoDjzVbh9iLmEC+uEykj/1GPviVsorvfz7DbYSQC4RiwmlEpTEvGA==}
     requiresBuild: true
 
   /@types/debug@4.1.8:
@@ -1253,13 +1253,13 @@ packages:
   /postgres-range@1.1.3:
     resolution: {integrity: sha512-VdlZoocy5lCP0c/t66xAfclglEapXPCIVhqqJRncYpvbCgImF0w67aPKfbqUMr72tO2k5q0TdTZwCLjPTI6C9g==}
 
-  /prisma@5.4.0-integration-dispose-tx.2:
-    resolution: {integrity: sha512-FBI46emn8rBapyTN6cwM0KNtmK94D9mucnQh2g+VhjWqD1SpFwFTVLXiT25tOFwEK0M/UQQ+eBsXn65BNBoisQ==}
+  /prisma@5.4.1:
+    resolution: {integrity: sha512-op9PmU8Bcw5dNAas82wBYTG0yHnpq9/O3bhxbDBrNzwZTwBqsVCxxYRLf6wHNh9HVaDGhgjjHlu1+BcW8qdnBg==}
     engines: {node: '>=16.13'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      '@prisma/engines': 5.4.0-integration-dispose-tx.2
+      '@prisma/engines': 5.4.1
 
   /punycode@2.3.0:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}
