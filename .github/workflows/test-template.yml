@@ -556,9 +556,9 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (types tests only)
+  # CLIENT (legacy types tests only)
   #
-  client-types:
+  client-legacy-types:
     name: Client (types)
     timeout-minutes: 15
     runs-on: ubuntu-latest
@@ -587,8 +587,8 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client-types,${{ matrix.os }},library,binary
-          name: client-types-${{ matrix.os }}
+          flags: client-legacy-types,${{ matrix.os }},library,binary
+          name: client-legacy-types-${{ matrix.os }}
 
   #
   # WORKSPACE-TYPES
