@@ -165,8 +165,16 @@ testMatrix.setupTestSuite(
       return { name: 'prisma:client:serialize' }
     }
 
-    function engineSerialize() {
+    function engineSerializeQueryResult() {
       return { name: 'prisma:engine:serialize' }
+    }
+
+    function engineSerializeFinalResponse() {
+      return { name: 'prisma:engine:response_json_serialization' }
+    }
+
+    function engineSerialize() {
+      return [engineSerializeFinalResponse(), engineSerializeQueryResult()]
     }
 
     function engineConnection() {
@@ -216,7 +224,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'create', [
             clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), engineSerialize()]),
+            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
         )
       })
@@ -231,7 +239,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'findMany', [
             clientSerialize(),
-            engine([engineConnection(), findManyDbQuery(), engineSerialize()]),
+            engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
         )
       })
@@ -273,7 +281,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'update', [
             clientSerialize(),
-            engine([engineConnection(), ...dbQueries, engineSerialize()]),
+            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -304,7 +312,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'delete', [
             clientSerialize(),
-            engine([engineConnection(), ...dbQueries, engineSerialize()]),
+            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -335,7 +343,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'deleteMany', [
             clientSerialize(),
-            engine([engineConnection(), ...dbQueries, engineSerialize()]),
+            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -379,7 +387,13 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [clientSerialize()]),
             operation('User', 'findMany', [clientSerialize()]),
-            engine([engineConnection(), ...dbQueries, engineSerialize(), engineSerialize()]),
+            engine([
+              engineConnection(),
+              ...dbQueries,
+              engineSerializeFinalResponse(),
+              engineSerializeQueryResult(),
+              engineSerializeQueryResult(),
+            ]),
           ],
         })
       })
@@ -426,8 +440,14 @@ testMatrix.setupTestSuite(
                 children: [
                   engineConnection(),
                   ...txQueries,
-                  { name: 'prisma:engine:itx_query_builder', children: [...createDbQueries(false), engineSerialize()] },
-                  { name: 'prisma:engine:itx_query_builder', children: [findManyDbQuery(), engineSerialize()] },
+                  {
+                    name: 'prisma:engine:itx_query_builder',
+                    children: [...createDbQueries(false), engineSerializeQueryResult()],
+                  },
+                  {
+                    name: 'prisma:engine:itx_query_builder',
+                    children: [findManyDbQuery(), engineSerializeQueryResult()],
+                  },
                 ],
               },
             ],
@@ -443,7 +463,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation(undefined, 'queryRaw', [
             clientSerialize(),
-            engine([engineConnection(), dbQuery('SELECT 1 + 1;', true), engineSerialize()]),
+            engine([engineConnection(), dbQuery('SELECT 1 + 1;', true), ...engineSerialize()]),
           ]),
         )
       })
@@ -460,7 +480,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation(undefined, 'executeRaw', [
             clientSerialize(),
-            engine([engineConnection(), dbQuery('SELECT 1 + 1;', false), engineSerialize()]),
+            engine([engineConnection(), dbQuery('SELECT 1 + 1;', false), ...engineSerialize()]),
           ]),
         )
       })
@@ -487,7 +507,7 @@ testMatrix.setupTestSuite(
         children: [
           operation('User', 'create', [
             clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), engineSerialize()]),
+            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
         ],
       })
@@ -529,7 +549,7 @@ testMatrix.setupTestSuite(
             { name: 'prisma:client:middleware', attributes: { method: '$use' } },
             { name: 'prisma:client:middleware', attributes: { method: '$use' } },
             clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), engineSerialize()]),
+            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
         )
       })
@@ -560,7 +580,7 @@ testMatrix.setupTestSuite(
           operation('User', 'findMany', [
             { name: 'prisma:client:connect' },
             clientSerialize(),
-            engine([engineConnection(), findManyDbQuery(), engineSerialize()]),
+            engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
         )
       })
