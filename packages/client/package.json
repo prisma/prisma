@@ -79,12 +79,12 @@
     "@opentelemetry/sdk-trace-base": "1.17.0",
     "@opentelemetry/semantic-conventions": "1.17.0",
     "@planetscale/database": "1.11.0",
-    "@prisma/adapter-libsql": "5.4.0",
-    "@prisma/adapter-neon": "5.4.0",
-    "@prisma/adapter-pg": "5.4.0",
-    "@prisma/adapter-planetscale": "5.4.0",
+    "@prisma/adapter-libsql": "5.4.1",
+    "@prisma/adapter-neon": "5.4.1",
+    "@prisma/adapter-pg": "5.4.1",
+    "@prisma/adapter-planetscale": "5.4.1",
     "@prisma/debug": "workspace:*",
-    "@prisma/driver-adapter-utils": "5.4.0",
+    "@prisma/driver-adapter-utils": "5.4.1",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -103,8 +103,8 @@
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.5.5",
     "@types/js-levenshtein": "1.1.1",
-    "@types/mssql": "9.1.0",
-    "@types/node": "18.18.0",
+    "@types/mssql": "9.1.1",
+    "@types/node": "18.18.3",
     "@types/pg": "8.10.3",
     "@types/yeoman-generator": "5.2.12",
     "arg": "5.0.2",
@@ -113,7 +113,7 @@
     "decimal.js": "10.4.3",
     "detect-runtime": "1.0.4",
     "env-paths": "2.2.1",
-    "esbuild": "0.19.2",
+    "esbuild": "0.19.4",
     "execa": "5.1.1",
     "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
@@ -164,7 +164,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.5.0-3.6e26301fe272ba4ba0598fe43eb5d8df030be4db"
+    "@prisma/engines-version": "5.5.0-5.97f8a055c0b9b9b7240c32f1368615c82d4c9782"
   },
   "sideEffects": false
 }

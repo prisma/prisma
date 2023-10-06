@@ -37,9 +37,9 @@ export const relationModesForFlavor = {
   [ProviderFlavors.VITESS_8]: RelationModes.PRISMA,
 } as Record<ProviderFlavors, RelationModes | undefined>
 
-export type AllProviders = { provider: Providers }[]
+export const allProviders = Object.values(Providers).map((p) => ({ provider: p }))
 
-export const allProviders: AllProviders = Object.values(Providers).map((p) => ({ provider: p }))
+export const sqlProviders = allProviders.filter(({ provider }) => provider !== Providers.MONGODB)
 
 export function isDriverAdapterProviderFlavor(flavor?: ProviderFlavors) {
   return Boolean(flavor?.startsWith('js_'))
