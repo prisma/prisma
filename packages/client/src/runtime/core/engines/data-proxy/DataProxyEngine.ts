@@ -231,8 +231,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
             this.logEmitter.emit('query', {
               query: dbQuery,
-              // TODO: check timestamp[1] precision, scale and add it
-              timestamp: new Date(log.timestamp[0] * 1000),
+              // first part is in seconds, second is in nanoseconds, we need to convert both to milliseconds
+              timestamp: new Date(log.timestamp[0] * 1e3 + log.timestamp[1] / 1e6),
               duration: Number(log.attributes.duration_ms),
               params: log.attributes.params,
               target: log.attributes.target,
