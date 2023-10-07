@@ -20,7 +20,7 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
-import { EngineEventType, LogEmitter } from '../common/types/Events'
+import { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineResult } from '../common/types/QueryEngine'
@@ -464,7 +464,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
                 })
               } else {
                 // TODO: type assertion: add "trace" to EngineEventType?
-                this.logEmitter.emit(log.level as EngineEventType, {
+                this.logEmitter.emit(log.level as LogEventType, {
                   timestamp: log.timestamp,
                   message: log.fields.message,
                   target: log.target,
