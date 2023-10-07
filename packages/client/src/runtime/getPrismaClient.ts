@@ -191,9 +191,9 @@ export type LogEvent = {
 /* End Types for Logging */
 
 type ExtendedEventType = LogLevel | 'beforeExit'
-type EventCallback<E extends ExtendedEventType> = E extends 'beforeExit'
+type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
   ? () => Promise<void>
-  : E extends LogLevel
+  : [E] extends [LogLevel]
   ? (event: EngineEvent<E>) => void
   : never
 
@@ -470,9 +470,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       // }
       if (eventType === 'beforeExit') {
         this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)
-      } else {
-        // TODO: types
-        this._engineConfig.logEmitter.on(eventType, callback as EventCallback<LogLevel> & (() => void))
+      } else if (eventType) {
+        this._engineConfig.logEmitter.on(eventType, callback as EventCallback<LogLevel>)
       }
     }
 
