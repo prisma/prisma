@@ -64,7 +64,7 @@ testMatrix.setupTestSuite(
     `,
     },
     skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
+      from: ['js_neon', 'js_pg', 'js_planetscale'],
       reason: "Unsure how this test works, it's likely a loss of precision",
     },
   },

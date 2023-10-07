@@ -17,6 +17,11 @@ services:
       - POSTGRES_PASSWORD=prisma
     ports:
       - '5432:5432'
+    healthcheck:
+      test: ['CMD', 'pg_isready']
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   postgres_isolated:
     image: postgres:10
@@ -27,6 +32,11 @@ services:
       - POSTGRES_PASSWORD=prisma
     ports:
       - '5435:5432'
+    healthcheck:
+      test: ['CMD', 'pg_isready']
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   cockroachdb:
     image: prismagraphql/cockroachdb-custom:23.1
@@ -34,20 +44,19 @@ services:
     command: start-single-node --insecure
     ports:
       - '26257:26257'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://127.0.0.1:8080/health?ready=1']
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:c172eed243250a3d910ab9a0af5030c8e0a1ffe902c1012ab443ab3572a28711
+    image: vitess/vttestserver:mysql80@sha256:bc563c2bd68aafc97c691653db9d271af5c196ed5ecab788c1181ba6b1e0ab69
     restart: unless-stopped
     ports:
       - 33807:33807
-    healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P33577']
-      interval: 5s
-      timeout: 2s
-      retries: 5
-      start_period: 25s
     environment:
       PORT: '33804' # unused in testing, but required by vttestserver
       KEYSPACES: 'unsharded' # unused in testing, but required by vttestserver
@@ -56,6 +65,11 @@ services:
       FOREIGN_KEY_MODE: 'disallow'
       MYSQL_MAX_CONNECTIONS: 100000
       TABLET_REFRESH_INTERVAL: '1s'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P33807']
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   mysql:
     image: mysql:8.0
@@ -67,6 +81,11 @@ services:
       - MYSQL_USER=prisma
     ports:
       - '3306:3306'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P3306']
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   mysql_isolated:
     image: mysql:8.0
@@ -79,6 +98,11 @@ services:
       - MYSQL_PASSWORD=prisma
     ports:
       - '3307:3306'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P3306']
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   mariadb:
     image: mariadb:10
@@ -90,6 +114,11 @@ services:
       - MYSQL_PASSWORD=prisma
     ports:
       - '4306:3306'
+    healthcheck:
+      test: ['CMD', '/usr/local/bin/healthcheck.sh', '--connect']
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
@@ -99,6 +128,11 @@ services:
       - SA_PASSWORD=Pr1sm4_Pr1sm4
     ports:
       - '1433:1433'
+    healthcheck:
+      test: ['CMD', '/opt/mssql-tools/bin/sqlcmd', '-Usa', '-PPr1sm4_Pr1sm4', '-Q', 'select 1']
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   mongodb_migrate:
     image: mongo:4
@@ -109,6 +143,11 @@ services:
       MONGO_INITDB_DATABASE: tests-migrate
     ports:
       - '27017:27017'
+    healthcheck:
+      test: ['CMD', 'mongo', 'admin', '--port', '27017', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   mongodb_migrate_seed:
     build: ./mongodb_migrate_seed
@@ -121,10 +160,16 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
-      MONGO_REPLICA_HOST: localhost
+      MONGO_REPLICA_HOST: 127.0.0.1
       MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
+    restart: always # restart between reboots
+    healthcheck:
+      test: ['CMD', 'mongo', 'admin', '--port', '27018', '--eval', "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   neon_wsproxy:
     image: ghcr.io/neondatabase/wsproxy:latest
@@ -137,3 +182,26 @@ services:
       - '5488:80'
     depends_on:
       - postgres
+    restart: always
+    healthcheck:
+      test: ['CMD', 'nc', '-z', '127.0.0.1', '80']
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
+  planetscale_proxy:
+    build: ./planetscale_proxy
+    environment:
+      MYSQL_HOST: 'vitess-8' # docker url
+      MYSQL_PORT: 33807
+      MYSQL_DATABASE: 'test-0000-00000000'
+    ports:
+      - '8085:8085'
+    depends_on:
+      - vitess-8
+    restart: always
+    healthcheck:
+      test: ['CMD', 'nc', '-z', '127.0.0.1', '8085']
+      interval: 5s
+      timeout: 2s
+      retries: 20

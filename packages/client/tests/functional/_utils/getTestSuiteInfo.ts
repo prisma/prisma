@@ -3,20 +3,27 @@ import path from 'path'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
-import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers } from './providers'
+import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, TestCliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
-  matrixOptions: Record<string, string> & { provider: Providers; providerFlavor?: ProviderFlavors }
+  matrixOptions: Record<string, string> & {
+    provider: Providers
+    providerFlavor?: ProviderFlavors
+    relationMode?: RelationModes
+  }
 }
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
+const allProvidersRegexUnion = Object.values(Providers).join('|')
 const schemaPreviewFeaturesRegex = /previewFeatures\s*=\s*(.*)/
 const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-js"/
+const schemaProviderRegex = new RegExp(`provider\\s*=\\s*"(?:${allProvidersRegexUnion})"`, 'g')
+const schemaPrismaRelationModeRegex = /relationMode\s*=\s*".*"/
 
 /**
  * Get the generated test suite name, used for the folder name.
@@ -152,6 +159,8 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
   const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
   const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
+  const prismaRelationModeMatch = schema.match(schemaPrismaRelationModeRegex)
+  const providerMatch = schema.match(schemaProviderRegex)
   const previewFeatures = getTestSuitePreviewFeatures(schema)
 
   // By default, mini-proxy distinguishes different engine instances using
@@ -174,6 +183,15 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   // if there's no preview features, append them to the default generator block
   if (previewFeatureMatch === null && defaultGeneratorMatch !== null) {
     schema = schema.replace(defaultGeneratorMatch[0], `${defaultGeneratorMatch[0]}\n${previewFeaturesStr}`)
+  }
+
+  // for PlanetScale and Vitess, we need to add `relationMode = "prisma"` to the schema
+  if (matrixOptions.relationMode && providerMatch !== null) {
+    const relationModeStr = `relationMode = "${matrixOptions.relationMode}"`
+
+    if (prismaRelationModeMatch === null) {
+      schema = schema.replace(providerMatch[0], `${providerMatch![0]}\n${relationModeStr}`)
+    }
   }
 
   return schema

@@ -1,9 +1,9 @@
+import { DMMF } from '@prisma/generator-helper'
 import Decimal from 'decimal.js'
 
-import { DMMF } from '../../../generation/dmmf-types'
-import { ObjectEnumValue } from '../../object-enums'
-import { DecimalJsLike } from '../../utils/decimalJsLike'
-import { FieldRef } from '../model/FieldRef'
+import { DecimalJsLike } from './DecimalJsLike'
+import { FieldRef } from './FieldRef'
+import { ObjectEnumValue } from './ObjectEnums'
 
 export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 

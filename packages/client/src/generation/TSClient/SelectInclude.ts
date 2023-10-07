@@ -13,7 +13,7 @@ type BuildIncludeTypeParams = {
 
 const extArgsParameter = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('$Extensions.Args'))
+  .extends(ts.namedType('$Extensions.InternalArgs'))
   .default(ts.namedType('$Extensions.DefaultArgs'))
 
 export function buildIncludeType({ modelName, dmmf, fields }: BuildIncludeTypeParams) {

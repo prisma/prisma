@@ -64,6 +64,7 @@ jobs:
   # Linting
   #
   lint:
+    name: Lint
     timeout-minutes: 7
     runs-on: ubuntu-latest
 
@@ -98,9 +99,10 @@ jobs:
         working-directory: ./
 
   #
-  # CLIENT (without types test)
+  # CLIENT (functional and legacy tests without types test)
   #
   client:
+    name: Client func/legacy-notypes
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -146,7 +148,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -186,7 +188,8 @@ jobs:
   #
   # CLIENT (functional tests with mini-proxy)
   #
-  client-dataproxy:
+  client-miniproxy:
+    name: Client (func/mini-proxy)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -217,7 +220,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -263,6 +266,7 @@ jobs:
   # CLIENT (functional tests with driver adapters)
   #
   client-driveradapters:
+    name: Client (func/adapters)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -271,7 +275,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flavor: ['js_pg', 'js_neon', 'js_libsql']
+        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
 
@@ -294,7 +298,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres neon_wsproxy
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -334,6 +338,7 @@ jobs:
   # CLIENT (memory tests)
   #
   client-memory:
+    name: Client (memory tests)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -363,7 +368,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -437,6 +442,7 @@ jobs:
   # CLIENT test:e2e
   #
   client-e2e:
+    name: Client (test:e2e)
     timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
@@ -458,7 +464,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -477,6 +483,7 @@ jobs:
   # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
   #
   client-relationMode:
+    name: Client (func/relationMode)
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
@@ -508,7 +515,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -549,9 +556,10 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (types tests only)
+  # CLIENT (legacy types tests only)
   #
-  client-types:
+  client-legacy-types:
+    name: Client (legacy types)
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -579,13 +587,14 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client-types,${{ matrix.os }},library,binary
-          name: client-types-${{ matrix.os }}
+          flags: client-legacy-types,${{ matrix.os }},library,binary
+          name: client-legacy-types-${{ matrix.os }}
 
   #
   # WORKSPACE-TYPES
   #
   workspace-types:
+    name: Workspace types
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -610,6 +619,7 @@ jobs:
   # INTEGRATION-TESTS
   #
   integration-tests:
+    name: Integration tests
     timeout-minutes: 20
     runs-on: ubuntu-latest
 
@@ -648,7 +658,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -670,6 +680,7 @@ jobs:
   # `@prisma/internals`
   #
   internals:
+    name: '@prisma/internals'
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
@@ -701,7 +712,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql
 
       - name: Set CLI Engine Type
         run: |
@@ -731,6 +742,7 @@ jobs:
   # MIGRATE
   #
   migrate:
+    name: Migrate
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
@@ -762,7 +774,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
       - name: Set CLI Engine Type
         run: |
@@ -792,6 +804,7 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
+    name: CLI commands
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
@@ -823,7 +836,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --detach postgres
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
 
       - name: Set CLI Engine Type
         run: |
@@ -853,6 +866,7 @@ jobs:
   # All the other packages!
   #
   others:
+    name: Others
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
@@ -947,6 +961,7 @@ jobs:
   # minimize the time spent waiting for a free runner.
   #
   no-docker-client-functional:
+    name: Client (func/win+mac)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     strategy:
@@ -1017,6 +1032,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   no-docker:
+    name: All pkgs (win+mac)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
 

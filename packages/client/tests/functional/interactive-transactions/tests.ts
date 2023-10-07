@@ -1,4 +1,5 @@
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { copycat } from '@snaplet/copycat'
 
 import { ProviderFlavors } from '../_utils/providers'
 import { NewPrismaClient } from '../_utils/types'
@@ -190,12 +191,14 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({
         data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
           email: 'user_1@website.com',
         },
       })
 
       await prisma.user.create({
         data: {
+          id: copycat.uuid(2).replaceAll('-', '').slice(-24),
           email: 'user_1@website.com',
         },
       })
@@ -283,11 +286,13 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
     const result = prisma.$transaction([
       prisma.user.create({
         data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
           email: 'user_1@website.com',
         },
       }),
       prisma.user.create({
         data: {
+          id: copycat.uuid(2).replaceAll('-', '').slice(-24),
           email: 'user_1@website.com',
         },
       }),
@@ -308,11 +313,13 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
         await Promise.all([
           tx.user.create({
             data: {
+              id: copycat.uuid(1).replaceAll('-', '').slice(-24),
               email: 'user_1@website.com',
             },
           }),
           tx.user.create({
             data: {
+              id: copycat.uuid(2).replaceAll('-', '').slice(-24),
               email: 'user_2@website.com',
             },
           }),
@@ -320,6 +327,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
 
         await tx.user.create({
           data: {
+            id: copycat.uuid(3).replaceAll('-', '').slice(-24),
             email: 'user_1@website.com',
           },
         })
@@ -666,7 +674,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
 
           return updatedUser
         },
-        { timeout: 60000, maxWait: 60000 },
+        { timeout: 60_000, maxWait: 60_000 },
       ),
     )
 

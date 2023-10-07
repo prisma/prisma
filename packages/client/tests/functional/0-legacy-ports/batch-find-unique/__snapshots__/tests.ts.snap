@@ -6,6 +6,8 @@ exports[`0-legacy-ports.batch-find-unique (provider=mongodb) findUnique batching
 
 exports[`0-legacy-ports.batch-find-unique (provider=mysql) findUnique batching 1`] = `SELECT \`\`.\`User\`.\`id\`, \`\`.\`User\`.\`email\`, \`\`.\`User\`.\`age\`, \`\`.\`User\`.\`name\` FROM \`\`.\`User\` WHERE \`\`.\`User\`.\`email\` IN (?,?,?,?)`;
 
+exports[`0-legacy-ports.batch-find-unique (provider=mysql, js_planetscale) findUnique batching 1`] = `SELECT \`\`.\`User\`.\`id\`, \`\`.\`User\`.\`email\`, \`\`.\`User\`.\`age\`, \`\`.\`User\`.\`name\` FROM \`\`.\`User\` WHERE \`\`.\`User\`.\`email\` IN (?,?,?,?)`;
+
 exports[`0-legacy-ports.batch-find-unique (provider=postgresql) findUnique batching 1`] = `SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5`;
 
 exports[`0-legacy-ports.batch-find-unique (provider=postgresql, js_neon) findUnique batching 1`] = `SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5`;

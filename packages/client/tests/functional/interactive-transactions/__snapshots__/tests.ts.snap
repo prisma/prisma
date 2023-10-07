@@ -124,6 +124,14 @@ Invalid \`prisma.user.create()\` invocation in
 Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
+exports[`interactive-transactions (provider=mysql, js_planetscale) batching raw rollback 1`] = `target: test-0000-00000000.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"1\\""vtg2: "type:VARCHAR value:\\"user_1@website.com\\""} (errno 1062) (sqlstate 23000) during query: INSERT INTO User (id, email) VALUES ('1', 'user_1@website.com')`;
+
+exports[`interactive-transactions (provider=mysql, js_planetscale) batching rollback 1`] = `target: test-0000-00000000.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"a85d5d75a3a886cb61eb3a0e\\""vtg2: "type:VARCHAR value:\\"user_1@website.com\\""} (errno 1062) (sqlstate 23000) during query: INSERT INTO \`test-0000-00000000\`.\`User\` (\`id\`,\`email\`) VALUES ('a85d5d75a3a886cb61eb3a0e','user_1@website.com')`;
+
+exports[`interactive-transactions (provider=mysql, js_planetscale) batching rollback within callback 1`] = `target: test-0000-00000000.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"a7fe5dac91ab6b0f529430c5\\""vtg2: "type:VARCHAR value:\\"user_1@website.com\\""} (errno 1062) (sqlstate 23000) during query: INSERT INTO \`test-0000-00000000\`.\`User\` (\`id\`,\`email\`) VALUES ('a7fe5dac91ab6b0f529430c5','user_1@website.com')`;
+
+exports[`interactive-transactions (provider=mysql, js_planetscale) rollback query 1`] = `target: test-0000-00000000.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"a85d5d75a3a886cb61eb3a0e\\""vtg2: "type:VARCHAR value:\\"user_1@website.com\\""} (errno 1062) (sqlstate 23000) during query: INSERT INTO \`test-0000-00000000\`.\`User\` (\`id\`,\`email\`) VALUES ('a85d5d75a3a886cb61eb3a0e','user_1@website.com')`;
+
 exports[`interactive-transactions (provider=postgresql) batching raw rollback 1`] = `
 
 Invalid \`prisma.$executeRaw()\` invocation:
@@ -300,7 +308,13 @@ Invalid \`prisma.user.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`interactive-transactions (provider=sqlite, js_libsql) batching raw rollback 1`] = `: UNIQUE constraint failed: User.email`;
+exports[`interactive-transactions (provider=sqlite, js_libsql) batching raw rollback 1`] = `
+
+Invalid \`prisma.$executeRaw()\` invocation:
+
+
+SQLITE_CONSTRAINT_UNIQUE: UNIQUE constraint failed: User.email
+`;
 
 exports[`interactive-transactions (provider=sqlserver) batching raw rollback 1`] = `
 

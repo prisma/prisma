@@ -61,8 +61,13 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     }
   },
   adapter: (adapter, config) => {
-    if (adapter === undefined) {
+    if (adapter === null) {
       return
+    }
+    if (adapter === undefined) {
+      throw new PrismaClientConstructorValidationError(
+        `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
+      )
     }
     const previewFeatures = getPreviewFeatures(config)
     if (!previewFeatures.includes('driverAdapters')) {

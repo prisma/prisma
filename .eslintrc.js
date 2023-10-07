@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import'],
+  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import', 'local-rules'],
   env: {
     node: true,
     es6: true,
@@ -13,7 +13,18 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.ts'],
+      files: ['./packages/client/src/runtime/core/types/exported/*.ts'],
+      excludedFiles: ['index.ts'],
+      rules: {
+        'local-rules/all-types-are-exported': 'error',
+        'local-rules/imports-from-same-directory': 'error',
+      },
+    },
+    {
+      files: ['./packages/client/src/runtime/core/types/exported/index.ts'],
+      rules: {
+        'local-rules/valid-exported-types-index': 'error',
+      },
     },
   ],
   extends: [
