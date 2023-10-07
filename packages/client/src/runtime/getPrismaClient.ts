@@ -452,22 +452,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     }
 
     $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>) {
-      // if (eventType === 'query') {
-      //   return (callback as EngineEventCallback<typeof eventType>)({
-      //     timestamp: event.timestamp,
-      //     query: fields?.query ?? event.query,
-      //     params: fields?.params ?? event.params,
-      //     duration: fields?.duration_ms ?? event.duration,
-      //     target: event.target,
-      //   })
-      // } else {
-      //   // warn, info, or error events
-      //   return (callback as EngineEventCallback<typeof eventType>)({
-      //     timestamp: event.timestamp,
-      //     message: fields?.message ?? event.message,
-      //     target: event.target,
-      //   })
-      // }
       if (eventType === 'beforeExit') {
         this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)
       } else if (eventType) {
