@@ -463,7 +463,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
                   target: log.target,
                 })
               } else {
-                // TODO: type assertion: add "trace" to EngineEventType?
                 this.logEmitter.emit(log.level as LogEventType, {
                   timestamp: log.timestamp,
                   message: log.fields.message,
