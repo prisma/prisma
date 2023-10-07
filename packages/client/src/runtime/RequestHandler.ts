@@ -5,10 +5,10 @@ import stripAnsi from 'strip-ansi'
 
 import {
   EngineValidationError,
-  EventEmitter,
   Fetch,
   InteractiveTransactionOptions,
   JsonQuery,
+  LogEmitter,
   TransactionOptions,
 } from '../runtime/core/engines'
 import {
@@ -64,9 +64,9 @@ export type HandleErrorParams = {
 export class RequestHandler {
   client: Client
   dataloader: DataLoader<RequestParams>
-  private logEmitter?: EventEmitter
+  private logEmitter?: LogEmitter
 
-  constructor(client: Client, logEmitter?: EventEmitter) {
+  constructor(client: Client, logEmitter?: LogEmitter) {
     this.logEmitter = logEmitter
     this.client = client
 
