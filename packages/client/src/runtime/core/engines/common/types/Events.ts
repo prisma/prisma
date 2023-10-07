@@ -1,3 +1,5 @@
+// export type EngineLogEventType = 'info' | 'warn' | 'error'
+
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error'
 
 export type EngineEvent<E extends EngineEventType> = E extends 'query' ? QueryEvent : LogEvent

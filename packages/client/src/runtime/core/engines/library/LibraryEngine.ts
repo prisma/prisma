@@ -12,7 +12,7 @@ import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknow
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { LogEmitter } from '../common/types/Events'
+import { EngineEventType, LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
@@ -296,7 +296,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         this.config.clientVersion!,
       )
     } else {
-      this.logEmitter.emit(event.level, {
+      this.logEmitter.emit(event.level as EngineEventType, {
         timestamp: new Date(),
         message: event.message,
         target: event.module_path,
