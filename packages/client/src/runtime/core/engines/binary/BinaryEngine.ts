@@ -17,16 +17,10 @@ import { PrismaClientRustError } from '../../errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import type {
-  BatchQueryEngineResult,
-  EngineConfig,
-  EngineEventType,
-  RequestBatchOptions,
-  RequestOptions,
-} from '../common/Engine'
+import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
-import { EventEmitter } from '../common/types/Events'
+import { EngineEventType, LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineResult } from '../common/types/QueryEngine'
@@ -65,7 +59,7 @@ const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
 export class BinaryEngine extends Engine<undefined> {
   private config: EngineConfig
-  private logEmitter: EventEmitter
+  private logEmitter: LogEmitter
   private showColors: boolean
   private logQueries: boolean
   private env?: Record<string, string>
@@ -460,8 +454,21 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
               if (logIsRustErrorLog) {
                 this.setError(log)
+              } else if (log.level === 'query') {
+                this.logEmitter.emit(log.level, {
+                  timestamp: log.timestamp,
+                  query: log.fields.query,
+                  params: log.fields.params,
+                  duration: log.fields.duration_ms,
+                  target: log.target,
+                })
               } else {
-                this.logEmitter.emit(log.level, log)
+                // TODO: type assertion: add "trace" to EngineEventType?
+                this.logEmitter.emit(log.level as EngineEventType, {
+                  timestamp: log.timestamp,
+                  message: log.fields.message,
+                  target: log.target,
+                })
               }
             } else {
               this.setError(json)
