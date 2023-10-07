@@ -1,8 +1,10 @@
-// export type EngineLogEventType = 'info' | 'warn' | 'error'
+export type EngineLogEventType = 'info' | 'warn' | 'error'
 
-export type EngineEventType = 'query' | 'info' | 'warn' | 'error'
+export type EngineQueryEventType = 'query'
 
-export type EngineEvent<E extends EngineEventType> = E extends 'query' ? QueryEvent : LogEvent
+export type EngineEventType = EngineQueryEventType | EngineLogEventType
+
+export type EngineEvent<E extends EngineEventType> = E extends EngineQueryEventType ? QueryEvent : LogEvent
 
 export type QueryEvent = {
   timestamp: Date
