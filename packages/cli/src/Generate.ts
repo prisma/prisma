@@ -248,7 +248,7 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        const isTS = fs.existsSync(path.resolve(cwd, 'tsconfig.json'))
+        const isTS = canResolveTypeScript()
 
         const clientImport =
           isDeno || isTS
@@ -379,4 +379,13 @@ function replacePathSeparatorsIfNecessary(path: string): string {
     return path.replace(/\\/g, '/')
   }
   return path
+}
+
+function canResolveTypeScript() {
+  try {
+    require.resolve('typescript')
+    return true
+  } catch (e) {
+    return false
+  }
 }
