@@ -233,7 +233,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
               query: dbQuery,
               // TODO: check timestamp[1] precision, scale and add it
               timestamp: new Date(log.timestamp[0] * 1000),
-              duration: log.attributes.duration_ms,
+              duration: Number(log.attributes.duration_ms),
               params: log.attributes.params,
               target: log.attributes.target,
             })
