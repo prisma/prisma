@@ -422,7 +422,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
             if (level) {
               this.$on(level, (event) => {
-                logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
+                logger.log(`${logger.tags[level] ?? ''}`, (event as LogEvent).message || (event as QueryEvent).query)
               })
             }
           }
