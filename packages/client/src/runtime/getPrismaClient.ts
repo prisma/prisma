@@ -407,7 +407,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
-          logEmitter: logEmitter,
+          logEmitter,
           isBundled: config.isBundled,
           adapter,
         }
