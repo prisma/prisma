@@ -77,10 +77,19 @@ describe('errors propagation', () => {
   test('works with implicit transaction', async () => {
     await assert.rejects(
       doQuery({
-        modelName: 'Product',
-        action: 'deleteMany',
+        modelName: 'User',
+        action: 'createOne',
         query: {
-          arguments: {},
+          arguments: {
+            data: {
+              email: 'user@example.com',
+              favoriteProduct: {
+                create: {
+                  properties: {},
+                },
+              },
+            },
+          },
           selection: {
             $scalars: true,
           },

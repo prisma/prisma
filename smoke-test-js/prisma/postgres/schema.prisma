@@ -97,11 +97,14 @@ model Product {
   id              String @id @default(cuid())
   properties      Json
   properties_null Json?
+  users           User[]
 }
 
 model User {
-  id    String @id @default(uuid())
-  email String
+  id              String   @id @default(uuid())
+  email           String
+  favoriteProduct Product? @relation(fields: [productId], references: [id])
+  productId       String?
 }
 
 model Unique {
