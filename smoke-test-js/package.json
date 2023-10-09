@@ -35,8 +35,8 @@
     "planetscale:client": "DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" node --test --test-reporter spec --loader=tsx ./src/client/planetscale.test.ts",
     "planetscale": "pnpm planetscale:libquery && pnpm planetscale:client",
     "prisma:libsql": "cross-env-shell DATABASE_URL=\"${JS_LIBSQL_DATABASE_URL}\" \"pnpm prisma:db:push:sqlite && pnpm prisma:db:execute:sqlite\"",
-    "libsql:libquery": "cross-env-shell DATABASE_URL=\"${JS_LIBSQL_DATABASE_URL}\" node --test --loader=tsx ./src/libquery/libsql.test.ts",
-    "libsql:client": "cross-env-shell DATABASE_URL=\"${JS_LIBSQL_DATABASE_URL}\" node --test --loader=tsx ./src/client/libsql.test.ts",
+    "libsql:libquery": "cross-env-shell DATABASE_URL=\"${JS_LIBSQL_DATABASE_URL}\" node --test --test-reporter spec --loader=tsx ./src/libquery/libsql.test.ts",
+    "libsql:client": "cross-env-shell DATABASE_URL=\"${JS_LIBSQL_DATABASE_URL}\" node --test --test-reporter spec --loader=tsx ./src/client/libsql.test.ts",
     "libsql": "pnpm libsql:libquery && pnpm libsql:client"
   },
   "keywords": [],

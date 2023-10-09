@@ -283,20 +283,42 @@ export function smokeTestLibquery(adapter: ErrorCapturingDriverAdapter, prismaSc
     })
 
     it('expected error', async () => {
-      const result = await doQuery({
-        modelName: 'Unique',
-        action: 'createMany',
-        query: {
-          arguments: {
-            data: [{ email: 'duplicate@example.com' }, { email: 'duplicate@example.com' }],
-          },
-          selection: {
-            $scalars: true,
-          },
-        },
-      })
 
-      console.log('[nodejs] error result', JSON.stringify(result, null, 2))
+
+        await assert.rejects(
+          async () => {
+            const result = await doQuery({
+              modelName: 'Unique',
+              action: 'createOne',
+              query: {
+                arguments: {
+                  data: { email: 'duplicate@example.com' },
+                },
+                selection: {
+                  $scalars: true,
+                },
+              },
+            })
+            const result2 = await doQuery({
+              modelName: 'Unique',
+              action: 'createOne',
+              query: {
+                arguments: {
+                  data: { email: 'duplicate@example.com' }
+                },
+                selection: {
+                  $scalars: true,
+                },
+              },
+            })
+            console.log('[nodejs] error result', JSON.stringify(result, null, 2))
+          },
+          (err) => {
+            assert.match(err.message, /unique/i);
+            return true;
+          },
+        );
+      
     })
 
     describe('read scalar and non scalar types', () => {
@@ -396,7 +418,7 @@ export function smokeTestLibquery(adapter: ErrorCapturingDriverAdapter, prismaSc
           selection: {
             bytes: true,
           },
-          arguments:  {
+          arguments: {
             data: {
               bytes: {
                 $type: 'Bytes',

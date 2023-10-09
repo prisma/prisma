@@ -64,6 +64,11 @@ CREATE TABLE "Product" (
     "properties_null" TEXT
 );
 
+-- CreateTable
+CREATE TABLE "Unique" (
+    "email" TEXT NOT NULL PRIMARY KEY,
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Child_c_key" ON "Child"("c");
 

@@ -73,3 +73,7 @@ model Product {
   properties      String
   properties_null String?
 }
+
+model Unique {
+  email String @id
+}
