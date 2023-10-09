@@ -3,7 +3,6 @@ import { Providers } from '../_utils/providers'
 
 const mongoDBMatrixBase = {
   provider: Providers.MONGODB,
-  providerFlavor: Providers.MONGODB,
   id: 'String @id @map("_id")',
   relationMode: 'prisma',
 }

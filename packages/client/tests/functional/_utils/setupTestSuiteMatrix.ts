@@ -3,10 +3,15 @@ import fs from 'fs-extra'
 import path from 'path'
 
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
+import {
+  getTestSuiteClientMeta,
+  getTestSuiteCliMeta,
+  getTestSuiteConfigs,
+  getTestSuiteFolderPath,
+  getTestSuiteMeta,
+} from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { ProviderFlavors } from './relationMode/ProviderFlavor'
-import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
+import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
@@ -46,19 +51,14 @@ export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (
-    suiteConfig: Record<string, string>,
-    suiteMeta: TestCallbackSuiteMeta,
-    clientMeta: ClientMeta,
-    setupDatabase: () => Promise<void>,
-  ) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestCallbackSuiteMeta, clientMeta: ClientMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const clientMeta = getClientMeta()
+  const suiteCliMeta = getTestSuiteCliMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, suiteCliMeta, options)
 
   if (originalEnv.TEST_GENERATE_ONLY === 'true') {
     options = options ?? {}
@@ -73,6 +73,7 @@ function setupTestSuiteMatrix(
   })
 
   for (const { name, suiteConfig, skip } of testPlan) {
+    const clientMeta = getTestSuiteClientMeta(suiteConfig.matrixOptions)
     const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
 
@@ -83,7 +84,7 @@ function setupTestSuiteMatrix(
       beforeAll(async () => {
         const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
 
-        globalThis['datasourceInfo'] = datasourceInfo
+        globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
@@ -94,15 +95,24 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        globalThis['newPrismaClient'] = (...args) => {
-          const client = new globalThis['loaded']['PrismaClient'](...args)
+        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+
+        globalThis['newPrismaClient'] = (args: any) => {
+          const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
           clients.push(client)
           return client
         }
+
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']()
+          globalThis['prisma'] = globalThis['newPrismaClient']({ ...driverAdapter })
         }
+
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
+
+        globalThis['db'] = {
+          setupDb: () => setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback),
+          dropDb: () => dropTestSuiteDatabase(suiteMeta, suiteConfig).catch(() => {}),
+        }
       })
 
       // for better type dx, copy a client into the test suite root node_modules
@@ -133,7 +143,9 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        if (!options?.skipDb && suiteConfig.matrixOptions['providerFlavor'] !== ProviderFlavors.VITESS_8) {
+        // CI=false: Only drop the db if not skipped, and if the db does not need to be reused. 
+        // CI=true always skip to save time
+        if (options?.skipDb !== true && process.env.TEST_REUSE_DATABASE !== 'true' && process.env.CI !== 'true') {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
@@ -147,16 +159,6 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       }, 180_000)
 
-      const setupDatabase = async () => {
-        if (!options?.skipDb) {
-          throw new Error(
-            'Pass skipDb: true in the matrix options if you want to manually setup the database in your test.',
-          )
-        }
-
-        return setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback)
-      }
-
       if (originalEnv.TEST_GENERATE_ONLY === 'true') {
         // because we have our own custom `test` global call defined that reacts
         // to this env var already, we import the original jest `test` and call
@@ -164,7 +166,7 @@ function setupTestSuiteMatrix(
         test('generate only', () => {})
       }
 
-      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, setupDatabase)
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta)
     })
   }
 }

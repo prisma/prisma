@@ -1,14 +1,24 @@
 import leven from 'js-levenshtein'
 
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
-import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
+import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
+import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'log', '__internal']
+const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'adapter', 'log', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
-const validators = {
-  datasources: (options: any, datasourceNames: string[]) => {
+/**
+ * Subset of `GetPrismaClientConfig` which is used during validation.
+ * Feel free to allow more properties when necessary but don't forget to add
+ * them in the mock config in `validatePrismaClientOptions.test.ts`.
+ */
+type ClientConfig = Pick<GetPrismaClientConfig, 'datasourceNames' | 'generator'>
+
+const validators: {
+  [K in keyof PrismaClientOptions]-?: (option: PrismaClientOptions[K], config: ClientConfig) => void
+} = {
+  datasources: (options, { datasourceNames }) => {
     if (!options) {
       return
     }
@@ -50,8 +60,23 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
-
-  datasourceUrl: (options: unknown) => {
+  adapter: (adapter, config) => {
+    if (adapter === null) {
+      return
+    }
+    if (adapter === undefined) {
+      throw new PrismaClientConstructorValidationError(
+        `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
+      )
+    }
+    const previewFeatures = getPreviewFeatures(config)
+    if (!previewFeatures.includes('driverAdapters')) {
+      throw new PrismaClientConstructorValidationError(
+        '"adapter" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.',
+      )
+    }
+  },
+  datasourceUrl: (options) => {
     if (typeof options !== 'undefined' && typeof options !== 'string') {
       throw new PrismaClientConstructorValidationError(
         `Invalid value ${JSON.stringify(options)} for "datasourceUrl" provided to PrismaClient constructor.
@@ -59,7 +84,7 @@ Expected string or undefined.`,
       )
     }
   },
-  errorFormat: (options: any) => {
+  errorFormat: (options) => {
     if (!options) {
       return
     }
@@ -75,7 +100,7 @@ Expected string or undefined.`,
       )
     }
   },
-  log: (options: any) => {
+  log: (options) => {
     if (!options) {
       return
     }
@@ -150,7 +175,7 @@ Expected string or undefined.`,
   },
 }
 
-export function validatePrismaClientOptions(options: PrismaClientOptions, datasourceNames: string[]) {
+export function validatePrismaClientOptions(options: PrismaClientOptions, config: ClientConfig) {
   for (const [key, value] of Object.entries(options)) {
     if (!knownProperties.includes(key)) {
       const didYouMean = getDidYouMean(key, knownProperties)
@@ -158,7 +183,7 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, dataso
         `Unknown property ${key} provided to PrismaClient constructor.${didYouMean}`,
       )
     }
-    validators[key](value, datasourceNames)
+    validators[key](value, config)
   }
   if (options.datasourceUrl && options.datasources) {
     throw new PrismaClientConstructorValidationError(

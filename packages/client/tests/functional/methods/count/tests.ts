@@ -17,6 +17,14 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     expect(value).toMatchInlineSnapshot(`3`)
   })
 
+  test('take', async () => {
+    const value = await prisma.user.count({
+      take: 2,
+    })
+
+    expect(value).toMatchInlineSnapshot(`2`)
+  })
+
   test('where', async () => {
     const value = await prisma.user.count({
       where: {
@@ -115,7 +123,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       Invalid \`prisma.user.count()\` invocation in
       /client/tests/functional/methods/count/tests.ts:0:0
 
-         XX })
+        XX })
         XX 
         XX testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
       → XX   const err = prisma.user.count({
@@ -134,7 +142,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are listed in green.
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?.
     `)
   })
 })

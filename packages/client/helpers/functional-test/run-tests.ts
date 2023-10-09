@@ -4,10 +4,11 @@ import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
-import { Providers } from '../../tests/functional/_utils/providers'
+import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
 
 const allProviders = new Set(Object.values(Providers))
+const allProviderFlavors = new Set(Object.values(ProviderFlavors))
 
 const args = arg(
   process.argv.slice(2),
@@ -20,7 +21,7 @@ const args = arg(
     '--types-only': Boolean,
     // Generates all the clients to run the type tests
     '--generate-only': Boolean,
-    // Restrict the list of providers
+    // Restrict the list of providers (does not run --flavor by default)
     '--provider': [String],
     '-p': '--provider',
     // Generate Data Proxy client and run tests using Mini-Proxy
@@ -38,6 +39,8 @@ const args = arg(
     // Also the typescript tests fail and it might not be easily fixable
     // This flag is used for this purpose
     '--relation-mode-tests-only': Boolean,
+    // Run tests for specific provider flavors (and excludes regular provider tests)
+    '--flavor': [String],
     //
     // Jest flags
     //
@@ -51,24 +54,50 @@ const args = arg(
     '--shard': String,
     // Passes the same flag to Jest to silence the output
     '--silent': Boolean,
+    // Tell Jest to run tests sequentially
+    '--runInBand': Boolean,
   },
   true,
   true,
 )
 
 async function main(): Promise<number | void> {
-  let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
+  const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
-  const jestArgs = ['--testPathIgnorePatterns', 'typescript']
+
+  let jestCli = jestCliBase
+
+  if (args['--runInBand']) {
+    jestCli = jestCli.withArgs(['--runInBand'])
+  }
 
   if (args['--provider']) {
     const providers = args['--provider'] as Providers[]
     const unknownProviders = providers.filter((provider) => !allProviders.has(provider))
     if (unknownProviders.length > 0) {
-      console.error(`Unknown providers: ${unknownProviders.join(', ')}`)
-      process.exit(1)
+      throw new Error(`Unknown providers: ${unknownProviders.join(', ')}`)
     }
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
+  }
+
+  if (args['--flavor']) {
+    const providerFlavors = args['--flavor'] as ProviderFlavors[]
+    const unknownFlavor = providerFlavors.filter((flavor) => !allProviderFlavors.has(flavor))
+    if (unknownFlavor.length > 0) {
+      throw new Error(`Unknown flavors: ${unknownFlavor.join(', ')}`)
+    }
+
+    if (providerFlavors.some(isDriverAdapterProviderFlavor)) {
+      jestCli = jestCli.withArgs(['--runInBand'])
+      jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
+      jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
+
+      if (args['--data-proxy'] || process.env.PRISMA_CLIENT_ENGINE_TYPE === 'binary') {
+        throw new Error('Driver adapters are not compatible with --data-proxy or the binary engine')
+      }
+    }
+
+    jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_FLAVORS: providerFlavors.join(',') })
   }
 
   if (args['--data-proxy']) {
@@ -110,44 +139,41 @@ async function main(): Promise<number | void> {
   // See flag description above.
   // If the flag is not provided we want to ignore `relationMode` tests
   if (args['--relation-mode-tests-only']) {
-    jestArgs.push('--runInBand')
+    jestCli = jestCli.withArgs(['--runInBand'])
+    jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
   } else {
-    jestArgs.push('--testPathIgnorePatterns', 'relationMode-in-separate-gh-action')
+    jestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'relationMode-in-separate-gh-action'])
   }
 
   if (args['--onlyChanged']) {
-    jestArgs.push('--onlyChanged')
+    jestCli = jestCli.withArgs(['--onlyChanged'])
   }
   if (args['--changedSince']) {
-    jestArgs.push('--changedSince', args['--changedSince'])
+    jestCli = jestCli.withArgs(['--changedSince', args['--changedSince']])
   }
   if (args['--shard']) {
-    jestArgs.push('--shard', args['--shard'])
+    jestCli = jestCli.withArgs(['--shard', args['--shard']])
   }
   if (args['--silent']) {
-    jestArgs.push('--silent')
+    jestCli = jestCli.withArgs(['--silent'])
   }
-  const codeTestCli = jestCli.withArgs(jestArgs)
 
   try {
     if (args['-u']) {
-      const snapshotUpdate = codeTestCli.withArgs(['-u']).withArgs(args['_'])
+      const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
       if (!args['--types-only']) {
-        codeTestCli
-          .withArgs(['--', args['_']])
-          .withEnv({
-            TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false',
-          })
+        jestCli
+          .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
+          .withEnv({ TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false' })
           .run()
       }
 
       if (!args['--no-types']) {
         // Disable JUnit output for typescript tests
-        process.env.JEST_JUNIT_DISABLE = 'true'
-        jestCli.withArgs(['--', 'typescript']).run()
+        jestCliBase.withArgs(['--', 'typescript']).withEnv({ JEST_JUNIT_DISABLE: 'true' }).run()
       }
     }
   } catch (error) {

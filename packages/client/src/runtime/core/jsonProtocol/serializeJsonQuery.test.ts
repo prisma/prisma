@@ -1,9 +1,9 @@
 import Decimal from 'decimal.js'
 
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
-import { objectEnumValues } from '../../object-enums'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { FieldRefImpl } from '../model/FieldRef'
+import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { serializeJsonQuery, SerializeParams } from './serializeJsonQuery'
 
 const User = model('User', [

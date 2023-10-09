@@ -4,23 +4,23 @@ import type { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
 import { getPayloadName } from '../utils'
-import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../utils/common'
+import { GraphQLScalarToJSTypeTable, needsNamespace } from '../utils/common'
 
-export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper, useNamespace = false) {
+export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {
   let fieldTypeName = hasOwnProperty(GraphQLScalarToJSTypeTable, field.type)
     ? GraphQLScalarToJSTypeTable[field.type]
     : field.type
   if (Array.isArray(fieldTypeName)) {
     fieldTypeName = fieldTypeName[0]
   }
-  if (useNamespace && needsNamespace(field.type, dmmf)) {
+
+  if (needsNamespace(field)) {
     fieldTypeName = `Prisma.${fieldTypeName}`
   }
   let fieldType: ts.TypeBuilder
   if (field.kind === 'object') {
     const payloadType = ts.namedType(getPayloadName(field.type))
-    if (!dmmf.typeMap[field.type]) {
-      // not a composite
+    if (!dmmf.isComposite(field.type)) {
       payloadType.addGenericArgument(ts.namedType('ExtArgs'))
     }
     fieldType = payloadType
@@ -48,13 +48,12 @@ export function buildOutputType(type: DMMF.OutputType) {
 
 function buildOutputField(field: DMMF.SchemaField) {
   let fieldType: ts.TypeBuilder
-  if (typeof field.outputType.type === 'string') {
-    const typeNames = GraphQLScalarToJSTypeTable[field.outputType.type] ?? field.outputType.type
-    fieldType = Array.isArray(typeNames) ? ts.namedType(typeNames[0]) : ts.namedType(typeNames)
-  } else if (field.outputType.location === 'enumTypes' && field.outputType.namespace === 'model') {
+
+  if (field.outputType.location === 'enumTypes' && field.outputType.namespace === 'model') {
     fieldType = ts.namedType(enumTypeName(field.outputType))
   } else {
-    fieldType = ts.namedType(field.outputType.type.name)
+    const typeNames = GraphQLScalarToJSTypeTable[field.outputType.type] ?? field.outputType.type
+    fieldType = Array.isArray(typeNames) ? ts.namedType(typeNames[0]) : ts.namedType(typeNames)
   }
 
   if (field.outputType.isList) {
@@ -73,8 +72,8 @@ function buildOutputField(field: DMMF.SchemaField) {
   return property
 }
 
-function enumTypeName(ref: DMMF.TypeRefEnum) {
-  const name = isSchemaEnum(ref.type) ? ref.type.name : ref.type
+function enumTypeName(ref: DMMF.OutputTypeRef) {
+  const name = ref.type
   const namespace = ref.namespace === 'model' ? '$Enums' : 'Prisma'
   return `${namespace}.${name}`
 }
