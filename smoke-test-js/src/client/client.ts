@@ -18,8 +18,9 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
   const dirname = path.dirname(new URL(import.meta.url).pathname)
   process.env.PRISMA_QUERY_ENGINE_LIBRARY = getLibQueryEnginePath(dirname)
 
-  for (const adapter of [driverAdapter, undefined]) {
-    const isUsingDriverAdapters = adapter !== undefined
+  // Run twice, once with adapter and once fully without
+  for (const adapter of [driverAdapter, null]) {
+    const isUsingDriverAdapters = adapter !== null
     describe(isUsingDriverAdapters ? `using Driver Adapters` : `using Rust drivers`, () => {
       it('batch queries', async () => {
         const prisma = new PrismaClient({
