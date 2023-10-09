@@ -129,7 +129,7 @@
     "kleur": "4.1.5",
     "klona": "2.0.6",
     "mariadb": "3.2.1",
-    "memfs": "4.5.0",
+    "memfs": "4.6.0",
     "mssql": "10.0.1",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.7.0",
@@ -164,7 +164,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.5.0-5.97f8a055c0b9b9b7240c32f1368615c82d4c9782"
+    "@prisma/engines-version": "5.5.0-9.9cc3db6a9d43fdaf3572d95fff2f8015c04688f5"
   },
   "sideEffects": false
 }

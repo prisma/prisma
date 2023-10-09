@@ -707,10 +707,13 @@ async function tagEnginesRepo(
     'prisma-engines',
     `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
   )
+
+  // TODO remove later
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const changelogSanitized = changelog.replace(/"/gm, '\\"').replace(/`/gm, '\\`')
 
   if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
-    fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelogSanitized=${changelogSanitized}\n`)
+    // fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelogSanitized=${changelogSanitized}\n`)
   }
 }
 
