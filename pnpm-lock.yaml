@@ -1189,8 +1189,8 @@ importers:
         specifier: 3.2.1
         version: 3.2.1
       mongoose:
-        specifier: 7.5.3
-        version: 7.5.3
+        specifier: 7.6.0
+        version: 7.6.0
       mssql:
         specifier: 10.0.1
         version: 10.0.1
@@ -9578,8 +9578,8 @@ packages:
       whatwg-url: 11.0.0
     dev: false
 
-  /mongodb@5.8.1:
-    resolution: {integrity: sha512-wKyh4kZvm6NrCPH8AxyzXm3JBoEf4Xulo0aUWh3hCgwgYJxyQ1KLST86ZZaSWdj6/kxYUA3+YZuyADCE61CMSg==}
+  /mongodb@5.9.0:
+    resolution: {integrity: sha512-g+GCMHN1CoRUA+wb1Agv0TI4YTSiWr42B5ulkiAfLLHitGK1R+PkSAf3Lr5rPZwi/3F04LiaZEW0Kxro9Fi2TA==}
     engines: {node: '>=14.20.1'}
     peerDependencies:
       '@aws-sdk/credential-providers': ^3.188.0
@@ -9606,13 +9606,13 @@ packages:
       '@mongodb-js/saslprep': 1.1.0
     dev: false
 
-  /mongoose@7.5.3:
-    resolution: {integrity: sha512-QyYzhZusux0wIJs+4rYyHvel0kJm0CT887trNd1WAB3iQnDuJow0xEnjETvuS/cTjHQUVPihOpN7OHLlpJc52w==}
+  /mongoose@7.6.0:
+    resolution: {integrity: sha512-ztQ12rm0BQN5i7LB6xhWX4l9a9w2aa3jEwa/mM2vAutYJRyAwOzcusvKJBULMzFHyUDBOVW15grisexypgMIWA==}
     engines: {node: '>=14.20.1'}
     dependencies:
       bson: 5.5.0
       kareem: 2.5.1
-      mongodb: 5.8.1
+      mongodb: 5.9.0
       mpath: 0.9.0
       mquery: 5.0.0
       ms: 2.1.3
