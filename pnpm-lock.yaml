@@ -529,8 +529,8 @@ importers:
         specifier: 3.2.1
         version: 3.2.1
       memfs:
-        specifier: 4.5.0
-        version: 4.5.0
+        specifier: 4.6.0
+        version: 4.6.0
       mssql:
         specifier: 10.0.1
         version: 10.0.1
@@ -9289,8 +9289,8 @@ packages:
       p-is-promise: 2.1.0
     dev: true
 
-  /memfs@4.5.0:
-    resolution: {integrity: sha512-8QePW5iXi/ZCySFTo39h3ujKGT0rYVnZywuSo5AzR7POAuy4uBEFZKziYkkrlGdWuxACUxKAJ0L/sry3DSG+TA==}
+  /memfs@4.6.0:
+    resolution: {integrity: sha512-I6mhA1//KEZfKRQT9LujyW6lRbX7RkC24xKododIDO3AGShcaFAMKElv1yFGWX8fD4UaSiwasr3NeQ5TdtHY1A==}
     engines: {node: '>= 4.0.0'}
     peerDependencies:
       tslib: '2'
