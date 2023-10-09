@@ -1,5 +1,13 @@
 # Prisma Driver Adapters
 
+<a href="https://www.npmjs.com/package/prisma"><img src="https://img.shields.io/npm/v/prisma.svg?label=prisma" /></a>
+<a href="https://www.npmjs.com/package/@prisma/driver-adapter-utils"><img src="https://img.shields.io/npm/v/@prisma/driver-adapter-utils.svg?label=@prisma/driver-adapter-utils"/></a>
+<a href="https://www.npmjs.com/package/@prisma/adapter-neon"><img src="https://img.shields.io/npm/v/@prisma/adapter-neon.svg?label=@prisma/adapter-neon"/></a>
+<a href="https://www.npmjs.com/package/@prisma/adapter-pg"><img src="https://img.shields.io/npm/v/@prisma/adapter-pg.svg?label=@prisma/adapter-pg"/></a>
+<a href="https://www.npmjs.com/package/@prisma/adapter-planetscale"><img src="https://img.shields.io/npm/v/@prisma/adapter-planetscale.svg?label=@prisma/adapter-planetscale"/></a>
+
+<hr />
+
 This TypeScript monorepo contains the following packages:
 - `@prisma/driver-adapter-utils`
   - Internal set of utilities and types for Prisma's driver adapters.
