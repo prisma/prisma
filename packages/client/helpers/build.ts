@@ -13,18 +13,18 @@ const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
-function nodeRuntimeBuildConfig(targetEngineType: ClientEngineType): BuildOptions {
+function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): BuildOptions {
   return {
-    name: targetEngineType,
+    name: targetBuildType,
     entryPoints: ['src/runtime/index.ts'],
-    outfile: `runtime/${targetEngineType}`,
+    outfile: `runtime/${targetBuildType}`,
     bundle: true,
     minify: true,
     sourcemap: 'linked',
-    emitTypes: targetEngineType === 'library',
+    emitTypes: targetBuildType === 'library',
     define: {
       NODE_CLIENT: 'true',
-      TARGET_ENGINE_TYPE: JSON.stringify(targetEngineType),
+      TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
       // that fixes an issue with lz-string umd builds
       'define.amd': 'false',
     },
@@ -58,7 +58,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
     // tree shake the Library and Binary engines out
-    TARGET_ENGINE_TYPE: '"edge"',
+    TARGET_BUILD_TYPE: '"edge"',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },

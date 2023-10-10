@@ -39,11 +39,11 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
 
   if (engineType === ClientEngineType.Wasm && engineConfig.adapter !== undefined) {
     return new LibraryEngine(engineConfig)
-  } else if (url?.startsWith('prisma://') || clientConfig.noEngine || TARGET_ENGINE_TYPE === 'edge') {
+  } else if (url?.startsWith('prisma://') || clientConfig.noEngine || TARGET_BUILD_TYPE === 'edge') {
     return new DataProxyEngine(engineConfig)
-  } else if (engineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
+  } else if (engineType === ClientEngineType.Library && TARGET_BUILD_TYPE === 'library') {
     return new LibraryEngine(engineConfig)
-  } else if (engineType === ClientEngineType.Binary && TARGET_ENGINE_TYPE === 'binary') {
+  } else if (engineType === ClientEngineType.Binary && TARGET_BUILD_TYPE === 'binary') {
     return new BinaryEngine(engineConfig)
   }
 

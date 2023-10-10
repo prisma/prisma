@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
-import { assertAlways, EngineSpanEvent } from '@prisma/internals'
+import { assertAlways, ClientEngineType, EngineSpanEvent, getClientEngineType } from '@prisma/internals'
 import { bold, green, red, yellow } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -83,10 +83,14 @@ export class LibraryEngine extends Engine<undefined> {
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
     super()
 
-    config.inlineSchema
+    const engineType = getClientEngineType(config.generator!)
 
-    if (TARGET_ENGINE_TYPE === 'library' && config.adapter === undefined) {
-      this.libraryLoader = libraryLoader ?? defaultLibraryLoader
+    if (TARGET_BUILD_TYPE === 'library') {
+      if (engineType === ClientEngineType.Wasm && config.adapter !== undefined) {
+        this.libraryLoader = libraryLoader ?? wasmLibraryLoader
+      } else {
+        this.libraryLoader = libraryLoader ?? defaultLibraryLoader
+      }
     } else {
       this.libraryLoader = libraryLoader ?? wasmLibraryLoader
     }
@@ -178,7 +182,7 @@ export class LibraryEngine extends Engine<undefined> {
       return this.libraryInstantiationPromise
     }
 
-    if (TARGET_ENGINE_TYPE === 'library') {
+    if (TARGET_BUILD_TYPE === 'library') {
       assertNodeAPISupported()
     }
 
@@ -190,7 +194,7 @@ export class LibraryEngine extends Engine<undefined> {
   }
 
   private async getPlatform() {
-    if (TARGET_ENGINE_TYPE === 'library') {
+    if (TARGET_BUILD_TYPE === 'library') {
       if (this.platform) return this.platform
       const platform = await getPlatform()
       if (!knownPlatforms.includes(platform)) {
