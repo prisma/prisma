@@ -8,8 +8,10 @@ import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
-const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
-const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
+const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm'))
+const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
+const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
+const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
@@ -70,15 +72,17 @@ const edgeRuntimeBuildConfig: BuildOptions = {
         define: 'fn',
         inject: functionPolyfillPath,
       },
-
+      // we shim WeakRef, it does not exist on CF
+      WeakRef: {
+        inject: weakrefPolyfillPath,
+      },
       // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
-      './utils/find': { contents: '' },
     }),
     copyFilePlugin([
       {
-        from: path.join(path.dirname(require.resolve('@prisma/query-engine-wasm')), 'query_engine_bg.wasm'),
-        to: 'runtime/query-engine.wasm',
+        from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
+        to: path.join(runtimeDir, 'query-engine.wasm'),
       },
     ]),
   ],
