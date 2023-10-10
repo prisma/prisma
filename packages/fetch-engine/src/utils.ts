@@ -81,7 +81,9 @@ export async function overwriteFile(sourcePath: string, targetPath: string) {
   // macOS Gatekeeper can sometimes complain
   // about incorrect binary signature and kill node process
   // https://openradar.appspot.com/FB8914243
-  await removeFileIfExists(targetPath)
+  if (os.platform() === 'darwin') {
+    await removeFileIfExists(targetPath)
+  }
   await fs.promises.copyFile(sourcePath, targetPath)
 }
 
