@@ -265,7 +265,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       await fs.writeFile(filePath, file)
     }),
   )
-  const runtimeSourceDir = testMode
+  const runtimeSourceDir: string = testMode
     ? eval(`require('path').join(__dirname, '../../runtime')`)
     : eval(`require('path').join(__dirname, '../runtime')`)
 
@@ -315,8 +315,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (getClientEngineType(generator) === ClientEngineType.Wasm) {
-    const queryEngineWasmModulePath = path.dirname(require.resolve('@prisma/query-engine-wasm'))
-    const queryEngineWasmFilePath = path.join(queryEngineWasmModulePath, 'query_engine_bg.wasm')
+    const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
     const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
     await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
   }

@@ -4,6 +4,7 @@ import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
+import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
@@ -70,12 +71,16 @@ const edgeRuntimeBuildConfig: BuildOptions = {
         inject: functionPolyfillPath,
       },
 
-      // TODO no tree shaking on wrapper pkgs
-      '@prisma/get-platform': { contents: '' },
       // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
       './utils/find': { contents: '' },
     }),
+    copyFilePlugin([
+      {
+        from: path.join(path.dirname(require.resolve('@prisma/query-engine-wasm')), 'query_engine_bg.wasm'),
+        to: 'runtime/query-engine.wasm',
+      },
+    ]),
   ],
   logLevel: 'error',
 }
