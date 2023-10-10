@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: false
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  node-fetch@2.6.12:
-    hash: d2f4ywbzdgzmypej5sz7qs7qpy
-    path: patches/node-fetch@2.6.12.patch
-
 importers:
 
   .:
@@ -5209,7 +5204,7 @@ packages:
       env-paths: 2.2.1
       make-dir: 4.0.0
       ms: 2.1.3
-      node-fetch: 2.6.12(patch_hash=d2f4ywbzdgzmypej5sz7qs7qpy)
+      node-fetch: 2.6.12
       uuid: 9.0.0
     transitivePeerDependencies:
       - encoding
@@ -5222,7 +5217,7 @@ packages:
       env-paths: 2.2.1
       make-dir: 4.0.0
       ms: 2.1.3
-      node-fetch: 2.6.12(patch_hash=d2f4ywbzdgzmypej5sz7qs7qpy)
+      node-fetch: 2.6.12
       uuid: 9.0.0
     transitivePeerDependencies:
       - encoding
@@ -9729,7 +9724,7 @@ packages:
     engines: {node: '>=10.5.0'}
     dev: true
 
-  /node-fetch@2.6.12(patch_hash=d2f4ywbzdgzmypej5sz7qs7qpy):
+  /node-fetch@2.6.12:
     resolution: {integrity: sha512-C/fGU2E8ToujUivIO0H+tpQ6HWo4eEmchoPIoXtxCrVghxdKq+QOHqEZW7tuP3KlV3bC8FRMO5nMCC7Zm1VP6g==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
@@ -9739,7 +9734,6 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
-    patched: true
 
   /node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
