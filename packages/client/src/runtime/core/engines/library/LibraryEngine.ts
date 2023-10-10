@@ -80,15 +80,15 @@ export class LibraryEngine extends Engine<undefined> {
     version: string
   }
 
-  constructor(config: EngineConfig) {
+  constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
     super()
 
     config.inlineSchema
 
     if (TARGET_ENGINE_TYPE === 'library' && config.adapter === undefined) {
-      this.libraryLoader = defaultLibraryLoader
+      this.libraryLoader = libraryLoader ?? defaultLibraryLoader
     } else {
-      this.libraryLoader = wasmLibraryLoader
+      this.libraryLoader = libraryLoader ?? wasmLibraryLoader
     }
 
     this.config = config
