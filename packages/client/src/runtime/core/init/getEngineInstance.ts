@@ -2,7 +2,6 @@ import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/interna
 
 import { GetPrismaClientConfig } from '../../getPrismaClient'
 import { BinaryEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
-import { WasmEngine } from '../engines/wasm/WasmEngine'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
 
@@ -39,7 +38,7 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
   const engineType = getClientEngineType(engineConfig.generator!)
 
   if (engineType === ClientEngineType.Wasm && engineConfig.adapter !== undefined) {
-    return new WasmEngine(engineConfig)
+    return new LibraryEngine(engineConfig)
   } else if (url?.startsWith('prisma://') || clientConfig.noEngine || TARGET_ENGINE_TYPE === 'edge') {
     return new DataProxyEngine(engineConfig)
   } else if (engineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {

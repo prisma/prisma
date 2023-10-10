@@ -2,7 +2,6 @@ import Debug from '@prisma/debug'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
 import { assertAlways, EngineSpanEvent } from '@prisma/internals'
-import fs from 'fs'
 import { bold, green, red, yellow } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -34,8 +33,9 @@ import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
-import { DefaultLibraryLoader } from './DefaultLibraryLoader'
+import { defaultLibraryLoader } from './DefaultLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
+import { wasmLibraryLoader } from './WasmLibraryLoader'
 
 const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
 const debug = Debug('prisma:client:libraryEngine')
@@ -80,36 +80,24 @@ export class LibraryEngine extends Engine<undefined> {
     version: string
   }
 
-  constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
+  constructor(config: EngineConfig) {
     super()
 
-    try {
-      // we try to handle the case where the datamodel is not found
-      this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
-    } catch (e) {
-      if ((e.stack as string).match(/\/\.next|\/next@|\/next\//)) {
-        throw new PrismaClientInitializationError(
-          `Your schema.prisma could not be found, and we detected that you are using Next.js.
-Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextjs`,
-          config.clientVersion!,
-        )
-      } else if (config.isBundled === true) {
-        throw new PrismaClientInitializationError(
-          `Prisma Client could not find its \`schema.prisma\`. This is likely caused by a bundling step, which leads to \`schema.prisma\` not being copied near the resulting bundle. We would appreciate if you could take the time to share some information with us.
-Please help us by answering a few questions: https://pris.ly/bundler-investigation-error`,
-          config.clientVersion!,
-        )
-      }
+    config.inlineSchema
 
-      throw e
+    if (TARGET_ENGINE_TYPE === 'library' && config.adapter === undefined) {
+      this.libraryLoader = defaultLibraryLoader
+    } else {
+      this.libraryLoader = wasmLibraryLoader
     }
 
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
-    this.libraryLoader = loader
     this.logEmitter = config.logEmitter
+    this.datamodel = atob(config.inlineSchema)
+
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
     }
@@ -190,25 +178,35 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
       return this.libraryInstantiationPromise
     }
 
-    assertNodeAPISupported()
+    if (TARGET_ENGINE_TYPE === 'library') {
+      assertNodeAPISupported()
+    }
+
     this.platform = await this.getPlatform()
+
     await this.loadEngine()
+
     this.version()
   }
 
   private async getPlatform() {
-    if (this.platform) return this.platform
-    const platform = await getPlatform()
-    if (!knownPlatforms.includes(platform)) {
-      throw new PrismaClientInitializationError(
-        `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${green(
-          knownPlatforms.join(', '),
-        )} or a path to the query engine library.
+    if (TARGET_ENGINE_TYPE === 'library') {
+      if (this.platform) return this.platform
+      const platform = await getPlatform()
+      if (!knownPlatforms.includes(platform)) {
+        throw new PrismaClientInitializationError(
+          `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${green(
+            knownPlatforms.join(', '),
+          )} or a path to the query engine library.
 You may have to run ${green('prisma generate')} for your changes to take effect.`,
-        this.config.clientVersion!,
-      )
+          this.config.clientVersion!,
+        )
+      }
+
+      return platform
     }
-    return platform
+
+    return undefined
   }
 
   private parseEngineResponse<T>(response?: string): T {
@@ -230,7 +228,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   private async loadEngine(): Promise<void> {
     if (!this.engine) {
       if (!this.QueryEngineConstructor) {
-        this.library = await this.libraryLoader.loadLibrary()
+        this.library = await this.libraryLoader.loadLibrary(this.config)
         this.QueryEngineConstructor = this.library.QueryEngine
       }
       try {
