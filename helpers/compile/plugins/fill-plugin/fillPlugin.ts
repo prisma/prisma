@@ -206,6 +206,9 @@ const fillPlugin = (
       Buffer: {
         inject: path.join(__dirname, 'fillers', 'buffer.ts'),
       },
+      WeakRef: {
+        inject: path.join(__dirname, 'fillers', 'weakref.ts'),
+      },
       process: {
         inject: path.join(__dirname, 'fillers', 'process.ts'),
         path: path.join(__dirname, 'fillers', 'process.ts'),
