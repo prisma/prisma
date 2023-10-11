@@ -1,10 +1,10 @@
 FROM golang:1
 
 RUN apt update && apt install netcat-openbsd -y
-RUN cd /go/src && git clone https://github.com/prisma/ps-http-sim.git
-RUN cd /go/src/ps-http-sim && go install .
+RUN cd /go/src && git clone https://github.com/prisma/planetscale-proxy.git
+RUN cd /go/src/planetscale-proxy && go install .
 
-ENTRYPOINT /go/bin/ps-http-sim \
+ENTRYPOINT /go/bin/planetscale-proxy \
   -http-addr=0.0.0.0 \
   -http-port=8085 \
   -mysql-addr=$MYSQL_HOST \
