@@ -20,9 +20,7 @@ try {
       stdio: 'inherit',
     })
   }
-} catch (e) {
-  console.error(e)
-}
+} catch () {}
 
 // that's the normal path, when users get this package ready/installed
 require(postInstallScriptPath)
