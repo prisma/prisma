@@ -20,6 +20,8 @@ In the current directoy:
   pnpm i
   ```
 
+(or run `sh ./setup.sh`)
+
 Anywhere in the repository:
 - Run `cargo build -p query-engine-node-api` to compile the `libquery` Query Engine
 
@@ -53,8 +55,8 @@ In the current directory:
   - Run `pnpm neon:ws:client` to test using `@prisma/client`
 - Run `pnpm neon:http` to run smoke tests using `libquery` against the Neon database, using an HTTP connection. In this case, transactions won't work, and tests are expected to fail.
   For more fine-grained control:
-  - Run `pnpm neon:ws:http` to test using `libquery`
-  - Run `pnpm neon:ws:http` to test using `@prisma/client`
+  - Run `pnpm neon:http:libquery` to test using `libquery`
+  - Run `pnpm neon:http:client` to test using `@prisma/client`
 
 ### Pg
 

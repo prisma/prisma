@@ -12,5 +12,5 @@ describe('neon (HTTP)', () => {
   const adapter = new PrismaNeonHTTP(neonConnection)
   const driverAdapter = bindAdapter(adapter)
 
-  smokeTestLibquery(driverAdapter, '../../prisma/postgres/schema.prisma')
+  smokeTestLibquery(driverAdapter, '../../prisma/postgres/schema.prisma', false)
 })

@@ -51,6 +51,11 @@ model type_test_2 {
   datetime_column_null DateTime? @db.Timestamp(3)
 }
 
+model type_test_3 {
+  id    Int   @id @default(autoincrement())
+  bytes Bytes
+}
+
 model Child {
   c          String  @unique
   c_1        String

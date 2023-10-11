@@ -22,11 +22,25 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
   for (const adapter of [driverAdapter, null]) {
     const isUsingDriverAdapters = adapter !== null
     describe(isUsingDriverAdapters ? `using Driver Adapters` : `using Rust drivers`, () => {
+      
+      it('expected error (on duplicate insert) as exception thrown / promise rejected', async () => {
+        const prisma = new PrismaClient({ adapter, log })
+
+        await assert.rejects(
+          async () => {
+            const result = await prisma.unique.create({ data: { email: 'duplicate@example.com' } })
+            const result2 = await prisma.unique.create({ data: { email: 'duplicate@example.com' } })
+          },
+          (err) => {
+            assert.match(err.message, /unique/i);
+            return true;
+          },
+        );
+      
+      })
+
       it('batch queries', async () => {
-        const prisma = new PrismaClient({
-          adapter,
-          log,
-        })
+        const prisma = new PrismaClient({ adapter, log })
 
         const queries: string[] = []
         prisma.$on('query', ({ query }) => queries.push(query))
@@ -83,7 +97,11 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
           })
 
           if (['mysql'].includes(provider)) {
-            assert.deepEqual(queries.slice(0, 2), ['SET TRANSACTION ISOLATION LEVEL READ COMMITTED', 'BEGIN'])
+            if (isUsingDriverAdapters) {
+              assert.deepEqual(queries.slice(0, 2), ['SET TRANSACTION ISOLATION LEVEL READ COMMITTED', '-- Implicit "BEGIN" query via underlying driver'])
+            } else {
+              assert.deepEqual(queries.slice(0, 2), ['SET TRANSACTION ISOLATION LEVEL READ COMMITTED', 'BEGIN'])
+            }
           } else if (['postgres'].includes(provider)) {
             assert.deepEqual(queries.slice(0, 2), ['BEGIN', 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED'])
           }
@@ -101,6 +119,8 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
             await prisma.$transaction([prisma.child.findMany(), prisma.child.count()], {
               isolationLevel: 'Serializable',
             })
+
+            console.log("queries", queries)
 
             if (isUsingDriverAdapters) {
               assert.equal(queries.at(0), '-- Implicit "BEGIN" query via underlying driver')
@@ -123,19 +143,22 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
             )
           })
 
-          it('bytes type support', async () => {
-            const prisma = new PrismaClient({ adapter, log })
-
-            const result = await prisma.type_test_3.create({
-              data: {
-                bytes: Buffer.from([1, 2, 3, 4]),
-              },
-            })
-
-            assert.deepEqual(result.bytes, Buffer.from([1, 2, 3, 4]))
-          })
         })
+
       }
+
+      it('bytes type support', async () => {
+        const prisma = new PrismaClient({ adapter, log })
+
+        const result = await prisma.type_test_3.create({
+          data: {
+            bytes: Buffer.from([1, 2, 3, 4]),
+          },
+        })
+
+        assert.deepEqual(result.bytes, Buffer.from([1, 2, 3, 4]))
+      })
+
     })
   }
 }
