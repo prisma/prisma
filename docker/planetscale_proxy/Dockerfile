@@ -4,7 +4,7 @@ RUN apt update && apt install netcat-openbsd -y
 RUN cd /go/src && git clone https://github.com/prisma/planetscale-proxy.git
 RUN cd /go/src/planetscale-proxy && go install .
 
-ENTRYPOINT /go/bin/planetscale-proxy \
+ENTRYPOINT /go/bin/ps-http-sim \
   -http-addr=0.0.0.0 \
   -http-port=8085 \
   -mysql-addr=$MYSQL_HOST \
