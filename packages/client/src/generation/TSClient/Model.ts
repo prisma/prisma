@@ -357,7 +357,7 @@ export class ModelDelegate implements Generatable {
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
     ? `type ${countArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
+  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include' | 'distinct' > & {
     select?: ${getCountAggregateInputName(name)} | true
   }
 `
