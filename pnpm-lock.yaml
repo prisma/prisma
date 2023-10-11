@@ -75,6 +75,9 @@ importers:
       '@neondatabase/serverless':
         specifier: ^0.6.0
         version: 0.6.0
+      '@planetscale/database':
+        specifier: 1.11.0
+        version: 1.11.0
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
@@ -84,6 +87,9 @@ importers:
       '@prisma/adapter-pg':
         specifier: workspace:*
         version: link:../adapter-pg
+      '@prisma/adapter-planetscale':
+        specifier: workspace:*
+        version: link:../adapter-planetscale
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
