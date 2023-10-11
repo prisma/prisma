@@ -1,7 +1,7 @@
 FROM golang:1
 
 RUN apt update && apt install netcat-openbsd -y
-RUN cd /go/src && git clone https://github.com/mattrobenolt/ps-http-sim.git
+RUN cd /go/src && git clone https://github.com/prisma/ps-http-sim.git
 RUN cd /go/src/ps-http-sim && go install .
 
 ENTRYPOINT /go/bin/ps-http-sim \
