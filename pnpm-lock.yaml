@@ -39,6 +39,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      postgres-array:
+        specifier: ^3.0.2
+        version: 3.0.2
     devDependencies:
       '@neondatabase/serverless':
         specifier: ^0.6.0
@@ -49,6 +52,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      postgres-array:
+        specifier: ^3.0.2
+        version: 3.0.2
     devDependencies:
       '@types/pg':
         specifier: ^8.10.2
