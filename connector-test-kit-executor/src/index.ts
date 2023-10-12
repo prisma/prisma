@@ -235,8 +235,17 @@ async function adapterFromEnv(url: string): Promise<DriverAdapter> {
     return await SUPPORTED_ADAPTERS[adapter](url)
 }
 
+function postgres_options(url: string): any {
+    let args: any = {connectionString: url}
+    const schemaName = new URL(url).searchParams.get('schema')
+    if (schemaName != null) {
+        args.options = `--search_path="${schemaName}"`
+    }
+    return args;
+}
+
 async function pgAdapter(url: string): Promise<DriverAdapter> {
-    const pool = new pgDriver.Pool({connectionString: url})
+    const pool = new pgDriver.Pool(postgres_options(url))
     return new prismaPg.PrismaPg(pool)
 }
 
@@ -251,7 +260,7 @@ async function neonWsAdapter(url: string): Promise<DriverAdapter> {
     neonConfig.useSecureWebSocket = false
     neonConfig.pipelineConnect = false
 
-    const pool = new NeonPool({ connectionString: url })
+    const pool = new NeonPool(postgres_options(url))
     return new prismaNeon.PrismaNeon(pool)
 }
 
