@@ -79,14 +79,14 @@ class DataProxyHeaderBuilder {
   readonly tracingHelper: TracingHelper
   readonly logLevel: EngineConfig['logLevel']
   readonly logQueries: boolean | undefined
-  readonly engineHash : string
+  readonly engineHash: string
 
   constructor({
     apiKey,
     tracingHelper,
     logLevel,
     logQueries,
-    engineHash
+    engineHash,
   }: {
     apiKey: string
     tracingHelper: TracingHelper
@@ -165,11 +165,11 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
     this.config = config
     this.env = { ...this.config.env, ...process.env }
-    this.inlineSchema = config.inlineSchema ?? ''
-    this.inlineDatasources = config.inlineDatasources ?? {}
-    this.inlineSchemaHash = config.inlineSchemaHash ?? ''
-    this.clientVersion = config.clientVersion ?? 'unknown'
-    this.engineHash = config.engineVersion ?? 'unknown'
+    this.inlineSchema = config.inlineSchema
+    this.inlineDatasources = config.inlineDatasources
+    this.inlineSchemaHash = config.inlineSchemaHash
+    this.clientVersion = config.clientVersion
+    this.engineHash = config.engineVersion
     this.logEmitter = config.logEmitter
     this.tracingHelper = this.config.tracingHelper
   }
@@ -178,8 +178,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     return this.headerBuilder.apiKey
   }
 
+  // The version is the engine hash
+  // that we expect to have on the remote QE
   version() {
-    // QE is remote, we don't need to know the exact commit SHA
     return this.engineHash
   }
 
@@ -264,10 +265,10 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     }
   }
 
-  private async url(s: string) {
+  private async url(action: string) {
     await this.start()
 
-    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
+    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${action}`
   }
 
   private async uploadSchema() {
