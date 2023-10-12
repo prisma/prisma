@@ -159,7 +159,7 @@
     "ts-pattern": "4.3.0",
     "tsd": "0.29.0",
     "typescript": "5.2.2",
-    "undici": "5.25.4",
+    "undici": "5.26.3",
     "yeoman-generator": "5.9.0",
     "yo": "4.3.1",
     "zx": "7.2.3"
