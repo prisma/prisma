@@ -78,18 +78,19 @@ export function getDownloadUrl({
 }
 
 export async function overwriteFile(sourcePath: string, targetPath: string) {
+  // TODO: maybe this is not a thing anymore since we do not call getVersion anymore?
   // without removing the file first,
   // macOS Gatekeeper can sometimes complain
   // about incorrect binary signature and kill node process
   // https://openradar.appspot.com/FB8914243
-  //
-  // and on Linux the `postinstall` hook of `@prisma/engines` might fail
-  // Example from our monorepo: pnpm errors with
-  // packages/engines postinstall: Failed
-  // ELIFECYCLE Command failed with exit code 129.
-  //
-  debugOverwrite(`We will now attempt to remove ${targetPath}, and then copy ${sourcePath} to that location.`)
-  await removeFileIfExists(targetPath)
+  if (os.platform() === 'darwin') {
+    debugOverwrite(
+      `We will now attempt to remove (if it exists) ${targetPath}, and then copy ${sourcePath} to that location.`,
+    )
+    await removeFileIfExists(targetPath)
+  } else {
+    debugOverwrite(`We will now copy ${sourcePath} to ${targetPath}.`)
+  }
   await fs.promises.copyFile(sourcePath, targetPath)
 }
 
@@ -100,5 +101,12 @@ export async function removeFileIfExists(filePath: string) {
     if (e.code !== 'ENOENT') {
       throw e
     }
+  }
+}
+
+export function getSha256Paths(enginePath) {
+  return {
+    sha256_path_for_engine: path.join(enginePath + '.sha256'),
+    sha256_path_for_gz: path.join(enginePath + 'gz.sha256'),
   }
 }

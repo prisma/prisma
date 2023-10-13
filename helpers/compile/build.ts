@@ -140,7 +140,9 @@ async function dependencyCheck(options: BuildOptions) {
   })
 
   // we absolutely don't care if it has any errors
-  await buildPromise.catch(() => {})
+  await buildPromise.catch((e) => {
+    console.error(e)
+  })
 
   return undefined
 }

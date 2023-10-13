@@ -36,7 +36,9 @@ async function main() {
       showProgress: true,
       failSilent: true,
       binaryTargets: binaryTargets as Platform[],
-    }).catch((e) => debug('Error with download logic', e))
+    })
+      .then(() => debug('Download logic finished successfully.'))
+      .catch((e) => debug('Error with download logic', e))
 
     cleanupLockFile()
   }

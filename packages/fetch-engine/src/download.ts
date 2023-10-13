@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import { assertNodeAPISupported, getNodeAPIName, getos, getPlatform, Platform, platforms } from '@prisma/get-platform'
-import execa from 'execa'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import { bold, yellow } from 'kleur/colors'
@@ -16,7 +15,7 @@ import { downloadZip } from './downloadZip'
 import { allEngineEnvVarsSet, getBinaryEnvVarPath } from './env'
 import { getHash } from './getHash'
 import { getBar } from './log'
-import { getCacheDir, getDownloadUrl, overwriteFile, removeFileIfExists } from './utils'
+import { getCacheDir, getDownloadUrl, getSha256Paths, overwriteFile, removeFileIfExists } from './utils'
 
 const { enginesOverride } = require('../package.json')
 
@@ -159,7 +158,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
       debug(`${downloadUrl} will be downloaded to ${job.targetFilePath}`)
 
-      return downloadBinary({
+      return downloadEngineAndSha256({
         ...job,
         downloadUrl,
         version: opts.version,
@@ -318,34 +317,41 @@ async function binaryNeedsToBeDownloaded(
 
   // 3. If same platform, check --version and compare to expected version
   if (job.binaryTarget === nativePlatform) {
-    debug(`job.binaryTarget === nativePlatform - the version will be checked`)
-    const currentVersion = await getVersion(job.targetFilePath, job.binaryName)
+    debug(`job.binaryTarget === nativePlatform - the checksum will be checked`)
 
-    if (currentVersion?.includes(version) !== true) {
-      debug(`file ${job.targetFilePath} exists but its version is ${currentVersion} and we expect ${version}`)
+    const engineSha256 = await getHash(job.targetFilePath)
+    const { sha256_path_for_engine } = getSha256Paths(job.targetFilePath)
+
+    let engineSha256FromSha256File = ''
+    try {
+      engineSha256FromSha256File = await fs.promises.readFile(sha256_path_for_engine, 'utf8')
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        // Download is needed, because the sha256 file does not exist
+        debug(`The engineSha256FromSha256File does not exist, we need to execute the download logic for that engine.`)
+      } else {
+        // Download is needed, we can't read the sha256 file
+        debug(
+          `There was an error while trying to read ${sha256_path_for_engine} we will ignore it, we need to execute the download logic for that engine.`,
+          e,
+        )
+      }
+      return true
+    }
+
+    if (engineSha256 === engineSha256FromSha256File) {
+      debug(
+        `The engineSha256 (${engineSha256}) matches with the one contained in ${sha256_path_for_engine} The download logic will be skipped for that engine.`,
+      )
+    } else {
+      debug(
+        `The engineSha256 (${engineSha256}) does not match engineSha256FromSha256File (${engineSha256FromSha256File}), we need to execute the download logic for that engine.`,
+      )
       return true
     }
   }
 
   return false
-}
-
-export async function getVersion(enginePath: string, binaryName: string) {
-  try {
-    if (binaryName === BinaryType.QueryEngineLibrary) {
-      assertNodeAPISupported()
-
-      const commitHash = require(enginePath).version().commit
-      return `${BinaryType.QueryEngineLibrary} ${commitHash}`
-    } else {
-      const result = await execa(enginePath, ['--version'])
-      return result.stdout
-    }
-  } catch (e) {
-    debug(`Error from getVersion - enginePath is ${enginePath} `, e)
-  }
-
-  return undefined
 }
 
 export function getBinaryName(binaryName: BinaryType, platform: Platform): string {
@@ -397,7 +403,7 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
   failSilent?: boolean
 }
 
-async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
+async function downloadEngineAndSha256(options: DownloadBinaryOptions): Promise<void> {
   const { version, progressCb, targetFilePath, downloadUrl } = options
 
   const targetDir = path.dirname(targetFilePath)
@@ -430,6 +436,15 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
   // packages/engines postinstall: Failed
   // ELIFECYCLE Command failed with exit code 129.
   await overwriteFile(downloadTempTarget, targetFilePath)
+
+  const { sha256_path_for_engine, sha256_path_for_gz } = getSha256Paths(targetFilePath)
+  if (sha256 != null) {
+    await fs.promises.writeFile(sha256_path_for_engine, sha256)
+  }
+  if (zippedSha256 != null) {
+    await fs.promises.writeFile(sha256_path_for_gz, zippedSha256)
+  }
+
   // await fs.promises.copyFile(downloadTempTarget, targetFilePath)
 
   // it's ok if the unlink fails
@@ -460,18 +475,16 @@ async function saveFileToCache(
   }
 
   const cachedTargetPath = path.join(cacheDir, job.binaryName)
-  const cachedSha256Path = path.join(cacheDir, job.binaryName + '.sha256')
-  const cachedSha256ZippedPath = path.join(cacheDir, job.binaryName + '.gz.sha256')
-
+  const { sha256_path_for_engine, sha256_path_for_gz } = getSha256Paths(path.join(cacheDir, job.binaryName))
   try {
     debug(`Saving files to the cache directory ${cacheDir} ...`)
     await overwriteFile(job.targetFilePath, cachedTargetPath)
 
     if (sha256 != null) {
-      await fs.promises.writeFile(cachedSha256Path, sha256)
+      await fs.promises.writeFile(sha256_path_for_engine, sha256)
     }
     if (zippedSha256 != null) {
-      await fs.promises.writeFile(cachedSha256ZippedPath, zippedSha256)
+      await fs.promises.writeFile(sha256_path_for_gz, zippedSha256)
     }
   } catch (e) {
     debug('Something failed while saving files to the cache directory', e)
