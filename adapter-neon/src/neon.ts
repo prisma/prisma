@@ -67,7 +67,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
       debug('Error in performIO: %O', e)
       if (e && e.code) {
         return err({
-          kind: 'PostgresError',
+          kind: 'Postgres',
           code: e.code,
           severity: e.severity,
           message: e.message,
@@ -84,10 +84,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
   finished = false
 
-  constructor(
-    client: neon.PoolClient,
-    readonly options: TransactionOptions,
-  ) {
+  constructor(client: neon.PoolClient, readonly options: TransactionOptions) {
     super(client)
   }
 

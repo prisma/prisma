@@ -1,5 +1,5 @@
 import type pg from 'pg'
-import { Debug, ok } from '@prisma/driver-adapter-utils'
+import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import type {
   DriverAdapter,
   Query,
@@ -28,18 +28,17 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const { fields, rows } = await this.performIO(query)
+    const ioResult = await this.performIO(query)
+    return ioResult.map(({ fields, rows }) => {
+      const columns = fields.map((field) => field.name)
+      const columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
 
-    const columns = fields.map((field) => field.name)
-    const columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
-
-    const resultSet: ResultSet = {
-      columnNames: columns,
-      columnTypes,
-      rows,
-    }
-
-    return ok(resultSet)
+      return {
+        columnNames: columns,
+        columnTypes,
+        rows,
+      }
+    })
   }
 
   /**
@@ -51,10 +50,8 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    const { rowCount: rowsAffected } = await this.performIO(query)
-
     // Note: `rowsAffected` can sometimes be null (e.g., when executing `"BEGIN"`)
-    return ok(rowsAffected ?? 0)
+    return (await this.performIO(query)).map(({ rowCount: rowsAffected }) => rowsAffected ?? 0)
   }
 
   /**
@@ -62,15 +59,26 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query) {
+  private async performIO(query: Query): Promise<Result<pg.QueryArrayResult<any>>> {
     const { sql, args: values } = query
 
     try {
       const result = await this.client.query({ text: sql, values, rowMode: 'array' })
-      return result
+      return ok(result)
     } catch (e) {
       const error = e as Error
       debug('Error in performIO: %O', error)
+      if (e && e.code) {
+        return err({
+          kind: 'Postgres',
+          code: e.code,
+          severity: e.severity,
+          message: e.message,
+          detail: e.detail,
+          column: e.column,
+          hint: e.hint,
+        })
+      }
       throw error
     }
   }

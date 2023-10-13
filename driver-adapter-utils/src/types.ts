@@ -33,18 +33,20 @@ export type Query = {
   args: Array<unknown>
 }
 
-export type Error = {
-  kind: 'GenericJsError'
-  id: number
-} | {
-  kind: 'PostgresError'
-  code: string,
-  severity: string
-  message: string
-  detail: string | undefined
-  column: string | undefined
-  hint: string | undefined
-}
+export type Error =
+  | {
+      kind: 'GenericJs'
+      id: number
+    }
+  | {
+      kind: 'Postgres'
+      code: string
+      severity: string
+      message: string
+      detail: string | undefined
+      column: string | undefined
+      hint: string | undefined
+    }
 
 export interface Queryable {
   readonly flavour: 'mysql' | 'postgres' | 'sqlite'

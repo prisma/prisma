@@ -60,7 +60,7 @@ function wrapAsync<A extends unknown[], R>(
       return await fn(...args)
     } catch (error) {
       const id = registry.registerNewError(error)
-      return err({ kind: 'GenericJsError', id })
+      return err({ kind: 'GenericJs', id })
     }
   }
 }
@@ -74,7 +74,7 @@ function wrapSync<A extends unknown[], R>(
       return fn(...args)
     } catch (error) {
       const id = registry.registerNewError(error)
-      return err({ kind: 'GenericJsError', id })
+      return err({ kind: 'GenericJs', id })
     }
   }
 }
