@@ -8,7 +8,8 @@ import path from 'path'
 
 import { BinaryType } from './BinaryType'
 
-const debug = Debug('prisma:fetch-engine:cache-dir')
+const debugCacheDir = Debug('prisma:fetch-engine:cache-dir')
+const debugOverwrite = Debug('prisma:fetch-engine:overwrite')
 
 export async function getRootCacheDir(): Promise<string | null> {
   if (os.platform() === 'win32') {
@@ -40,11 +41,11 @@ export async function getCacheDir(channel: string, version: string, platform: st
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
   try {
     if (!fs.existsSync(cacheDir)) {
+      debugCacheDir(`The directory path for ${cacheDir} cache directory doesn't exist and will be created now`)
       await ensureDir(cacheDir)
     }
   } catch (e) {
-    debug('The following error is being caught and just there for debugging:')
-    debug(e)
+    debugCacheDir('The following error is being caught and just there for debugging:', e)
     return null
   }
   return cacheDir
@@ -81,16 +82,18 @@ export async function overwriteFile(sourcePath: string, targetPath: string) {
   // macOS Gatekeeper can sometimes complain
   // about incorrect binary signature and kill node process
   // https://openradar.appspot.com/FB8914243
-
-  // TODO: this is a temporary revert of https://github.com/prisma/prisma/pull/21439
-  // To debug https://github.com/prisma/prisma/pull/21448
-  // if (os.platform() === 'darwin') {
+  //
+  // and on Linux the `postinstall` hook of `@prisma/engines` might fail
+  // Example from our monorepo: pnpm errors with
+  // packages/engines postinstall: Failed
+  // ELIFECYCLE Command failed with exit code 129.
+  //
+  debugOverwrite(`We will now attempt to remove ${targetPath}, and then copy ${sourcePath} to that location.`)
   await removeFileIfExists(targetPath)
-  // }
   await fs.promises.copyFile(sourcePath, targetPath)
 }
 
-async function removeFileIfExists(filePath: string) {
+export async function removeFileIfExists(filePath: string) {
   try {
     await fs.promises.unlink(filePath)
   } catch (e) {

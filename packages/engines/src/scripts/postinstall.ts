@@ -36,7 +36,7 @@ async function main() {
       showProgress: true,
       failSilent: true,
       binaryTargets: binaryTargets as Platform[],
-    }).catch((e) => debug(e))
+    }).catch((e) => debug('Error with download logic', e))
 
     cleanupLockFile()
   }
@@ -54,12 +54,12 @@ function cleanupLockFile() {
         fs.unlinkSync(lockFile)
       }
     } catch (e) {
-      debug(e)
+      debug('Error while removing the lock file', e)
     }
   }
 }
 
-main().catch((e) => debug(e))
+main().catch((e) => debug('Error from the postinstall script', e))
 
 process.on('beforeExit', () => {
   cleanupLockFile()

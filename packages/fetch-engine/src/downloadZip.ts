@@ -3,17 +3,11 @@ import fs from 'fs'
 import hasha from 'hasha'
 import fetch from 'node-fetch'
 import retry from 'p-retry'
-import path from 'path'
-import rimraf from 'rimraf'
-import tempy from 'tempy'
-import { promisify } from 'util'
 import zlib from 'zlib'
 
 import { getProxyAgent } from './getProxyAgent'
-import { overwriteFile } from './utils'
 
 const debug = Debug('prisma:fetch-engine:downloadZip')
-const del = promisify(rimraf)
 
 export type DownloadResult = {
   lastModified: string
@@ -57,18 +51,20 @@ async function fetchChecksum(url: string): Promise<string | null> {
   }
 }
 
-export async function downloadZip(
-  url: string,
-  target: string,
-  progressCb?: (progress: number) => void,
-): Promise<DownloadResult> {
-  const tmpDir = tempy.directory()
-  const partial = path.join(tmpDir, 'partial')
-
+export async function downloadZip({
+  url,
+  downloadTempTarget,
+  progressCb,
+}: {
+  url: string
+  downloadTempTarget: string
+  progressCb?: (progress: number) => void
+}): Promise<DownloadResult> {
   // We try 3 times,
   // Once + 2 retries
   const RETRIES_COUNT = 2
 
+  // Fetch checkshum files
   const [zippedSha256, sha256] = await retry(
     async () => {
       return await Promise.all([fetchChecksum(url), fetchChecksum(url.slice(0, url.length - 3))])
@@ -79,6 +75,7 @@ export async function downloadZip(
     },
   )
 
+  // Fetch engine archive file
   const result = await retry(
     async () => {
       const response = await fetch(url, {
@@ -91,7 +88,7 @@ export async function downloadZip(
 
       const lastModified = response.headers.get('last-modified')!
       const size = parseFloat(response.headers.get('content-length') as string)
-      const ws = fs.createWriteStream(partial)
+      const writeStream = fs.createWriteStream(downloadTempTarget)
 
       // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
       return await new Promise(async (resolve, reject) => {
@@ -116,9 +113,9 @@ export async function downloadZip(
           algorithm: 'sha256',
         })
 
-        zipStream.pipe(ws)
+        zipStream.pipe(writeStream)
 
-        ws.on('error', reject).on('close', () => {
+        writeStream.on('error', reject).on('close', () => {
           resolve({ lastModified, sha256, zippedSha256 })
         })
 
@@ -139,16 +136,6 @@ export async function downloadZip(
       onFailedAttempt: (err) => debug('An error occurred while downloading the engine file', err),
     },
   )
-
-  await overwriteFile(partial, target)
-
-  // it's ok if the unlink fails
-  try {
-    await del(partial)
-    await del(tmpDir)
-  } catch (e) {
-    debug(e)
-  }
 
   return result as DownloadResult
 }

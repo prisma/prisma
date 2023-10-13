@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import { BinaryType, getCacheDir } from '@prisma/fetch-engine'
 import { enginesOverride } from '@prisma/fetch-engine/package.json'
 import { getPlatform } from '@prisma/get-platform'
@@ -6,11 +7,17 @@ import fs from 'fs'
 import path from 'path'
 
 const baseDir = path.join(__dirname, '..', '..')
+const debug = Debug('prisma:localinstall')
 
 async function main() {
+  debug('Running localinstall.ts script...')
+
   const binaryTarget = await getPlatform()
   const cacheDir = (await getCacheDir('master', '_local_', binaryTarget))!
+  debug({ cacheDir })
   const branch = enginesOverride?.['branch'] as string | undefined
+  debug({ branch })
+
   let folder = enginesOverride?.['folder'] as string | undefined
 
   const engineCachePaths = {
@@ -53,9 +60,12 @@ async function main() {
     folder = path.join(enginesRepoDir, 'target', 'release')
   }
 
-  // we copy the engines from the compiled output folder to the cache dir
+  debug({ folder })
+
   if (folder !== undefined) {
     folder = path.isAbsolute(folder) ? folder : path.join(baseDir, folder)
+    debug(`we copy the engines from the compiled output folder to the cache dir`)
+
     const libExt = binaryTarget.includes('windows') ? '.dll' : binaryTarget.includes('darwin') ? '.dylib' : '.so'
     const binExt = binaryTarget.includes('windows') ? '.exe' : ''
 
@@ -66,12 +76,13 @@ async function main() {
     }
 
     for (const [binaryType, outputPath] of Object.entries(engineOutputPaths)) {
+      debug(`copying ${outputPath} to ${engineCachePaths[binaryType]}`)
       await fs.promises.copyFile(outputPath, engineCachePaths[binaryType])
     }
   }
 }
 
 main().catch((e) => {
-  console.log(e.message)
+  console.error('Error from localinstall.ts', e.message)
   process.exit(1)
 })

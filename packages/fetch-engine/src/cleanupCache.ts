@@ -32,9 +32,11 @@ export async function cleanupCache(n = 5): Promise<void> {
       }),
     )
     dirsWithMeta.sort((a, b) => (a.created < b.created ? 1 : -1))
+
     const dirsToRemove = dirsWithMeta.slice(n)
     await pMap(dirsToRemove, (dir) => del(dir.dir), { concurrency: 20 })
   } catch (e) {
     // fail silently
+    debug(`Error while cleaning the cache directory`, e)
   }
 }
