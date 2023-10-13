@@ -5,6 +5,37 @@ import path from 'path'
 import { Generate, getLocalPrismaVersion } from '../../Generate'
 import { getInstalledPrismaClientVersion } from '../../utils/getClientVersion'
 
+const isCurrentBinInstalledGloballyMock = isCurrentBinInstalledGlobally as unknown as jest.Mock
+const getInstalledPrismaClientVersionMock = getInstalledPrismaClientVersion as unknown as jest.Mock
+const getLocalPrismaVersionMock = getLocalPrismaVersion as unknown as jest.Mock
+
+jest.mock('@prisma/internals', () => {
+  const actual = jest.requireActual('@prisma/internals')
+
+  return {
+    ...actual,
+    isCurrentBinInstalledGlobally: jest.fn(),
+  }
+})
+
+jest.mock('../../Generate', () => {
+  const actual = jest.requireActual('../../Generate')
+
+  return {
+    ...actual,
+    getLocalPrismaVersion: jest.fn(),
+  }
+})
+
+jest.mock('../../utils/getClientVersion', () => {
+  const actual = jest.requireActual('../../utils/getClientVersion')
+
+  return {
+    ...actual,
+    getInstalledPrismaClientVersion: jest.fn(),
+  }
+})
+
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('using cli', () => {
@@ -353,9 +384,8 @@ describe('using cli', () => {
   it('should warn on mismatch of global version and local prisma version', async () => {
     ctx.fixture('example-project')
 
-    const versions = { getInstalledPrismaClientVersion, isCurrentBinInstalledGlobally, getLocalPrismaVersion }
-    jest.spyOn(versions, 'isCurrentBinInstalledGlobally').mockReturnValue('npm')
-    jest.spyOn(versions, 'getLocalPrismaVersion').mockReturnValue(Promise.resolve('0.0.2'))
+    isCurrentBinInstalledGloballyMock.mockReturnValue('npm')
+    getLocalPrismaVersionMock.mockResolvedValue('0.0.2')
 
     const data = await ctx.cli('generate')
     expect(data.stdout).toMatchInlineSnapshot(
@@ -366,9 +396,8 @@ describe('using cli', () => {
   it('should warn on mismatch of global version and local client version', async () => {
     ctx.fixture('example-project')
 
-    const versions = { getInstalledPrismaClientVersion, isCurrentBinInstalledGlobally, getLocalPrismaVersion }
-    jest.spyOn(versions, 'getInstalledPrismaClientVersion').mockReturnValue(Promise.resolve('0.0.1'))
-    jest.spyOn(versions, 'isCurrentBinInstalledGlobally').mockReturnValue('npm')
+    getInstalledPrismaClientVersionMock.mockResolvedValue('0.0.1')
+    isCurrentBinInstalledGloballyMock.mockReturnValue('npm')
 
     const data = await ctx.cli('generate')
     expect(data.stdout).toMatchInlineSnapshot(
