@@ -107,6 +107,6 @@ export async function removeFileIfExists(filePath: string) {
 export function getSha256Paths(enginePath) {
   return {
     sha256_path_for_engine: path.join(enginePath + '.sha256'),
-    sha256_path_for_gz: path.join(enginePath + 'gz.sha256'),
+    sha256_path_for_gz: path.join(enginePath + '.gz.sha256'),
   }
 }
