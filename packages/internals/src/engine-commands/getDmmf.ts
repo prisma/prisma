@@ -181,7 +181,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 // https://github.com/prisma/prisma/blob/main/packages/client/src/runtime/core/engine/BinaryEngine.ts
 function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
   // List of deprecated feature flags
-  const deprecatedFlags = [
+  const removedFeatureFlagMap = [
     'insensitiveFilters',
     'atomicNumberOperations',
     'connectOrCreate',
@@ -203,11 +203,11 @@ function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
     `${blue(bold('info'))} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`;
 
   previewFeatures?.forEach((f) => {
-    if (deprecatedFlags.includes(f) && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+    if (removedFeatureFlagMap.includes(f) && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
       console.warn(getMessage(f));
     }
   });
-}
+
 
 previewFeatures?.forEach((f) => {
   const removedMessage = removedFeatureFlagMap[f]
