@@ -28,6 +28,8 @@ export function $extends(this: Client, extension: ExtensionArgs | ((client: Clie
       value: this._extensions.append(extension),
     },
     _appliedParent: { value: this, configurable: true },
+    $use: { value: undefined },
+    $on: { value: undefined },
   }) as Client
 
   return applyModelsAndClientExtensions(newClient)
