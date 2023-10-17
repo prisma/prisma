@@ -4,6 +4,7 @@ import {
   unApplyModelsAndClientExtensions,
 } from '../model/applyModelsAndClientExtensions'
 import { ExtensionArgs } from '../types/exported'
+import { logger } from '@prisma/internals'
 
 /**
  * @param this
@@ -19,9 +20,9 @@ export function $extends(this: Client, extension: ExtensionArgs | ((client: Clie
 
   // Check if $on and $use are configured before extending the client
   if (this.$on !== undefined || this.$use !== undefined) {
-    throw new Error("$on and $use are not available after $extends due to their global nature; they apply to all forks simultaneously. To ensure proper usage, please configure any middleware or event handlers before extending the client. For detailed guidance, refer to the documentation: https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions#usage-of-on-and-use-with-extended-clients");
+    logger.warn("$on and $use are not available after $extends due to their global nature; they apply to all forks simultaneously. To ensure proper usage, please configure any middleware or event handlers before extending the client. For detailed guidance, refer to the documentation: https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions#usage-of-on-and-use-with-extended-clients");
   }
-
+  
   const newClient = Object.create(oldClient, {
     _extensions: {
       value: this._extensions.append(extension),
