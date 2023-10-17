@@ -46,7 +46,7 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
 }
 export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
   if (actionName === 'count') {
-    return `args?: Omit<${getModelArgName(modelName, DMMF.ModelAction.findMany)}, 'select' | 'include'>`
+    return `args?: Omit<${getModelArgName(modelName, DMMF.ModelAction.findMany)}, 'select' | 'include' | 'distinct' >`
   }
   if (actionName === 'aggregate') {
     return `args: Subset<T, ${getAggregateArgsName(modelName)}>`

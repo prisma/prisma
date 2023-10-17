@@ -53,7 +53,7 @@
     "dotenv-cli": "7.3.0",
     "esbuild": "0.19.4",
     "esbuild-register": "3.5.0",
-    "eslint": "8.50.0",
+    "eslint": "8.51.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.28.1",
@@ -99,9 +99,6 @@
       "allowedVersions": {
         "@octokit/core": ">=3"
       }
-    },
-    "patchedDependencies": {
-      "node-fetch@2.6.12": "patches/node-fetch@2.6.12.patch"
     }
   },
   "lint-staged": {
