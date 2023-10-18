@@ -27,7 +27,7 @@
     "@types/pg": "8.10.3",
     "@types/prompts": "2.4.5",
     "@types/sqlite3": "3.1.9",
-    "esbuild": "0.19.4",
+    "esbuild": "0.19.5",
     "fs-jetpack": "5.1.0",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",

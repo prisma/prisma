@@ -51,7 +51,7 @@
     "buffer": "6.0.3",
     "chokidar": "3.5.3",
     "dotenv-cli": "7.3.0",
-    "esbuild": "0.19.4",
+    "esbuild": "0.19.5",
     "esbuild-register": "3.5.0",
     "eslint": "8.51.0",
     "eslint-config-prettier": "9.0.0",
