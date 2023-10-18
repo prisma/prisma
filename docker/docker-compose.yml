@@ -53,7 +53,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:bc563c2bd68aafc97c691653db9d271af5c196ed5ecab788c1181ba6b1e0ab69
+    image: vitess/vttestserver:mysql80@sha256:ce1996876a70d4a54e9b8f3323f9a75d226363eea49a7cb8f4216e5b6547a84e
     restart: unless-stopped
     ports:
       - 33807:33807
