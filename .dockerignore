@@ -1,2 +1,4 @@
 node_modules
 packages/**/node_modules
+.idea/
+.vscode/w
