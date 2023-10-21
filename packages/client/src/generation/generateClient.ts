@@ -361,7 +361,7 @@ function getTypedSqlRuntimeBase(runtimeBase: string) {
 
 // TODO: explore why we have a special case for excluding pnpm
 async function getDefaultOutdir(outputDir: string): Promise<string> {
-  if (outputDir.endsWith('node_modules/@prisma/client')) {
+  if (outputDir.endsWith(path.normalize('node_modules/@prisma/client'))) {
     return path.join(outputDir, '../../.prisma/client')
   }
   if (
@@ -649,7 +649,7 @@ async function getGenerationDirs({
 }: GenerateClientOptions) {
   const isCustomOutput = generator.isCustomOutput === true
   let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
-  let userOutputDir = isCustomOutput ? outputDir : await getDefaultOutdir(outputDir)
+  let userOutputDir = isCustomOutput ? outputDir : await getDefaultOutdir(path.normalize(outputDir))
 
   if (testMode && runtimeBase) {
     userOutputDir = outputDir
