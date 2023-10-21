@@ -199,13 +199,33 @@ test('errors with invalid provider param', async () => {
   await expect(result).rejects.toThrow()
 })
 
-test('works with --with-model param', async () => {
+test('works with --with-model param postgresql', async () => {
   ctx.fixture('init')
   const result = await ctx.cli('init', '--with-model')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(withModelSchema('postgresql'))
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with --with-model param mongodb', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--with-model', '--datasource-provider', 'MongoDB')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(withModelSchema('mongodb'))
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with --with-model param cockroachdb', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--with-model', '--datasource-provider', 'CockroachDB')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(withModelSchema('cockroachdb'))
   expect(schema).toMatchSnapshot()
 })
 

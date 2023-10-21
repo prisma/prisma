@@ -108,7 +108,79 @@ datasource db {
 
 `;
 
-exports[`works with --with-model param 1`] = `
+exports[`works with --with-model param cockroachdb 1`] = `
+
+✔ Your Prisma schema was created at prisma/schema.prisma
+  You can now open it in your favorite editor.
+
+Next steps:
+1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+2. Run prisma db pull to turn your database schema into a Prisma schema.
+3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
+
+More information in our documentation:
+https://pris.ly/d/getting-started
+    
+`;
+
+exports[`works with --with-model param cockroachdb 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    BigInt  @id @default(sequence())
+  email String  @unique
+  name  String?
+}
+
+`;
+
+exports[`works with --with-model param mongodb 1`] = `
+
+✔ Your Prisma schema was created at prisma/schema.prisma
+  You can now open it in your favorite editor.
+
+Next steps:
+1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+2. Define models in the schema.prisma file.
+3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
+
+More information in our documentation:
+https://pris.ly/d/getting-started
+    
+`;
+
+exports[`works with --with-model param mongodb 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    String   @id @default(auto()) @map("_id") @db.ObjectId
+  email String  @unique
+  name  String?
+}
+
+`;
+
+exports[`works with --with-model param postgresql 1`] = `
 
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
@@ -124,7 +196,7 @@ https://pris.ly/d/getting-started
     
 `;
 
-exports[`works with --with-model param 2`] = `
+exports[`works with --with-model param postgresql 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 

@@ -19,6 +19,7 @@ import { match, P } from 'ts-pattern'
 import { isError } from 'util'
 
 import { printError } from './utils/prompt/utils/print'
+import { getDefaultSchemaModel, getSchemaModelCockroachDb, getSchemaModelMongoDb } from './utils/schemaGenerator'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
   return `// This is your Prisma schema file,
@@ -36,13 +37,14 @@ datasource db {
 }
 
 export const withModelSchema = (provider: ConnectorType = 'postgresql') => {
-  return defaultSchema(provider).concat(`
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-}
-`)
+  switch (provider) {
+    case 'mongodb':
+      return getSchemaModelMongoDb(provider)
+    case 'cockroachdb':
+      return getSchemaModelCockroachDb(provider)
+    default:
+      return getDefaultSchemaModel(provider)
+  }
 }
 
 export const defaultEnv = (
