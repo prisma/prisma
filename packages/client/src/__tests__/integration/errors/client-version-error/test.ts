@@ -26,7 +26,7 @@ test('client-version-error', async () => {
                   ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
                   })
 
-            Unknown argument \`invalidArg\`. Available options are listed in green.
+            Unknown argument \`invalidArg\`. Available options are marked with ?.
         `)
     await prisma.$disconnect()
   }

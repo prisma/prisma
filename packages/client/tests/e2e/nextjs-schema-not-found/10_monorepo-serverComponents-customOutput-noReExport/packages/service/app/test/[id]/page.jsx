@@ -12,17 +12,13 @@ async function doPrismaQuery(params) {
   await prisma.user.deleteMany()
   const user = await prisma.user.create({
     data: {
-      email: 'test'
-    }
+      email: 'test',
+    },
   })
 
   return JSON.stringify(user)
 }
 
 export default async function Page({ params }) {
-  return (
-    <div>
-      {`${await doPrismaQuery(params)}`}
-    </div>
-  );
+  return <div>{`${await doPrismaQuery(params)}`}</div>
 }

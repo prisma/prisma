@@ -36,7 +36,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                  }
                })
 
-      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are listed in green.
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are marked with ?.
     `)
   })
 
@@ -70,7 +70,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                }
              })
 
-      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are listed in green.
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are marked with ?.
     `)
   })
 

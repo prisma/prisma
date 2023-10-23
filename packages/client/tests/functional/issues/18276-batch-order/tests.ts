@@ -38,7 +38,13 @@ testMatrix.setupTestSuite(
       await xprisma.$queryRawUnsafe('SELECT 2')
 
       await waitFor(() =>
-        expect(queries).toEqual([expect.stringContaining('BEGIN'), 'SELECT 1', 'SELECT 2', 'SELECT 3', 'COMMIT']),
+        expect(queries).toEqual([
+          expect.stringContaining('BEGIN'),
+          'SELECT 1',
+          'SELECT 2',
+          'SELECT 3',
+          expect.stringContaining('COMMIT'),
+        ]),
       )
     })
 
@@ -52,7 +58,7 @@ testMatrix.setupTestSuite(
       prisma.$on('query', ({ query }) => queries.push(query))
 
       prisma.$use(async (params, next) => {
-        await new Promise((r) => setTimeout(r, Math.random() * 1000))
+        await new Promise((r) => setTimeout(r, Math.random() * 1_000))
         return next(params)
       })
 
@@ -63,7 +69,13 @@ testMatrix.setupTestSuite(
       ])
 
       await waitFor(() =>
-        expect(queries).toEqual([expect.stringContaining('BEGIN'), 'SELECT 1', 'SELECT 2', 'SELECT 3', 'COMMIT']),
+        expect(queries).toEqual([
+          expect.stringContaining('BEGIN'),
+          'SELECT 1',
+          'SELECT 2',
+          'SELECT 3',
+          expect.stringContaining('COMMIT'),
+        ]),
       )
     })
   },

@@ -1,6 +1,6 @@
 import indent from 'indent-string'
 
-import { objectEnumNames } from '../../runtime/object-enums'
+import { objectEnumNames } from '../../runtime/core/types/exported/ObjectEnums'
 import { strictEnumNames } from '../../runtime/strictEnum'
 import type { DMMF } from '../dmmf-types'
 import { TAB_SIZE } from './constants'

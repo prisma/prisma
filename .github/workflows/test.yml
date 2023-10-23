@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
@@ -43,7 +44,7 @@ jobs:
       jobs: ${{ steps.detect.outputs.jobs }}
       queryEngine: ${{ steps.enginesOutput.outputs.queryEngine }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - id: files
         uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
@@ -99,6 +100,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
   run_tests:
+    name: Tests
     needs: detect_jobs_to_run
     uses: ./.github/workflows/test-template.yml
     with:

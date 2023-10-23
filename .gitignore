@@ -22,8 +22,9 @@ dist/
 .prisma
 .pnpm-store
 
-.vscode
+.vscode/*
 !.vscode/launch.json.default
+!.vscode/extensions.json
 coverage
 
 .eslintcache
@@ -39,3 +40,5 @@ reproductions/*
 dev.db
 junit.xml
 /output.txt
+
+.envrc.local

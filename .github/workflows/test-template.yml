@@ -64,11 +64,12 @@ jobs:
   # Linting
   #
   lint:
+    name: Lint
     timeout-minutes: 7
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -85,13 +86,23 @@ jobs:
           echo "::remove-matcher owner=eslint-compact::"
           echo "::remove-matcher owner=eslint-stylish::"
 
-      - run: pnpm run lint && pnpm run check-engines-override
+      - name: Run eslint
+        run: pnpm run lint
+        working-directory: ./
+
+      - name: Run prettier-check
+        run: pnpm run prettier-check
+        working-directory: ./
+
+      - name: Run check-engines-override
+        run: pnpm run check-engines-override
         working-directory: ./
 
   #
-  # CLIENT (without types test)
+  # CLIENT (functional and legacy tests without types test)
   #
   client:
+    name: Client func/legacy-notypes
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -110,10 +121,10 @@ jobs:
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -131,7 +142,13 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -171,7 +188,8 @@ jobs:
   #
   # CLIENT (functional tests with mini-proxy)
   #
-  client-dataproxy:
+  client-miniproxy:
+    name: Client (func/mini-proxy)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -184,10 +202,10 @@ jobs:
         node: [16, 18, 20]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -196,7 +214,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -239,9 +263,82 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
+  # CLIENT (functional tests with driver adapters)
+  #
+  client-driveradapters:
+    name: Client (func/adapters)
+    timeout-minutes: ${{ inputs.jobTimeout }}
+    runs-on: ubuntu-latest
+
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale']
+        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        node: [20] #[16, 18, 20]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: false
+
+      - run: pnpm run test:functional --flavor ${{ matrix.flavor }} --shard ${{ matrix.shard }} --runInBand
+        working-directory: packages/client
+        env:
+          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/client/src/__tests__/coverage/clover.xml
+          flags: client,${{ matrix.os }},driveradapters
+          name: client-${{ matrix.os }}-driveradapters
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        uses: buildpulse/buildpulse-action@v0.11.0
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
   # CLIENT (memory tests)
   #
   client-memory:
+    name: Client (memory tests)
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -253,10 +350,10 @@ jobs:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
         node: [16, 18, 20]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -265,7 +362,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -339,6 +442,7 @@ jobs:
   # CLIENT test:e2e
   #
   client-e2e:
+    name: Client (test:e2e)
     timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
@@ -351,10 +455,16 @@ jobs:
         node: [16]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Not currently needed, but we might need it in the future
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -373,6 +483,7 @@ jobs:
   # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
   #
   client-relationMode:
+    name: Client (func/relationMode)
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
@@ -391,14 +502,20 @@ jobs:
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set RELATION_MODE custom test env var
         run: |
           echo "RELATION_MODE=${{ matrix.relationMode }}"
           if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -439,9 +556,10 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (types tests only)
+  # CLIENT (legacy types tests only)
   #
-  client-types:
+  client-legacy-types:
+    name: Client (legacy types)
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -453,7 +571,7 @@ jobs:
         node: [16]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -469,13 +587,14 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client-types,${{ matrix.os }},library,binary
-          name: client-types-${{ matrix.os }}
+          flags: client-legacy-types,${{ matrix.os }},library,binary
+          name: client-legacy-types-${{ matrix.os }}
 
   #
   # WORKSPACE-TYPES
   #
   workspace-types:
+    name: Workspace types
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
@@ -485,7 +604,7 @@ jobs:
         node: [16]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -500,6 +619,7 @@ jobs:
   # INTEGRATION-TESTS
   #
   integration-tests:
+    name: Integration tests
     timeout-minutes: 20
     runs-on: ubuntu-latest
 
@@ -512,10 +632,10 @@ jobs:
         node: [16]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -532,7 +652,13 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -554,6 +680,7 @@ jobs:
   # `@prisma/internals`
   #
   internals:
+    name: '@prisma/internals'
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
@@ -567,10 +694,10 @@ jobs:
         node: [16, 18, 20]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -579,7 +706,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql
 
       - name: Set CLI Engine Type
         run: |
@@ -609,6 +742,7 @@ jobs:
   # MIGRATE
   #
   migrate:
+    name: Migrate
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
@@ -622,10 +756,10 @@ jobs:
         node: [16, 18, 20]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -634,7 +768,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
       - name: Set CLI Engine Type
         run: |
@@ -664,6 +804,7 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
+    name: CLI commands
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
@@ -677,10 +818,10 @@ jobs:
         node: [16, 18, 20]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -689,7 +830,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
 
       - name: Set CLI Engine Type
         run: |
@@ -719,6 +866,7 @@ jobs:
   # All the other packages!
   #
   others:
+    name: Others
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
@@ -731,7 +879,7 @@ jobs:
         node: [16, 18, 20]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -813,6 +961,7 @@ jobs:
   # minimize the time spent waiting for a free runner.
   #
   no-docker-client-functional:
+    name: Client (func/win+mac)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     strategy:
@@ -829,7 +978,7 @@ jobs:
         contains(inputs.jobsToRun, '-client-')
       }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Prerequisites
         shell: bash
@@ -883,6 +1032,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   no-docker:
+    name: All pkgs (win+mac)
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
 
@@ -903,7 +1053,7 @@ jobs:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Prerequisites
         shell: bash
