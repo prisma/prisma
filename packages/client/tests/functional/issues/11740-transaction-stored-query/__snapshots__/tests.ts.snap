@@ -133,7 +133,7 @@ Invalid \`prisma.resource.create()\` invocation in
   XX     providerFlavor !== ProviderFlavors.JS_PLANETSCALE,
   XX )('stored query trigger .requestTransaction twice should fail', async () => {
 → XX   const query = prisma.resource.create(
-duplicate key value violates unique constraint "Resource_email_key"
+Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`issues.11740-transaction-stored-query (provider=postgresql, js_pg) stored query triggered twice should fail but not exit process 1`] = `
@@ -145,7 +145,7 @@ Invalid \`prisma.resource.create()\` invocation in
   XX     providerFlavor !== ProviderFlavors.JS_PLANETSCALE,
   XX )('stored query triggered twice should fail but not exit process', async () => {
 → XX   const query = prisma.resource.create(
-duplicate key value violates unique constraint "Resource_email_key"
+Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`issues.11740-transaction-stored-query (provider=sqlite) stored query trigger .requestTransaction twice should fail 1`] = `

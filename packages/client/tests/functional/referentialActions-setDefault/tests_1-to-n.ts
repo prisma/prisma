@@ -160,7 +160,7 @@ testMatrix.setupTestSuite(
                 [ProviderFlavors.JS_NEON]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [ProviderFlavors.JS_PG]:
-                  'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_userId_fkey"',
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
               },
             }),
@@ -240,7 +240,7 @@ testMatrix.setupTestSuite(
                 [ProviderFlavors.JS_NEON]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [ProviderFlavors.JS_PG]:
-                  'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_userId_fkey"',
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
               },
             }),
