@@ -377,14 +377,14 @@ importers:
         specifier: 1.11.0
         version: 1.11.0
       '@prisma/adapter-libsql':
-        specifier: 5.5.0-dev.60
-        version: 5.5.0-dev.60(@libsql/client@0.3.5)
+        specifier: 5.5.0-dev.61
+        version: 5.5.0-dev.61(@libsql/client@0.3.5)
       '@prisma/adapter-neon':
-        specifier: 5.5.0-dev.60
-        version: 5.5.0-dev.60(@neondatabase/serverless@0.6.0)
+        specifier: 5.5.0-dev.61
+        version: 5.5.0-dev.61(@neondatabase/serverless@0.6.0)
       '@prisma/adapter-pg':
-        specifier: 5.5.0-dev.60
-        version: 5.5.0-dev.60(pg@8.11.3)
+        specifier: 5.5.0-dev.61
+        version: 5.5.0-dev.61(pg@8.11.3)
       '@prisma/adapter-planetscale':
         specifier: 5.4.1
         version: 5.4.1(@planetscale/database@1.11.0)
@@ -392,8 +392,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 5.5.0-dev.60
-        version: 5.5.0-dev.60
+        specifier: 5.5.0-dev.61
+        version: 5.5.0-dev.61
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -2988,36 +2988,36 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/adapter-libsql@5.5.0-dev.60(@libsql/client@0.3.5):
-    resolution: {integrity: sha512-BCcRppKA9D3102Kbxk6OS1E9rEOUgM1wRi2EjHstzQWDP98ySVRgLqkv2HtXzDDhgHep7sVUbQQpAUAQxjuW6g==}
+  /@prisma/adapter-libsql@5.5.0-dev.61(@libsql/client@0.3.5):
+    resolution: {integrity: sha512-BRZP1+F5ZiBhbSHgz79iE9egC3jd1/vXtGS1w+T99yl0bBnRKXrQb/BAFTUtDiyrobNUPD9MbvgqgCFdPZT/PQ==}
     peerDependencies:
       '@libsql/client': ^0.3.5
     dependencies:
       '@libsql/client': 0.3.5
-      '@prisma/driver-adapter-utils': 5.5.0-dev.60
+      '@prisma/driver-adapter-utils': 5.5.0-dev.61
       async-mutex: 0.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-neon@5.5.0-dev.60(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-K+58HnMrEumEceD7d+g3fAWsMex9sJoGUc7Lba5gwJVLQ7NTTJ/uOJjqarzCoUjBZ1m+Lai5VzlSt+Zx9trJ0Q==}
+  /@prisma/adapter-neon@5.5.0-dev.61(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-tKperlYxme+lT7fSaiAO6ZVoBo+7PKD49SP4ZGcbv6tiHhbXc9VkOrGeLAZmGxrSHbvdX/TW7VWEafvuONd1vg==}
     peerDependencies:
       '@neondatabase/serverless': ^0.6.0
     dependencies:
       '@neondatabase/serverless': 0.6.0
-      '@prisma/driver-adapter-utils': 5.5.0-dev.60
+      '@prisma/driver-adapter-utils': 5.5.0-dev.61
       postgres-array: 3.0.2
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-pg@5.5.0-dev.60(pg@8.11.3):
-    resolution: {integrity: sha512-xWC7zazjZJ10t+Ag+/9REF9rQyQqhgR8d3wQvbjD1HN38WFPzOdHsbgAuT0FZUoiaC3gqoTOpCmCtc2AjWGKRA==}
+  /@prisma/adapter-pg@5.5.0-dev.61(pg@8.11.3):
+    resolution: {integrity: sha512-RNRPE3LVUiwOsZGeYQWXQ+NKtSd/SBoqDzDT3uJ8d0gh3RekLRpjKRvcTPdHIwVkTOPV8//XlOmoKN2oP7RNrg==}
     peerDependencies:
       pg: ^8.11.3
     dependencies:
-      '@prisma/driver-adapter-utils': 5.5.0-dev.60
+      '@prisma/driver-adapter-utils': 5.5.0-dev.61
       pg: 8.11.3
       postgres-array: 3.0.2
     transitivePeerDependencies:
@@ -3043,8 +3043,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/driver-adapter-utils@5.5.0-dev.60:
-    resolution: {integrity: sha512-eC8AphyLRxIwcO5LaSY5Re55UxrZOafEk1x4Vn56L27kNySeR0vZBqc4bMbNShW+nNDeyrkxXyWUmbXKYXmJ3Q==}
+  /@prisma/driver-adapter-utils@5.5.0-dev.61:
+    resolution: {integrity: sha512-zHxYBjCpVwNVTguTTJ/b97Zq/4QA41aAxQFpgkDJZ5OIiJq8p983TA239qP+xoH6N33uGbVzxenaPQBu3Vw3Yg==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
