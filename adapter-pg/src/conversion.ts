@@ -6,25 +6,34 @@ const ScalarColumnType = types.builtins
 
 /**
  * PostgreSQL array column types (not defined in ScalarColumnType).
+ *
+ * See the semantics of each of this code in:
+ *   https://github.com/postgres/postgres/blob/master/src/include/catalog/pg_type.dat
  */
 const ArrayColumnType = {
+  BIT_ARRAY: 1561,
   BOOL_ARRAY: 1000,
   BYTEA_ARRAY: 1001,
   BPCHAR_ARRAY: 1014,
   CHAR_ARRAY: 1002,
+  CIDR_ARRAY: 651,
   DATE_ARRAY: 1182,
   FLOAT4_ARRAY: 1021,
   FLOAT8_ARRAY: 1022,
+  INET_ARRAY: 1041,
   INT2_ARRAY: 1005,
   INT4_ARRAY: 1007,
+  INT8_ARRAY: 1016,
   JSONB_ARRAY: 3807,
   JSON_ARRAY: 199,
   MONEY_ARRAY: 791,
   NUMERIC_ARRAY: 1231,
+  OID_ARRAY: 1028,
   TEXT_ARRAY: 1009,
   TIMESTAMP_ARRAY: 1115,
   TIME_ARRAY: 1183,
   UUID_ARRAY: 2951,
+  VARBIT_ARRAY: 1563,
   VARCHAR_ARRAY: 1015,
   XML_ARRAY: 143,
 }
@@ -90,9 +99,13 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       return ColumnTypeEnum.BooleanArray
     case ArrayColumnType.CHAR_ARRAY:
       return ColumnTypeEnum.CharArray
+    case ArrayColumnType.BPCHAR_ARRAY:
     case ArrayColumnType.TEXT_ARRAY:
     case ArrayColumnType.VARCHAR_ARRAY:
-    case ArrayColumnType.BPCHAR_ARRAY:
+    case ArrayColumnType.VARBIT_ARRAY:
+    case ArrayColumnType.BIT_ARRAY:
+    case ArrayColumnType.INET_ARRAY:
+    case ArrayColumnType.CIDR_ARRAY:
     case ArrayColumnType.XML_ARRAY:
       return ColumnTypeEnum.TextArray
     case ArrayColumnType.DATE_ARRAY:
@@ -108,7 +121,9 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       return ColumnTypeEnum.BytesArray
     case ArrayColumnType.UUID_ARRAY:
       return ColumnTypeEnum.UuidArray
-
+    case ArrayColumnType.INT8_ARRAY:
+    case ArrayColumnType.OID_ARRAY:
+      return ColumnTypeEnum.Int64Array
     default:
       if (fieldTypeId >= 10000) {
         // Postgres Custom Types
@@ -251,12 +266,21 @@ function convertBytes(serializedBytes: string): number[] {
 types.setTypeParser(ScalarColumnType.BYTEA, convertBytes)
 
 /*
- * BYTEA_ARRAYS - arrays of arbitrary raw binary strings
+ * BYTEA_ARRAY - arrays of arbitrary raw binary strings
  */
 
 const parseBytesArray = types.getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
 
 types.setTypeParser(ArrayColumnType.BYTEA_ARRAY, (serializedBytesArray) => {
   const buffers = parseBytesArray(serializedBytesArray)
-  return buffers.map(encodeBuffer)
+  return buffers.map((buf) => buf ? encodeBuffer(buf) : null)
 })
+
+/* BIT_ARRAY, VARBIT_ARRAY */
+
+function normalizeBit(bit: string): string {
+  return bit
+}
+
+types.setTypeParser(ArrayColumnType.BIT_ARRAY, normalize_array(normalizeBit))
+types.setTypeParser(ArrayColumnType.VARBIT_ARRAY, normalize_array(normalizeBit))
