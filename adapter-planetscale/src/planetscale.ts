@@ -1,5 +1,5 @@
 import type planetScale from '@planetscale/database'
-import { Debug, ok } from '@prisma/driver-adapter-utils'
+import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import type {
   DriverAdapter,
   ResultSet,
@@ -36,17 +36,16 @@ class PlanetScaleQueryable<ClientT extends planetScale.Connection | planetScale.
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const { fields, insertId: lastInsertId, rows } = await this.performIO(query)
-
-    const columns = fields.map((field) => field.name)
-    const resultSet: ResultSet = {
-      columnNames: columns,
-      columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
-      rows: rows as ResultSet['rows'],
-      lastInsertId,
-    }
-
-    return ok(resultSet)
+    const ioResult = await this.performIO(query)
+    return ioResult.map(({ fields, insertId: lastInsertId, rows }) => {
+      const columns = fields.map((field) => field.name)
+      return {
+        columnNames: columns,
+        columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
+        rows: rows as ResultSet['rows'],
+        lastInsertId,
+      }
+    })
   }
 
   /**
@@ -58,8 +57,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Connection | planetScale.
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    const { rowsAffected } = await this.performIO(query)
-    return ok(rowsAffected)
+    return (await this.performIO(query)).map(({ rowsAffected }) => rowsAffected)
   }
 
   /**
@@ -67,19 +65,43 @@ class PlanetScaleQueryable<ClientT extends planetScale.Connection | planetScale.
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query) {
+  private async performIO(query: Query): Promise<Result<planetScale.ExecutedQuery>> {
     const { sql, args: values } = query
 
     try {
       const result = await this.client.execute(sql, values, {
         as: 'array',
       })
-      return result
+      return ok(result)
     } catch (e) {
       const error = e as Error
+      if (error.name === 'DatabaseError') {
+        const parsed = parseErrorMessage(error.message)
+        if (parsed) {
+          return err({
+            kind: 'Mysql',
+            ...parsed,
+          })
+        }
+      }
       debug('Error in performIO: %O', error)
       throw error
     }
+  }
+}
+
+function parseErrorMessage(message: string) {
+  const match = message.match(
+    /target: (?:.+?) vttablet: (?<message>.+?) \(errno (?<code>\d+)\) \(sqlstate (?<state>.+?)\)/,
+  )
+
+  if (!match || !match.groups) {
+    return undefined
+  }
+  return {
+    code: Number(match.groups.code),
+    message: match.groups.message,
+    state: match.groups.state,
   }
 }
 

@@ -327,7 +327,7 @@ export function smokeTestLibquery(
         },
       })
 
-      if (flavour === 'postgres') {
+      if (flavour === 'postgres' || flavour === 'mysql') {
         const result = await promise
         console.log('[nodejs] error result', JSON.stringify(result, null, 2))
         assert.equal(result?.errors?.[0]?.['user_facing_error']?.['error_code'], 'P2002')

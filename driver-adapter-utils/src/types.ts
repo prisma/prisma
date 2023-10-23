@@ -47,6 +47,12 @@ export type Error =
       column: string | undefined
       hint: string | undefined
     }
+  | {
+      kind: 'Mysql'
+      code: number
+      message: string
+      state: string
+    }
 
 export interface Queryable {
   readonly flavour: 'mysql' | 'postgres' | 'sqlite'
