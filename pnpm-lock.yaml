@@ -435,21 +435,21 @@ packages:
     dependencies:
       '@libsql/hrana-client': 0.5.5
       js-base64: 3.7.5
-      libsql: 0.1.23
+      libsql: 0.1.28
     transitivePeerDependencies:
       - bufferutil
       - encoding
       - utf-8-validate
 
-  /@libsql/darwin-arm64@0.1.23:
-    resolution: {integrity: sha512-+V9aoOrZ47iYbY5NrcS0F2bDOCH407QI0wxAtss0CLOcFxlz/T6Nw0ryLK31GabklJQAmOXIyqkumLfz5HT64w==}
+  /@libsql/darwin-arm64@0.1.28:
+    resolution: {integrity: sha512-p4nldHUOhcl9ibnH1F6oiXV5Dl3PAcPB9VIjdjVvO3/URo5J7mhqRMuwJMKO5DZJJGtkKJ5IO0gu0hc90rnKIg==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     optional: true
 
-  /@libsql/darwin-x64@0.1.23:
-    resolution: {integrity: sha512-toHo7s0HiMl4VCIfjhGXDe9bGWWo78eP8fxIbwU6RlaLO6MNV9fjHY/GjTWccWOwyxcT+q6X/kUc957HnoW3bg==}
+  /@libsql/darwin-x64@0.1.28:
+    resolution: {integrity: sha512-WaEK+Z+wP5sr0h8EcusSGHv4Mqc3smYICeG4P/wsbRDKQ2WUMWqZrpgqaBsm+WPbXogU2vpf+qGc8BnpFZ0ggw==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
@@ -484,22 +484,29 @@ packages:
       - bufferutil
       - utf-8-validate
 
-  /@libsql/linux-x64-gnu@0.1.23:
-    resolution: {integrity: sha512-U11LdjayakOj0lQCHDYkTgUfe4Q+7AjZZh8MzgEDF/9l0bmKNI3eFLWA3JD2Xm98yz65lUx95om0WKOKu5VW/w==}
+  /@libsql/linux-arm64-gnu@0.1.28:
+    resolution: {integrity: sha512-a17ANBuOqH2L8gdyET4Kg3XggQvxWnoA+7x7sDEX5NyWNyvr7P04WzNPAT0xAOWLclC1fDD6jM5sh/fbJk/7NA==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    optional: true
+
+  /@libsql/linux-x64-gnu@0.1.28:
+    resolution: {integrity: sha512-dkg+Ou7ApV0PHpZWd9c6NrYyc/WSNn5h/ScKotaMTLWlLL96XAMNwrYLpZpUj61I2y7QzU98XtMfiSD1Ux+VaA==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     optional: true
 
-  /@libsql/linux-x64-musl@0.1.23:
-    resolution: {integrity: sha512-8UcCK2sPVzcafHsEmcU5IDp/NxjD6F6JFS5giijsMX5iGgxYQiiwTUMOmSxW0AWBeT4VY5U7G6rG5PC8JSFtfg==}
+  /@libsql/linux-x64-musl@0.1.28:
+    resolution: {integrity: sha512-ZuOxCDYlG+f1IDsxstmaxLtgG9HvlLuUKs0X3um4f5F5V+P+PF8qr08gSdD1IP2pj+JBOiwhQffaEpR1wupxhQ==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     optional: true
 
-  /@libsql/win32-x64-msvc@0.1.23:
-    resolution: {integrity: sha512-HAugD66jTmRRRGNMLKRiaFeMOC3mgUsAiuO6NRdRz3nM6saf9e5QqN/Ppuu9yqHHcZfv7VhQ9UGlAvzVK64Itg==}
+  /@libsql/win32-x64-msvc@0.1.28:
+    resolution: {integrity: sha512-2cmUiMIsJLHpetebGeeYqUYaCPWEnwMjqxwu1ZEEbA5x8r+DNmIhLrc0QSQ29p7a5u14vbZnShNOtT/XG7vKew==}
     cpu: [x64]
     os: [win32]
     requiresBuild: true
@@ -971,19 +978,20 @@ packages:
   /js-base64@3.7.5:
     resolution: {integrity: sha512-3MEt5DTINKqfScXKfJFrRbxkrnk2AxPWGBL/ycjz4dK8iqiSJ06UxD8jh8xuh6p10TX4t2+7FsBYVxxQbMg+qA==}
 
-  /libsql@0.1.23:
-    resolution: {integrity: sha512-Nf/1B2Glxvcnba4jYFhXcaYmicyBA3RRm0LVwBkTl8UWCIDbX+Ad7c1ecrQwixPLPffWOVxKIqyCNTuUHUkVgA==}
+  /libsql@0.1.28:
+    resolution: {integrity: sha512-yCKlT0ntV8ZIWTPGNClhQQeH/LNAzLjbbEgBvgLb+jfQwAuTbyvPpVVLwkZzesqja1nbkWApztW0pX81Jp0pkw==}
     cpu: [x64, arm64]
     os: [darwin, linux, win32]
     dependencies:
       '@neon-rs/load': 0.0.4
       detect-libc: 2.0.2
     optionalDependencies:
-      '@libsql/darwin-arm64': 0.1.23
-      '@libsql/darwin-x64': 0.1.23
-      '@libsql/linux-x64-gnu': 0.1.23
-      '@libsql/linux-x64-musl': 0.1.23
-      '@libsql/win32-x64-msvc': 0.1.23
+      '@libsql/darwin-arm64': 0.1.28
+      '@libsql/darwin-x64': 0.1.28
+      '@libsql/linux-arm64-gnu': 0.1.28
+      '@libsql/linux-x64-gnu': 0.1.28
+      '@libsql/linux-x64-musl': 0.1.28
+      '@libsql/win32-x64-msvc': 0.1.28
 
   /lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}

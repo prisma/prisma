@@ -53,6 +53,14 @@ export type Error =
       message: string
       state: string
     }
+  | {
+      kind: 'Sqlite'
+      /**
+       * Sqlite extended error code: https://www.sqlite.org/rescode.html
+       */
+      extendedCode: number
+      message: string
+    }
 
 export interface Queryable {
   readonly flavour: 'mysql' | 'postgres' | 'sqlite'

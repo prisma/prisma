@@ -290,13 +290,13 @@ export function smokeTestLibquery(
     })
 
     it('expected error (on duplicate insert) as json result (not throwing error)', async () => {
-      // clean up first
       await doQuery({
         modelName: 'Unique',
         action: 'deleteMany',
         query: {
+          arguments: {},
           selection: {
-            count: true,
+            $scalars: true,
           },
         },
       })
@@ -327,17 +327,9 @@ export function smokeTestLibquery(
         },
       })
 
-      if (flavour === 'postgres' || flavour === 'mysql') {
-        const result = await promise
-        console.log('[nodejs] error result', JSON.stringify(result, null, 2))
-        assert.equal(result?.errors?.[0]?.['user_facing_error']?.['error_code'], 'P2002')
-      } else {
-        await assert.rejects(promise, (err) => {
-          assert(typeof err === 'object' && err !== null)
-          assert.match(err['message'], /unique/i)
-          return true
-        })
-      }
+      const result = await promise
+      console.log('[nodejs] error result', JSON.stringify(result, null, 2))
+      assert.equal(result?.errors?.[0]?.['user_facing_error']?.['error_code'], 'P2002')
     })
 
     describe('read scalar and non scalar types', () => {
