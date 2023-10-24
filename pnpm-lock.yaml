@@ -195,6 +195,58 @@ importers:
         specifier: 7.2.3
         version: 7.2.3
 
+  packages/adapter-libsql:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      async-mutex:
+        specifier: 0.4.0
+        version: 0.4.0
+    devDependencies:
+      '@libsql/client':
+        specifier: 0.3.5
+        version: 0.3.5
+
+  packages/adapter-neon:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      postgres-array:
+        specifier: ^3.0.2
+        version: 3.0.2
+    devDependencies:
+      '@neondatabase/serverless':
+        specifier: ^0.6.0
+        version: 0.6.0
+
+  packages/adapter-pg:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      postgres-array:
+        specifier: ^3.0.2
+        version: 3.0.2
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.10.2
+        version: 8.10.2
+      pg:
+        specifier: ^8.11.3
+        version: 8.11.3
+
+  packages/adapter-planetscale:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+    devDependencies:
+      '@planetscale/database':
+        specifier: ^1.11.0
+        version: 1.11.0
+
   packages/cli:
     dependencies:
       '@prisma/engines':
@@ -377,14 +429,14 @@ importers:
         specifier: 1.11.0
         version: 1.11.0
       '@prisma/adapter-libsql':
-        specifier: 5.5.0-dev.61
-        version: 5.5.0-dev.61(@libsql/client@0.3.5)
+        specifier: workspace:*
+        version: link:../adapter-libsql
       '@prisma/adapter-neon':
-        specifier: 5.5.0-dev.61
-        version: 5.5.0-dev.61(@neondatabase/serverless@0.6.0)
+        specifier: workspace:*
+        version: link:../adapter-neon
       '@prisma/adapter-pg':
-        specifier: 5.5.0-dev.61
-        version: 5.5.0-dev.61(pg@8.11.3)
+        specifier: workspace:*
+        version: link:../adapter-pg
       '@prisma/adapter-planetscale':
         specifier: 5.4.1
         version: 5.4.1(@planetscale/database@1.11.0)
@@ -392,8 +444,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 5.5.0-dev.61
-        version: 5.5.0-dev.61
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -629,6 +681,16 @@ importers:
       typescript:
         specifier: 5.2.2
         version: 5.2.2
+
+  packages/driver-adapter-utils:
+    dependencies:
+      debug:
+        specifier: ^4.3.4
+        version: 4.3.4
+    devDependencies:
+      '@types/debug':
+        specifier: ^4.1.8
+        version: 4.1.9
 
   packages/engines:
     devDependencies:
@@ -2988,42 +3050,6 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/adapter-libsql@5.5.0-dev.61(@libsql/client@0.3.5):
-    resolution: {integrity: sha512-BRZP1+F5ZiBhbSHgz79iE9egC3jd1/vXtGS1w+T99yl0bBnRKXrQb/BAFTUtDiyrobNUPD9MbvgqgCFdPZT/PQ==}
-    peerDependencies:
-      '@libsql/client': ^0.3.5
-    dependencies:
-      '@libsql/client': 0.3.5
-      '@prisma/driver-adapter-utils': 5.5.0-dev.61
-      async-mutex: 0.4.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/adapter-neon@5.5.0-dev.61(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-tKperlYxme+lT7fSaiAO6ZVoBo+7PKD49SP4ZGcbv6tiHhbXc9VkOrGeLAZmGxrSHbvdX/TW7VWEafvuONd1vg==}
-    peerDependencies:
-      '@neondatabase/serverless': ^0.6.0
-    dependencies:
-      '@neondatabase/serverless': 0.6.0
-      '@prisma/driver-adapter-utils': 5.5.0-dev.61
-      postgres-array: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/adapter-pg@5.5.0-dev.61(pg@8.11.3):
-    resolution: {integrity: sha512-RNRPE3LVUiwOsZGeYQWXQ+NKtSd/SBoqDzDT3uJ8d0gh3RekLRpjKRvcTPdHIwVkTOPV8//XlOmoKN2oP7RNrg==}
-    peerDependencies:
-      pg: ^8.11.3
-    dependencies:
-      '@prisma/driver-adapter-utils': 5.5.0-dev.61
-      pg: 8.11.3
-      postgres-array: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
   /@prisma/adapter-planetscale@5.4.1(@planetscale/database@1.11.0):
     resolution: {integrity: sha512-K03+n2YDUUy5nO2m3BNHSaMi0HePpEAd0lNz7dnueyiYY6J0VgNXKmSN9pjaDgxF6df7i+NHeGwXCxw4kNhdzw==}
     peerDependencies:
@@ -3037,14 +3063,6 @@ packages:
 
   /@prisma/driver-adapter-utils@5.4.1:
     resolution: {integrity: sha512-muYjkzf6qdxz4uGBi7nKyPaGRGLnSgiRautqAhZiMwbTOr9hMgyNI+aCJTCaKfYfNWjYCx2r5J6R1mJtPhzFhQ==}
-    dependencies:
-      debug: 4.3.4
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/driver-adapter-utils@5.5.0-dev.61:
-    resolution: {integrity: sha512-zHxYBjCpVwNVTguTTJ/b97Zq/4QA41aAxQFpgkDJZ5OIiJq8p983TA239qP+xoH6N33uGbVzxenaPQBu3Vw3Yg==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
@@ -3879,6 +3897,14 @@ packages:
   /@types/normalize-package-data@2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
 
+  /@types/pg@8.10.2:
+    resolution: {integrity: sha512-MKFs9P6nJ+LAeHLU3V0cODEOgyThJ3OAnmOlsZsxux6sfQs3HRXR5bBn7xG5DjckEFhTAxsXi7k7cd0pCMxpJw==}
+    dependencies:
+      '@types/node': 18.18.3
+      pg-protocol: 1.6.0
+      pg-types: 4.0.1
+    dev: true
+
   /@types/pg@8.10.3:
     resolution: {integrity: sha512-BACzsw64lCZesclRpZGu55tnqgFAYcrCBP92xLh1KLypZLCOsvJTSTgaoFVTy3lCys/aZTQzfeDxtjwrvdzL2g==}
     dependencies:
@@ -4703,7 +4729,7 @@ packages:
     resolution: {integrity: sha512-eJFZ1YhRR8UN8eBLoNzcDPcy/jqjsg6I1AP+KvWQX80BqOSW1oJPJXDylPUEeMr2ZQvHgnQ//Lp6f3RQ1zI7HA==}
     dependencies:
       tslib: 2.6.2
-    dev: true
+    dev: false
 
   /async@3.2.4:
     resolution: {integrity: sha512-iAB+JbDEGXhyIUavoDl9WP/Jj106Kz9DEn1DPgYw5ruDn0e3Wgi3sKFm55sASdGBNOQB8F59d9qQ7deqrHA8wQ==}
@@ -10803,7 +10829,6 @@ packages:
   /postgres-array@3.0.2:
     resolution: {integrity: sha512-6faShkdFugNQCLwucjPcY5ARoW1SlbnrZjmGl0IrrqewpvxvhSLHimCVzqeuULCbG0fQv7Dtk1yDbG3xv7Veog==}
     engines: {node: '>=12'}
-    dev: true
 
   /postgres-bytea@1.0.0:
     resolution: {integrity: sha512-xy3pmLuQqRBZBXDULy7KbaitYqLcmxigw14Q5sj8QBVLqEwXfeybIKVWiqAXTlcvdvb0+xkOtDbfQMOf4lST1w==}
