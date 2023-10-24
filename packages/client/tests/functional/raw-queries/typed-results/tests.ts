@@ -12,8 +12,6 @@ testMatrix.setupTestSuite(
       expect(Number(Object.values(result[0])[0])).toEqual(2)
     })
 
-    // TODO Failing because of "Unsupported type column: 17" error
-    // tracked in https://github.com/prisma/team-orm/issues/374
     test('query model with multiple types', async () => {
       await prisma.testModel.create({
         data: {
