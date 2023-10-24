@@ -1,4 +1,4 @@
-import { PrismaPromise } from '../request/PrismaPromise'
+import { PrismaPromise } from './Public'
 
 export type EmptyToUnknown<T> = T
 
@@ -26,17 +26,16 @@ export type ReadonlyDeep<T> = {
   readonly [K in keyof T]: ReadonlyDeep<T[K]>
 }
 
-type Narrowable = string | number | bigint | boolean | []
+export type Narrowable = string | number | bigint | boolean | []
 
 // prettier-ignore
 export type Narrow<A> = {
   [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]>
 } | (A extends Narrowable ? A : never)
 
-// prettier-ignore
-export type Exact<A, W> = (A extends unknown ? (W extends A ? {
-  [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : never
-} : W) : never) | (A extends Narrowable ? A : never)
+export type Exact<A, W> =
+  | (A extends unknown ? (W extends A ? { [K in keyof A]: Exact<A[K], W[K]> } : W) : never)
+  | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
 
@@ -48,7 +47,7 @@ export type Record<T extends string | number | symbol, U> = {
   [P in T]: U
 }
 
-type UnwrapPromise<P> = P extends Promise<infer R> ? R : P
+export type UnwrapPromise<P> = P extends Promise<infer R> ? R : P
 
 export type UnwrapTuple<Tuple extends readonly unknown[]> = {
   [K in keyof Tuple]: K extends `${number}`

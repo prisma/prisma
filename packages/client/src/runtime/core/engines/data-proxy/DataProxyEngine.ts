@@ -66,6 +66,7 @@ type DataProxyHeaders = {
   Authorization: string
   'X-capture-telemetry'?: string
   traceparent?: string
+  'Prisma-Engine-Hash': string
 }
 
 type HeaderBuilderOptions = {
@@ -78,27 +79,32 @@ class DataProxyHeaderBuilder {
   readonly tracingHelper: TracingHelper
   readonly logLevel: EngineConfig['logLevel']
   readonly logQueries: boolean | undefined
+  readonly engineHash: string
 
   constructor({
     apiKey,
     tracingHelper,
     logLevel,
     logQueries,
+    engineHash,
   }: {
     apiKey: string
     tracingHelper: TracingHelper
     logLevel: EngineConfig['logLevel']
     logQueries: boolean | undefined
+    engineHash: string
   }) {
     this.apiKey = apiKey
     this.tracingHelper = tracingHelper
     this.logLevel = logLevel
     this.logQueries = logQueries
+    this.engineHash = engineHash
   }
 
   build({ traceparent, interactiveTransaction }: HeaderBuilderOptions = {}): DataProxyHeaders {
     const headers: DataProxyHeaders = {
       Authorization: `Bearer ${this.apiKey}`,
+      'Prisma-Engine-Hash': this.engineHash,
     }
 
     if (this.tracingHelper.isEnabled()) {
@@ -145,6 +151,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private env: { [k in string]?: string }
 
   private clientVersion: string
+  private engineHash: string
   private tracingHelper: TracingHelper
   private remoteClientVersion!: string
   private host!: string
@@ -158,10 +165,11 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
     this.config = config
     this.env = { ...this.config.env, ...process.env }
-    this.inlineSchema = config.inlineSchema ?? ''
-    this.inlineDatasources = config.inlineDatasources ?? {}
-    this.inlineSchemaHash = config.inlineSchemaHash ?? ''
-    this.clientVersion = config.clientVersion ?? 'unknown'
+    this.inlineSchema = config.inlineSchema
+    this.inlineDatasources = config.inlineDatasources
+    this.inlineSchemaHash = config.inlineSchemaHash
+    this.clientVersion = config.clientVersion
+    this.engineHash = config.engineVersion
     this.logEmitter = config.logEmitter
     this.tracingHelper = this.config.tracingHelper
   }
@@ -170,9 +178,10 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     return this.headerBuilder.apiKey
   }
 
+  // The version is the engine hash
+  // that we expect to have on the remote QE
   version() {
-    // QE is remote, we don't need to know the exact commit SHA
-    return 'unknown'
+    return this.engineHash
   }
 
   /**
@@ -195,6 +204,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
         tracingHelper: this.tracingHelper,
         logLevel: this.config.logLevel,
         logQueries: this.config.logQueries,
+        engineHash: this.engineHash,
       })
 
       this.remoteClientVersion = await getClientVersion(host, this.config)
@@ -255,10 +265,10 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     }
   }
 
-  private async url(s: string) {
+  private async url(action: string) {
     await this.start()
 
-    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
+    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${action}`
   }
 
   private async uploadSchema() {

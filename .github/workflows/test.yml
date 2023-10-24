@@ -100,6 +100,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
   run_tests:
+    name: Tests
     needs: detect_jobs_to_run
     uses: ./.github/workflows/test-template.yml
     with:

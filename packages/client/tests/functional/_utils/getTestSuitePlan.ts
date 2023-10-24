@@ -2,7 +2,7 @@ import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
-import { flavorsForProvider, ProviderFlavors } from './providers'
+import { flavorsForProvider, ProviderFlavors, relationModesForFlavor } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { MatrixOptions, TestCliMeta } from './types'
 
@@ -65,6 +65,11 @@ function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuite
     newSuiteConfig.parametersString += `, ${flavor}`
     // ^^^ temporary until I get to the TODO in getTestSuiteParametersString
 
+    // if the test is not doing stuff with relation mode already, we set one
+    if (newSuiteConfig.matrixOptions.relationMode === undefined) {
+      newSuiteConfig.matrixOptions.relationMode = relationModesForFlavor[flavor]
+    }
+
     return newSuiteConfig
   })
 
@@ -97,6 +102,7 @@ function shouldSkipSuiteConfig(
 ): boolean {
   const provider = config.matrixOptions.provider
   const flavor = config.matrixOptions.providerFlavor
+  const relationMode = config.matrixOptions.relationMode
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
@@ -116,7 +122,7 @@ function shouldSkipSuiteConfig(
   }
 
   // if the provider is not included, skip
-  if (includedProviders && !includedProviders.includes(provider)) {
+  if (includedProviders !== undefined && !includedProviders.includes(provider)) {
     return true
   }
 
@@ -126,7 +132,7 @@ function shouldSkipSuiteConfig(
   }
 
   // if there is a flavor to run and it's not included, skip
-  if (flavor && !includedProviderFlavors?.includes(flavor)) {
+  if (flavor !== undefined && !includedProviderFlavors?.includes(flavor)) {
     return true
   }
 
@@ -135,13 +141,18 @@ function shouldSkipSuiteConfig(
     return true
   }
 
-  // if flavors are enabled and test has no flavor, skip
-  if (includedProviderFlavors && flavor === undefined) {
+  // if the flavor is explicitly skipped in the matrix options, skip
+  if (flavor !== undefined && options?.skipProviderFlavor?.from.includes(flavor)) {
     return true
   }
 
-  // if the flavor is explicitly skipped in the matrix options, skip
-  if (flavor && options?.skipProviderFlavor?.from.includes(flavor)) {
+  // if there is a relation mode set and the flavor doesn't support it, skip
+  if (flavor !== undefined && relationMode !== undefined && relationMode !== relationModesForFlavor[flavor]) {
+    return true
+  }
+
+  // if flavors are enabled and test has no flavor, skip
+  if (includedProviderFlavors !== undefined && flavor === undefined) {
     return true
   }
 

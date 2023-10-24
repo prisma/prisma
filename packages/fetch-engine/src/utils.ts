@@ -81,7 +81,12 @@ export async function overwriteFile(sourcePath: string, targetPath: string) {
   // macOS Gatekeeper can sometimes complain
   // about incorrect binary signature and kill node process
   // https://openradar.appspot.com/FB8914243
+
+  // TODO: this is a temporary revert of https://github.com/prisma/prisma/pull/21439
+  // To debug https://github.com/prisma/prisma/pull/21448
+  // if (os.platform() === 'darwin') {
   await removeFileIfExists(targetPath)
+  // }
   await fs.promises.copyFile(sourcePath, targetPath)
 }
 

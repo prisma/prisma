@@ -29,7 +29,6 @@ import {
   unApplyModelsAndClientExtensions,
 } from './core/model/applyModelsAndClientExtensions'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
-import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import {
   checkAlter,
   rawQueryArgsMapper,
@@ -46,9 +45,10 @@ import { UserArgs } from './core/request/UserArgs'
 import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { JsInputValue } from './core/types/JsApi'
+import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
+import { JsInputValue } from './core/types/exported/JsApi'
+import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
 import { getLogLevel } from './getLogLevel'
-import { itxClientDenyList } from './itxClientDenyList'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
@@ -321,6 +321,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         validatePrismaClientOptions(optionsArg, config)
       }
 
+      const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
       const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
         //
@@ -343,7 +344,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
+        (NODE_CLIENT && !adapter && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -410,7 +411,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
-          adapter: options?.adapter ? bindAdapter(options.adapter) : undefined,
+          adapter,
         }
 
         debug('clientVersion', config.clientVersion)

@@ -1,25 +1,31 @@
 import { ProviderFlavors } from '../_utils/providers'
-import { NewPrismaClient } from '../_utils/types'
+import { Db, NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const db: Db
+
+let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ providerFlavor }, __, ___, setupDatabase) => {
+  ({ providerFlavor }) => {
     // TODO fails sometimes with Rejected to value: [LibsqlError: : no such table: main.User]
     skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('example', async () => {
-      const client = newPrismaClient()
+      // Ensure that the db is down
+      await db.dropDb()
+
+      prisma = newPrismaClient()
 
       // Try sending a query without a spawned database
-      await expect(client.user.findMany()).rejects.toThrow()
+      await expect(prisma.user.findMany()).rejects.toThrow()
 
       // Spawn the database
-      await setupDatabase()
+      await db.setupDb()
 
       // Expect it to work
-      await expect(client.user.findMany()).resolves.toEqual([])
+      await expect(prisma.user.findMany()).resolves.toEqual([])
     })
   },
   {

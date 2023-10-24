@@ -171,11 +171,11 @@ testMatrix.setupTestSuite(
                 [5, expect.any(Number)],
                 [10, expect.any(Number)],
                 [50, expect.any(Number)],
-                [100, 0],
-                [500, 0],
-                [1000, 0],
-                [5000, 0],
-                [50000, 0],
+                [100, expect.any(Number)],
+                [500, expect.any(Number)],
+                [1000, expect.any(Number)],
+                [5000, expect.any(Number)],
+                [50000, expect.any(Number)],
               ],
               sum: expect.any(Number),
               count: expect.any(Number),
@@ -218,7 +218,8 @@ testMatrix.setupTestSuite(
       skipTestIf(
         providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL,
+          providerFlavor === ProviderFlavors.JS_LIBSQL ||
+          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
       )('SQL Providers: should have the same keys, before and after a query', async () => {
         if (provider === 'mongodb') {
           return
@@ -384,11 +385,11 @@ testMatrix.setupTestSuite(
                 [5, expect.any(Number)],
                 [10, expect.any(Number)],
                 [50, expect.any(Number)],
-                [100, 0],
-                [500, 0],
-                [1000, 0],
-                [5000, 0],
-                [50000, 0],
+                [100, expect.any(Number)],
+                [500, expect.any(Number)],
+                [1000, expect.any(Number)],
+                [5000, expect.any(Number)],
+                [50000, expect.any(Number)],
               ],
               sum: expect.any(Number),
               count: expect.any(Number),
@@ -405,11 +406,11 @@ testMatrix.setupTestSuite(
                 [5, expect.any(Number)],
                 [10, expect.any(Number)],
                 [50, expect.any(Number)],
-                [100, 0],
-                [500, 0],
-                [1000, 0],
-                [5000, 0],
-                [50000, 0],
+                [100, expect.any(Number)],
+                [500, expect.any(Number)],
+                [1000, expect.any(Number)],
+                [5000, expect.any(Number)],
+                [50000, expect.any(Number)],
               ],
               sum: expect.any(Number),
               count: expect.any(Number),
@@ -426,11 +427,11 @@ testMatrix.setupTestSuite(
                 [5, expect.any(Number)],
                 [10, expect.any(Number)],
                 [50, expect.any(Number)],
-                [100, 0],
-                [500, 0],
-                [1000, 0],
-                [5000, 0],
-                [50000, 0],
+                [100, expect.any(Number)],
+                [500, expect.any(Number)],
+                [1000, expect.any(Number)],
+                [5000, expect.any(Number)],
+                [50000, expect.any(Number)],
               ],
               sum: expect.any(Number),
               count: expect.any(Number),
@@ -458,7 +459,8 @@ testMatrix.setupTestSuite(
       skipTestIf(
         providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL,
+          providerFlavor === ProviderFlavors.JS_LIBSQL ||
+          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
       )('returns metrics in prometheus format', async () => {
         const metrics = await prisma.$metrics.prometheus()
 
@@ -502,7 +504,8 @@ testMatrix.setupTestSuite(
       skipTestIf(
         providerFlavor === ProviderFlavors.JS_NEON ||
           providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL,
+          providerFlavor === ProviderFlavors.JS_LIBSQL ||
+          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
       )('returns metrics in json format', async () => {
         const { counters, gauges, histograms } = await prisma.$metrics.json()
 

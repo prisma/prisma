@@ -116,14 +116,19 @@ export async function setupTestSuiteDatabase(
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const dbPushParams = ['--schema', schemaPath, '--skip-generate']
 
-    // we reuse and clean the db when running in single-threaded mode
-    if (process.env.JEST_MAX_WORKERS === '1') {
+    // we reuse and clean the db when it is explicitly required
+    if (process.env.TEST_REUSE_DATABASE === 'true') {
       dbPushParams.push('--force-reset')
     }
+
     await DbPush.new().parse(dbPushParams)
 
-    if (suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8) {
-      await new Promise((r) => setTimeout(r, 300)) // wait for vitess to catch up
+    if (
+      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8 ||
+      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE
+    ) {
+      // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
+      await new Promise((r) => setTimeout(r, 1_000))
     }
 
     if (alterStatementCallback) {
@@ -218,7 +223,7 @@ export function setupTestSuiteDbURI(
     .with(undefined, () => getDbUrl(provider))
     .otherwise(() => getDbUrlFromFlavor(providerFlavor, provider))
 
-  if (process.env.JEST_MAX_WORKERS === '1') {
+  if (process.env.TEST_REUSE_DATABASE === 'true') {
     // we reuse and clean the same db when running in single-threaded mode
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-0000-00000000')
   } else {

@@ -13,20 +13,19 @@ import { Exact } from './Utils'
 export type Args<T, F extends Operation> =
   T extends { [K: symbol]: { types: { operations: { [K in F]: { args: any } } } } }
   ? T[symbol]['types']['operations'][F]['args']
-  : never
+  : any
 
 // prettier-ignore
 export type Result<T, A, F extends Operation> =
   T extends { [K: symbol]: { types: { payload: any } } }
   ? GetResult<T[symbol]['types']['payload'], A, F>
-  : never
+  : GetResult<{ composites: {}, objects: {}, scalars: {} }, {}, F>
 
 // prettier-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type Payload<T, F extends Operation = never> =
-  T extends { [K: symbol]: { types: { payload: any } } }
+export type Payload<T, F extends Operation = never> = T extends { [K: symbol]: { types: { payload: any } } }
   ? T[symbol]['types']['payload']
-  : never
+  : any
 
 // we don't expose our internal types to keep the API secret
 export interface PrismaPromise<T> extends Promise<T> {

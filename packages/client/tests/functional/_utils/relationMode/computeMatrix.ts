@@ -46,6 +46,7 @@ export function computeMatrix({ relationMode }: ComputeMatrix) {
 
       // skip all actions for Vitess & relationMode="foreignKeys" as Foreign Keys are not supported by that provider
       [ProviderFlavors.VITESS_8]: referentialActionsBase,
+      [ProviderFlavors.JS_PLANETSCALE]: referentialActionsBase,
     },
     prisma: {
       [Providers.SQLSERVER]: ['Restrict'],
