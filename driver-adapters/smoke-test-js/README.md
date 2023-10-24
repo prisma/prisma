@@ -30,7 +30,7 @@ Anywhere in the repository:
 If you don't have a connection string yet:
 
 - [Follow the Notion document](https://www.notion.so/How-to-get-a-PlanetScale-and-Neon-database-for-testing-93d978061f9c4ffc80ebfed36896af16) or create a new database on [PlanetScale](https://planetscale.com/)
-- Go to `Settings` > `Passwords`, and create a new password for the `main` database branch. Select the `Prisma` template and copy the generated URL (comprising username, password, etc). 
+- Go to `Settings` > `Passwords`, and create a new password for the `main` database branch. Select the `Prisma` template and copy the generated URL (comprising username, password, etc).
 - Paste it in the `JS_PLANETSCALE_DATABASE_URL` environment variable in `.envrc`.
 
 In the current directory:
@@ -45,7 +45,7 @@ In the current directory:
 If you don't have a connection string yet:
 
 - [Follow the Notion document](https://www.notion.so/How-to-get-a-PlanetScale-and-Neon-database-for-testing-93d978061f9c4ffc80ebfed36896af16) or create a new database with Neon CLI `npx neonctl projects create` or in [Neon Console](https://neon.tech).
-- Paste the connection string to `JS_NEON_DATABASE_URL`. 
+- Paste the connection string to `JS_NEON_DATABASE_URL`.
 
 In the current directory:
 - Run `pnpm prisma:neon` to push the Prisma schema and insert the test data.

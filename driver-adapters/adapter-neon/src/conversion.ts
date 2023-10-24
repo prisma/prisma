@@ -6,7 +6,7 @@ const ScalarColumnType = types.builtins
 
 /**
  * PostgreSQL array column types (not defined in ScalarColumnType).
- * 
+ *
  * See the semantics of each of this code in:
  *   https://github.com/postgres/postgres/blob/master/src/include/catalog/pg_type.dat
  */
