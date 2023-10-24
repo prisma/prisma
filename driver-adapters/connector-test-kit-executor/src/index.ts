@@ -129,7 +129,7 @@ async function handleRequest(method: string, params: unknown): Promise<unknown> 
             }
 
             debug("got response from engine: ", result)
-            // returning unparsed string: otherwise, some information gots lost during this round-trip. 
+            // returning unparsed string: otherwise, some information gots lost during this round-trip.
             // In particular, floating point without decimal part turn into integers
             return result
         }

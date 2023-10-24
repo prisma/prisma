@@ -15,12 +15,12 @@ export JS_PG_DATABASE_URL="postgres://postgres:prisma@localhost:5438"
 # (or sqld) database in HTTP mode directly without an embedded replica, set its
 # URL here.
 export JS_LIBSQL_DATABASE_URL="file:${PWD}/libsql.db"
- 
+
 # # Set this to the URL of remote Turso database when using an embedded replica.
 # export JS_LIBSQL_SYNC_URL=""
- 
+
 # # Provide an auth token when using a remote Turso database.
 # export JS_LIBSQL_AUTH_TOKEN=""
- 
+
 # Can be one of "number" (the default when nothing is specified), "bigint" or "string". "bigint" works best with Prisma.
 export JS_LIBSQL_INT_MODE="bigint"

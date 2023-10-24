@@ -22,7 +22,7 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
   for (const adapter of [driverAdapter, null]) {
     const isUsingDriverAdapters = adapter !== null
     describe(isUsingDriverAdapters ? `using Driver Adapters` : `using Rust drivers`, () => {
-      
+
       it('expected error (on duplicate insert) as exception thrown / promise rejected', async () => {
         const prisma = new PrismaClient({ adapter, log })
 
@@ -36,7 +36,7 @@ export async function smokeTestClient(driverAdapter: DriverAdapter) {
             return true;
           },
         );
-      
+
       })
 
       it('batch queries', async () => {

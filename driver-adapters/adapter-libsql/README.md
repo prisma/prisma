@@ -55,7 +55,7 @@ npx prisma migrate diff --from-empty \
 2. Apply the migration to your Turso database
 
 ```sh
-turso db shell turso-prisma < baseline.sql 
+turso db shell turso-prisma < baseline.sql
 ```
 
 ## How to use
