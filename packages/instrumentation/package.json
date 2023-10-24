@@ -23,8 +23,8 @@
   },
   "dependencies": {
     "@opentelemetry/api": "1.6.0",
-    "@opentelemetry/instrumentation": "0.43.0",
-    "@opentelemetry/sdk-trace-base": "1.17.0"
+    "@opentelemetry/instrumentation": "0.44.0",
+    "@opentelemetry/sdk-trace-base": "1.17.1"
   },
   "files": [
     "dist"
