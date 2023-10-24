@@ -9,7 +9,5 @@ dist/
 /packages/client/declaration
 /packages/client/scripts/default-index.js
 /reproductions
-.cache
-node_modules/
 .idea/
 .vscode/
