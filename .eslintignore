@@ -22,6 +22,3 @@ packages/cli/install/
 packages/cli/preinstall/
 packages/cli/**/tmp-*
 reproductions/
-
-
-node_modules/
