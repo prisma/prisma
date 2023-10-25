@@ -18,8 +18,8 @@ importers:
         specifier: 9.0.0
         version: 9.0.0(size-limit@9.0.0)
       '@slack/webhook':
-        specifier: 6.1.0
-        version: 6.1.0
+        specifier: 7.0.0
+        version: 7.0.0
       '@types/benchmark':
         specifier: 2.1.4
         version: 2.1.4
@@ -3205,18 +3205,18 @@ packages:
       size-limit: 9.0.0
     dev: true
 
-  /@slack/types@1.10.0:
-    resolution: {integrity: sha512-tA7GG7Tj479vojfV3AoxbckalA48aK6giGjNtgH6ihpLwTyHE3fIgRrvt8TWfLwW8X8dyu7vgmAsGLRG7hWWOg==}
-    engines: {node: '>= 8.9.0', npm: '>= 5.5.1'}
+  /@slack/types@2.9.0:
+    resolution: {integrity: sha512-YfZGo0xVOmI7CHhiwCmEC33HzjQl1lakNmyo5GPGb4KHKEaUoY7zenAdKsYCJqYwdaM9OL+hqYt/tZ2zgvVc7g==}
+    engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
     dev: true
 
-  /@slack/webhook@6.1.0:
-    resolution: {integrity: sha512-7AYNISyAjn/lA/VDwZ307K5ft5DojXgBd3DRrGoFN8XxIwIyRALdFhxBiMgAqeJH8eWoktvNwLK24R9hREEqpA==}
-    engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
+  /@slack/webhook@7.0.0:
+    resolution: {integrity: sha512-OKLAQ1KPl6R8nJEiLecwN9VbM7Bg9z92uy4gsdEQ844qim+CwgWF6gBl1KukanDzoJFRtlYcSAPD56A2DVguxA==}
+    engines: {node: '>= 18', npm: '>= 8.6.0'}
     dependencies:
-      '@slack/types': 1.10.0
+      '@slack/types': 2.9.0
       '@types/node': 18.18.6
-      axios: 0.21.4
+      axios: 1.5.1
     transitivePeerDependencies:
       - debug
     dev: true
@@ -4720,10 +4720,12 @@ packages:
     resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}
     engines: {node: '>= 0.4'}
 
-  /axios@0.21.4:
-    resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
+  /axios@1.5.1:
+    resolution: {integrity: sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==}
     dependencies:
       follow-redirects: 1.15.2
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
     dev: true
@@ -10986,6 +10988,10 @@ packages:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
+    dev: true
+
+  /proxy-from-env@1.1.0:
+    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
     dev: true
 
   /ps-tree@1.2.0:
