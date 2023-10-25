@@ -1,4 +1,5 @@
 import { Error } from './types'
+
 export type Result<T> = {
   // common methods
   map<U>(fn: (value: T) => U): Result<U>

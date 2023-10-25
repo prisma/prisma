@@ -1,5 +1,5 @@
-import { Result, err, ok } from './result'
-import type { ErrorCapturingDriverAdapter, DriverAdapter, Transaction, ErrorRegistry, ErrorRecord } from './types'
+import { err, Result } from './result'
+import type { DriverAdapter, ErrorCapturingDriverAdapter, ErrorRecord, ErrorRegistry, Transaction } from './types'
 
 class ErrorRegistryInternal implements ErrorRegistry {
   private registeredErrors: ErrorRecord[] = []

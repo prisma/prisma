@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/require-await */
 import type planetScale from '@planetscale/database'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import type {
   DriverAdapter,
-  ResultSet,
   Query,
   Queryable,
-  Transaction,
   Result,
+  ResultSet,
+  Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { type PlanetScaleColumnType, fieldToColumnType } from './conversion'
+import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+
+import { fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
 
 const debug = Debug('prisma:driver-adapter:planetscale')

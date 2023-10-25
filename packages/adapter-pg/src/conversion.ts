@@ -1,4 +1,4 @@
-import { ColumnTypeEnum, type ColumnType, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
 import { types } from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
@@ -152,7 +152,6 @@ types.setTypeParser(ArrayColumnType.NUMERIC_ARRAY, normalize_array(normalize_num
 /* Time-related data-types  */
 /****************************/
 
-
 function normalize_date(date: string): string {
   return date
 }
@@ -162,7 +161,7 @@ function normalize_timestamp(time: string): string {
 }
 
 function normalize_timestampz(time: string): string {
-  return time.split("+")[0]
+  return time.split('+')[0]
 }
 
 /*
@@ -176,7 +175,7 @@ function normalize_time(time: string): string {
 function normalize_timez(time: string): string {
   // Although it might be controversial, UTC is assumed in consistency with the behavior of rust postgres driver
   // in quaint. See quaint/src/connector/postgres/conversion.rs
-  return time.split("+")[0]
+  return time.split('+')[0]
 }
 
 types.setTypeParser(ScalarColumnType.TIME, normalize_time)
@@ -189,7 +188,6 @@ types.setTypeParser(ScalarColumnType.TIMETZ, normalize_timez)
 
 types.setTypeParser(ScalarColumnType.DATE, normalize_date)
 types.setTypeParser(ArrayColumnType.DATE_ARRAY, normalize_array(normalize_date))
-
 
 /*
  * TIMESTAMP, TIMESTAMP_ARRAY - converts value (or value elements) to a string in the rfc3339 format
@@ -210,7 +208,6 @@ function normalize_money(money: string): string {
 types.setTypeParser(ScalarColumnType.MONEY, normalize_money)
 types.setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money))
 
-
 /*****************/
 /* JSON handling */
 /*****************/
@@ -226,9 +223,8 @@ types.setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money
  * convert it to QuaintValue::Json(Some(Null)).
  */
 function toJson(json: string): unknown {
-  return (json === 'null') ? JsonNullMarker : JSON.parse(json)
+  return json === 'null' ? JsonNullMarker : JSON.parse(json)
 }
-
 
 types.setTypeParser(ScalarColumnType.JSONB, toJson)
 types.setTypeParser(ScalarColumnType.JSON, toJson)
@@ -273,7 +269,7 @@ const parseBytesArray = types.getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: 
 
 types.setTypeParser(ArrayColumnType.BYTEA_ARRAY, (serializedBytesArray) => {
   const buffers = parseBytesArray(serializedBytesArray)
-  return buffers.map((buf) => buf ? encodeBuffer(buf) : null)
+  return buffers.map((buf) => (buf ? encodeBuffer(buf) : null))
 })
 
 /* BIT_ARRAY, VARBIT_ARRAY */

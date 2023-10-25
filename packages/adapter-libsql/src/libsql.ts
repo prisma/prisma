@@ -1,4 +1,9 @@
-import { Debug, ok, err } from '@prisma/driver-adapter-utils'
+import type {
+  Client as LibSqlClientRaw,
+  InStatement,
+  ResultSet as LibSqlResultSet,
+  Transaction as LibSqlTransactionRaw,
+} from '@libsql/client'
 import type {
   DriverAdapter,
   Query,
@@ -8,13 +13,9 @@ import type {
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import type {
-  InStatement,
-  Client as LibSqlClientRaw,
-  Transaction as LibSqlTransactionRaw,
-  ResultSet as LibSqlResultSet,
-} from '@libsql/client'
+import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
+
 import { getColumnTypes, mapRow } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:libsql')
