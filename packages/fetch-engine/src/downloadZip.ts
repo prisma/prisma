@@ -86,7 +86,7 @@ export async function downloadZip(
         agent: getProxyAgent(url),
       })
       if (!response.ok) {
-        throw new Error(`Failed to fetch the engine file at ${url}. ${response.status} ${response.statusText}`)
+        throw new Error(`Failed to fetch the engine file at ${url} - ${response.status} ${response.statusText}`)
       }
 
       const lastModified = response.headers.get('last-modified')!
