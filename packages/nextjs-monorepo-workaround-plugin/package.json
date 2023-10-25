@@ -28,6 +28,6 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "webpack": "5.88.2"
+    "webpack": "5.89.0"
   }
 }
