@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/require-await */
 import type neon from '@neondatabase/serverless'
-import { Debug, ok, err } from '@prisma/driver-adapter-utils'
 import type {
   DriverAdapter,
-  ResultSet,
   Query,
   Queryable,
-  Transaction,
   Result,
+  ResultSet,
+  Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
+import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+
 import { fieldToColumnType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:neon')

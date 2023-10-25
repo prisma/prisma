@@ -1,8 +1,8 @@
-import { ColumnTypeEnum, type ColumnType } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
 // See: https://github.com/planetscale/vitess-types/blob/06235e372d2050b4c0fff49972df8111e696c564/src/vitess/query/v16/query.proto#L108-L218
-export type PlanetScaleColumnType
-  = 'NULL'
+export type PlanetScaleColumnType =
+  | 'NULL'
   | 'INT8'
   | 'UINT8'
   | 'INT16'
