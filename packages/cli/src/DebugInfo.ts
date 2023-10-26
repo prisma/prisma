@@ -1,11 +1,8 @@
-import Debug from '@prisma/debug'
 import type { Command } from '@prisma/internals'
-import { arg, format, getConfig, getSchemaPath, HelpError, isError, isCi, isInteractive } from '@prisma/internals'
+import { arg, format, getSchemaPath, HelpError, isCi, isError, isInteractive } from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
-import fs from 'fs'
-import { getRootCacheDir } from '../../fetch-engine/src/utils'
 
-const debug = Debug('prisma:cli:debug')
+import { getRootCacheDir } from '../../fetch-engine/src/utils'
 
 /**
  * $ prisma debug
@@ -65,7 +62,6 @@ ${rootCacheDir}
 ${underline('-- Environment variables --')}
 When not set, the line is dimmed and no value is displayed.
 When set, the line is bold and the value is inside the \`\` backticks.
-For more information, see https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
 
 For general debugging
 ${formatEnvValue('CI')}
@@ -76,22 +72,23 @@ ${formatEnvValue('RUST_BACKTRACE')}
 ${formatEnvValue('NO_COLOR')}
 ${formatEnvValue('TERM')}
 ${formatEnvValue('NODE_TLS_REJECT_UNAUTHORIZED')}
-
-For hiding messages
-${formatEnvValue('PRISMA_DISABLE_WARNINGS')}
-${formatEnvValue('PRISMA_HIDE_PREVIEW_FLAG_WARNINGS')}
-${formatEnvValue('PRISMA_HIDE_UPDATE_MESSAGE')}
-
-For proxy settings
 ${formatEnvValue('NO_PROXY')}
 ${formatEnvValue('http_proxy')}
 ${formatEnvValue('HTTP_PROXY')}
 ${formatEnvValue('https_proxy')}
 ${formatEnvValue('HTTPS_PROXY')}
 
+For more information about Prisma environment variables:
+See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+
+For hiding messages
+${formatEnvValue('PRISMA_DISABLE_WARNINGS')}
+${formatEnvValue('PRISMA_HIDE_PREVIEW_FLAG_WARNINGS')}
+${formatEnvValue('PRISMA_HIDE_UPDATE_MESSAGE')}
+
 For downloading engines
 ${formatEnvValue('PRISMA_ENGINES_MIRROR')}
-${formatEnvValue('PRISMA_BINARIES_MIRROR')} - (deprecated)
+${formatEnvValue('PRISMA_BINARIES_MIRROR')} ${dim('- (deprecated)')}
 
 ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
 ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
@@ -117,7 +114,7 @@ ${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
 
 For Prisma Client
 ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
-${formatEnvValue('PRISMA_CLIENT_NO_RETRY')} - (Binary engine only)
+${formatEnvValue('PRISMA_CLIENT_NO_RETRY')} ${dim('- (Binary engine only)')}
 
 For Prisma Migrate
 ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}
