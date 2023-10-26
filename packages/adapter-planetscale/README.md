@@ -52,18 +52,18 @@ In TypeScript, you will need to:
 
 ```typescript
 // Import needed packages
-import { connect } from '@planetscale/database';
-import { PrismaPlanetScale } from '@prisma/adapter-planetscale';
-import { PrismaClient } from '@prisma/client';
-import { fetch as undiciFetch } from 'undici';
+import { connect } from '@planetscale/database'
+import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
+import { PrismaClient } from '@prisma/client'
+import { fetch as undiciFetch } from 'undici'
 
 // Setup
-const connectionString = `${process.env.DATABASE_URL}`;
+const connectionString = `${process.env.DATABASE_URL}`
 
 // Init prisma client
-const connection = connect({ url: connectionString, fetch: undiciFetch });
-const adapter = new PrismaPlanetScale(connection);
-const prisma = new PrismaClient({ adapter });
+const connection = connect({ url: connectionString, fetch: undiciFetch })
+const adapter = new PrismaPlanetScale(connection)
+const prisma = new PrismaClient({ adapter })
 
 // Use Prisma Client as normal
 ```
