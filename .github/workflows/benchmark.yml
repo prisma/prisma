@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
@@ -43,13 +44,13 @@ concurrency:
 
 jobs:
   benchmark:
-    name: all
+    name: Benchmark
     runs-on: ubuntu-latest
     # Only run on main repo (not on forks)
     # This avoids notifications to be sent to `alert-comment-cc-users`, see below
     if: github.repository == 'prisma/prisma'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -91,7 +92,7 @@ jobs:
 
       - name: Slack Notification on Failure
         if: ${{ failure() && github.ref == 'refs/heads/main' }}
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@v2.2.1
         env:
           SLACK_TITLE: 'Benchmark failed :x:'
           SLACK_COLOR: '#FF0000'

@@ -3,9 +3,9 @@ import Decimal from 'decimal.js'
 import { Sql } from 'sql-template-tag'
 
 import { isFieldRef } from '../core/model/FieldRef'
-import { RawQueryArgs } from '../core/raw-query/RawQueryArgs'
-import { JsArgs, JsInputValue } from '../core/types/JsApi'
-import { ObjectEnumValue } from '../object-enums'
+import { JsArgs, JsInputValue } from '../core/types/exported/JsApi'
+import { ObjectEnumValue } from '../core/types/exported/ObjectEnums'
+import { RawQueryArgs } from '../core/types/exported/RawQueryArgs'
 import { isDate } from './date'
 import { isDecimalJsLike } from './decimalJsLike'
 

@@ -1,5 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
+import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
@@ -20,6 +21,7 @@ import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
 import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
+import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -27,7 +29,6 @@ import {
   unApplyModelsAndClientExtensions,
 } from './core/model/applyModelsAndClientExtensions'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
-import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import {
   checkAlter,
   rawQueryArgsMapper,
@@ -44,9 +45,10 @@ import { UserArgs } from './core/request/UserArgs'
 import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { JsInputValue } from './core/types/JsApi'
+import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
+import { JsInputValue } from './core/types/exported/JsApi'
+import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
 import { getLogLevel } from './getLogLevel'
-import { itxClientDenyList } from './itxClientDenyList'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
@@ -79,6 +81,11 @@ export type PrismaClientOptions = {
    * Overwrites the primary datasource url from your schema.prisma file
    */
   datasourceUrl?: string
+  /**
+   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
+   */
+  adapter?: DriverAdapter
+
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
@@ -311,9 +318,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       checkPlatformCaching(config)
 
       if (optionsArg) {
-        validatePrismaClientOptions(optionsArg, config.datasourceNames)
+        validatePrismaClientOptions(optionsArg, config)
       }
 
+      const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
       const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
         //
@@ -324,7 +332,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       })
 
       this._extensions = MergedExtensionsList.empty()
-      this._previewFeatures = config.generator?.previewFeatures ?? []
+      this._previewFeatures = getPreviewFeatures(config)
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._tracingHelper = getTracingHelper(this._previewFeatures)
@@ -336,7 +344,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
+        (NODE_CLIENT && !adapter && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -403,6 +411,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
+          adapter,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -506,12 +515,15 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
+      const activeProvider = this._activeProvider
+      const activeProviderFlavour = this._engineConfig.adapter?.flavour
+
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -603,12 +615,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
+      const activeProvider = this._activeProvider
+      const activeProviderFlavour = this._engineConfig.adapter?.flavour
+
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,

@@ -25,7 +25,11 @@ test('works with url param', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('sqlite'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'sqlite',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -46,7 +50,11 @@ test('works with provider param - postgresql', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('postgresql'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'postgresql',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -67,7 +75,11 @@ test('works with provider param - cockroachdb', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('cockroachdb'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'cockroachdb',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -94,7 +106,11 @@ test('works with provider and url params - cockroachdb', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('cockroachdb'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'cockroachdb',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -115,7 +131,11 @@ test('works with provider param - mysql', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('mysql'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'mysql',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -136,7 +156,11 @@ test('works with provider param - SQLITE', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('sqlite'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'sqlite',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -157,7 +181,11 @@ test('works with provider param - SqlServer', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('sqlserver'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'sqlserver',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -178,7 +206,11 @@ test('works with provider param - MongoDB', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('mongodb'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'mongodb',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -197,6 +229,62 @@ test('errors with invalid provider param', async () => {
   ctx.fixture('init')
   const result = ctx.cli('init', '--datasource-provider', 'INVALID')
   await expect(result).rejects.toThrow()
+})
+
+test('works with generator param - `go run github.com/steebchen/prisma-client-go`', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--generator-provider', 'go run github.com/steebchen/prisma-client-go')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(
+    defaultSchema({
+      generatorProvider: 'go run github.com/steebchen/prisma-client-go',
+    }),
+  )
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with preview features - mock test', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--preview-feature', 'mock-123')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(
+    defaultSchema({
+      previewFeatures: ['mock-123'],
+    }),
+  )
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with preview features - multiple', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--preview-feature', 'mock-123', '--preview-feature', 'mock-456')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(
+    defaultSchema({
+      previewFeatures: ['mock-123', 'mock-456'],
+    }),
+  )
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with custom output', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--output', './db')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(
+    defaultSchema({
+      output: './db',
+    }),
+  )
+  expect(schema).toMatchSnapshot()
 })
 
 test('warns when DATABASE_URL present in .env ', async () => {

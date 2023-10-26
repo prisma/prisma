@@ -6,62 +6,9 @@ To run tests requiring a database, start the test databases using Docker, see [D
 
 ## Environment variables
 
-- Create a `.envrc` in the root directory of the project with this content:
+These are located in the [.db.env](./.db.env) file which is loaded automatically by the test commands.
 
-  ```sh
-  # PostgreSQL
-  export TEST_POSTGRES_BASE_URI="postgres://prisma:prisma@localhost:5432"
-  export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
-  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-postgres/test.ts)
-  export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
-  export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
-  export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
-
-  # MySQL
-  export TEST_MYSQL_BASE_URI="mysql://root:root@localhost:3306"
-  export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
-  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-mysql/test.ts)
-  export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
-  export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
-  export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"
-
-  # MariaDB
-  export TEST_MARIADB_BASE_URI="mysql://root:root@localhost:4306"
-  export TEST_MARIADB_URI="mysql://prisma:prisma@localhost:4306/tests"
-
-  # SQL Server
-  export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master" # for `mssql` lib used in some tests
-  export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-  export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-  export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-
-  # MongoDB
-  export TEST_MONGO_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
-  export TEST_MONGO_URI_MIGRATE="mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
-  export TEST_MONGO_URI_MIGRATE_EXISTING_DB="mongodb://root:prisma@localhost:27017/tests-migrate-existing-db?authSource=admin"
-
-  # CockroachDB
-  export TEST_COCKROACH_URI="postgresql://prisma@localhost:26257/tests"
-  export TEST_COCKROACH_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate"
-  export TEST_COCKROACH_SHADOWDB_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate-shadowdb"
-
-  # Prisma Client - Functional test suite
-  export TEST_FUNCTIONAL_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME"
-  export TEST_FUNCTIONAL_MYSQL_URI="mysql://root:root@localhost:3306/PRISMA_DB_NAME"
-  export TEST_FUNCTIONAL_VITESS_8_URI="mysql://root:root@localhost:33807/PRISMA_DB_NAME"
-  export TEST_FUNCTIONAL_MSSQL_URI="sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-  export TEST_FUNCTIONAL_MONGO_URI="mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin"
-  export TEST_FUNCTIONAL_COCKROACH_URI="postgresql://prisma@localhost:26257/PRISMA_DB_NAME"
-
-  # To hide "Update available 0.0.0 -> x.x.x"
-  export PRISMA_HIDE_UPDATE_MESSAGE="true"
-  ```
-
-- Load the environment variables with:
-
-  ```sh
-  direnv allow
-  ```
+Optionally, if you want the environment variables to always be accessible, you can install [direnv](https://github.com/direnv/direnv/blob/master/docs/installation.md).
 
 ## Jest tips
 
@@ -506,7 +453,7 @@ By default, some tests are tested only during daily builds (e.g. `binary` engine
 ### Publishing all the packages to npm on the `integration` tag
 
 If a branch name starts with `integration/` like `integration/fix-all-the-things` the [GitHub Actions - npm - release to dev/integration](https://github.com/prisma/prisma/blob/main/.github/workflows/release-ci.yml) pipeline will be triggered.
-This workflow will directly publish (without running tests) the packages to npm on the `integration` tag with a version like `3.12.0-integration-fix-all-the-things.1` (where `3.12.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this branch)
+This workflow will directly publish (without running tests) the packages to npm on the `integration` tag with a version like `5.3.0-integration-fix-all-the-things.1` (where `5.3.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this branch)
 
 To make a Pull Request which will release a version to the `integration` tag automatically, the name of the branch of the PR would need to start with `integration/`.
 Alternatively, add `/integration` in the Pull Request description:
@@ -526,10 +473,10 @@ Example:
 Once published to npm the version will need to be installed with the exact version like:
 
 ```
-npm install -D prisma@3.12.0-fix-all-the-things.1
+npm install -D prisma@5.3.0-fix-all-the-things.1
 
 # or executed with npx like
-npx prisma@3.12.0-fix-all-the-things.1
+npx prisma@5.3.0-fix-all-the-things.1
 ```
 
 (Note that npm version upgrades or the update notifier in Prisma CLI might behave weird and unexpectedly with these integration versions.)

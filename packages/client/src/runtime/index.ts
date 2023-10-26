@@ -17,15 +17,14 @@ export {
   type Metrics,
   MetricsClient,
 } from './core/metrics/MetricsClient'
-export type { FieldRef } from './core/model/FieldRef'
 export { defineDmmfProperty } from './core/runtimeDataModel'
+export { objectEnumValues } from './core/types/exported/ObjectEnums'
 export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
-export { objectEnumValues } from './object-enums'
 export { makeStrictEnum } from './strictEnum'
-export type { DecimalJsLike } from './utils/decimalJsLike'
 export { warnEnvConflicts } from './warnEnvConflicts'
 export { Debug } from '@prisma/debug'
+export type { DriverAdapter } from '@prisma/driver-adapter-utils'
 export { default as Decimal } from 'decimal.js'
 export type { RawValue, Value } from 'sql-template-tag'
 export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
@@ -34,5 +33,6 @@ export { Types }
 export { Extensions }
 export { Public }
 
-export type { ITXClientDenyList } from './itxClientDenyList'
+export * from './core/types/exported'
+export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'
 export { warnOnce } from '@prisma/internals'

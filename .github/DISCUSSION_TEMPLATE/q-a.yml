@@ -2,12 +2,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for raising the questions you have about Prisma, we are happy to help! 🙏 Please follow the sections in the template and provide as much information as possible about your problem, e.g. by [setting the `DEBUG="*"` environment variable](https://www.prisma.io/docs/concepts/components/prisma-client/debugging) and enabling [additional logging output](https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/logging) in Prisma Client. 
+        Thanks for raising the questions you have about Prisma, we are happy to help! 🙏 Please follow the sections in the template and provide as much information as possible about your problem, e.g. by [setting the `DEBUG="*"` environment variable](https://www.prisma.io/docs/concepts/components/prisma-client/debugging) and enabling [additional logging output](https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/logging) in Prisma Client.
   - type: textarea
     id: question
     attributes:
       label: Question
-      description: Provide a clear and concise description of the question you have or problem you want to discuss.  
+      description: Provide a clear and concise description of the question you have or problem you want to discuss.
     validations:
       required: true
   - type: textarea
@@ -42,7 +42,7 @@ body:
         ```ts
         // Add any relevant Prisma Client queries here
         ```
-      
+
         - OS: <!--[e.g. macOS, Windows, Debian, CentOS, ...]-->
         - Database: <!--[PostgreSQL, MySQL, PlanetScale, MariaDB, SQL Server, SQLite, MongoDB or CockroachDB]-->
         - Node.js version: <!--[Run `node -v` to see your Node.js version]-->
