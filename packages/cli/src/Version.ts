@@ -92,9 +92,9 @@ export class Version implements Command {
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
-      ['Current platform', os.platform()],
-      ['Current architecture', os.arch()],
       ['Computed binaryTarget', platform],
+      ['Operating System', os.platform()],
+      ['Architecture', os.arch()],
       ['Node.js', process.version],
 
       ...enginesRows,
