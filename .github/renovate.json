@@ -19,12 +19,6 @@
       "schedule": ["at any time"]
     },
     {
-      "groupName": ["Prisma Driver Adapters"],
-      "matchPackageNames": ["@prisma/driver-adapter-utils"],
-      "matchPackagePrefixes": ["@prisma/adapter"],
-      "schedule": ["at any time"]
-    },
-    {
       "groupName": "checkpoint-client",
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
