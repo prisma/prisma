@@ -16,7 +16,7 @@ describe('update available message', () => {
         release_tag: 'dev',
       },
     })
-    const message = ctx.mocked['console.error'].mock.calls[0][0]
+    const message = ctx.mocked['console.warn'].mock.calls[0][0]
     expect(message).toContain('npm i --save-dev prisma@dev')
     expect(message).toContain('npm i @prisma/client@dev')
     expect(message).toMatchSnapshot()
@@ -33,7 +33,7 @@ describe('update available message', () => {
         release_tag: 'dev',
       },
     })
-    const message = ctx.mocked['console.error'].mock.calls[0][0]
+    const message = ctx.mocked['console.warn'].mock.calls[0][0]
     expect(message).toContain('This is a major update')
     expect(message).toContain('npm i --save-dev prisma@dev')
     expect(message).toContain('npm i @prisma/client@dev')
@@ -51,7 +51,7 @@ describe('update available message', () => {
         release_tag: 'latest',
       },
     })
-    const message = ctx.mocked['console.error'].mock.calls[0][0]
+    const message = ctx.mocked['console.warn'].mock.calls[0][0]
     expect(message).toContain('npm i --save-dev prisma@latest')
     expect(message).toContain('npm i @prisma/client@latest')
     expect(message).toMatchSnapshot()
@@ -68,7 +68,7 @@ describe('update available message', () => {
         release_tag: 'latest',
       },
     })
-    const message = ctx.mocked['console.error'].mock.calls[0][0]
+    const message = ctx.mocked['console.warn'].mock.calls[0][0]
     expect(message).toContain('This is a major update')
     expect(message).toContain('npm i --save-dev prisma@latest')
     expect(message).toContain('npm i @prisma/client@latest')

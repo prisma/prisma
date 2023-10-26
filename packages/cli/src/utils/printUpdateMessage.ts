@@ -40,7 +40,7 @@ export function printUpdateMessage(checkResult: { status: 'ok'; data: Check.Resp
     horizontalPadding: 2,
   })
 
-  console.error(boxedMessage)
+  console.warn(boxedMessage)
 }
 
 function makeInstallCommand(

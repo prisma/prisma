@@ -24,15 +24,15 @@ function printUpdateMessageFromTo(from: string, to: string): void {
   })
 }
 
-const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation()
+const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
 
 afterEach(() => {
-  consoleErrorMock.mockReset()
+  consoleWarnMock.mockReset()
 })
 
 test('normal release', () => {
   printUpdateMessageFromTo('4.5.0', '4.6.0')
-  expect(consoleErrorMock.mock.calls[0][0]).toMatchInlineSnapshot(`
+  expect(consoleWarnMock.mock.calls[0][0]).toMatchInlineSnapshot(`
     ┌─────────────────────────────────────────────────────────┐
     │  Update available 4.5.0 -> 4.6.0                        │
     │  Run the following to update                            │
@@ -44,7 +44,7 @@ test('normal release', () => {
 
 test('integration version with long name', () => {
   printUpdateMessageFromTo('4.5.0-integration-use-keep-alive-for-node-fetch.1', '4.6.0')
-  expect(consoleErrorMock.mock.calls[0][0]).toMatchInlineSnapshot(`
+  expect(consoleWarnMock.mock.calls[0][0]).toMatchInlineSnapshot(`
     ┌───────────────────────────────────────────────────────────────────────────────┐
     │  Update available 4.5.0-integration-use-keep-alive-for-node-fetch.1 -> 4.6.0  │
     │  Run the following to update                                                  │
