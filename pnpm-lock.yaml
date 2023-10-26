@@ -87,8 +87,8 @@ importers:
         specifier: 2.29.0
         version: 2.29.0(@typescript-eslint/parser@5.62.0)(eslint@8.52.0)
       eslint-plugin-jest:
-        specifier: 27.4.2
-        version: 27.4.2(@typescript-eslint/eslint-plugin@5.62.0)(eslint@8.52.0)(typescript@5.2.2)
+        specifier: 27.4.3
+        version: 27.4.3(@typescript-eslint/eslint-plugin@5.62.0)(eslint@8.52.0)(typescript@5.2.2)
       eslint-plugin-local-rules:
         specifier: 2.0.0
         version: 2.0.0
@@ -232,11 +232,11 @@ importers:
         specifier: 0.494.0
         version: 0.494.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@swc/jest':
         specifier: 0.2.29
-        version: 0.2.29(@swc/core@1.3.93)
+        version: 0.2.29(@swc/core@1.3.95)
       '@types/debug':
         specifier: 4.1.10
         version: 4.1.10
@@ -328,8 +328,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
-        version: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
+        specifier: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
+        version: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -350,8 +350,8 @@ importers:
         specifier: 29.7.0
         version: 29.7.0
       '@libsql/client':
-        specifier: 0.3.5
-        version: 0.3.5
+        specifier: 0.3.6
+        version: 0.3.6
       '@neondatabase/serverless':
         specifier: 0.6.0
         version: 0.6.0
@@ -377,23 +377,23 @@ importers:
         specifier: 1.11.0
         version: 1.11.0
       '@prisma/adapter-libsql':
-        specifier: 5.5.0-dev.61
-        version: 5.5.0-dev.61(@libsql/client@0.3.5)
+        specifier: 5.5.0
+        version: 5.5.0(@libsql/client@0.3.6)
       '@prisma/adapter-neon':
-        specifier: 5.5.0-dev.61
-        version: 5.5.0-dev.61(@neondatabase/serverless@0.6.0)
+        specifier: 5.5.0
+        version: 5.5.0(@neondatabase/serverless@0.6.0)
       '@prisma/adapter-pg':
-        specifier: 5.5.0-dev.61
-        version: 5.5.0-dev.61(pg@8.11.3)
+        specifier: 5.5.0
+        version: 5.5.0(pg@8.11.3)
       '@prisma/adapter-planetscale':
-        specifier: 5.4.1
-        version: 5.4.1(@planetscale/database@1.11.0)
+        specifier: 5.5.0
+        version: 5.5.0(@planetscale/database@1.11.0)
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
-        specifier: 5.5.0-dev.61
-        version: 5.5.0-dev.61
+        specifier: 5.5.0
+        version: 5.5.0
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -426,13 +426,13 @@ importers:
         version: 0.17.3
       '@swc-node/register':
         specifier: 1.6.8
-        version: 1.6.8(@swc/core@1.3.93)(typescript@5.2.2)
+        version: 1.6.8(@swc/core@1.3.95)(typescript@5.2.2)
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@swc/jest':
         specifier: 0.2.29
-        version: 0.2.29(@swc/core@1.3.93)
+        version: 0.2.29(@swc/core@1.3.95)
       '@timsuchanek/copy':
         specifier: 1.4.5
         version: 1.4.5
@@ -579,7 +579,7 @@ importers:
         version: 3.0.0
       ts-node:
         specifier: 10.9.1
-        version: 10.9.1(@swc/core@1.3.93)(@types/node@18.18.6)(typescript@5.2.2)
+        version: 10.9.1(@swc/core@1.3.95)(@types/node@18.18.6)(typescript@5.2.2)
       ts-pattern:
         specifier: 4.3.0
         version: 4.3.0
@@ -590,8 +590,8 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
       undici:
-        specifier: 5.26.3
-        version: 5.26.3
+        specifier: 5.26.5
+        version: 5.26.5
       yeoman-generator:
         specifier: 5.10.0
         version: 5.10.0
@@ -639,8 +639,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
-        version: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
+        specifier: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
+        version: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -648,11 +648,11 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@swc/jest':
         specifier: 0.2.29
-        version: 0.2.29(@swc/core@1.3.93)
+        version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
         specifier: 29.5.6
         version: 29.5.6
@@ -724,14 +724,14 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
-        version: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
+        specifier: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
+        version: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@swc/jest':
         specifier: 0.2.29
-        version: 0.2.29(@swc/core@1.3.93)
+        version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
         specifier: 29.5.6
         version: 29.5.6
@@ -774,13 +774,13 @@ importers:
     devDependencies:
       '@swc-node/register':
         specifier: 1.6.8
-        version: 1.6.8(@swc/core@1.3.93)(typescript@5.2.2)
+        version: 1.6.8(@swc/core@1.3.95)(typescript@5.2.2)
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@swc/jest':
         specifier: 0.2.29
-        version: 0.2.29(@swc/core@1.3.93)
+        version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
         specifier: 29.5.6
         version: 29.5.6
@@ -798,7 +798,7 @@ importers:
         version: 16.0.0
       ts-node:
         specifier: 10.9.1
-        version: 10.9.1(@swc/core@1.3.93)(@types/node@18.18.6)(typescript@5.2.2)
+        version: 10.9.1(@swc/core@1.3.95)(@types/node@18.18.6)(typescript@5.2.2)
       typescript:
         specifier: 5.2.2
         version: 5.2.2
@@ -840,11 +840,11 @@ importers:
         specifier: 2.2.0
         version: 2.2.0(benchmark@2.1.4)
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@swc/jest':
         specifier: 0.2.29
-        version: 0.2.29(@swc/core@1.3.93)
+        version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
         specifier: 29.5.6
         version: 29.5.6
@@ -880,8 +880,8 @@ importers:
         specifier: workspace:*
         version: link:../internals
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@types/jest':
         specifier: 29.5.6
         version: 29.5.6
@@ -913,11 +913,11 @@ importers:
         specifier: 1.1.2
         version: 1.1.2
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@swc/jest':
         specifier: 0.2.29
-        version: 0.2.29(@swc/core@1.3.93)
+        version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
         specifier: 29.5.6
         version: 29.5.6
@@ -974,7 +974,7 @@ importers:
         version: 1.0.1
       ts-node:
         specifier: 10.9.1
-        version: 10.9.1(@swc/core@1.3.93)(@types/node@18.18.6)(typescript@5.2.2)
+        version: 10.9.1(@swc/core@1.3.95)(@types/node@18.18.6)(typescript@5.2.2)
       typescript:
         specifier: 5.2.2
         version: 5.2.2
@@ -1006,8 +1006,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
-        version: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
+        specifier: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
+        version: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
       archiver:
         specifier: 6.0.1
         version: 6.0.1
@@ -1215,8 +1215,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
-        version: 5.6.0-1.de2449110135e91857b477c346b7f74d52d61613
+        specifier: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
+        version: 5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1224,11 +1224,11 @@ importers:
         specifier: workspace:*
         version: link:../internals
       '@swc/core':
-        specifier: 1.3.93
-        version: 1.3.93
+        specifier: 1.3.95
+        version: 1.3.95
       '@swc/jest':
         specifier: 0.2.29
-        version: 0.2.29(@swc/core@1.3.93)
+        version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
         specifier: 29.5.6
         version: 29.5.6
@@ -2416,28 +2416,28 @@ packages:
   /@js-joda/core@5.5.3:
     resolution: {integrity: sha512-7dqNYwG8gCt4hfg5PKgM7xLEcgSBcx/UgC92OMnhMmvAnq11QzDFPrxUkNR/u5kn17WWLZ8beZ4A3Qrz4pZcmQ==}
 
-  /@libsql/client@0.3.5:
-    resolution: {integrity: sha512-4fZxGh0qKW5dtp1yuQLRvRAtbt02V4jzjM9sHSmz5k25xZTLg7/GlNudKdqKZrjJXEV5PvDNsczupBtedZZovw==}
+  /@libsql/client@0.3.6:
+    resolution: {integrity: sha512-3Mc4ZDI7X5ZLkMxX5XijiBeqhvyrny356lcj/KVVIeMXt9j6g4l+CRIsUvgcsyCAOUHqWqh0+TjI91bCKmdW+w==}
     dependencies:
       '@libsql/hrana-client': 0.5.5
       js-base64: 3.7.5
-      libsql: 0.1.24
+      libsql: 0.1.34
     transitivePeerDependencies:
       - bufferutil
       - encoding
       - utf-8-validate
     dev: true
 
-  /@libsql/darwin-arm64@0.1.24:
-    resolution: {integrity: sha512-owp/uw6cgcf7Y5kj+oh0sF0nZgdmjd3NCsgawwRVWrBf5tHlZs5JaohnKEs+CoqYTgDSbTJw/6xjcJ8oFa6NlQ==}
+  /@libsql/darwin-arm64@0.1.34:
+    resolution: {integrity: sha512-Wv8jvkj/fUAO8DF3A4HaddCMldUUpKcg/WW1sY95FNsSHOxktyxqU80jAp/tCuZ85GQIJozvgSr51/ARIC0gsw==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: true
     optional: true
 
-  /@libsql/darwin-x64@0.1.24:
-    resolution: {integrity: sha512-b8vgkEEyPwARbL97bKu0TTy5HcvfFfmU8W/uP2MC3R2ZI1Lw9mdedtfgDCKXwYPjxdi6CIgW/eP5tD17wwgD8g==}
+  /@libsql/darwin-x64@0.1.34:
+    resolution: {integrity: sha512-2NQXD9nUzC08hg7FdcZLq5uTEwGz1KbD7YvUzQb/psO1lO/E/p83wl1es1082+Pp0z5pSPDWQeRTuccD41L+3w==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
@@ -2476,24 +2476,40 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@libsql/linux-x64-gnu@0.1.24:
-    resolution: {integrity: sha512-ZsqoQlokii5+AUSL9bO6/qaITnn2VW4Fdwnuxe0vgskrt+Sq5LG61MyN55ckSxsSxgKRaKEXl6eNUdw5L7CyUA==}
+  /@libsql/linux-arm64-gnu@0.1.34:
+    resolution: {integrity: sha512-r3dY1FDYZ7eX5HX7HyAoYSqK5FPugj5NSB5Bt/nz+ygBWdXASgSKxkE/RqjJIM59vXwv300iJX9qhR5fXv8sTw==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@libsql/linux-arm64-musl@0.1.34:
+    resolution: {integrity: sha512-9AE/eNb9eQRcNsLxqtpLJxVEoIMmItrdwqJDImPJtOp10rhp4U0x/9RGKerl9Mg3ObVj676pyhAR2KzyudrOfQ==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@libsql/linux-x64-gnu@0.1.34:
+    resolution: {integrity: sha512-o8toY1Txstjt13fBhZbFe8sNAW6OaS6qVcp1Bd6bHkCLSBLZ6pjJmwzQN8rFv9QFBPAnaKP3lI4vaOXXw7huTA==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: true
     optional: true
 
-  /@libsql/linux-x64-musl@0.1.24:
-    resolution: {integrity: sha512-31voT85aAHkky59l4/1ikOrXsPJG7TqIl4GlAIOC+3INzTzS0AMUk66wwmJ8UVKH+Ep5MFV2KdWGtHmcOIdhiQ==}
+  /@libsql/linux-x64-musl@0.1.34:
+    resolution: {integrity: sha512-EldEmcAxxNPSCjJ73oFxg81PDDIpDbPqK/QOrhmmGYLvYwrnQtVRUIbARf80JQvcy6bCxOO/Q9dh6wGhnyHyYA==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: true
     optional: true
 
-  /@libsql/win32-x64-msvc@0.1.24:
-    resolution: {integrity: sha512-EWYVE/uZUqeG/BzvYdaoWhCIEbWCTHMmP247MynyIt/puDvOmI8Xvp2S6wdZI2a8xJe3DYNwRgNGB7v4T93xPg==}
+  /@libsql/win32-x64-msvc@0.1.34:
+    resolution: {integrity: sha512-jnv0qfVMnrVv00r+wUOe6DHrHuao9y1w1lN543cV2J1JdQNJT/eSZzhyZFSlS3T2ZUvXfZfZ5GeL8U18IAID6w==}
     cpu: [x64]
     os: [win32]
     requiresBuild: true
@@ -2991,71 +3007,63 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/adapter-libsql@5.5.0-dev.61(@libsql/client@0.3.5):
-    resolution: {integrity: sha512-BRZP1+F5ZiBhbSHgz79iE9egC3jd1/vXtGS1w+T99yl0bBnRKXrQb/BAFTUtDiyrobNUPD9MbvgqgCFdPZT/PQ==}
+  /@prisma/adapter-libsql@5.5.0(@libsql/client@0.3.6):
+    resolution: {integrity: sha512-OxW2MdwqyTX5JF0/CdsradEDL4JFx2GZMIN3flngTd+FNRWefE0/3rsSD/gdb3XP8ru4nduRD79WEXuCVEK6ng==}
     peerDependencies:
       '@libsql/client': ^0.3.5
     dependencies:
-      '@libsql/client': 0.3.5
-      '@prisma/driver-adapter-utils': 5.5.0-dev.61
+      '@libsql/client': 0.3.6
+      '@prisma/driver-adapter-utils': 5.5.0
       async-mutex: 0.4.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-neon@5.5.0-dev.61(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-tKperlYxme+lT7fSaiAO6ZVoBo+7PKD49SP4ZGcbv6tiHhbXc9VkOrGeLAZmGxrSHbvdX/TW7VWEafvuONd1vg==}
+  /@prisma/adapter-neon@5.5.0(@neondatabase/serverless@0.6.0):
+    resolution: {integrity: sha512-40GvoXaafaZ5wMmpRPiwLU8WjVe0DluevmlPv87oUD5wfipcCLnxq9UBmdMDsKXn1eIuLzd0cu9BoEiC/Og0KQ==}
     peerDependencies:
       '@neondatabase/serverless': ^0.6.0
     dependencies:
       '@neondatabase/serverless': 0.6.0
-      '@prisma/driver-adapter-utils': 5.5.0-dev.61
+      '@prisma/driver-adapter-utils': 5.5.0
       postgres-array: 3.0.2
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-pg@5.5.0-dev.61(pg@8.11.3):
-    resolution: {integrity: sha512-RNRPE3LVUiwOsZGeYQWXQ+NKtSd/SBoqDzDT3uJ8d0gh3RekLRpjKRvcTPdHIwVkTOPV8//XlOmoKN2oP7RNrg==}
+  /@prisma/adapter-pg@5.5.0(pg@8.11.3):
+    resolution: {integrity: sha512-Cw52butv75j7D/UlS8rAaoKwnxRBxm1YXj6thJMrOgzBf2cptHoXY6EgbFwBqAj/9x9NhvHripuuvU5JSBBDAA==}
     peerDependencies:
       pg: ^8.11.3
     dependencies:
-      '@prisma/driver-adapter-utils': 5.5.0-dev.61
+      '@prisma/driver-adapter-utils': 5.5.0
       pg: 8.11.3
       postgres-array: 3.0.2
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/adapter-planetscale@5.4.1(@planetscale/database@1.11.0):
-    resolution: {integrity: sha512-K03+n2YDUUy5nO2m3BNHSaMi0HePpEAd0lNz7dnueyiYY6J0VgNXKmSN9pjaDgxF6df7i+NHeGwXCxw4kNhdzw==}
+  /@prisma/adapter-planetscale@5.5.0(@planetscale/database@1.11.0):
+    resolution: {integrity: sha512-nDv9CzQdI0rlTz+mydmzfESfIiM5EzrAktBouPYBGLFfh9Xd4zDxLM/0Yz8AChbtojQBTdDk9fQ5MVo1iARlgA==}
     peerDependencies:
       '@planetscale/database': ^1.11.0
     dependencies:
       '@planetscale/database': 1.11.0
-      '@prisma/driver-adapter-utils': 5.4.1
+      '@prisma/driver-adapter-utils': 5.5.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/driver-adapter-utils@5.4.1:
-    resolution: {integrity: sha512-muYjkzf6qdxz4uGBi7nKyPaGRGLnSgiRautqAhZiMwbTOr9hMgyNI+aCJTCaKfYfNWjYCx2r5J6R1mJtPhzFhQ==}
+  /@prisma/driver-adapter-utils@5.5.0:
+    resolution: {integrity: sha512-2H8Vr8L968h0Fgsf4vvp6VNBNc0wvkynzXAVzNq4kqBBL6sbohaQGtpke7X5GU0kQ1hMVm5zxhW46Ju8xnDJlg==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/driver-adapter-utils@5.5.0-dev.61:
-    resolution: {integrity: sha512-zHxYBjCpVwNVTguTTJ/b97Zq/4QA41aAxQFpgkDJZ5OIiJq8p983TA239qP+xoH6N33uGbVzxenaPQBu3Vw3Yg==}
-    dependencies:
-      debug: 4.3.4
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/engines-version@5.6.0-1.de2449110135e91857b477c346b7f74d52d61613:
-    resolution: {integrity: sha512-4ayM8Zvz8sfWqJfZVDwWRmCutzD/0nYrf9MVhT3lXwuinLBuBzk15Ap8gv6sdyb2E0t4gm7VP9gShBK0ti2wyA==}
+  /@prisma/engines-version@5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec:
+    resolution: {integrity: sha512-FLSelrgmJ8hUkKTx5kR6h/hKS0O0oDmQszNjzoIj2LrMuYRcOmIVVBdgHI4FnaRjhR1EyfdK0sQ1pqoYAXoJVg==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3063,8 +3071,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.6.0-1.de2449110135e91857b477c346b7f74d52d61613:
-    resolution: {integrity: sha512-DJp1ZTK5b0DLEIGJGh6K5DVR+uZNrUaSuMBcAdhJ2BrrJs+N9czfgCyGBCA11KQHtriTJDNzGasll1DgNwcpKQ==}
+  /@prisma/prisma-schema-wasm@5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec:
+    resolution: {integrity: sha512-vM77xfe8zFpLzr6mkql8bMBx03Ho32APc9Bm6JziZi05R+I3YrwGDRT3DsMx6ziEbGgQWWUlnCAQj3Wp7HJNpg==}
     dev: false
 
   /@prisma/query-engine-wasm@0.0.5:
@@ -3236,24 +3244,24 @@ packages:
       uuid: 8.3.2
     dev: true
 
-  /@swc-node/core@1.10.6(@swc/core@1.3.93):
+  /@swc-node/core@1.10.6(@swc/core@1.3.95):
     resolution: {integrity: sha512-lDIi/rPosmKIknWzvs2/Fi9zWRtbkx8OJ9pQaevhsoGzJSal8Pd315k1W5AIrnknfdAB4HqRN12fk6AhqnrEEw==}
     engines: {node: '>= 10'}
     peerDependencies:
       '@swc/core': '>= 1.3'
     dependencies:
-      '@swc/core': 1.3.93
+      '@swc/core': 1.3.95
     dev: true
 
-  /@swc-node/register@1.6.8(@swc/core@1.3.93)(typescript@5.2.2):
+  /@swc-node/register@1.6.8(@swc/core@1.3.95)(typescript@5.2.2):
     resolution: {integrity: sha512-74ijy7J9CWr1Z88yO+ykXphV29giCrSpANQPQRooE0bObpkTO1g4RzQovIfbIaniBiGDDVsYwDoQ3FIrCE8HcQ==}
     peerDependencies:
       '@swc/core': '>= 1.3'
       typescript: '>= 4.3'
     dependencies:
-      '@swc-node/core': 1.10.6(@swc/core@1.3.93)
+      '@swc-node/core': 1.10.6(@swc/core@1.3.95)
       '@swc-node/sourcemap-support': 0.3.0
-      '@swc/core': 1.3.93
+      '@swc/core': 1.3.95
       colorette: 2.0.20
       debug: 4.3.4
       pirates: 4.0.5
@@ -3297,8 +3305,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-darwin-arm64@1.3.93:
-    resolution: {integrity: sha512-gEKgk7FVIgltnIfDO6GntyuQBBlAYg5imHpRgLxB1zSI27ijVVkksc6QwISzFZAhKYaBWIsFSVeL9AYSziAF7A==}
+  /@swc/core-darwin-arm64@1.3.95:
+    resolution: {integrity: sha512-VAuBAP3MNetO/yBIBzvorUXq7lUBwhfpJxYViSxyluMwtoQDhE/XWN598TWMwMl1ZuImb56d7eUsuFdjgY7pJw==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [darwin]
@@ -3315,8 +3323,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-darwin-x64@1.3.93:
-    resolution: {integrity: sha512-ZQPxm/fXdDQtn3yrYSL/gFfA8OfZ5jTi33yFQq6vcg/Y8talpZ+MgdSlYM0FkLrZdMTYYTNFiuBQuuvkA+av+Q==}
+  /@swc/core-darwin-x64@1.3.95:
+    resolution: {integrity: sha512-20vF2rvUsN98zGLZc+dsEdHvLoCuiYq/1B+TDeE4oolgTFDmI1jKO+m44PzWjYtKGU9QR95sZ6r/uec0QC5O4Q==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [darwin]
@@ -3342,8 +3350,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-linux-arm-gnueabihf@1.3.93:
-    resolution: {integrity: sha512-OYFMMI2yV+aNe3wMgYhODxHdqUB/jrK0SEMHHS44GZpk8MuBXEF+Mcz4qjkY5Q1EH7KVQqXb/gVWwdgTHpjM2A==}
+  /@swc/core-linux-arm-gnueabihf@1.3.95:
+    resolution: {integrity: sha512-oEudEM8PST1MRNGs+zu0cx5i9uP8TsLE4/L9HHrS07Ck0RJ3DCj3O2fU832nmLe2QxnAGPwBpSO9FntLfOiWEQ==}
     engines: {node: '>=10'}
     cpu: [arm]
     os: [linux]
@@ -3360,8 +3368,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-linux-arm64-gnu@1.3.93:
-    resolution: {integrity: sha512-BT4dT78odKnJMNiq5HdjBsv29CiIdcCcImAPxeFqAeFw1LL6gh9nzI8E96oWc+0lVT5lfhoesCk4Qm7J6bty8w==}
+  /@swc/core-linux-arm64-gnu@1.3.95:
+    resolution: {integrity: sha512-pIhFI+cuC1aYg+0NAPxwT/VRb32f2ia8oGxUjQR6aJg65gLkUYQzdwuUmpMtFR2WVf7WVFYxUnjo4UyMuyh3ng==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
@@ -3378,8 +3386,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-linux-arm64-musl@1.3.93:
-    resolution: {integrity: sha512-yH5fWEl1bktouC0mhh0Chuxp7HEO4uCtS/ly1Vmf18gs6wZ8DOOkgAEVv2dNKIryy+Na++ljx4Ym7C8tSJTrLw==}
+  /@swc/core-linux-arm64-musl@1.3.95:
+    resolution: {integrity: sha512-ZpbTr+QZDT4OPJfjPAmScqdKKaT+wGurvMU5AhxLaf85DuL8HwUwwlL0n1oLieLc47DwIJEMuKQkYhXMqmJHlg==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
@@ -3396,8 +3404,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-linux-x64-gnu@1.3.93:
-    resolution: {integrity: sha512-OFUdx64qvrGJhXKEyxosHxgoUVgba2ztYh7BnMiU5hP8lbI8G13W40J0SN3CmFQwPP30+3oEbW7LWzhKEaYjlg==}
+  /@swc/core-linux-x64-gnu@1.3.95:
+    resolution: {integrity: sha512-n9SuHEFtdfSJ+sHdNXNRuIOVprB8nbsz+08apKfdo4lEKq6IIPBBAk5kVhPhkjmg2dFVHVo4Tr/OHXM1tzWCCw==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
@@ -3414,8 +3422,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-linux-x64-musl@1.3.93:
-    resolution: {integrity: sha512-4B8lSRwEq1XYm6xhxHhvHmKAS7pUp1Q7E33NQ2TlmFhfKvCOh86qvThcjAOo57x8DRwmpvEVrqvpXtYagMN6Ig==}
+  /@swc/core-linux-x64-musl@1.3.95:
+    resolution: {integrity: sha512-L1JrVlsXU3LC0WwmVnMK9HrOT2uhHahAoPNMJnZQpc18a0paO9fqifPG8M/HjNRffMUXR199G/phJsf326UvVg==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
@@ -3432,8 +3440,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-win32-arm64-msvc@1.3.93:
-    resolution: {integrity: sha512-BHShlxtkven8ZjjvZ5QR6sC5fZCJ9bMujEkiha6W4cBUTY7ce7qGFyHmQd+iPC85d9kD/0cCiX/Xez8u0BhO7w==}
+  /@swc/core-win32-arm64-msvc@1.3.95:
+    resolution: {integrity: sha512-YaP4x/aZbUyNdqCBpC2zL8b8n58MEpOUpmOIZK6G1SxGi+2ENht7gs7+iXpWPc0sy7X3YPKmSWMAuui0h8lgAA==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [win32]
@@ -3450,8 +3458,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-win32-ia32-msvc@1.3.93:
-    resolution: {integrity: sha512-nEwNWnz4JzYAK6asVvb92yeylfxMYih7eMQOnT7ZVlZN5ba9WF29xJ6kcQKs9HRH6MvWhz9+wRgv3FcjlU6HYA==}
+  /@swc/core-win32-ia32-msvc@1.3.95:
+    resolution: {integrity: sha512-w0u3HI916zT4BC/57gOd+AwAEjXeUlQbGJ9H4p/gzs1zkSHtoDQghVUNy3n/ZKp9KFod/95cA8mbVF9t1+6epQ==}
     engines: {node: '>=10'}
     cpu: [ia32]
     os: [win32]
@@ -3468,8 +3476,8 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-win32-x64-msvc@1.3.93:
-    resolution: {integrity: sha512-jibQ0zUr4kwJaQVwgmH+svS04bYTPnPw/ZkNInzxS+wFAtzINBYcU8s2PMWbDb2NGYiRSEeoSGyAvS9H+24JFA==}
+  /@swc/core-win32-x64-msvc@1.3.95:
+    resolution: {integrity: sha512-5RGnMt0S6gg4Gc6QtPUJ3Qs9Un4sKqccEzgH/tj7V/DVTJwKdnBKxFZfgQ34OR2Zpz7zGOn889xwsFVXspVWNA==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [win32]
@@ -3497,8 +3505,8 @@ packages:
       '@swc/core-win32-x64-msvc': 1.2.204
     dev: true
 
-  /@swc/core@1.3.93:
-    resolution: {integrity: sha512-690GRr1wUGmGYZHk7fUduX/JUwViMF2o74mnZYIWEcJaCcd9MQfkhsxPBtjeg6tF+h266/Cf3RPYhsFBzzxXcA==}
+  /@swc/core@1.3.95:
+    resolution: {integrity: sha512-PMrNeuqIusq9DPDooV3FfNEbZuTu5jKAc04N3Hm6Uk2Fl49cqElLFQ4xvl4qDmVDz97n3n/C1RE0/f6WyGPEiA==}
     engines: {node: '>=10'}
     requiresBuild: true
     peerDependencies:
@@ -3510,16 +3518,16 @@ packages:
       '@swc/counter': 0.1.2
       '@swc/types': 0.1.5
     optionalDependencies:
-      '@swc/core-darwin-arm64': 1.3.93
-      '@swc/core-darwin-x64': 1.3.93
-      '@swc/core-linux-arm-gnueabihf': 1.3.93
-      '@swc/core-linux-arm64-gnu': 1.3.93
-      '@swc/core-linux-arm64-musl': 1.3.93
-      '@swc/core-linux-x64-gnu': 1.3.93
-      '@swc/core-linux-x64-musl': 1.3.93
-      '@swc/core-win32-arm64-msvc': 1.3.93
-      '@swc/core-win32-ia32-msvc': 1.3.93
-      '@swc/core-win32-x64-msvc': 1.3.93
+      '@swc/core-darwin-arm64': 1.3.95
+      '@swc/core-darwin-x64': 1.3.95
+      '@swc/core-linux-arm-gnueabihf': 1.3.95
+      '@swc/core-linux-arm64-gnu': 1.3.95
+      '@swc/core-linux-arm64-musl': 1.3.95
+      '@swc/core-linux-x64-gnu': 1.3.95
+      '@swc/core-linux-x64-musl': 1.3.95
+      '@swc/core-win32-arm64-msvc': 1.3.95
+      '@swc/core-win32-ia32-msvc': 1.3.95
+      '@swc/core-win32-x64-msvc': 1.3.95
     dev: true
 
   /@swc/counter@0.1.2:
@@ -3537,14 +3545,14 @@ packages:
       jsonc-parser: 3.2.0
     dev: true
 
-  /@swc/jest@0.2.29(@swc/core@1.3.93):
+  /@swc/jest@0.2.29(@swc/core@1.3.95):
     resolution: {integrity: sha512-8reh5RvHBsSikDC3WGCd5ZTd2BXKkyOdK7QwynrCH58jk2cQFhhHhFBg/jvnWZehUQe/EoOImLENc9/DwbBFow==}
     engines: {npm: '>= 7.0.0'}
     peerDependencies:
       '@swc/core': '*'
     dependencies:
       '@jest/create-cache-key-function': 27.5.1
-      '@swc/core': 1.3.93
+      '@swc/core': 1.3.95
       jsonc-parser: 3.2.0
     dev: true
 
@@ -6338,8 +6346,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-jest@27.4.2(@typescript-eslint/eslint-plugin@5.62.0)(eslint@8.52.0)(typescript@5.2.2):
-    resolution: {integrity: sha512-3Nfvv3wbq2+PZlRTf2oaAWXWwbdBejFRBR2O8tAO67o+P8zno+QGbcDYaAXODlreXVg+9gvWhKKmG2rgfb8GEg==}
+  /eslint-plugin-jest@27.4.3(@typescript-eslint/eslint-plugin@5.62.0)(eslint@8.52.0)(typescript@5.2.2):
+    resolution: {integrity: sha512-7S6SmmsHsgIm06BAGCAxL+ABd9/IB3MWkz2pudj6Qqor2y1qQpWPfuFU4SG9pWj4xDjF0e+D7Llh5useuSzAZw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': ^5.0.0 || ^6.0.0
@@ -8886,19 +8894,21 @@ packages:
       type-check: 0.4.0
     dev: true
 
-  /libsql@0.1.24:
-    resolution: {integrity: sha512-Pcq9W3bQsrb8gLycc7vai19rWSoWc/RrKes35PxECe8UOV3JS51VmrXNrFUZCtpsPLQuasghtEOGT95raZ7YHA==}
+  /libsql@0.1.34:
+    resolution: {integrity: sha512-LGofp7z7gi1Td6vu2GxaA4WyvSPEkuFn0f/ePSti1TsAlBU0LWxdk+bj9D8nqswzxiqe5wpAyTLhVzTIYSyXEA==}
     cpu: [x64, arm64]
     os: [darwin, linux, win32]
     dependencies:
       '@neon-rs/load': 0.0.4
       detect-libc: 2.0.2
     optionalDependencies:
-      '@libsql/darwin-arm64': 0.1.24
-      '@libsql/darwin-x64': 0.1.24
-      '@libsql/linux-x64-gnu': 0.1.24
-      '@libsql/linux-x64-musl': 0.1.24
-      '@libsql/win32-x64-msvc': 0.1.24
+      '@libsql/darwin-arm64': 0.1.34
+      '@libsql/darwin-x64': 0.1.34
+      '@libsql/linux-arm64-gnu': 0.1.34
+      '@libsql/linux-arm64-musl': 0.1.34
+      '@libsql/linux-x64-gnu': 0.1.34
+      '@libsql/linux-x64-musl': 0.1.34
+      '@libsql/win32-x64-msvc': 0.1.34
     dev: true
 
   /lilconfig@2.1.0:
@@ -12516,7 +12526,7 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-node@10.9.1(@swc/core@1.3.93)(@types/node@18.18.6)(typescript@5.2.2):
+  /ts-node@10.9.1(@swc/core@1.3.95)(@types/node@18.18.6)(typescript@5.2.2):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -12531,7 +12541,7 @@ packages:
         optional: true
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      '@swc/core': 1.3.93
+      '@swc/core': 1.3.95
       '@tsconfig/node10': 1.0.9
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
@@ -12760,8 +12770,8 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  /undici@5.26.3:
-    resolution: {integrity: sha512-H7n2zmKEWgOllKkIUkLvFmsJQj062lSm3uA4EYApG8gLuiOM0/go9bIoC3HVaSnfg4xunowDE2i9p8drkXuvDw==}
+  /undici@5.26.5:
+    resolution: {integrity: sha512-cSb4bPFd5qgR7qr2jYAi0hlX9n5YKK2ONKkLFkxl+v/9BvC0sOpZjBHDBSXc5lWAf5ty9oZdRXytBIHzgUcerw==}
     engines: {node: '>=14.0'}
     dependencies:
       '@fastify/busboy': 2.0.0

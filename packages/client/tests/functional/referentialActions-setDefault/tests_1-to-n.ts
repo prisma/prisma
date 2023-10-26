@@ -161,7 +161,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [ProviderFlavors.JS_PG]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
+                [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
               },
             }),
           )
@@ -241,7 +241,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [ProviderFlavors.JS_PG]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
+                [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
               },
             }),
           )
