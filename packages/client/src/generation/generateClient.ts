@@ -648,8 +648,9 @@ async function getGenerationDirs({
   testMode,
 }: GenerateClientOptions) {
   const isCustomOutput = generator.isCustomOutput === true
+  const normalizedOutputDir = path.normalize(outputDir)
   let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
-  let userOutputDir = isCustomOutput ? outputDir : await getDefaultOutdir(path.normalize(outputDir))
+  let userOutputDir = isCustomOutput ? normalizedOutputDir : await getDefaultOutdir(normalizedOutputDir)
 
   if (testMode && runtimeBase) {
     userOutputDir = outputDir
