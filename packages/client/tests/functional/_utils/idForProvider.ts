@@ -28,7 +28,7 @@ export function idForProvider(provider: Providers, options: Options = { includeD
   return strs.join(' ')
 }
 
-export function foreignKeyForProvider(provider: string): string {
+export function foreignKeyForProvider(provider: Providers): string {
   const strs = ['String']
 
   if (provider === Providers.MONGODB) {

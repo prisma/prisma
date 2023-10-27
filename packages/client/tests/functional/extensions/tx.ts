@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker'
 import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { ProviderFlavors } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'

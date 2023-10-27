@@ -64,7 +64,7 @@ export function createUnpacker(args: UserArgs = {}) {
  * @param modelAction a callback action that triggers request execution
  * @returns
  */
-export function aggregate(args: UserArgs | undefined, modelAction: ModelAction) {
+export function aggregate(args: UserArgs, modelAction: ModelAction) {
   const aggregateUnpacker = createUnpacker(args)
 
   return modelAction({

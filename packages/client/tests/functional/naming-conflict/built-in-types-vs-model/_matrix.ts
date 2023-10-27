@@ -3,7 +3,7 @@ import { allProviders } from '../../_utils/providers'
 import { builtInNames } from '../_builtInNames'
 
 export default defineMatrix(() => [
-  [allProviders],
+  allProviders,
   builtInNames.map((typeName) => ({
     typeName,
   })),
