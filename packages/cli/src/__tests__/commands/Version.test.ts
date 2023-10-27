@@ -120,7 +120,10 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   const currentEngineVersion = versionOverride ?? enginesVersion
   str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp('(Operating System\\s+:).*', 'g'), '$1 OS')
+  str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
   str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
 
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')
