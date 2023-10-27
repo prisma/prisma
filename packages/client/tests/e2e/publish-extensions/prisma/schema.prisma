@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["clientExtensions"]
 }
 
 datasource db {
@@ -12,19 +11,19 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  posts     Post[]
-  profile   Profile?
+  id      Int      @id @default(autoincrement())
+  email   String   @unique
+  name    String?
+  posts   Post[]
+  profile Profile?
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   title     String
   content   String?
-  published Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
+  published Boolean @default(false)
+  author    User    @relation(fields: [authorId], references: [id])
   authorId  Int
 }
 
