@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryDownloadConfiguration, BinaryType, download } from '@prisma/fetch-engine'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 
@@ -35,7 +35,7 @@ async function main() {
       version: enginesVersion,
       showProgress: true,
       failSilent: true,
-      binaryTargets: binaryTargets as Platform[],
+      binaryTargets: binaryTargets as BinaryTarget[],
     }).catch((e) => debug(e))
 
     cleanupLockFile()

@@ -1,4 +1,4 @@
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import {
   ClientEngineType,
   extractPreviewFeatures,
@@ -36,11 +36,11 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
 
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
   const previewFeatures = extractPreviewFeatures(config)
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const clientEngineType = getClientEngineType(generator!)
   ;(global as any).TARGET_BUILD_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
 
-  await ensureTestClientQueryEngine(clientEngineType, platform)
+  await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
 
   const document = await getDMMF({
     datamodel,

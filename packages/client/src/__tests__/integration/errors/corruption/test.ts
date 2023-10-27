@@ -1,4 +1,4 @@
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
@@ -13,11 +13,13 @@ testIf(!(process.env.PRISMA_QUERY_ENGINE_BINARY || process.env.PRISMA_QUERY_ENGI
 
     await generateTestClient()
     const { PrismaClient } = require('./node_modules/@prisma/client')
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
     let binaryPath = path.join(
       __dirname,
       'node_modules/.prisma/client',
-      getClientEngineType() === ClientEngineType.Library ? getNodeAPIName(platform, 'fs') : `query-engine-${platform}`,
+      getClientEngineType() === ClientEngineType.Library
+        ? getNodeAPIName(binaryTarget, 'fs')
+        : `query-engine-${binaryTarget}`,
     )
 
     if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {

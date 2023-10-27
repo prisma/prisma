@@ -1,4 +1,4 @@
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
 import * as checkpoint from 'checkpoint-client'
 import fs from 'fs'
@@ -89,7 +89,7 @@ export async function sendPanic({
     jsStackTrace: stripAnsi(error.stack || error.message),
     rustStackTrace: error.rustStack,
     operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
-    platform: await getPlatform(),
+    platform: await getBinaryTargetForCurrentPlatform(),
     liftRequest: migrateRequest,
     schemaFile: maskedSchema,
     fingerprint: await checkpoint.getSignature(),

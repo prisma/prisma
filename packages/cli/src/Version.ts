@@ -1,5 +1,5 @@
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
 import {
   arg,
@@ -65,7 +65,7 @@ export class Version implements Command {
 
     loadEnvFile({ printMessage: true })
 
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
     const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
@@ -92,7 +92,7 @@ export class Version implements Command {
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
-      ['Computed binaryTarget', platform],
+      ['Computed binaryTarget', binaryTarget],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
