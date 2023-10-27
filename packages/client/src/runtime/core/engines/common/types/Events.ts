@@ -6,12 +6,6 @@ export type EngineEventType = QueryEventType | LogEventType
 
 export type EngineEvent<E extends EngineEventType> = E extends QueryEventType ? QueryEvent : LogEvent
 
-type EngineEventContravariant<E extends EngineEventType> = [E & QueryEventType] extends [never]
-  ? LogEvent
-  : [E & LogEventType] extends [never]
-  ? QueryEvent
-  : QueryEvent & LogEvent
-
 export type QueryEvent = {
   timestamp: Date
   query: string
@@ -28,5 +22,6 @@ export type LogEvent = {
 
 export type LogEmitter = {
   on<E extends EngineEventType>(event: E, listener: (event: EngineEvent<E>) => void): LogEmitter
-  emit<E extends EngineEventType>(event: E, payload: EngineEventContravariant<E>): boolean
+  emit(event: QueryEventType, payload: QueryEvent): boolean
+  emit(event: LogEventType, payload: LogEvent): boolean
 }
