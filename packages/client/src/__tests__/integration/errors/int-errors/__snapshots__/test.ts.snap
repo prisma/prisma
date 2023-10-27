@@ -4,17 +4,10 @@ exports[`int-errors char-int 1`] = `
 
 Invalid \`prisma.user.update()\` invocation:
 
-{
-  where: {
-    id: "576eddf9-2434-421f-9a86-58bede16fd95"
-  },
-  data: {
-    age: "thisisastringwith30characters"
-         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  }
-}
 
-Argument \`age\`: Invalid value provided. Expected Int, NullableIntFieldUpdateOperationsInput or Null, provided String.
+Can't reach database server at \`localhost\`:\`3306\`
+
+Please make sure your database server is running at \`localhost\`:\`3306\`.
 `;
 
 exports[`int-errors overflow-int 1`] = `
@@ -22,7 +15,9 @@ exports[`int-errors overflow-int 1`] = `
 Invalid \`prisma.user.update()\` invocation:
 
 
-Value out of range for the type. Out of range value for column 'age' at row 1
+Can't reach database server at \`localhost\`:\`3306\`
+
+Please make sure your database server is running at \`localhost\`:\`3306\`.
 `;
 
 exports[`int-errors signed-int 1`] = `
@@ -30,5 +25,7 @@ exports[`int-errors signed-int 1`] = `
 Invalid \`prisma.user.update()\` invocation:
 
 
-Value out of range for the type. Out of range value for column 'age' at row 1
+Can't reach database server at \`localhost\`:\`3306\`
+
+Please make sure your database server is running at \`localhost\`:\`3306\`.
 `;

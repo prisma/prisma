@@ -9,7 +9,6 @@ import { JSDocs } from './jsdoc'
 export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   const ctx: JSDocMethodBodyCtx = {
     singular: capitalize(mapping.model),
-    plural: capitalize(mapping.plural),
     firstScalar: model.fields.find((f) => f.kind === 'scalar'),
     method: `prisma.${lowerCase(mapping.model)}.${action}`,
     action,
