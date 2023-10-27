@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { assertNever } from '@prisma/internals'
 import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'

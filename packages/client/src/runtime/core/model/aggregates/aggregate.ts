@@ -24,6 +24,7 @@ export function desugarUserArgs(args: UserArgs = {}) {
 
       return aggregateArgs
     },
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
     { select: {} } as UserArgs & { select: UserArgs },
   )
 }

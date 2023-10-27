@@ -172,11 +172,11 @@ import { defineMatrix } from '../_utils/defineMatrix'
 export default defineMatrix(() => [
   [
     {
-      provider: 'sqlite',
+      provider: Providers.SQLITE
       testEmail: 'sqlite-user@example.com',
     },
     {
-      provider: 'mongodb',
+      provider: Providers.MONGODB
       testEmail: 'mongo-user@example.com',
     },
   ],
@@ -191,10 +191,10 @@ import { defineMatrix } from '../_utils/defineMatrix'
 export default defineMatrix(() => [
   [
     {
-      provider: 'sqlite',
+      provider: Providers.SQLITE,
     },
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
     },
   ],
   [
@@ -211,10 +211,10 @@ export default defineMatrix(() => [
 
 Will generate following test suites:
 
-- `{ provider: 'sqlite', providerFeatures: '' }`
-- `{ provider: 'sqlite', providerFeatures: 'improvedQueryRaw' }`
-- `{ provider: 'postgresql', providerFeatures: '' }`
-- `{ provider: 'postgresql', providerFeatures: 'improvedQueryRaw' }`
+- `{ provider: Providers.SQLITE providerFeatures: '' }`
+- `{ provider: Providers.SQLITE providerFeatures: 'improvedQueryRaw' }`
+- `{ provider: Providers.POSTGRESQL providerFeatures: '' }`
+- `{ provider: Providers.POSTGRESQL providerFeatures: 'improvedQueryRaw' }`
 
 You can also optionally exclude certain combinations from matrix by using second argument of `defineMatrix` function:
 
@@ -225,10 +225,10 @@ export default defineMatrix(
   () => [
     [
       {
-        provider: 'sqlite',
+        provider: Providers.SQLITE,
       },
       {
-        provider: 'postgresql',
+        provider: Providers.POSTGRESQL,
       },
     ],
     [
