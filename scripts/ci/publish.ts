@@ -657,9 +657,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 async function getEnginesCommitHash(): Promise<string> {
   const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
   const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
-  // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
-
+  const engineVersion = pkg.devDependencies['@prisma/engines-version'].prisma.enginesVersion
   return engineVersion
 }
 
