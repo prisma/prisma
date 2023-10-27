@@ -1,19 +1,20 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
 import { builtInNames } from '../_builtInNames'
+import { Providers } from '../../_utils/providers'
 
 export default defineMatrix(() => [
   [
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
     },
     {
-      provider: 'mysql',
+      provider: Providers.MYSQL,
     },
     {
-      provider: 'mongodb',
+      provider: Providers.MONGODB,
     },
     {
-      provider: 'cockroachdb',
+      provider: Providers.COCKROACHDB,
     },
   ],
 

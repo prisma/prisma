@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
     test('suiteConfig', () => {
       /*
       {
-        provider: 'sqlite',
+        provider: Providers.SQLITE
         id: 'Int @id @default(autoincrement())',
         providerFeatures: '',
         previewFeatures: '"tracing"'
