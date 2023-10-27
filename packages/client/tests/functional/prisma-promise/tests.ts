@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -18,7 +19,7 @@ testMatrix.setupTestSuite(({ provider }) => {
         })
       },
     ],
-    ...(provider !== 'sqlite'
+    ...(provider !== Providers.SQLITE
       ? [
           [
             'createMany',
@@ -152,7 +153,7 @@ testMatrix.setupTestSuite(({ provider }) => {
         })
       },
     ],
-    ...(provider !== 'mongodb'
+    ...(provider !== Providers.MONGODB
       ? [
           [
             '$queryRaw',
@@ -168,7 +169,7 @@ testMatrix.setupTestSuite(({ provider }) => {
               return prisma.$queryRawUnsafe(`SELECT 1 + 1;`)
             },
           ],
-          ...(provider !== 'sqlite'
+          ...(provider !== Providers.SQLITE
             ? [
                 [
                   '$executeRaw',
@@ -188,7 +189,7 @@ testMatrix.setupTestSuite(({ provider }) => {
             : []),
         ]
       : []),
-    ...(provider === 'mongodb'
+    ...(provider === Providers.MONGODB
       ? [
           [
             '$runCommandRaw',

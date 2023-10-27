@@ -25,16 +25,16 @@ export function getMethodJSDoc(action: DMMF.ModelAction, mapping: DMMF.ModelMapp
   return wrapComment(getMethodJSDocBody(action, mapping, model))
 }
 export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
-  if (actionName === 'count') {
+  if (actionName === DMMF.ModelAction.count) {
     return ''
   }
-  if (actionName === 'aggregate') {
+  if (actionName === DMMF.ModelAction.aggregate) {
     return `<T extends ${getAggregateArgsName(name)}>`
   }
-  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
     return ''
   }
-  if (actionName === 'findFirst' || actionName === 'findUnique') {
+  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
     return `<T extends ${getModelArgName(name, actionName)}<ExtArgs>>`
   }
   const modelArgName = getModelArgName(name, actionName)

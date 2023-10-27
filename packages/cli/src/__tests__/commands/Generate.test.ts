@@ -1,5 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { getClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { Generate } from '../../Generate'
@@ -17,7 +17,7 @@ describe('using cli', () => {
 
     const { main } = await import(ctx.fs.path('main.ts'))
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(data.stdout).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
 
@@ -78,7 +78,7 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(data.stdout).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
 
@@ -129,7 +129,7 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(data.stdout).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
 
@@ -184,7 +184,7 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(data.stdout).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
 
@@ -235,7 +235,7 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(data.stdout).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
 
@@ -286,7 +286,7 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(data.stdout).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
 
@@ -356,7 +356,7 @@ describe('--schema from project directory', () => {
     ctx.fixture('generate-from-project-dir')
     const result = await Generate.new().parse(['--schema=./schema.prisma'])
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
@@ -410,7 +410,7 @@ describe('--schema from project directory', () => {
     const absoluteSchemaPath = path.resolve('./schema.prisma')
     const output = await Generate.new().parse([`--schema=${absoluteSchemaPath}`])
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(output).toMatchInlineSnapshot(`
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
@@ -465,7 +465,7 @@ describe('--schema from parent directory', () => {
     ctx.fixture('generate-from-parent-dir')
     const result = await Generate.new().parse(['--schema=./subdirectory/schema.prisma'])
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
@@ -521,7 +521,7 @@ describe('--schema from parent directory', () => {
     const absoluteSchemaPath = path.resolve('./subdirectory/schema.prisma')
     const result = await Generate.new().parse([`--schema=${absoluteSchemaPath}`])
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
@@ -578,7 +578,7 @@ describe('--schema from parent directory', () => {
       '--generator=client_3',
     ])
 
-    if (getClientEngineType() === 'binary') {
+    if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
