@@ -22,6 +22,6 @@ export type LogEvent = {
 
 export type LogEmitter = {
   on<E extends EngineEventType>(event: E, listener: (event: EngineEvent<E>) => void): LogEmitter
-  emit(event: QueryEventType, payload: QueryEvent): boolean
-  emit(event: LogEventType, payload: LogEvent): boolean
+  emit(event: QueryEventType, payload: QueryEvent): void
+  emit(event: LogEventType, payload: LogEvent): void
 }
