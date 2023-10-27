@@ -41,104 +41,85 @@ export class ArgumentsRenderingTree implements ErrorBasicBuilder {
  * @param args
  * @returns
  */
+class ValueFactory {
+  public static createValue(value: unknown) {
+    if (typeof value === 'string') {
+      return new ScalarValue(JSON.stringify(value))
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      return new ScalarValue(String(value))
+    }
+
+    if (typeof value === 'bigint') {
+      return new ScalarValue(`${value}n`)
+    }
+
+    if (value === null) {
+      return new ScalarValue('null')
+    }
+
+    if (value === undefined) {
+      return new ScalarValue('undefined')
+    }
+
+    if (isDecimalJsLike(value)) {
+      return new ScalarValue(`new Prisma.Decimal("${value.toFixed()}")`)
+    }
+
+    if (value instanceof Uint8Array) {
+      if (Buffer.isBuffer(value)) {
+        return new ScalarValue(`Buffer.alloc(${value.byteLength})`)
+      }
+      return new ScalarValue(`new Uint8Array(${value.byteLength})`)
+    }
+
+    if (value instanceof Date) {
+      const dateStr = isValidDate(value) ? value.toISOString() : 'Invalid Date'
+      return new ScalarValue(`new Date("${dateStr}")`)
+    }
+
+    if (value instanceof ObjectEnumValue) {
+      return new ScalarValue(`Prisma.${value._getName()}`)
+    }
+
+    if (isFieldRef(value)) {
+      return new ScalarValue(`prisma.${lowerCase(value.modelName)}.$fields.${value.name}`)
+    }
+
+    if (Array.isArray(value)) {
+      return new ArrayValueFactory().createArrayValue(value)
+    }
+
+    if (typeof value === 'object') {
+      return new ObjectValueFactory().createObjectValue(value as Record<PropertyKey, unknown>)
+    }
+
+    return new ScalarValue(Object.prototype.toString.call(value))
+  }
+}
+
+class ArrayValueFactory {
+  public createArrayValue(array: unknown[]): ArrayValue {
+    const result = new ArrayValue()
+    for (const item of array) {
+      result.addItem(ValueFactory.createValue(item))
+    }
+    return result
+  }
+}
+
+class ObjectValueFactory {
+  public createObjectValue(inputObject: Record<PropertyKey, unknown>): ObjectValue {
+    const object = new ObjectValue()
+    for (const [key, value] of Object.entries(inputObject)) {
+      const field = new ObjectField(key, ValueFactory.createValue(value))
+      object.addField(field)
+    }
+    return object
+  }
+}
+
 export function buildArgumentsRenderingTree(args: Record<PropertyKey, unknown>): ArgumentsRenderingTree {
-  return new ArgumentsRenderingTree(buildInputObject(args))
-}
-
-function buildInputObject(inputObject: Record<PropertyKey, unknown>) {
-  const object = new ObjectValue()
-
-  for (const [key, value] of Object.entries(inputObject)) {
-    const field = new ObjectField(key, buildInputValue(value))
-    object.addField(field)
-  }
-  return object
-}
-
-function buildInputArray(array: unknown[]) {
-  const result = new ArrayValue()
-  for (const item of array) {
-    result.addItem(buildInputValue(item))
-  }
-  return result
-}
-
-function buildInputValue(value: unknown) {
-  if (value === undefined) {
-    return new ScalarValue('undefined')
-  } else if (value === null) {
-    return new ScalarValue('null')
-  } else if (typeof value === 'string') {
-    return handleString(JSON.stringify(value))
-  } else if (typeof value === 'number' || typeof value === 'boolean') {
-    return handleNumberOrBoolean(value)
-  } else if (typeof value === 'bigint') {
-    return handleBigInt(value)
-  } else {
-    return handleObject(value as {})
-  }
-}
-
-function handleString(value: string) {
-  return new ScalarValue(JSON.stringify(value))
-}
-
-function handleNumberOrBoolean(value: number | boolean) {
-  return new ScalarValue(String(value))
-}
-
-function handleBigInt(value: bigint) {
-  return new ScalarValue(`${value}n`)
-}
-
-function handleObject(value: object) {
-  if (isDecimalJsLike(value)) {
-    return new ScalarValue(`new Prisma.Decimal("${value.toFixed()}")`)
-  }
-
-  if (value instanceof Uint8Array) {
-    return handleUint8Array(value)
-  }
-
-  if (value instanceof Date) {
-    return handleDate(value)
-  }
-
-  if (value instanceof ObjectEnumValue) {
-    return handleObjectEnumValue(value)
-  }
-
-  if (isFieldRef(value)) {
-    return handleFieldRef(value)
-  }
-
-  if (Array.isArray(value)) {
-    return buildInputArray(value)
-  }
-
-  if (typeof value === 'object') {
-    return buildInputObject(value as Record<PropertyKey, unknown>)
-  }
-
-  return new ScalarValue(Object.prototype.toString.call(value))
-}
-
-function handleUint8Array(value: Uint8Array) {
-  if (Buffer.isBuffer(value)) {
-    return new ScalarValue(`Buffer.alloc(${value.byteLength})`)
-  }
-  return new ScalarValue(`new Uint8Array(${value.byteLength})`)
-}
-
-function handleDate(value: Date) {
-  const dateStr = isValidDate(value) ? value.toISOString() : 'Invalid Date'
-  return new ScalarValue(`new Date("${dateStr}")`)
-}
-
-function handleObjectEnumValue(value: ObjectEnumValue) {
-  return new ScalarValue(`Prisma.${value._getName()}`)
-}
-
-function handleFieldRef(value) {
-  return new ScalarValue(`prisma.${lowerCase(value.modelName)}.$fields.${value.name}`)
+  return new ArgumentsRenderingTree(new ObjectValueFactory().createObjectValue(args))
 }
