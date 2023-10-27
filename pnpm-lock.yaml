@@ -199,10 +199,7 @@ importers:
         version: 7.2.3
 
   packages/adapter-libsql:
-    devDependencies:
-      '@libsql/client':
-        specifier: 0.3.5
-        version: 0.3.5
+    dependencies:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -212,12 +209,13 @@ importers:
       async-mutex:
         specifier: 0.4.0
         version: 0.4.0
+    devDependencies:
+      '@libsql/client':
+        specifier: 0.3.5
+        version: 0.3.5
 
   packages/adapter-neon:
-    devDependencies:
-      '@neondatabase/serverless':
-        specifier: 0.6.0
-        version: 0.6.0
+    dependencies:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -227,36 +225,42 @@ importers:
       postgres-array:
         specifier: 3.0.2
         version: 3.0.2
+    devDependencies:
+      '@neondatabase/serverless':
+        specifier: 0.6.0
+        version: 0.6.0
 
   packages/adapter-pg:
-    devDependencies:
+    dependencies:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      postgres-array:
+        specifier: 3.0.2
+        version: 3.0.2
+    devDependencies:
       '@types/pg':
         specifier: 8.10.2
         version: 8.10.2
       pg:
         specifier: 8.11.3
         version: 8.11.3
-      postgres-array:
-        specifier: 3.0.2
-        version: 3.0.2
 
   packages/adapter-planetscale:
-    devDependencies:
-      '@planetscale/database':
-        specifier: 1.11.0
-        version: 1.11.0
+    dependencies:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+    devDependencies:
+      '@planetscale/database':
+        specifier: 1.11.0
+        version: 1.11.0
 
   packages/cli:
     dependencies:
@@ -4948,7 +4952,7 @@ packages:
     resolution: {integrity: sha512-eJFZ1YhRR8UN8eBLoNzcDPcy/jqjsg6I1AP+KvWQX80BqOSW1oJPJXDylPUEeMr2ZQvHgnQ//Lp6f3RQ1zI7HA==}
     dependencies:
       tslib: 2.6.2
-    dev: true
+    dev: false
 
   /async@3.2.4:
     resolution: {integrity: sha512-iAB+JbDEGXhyIUavoDl9WP/Jj106Kz9DEn1DPgYw5ruDn0e3Wgi3sKFm55sASdGBNOQB8F59d9qQ7deqrHA8wQ==}
@@ -11172,7 +11176,6 @@ packages:
   /postgres-array@3.0.2:
     resolution: {integrity: sha512-6faShkdFugNQCLwucjPcY5ARoW1SlbnrZjmGl0IrrqewpvxvhSLHimCVzqeuULCbG0fQv7Dtk1yDbG3xv7Veog==}
     engines: {node: '>=12'}
-    dev: true
 
   /postgres-bytea@1.0.0:
     resolution: {integrity: sha512-xy3pmLuQqRBZBXDULy7KbaitYqLcmxigw14Q5sj8QBVLqEwXfeybIKVWiqAXTlcvdvb0+xkOtDbfQMOf4lST1w==}
