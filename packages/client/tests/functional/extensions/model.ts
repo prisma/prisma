@@ -1,11 +1,11 @@
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
-import { Providers } from '../_utils/providers'
 
 declare let Prisma: typeof PrismaNamespace
 let prisma: PrismaClient

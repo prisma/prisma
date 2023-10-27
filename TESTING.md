@@ -242,7 +242,8 @@ export default defineMatrix(
     ],
   ],
   {
-    exclude: ({ provider, providerFeatures }) => provider === 'sqlite' && providerFeatures === 'improvedQueryRaw',
+    exclude: ({ provider, providerFeatures }) =>
+      provider === Providers.SQLITE && providerFeatures === 'improvedQueryRaw',
   },
 )
 ```

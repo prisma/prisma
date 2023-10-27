@@ -1,6 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
-import { ProviderFlavors } from '../../_utils/providers'
+import { ProviderFlavors, Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -108,7 +108,7 @@ testMatrix.setupTestSuite(
 
     test('select * via queryRawUnsafe', async () => {
       let result: any[] = []
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRawUnsafe(`
           SELECT * FROM User WHERE age >= ${45} AND age <= ${60}
         `)
@@ -140,9 +140,9 @@ testMatrix.setupTestSuite(
 
     test('select * via queryRawUnsafe with values', async () => {
       let result: any[] = []
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM User WHERE age >= ? AND age <= ?`, 45, 60)
-      } else if (provider === 'sqlserver') {
+      } else if (provider === Providers.SQLSERVER) {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM "User" WHERE age >= @P1 AND age <= @P2`, 45, 60)
       } else {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM "User" WHERE age >= $1 AND age <= $2`, 45, 60)
@@ -170,7 +170,7 @@ testMatrix.setupTestSuite(
 
     test('select * via queryRaw', async () => {
       let result: any[] = []
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRaw`
           SELECT * FROM User WHERE age >= ${45} AND age <= ${60}
         `
@@ -203,7 +203,7 @@ testMatrix.setupTestSuite(
     test('select fields via queryRaw using Prisma.join', async () => {
       let result: any[] = []
 
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRaw`
           SELECT ${Prisma.join([
             Prisma.raw('age'),
@@ -242,7 +242,7 @@ testMatrix.setupTestSuite(
     test('select fields via queryRaw using Prisma.join and Prisma.sql', async () => {
       let result: any[] = []
 
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRaw(Prisma.sql`
           SELECT ${Prisma.join([
             Prisma.raw('age'),

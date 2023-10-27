@@ -1,10 +1,10 @@
 import { expectTypeOf } from 'expect-type'
 
 import { Prisma as PrismaDefault } from '../../../extension'
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
-import { Providers } from '../_utils/providers'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -562,9 +562,9 @@ testMatrix.setupTestSuite(() => {
       expectTypeOf<typeof _create>().toEqualTypeOf<typeof create>()
 
       const _createMany = xprisma.user._createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
-      // @ts-test-if: provider !== 'sqlite'
+      // @ts-test-if: provider !== Providers.SQLITE
       const createMany = await xprisma.user.createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
-      // @ts-test-if: provider !== 'sqlite'
+      // @ts-test-if: provider !== Providers.SQLITE
       expectTypeOf<typeof _createMany>().toEqualTypeOf<typeof createMany>()
 
       const _delete = xprisma.user._delete({ where: { id: '1' } })

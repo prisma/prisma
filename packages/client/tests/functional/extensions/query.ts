@@ -2,13 +2,13 @@ import { assertNever } from '@prisma/internals'
 import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import { wait } from '../_utils/tests/wait'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './node_modules/@prisma/client'
-import { Providers } from '../_utils/providers'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let Prisma: typeof PrismaNamespace
@@ -731,7 +731,7 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
-              // @ts-test-if: provider !== 'sqlite' && provider !== Providers.MONGODB
+              // @ts-test-if: provider !== Providers.SQLITE && provider !== Providers.MONGODB
               expectTypeOf(operation).toEqualTypeOf<
                 | 'findUnique'
                 | 'findUniqueOrThrow'
@@ -796,7 +796,7 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
-              // @ts-test-if: provider !== 'sqlite' && provider !== Providers.MONGODB
+              // @ts-test-if: provider !== Providers.SQLITE && provider !== Providers.MONGODB
               expectTypeOf(operation).toEqualTypeOf<
                 | 'findUnique'
                 | 'findUniqueOrThrow'
@@ -942,7 +942,7 @@ testMatrix.setupTestSuite(
       expect(result.fullName).toBe('From Query')
     })
 
-    testIf(provider !== 'sqlite')('top-level raw queries interception', async () => {
+    testIf(provider !== Providers.SQLITE)('top-level raw queries interception', async () => {
       const fnEmitter = jest.fn()
       const fnUser = jest.fn()
 
@@ -1228,13 +1228,13 @@ testMatrix.setupTestSuite(
                 return data
               },
 
-              // @ts-test-if: provider !== 'sqlite'
+              // @ts-test-if: provider !== Providers.SQLITE
               async createMany({ args, query, operation }) {
                 const data = await query(args)
 
-                // @ts-test-if: provider !== 'sqlite'
+                // @ts-test-if: provider !== Providers.SQLITE
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
-                // @ts-test-if: provider !== 'sqlite'
+                // @ts-test-if: provider !== Providers.SQLITE
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
@@ -1378,14 +1378,14 @@ testMatrix.setupTestSuite(
                   return data
                 }
 
-                // @ts-test-if: provider !== 'sqlite'
+                // @ts-test-if: provider !== Providers.SQLITE
                 if (operation === 'createMany') {
-                  // @ts-test-if: provider !== 'sqlite'
+                  // @ts-test-if: provider !== Providers.SQLITE
                   const data = await query(args)
 
-                  // @ts-test-if: provider !== 'sqlite'
+                  // @ts-test-if: provider !== Providers.SQLITE
                   expectTypeOf(operation).toEqualTypeOf<'createMany'>()
-                  // @ts-test-if: provider !== 'sqlite'
+                  // @ts-test-if: provider !== Providers.SQLITE
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
@@ -1536,14 +1536,14 @@ testMatrix.setupTestSuite(
 
                   return data
                 }
-                // @ts-test-if: provider !== 'sqlite'
+                // @ts-test-if: provider !== Providers.SQLITE
                 if (model === 'User' && operation === 'createMany') {
-                  // @ts-test-if: provider !== 'sqlite'
+                  // @ts-test-if: provider !== Providers.SQLITE
                   const data = await query(args)
 
-                  // @ts-test-if: provider !== 'sqlite'
+                  // @ts-test-if: provider !== Providers.SQLITE
                   expectTypeOf(operation).toEqualTypeOf<'createMany'>()
-                  // @ts-test-if: provider !== 'sqlite'
+                  // @ts-test-if: provider !== Providers.SQLITE
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
@@ -1694,15 +1694,15 @@ testMatrix.setupTestSuite(
                 return data
               },
 
-              // @ts-test-if: provider !== 'sqlite'
+              // @ts-test-if: provider !== Providers.SQLITE
               async createMany({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
                 const data = await query(args)
 
-                // @ts-test-if: provider !== 'sqlite'
+                // @ts-test-if: provider !== Providers.SQLITE
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
-                // @ts-test-if: provider !== 'sqlite'
+                // @ts-test-if: provider !== Providers.SQLITE
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
@@ -1840,7 +1840,7 @@ testMatrix.setupTestSuite(
                 return data
               },
               // TODO not sure why it is not failing here on SQLite
-              // @ts-test-if: provider === Providers.MONGODB || provider === 'sqlite'
+              // @ts-test-if: provider === Providers.MONGODB || provider === Providers.SQLITE
               async aggregateRaw({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 

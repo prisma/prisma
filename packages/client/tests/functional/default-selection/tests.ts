@@ -1,9 +1,9 @@
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
-import { Providers } from '../_utils/providers'
 
 declare let prisma: PrismaClient
 
@@ -16,15 +16,15 @@ testMatrix.setupTestSuite(({ provider }) => {
       },
     }
 
-    if (provider !== 'sqlite' && provider !== 'sqlserver') {
-      // @ts-test-if: provider !== 'sqlite' && provider !== 'sqlserver'
+    if (provider !== Providers.SQLITE && provider !== Providers.SQLSERVER) {
+      // @ts-test-if: provider !== Providers.SQLITE && provider !== Providers.SQLSERVER
       input.enum = 'A'
     }
 
-    if (provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB) {
-      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB
+    if (provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB) {
+      // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
       input.list = ['Hello', 'world']
-      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB
+      // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
       input.enumList = ['A', 'B']
     }
 
@@ -51,29 +51,29 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(model).not.toHaveProperty('relation')
   })
 
-  testIf(provider !== 'sqlite' && provider !== 'sqlserver')('includes enums', async () => {
+  testIf(provider !== Providers.SQLITE && provider !== Providers.SQLSERVER)('includes enums', async () => {
     const model = await prisma.model.findFirstOrThrow()
 
-    // @ts-test-if: provider !== 'sqlite' && provider !== 'sqlserver'
+    // @ts-test-if: provider !== Providers.SQLITE && provider !== Providers.SQLSERVER
     expect(model.enum).toBeDefined()
   })
 
-  testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB)(
+  testIf(provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB)(
     'includes lists',
     async () => {
       const model = await prisma.model.findFirstOrThrow()
 
-      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB
+      // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
       expect(model.list).toBeDefined()
     },
   )
 
-  testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB)(
+  testIf(provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB)(
     'includes enum lists',
     async () => {
       const model = await prisma.model.findFirstOrThrow()
 
-      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB
+      // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
       expect(model.enumList).toBeDefined()
     },
   )

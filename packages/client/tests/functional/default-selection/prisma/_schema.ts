@@ -6,11 +6,11 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
   const fields: string[] = []
   const declarations: string[] = []
 
-  if (provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB) {
+  if (provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB) {
     fields.push('list String[]')
   }
 
-  if (provider !== 'sqlite' && provider !== 'sqlserver') {
+  if (provider !== Providers.SQLITE && provider !== Providers.SQLSERVER) {
     declarations.push(/* Prisma */ `
     enum Enum {
       A
@@ -19,7 +19,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
 
     fields.push('enum Enum')
 
-    if (provider !== 'mysql') {
+    if (provider !== Providers.MYSQL) {
       fields.push('enumList Enum[]')
     }
   }
