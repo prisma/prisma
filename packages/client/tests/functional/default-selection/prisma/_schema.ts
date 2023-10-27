@@ -1,11 +1,12 @@
 import { foreignKeyForProvider, idForProvider } from '../../_utils/idForProvider'
+import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
   const fields: string[] = []
   const declarations: string[] = []
 
-  if (provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb') {
+  if (provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB) {
     fields.push('list String[]')
   }
 
@@ -23,7 +24,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
     }
   }
 
-  if (provider === 'mongodb') {
+  if (provider === Providers.MONGODB) {
     declarations.push(/* Prisma */ `
     type Composite {
       value String

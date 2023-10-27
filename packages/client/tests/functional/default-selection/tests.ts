@@ -3,6 +3,7 @@ import { expectTypeOf } from 'expect-type'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import { Providers } from '../_utils/providers'
 
 declare let prisma: PrismaClient
 
@@ -20,15 +21,15 @@ testMatrix.setupTestSuite(({ provider }) => {
       input.enum = 'A'
     }
 
-    if (provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb') {
-      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
+    if (provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB) {
+      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB
       input.list = ['Hello', 'world']
-      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
+      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB
       input.enumList = ['A', 'B']
     }
 
-    if (provider === 'mongodb') {
-      // @ts-test-if: provider === 'mongodb'
+    if (provider === Providers.MONGODB) {
+      // @ts-test-if: provider === Providers.MONGODB
       input.composite = { value: 'I am composite' }
     }
 
@@ -57,30 +58,30 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(model.enum).toBeDefined()
   })
 
-  testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb')(
+  testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB)(
     'includes lists',
     async () => {
       const model = await prisma.model.findFirstOrThrow()
 
-      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
+      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB
       expect(model.list).toBeDefined()
     },
   )
 
-  testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb')(
+  testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB)(
     'includes enum lists',
     async () => {
       const model = await prisma.model.findFirstOrThrow()
 
-      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
+      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === Providers.MONGODB
       expect(model.enumList).toBeDefined()
     },
   )
 
-  testIf(provider === 'mongodb')('includes composites', async () => {
+  testIf(provider === Providers.MONGODB)('includes composites', async () => {
     const model = await prisma.model.findFirstOrThrow()
 
-    // @ts-test-if: provider === 'mongodb'
+    // @ts-test-if: provider === Providers.MONGODB
     expect(model.composite).toBeDefined()
   })
 })

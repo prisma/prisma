@@ -465,7 +465,7 @@ testMatrix.setupTestSuite(
 
     describeIf(provider !== Providers.MONGODB)('tracing on $raw methods', () => {
       test('$queryRaw', async () => {
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         await prisma.$queryRaw`SELECT 1 + 1;`
         await waitForSpanTree(
           operation(undefined, 'queryRaw', [
@@ -481,7 +481,7 @@ testMatrix.setupTestSuite(
           return
         }
 
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         await prisma.$executeRaw`SELECT 1 + 1;`
 
         await waitForSpanTree(

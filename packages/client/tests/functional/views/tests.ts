@@ -35,7 +35,7 @@ testMatrix.setupTestSuite(
       if (isMongoDb) {
         // alterStatement doesn't work with mongodb because
         // - no support for DbExecute
-        // @ts-test-if: provider === 'mongodb'
+        // @ts-test-if: provider === Providers.MONGODB
         await prisma.$runCommandRaw({
           create: 'UserInfo',
           viewOn: 'User',

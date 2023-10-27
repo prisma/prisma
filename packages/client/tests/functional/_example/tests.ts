@@ -4,6 +4,7 @@ import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
+import { Providers } from '../_utils/providers'
 
 declare let prisma: PrismaClient
 
@@ -54,8 +55,8 @@ testMatrix.setupTestSuite(
       expect(schemaString).toContain('model')
     })
 
-    testIf(suiteConfig.provider !== 'mongodb')('conditional @ts-test-if', async () => {
-      // @ts-test-if: provider !== 'mongodb'
+    testIf(suiteConfig.provider !== Providers.MONGODB)('conditional @ts-test-if', async () => {
+      // @ts-test-if: provider !== Providers.MONGODB
       await prisma.$queryRaw`SELECT 1;`
     })
   },

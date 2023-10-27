@@ -5,6 +5,7 @@ import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import { Providers } from '../_utils/providers'
 
 declare let Prisma: typeof PrismaNamespace
 let prisma: PrismaClient
@@ -331,7 +332,7 @@ testMatrix.setupTestSuite(
       `)
     })
 
-    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
+    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods',
       async () => {
         const fnEmitter = jest.fn()
@@ -371,7 +372,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
+    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods and query',
       async () => {
         const fnEmitter = jest.fn()

@@ -136,7 +136,7 @@ export async function setupTestSuiteDatabase(
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
 
-      if (provider === 'mongodb') {
+      if (provider === Providers.MONGODB) {
         throw new Error('DbExecute not supported with mongodb')
       }
 

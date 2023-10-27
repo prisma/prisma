@@ -158,14 +158,14 @@ testMatrix.setupTestSuite(({ provider }) => {
           [
             '$queryRaw',
             () => {
-              // @ts-test-if: provider !== 'mongodb'
+              // @ts-test-if: provider !== Providers.MONGODB
               return prisma.$queryRaw`SELECT 1 + 1;`
             },
           ],
           [
             '$queryRawUnsafe',
             () => {
-              // @ts-test-if: provider !== 'mongodb'
+              // @ts-test-if: provider !== Providers.MONGODB
               return prisma.$queryRawUnsafe(`SELECT 1 + 1;`)
             },
           ],
@@ -174,14 +174,14 @@ testMatrix.setupTestSuite(({ provider }) => {
                 [
                   '$executeRaw',
                   () => {
-                    // @ts-test-if: provider !== 'mongodb'
+                    // @ts-test-if: provider !== Providers.MONGODB
                     return prisma.$executeRaw`SELECT 1 + 1;`
                   },
                 ],
                 [
                   '$executeRawUnsafe',
                   () => {
-                    // @ts-test-if: provider !== 'mongodb'
+                    // @ts-test-if: provider !== Providers.MONGODB
                     return prisma.$executeRawUnsafe(`SELECT 1 + 1;`)
                   },
                 ],
@@ -194,7 +194,7 @@ testMatrix.setupTestSuite(({ provider }) => {
           [
             '$runCommandRaw',
             () => {
-              // @ts-test-if: provider === 'mongodb'
+              // @ts-test-if: provider === Providers.MONGODB
               return prisma.$runCommandRaw({
                 aggregate: 'User',
                 pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],

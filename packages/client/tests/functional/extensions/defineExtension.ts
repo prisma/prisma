@@ -4,6 +4,7 @@ import { Prisma as PrismaDefault } from '../../../extension'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import { Providers } from '../_utils/providers'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -619,45 +620,45 @@ testMatrix.setupTestSuite(() => {
       expectTypeOf<typeof _upsert>().toEqualTypeOf<typeof upsert>()
 
       const _findRaw = xprisma.user._findRaw({})
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       const findRaw = await prisma.user.findRaw({})
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       expectTypeOf<typeof _findRaw>().toEqualTypeOf<typeof findRaw>()
 
       const _aggregateRaw = xprisma.user._aggregateRaw({})
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       const aggregateRaw = await prisma.user.aggregateRaw({})
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       expectTypeOf<typeof _aggregateRaw>().toEqualTypeOf<typeof aggregateRaw>()
 
       const _runCommandRaw = xprisma._$runCommandRaw({})
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       const runCommandRaw = await prisma.$runCommandRaw({})
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       expectTypeOf<typeof _runCommandRaw>().toEqualTypeOf<typeof runCommandRaw>()
 
       const _executeRaw = xprisma._$executeRaw([])
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       const executeRaw = await prisma.$executeRaw([] as any as TemplateStringsArray)
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf<typeof _executeRaw>().toEqualTypeOf<typeof executeRaw>()
 
       const _executeRawUnsafe = xprisma._$executeRawUnsafe('')
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       const executeRawUnsafe = await prisma.$executeRawUnsafe('')
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf<typeof _executeRawUnsafe>().toEqualTypeOf<typeof executeRawUnsafe>()
 
       const _queryRaw = xprisma._$queryRaw([])
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       const queryRaw = await prisma.$queryRaw([] as any as TemplateStringsArray)
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf<typeof _queryRaw>().toEqualTypeOf<typeof queryRaw>()
 
       const _queryRawUnsafe = xprisma._$queryRawUnsafe('')
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       const queryRawUnsafe = await prisma.$queryRawUnsafe('')
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf<typeof _queryRawUnsafe>().toEqualTypeOf<typeof queryRawUnsafe>()
     }
   })

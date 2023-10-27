@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker'
 import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
-import { ProviderFlavors } from '../_utils/providers'
+import { ProviderFlavors, Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -230,14 +230,14 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
   })
 
   // TODO Fails with: UNIQUE constraint failed: User.email
-  testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL && provider !== 'mongodb')(
+  testIf(providerFlavor !== ProviderFlavors.JS_LIBSQL && provider !== Providers.MONGODB)(
     'itx works with extended client + queryRawUnsafe',
     async () => {
       const xprisma = prisma.$extends({})
 
       await expect(
         xprisma.$transaction((tx) => {
-          // @ts-test-if: provider !== 'mongodb'
+          // @ts-test-if: provider !== Providers.MONGODB
           return tx.$queryRawUnsafe('SELECT 1')
         }),
       ).resolves.not.toThrow()
@@ -348,7 +348,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
     ;async () => {
       const xprisma = prisma.$extends({})
 
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       const data = await xprisma.$transaction(
         () => {
           return Promise.resolve(42)
@@ -358,7 +358,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _, clientMeta) => {
         },
       )
 
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf(data).toEqualTypeOf<number>()
     }
   })
