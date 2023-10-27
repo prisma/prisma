@@ -19,7 +19,7 @@
   "sideEffects": false,
   "dependencies": {},
   "devDependencies": {
-    "@planetscale/database": "^1.11.0",
+    "@planetscale/database": "1.11.0",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*"
   },

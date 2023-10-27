@@ -183,7 +183,7 @@ importers:
         specifier: 9.6.0
         version: 9.6.0
       tsup:
-        specifier: ^7.2.0
+        specifier: 7.2.0
         version: 7.2.0(ts-node@10.9.1)(typescript@5.2.2)
       tty-browserify:
         specifier: 0.0.1
@@ -216,7 +216,7 @@ importers:
   packages/adapter-neon:
     devDependencies:
       '@neondatabase/serverless':
-        specifier: ^0.6.0
+        specifier: 0.6.0
         version: 0.6.0
       '@prisma/debug':
         specifier: workspace:*
@@ -225,7 +225,7 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       postgres-array:
-        specifier: ^3.0.2
+        specifier: 3.0.2
         version: 3.0.2
 
   packages/adapter-pg:
@@ -237,19 +237,19 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@types/pg':
-        specifier: ^8.10.2
+        specifier: 8.10.2
         version: 8.10.2
       pg:
-        specifier: ^8.11.3
+        specifier: 8.11.3
         version: 8.11.3
       postgres-array:
-        specifier: ^3.0.2
+        specifier: 3.0.2
         version: 3.0.2
 
   packages/adapter-planetscale:
     devDependencies:
       '@planetscale/database':
-        specifier: ^1.11.0
+        specifier: 1.11.0
         version: 1.11.0
       '@prisma/debug':
         specifier: workspace:*
@@ -650,8 +650,8 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
       undici:
-        specifier: 5.26.5
-        version: 5.26.5
+        specifier: 5.27.0
+        version: 5.27.0
       yeoman-generator:
         specifier: 5.10.0
         version: 5.10.0
@@ -13188,8 +13188,8 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  /undici@5.26.5:
-    resolution: {integrity: sha512-cSb4bPFd5qgR7qr2jYAi0hlX9n5YKK2ONKkLFkxl+v/9BvC0sOpZjBHDBSXc5lWAf5ty9oZdRXytBIHzgUcerw==}
+  /undici@5.27.0:
+    resolution: {integrity: sha512-l3ydWhlhOJzMVOYkymLykcRRXqbUaQriERtR70B9LzNkZ4bX52Fc8wbTDneMiwo8T+AemZXvXaTx+9o5ROxrXg==}
     engines: {node: '>=14.0'}
     dependencies:
       '@fastify/busboy': 2.0.0
