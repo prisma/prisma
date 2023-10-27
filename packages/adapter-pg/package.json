@@ -17,12 +17,13 @@
   "author": "Tom Houlé <houle@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": false,
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
+    "postgres-array": "3.0.2"
+  },
+  "devDependencies": {
     "@types/pg": "8.10.2",
-    "postgres-array": "3.0.2",
     "pg": "8.11.3"
   },
   "peerDependencies": {

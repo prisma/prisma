@@ -17,12 +17,13 @@
   "author": "Alexey Orlenko <orlenko@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": false,
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "@libsql/client": "0.3.5",
     "async-mutex": "0.4.0"
+  },
+  "devDependencies": {
+    "@libsql/client": "0.3.5"
   },
   "peerDependencies": {
     "@libsql/client": "^0.3.5"

@@ -17,11 +17,12 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": false,
-  "dependencies": {},
-  "devDependencies": {
-    "@planetscale/database": "1.11.0",
+  "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@planetscale/database": "1.11.0"
   },
   "peerDependencies": {
     "@planetscale/database": "^1.11.0"

@@ -1,4 +1,4 @@
 import { build } from '../../../helpers/compile/build'
-import { driverAdapterConfig } from '../../../helpers/compile/configs'
+import { adapterConfig } from '../../../helpers/compile/configs'
 
-void build(driverAdapterConfig)
+void build(adapterConfig)

@@ -1,6 +1,6 @@
 import { BuildOptions } from './build'
 
-export const driverAdapterConfig: BuildOptions[] = [
+export const adapterConfig: BuildOptions[] = [
   {
     name: 'cjs',
     format: 'cjs',
@@ -9,6 +9,7 @@ export const driverAdapterConfig: BuildOptions[] = [
     outfile: 'dist/index',
     outExtension: { '.js': '.js' },
     emitTypes: true,
+    packages: 'external',
   },
   {
     name: 'esm',
@@ -18,5 +19,6 @@ export const driverAdapterConfig: BuildOptions[] = [
     outfile: 'dist/index',
     outExtension: { '.js': '.mjs' },
     emitTypes: false,
+    packages: 'external',
   },
 ]
