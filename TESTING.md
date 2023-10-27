@@ -345,7 +345,7 @@ correct code for one suite config won't pass type checks for a different one. In
 can use `@ts-test-if` magical comment to conditionally skip type checks. For example:
 
 ```ts
-// @ts-test-if: provider !== 'mongodb'
+// @ts-test-if: provider !== Providers.MONGODB
 prisma.$queryRaw`...`
 ```
 
