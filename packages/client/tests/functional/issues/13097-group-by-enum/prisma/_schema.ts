@@ -18,7 +18,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model Resource {
-      id        ${idForProvider(provider as Providers)}
+      id        ${idForProvider(provider)}
       enumValue Enum?
       ${provider !== Providers.MYSQL ? `enumArray Enum[]` : ''}
     }
