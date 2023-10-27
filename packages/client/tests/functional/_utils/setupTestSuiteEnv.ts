@@ -77,19 +77,12 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
  */
 function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
   const script = new Script(`
-  const Providers = {
-    SQLITE: 'sqlite',
-    POSTGRESQL: 'postgresql',
-    MYSQL: 'mysql',
-    MONGODB: 'mongodb',
-    COCKROACHDB: 'cockroachdb',
-    SQLSERVER: 'sqlserver',
-  }
-  
   ${conditionFromComment}
   `)
+
   const value = script.runInNewContext({
     ...suiteConfig,
+    Providers,
   })
   return Boolean(value)
 }
