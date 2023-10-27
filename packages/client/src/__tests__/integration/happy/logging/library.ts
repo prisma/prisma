@@ -1,4 +1,4 @@
-import { getClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { getTestClient } from '../../../../utils/getTestClient'
