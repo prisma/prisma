@@ -2,5 +2,6 @@
   "extends": "../../tsconfig.build.regular.json",
   "compilerOptions": {
     "outDir": "declaration"
-  }
+  },
+  "include": ["src"]
 }
