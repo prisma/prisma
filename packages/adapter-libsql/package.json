@@ -6,9 +6,8 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup ./src/index.ts --format cjs,esm --dts",
-    "lint": "tsc -p ./tsconfig.build.json",
-    "test": "node --loader tsx --test tests/*.test.mts"
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts"
   },
   "files": [
     "dist",
@@ -18,12 +17,12 @@
   "author": "Alexey Orlenko <orlenko@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": false,
-  "dependencies": {
-    "@prisma/driver-adapter-utils": "workspace:*",
-    "async-mutex": "0.4.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@libsql/client": "0.3.5"
+    "@prisma/debug": "workspace:*",
+    "@prisma/driver-adapter-utils": "workspace:*",
+    "@libsql/client": "0.3.5",
+    "async-mutex": "0.4.0"
   },
   "peerDependencies": {
     "@libsql/client": "^0.3.5"

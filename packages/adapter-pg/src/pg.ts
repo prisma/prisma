@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
+import { Debug } from '@prisma/debug'
 import type {
   DriverAdapter,
   Query,
@@ -8,7 +9,7 @@ import type {
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+import { err, ok } from '@prisma/driver-adapter-utils'
 import type pg from 'pg'
 
 import { fieldToColumnType } from './conversion'

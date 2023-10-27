@@ -6,8 +6,8 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup ./src/index.ts --format cjs,esm --dts",
-    "lint": "tsc -p ./tsconfig.build.json"
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts"
   },
   "files": [
     "dist",
@@ -17,10 +17,6 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": false,
-  "dependencies": {
-    "debug": "^4.3.4"
-  },
-  "devDependencies": {
-    "@types/debug": "^4.1.8"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }

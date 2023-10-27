@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.build.adapters.json",
+  "extends": "../../tsconfig.build.regular.json",
   "compilerOptions": {
     "outDir": "declaration"
   }
