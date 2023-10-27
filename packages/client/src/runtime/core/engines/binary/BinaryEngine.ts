@@ -86,7 +86,8 @@ export class BinaryEngine extends Engine<undefined> {
   private stderrLogs = ''
   private currentRequestPromise?: any
   private platformPromise?: Promise<Platform>
-  private platform?: Platform | String
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+  private platform?: Platform | string
   private datasourceOverrides?: { name: string; url: string }[]
   private startPromise?: Promise<void>
   private versionPromise?: Promise<string>
