@@ -3,7 +3,10 @@
 exports[`version basic version (Node-API) 1`] = `
 prisma                  : 0.0.0
 @prisma/client          : Not found
-Current platform        : TEST_PLATFORM
+Computed binaryTarget   : TEST_PLATFORM
+Operating System        : TEST_PLATFORM
+Architecture            : TEST_PLATFORM64
+Node.js                 : NODEJS_VERSION
 Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
 Schema Engine           : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
 Schema Wasm             : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
@@ -25,7 +28,10 @@ Studio                : STUDIO_VERSION
 exports[`version version with custom binaries (Node-API) 1`] = `
 prisma                  : 0.0.0
 @prisma/client          : Not found
-Current platform        : TEST_PLATFORM
+Computed binaryTarget   : TEST_PLATFORM
+Operating System        : TEST_PLATFORM
+Architecture            : TEST_PLATFORM64
+Node.js                 : NODEJS_VERSION
 Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node, resolved by PRISMA_QUERY_ENGINE_LIBRARY)
 Schema Engine           : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM, resolved by PRISMA_SCHEMA_ENGINE_BINARY)
 Schema Wasm             : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
