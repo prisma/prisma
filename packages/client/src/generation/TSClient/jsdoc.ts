@@ -5,7 +5,6 @@ import { capitalize, lowerCase } from '../utils/common'
 
 export interface JSDocMethodBodyCtx {
   singular: string
-  plural: string
   firstScalar: DMMF.Field | undefined
   method: string
   model: DMMF.Model
@@ -92,10 +91,10 @@ const ${ctx.singular} = await ${ctx.method}({
     },
   },
   createMany: {
-    body: (ctx) => `Create many ${ctx.plural}.
-    @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many ${ctx.plural}.
+    body: (ctx) => `Create many ${ctx.singular}.
+    @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many ${ctx.singular}.
     @example
-    // Create many ${ctx.plural}
+    // Create many ${ctx.singular}
     const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
       data: {
         // ... provide data here
@@ -189,15 +188,15 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
           }: true } })`
         : ''
 
-      return `Find zero or more ${ctx.plural} that matches the filter.
+      return `Find zero or more ${ctx.singular} that matches the filter.
 ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}=} args - Arguments to filter and select certain fields only.
 @example
-// Get all ${ctx.plural}
-const ${ctx.mapping.plural} = await ${ctx.method}()
+// Get all ${ctx.model}
+const ${ctx.mapping.model} = await ${ctx.method}()
 
-// Get first 10 ${ctx.plural}
-const ${ctx.mapping.plural} = await ${ctx.method}({ take: 10 })
+// Get first 10 ${ctx.singular}
+const ${ctx.mapping.model} = await ${ctx.method}({ take: 10 })
 ${onlySelect}
 `
     },
@@ -316,25 +315,25 @@ const aggregations = await prisma.user.aggregate({
   },
   count: {
     body: (ctx) =>
-      `Count the number of ${ctx.plural}.
+      `Count the number of ${ctx.singular}.
 ${undefinedNote}
-@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter ${ctx.plural} to count.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter ${ctx.singular} to count.
 @example
-// Count the number of ${ctx.plural}
+// Count the number of ${ctx.singular}
 const count = await ${ctx.method}({
   where: {
-    // ... the filter for the ${ctx.plural} we want to count
+    // ... the filter for the ${ctx.singular} we want to count
   }
 })`,
     fields: {},
   },
   updateMany: {
     body: (ctx) =>
-      `Update zero or more ${ctx.plural}.
+      `Update zero or more ${ctx.singular}.
 ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one or more rows.
 @example
-// Update many ${ctx.plural}
+// Update many ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   where: {
     // ... provide filter here
@@ -351,10 +350,10 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   },
   deleteMany: {
     body: (ctx) =>
-      `Delete zero or more ${ctx.plural}.
-@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter ${ctx.plural} to delete.
+      `Delete zero or more ${ctx.singular}.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter ${ctx.singular} to delete.
 @example
-// Delete a few ${ctx.plural}
+// Delete a few ${ctx.singular}
 const { count } = await ${ctx.method}({
   where: {
     // ... provide filter here
@@ -385,7 +384,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   },
   findRaw: {
     body: (ctx) =>
-      `Find zero or more ${ctx.plural} that matches the filter.
+      `Find zero or more ${ctx.singular} that matches the filter.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which filters you would like to apply.
 @example
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({

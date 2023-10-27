@@ -195,7 +195,6 @@ export namespace DMMF {
 
   export interface ModelMapping {
     model: string
-    plural: string
     findUnique?: string | null
     findUniqueOrThrow?: string | null
     findFirst?: string | null
