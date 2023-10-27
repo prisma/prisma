@@ -330,7 +330,7 @@ async function binaryNeedsToBeDownloaded(
   return false
 }
 
-export async function getVersion(enginePath: string, binaryName: BinaryType) {
+export async function getVersion(enginePath: string, binaryName: string) {
   try {
     if (binaryName === BinaryType.QueryEngineLibrary) {
       assertNodeAPISupported()
