@@ -53,7 +53,7 @@ describe('canConnectToDatabase', () => {
       Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
       }
     `)
-  }, 10000)
+  }, 10_000)
 })
 
 describe('createDatabase', () => {
@@ -95,7 +95,7 @@ describe('createDatabase', () => {
 
             Please make sure your database server is running at \`doesnotexist\`:\`5432\`."
           `)
-  }, 30000)
+  }, 30_000)
 
   test('postgresql - database already exists', async () => {
     const uri = process.env.TEST_POSTGRES_URI!

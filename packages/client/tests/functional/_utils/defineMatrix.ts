@@ -1,7 +1,7 @@
 import { U } from 'ts-toolbelt'
 
 import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { ProviderFlavors, RelationModes } from './providers'
+import { ProviderFlavors, Providers, RelationModes } from './providers'
 import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -22,12 +22,12 @@ type DefineMatrixOptions<MatrixT extends TestSuiteMatrix> = {
  */
 type TestsFactoryFn<MatrixT extends TestSuiteMatrix> = (
   suiteConfig: MergedMatrixParams<MatrixT> & {
+    provider: Providers
     providerFlavor?: ProviderFlavors
     relationMode?: RelationModes
   },
   suiteMeta: TestCallbackSuiteMeta,
   clientMeta: ClientMeta,
-  setupDatabase: () => Promise<void>,
 ) => void
 
 export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {

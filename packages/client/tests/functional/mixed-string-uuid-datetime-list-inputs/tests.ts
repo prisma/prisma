@@ -70,10 +70,5 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'mysql', 'sqlserver'],
       reason: 'Scalar lists are not supported in all databases',
     },
-    skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
-      reason:
-        "scalar lists, here a string array, don't work yet. Error: Unsupported column type: 1009 - tracked in https://github.com/prisma/team-orm/issues/374",
-    },
   },
 )
