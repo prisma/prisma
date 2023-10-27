@@ -19,10 +19,10 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "postgres-array": "^3.0.2"
+    "postgres-array": "3.0.2"
   },
   "devDependencies": {
-    "@neondatabase/serverless": "^0.6.0"
+    "@neondatabase/serverless": "0.6.0"
   },
   "peerDependencies": {
     "@neondatabase/serverless": "^0.6.0"

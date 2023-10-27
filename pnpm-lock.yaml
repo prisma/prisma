@@ -183,7 +183,7 @@ importers:
         specifier: 9.6.0
         version: 9.6.0
       tsup:
-        specifier: ^7.2.0
+        specifier: 7.2.0
         version: 7.2.0(ts-node@10.9.1)(typescript@5.2.2)
       tty-browserify:
         specifier: 0.0.1
@@ -217,11 +217,11 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       postgres-array:
-        specifier: ^3.0.2
+        specifier: 3.0.2
         version: 3.0.2
     devDependencies:
       '@neondatabase/serverless':
-        specifier: ^0.6.0
+        specifier: 0.6.0
         version: 0.6.0
 
   packages/adapter-pg:
@@ -230,14 +230,14 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       postgres-array:
-        specifier: ^3.0.2
+        specifier: 3.0.2
         version: 3.0.2
     devDependencies:
       '@types/pg':
-        specifier: ^8.10.2
+        specifier: 8.10.2
         version: 8.10.2
       pg:
-        specifier: ^8.11.3
+        specifier: 8.11.3
         version: 8.11.3
 
   packages/adapter-planetscale:
@@ -247,7 +247,7 @@ importers:
         version: link:../driver-adapter-utils
     devDependencies:
       '@planetscale/database':
-        specifier: ^1.11.0
+        specifier: 1.11.0
         version: 1.11.0
 
   packages/cli:
@@ -688,11 +688,11 @@ importers:
   packages/driver-adapter-utils:
     dependencies:
       debug:
-        specifier: ^4.3.4
+        specifier: 4.3.4
         version: 4.3.4
     devDependencies:
       '@types/debug':
-        specifier: ^4.1.8
+        specifier: 4.1.10
         version: 4.1.10
 
   packages/engines:
@@ -3277,61 +3277,6 @@ packages:
   /@planetscale/database@1.11.0:
     resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
     engines: {node: '>=16'}
-    dev: true
-
-  /@prisma/adapter-libsql@5.5.0(@libsql/client@0.3.6):
-    resolution: {integrity: sha512-OxW2MdwqyTX5JF0/CdsradEDL4JFx2GZMIN3flngTd+FNRWefE0/3rsSD/gdb3XP8ru4nduRD79WEXuCVEK6ng==}
-    peerDependencies:
-      '@libsql/client': ^0.3.5
-    dependencies:
-      '@libsql/client': 0.3.6
-      '@prisma/driver-adapter-utils': 5.5.0
-      async-mutex: 0.4.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/adapter-neon@5.5.0(@neondatabase/serverless@0.6.0):
-    resolution: {integrity: sha512-40GvoXaafaZ5wMmpRPiwLU8WjVe0DluevmlPv87oUD5wfipcCLnxq9UBmdMDsKXn1eIuLzd0cu9BoEiC/Og0KQ==}
-    peerDependencies:
-      '@neondatabase/serverless': ^0.6.0
-    dependencies:
-      '@neondatabase/serverless': 0.6.0
-      '@prisma/driver-adapter-utils': 5.5.0
-      postgres-array: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/adapter-pg@5.5.0(pg@8.11.3):
-    resolution: {integrity: sha512-Cw52butv75j7D/UlS8rAaoKwnxRBxm1YXj6thJMrOgzBf2cptHoXY6EgbFwBqAj/9x9NhvHripuuvU5JSBBDAA==}
-    peerDependencies:
-      pg: ^8.11.3
-    dependencies:
-      '@prisma/driver-adapter-utils': 5.5.0
-      pg: 8.11.3
-      postgres-array: 3.0.2
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/adapter-planetscale@5.5.0(@planetscale/database@1.11.0):
-    resolution: {integrity: sha512-nDv9CzQdI0rlTz+mydmzfESfIiM5EzrAktBouPYBGLFfh9Xd4zDxLM/0Yz8AChbtojQBTdDk9fQ5MVo1iARlgA==}
-    peerDependencies:
-      '@planetscale/database': ^1.11.0
-    dependencies:
-      '@planetscale/database': 1.11.0
-      '@prisma/driver-adapter-utils': 5.5.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/driver-adapter-utils@5.5.0:
-    resolution: {integrity: sha512-2H8Vr8L968h0Fgsf4vvp6VNBNc0wvkynzXAVzNq4kqBBL6sbohaQGtpke7X5GU0kQ1hMVm5zxhW46Ju8xnDJlg==}
-    dependencies:
-      debug: 4.3.4
-    transitivePeerDependencies:
-      - supports-color
     dev: true
 
   /@prisma/engines-version@5.6.0-2.f365956fa36e50f1c89d8ffe3997d512ab2d6fec:
@@ -8646,7 +8591,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.3.95)(@types/node@18.18.6)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.18.6)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
