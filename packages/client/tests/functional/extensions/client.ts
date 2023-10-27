@@ -276,6 +276,10 @@ testMatrix.setupTestSuite(() => {
     })
 
     xprisma.$executeRawCustom(Prisma.sql`SELECT * FROM User`, { extra: true })
+
+    // it will not error on mongo, as the param does not exist, becomes `any`
+    // @ts-test-if: provider === 'mongodb'
+    xprisma.$executeRawCustom(42, { extra: true })
   })
 
   test('raw queries can override their default output types', () => {

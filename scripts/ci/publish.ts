@@ -513,7 +513,7 @@ async function publish() {
   // makes sure that only have 1 publish job running at a time
   let unlock: undefined | (() => void)
   if (process.env.BUILDKITE && args['--publish']) {
-    console.log(`We're in buildkite and will publish, so we will acquire a lock...`)
+    console.info(`Let's try to acquire a lock before continuing. (to avoid concurrent publishing)`)
     const before = Math.round(performance.now())
     // TODO: problem lock might not work for more than 2 jobs
     unlock = await acquireLock(process.env.BUILDKITE_BRANCH)
@@ -607,7 +607,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         console.log(`Let's first do a dry run!`)
         await publishPackages(packages, publishOrder, true, prismaVersion, tag, args['--release'])
         console.log(`Waiting 5 sec so you can check it out first...`)
-        await new Promise((r) => setTimeout(r, 5000))
+        await new Promise((r) => setTimeout(r, 5_000))
       }
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
@@ -707,35 +707,14 @@ async function tagEnginesRepo(
     'prisma-engines',
     `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
   )
+
+  // TODO remove later
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const changelogSanitized = changelog.replace(/"/gm, '\\"').replace(/`/gm, '\\`')
 
-  const remotes = dryRun ? [] : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
-
-  if (!remotes.includes('origin-push')) {
-    const githubToken = process.env.GITHUB_TOKEN
-
-    await run(
-      'prisma-engines',
-      `git remote add origin-push https://${githubToken}@github.com/prisma/prisma-engines.git`,
-      dryRun,
-      true,
-    )
+  if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+    // fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelogSanitized=${changelogSanitized}\n`)
   }
-
-  if (process.env.CI) {
-    await run('.', `git config --global user.email "prismabots@gmail.com"`, dryRun)
-    await run('.', `git config --global user.name "prisma-bot"`, dryRun)
-  }
-
-  /** Tag */
-  await run(
-    'prisma-engines',
-    `git tag -a ${prismaVersion} ${engineVersion} -m "${prismaVersion}" -m "${engineVersion}" -m "${changelogSanitized}"`,
-    dryRun,
-  )
-
-  /** Push */
-  await run(`prisma-engines`, `git push origin-push ${prismaVersion}`, dryRun)
 }
 
 /**

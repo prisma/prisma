@@ -539,7 +539,7 @@ testMatrix.setupTestSuite(() => {
     const data = xprisma.myGenericMethodViaDefault`SELECT * FROM User WHERE id = ${1}`
 
     expectTypeOf<(typeof data)['args']>().toEqualTypeOf<[TemplateStringsArray, number]>()
-    expectTypeOf<(typeof data)['payload']>().toEqualTypeOf<unknown>()
+    expectTypeOf<(typeof data)['payload']>().toEqualTypeOf<any>()
     expectTypeOf<(typeof data)['result']>().toEqualTypeOf<number>()
   })
 
@@ -560,7 +560,6 @@ testMatrix.setupTestSuite(() => {
       const create = await xprisma.user.create({ data: { email: '', firstName: '', lastName: '' } })
       expectTypeOf<typeof _create>().toEqualTypeOf<typeof create>()
 
-      // @ts-test-if: provider !== 'sqlite'
       const _createMany = xprisma.user._createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
       // @ts-test-if: provider !== 'sqlite'
       const createMany = await xprisma.user.createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
@@ -619,14 +618,12 @@ testMatrix.setupTestSuite(() => {
       })
       expectTypeOf<typeof _upsert>().toEqualTypeOf<typeof upsert>()
 
-      // @ts-test-if: provider === 'mongodb'
       const _findRaw = xprisma.user._findRaw({})
       // @ts-test-if: provider === 'mongodb'
       const findRaw = await prisma.user.findRaw({})
       // @ts-test-if: provider === 'mongodb'
       expectTypeOf<typeof _findRaw>().toEqualTypeOf<typeof findRaw>()
 
-      // @ts-test-if: provider === 'mongodb'
       const _aggregateRaw = xprisma.user._aggregateRaw({})
       // @ts-test-if: provider === 'mongodb'
       const aggregateRaw = await prisma.user.aggregateRaw({})
