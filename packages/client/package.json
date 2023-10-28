@@ -173,7 +173,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.6.0-5.6dda9d7a540d41932067b8c8308e086f55f7dded"
+    "@prisma/engines-version": "5.6.0-7.integration-bump-mobc-7278ed291ba8a8b6be9da5f7959a59084a3e19ae"
   },
   "sideEffects": false
 }
