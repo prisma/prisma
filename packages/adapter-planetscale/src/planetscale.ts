@@ -21,8 +21,8 @@ class RollbackError extends Error {
     super('ROLLBACK')
     this.name = 'RollbackError'
 
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, RollbackError)
+    if ((Error as any).captureStackTrace) {
+      (Error as any).captureStackTrace(this, RollbackError)
     }
   }
 }
