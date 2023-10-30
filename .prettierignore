@@ -11,3 +11,4 @@ dist/
 /reproductions
 .idea/
 .vscode/
+*.d.ts

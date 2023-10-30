@@ -1,6 +1,13 @@
 import debug from 'debug'
 
-import { Debug, Debugger } from './types'
+export interface Debugger {
+  (format: any, ...args: any[]): void
+  log: (...args: any[]) => any
+  extend: (namespace: string, delimiter?: string) => Debugger
+  color: string | number
+  enabled: boolean
+  namespace: string
+}
 
 const MAX_LOGS = 100
 
@@ -49,7 +56,17 @@ function debugCall(namespace: string) {
  * that has utility properties on it. We provide our custom {@link debugCall},
  * and expose the original original api as-is.
  */
-const Debug = Object.assign(debugCall, debug as Debug)
+const Debug = Object.assign(
+  debugCall,
+  debug as {
+    (namespace: string): Debugger
+    disable: () => string
+    enable: (namespace: string) => void
+    enabled: (namespace: string) => boolean
+    log: (...args: any[]) => any
+    formatters: Record<string, ((value: any) => string) | undefined>
+  },
+)
 
 /**
  * We can get the logs for all the last {@link MAX_LOGS} ${@link debugCall} that

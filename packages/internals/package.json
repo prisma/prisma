@@ -38,26 +38,21 @@
     "mock-stdin": "1.0.0",
     "ts-node": "10.9.1",
     "typescript": "5.2.2",
-    "yarn": "1.22.19"
-  },
-  "dependencies": {
+    "yarn": "1.22.19",
     "@antfu/ni": "0.21.8",
     "@opentelemetry/api": "1.6.0",
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/prisma-schema-wasm": "5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b",
     "archiver": "6.0.1",
-    "arg": "5.0.2",
     "checkpoint-client": "1.1.27",
     "cli-truncate": "2.1.0",
     "dotenv": "16.0.3",
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
     "find-up": "5.0.0",
-    "fp-ts": "2.16.1",
     "fs-extra": "11.1.1",
     "fs-jetpack": "5.1.0",
     "global-dirs": "3.0.1",
@@ -83,6 +78,11 @@
     "terminal-link": "2.1.1",
     "tmp": "0.2.1",
     "ts-pattern": "5.0.5"
+  },
+  "dependencies": {
+    "@prisma/engines": "workspace:*",
+    "arg": "5.0.2",
+    "fp-ts": "2.16.1"
   },
   "sideEffects": false
 }

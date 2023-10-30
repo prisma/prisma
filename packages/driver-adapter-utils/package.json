@@ -23,9 +23,8 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
+    "@types/debug": "4.1.10",
     "debug": "4.3.4"
   },
-  "devDependencies": {
-    "@types/debug": "4.1.10"
-  }
+  "devDependencies": {}
 }

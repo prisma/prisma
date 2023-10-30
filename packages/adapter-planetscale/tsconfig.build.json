@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.build.regular.json",
+  "extends": "../../tsconfig.build.bundle.json",
   "compilerOptions": {
     "outDir": "declaration"
   },

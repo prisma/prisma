@@ -49,6 +49,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
   plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
+  external: getProjectExternals(options),
 })
 
 /**
@@ -212,5 +213,21 @@ function getOutFile(options: BuildOptions) {
     return `${dirname}/${filename}`
   }
 
+  return undefined
+}
+
+// get the current project externals this helps to mark dependencies as external
+// by having convention in the package.json (dev = bundled, non-dev = external)
+function getProjectExternals(options: BuildOptions) {
+  const pkg = require(`${process.cwd()}/package.json`)
+  const peerDeps = Object.keys(pkg.peerDependencies ?? {})
+  const regDeps = Object.keys(pkg.dependencies ?? {})
+
+  // when bundling, only the devDeps will be bundled
+  if (options.bundle === true) {
+    return [...new Set([...peerDeps, ...regDeps])]
+  }
+
+  // otherwise, no dependency will be ever bundled
   return undefined
 }

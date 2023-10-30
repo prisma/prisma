@@ -72,7 +72,7 @@ const cliBuildConfig: BuildOptions = {
 // we define the config for preinstall
 const preinstallBuildConfig: BuildOptions = {
   name: 'preinstall',
-  entryPoints: ['scripts/preinstall.js'],
+  entryPoints: ['scripts/preinstall.ts'],
   outfile: 'preinstall/index',
   bundle: true,
   emitTypes: false,
