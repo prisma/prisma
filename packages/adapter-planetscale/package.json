@@ -11,8 +11,8 @@
     "directory": "packages/adapter-planetscale"
   },
   "scripts": {
-    "build": "tsup ./src/index.ts --format cjs,esm --dts",
-    "lint": "tsc -p ./tsconfig.build.json"
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts"
   },
   "files": [
     "dist",

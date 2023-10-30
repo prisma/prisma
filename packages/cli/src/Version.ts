@@ -16,8 +16,8 @@ import {
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
-import { match, P } from 'ts-pattern'
 import os from 'os'
+import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
