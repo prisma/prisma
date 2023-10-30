@@ -63,9 +63,9 @@ const cliBuildConfig: BuildOptions = {
   name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
-  external: ['@prisma/engines'],
   plugins: [cliLifecyclePlugin],
   bundle: true,
+  minify: true,
   emitTypes: false,
 }
 
@@ -75,6 +75,7 @@ const preinstallBuildConfig: BuildOptions = {
   entryPoints: ['scripts/preinstall.ts'],
   outfile: 'preinstall/index',
   bundle: true,
+  minify: true,
   emitTypes: false,
 }
 

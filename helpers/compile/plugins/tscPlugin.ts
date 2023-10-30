@@ -92,7 +92,7 @@ export const tscPlugin: (emitTypes?: boolean) => esbuild.Plugin = (emitTypes?: b
           // we remove node types refs as they are a side effect of type bundling
           // removing should be fine and the client should be able to work without
           let dtsContents = await fs.readFile(`${bundlePath}.d.ts`, 'utf-8')
-          dtsContents = dtsContents.replace('/// <reference types="node" />', '')
+          dtsContents = dtsContents.replace(/\/\/\/ <reference types=".*?" \/>/g, '')
           await fs.outputFile(`${bundlePath}.d.ts`, dtsContents)
         } else {
           // in watch mode, it wouldn't be viable to bundle the types every time
