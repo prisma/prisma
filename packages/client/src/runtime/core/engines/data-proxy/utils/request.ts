@@ -45,7 +45,6 @@ export async function request(
       return await customFetch(nodeFetch)(url, options)
     }
   } catch (e) {
-    console.log(url)
     const message = e.message ?? 'Unknown error'
     throw new RequestError(message, { clientVersion })
   }
