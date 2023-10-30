@@ -672,17 +672,21 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     async _transactionWithCallback({
       callback,
-      options,
+      options = {},
     }: {
       callback: (client: Client) => Promise<unknown>
-      options?: Options
+      options?: Options & { newTxId?: string }
     }) {
+      if (this[TX_ID]) {
+        options.newTxId = this[TX_ID]
+      }
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
 
       const optionsWithDefaults: Options = {
         maxWait: options?.maxWait ?? this._engineConfig.transactionOptions.maxWait,
         timeout: options?.timeout ?? this._engineConfig.transactionOptions.timeout,
         isolationLevel: options?.isolationLevel ?? this._engineConfig.transactionOptions.isolationLevel,
+        newTxId: options.newTxId,
       }
       const info = await this._engine.transaction('start', headers, optionsWithDefaults)
 
@@ -693,7 +697,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
         result = await callback(this._createItxClient(transaction))
 
-        // it went well, then we commit the transaction
         await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction

@@ -192,6 +192,10 @@ class D1HttpTransaction extends D1HttpQueryable implements Transaction {
     super(client)
   }
 
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+  }
+
   async commit(): Promise<void> {
     debug(`[js::commit]`)
   }

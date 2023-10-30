@@ -31,10 +31,9 @@ type DefaultLookupError = {
 type DefaultLookupResult =
   | SuccessfulLookupResult
   | {
-      ok: false
-      error: DefaultLookupError
-    }
-
+    ok: false
+    error: DefaultLookupError
+  }
 export type GetSchemaOptions = {
   schemaPath: SchemaPathInput
   cwd?: string

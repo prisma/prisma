@@ -28,6 +28,7 @@ type TransactionWrapper = {
   timeout: number | undefined
   startedAt: number
   transaction?: Transaction
+  depth: number
 } & TransactionState
 
 type TransactionState =
@@ -102,13 +103,22 @@ export class TransactionManager {
   }
 
   async #startTransactionImpl(options: Options): Promise<TransactionInfo> {
+    if (options.newTxId) {
+      const existing = this.transactions.get(options.newTxId)
+      if (existing && ['waiting', 'running', 'closing'].includes(existing.status)) {
+        existing.depth += 1
+        return { id: existing.id }
+      }
+    }
+
     const transaction: TransactionWrapper = {
-      id: await randomUUID(),
+      id: options.newTxId ?? (await randomUUID()),
       status: 'waiting',
       timer: undefined,
       timeout: options.timeout,
       startedAt: Date.now(),
       transaction: undefined,
+      depth: 1,
     }
 
     // Start timeout to wait for transaction to be started.
@@ -168,6 +178,10 @@ export class TransactionManager {
   async commitTransaction(transactionId: string): Promise<void> {
     return await this.tracingHelper.runInChildSpan('commit_transaction', async () => {
       const txw = this.#getActiveOrClosingTransaction(transactionId, 'commit')
+      if (txw.depth > 1) {
+        txw.depth -= 1
+        return
+      }
       await this.#closeTransaction(txw, 'committed')
     })
   }
@@ -175,6 +189,10 @@ export class TransactionManager {
   async rollbackTransaction(transactionId: string): Promise<void> {
     return await this.tracingHelper.runInChildSpan('rollback_transaction', async () => {
       const txw = this.#getActiveOrClosingTransaction(transactionId, 'rollback')
+      if (txw.depth > 1) {
+        // Without savepoints, an inner rollback must abort the whole transaction.
+        txw.depth = 1
+      }
       await this.#closeTransaction(txw, 'rolled_back')
     })
   }

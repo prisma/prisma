@@ -221,10 +221,49 @@ testMatrix.setupTestSuite(
     })
 
     /**
+     * If a parent transaction is rolled back, the child transaction should also rollback.
+     * This is only supported on SQL providers.
+     */
+    testIf(provider !== Providers.MONGODB)('sql: nested rollback', async () => {
+      const email1 = `user_${copycat.uuid(101)}@website.com`
+      const email2 = `user_${copycat.uuid(102)}@website.com`
+
+      await expect(
+        prisma.$transaction(async (tx) => {
+          await tx.user.create({
+            data: {
+              email: email1,
+            },
+          })
+
+          await tx.$transaction(async (tx2) => {
+            await tx2.user.create({
+              data: {
+                email: email2,
+              },
+            })
+          })
+
+          throw new Error('Rollback')
+        }),
+      ).rejects.toThrow(/Rollback/)
+
+      const users = await prisma.user.findMany({
+        where: {
+          email: {
+            in: [email1, email2],
+          },
+        },
+      })
+
+      expect(users).toHaveLength(0)
+    })
+
+    /**
      * We don't allow certain methods to be called in a transaction
      */
     test('forbidden', async () => {
-      const forbidden = ['$connect', '$disconnect', '$on', '$transaction']
+      const forbidden = ['$connect', '$disconnect', '$on', '$use']
       expect.assertions(forbidden.length + 1)
 
       const result = prisma.$transaction((prisma) => {

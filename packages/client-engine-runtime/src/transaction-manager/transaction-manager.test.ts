@@ -33,6 +33,7 @@ class MockDriverAdapter implements SqlDriverAdapter {
   private readonly usePhantomQuery: boolean
 
   executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
+  beginMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
 
@@ -59,6 +60,7 @@ class MockDriverAdapter implements SqlDriverAdapter {
 
   startTransaction(): Promise<Transaction> {
     const executeRawMock = this.executeRawMock
+    const beginMock = this.beginMock
     const commitMock = this.commitMock
     const rollbackMock = this.rollbackMock
     const usePhantomQuery = this.usePhantomQuery
@@ -69,6 +71,7 @@ class MockDriverAdapter implements SqlDriverAdapter {
       options: { usePhantomQuery },
       queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
       executeRaw: executeRawMock,
+      begin: beginMock,
       commit: commitMock,
       rollback: rollbackMock,
     }
@@ -111,6 +114,32 @@ test('transaction executes normally', async () => {
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
+})
+
+test('nested commit only closes at the outermost level', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  const nested = await transactionManager.startTransaction({
+    ...TRANSACTION_OPTIONS,
+    newTxId: id,
+  })
+
+  expect(nested.id).toBe(id)
+
+  // Inner commit should not close the underlying transaction.
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.commitMock).not.toHaveBeenCalled()
+
+  // Outer commit closes.
+  await transactionManager.commitTransaction(id)
+  expect(driverAdapter.commitMock).toHaveBeenCalledTimes(1)
 })
 
 test('transaction is rolled back', async () => {

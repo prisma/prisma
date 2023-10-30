@@ -149,6 +149,11 @@ class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> impleme
     this.#unlockParent = unlockParent
   }
 
+  begin(): Promise<void> {
+    debug(`[js::begin]`)
+    return Promise.resolve()
+  }
+
   commit(): Promise<void> {
     debug(`[js::commit]`)
     this.#unlockParent()

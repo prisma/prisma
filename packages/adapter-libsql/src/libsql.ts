@@ -108,6 +108,10 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     this.#unlockParent = unlockParent
   }
 
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+  }
+
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 

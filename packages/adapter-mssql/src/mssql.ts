@@ -78,6 +78,10 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
     super(transaction)
   }
 
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+  }
+
   async performIO(query: SqlQuery): Promise<ArrayModeResult> {
     const release = await this.#mutex.acquire()
     try {

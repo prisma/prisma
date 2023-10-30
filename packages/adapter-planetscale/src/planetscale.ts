@@ -36,8 +36,7 @@ class RollbackError extends Error {
 }
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
-  implements SqlQueryable
-{
+  implements SqlQueryable {
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
@@ -162,6 +161,12 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     } finally {
       release()
     }
+  }
+
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+
+    return await this.txResultPromise
   }
 
   async commit(): Promise<void> {

@@ -112,6 +112,10 @@ class D1WorkerTransaction extends D1WorkerQueryable<StdClient> implements Transa
     super(client)
   }
 
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+  }
+
   async commit(): Promise<void> {
     debug(`[js::commit]`)
   }
