@@ -5,16 +5,28 @@ import type * as imports from './node_modules/@prisma/client'
 declare let prisma: imports.PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ providerFlavor }) => {
+  ({ provider, providerFlavor }) => {
     const n = 32768
 
     async function generatedIds(n: number) {
       // ["1","2",...,"n"]
       const ids = Array.from({ length: n }, (_, i) => i + 1).map((id) => `${id}`)
+      const idsAsString = ids.map((id) => ({ id, field: '' }))
 
-      await prisma.model.createMany({
-        data: ids.map((id) => ({ id, field: '' })),
-      })
+      if (provider === 'sqlite') {
+        // sqlite doesn't support `createMany` yet!
+        // See: https://github.com/prisma/prisma/issues/10710
+
+        for (const id of ids) {
+          await prisma.model.create({
+            data: { id, field: '' },
+          })
+        }
+      } else {
+        await prisma.model.createMany({
+          data: idsAsString,
+        })
+      }
 
       return ids
     }
