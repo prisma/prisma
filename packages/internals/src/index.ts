@@ -1,3 +1,8 @@
+import * as logger from './logger'
+import * as fsFunctional from './utils/fs-functional'
+import * as fsUtils from './utils/fs-utils'
+import * as wasm from './wasm'
+
 export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
@@ -37,7 +42,7 @@ export { fixBinaryTargets } from './get-generators/utils/fixBinaryTargets'
 export { printGeneratorConfig } from './get-generators/utils/printGeneratorConfig'
 export { getPackedPackage } from './getPackedPackage'
 export { highlightDatamodel, highlightSql, highlightTS } from './highlight/highlight'
-export * as logger from './logger'
+export { logger }
 export type { MigrateTypes } from './migrateTypes'
 export { ErrorArea, isRustPanic, RustPanic } from './panic'
 export { BinaryType } from './resolveBinary'
@@ -58,8 +63,8 @@ export { drawBox } from './utils/drawBox'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 export { formatms } from './utils/formatms'
 export { formatTable } from './utils/formatTable'
-export * as fsFunctional from './utils/fs-functional'
-export * as fsUtils from './utils/fs-utils'
+export { fsFunctional }
+export { fsUtils }
 export { getCommandWithExecutor } from './utils/getCommandWithExecutor'
 export type { EnvPaths } from './utils/getEnvPaths'
 export { getEnvPaths } from './utils/getEnvPaths'
@@ -92,6 +97,7 @@ export type { LoadedEnv } from './utils/tryLoadEnvs'
 export { tryLoadEnvs } from './utils/tryLoadEnvs'
 export { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
 export { warnOnce } from './warnOnce'
-export * as wasm from './wasm'
+
+export { wasm }
 export type { Platform } from '@prisma/get-platform'
 export { getNodeAPIName, getPlatform } from '@prisma/get-platform'
