@@ -1,9 +1,7 @@
 import { PrismaClient } from './node_modules/@prisma/client'
 
 async function main() {
-  const prisma = new PrismaClient({
-    adapter: null,
-  })
+  const prisma = new PrismaClient()
 
   const record = await prisma.test.create({
     data: {
