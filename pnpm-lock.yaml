@@ -1056,6 +1056,9 @@ importers:
       fp-ts:
         specifier: 2.16.1
         version: 2.16.1
+      prompts:
+        specifier: 2.4.2
+        version: 2.4.2
     devDependencies:
       '@antfu/ni':
         specifier: 0.21.8
@@ -1162,9 +1165,6 @@ importers:
       p-map:
         specifier: 4.0.0
         version: 4.0.0
-      prompts:
-        specifier: 2.4.2
-        version: 2.4.2
       read-pkg-up:
         specifier: 7.0.1
         version: 7.0.1
@@ -1210,6 +1210,9 @@ importers:
 
   packages/migrate:
     dependencies:
+      '@prisma/internals':
+        specifier: workspace:*
+        version: link:../internals
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1232,9 +1235,6 @@ importers:
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
-      '@prisma/internals':
-        specifier: workspace:*
-        version: link:../internals
       '@sindresorhus/slugify':
         specifier: 1.1.2
         version: 1.1.2
