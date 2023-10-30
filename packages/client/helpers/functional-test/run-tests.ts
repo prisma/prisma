@@ -56,6 +56,9 @@ const args = arg(
     '--silent': Boolean,
     // Tell Jest to run tests sequentially
     '--runInBand': Boolean,
+    // Print the remaining open handles preventing Jest from exiting,
+    // implies `--runInBand`.
+    '--detectOpenHandles': Boolean,
   },
   true,
   true,
@@ -69,6 +72,10 @@ async function main(): Promise<number | void> {
 
   if (args['--runInBand']) {
     jestCli = jestCli.withArgs(['--runInBand'])
+  }
+
+  if (args['--detectOpenHandles']) {
+    jestCli = jestCli.withArgs(['--detectOpenHandles'])
   }
 
   if (args['--provider']) {
