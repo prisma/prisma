@@ -47,7 +47,7 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          node-version: 16
+          node-version: 18
           pnpm-version: 8
           skip-tsc: false
 
