@@ -5,6 +5,11 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/driver-adapter-utils"
+  },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts"
