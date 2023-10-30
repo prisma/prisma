@@ -154,6 +154,13 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
     super(client)
   }
 
+  async begin(): Promise<Result<void>> {
+    debug(`[js::begin]`)
+
+    this.client.release()
+    return Promise.resolve(ok(undefined))
+  }
+
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
