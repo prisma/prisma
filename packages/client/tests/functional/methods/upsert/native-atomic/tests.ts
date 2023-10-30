@@ -60,7 +60,6 @@ testMatrix.setupTestSuite(
       await client.compound.deleteMany()
     })
 
-    // TODO flaky on CI, never fails locally, reason unknown
     test('should only use ON CONFLICT when update arguments do not have any nested queries', async () => {
       const name = faker.person.firstName()
       const title = faker.person.jobTitle()
@@ -262,7 +261,6 @@ testMatrix.setupTestSuite(
       await checker.expectUsedNativeUpsert(true)
     })
 
-    // TODO flaky on CI, never fails locally, reason unknown
     test('should perform an upsert using ON CONFLICT', async () => {
       const name = faker.person.firstName()
 
