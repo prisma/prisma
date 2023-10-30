@@ -2,7 +2,7 @@ import { foreignKeyForProvider, idForProvider } from '../../_utils/idForProvider
 import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
+export default testMatrix.setupSchema(({ provider }) => {
   const fields: string[] = []
   const declarations: string[] = []
 
@@ -36,7 +36,6 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"
-    previewFeatures = [${previewFeatures}]
   }
   
   datasource db {
