@@ -17,11 +17,12 @@ testMatrix.setupTestSuite(
         // sqlite doesn't support `createMany` yet!
         // See: https://github.com/prisma/prisma/issues/10710
 
-        for (const id of ids) {
-          await prisma.model.create({
+        const promises = ids.map((id) =>
+          prisma.model.create({
             data: { id, field: '' },
-          })
-        }
+          }),
+        )
+        await Promise.all(promises)
       } else {
         await prisma.model.createMany({
           data: idsAsString,
