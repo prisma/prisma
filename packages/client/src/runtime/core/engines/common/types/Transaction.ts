@@ -10,6 +10,7 @@ export type Options = {
   maxWait?: number
   timeout?: number
   isolationLevel?: IsolationLevel
+  newTxId?: string
 }
 
 export type InteractiveTransactionInfo<Payload = unknown> = {

@@ -114,6 +114,13 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
+  async begin(): Promise<Result<void>> {
+    debug(`[js::begin]`)
+
+    return ok(undefined)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 

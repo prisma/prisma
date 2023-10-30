@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker'
 import { ClientEngineType } from '@prisma/internals'
 import { copycat } from '@snaplet/copycat'
 
@@ -197,10 +198,76 @@ testMatrix.setupTestSuite(
     })
 
     /**
+     * If a parent transaction is rolled back, the child transaction should also rollback
+     * - This is only supported in SQL derived servers
+     */
+    testIf(provider === Providers.POSTGRESQL)('sql: nested rollback', async () => {
+      const rand1 = Math.floor(Math.random() * 1000)
+      const rand2 = rand1 + 1
+      const email1 = 'user_' + rand1 + '@website.com'
+      const email2 = 'user_' + rand2 + '@website.com'
+      const client = prisma
+      await expect(
+        client.$transaction(async (tx) => {
+          await tx.user.create({
+            data: {
+              email: email1,
+            },
+          })
+
+          await tx.$transaction(async (tx2) => {
+            await tx2.user.create({
+              data: {
+                email: email2,
+              },
+            })
+          })
+
+          // Abort the outer transaction
+          throw new Error('Rollback')
+        }),
+      ).rejects.toThrow(/Rollback/)
+
+      const result = await prisma.user.findMany({
+        where: {
+          email: {
+            in: [email1, email2],
+          },
+        },
+      })
+
+      // Both transactions should rollback
+      expect(result).toHaveLength(0)
+    })
+
+    testIf(provider === Providers.POSTGRESQL)('sql: multiple interactive transactions', async () => {
+      const existingEmail = faker.internet.email()
+
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: existingEmail } })
+      })
+
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: existingEmail + 1 } })
+      })
+
+      const result = await prisma.user.findMany({
+        where: {
+          email: {
+            in: [existingEmail, existingEmail + 1],
+          },
+        },
+      })
+
+      // Both transactions should succeed
+      expect(result).toHaveLength(2)
+    })
+
+    /**
      * We don't allow certain methods to be called in a transaction
      */
     test('forbidden', async () => {
-      const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
+      const forbidden = ['$connect', '$disconnect', '$on', '$use']
       expect.assertions(forbidden.length + 1)
 
       const result = prisma.$transaction((prisma) => {
