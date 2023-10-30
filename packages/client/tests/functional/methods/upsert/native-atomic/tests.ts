@@ -2,7 +2,6 @@ import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
-import { ProviderFlavors } from '../../../_utils/providers'
 import { NewPrismaClient } from '../../../_utils/types'
 import testMatrix from './_matrix'
 
@@ -45,7 +44,7 @@ class UpsertChecker {
 }
 
 testMatrix.setupTestSuite(
-  ({ providerFlavor }) => {
+  () => {
     let client: PrismaClient
 
     beforeAll(() => {
@@ -66,218 +65,209 @@ testMatrix.setupTestSuite(
     })
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
-      'should only use ON CONFLICT when update arguments do not have any nested queries',
-      async () => {
-        const name = faker.person.firstName()
-        const title = faker.person.jobTitle()
-        const title2 = faker.person.jobTitle()
+    test('should only use ON CONFLICT when update arguments do not have any nested queries', async () => {
+      const name = faker.person.firstName()
+      const title = faker.person.jobTitle()
+      const title2 = faker.person.jobTitle()
 
-        await client.user.create({
-          data: {
-            name,
-            posts: {
-              create: {
+      await client.user.create({
+        data: {
+          name,
+          posts: {
+            create: {
+              title,
+            },
+          },
+        },
+      })
+
+      const checker = new UpsertChecker(client)
+
+      // This will 'not' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+          // Because this is a nested mutation
+          posts: {
+            upsert: {
+              where: { title },
+              create: { title },
+              update: { title },
+            },
+          },
+        },
+      })
+      expect(checker.notUsedNative()).toBeTruthy()
+
+      // This will 'not' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+          // Because this is a nested mutation
+          posts: {
+            create: {
+              title: title2,
+            },
+          },
+        },
+      })
+      expect(checker.notUsedNative()).toBeTruthy()
+
+      // This will 'not' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+          // Because this is a nested mutation
+          posts: {
+            update: {
+              where: {
                 title,
               },
-            },
-          },
-        })
-
-        const checker = new UpsertChecker(client)
-
-        // This will 'not' use ON CONFLICT
-        await client.user.upsert({
-          where: {
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name,
-            // Because this is a nested mutation
-            posts: {
-              upsert: {
-                where: { title },
-                create: { title },
-                update: { title },
+              data: {
+                title: `${title}-updated`,
               },
             },
           },
-        })
-        expect(checker.notUsedNative()).toBeTruthy()
+        },
+      })
 
-        // This will 'not' use ON CONFLICT
-        await client.user.upsert({
-          where: {
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name,
-            // Because this is a nested mutation
-            posts: {
-              create: {
-                title: title2,
-              },
+      expect(checker.notUsedNative()).toBeTruthy()
+
+      // This will 'not' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+          // Because this is a nested mutation
+          posts: {
+            delete: {
+              title: title2,
             },
           },
-        })
-        expect(checker.notUsedNative()).toBeTruthy()
+        },
+      })
+      expect(checker.notUsedNative()).toBeTruthy()
 
-        // This will 'not' use ON CONFLICT
-        await client.user.upsert({
-          where: {
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name,
-            // Because this is a nested mutation
-            posts: {
-              update: {
-                where: {
-                  title,
-                },
-                data: {
-                  title: `${title}-updated`,
-                },
-              },
-            },
-          },
-        })
+      // This 'will' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+          // Because there is no nested mutation
+        },
+      })
 
-        expect(checker.notUsedNative()).toBeTruthy()
-
-        // This will 'not' use ON CONFLICT
-        await client.user.upsert({
-          where: {
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name,
-            // Because this is a nested mutation
-            posts: {
-              delete: {
-                title: title2,
-              },
-            },
-          },
-        })
-        expect(checker.notUsedNative()).toBeTruthy()
-
-        // This 'will' use ON CONFLICT
-        await client.user.upsert({
-          where: {
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name,
-            // Because there is no nested mutation
-          },
-        })
-
-        expect(checker.usedNative()).toBeTruthy()
-      },
-    )
+      expect(checker.usedNative()).toBeTruthy()
+    })
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
-      'should only use ON CONFLICT when there is only 1 unique field in the where clause',
-      async () => {
-        const name = faker.person.firstName()
+    test('should only use ON CONFLICT when there is only 1 unique field in the where clause', async () => {
+      const name = faker.person.firstName()
 
-        const checker = new UpsertChecker(client)
+      const checker = new UpsertChecker(client)
 
-        // This was previously failing before extendedWhereUnique went GA
-        // Now it doesn't use ON CONFLICT like expected.
-        await client.user.upsert({
-          where: {
-            // Because two unique fields are used
-            id: '1',
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name,
-          },
-        })
-        expect(checker.notUsedNative()).toBeTruthy()
+      // This was previously failing before extendedWhereUnique went GA
+      // Now it doesn't use ON CONFLICT like expected.
+      await client.user.upsert({
+        where: {
+          // Because two unique fields are used
+          id: '1',
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+        },
+      })
+      expect(checker.notUsedNative()).toBeTruthy()
 
-        // This 'will' use ON CONFLICT
-        await client.user.upsert({
-          where: {
-            // Because only one unique field is used
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name,
-          },
-        })
-        expect(checker.usedNative()).toBeTruthy()
-      },
-    )
+      // This 'will' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          // Because only one unique field is used
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+        },
+      })
+      expect(checker.usedNative()).toBeTruthy()
+    })
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
-      'should only use ON CONFLICT when the unique field defined in where clause has the same value as defined in the create arguments',
-      async () => {
-        const name = faker.person.firstName()
+    test('should only use ON CONFLICT when the unique field defined in where clause has the same value as defined in the create arguments', async () => {
+      const name = faker.person.firstName()
 
-        const checker = new UpsertChecker(client)
+      const checker = new UpsertChecker(client)
 
-        // This will 'not' use ON CONFLICT
-        await client.user.upsert({
-          where: {
-            name,
-          },
-          create: {
-            // Because the the where 'name' is 'not' equal to the create 'name'
-            name: name + '1',
-          },
-          update: {
-            name: name + '1',
-          },
-        })
+      // This will 'not' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          name,
+        },
+        create: {
+          // Because the the where 'name' is 'not' equal to the create 'name'
+          name: name + '1',
+        },
+        update: {
+          name: name + '1',
+        },
+      })
 
-        expect(checker.notUsedNative()).toBeTruthy()
+      expect(checker.notUsedNative()).toBeTruthy()
 
-        // This 'will' use ON CONFLICT
-        await client.user.upsert({
-          where: {
-            name,
-          },
-          create: {
-            // Because the the where 'name' is 'equal' to the create 'name'
-            name,
-          },
-          update: {
-            name: name + '1',
-          },
-        })
+      // This 'will' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          name,
+        },
+        create: {
+          // Because the the where 'name' is 'equal' to the create 'name'
+          name,
+        },
+        update: {
+          name: name + '1',
+        },
+      })
 
-        expect(checker.usedNative()).toBeTruthy()
-      },
-    )
+      expect(checker.usedNative()).toBeTruthy()
+    })
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('should perform an upsert using ON CONFLICT', async () => {
+    test('should perform an upsert using ON CONFLICT', async () => {
       const name = faker.person.firstName()
 
       const checker = new UpsertChecker(client)
@@ -315,151 +305,142 @@ testMatrix.setupTestSuite(
     })
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
-      'should perform an upsert using ON CONFLICT with id',
-      async () => {
-        const name = faker.person.firstName()
+    test('should perform an upsert using ON CONFLICT with id', async () => {
+      const name = faker.person.firstName()
 
-        const checker = new UpsertChecker(client)
+      const checker = new UpsertChecker(client)
 
-        const user = await client.user.upsert({
-          where: {
-            id: '1',
-          },
-          create: {
-            id: '1',
-            name,
-          },
-          update: {
-            name: `${name}-updated`,
-          },
-        })
+      const user = await client.user.upsert({
+        where: {
+          id: '1',
+        },
+        create: {
+          id: '1',
+          name,
+        },
+        update: {
+          name: `${name}-updated`,
+        },
+      })
 
-        expect(user.name).toEqual(name)
+      expect(user.name).toEqual(name)
 
-        expect(checker.usedNative()).toBeTruthy()
+      expect(checker.usedNative()).toBeTruthy()
 
-        const userUpdated = await client.user.upsert({
-          where: {
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name: `${name}-updated`,
-          },
-        })
+      const userUpdated = await client.user.upsert({
+        where: {
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name: `${name}-updated`,
+        },
+      })
 
-        expect(userUpdated.name).toEqual(`${name}-updated`)
-        expect(checker.usedNative()).toBeTruthy()
-      },
-    )
+      expect(userUpdated.name).toEqual(`${name}-updated`)
+      expect(checker.usedNative()).toBeTruthy()
+    })
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
-      'should perform an upsert using ON CONFLICT with compound id',
-      async () => {
-        const checker = new UpsertChecker(client)
+    test('should perform an upsert using ON CONFLICT with compound id', async () => {
+      const checker = new UpsertChecker(client)
 
-        let compound = await client.compound.upsert({
-          where: {
-            id1_id2: {
-              id1: 1,
-              id2: '1',
-            },
-          },
-          create: {
+      let compound = await client.compound.upsert({
+        where: {
+          id1_id2: {
             id1: 1,
             id2: '1',
-            field1: 2,
-            field2: '2',
-            val: 1,
           },
-          update: {
-            val: 2,
-          },
-        })
+        },
+        create: {
+          id1: 1,
+          id2: '1',
+          field1: 2,
+          field2: '2',
+          val: 1,
+        },
+        update: {
+          val: 2,
+        },
+      })
 
-        expect(compound.val).toEqual(1)
+      expect(compound.val).toEqual(1)
 
-        expect(checker.usedNative()).toBeTruthy()
+      expect(checker.usedNative()).toBeTruthy()
 
-        compound = await client.compound.upsert({
-          where: {
-            id1_id2: {
-              id1: 1,
-              id2: '1',
-            },
-          },
-          create: {
+      compound = await client.compound.upsert({
+        where: {
+          id1_id2: {
             id1: 1,
             id2: '1',
-            field1: 2,
-            field2: '2',
-            val: 1,
           },
-          update: {
-            val: 2,
-          },
-        })
+        },
+        create: {
+          id1: 1,
+          id2: '1',
+          field1: 2,
+          field2: '2',
+          val: 1,
+        },
+        update: {
+          val: 2,
+        },
+      })
 
-        expect(compound.val).toEqual(2)
-        expect(checker.usedNative()).toBeTruthy()
-      },
-    )
+      expect(compound.val).toEqual(2)
+      expect(checker.usedNative()).toBeTruthy()
+    })
 
     // TODO flaky on CI, never fails locally, reason unknown
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)(
-      'should perform an upsert using ON CONFLICT with compound uniques',
-      async () => {
-        const checker = new UpsertChecker(client)
+    test('should perform an upsert using ON CONFLICT with compound uniques', async () => {
+      const checker = new UpsertChecker(client)
 
-        let compound = await client.compound.upsert({
-          where: {
-            uniques: {
-              field1: 2,
-              field2: '2',
-            },
-          },
-          create: {
-            id1: 1,
-            id2: '1',
+      let compound = await client.compound.upsert({
+        where: {
+          uniques: {
             field1: 2,
             field2: '2',
-            val: 1,
           },
-          update: {
-            val: 2,
-          },
-        })
+        },
+        create: {
+          id1: 1,
+          id2: '1',
+          field1: 2,
+          field2: '2',
+          val: 1,
+        },
+        update: {
+          val: 2,
+        },
+      })
 
-        expect(compound.val).toEqual(1)
-        expect(checker.usedNative()).toBeTruthy()
+      expect(compound.val).toEqual(1)
+      expect(checker.usedNative()).toBeTruthy()
 
-        compound = await client.compound.upsert({
-          where: {
-            uniques: {
-              field1: 2,
-              field2: '2',
-            },
-          },
-          create: {
-            id1: 1,
-            id2: '1',
+      compound = await client.compound.upsert({
+        where: {
+          uniques: {
             field1: 2,
             field2: '2',
-            val: 1,
           },
-          update: {
-            val: 2,
-          },
-        })
+        },
+        create: {
+          id1: 1,
+          id2: '1',
+          field1: 2,
+          field2: '2',
+          val: 1,
+        },
+        update: {
+          val: 2,
+        },
+      })
 
-        expect(compound.val).toEqual(2)
-        expect(checker.usedNative()).toBeTruthy()
-      },
-    )
+      expect(compound.val).toEqual(2)
+      expect(checker.usedNative()).toBeTruthy()
+    })
   },
   {
     optOut: {
