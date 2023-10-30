@@ -15,6 +15,8 @@ declare const datasourceInfo: DatasourceInfo
 testMatrix.setupTestSuite(
   () => {
     test('can read back DateTime created via native connector', async () => {
+      // Use a separate process for seeding to use native drivers. We can't turn
+      // the native quaint executor back on in the current process.
       const seedOutput = await execa.node(path.join(__dirname, '_seed.ts'), [], {
         nodeOptions: ['-r', 'esbuild-register'],
         env: {
