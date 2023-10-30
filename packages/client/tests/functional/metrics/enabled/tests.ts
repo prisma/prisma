@@ -74,7 +74,7 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'The number of datasource queries currently waiting for an free connection',
+            description: 'The number of datasource queries currently waiting for a free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
@@ -139,7 +139,7 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'The number of datasource queries currently waiting for an free connection',
+            description: 'The number of datasource queries currently waiting for a free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
@@ -265,7 +265,7 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'The number of datasource queries currently waiting for an free connection',
+            description: 'The number of datasource queries currently waiting for a free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
@@ -353,7 +353,7 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'The number of datasource queries currently waiting for an free connection',
+            description: 'The number of datasource queries currently waiting for a free connection',
           },
           {
             key: 'prisma_pool_connections_busy',

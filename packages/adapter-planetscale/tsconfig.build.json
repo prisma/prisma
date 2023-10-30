@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.build.adapters.json",
+  "compilerOptions": {
+    "outDir": "declaration"
+  }
+}
