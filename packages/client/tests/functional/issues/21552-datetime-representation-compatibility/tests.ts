@@ -22,7 +22,8 @@ testMatrix.setupTestSuite(
       await fs.cp(path.join(__dirname, '_seed.ts'), path.join(suiteMeta.generatedFolder, '_seed.ts'))
 
       // Use a separate process for seeding to use native drivers. We can't turn
-      // the native quaint executor back on in the current process.
+      // the native quaint executor back on in the current process when testing
+      // against driver adapters.
       const seedOutput = await execa.node(path.join(suiteMeta.generatedFolder, '_seed.ts'), [], {
         nodeOptions: ['-r', 'esbuild-register'],
         env: {
