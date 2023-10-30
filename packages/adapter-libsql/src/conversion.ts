@@ -134,17 +134,13 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
   for (let i = 0; i < result.length; i++) {
     const value = result[i]
 
-    // Convert bigint to string as we can only use JSON-encodable types here
-    if (typeof value === 'bigint') {
-      result[i] = value.toString()
-    }
-
     // Convert array buffers to arrays of bytes.
     // Base64 would've been more efficient but would collide with the existing
     // logic that treats string values of type Bytes as raw UTF-8 bytes that was
     // implemented for other adapters.
     if (isArrayBuffer(value)) {
       result[i] = Array.from(new Uint8Array(value))
+      continue
     }
 
     // If an integer is required and the current number isn't one,
@@ -155,6 +151,20 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
       !Number.isInteger(value)
     ) {
       result[i] = Math.trunc(value)
+      continue
+    }
+
+    // Decode DateTime values saved as numeric timestamps which is the
+    // format used by the native quaint sqlite connector.
+    if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
+      result[i] = new Date(Number(value)).toISOString()
+      continue
+    }
+
+    // Convert bigint to string as we can only use JSON-encodable types here.
+    if (typeof value === 'bigint') {
+      result[i] = value.toString()
+      continue
     }
   }
 
