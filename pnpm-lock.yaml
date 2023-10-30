@@ -203,9 +203,6 @@ importers:
 
   packages/adapter-libsql:
     dependencies:
-      '@prisma/debug':
-        specifier: workspace:*
-        version: link:../debug
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -219,9 +216,6 @@ importers:
 
   packages/adapter-neon:
     dependencies:
-      '@prisma/debug':
-        specifier: workspace:*
-        version: link:../debug
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -235,9 +229,6 @@ importers:
 
   packages/adapter-pg:
     dependencies:
-      '@prisma/debug':
-        specifier: workspace:*
-        version: link:../debug
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -254,9 +245,6 @@ importers:
 
   packages/adapter-planetscale:
     dependencies:
-      '@prisma/debug':
-        specifier: workspace:*
-        version: link:../debug
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -700,7 +688,15 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
 
-  packages/driver-adapter-utils: {}
+  packages/driver-adapter-utils:
+    dependencies:
+      debug:
+        specifier: 4.3.4
+        version: 4.3.4
+    devDependencies:
+      '@types/debug':
+        specifier: 4.1.10
+        version: 4.1.10
 
   packages/engines:
     devDependencies:

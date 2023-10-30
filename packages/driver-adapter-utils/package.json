@@ -22,6 +22,10 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": false,
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "debug": "4.3.4"
+  },
+  "devDependencies": {
+    "@types/debug": "4.1.10"
+  }
 }

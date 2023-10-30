@@ -23,7 +23,6 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*"
   },
   "devDependencies": {

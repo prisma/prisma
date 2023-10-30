@@ -4,7 +4,6 @@ import type {
   ResultSet as LibSqlResultSet,
   Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
-import { Debug } from '@prisma/debug'
 import type {
   DriverAdapter,
   Query,
@@ -14,7 +13,7 @@ import type {
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { err, ok } from '@prisma/driver-adapter-utils'
+import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
 
 import { getColumnTypes, mapRow } from './conversion'

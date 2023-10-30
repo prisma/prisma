@@ -1,8 +1,7 @@
 import { isArrayBuffer } from 'node:util/types'
 
 import { Row, Value } from '@libsql/client'
-import { Debug } from '@prisma/debug'
-import { ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
 
 const debug = Debug('prisma:driver-adapter:libsql:conversion')
 
