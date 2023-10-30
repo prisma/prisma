@@ -1,3 +1,4 @@
+import { devDependencies as devDependenciesPrismaEnginesPkg } from '@prisma/engines/package.json'
 import slugify from '@sindresorhus/slugify'
 import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
@@ -612,7 +613,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
 
-      const enginesCommitHash = await getEnginesCommitHash()
+      const enginesCommitHash = getEnginesCommitHash()
       const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
       const prismaCommitHash = await getLatestCommitHash('.')
       const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
@@ -654,11 +655,12 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
   }
 }
 
-async function getEnginesCommitHash(): Promise<string> {
-  const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
-  const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
-  const engineVersion = pkg.devDependencies['@prisma/engines-version'].prisma.enginesVersion
-  return engineVersion
+function getEnginesCommitHash(): string {
+  const npmEnginesVersion = devDependenciesPrismaEnginesPkg['@prisma/engines-version']
+  const sha1Pattern = /\b[0-9a-f]{5,40}\b/
+  const commitHash = npmEnginesVersion.match(sha1Pattern)![0]
+
+  return commitHash
 }
 
 async function tagEnginesRepo(
