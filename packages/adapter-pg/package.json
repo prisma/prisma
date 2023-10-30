@@ -11,8 +11,8 @@
     "directory": "packages/adapter-pg"
   },
   "scripts": {
-    "build": "tsup ./src/index.ts --format cjs,esm --dts",
-    "lint": "tsc -p ./tsconfig.build.json"
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts"
   },
   "files": [
     "dist",
@@ -27,8 +27,8 @@
     "postgres-array": "3.0.2"
   },
   "devDependencies": {
-    "pg": "8.11.3",
-    "@types/pg": "8.10.2"
+    "@types/pg": "8.10.2",
+    "pg": "8.11.3"
   },
   "peerDependencies": {
     "pg": "^8.11.3"
