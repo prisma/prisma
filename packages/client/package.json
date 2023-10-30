@@ -114,6 +114,7 @@
     "@types/js-levenshtein": "1.1.2",
     "@types/mssql": "9.1.2",
     "@types/node": "18.18.6",
+    "@types/node-fetch": "2.6.7",
     "@types/pg": "8.10.7",
     "@types/yeoman-generator": "5.2.13",
     "arg": "5.0.2",

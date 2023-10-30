@@ -35,9 +35,6 @@ importers:
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
-      '@types/node-fetch':
-        specifier: 2.6.7
-        version: 2.6.7
       '@types/redis':
         specifier: 2.8.32
         version: 2.8.32
@@ -128,9 +125,6 @@ importers:
       lint-staged:
         specifier: 15.0.2
         version: 15.0.2
-      node-fetch:
-        specifier: 2.7.0
-        version: 2.7.0
       p-map:
         specifier: 4.0.0
         version: 4.0.0
@@ -301,6 +295,12 @@ importers:
       '@types/jest':
         specifier: 29.5.6
         version: 29.5.6
+      '@types/node':
+        specifier: 18.18.6
+        version: 18.18.6
+      '@types/node-fetch':
+        specifier: 2.6.7
+        version: 2.6.7
       '@types/rimraf':
         specifier: 3.0.2
         version: 3.0.2
@@ -506,6 +506,9 @@ importers:
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
+      '@types/node-fetch':
+        specifier: 2.6.7
+        version: 2.6.7
       '@types/pg':
         specifier: 8.10.7
         version: 8.10.7
@@ -1185,6 +1188,9 @@ importers:
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
+      '@types/node-fetch':
+        specifier: 2.6.7
+        version: 2.6.7
       '@types/resolve':
         specifier: 1.20.4
         version: 1.20.4
@@ -3945,7 +3951,7 @@ packages:
   /@types/fs-extra@9.0.13:
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
     dependencies:
-      '@types/node': 18.11.18
+      '@types/node': 18.18.6
     dev: true
 
   /@types/geojson@7946.0.10:
@@ -4089,18 +4095,6 @@ packages:
   /@types/node@17.0.45:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
 
-  /@types/node@18.11.18:
-    resolution: {integrity: sha512-DHQpWGjyQKSHj3ebjFI/wRKcqQcdR+MoFBygntYOZytCqNfkd2ZC4ARDJ2DQqhjH5p85Nnd3jhUJIXrszFX/JA==}
-    dev: true
-
-  /@types/node@18.11.5:
-    resolution: {integrity: sha512-3JRwhbjI+cHLAkUorhf8RnqUbFXajvzX4q6fMn5JwkgtuwfYtRQYI3u4V92vI6NJuTsbBQWWh3RZjFsuevyMGQ==}
-    dev: true
-
-  /@types/node@18.17.5:
-    resolution: {integrity: sha512-xNbS75FxH6P4UXTPUJp/zNPq6/xsfdJKussCWNOnz4aULWIRwMgP1LgaB5RiBnMX1DPCYenuqGZfnIAx5mbFLA==}
-    dev: true
-
   /@types/node@18.18.6:
     resolution: {integrity: sha512-wf3Vz+jCmOQ2HV1YUJuCWdL64adYxumkrxtc+H1VUQlnQI04+5HtH+qZCOE21lBE7gIrt+CwX2Wv8Acrw5Ak6w==}
 
@@ -4171,7 +4165,7 @@ packages:
     resolution: {integrity: sha512-F3OznnSLAUxFrCEu/L5PY8+ny8DtcFRjx7fZZ9bycvXRi3KPTRS9HOitGZwvPg0juRhXFWIeKX58cnX5YqLohQ==}
     dependencies:
       '@types/glob': 8.0.0
-      '@types/node': 18.11.5
+      '@types/node': 18.18.6
     dev: true
 
   /@types/semver@7.5.3:
@@ -13980,7 +13974,7 @@ packages:
     dependencies:
       '@types/fs-extra': 11.0.1
       '@types/minimist': 1.2.2
-      '@types/node': 18.17.5
+      '@types/node': 18.18.6
       '@types/ps-tree': 1.1.2
       '@types/which': 3.0.0
       chalk: 5.2.0
