@@ -36,12 +36,11 @@ class RollbackError extends Error {
 }
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
-  implements SqlQueryable
-{
+  implements SqlQueryable {
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
-  constructor(protected client: ClientT) {}
+  constructor(protected client: ClientT) { }
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -162,6 +161,12 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     }
   }
 
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+
+    return await this.txResultPromise
+  }
+
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
@@ -232,14 +237,14 @@ export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.C
     })
   }
 
-  async dispose(): Promise<void> {}
+  async dispose(): Promise<void> { }
 }
 
 export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
-  constructor(private readonly config: planetScale.Config) {}
+  constructor(private readonly config: planetScale.Config) { }
 
   async connect(): Promise<SqlDriverAdapter> {
     return new PrismaPlanetScaleAdapter(new planetScale.Client(this.config))
