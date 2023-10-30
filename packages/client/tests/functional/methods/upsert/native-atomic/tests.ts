@@ -13,10 +13,10 @@ class UpsertChecker {
 
   constructor(client: PrismaClient) {
     this.logs = []
-    this.capturelogs(client)
+    this.captureLogs(client)
   }
 
-  capturelogs(client: PrismaClient) {
+  captureLogs(client: PrismaClient) {
     // @ts-expect-error
     client.$on('query', (data) => {
       if ('query' in data) {
