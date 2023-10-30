@@ -25,7 +25,6 @@
     "typescript": "5.2.2",
     "@prisma/debug": "workspace:*",
     "escape-string-regexp": "4.0.0",
-    "execa": "5.1.1",
     "fs-jetpack": "5.1.0",
     "kleur": "4.1.5",
     "replace-string": "3.1.0",
@@ -34,7 +33,9 @@
     "terminal-link": "2.1.1",
     "ts-pattern": "5.0.5"
   },
-  "dependencies": {},
+  "dependencies": {
+    "execa": "5.1.1"
+  },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
