@@ -183,7 +183,6 @@ testMatrix.setupTestSuite(
       await checker.expectUsedNativeUpsert(true)
     })
 
-    // TODO flaky on CI, never fails locally, reason unknown
     test('should only use ON CONFLICT when there is only 1 unique field in the where clause', async () => {
       const name = faker.person.firstName()
 
@@ -222,7 +221,6 @@ testMatrix.setupTestSuite(
       await checker.expectUsedNativeUpsert(true)
     })
 
-    // TODO flaky on CI, never fails locally, reason unknown
     test('should only use ON CONFLICT when the unique field defined in where clause has the same value as defined in the create arguments', async () => {
       const name = faker.person.firstName()
 
@@ -298,7 +296,6 @@ testMatrix.setupTestSuite(
       await checker.expectUsedNativeUpsert(true)
     })
 
-    // TODO flaky on CI, never fails locally, reason unknown
     test('should perform an upsert using ON CONFLICT with id', async () => {
       const name = faker.person.firstName()
 
@@ -337,7 +334,6 @@ testMatrix.setupTestSuite(
       await checker.expectUsedNativeUpsert(true)
     })
 
-    // TODO flaky on CI, never fails locally, reason unknown
     test('should perform an upsert using ON CONFLICT with compound id', async () => {
       const checker = new UpsertChecker(client)
 
@@ -387,7 +383,6 @@ testMatrix.setupTestSuite(
       await checker.expectUsedNativeUpsert(true)
     })
 
-    // TODO flaky on CI, never fails locally, reason unknown
     test('should perform an upsert using ON CONFLICT with compound uniques', async () => {
       const checker = new UpsertChecker(client)
 
