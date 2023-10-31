@@ -1,7 +1,7 @@
 import { ClientEngineType } from '@prisma/internals'
 
 /**
- * TODO
+ * Builds the necessary glue code to load the query engine wasm module.
  * @returns
  */
 export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientEngineType) {
@@ -9,8 +9,8 @@ export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientE
     return `config.getQueryEngineWasmModule = undefined`
   }
 
-  // this could work on cf workers without esm support because dynamic imports
-  // work both in CJS and ESM we need to try this out as soon as possible
+  // for cloudflare (workers) we need to use import in order to load wasm
+  // so we use a dynamic import which is compatible with both cjs and esm
   if (edge === true) {
     return `config.getQueryEngineWasmModule = async () => {
   return (await import('./query-engine.wasm')).default
