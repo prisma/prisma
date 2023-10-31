@@ -16,7 +16,7 @@ function cleanSnapshot(str: string): string {
 const envVars = {
   CI: 'true',
   GITHUB_ACTIONS: 'true',
-  DEBUG: 'true',
+  DEBUG: 'something',
   NODE_ENV: 'test',
   RUST_LOG: 'trace',
   RUST_BACKTRACE: 'full',
@@ -68,6 +68,9 @@ describe('debug', () => {
     // Make sure all env vars are set to undefined
     const envVarsSetToUndefined = Object.fromEntries(Object.keys(envVars).map((key) => [key, undefined]))
     Object.assign(process.env, envVarsSetToUndefined)
+    // To make sure the terminal is always detected
+    // as non interactive, localy and in CI
+    process.env.TERM = 'dumb'
 
     const result = await DebugInfo.new().parse([])!
 
@@ -89,7 +92,7 @@ describe('debug', () => {
       - RUST_LOG:
       - RUST_BACKTRACE:
       - NO_COLOR:
-      - TERM:
+      - TERM: \`dumb\`
       - NODE_TLS_REJECT_UNAUTHORIZED:
       - NO_PROXY:
       - http_proxy:
@@ -144,7 +147,7 @@ describe('debug', () => {
       - BROWSER:
 
       -- Terminal is interactive? --
-      true
+      false
 
       -- CI detected? --
       No
@@ -158,10 +161,10 @@ describe('debug', () => {
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
       -- Prisma schema --
-      Path:  PATH
+      Path:  REDACTED_PATH
 
       -- Local cache directory for engines files --
-      Path:  PATH
+      Path:  REDACTED_PATH
 
       -- Environment variables --
       When not set, the line is dimmed and no value is displayed.
@@ -169,7 +172,7 @@ describe('debug', () => {
 
       For general debugging
       - CI: \`true\`
-      - DEBUG: \`true\`
+      - DEBUG: \`something\`
       - NODE_ENV: \`test\`
       - RUST_LOG: \`trace\`
       - RUST_BACKTRACE: \`full\`
