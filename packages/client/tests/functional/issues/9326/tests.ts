@@ -6,6 +6,8 @@ import type { Prisma, PrismaClient, Tag } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/9326
+// This test suite tests a PostgreSQL specific error message that happens when a raw query tries to prepare a statement with more than 32767 params.
+// For Prisma Client queries we use chunking to prevent such queries, but as that is not possible for raw queries, we at least give a somewhat useful error message.
 testMatrix.setupTestSuite(
   ({ providerFlavor }) => {
     async function createTags(length: number): Promise<number[]> {
