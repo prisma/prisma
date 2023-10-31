@@ -18,7 +18,7 @@ services:
       POSTGRES_USER: prisma
       POSTGRES_PASSWORD: prisma
     ports:
-      - 99432:5432 # Postgres port
+      - 9432:5432 # Postgres port
     healthcheck:
       # specifying user and database is needed to avoid `FATAL:  role "root" does not exist`
       # spam in the logs
