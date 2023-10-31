@@ -1,4 +1,4 @@
-import { ProviderFlavors } from '../_utils/providers'
+import { ProviderFlavors, Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -84,7 +84,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
   })
 
   // issue with mysql: https://github.com/prisma/prisma/issues/15470
-  testIf(provider !== 'mysql')('upsert', async () => {
+  testIf(provider !== Providers.MYSQL)('upsert', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 

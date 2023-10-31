@@ -1,5 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -9,7 +10,9 @@ declare let Prisma: typeof $.Prisma
 
 // ported from: blog
 testMatrix.setupTestSuite(
-  (suiteConfig) => {
+  ({ provider }) => {
+    const isMySql = provider === Providers.MYSQL
+
     beforeEach(async () => {
       await prisma.user.deleteMany()
       await prisma.user.create({
@@ -45,7 +48,7 @@ testMatrix.setupTestSuite(
     test('update via executeRawUnsafe', async () => {
       let affected: number
 
-      if (suiteConfig.provider === 'mysql') {
+      if (isMySql) {
         affected = await prisma.$executeRawUnsafe(`
           UPDATE User SET age = ${65} WHERE age >= ${45} AND age <= ${60}
         `)
@@ -80,10 +83,10 @@ testMatrix.setupTestSuite(
     test('update via queryRawUnsafe with values', async () => {
       let affected: number
 
-      if (suiteConfig.provider === 'mysql') {
+      if (isMySql) {
         // eslint-disable-next-line prettier/prettier
         affected = await prisma.$executeRawUnsafe(`UPDATE User SET age = ? WHERE age >= ? AND age <= ?`, 65, 45, 60)
-      } else if (suiteConfig.provider === 'sqlserver') {
+      } else if (provider === Providers.SQLSERVER) {
         affected = await prisma.$executeRawUnsafe(
           `UPDATE "User" SET age = @P1 WHERE age >= @P2 AND age <= @P3`,
           65,
@@ -124,7 +127,7 @@ testMatrix.setupTestSuite(
     test('update via executeRaw', async () => {
       let affected: number
 
-      if (suiteConfig.provider === 'mysql') {
+      if (isMySql) {
         affected = await prisma.$executeRaw`
           UPDATE User SET age = ${65} WHERE age >= ${45} AND age <= ${60}
         `
@@ -159,7 +162,7 @@ testMatrix.setupTestSuite(
     test('update via executeRaw using Prisma.join', async () => {
       let affected: number
 
-      if (suiteConfig.provider === 'mysql') {
+      if (isMySql) {
         affected = await prisma.$executeRaw`
           UPDATE User SET age = ${65} WHERE age IN (${Prisma.join([45, 60])})
         `
@@ -194,7 +197,7 @@ testMatrix.setupTestSuite(
     test('update via executeRaw using Prisma.join and Prisma.sql', async () => {
       let affected: number
 
-      if (suiteConfig.provider === 'mysql') {
+      if (isMySql) {
         affected = await prisma.$executeRaw(Prisma.sql`
           UPDATE User SET age = ${65} WHERE age IN (${Prisma.join([45, 60])})
         `)
