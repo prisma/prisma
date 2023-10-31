@@ -15,7 +15,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  ;(globalThis as any).TARGET_BUILD_TYPE
+  delete (globalThis as any).TARGET_BUILD_TYPE
 })
 
 function setupMockLibraryEngine() {
