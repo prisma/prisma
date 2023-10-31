@@ -118,7 +118,7 @@ testMatrix.setupTestSuite(
        * in the query filters.
        */
       describe('unhandled filters', () => {
-        // TODO this test does not fail as expected
+        // Note: this test case doesn't trigger errors (and thus the assertions below) on Driver Adapters based on `postgres`
         skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
           'should fail with `Assertion violation` when "in" is repeated at least twice and "n" is the default value of $QUERY_BATCH_SIZE',
           async () => {
@@ -153,7 +153,7 @@ testMatrix.setupTestSuite(
           },
         )
 
-        // TODO this test does not fail as expected
+        // Note: this test case doesn't trigger errors (and thus the assertions below) on Driver Adapters based on `postgres`
         skipTestIf(providerFlavor === ProviderFlavors.JS_NEON || providerFlavor === ProviderFlavors.JS_PG)(
           'should fail with `Assertion violation` when "in" has 32766 ids and a "take" filter',
           async () => {
