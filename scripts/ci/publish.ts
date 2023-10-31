@@ -1075,8 +1075,8 @@ async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
   const jsonData = await response.json()
 
   return {
-    message: jsonData.commit?.message || '',
-    author: jsonData.commit?.author.name || '',
+    message: (jsonData as any).commit?.message || '',
+    author: (jsonData as any).commit?.author.name || '',
     hash,
   }
 }
