@@ -60,10 +60,14 @@ testMatrix.setupTestSuite(
           })
         }
 
+        await waitFor(() => {
+          if (paramsString === '') {
+            throw new Error('params not received from query logs')
+          }
+        })
+
         // This test is asserting that JSON.parse does not throw because quotes are used.
-        // However, we may need to retry if parsing fails because logs haven't arrived yet
-        // and `paramsString` is empty.
-        const params = await waitFor(() => JSON.parse(paramsString))
+        const params = JSON.parse(paramsString)
 
         if (provider === Providers.SQLITE) {
           expect(params).toHaveLength(3)
