@@ -72,7 +72,6 @@ export function fieldToColumnType(field: PlanetScaleColumnType): ColumnType {
     case 'DECIMAL':
       return ColumnTypeEnum.Numeric
     case 'CHAR':
-      return ColumnTypeEnum.Char
     case 'TEXT':
     case 'VARCHAR':
       return ColumnTypeEnum.Text
