@@ -66,7 +66,7 @@ testMatrix.setupTestSuite(
           }
         })
 
-        // This test is asserting that JSON.parse does not throw because quotes are used.
+        // This test is asserting that JSON.parse does not throw because quotes are used
         const params = JSON.parse(paramsString)
 
         if (provider === Providers.SQLITE) {
