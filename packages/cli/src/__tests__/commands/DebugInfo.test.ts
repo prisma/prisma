@@ -111,7 +111,6 @@ describe('debug', () => {
       For downloading engines
       - PRISMA_ENGINES_MIRROR:
       - PRISMA_BINARIES_MIRROR: - (deprecated)
-
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING:
       - BINARY_DOWNLOAD_VERSION:
 
@@ -196,7 +195,6 @@ describe('debug', () => {
       For downloading engines
       - PRISMA_ENGINES_MIRROR: \`http://localhost\`
       - PRISMA_BINARIES_MIRROR: \`http://localhost\` - (deprecated)
-
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`true\`
       - BINARY_DOWNLOAD_VERSION: \`true\`
 

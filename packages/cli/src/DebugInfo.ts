@@ -94,7 +94,6 @@ ${formatEnvValue('PRISMA_HIDE_UPDATE_MESSAGE')}
 For downloading engines
 ${formatEnvValue('PRISMA_ENGINES_MIRROR')}
 ${formatEnvValue('PRISMA_BINARIES_MIRROR')} ${dim('- (deprecated)')}
-
 ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
 ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
 
