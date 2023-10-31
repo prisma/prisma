@@ -1,5 +1,6 @@
 import { QueryEvent } from '../../../../src/runtime/getPrismaClient'
 import { ProviderFlavors, Providers } from '../../_utils/providers'
+import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -27,9 +28,8 @@ testMatrix.setupTestSuite(
       await _prisma.$disconnect()
     })
 
-    // TODO LIBSQL SyntaxError: Unexpected end of JSON input on CI, does not fail locally, needs investigation
     // TODO Planetscale InvalidArgument desc = Incorrect time value: '2023-09-30T03:07:55.276+00:00
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL || providerFlavor === ProviderFlavors.JS_PLANETSCALE)(
+    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)(
       'should assert Dates, DateTimes, Times and UUIDs are wrapped in quotes and are deserializable',
       async () => {
         const date = new Date()
@@ -60,8 +60,10 @@ testMatrix.setupTestSuite(
           })
         }
 
-        // This test is asserting that JSON.parse does not throw because quotes are used
-        const params = JSON.parse(paramsString)
+        // This test is asserting that JSON.parse does not throw because quotes are used.
+        // However, we may need to retry if parsing fails because logs haven't arrived yet
+        // and `paramsString` is empty.
+        const params = await waitFor(() => JSON.parse(paramsString))
 
         if (provider === Providers.SQLITE) {
           expect(params).toHaveLength(3)

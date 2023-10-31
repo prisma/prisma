@@ -12,14 +12,13 @@ const MAX_WAIT = 5000
  * https://testing-library.com/docs/dom-testing-library/api-async/#waitfor
  * @param cb
  */
-export async function waitFor(cb: () => void | Promise<void>) {
+export async function waitFor<T>(cb: () => T | Promise<T>): Promise<T> {
   const start = performance.now()
   let error: unknown = null
 
   while (performance.now() - start < MAX_WAIT) {
     try {
-      await cb()
-      return
+      return await cb()
     } catch (e) {
       error = e
       await delay(100)
