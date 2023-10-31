@@ -1,9 +1,10 @@
+// @ts-ignore
+import type { PrismaClient } from '@prisma/client'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
-import { NewPrismaClient } from '../_utils/types'
+import { NewPrismaClient } from '../../_utils/types'
+import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
-// @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -25,7 +26,7 @@ testMatrix.setupTestSuite(
     )
   },
   {
-    skipDefaultClientInstance: true,
+    ...defaultTestSuiteOptions,
     skipDb: true,
   },
 )

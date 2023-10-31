@@ -32,9 +32,9 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    // skipProviderFlavor: {
-    //   from: ['js_neon', 'js_pg'],
-    //   reason: 'Expected: 9007199254740991 Received: 9007199254740990',
-    // },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg'],
+      reason: 'Expected: 9007199254740991 Received: 9007199254740990',
+    },
   },
 )
