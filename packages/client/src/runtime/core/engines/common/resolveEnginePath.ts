@@ -59,6 +59,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
     runtimeBinaryTarget: binaryTarget,
     queryEngineName: getQueryEngineName(engineType, binaryTarget),
     expectedLocation: path.relative(process.cwd(), config.dirname), // TODO pathToPosix
+    errorStack: new Error().stack,
   }
 
   let errorMessage: string
