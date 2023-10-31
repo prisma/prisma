@@ -7,8 +7,8 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 import { replaceTimeValues } from './__helpers__/replaceTimeValues'
 
 beforeEach(async () => {
-  process.env.TEST_POSTGRES_URI += '-logging-library'
-  await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+  process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-logging-library')
+  await tearDownPostgres(process.env.DATABASE_URL)
   await migrateDb({
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })

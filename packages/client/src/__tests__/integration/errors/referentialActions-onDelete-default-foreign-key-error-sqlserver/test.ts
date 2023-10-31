@@ -6,17 +6,13 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 let prisma
-const baseUri = process.env.TEST_MSSQL_JDBC_URI
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () => {
   beforeAll(async () => {
     if (!process.env.TEST_MSSQL_JDBC_URI) {
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
     }
-    process.env.TEST_MSSQL_JDBC_URI = process.env.TEST_MSSQL_JDBC_URI.replace(
-      'master',
-      'referentialActions-onDelete-default',
-    )
+    process.env.DATABASE_URL = process.env.TEST_MSSQL_JDBC_URI.replace('master', 'referentialActions-onDelete-default')
     await migrateDb({
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
@@ -31,7 +27,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-fo
 
   afterAll(async () => {
     await prisma.$disconnect()
-    process.env.TEST_MSSQL_JDBC_URI = baseUri
   })
 
   test('delete 1 user, should error', async () => {
