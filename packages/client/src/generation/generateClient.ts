@@ -293,7 +293,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (transpile === true && noEngine !== true) {
+  if (transpile === true && noEngine !== true && getClientEngineType(generator) !== ClientEngineType.Wasm) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
