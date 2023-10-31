@@ -143,7 +143,7 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        // CI=false: Only drop the db if not skipped, and if the db does not need to be reused. 
+        // CI=false: Only drop the db if not skipped, and if the db does not need to be reused.
         // CI=true always skip to save time
         if (options?.skipDb !== true && process.env.TEST_REUSE_DATABASE !== 'true' && process.env.CI !== 'true') {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo

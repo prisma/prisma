@@ -1,4 +1,4 @@
-import { ProviderFlavors } from '../../_utils/providers'
+import { ProviderFlavors, Providers } from '../../_utils/providers'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -30,7 +30,7 @@ testMatrix.setupTestSuite(
 
     describe('before a query', () => {
       test('MongoDB: should have the same keys, before and after a query', async () => {
-        if (provider !== 'mongodb') {
+        if (provider !== Providers.MONGODB) {
           return
         }
 
@@ -74,7 +74,7 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'The number of datasource queries currently waiting for an free connection',
+            description: 'The number of datasource queries currently waiting for a free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
@@ -139,7 +139,7 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'The number of datasource queries currently waiting for an free connection',
+            description: 'The number of datasource queries currently waiting for a free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
@@ -221,7 +221,7 @@ testMatrix.setupTestSuite(
           providerFlavor === ProviderFlavors.JS_LIBSQL ||
           providerFlavor === ProviderFlavors.JS_PLANETSCALE,
       )('SQL Providers: should have the same keys, before and after a query', async () => {
-        if (provider === 'mongodb') {
+        if (provider === Providers.MONGODB) {
           return
         }
 
@@ -265,7 +265,7 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'The number of datasource queries currently waiting for an free connection',
+            description: 'The number of datasource queries currently waiting for a free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
@@ -353,7 +353,7 @@ testMatrix.setupTestSuite(
             key: 'prisma_client_queries_wait',
             labels: {},
             value: 0,
-            description: 'The number of datasource queries currently waiting for an free connection',
+            description: 'The number of datasource queries currently waiting for a free connection',
           },
           {
             key: 'prisma_pool_connections_busy',
@@ -483,7 +483,7 @@ testMatrix.setupTestSuite(
         expect((metrics.match(/prisma_pool_connections_closed_total \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_pool_connections_opened_total \d/g) || []).length).toBe(1)
 
-        if (provider === 'mongodb') {
+        if (provider === Providers.MONGODB) {
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_bucket/g) || []).length).toBe(0)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_sum .*/g) || []).length).toBe(0)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_count \d/g) || []).length).toBe(0)
@@ -535,7 +535,7 @@ testMatrix.setupTestSuite(
         expect(histograms[0].value.count).toBeGreaterThan(0)
         expect(histograms[0].value.sum).toBeGreaterThan(0)
         const histogramsKeys = histograms.map((c) => c.key)
-        if (provider === 'mongodb') {
+        if (provider === Providers.MONGODB) {
           expect(histogramsKeys).toEqual([
             'prisma_client_queries_duration_histogram_ms',
             // 'prisma_client_queries_wait_histogram_ms',

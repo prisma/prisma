@@ -335,7 +335,9 @@ export class ModelDelegate implements Generatable {
    * @returns
    */
   private getNonAggregateActions(availableActions: DMMF.ModelAction[]): DMMF.ModelAction[] {
-    const actions = availableActions.filter((key) => key !== 'aggregate' && key !== 'groupBy' && key !== 'count')
+    const actions = availableActions.filter(
+      (key) => key !== DMMF.ModelAction.aggregate && key !== DMMF.ModelAction.groupBy && key !== DMMF.ModelAction.count,
+    )
 
     return actions
   }

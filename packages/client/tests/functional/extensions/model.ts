@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -331,7 +333,7 @@ testMatrix.setupTestSuite(
       `)
     })
 
-    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
+    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods',
       async () => {
         const fnEmitter = jest.fn()
@@ -371,7 +373,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
+    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods and query',
       async () => {
         const fnEmitter = jest.fn()

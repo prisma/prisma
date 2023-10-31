@@ -1,4 +1,4 @@
-import { getClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { getTestClient } from '../../../../utils/getTestClient'
@@ -15,7 +15,7 @@ beforeEach(async () => {
 })
 
 test('basic event logging - library', async () => {
-  if (getClientEngineType() !== 'library') {
+  if (getClientEngineType() !== ClientEngineType.Library) {
     return
   }
 
@@ -75,7 +75,7 @@ test('basic event logging - library', async () => {
 })
 
 test('interactive transactions logging - library', async () => {
-  if (getClientEngineType() !== 'library') {
+  if (getClientEngineType() !== ClientEngineType.Library) {
     return
   }
 
