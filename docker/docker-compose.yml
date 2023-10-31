@@ -40,10 +40,13 @@ services:
       PGBOUNCER_POOL_MODE: 'transaction'
       PGBOUNCER_MAX_CLIENT_CONN: '1000'
       PGBOUNCER_MAX_PREPARED_STATEMENTS: 0
+      BITNAMI_DEBUG: 1
     links:
       - postgres:postgres
     ports:
       - 5432:6432 # PgBouncer port
+    volumes:
+      - ./pgbouncer/conf/:/bitnami/pgbouncer/conf/
 
   postgres_isolated:
     image: postgres:10
