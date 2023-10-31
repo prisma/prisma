@@ -14,7 +14,12 @@
       "@prisma/get-platform": ["./packages/get-platform/src"],
       "@prisma/fetch-engine": ["./packages/fetch-engine/src"],
       "@prisma/engines": ["./packages/engines/src"],
-      "@prisma/instrumentation": ["./packages/instrumentation/src"]
+      "@prisma/instrumentation": ["./packages/instrumentation/src"],
+      "@prisma/driver-adapter-utils": ["./packages/driver-adapter-utils/src"],
+      "@prisma/adapter-libsql": ["./packages/adapter-libsql/src"],
+      "@prisma/adapter-neon": ["./packages/adapter-neon/src"],
+      "@prisma/adapter-pg": ["./packages/adapter-pg/src"],
+      "@prisma/adapter-planetscale": ["./packages/adapter-planetscale/src"]
     }
   }
 }

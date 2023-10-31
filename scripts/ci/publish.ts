@@ -1,3 +1,4 @@
+import { devDependencies as devDependenciesPrismaEnginesPkg } from '@prisma/engines/package.json'
 import slugify from '@sindresorhus/slugify'
 import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
@@ -6,7 +7,6 @@ import execa from 'execa'
 import fs from 'fs'
 import globby from 'globby'
 import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
-import fetch from 'node-fetch'
 import pRetry from 'p-retry'
 import path from 'path'
 import redis from 'redis'
@@ -612,7 +612,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
 
-      const enginesCommitHash = await getEnginesCommitHash()
+      const enginesCommitHash = getEnginesCommitHash()
       const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
       const prismaCommitHash = await getLatestCommitHash('.')
       const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
@@ -654,13 +654,12 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
   }
 }
 
-async function getEnginesCommitHash(): Promise<string> {
-  const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
-  const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
-  // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
+function getEnginesCommitHash(): string {
+  const npmEnginesVersion = devDependenciesPrismaEnginesPkg['@prisma/engines-version']
+  const sha1Pattern = /\b[0-9a-f]{5,40}\b/
+  const commitHash = npmEnginesVersion.match(sha1Pattern)![0]
 
-  return engineVersion
+  return commitHash
 }
 
 async function tagEnginesRepo(
@@ -1069,14 +1068,33 @@ function getLines(str: string): string[] {
   return str.split(/\r?\n|\r/)
 }
 
-async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
-  const response = await fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
+type GitHubCommitInfo = {
+  sha: string
+  commit: {
+    author: {
+      name: string
+      email: string
+      date: string
+    } | null
+    committer: {
+      name: string
+      email: string
+      date: string
+    } | null
+    message: string
+    url: string
+  }
+}
 
-  const jsonData = await response.json()
+async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
+  // Example https://api.github.com/repos/prisma/prisma/commits/9d23845e98e34ec97f3013f5c2a3f85f57a828e2
+  // Doc https://docs.github.com/en/free-pro-team@latest/rest/commits/commits?apiVersion=2022-11-28#get-a-commit
+  const response = await fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
+  const jsonData = (await response.json()) as GitHubCommitInfo
 
   return {
     message: jsonData.commit?.message || '',
-    author: jsonData.commit?.author.name || '',
+    author: jsonData.commit?.author?.name || '',
     hash,
   }
 }

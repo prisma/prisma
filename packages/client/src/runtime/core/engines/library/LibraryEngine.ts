@@ -1,4 +1,5 @@
 import Debug from '@prisma/debug'
+import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
 import { assertAlways, ClientEngineType, EngineSpanEvent, getClientEngineType } from '@prisma/internals'
@@ -167,11 +168,15 @@ export class LibraryEngine extends Engine<undefined> {
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
-    if (response.error_code) {
-      throw new PrismaClientKnownRequestError(response.message as string, {
+    if (isUserFacingError(response)) {
+      const externalError = this.getExternalAdapterError(response)
+      if (externalError) {
+        throw externalError.error
+      }
+      throw new PrismaClientKnownRequestError(response.message, {
         code: response.error_code as string,
         clientVersion: this.config.clientVersion as string,
-        meta: response.meta as Record<string, unknown>,
+        meta: response.meta,
       })
     }
 
@@ -547,15 +552,20 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       )
     }
 
-    if (error.user_facing_error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
-      const id = error.user_facing_error.meta?.id
+    const externalError = this.getExternalAdapterError(error.user_facing_error)
+
+    return externalError ? externalError.error : prismaGraphQLToJSError(error, this.config.clientVersion!)
+  }
+
+  private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {
+    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
+      const id = error.meta?.id
       assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
       const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
       assertAlways(errorRecord, `External error with reported id was not registered`)
-      return errorRecord.error
+      return errorRecord
     }
-
-    return prismaGraphQLToJSError(error, this.config.clientVersion!)
+    return undefined
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
@@ -568,4 +578,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
     return this.parseEngineResponse(responseString)
   }
+}
+
+function isUserFacingError(e: unknown): e is RequestError['user_facing_error'] {
+  return typeof e === 'object' && e !== null && e['error_code'] !== undefined
 }

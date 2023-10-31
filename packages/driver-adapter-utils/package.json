@@ -1,0 +1,31 @@
+{
+  "name": "@prisma/driver-adapter-utils",
+  "version": "0.0.0",
+  "description": "Internal set of utilities and types for Prisma's driver adapters.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/driver-adapter-utils"
+  },
+  "scripts": {
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [],
+  "author": "Alberto Schiabel <schiabel@prisma.io>",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "dependencies": {
+    "debug": "4.3.4"
+  },
+  "devDependencies": {
+    "@types/debug": "4.1.10"
+  }
+}

@@ -1,3 +1,4 @@
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
@@ -73,6 +74,12 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     if (!previewFeatures.includes('driverAdapters')) {
       throw new PrismaClientConstructorValidationError(
         '"adapter" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.',
+      )
+    }
+
+    if (getClientEngineType() === ClientEngineType.Binary) {
+      throw new PrismaClientConstructorValidationError(
+        `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
       )
     }
   },

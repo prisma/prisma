@@ -42,7 +42,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
   debug('enginePath', enginePath)
 
   // if we find it, we apply +x chmod to the binary, cache, and return
-  if (enginePath !== undefined && engineType === 'binary') chmodPlusX(enginePath)
+  if (enginePath !== undefined && engineType === ClientEngineType.Binary) chmodPlusX(enginePath)
   if (enginePath !== undefined) return (config.prismaPath = enginePath)
 
   // if we don't find it, then we will throw helpful error messages
@@ -121,7 +121,7 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
  * @returns
  */
 export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: Platform) {
-  if (engineType === 'library') {
+  if (engineType === ClientEngineType.Library) {
     return getNodeAPIName(binaryTarget, 'fs')
   } else {
     return `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`

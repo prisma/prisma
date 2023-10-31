@@ -1,6 +1,7 @@
 import * as path from 'path'
 
 import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -17,7 +18,7 @@ testMatrix.setupTestSuite(
     test('suiteConfig', () => {
       /*
       {
-        provider: 'sqlite',
+        provider: Providers.SQLITE
         id: 'Int @id @default(autoincrement())',
         providerFeatures: '',
         previewFeatures: '"tracing"'
@@ -54,8 +55,8 @@ testMatrix.setupTestSuite(
       expect(schemaString).toContain('model')
     })
 
-    testIf(suiteConfig.provider !== 'mongodb')('conditional @ts-test-if', async () => {
-      // @ts-test-if: provider !== 'mongodb'
+    testIf(suiteConfig.provider !== Providers.MONGODB)('conditional @ts-test-if', async () => {
+      // @ts-test-if: provider !== Providers.MONGODB
       await prisma.$queryRaw`SELECT 1;`
     })
   },
