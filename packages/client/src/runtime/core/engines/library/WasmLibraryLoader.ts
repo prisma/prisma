@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
-import '@prisma/driver-adapter-utils'
-
 // this import points directly to ./mywasmlib_bg.js it is generated with >>>
 // wasm-bindgen --browser. --browser is the leanest and most agnostic option
 // that is also easy to integrate with our bundling.
@@ -19,14 +16,14 @@ export const wasmLibraryLoader: LibraryLoader = {
     wasmBindgenRuntime.__wbg_set_wasm(instance.exports)
 
     return {
-      async debugPanic() {
-        throw '{}' // not really used
+      debugPanic() {
+        return Promise.reject('{}') // not used
       },
-      async dmmf() {
-        return '{}' // not really used
+      dmmf() {
+        return Promise.resolve('{}') // not used
       },
       version() {
-        return { commit: 'TODO', version: 'TODO' }
+        return { commit: 'unknown', version: 'unknown' } // not used
       },
       // after taking a look at the wasm-bindgen output, it seems like we should be able to produce API-compliant engines
       QueryEngine: wasmBindgenRuntime.QueryEngine,
