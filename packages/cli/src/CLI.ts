@@ -108,6 +108,7 @@ export class CLI implements Command {
             validate   Validate your Prisma schema
               format   Format your Prisma schema
              version   Displays Prisma version info
+               debug   Displays Prisma debug info
 
     ${bold('Flags')}
 
@@ -139,5 +140,11 @@ export class CLI implements Command {
 
       Format your Prisma schema
       ${dim('$')} prisma format
+
+      Display Prisma version info
+      ${dim('$')} prisma version
+
+      Display Prisma debug info
+      ${dim('$')} prisma debug
   `)
 }
