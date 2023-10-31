@@ -50,14 +50,19 @@ export class DebugInfo implements Command {
       return bold(`- ${name}: \`${value}\``)
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    let schemaPath
+    try {
+      schemaPath = await getSchemaPath(args['--schema'])
+    } catch (e) {
+      schemaPath = e.message
+    }
     const rootCacheDir = await getRootCacheDir()
 
     return `${underline('-- Prisma schema --')}
 Path: ${schemaPath}
 
 ${underline('-- Local cache directory for engines files --')}
-${rootCacheDir}
+Path: ${rootCacheDir}
 
 ${underline('-- Environment variables --')}
 When not set, the line is dimmed and no value is displayed.
