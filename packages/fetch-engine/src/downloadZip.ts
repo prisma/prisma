@@ -97,7 +97,7 @@ export async function downloadZip(
       return await new Promise(async (resolve, reject) => {
         let bytesRead = 0
 
-        response.body.on('error', reject).on('data', (chunk) => {
+        response.body!.on('error', reject).on('data', (chunk) => {
           bytesRead += chunk.length
 
           if (size && progressCb) {
@@ -108,8 +108,8 @@ export async function downloadZip(
         const gunzip = zlib.createGunzip()
         gunzip.on('error', reject)
 
-        const zipStream = response.body.pipe(gunzip)
-        const zippedHashPromise = hasha.fromStream(response.body, {
+        const zipStream = response.body!.pipe(gunzip)
+        const zippedHashPromise = hasha.fromStream(response.body!, {
           algorithm: 'sha256',
         })
         const hashPromise = hasha.fromStream(zipStream, {

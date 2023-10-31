@@ -79,9 +79,9 @@ async function request(query: string, variables: any): Promise<any> {
       return response.json()
     })
     .then((responseAsJson) => {
-      if (responseAsJson.errors) {
-        throw new Error(JSON.stringify(responseAsJson.errors))
+      if ((responseAsJson as any).errors) {
+        throw new Error(JSON.stringify((responseAsJson as any).errors))
       }
-      return responseAsJson.data
+      return (responseAsJson as any).data
     })
 }
