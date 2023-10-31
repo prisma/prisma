@@ -1,5 +1,5 @@
 import { QueryEvent } from '../../../../src/runtime/getPrismaClient'
-import { ProviderFlavors } from '../../_utils/providers'
+import { ProviderFlavors, Providers } from '../../_utils/providers'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -42,9 +42,9 @@ testMatrix.setupTestSuite(
           }
         })
 
-        if (provider === 'sqlite') {
+        if (provider === Providers.SQLITE) {
           await _prisma.user.create({
-            // @ts-test-if: provider === 'sqlite'
+            // @ts-test-if: provider === Providers.SQLITE
             data: {
               dateTime: date,
             },
@@ -53,7 +53,7 @@ testMatrix.setupTestSuite(
           await _prisma.user.create({
             data: {
               dateTime: date,
-              // @ts-test-if: provider !== 'sqlite'
+              // @ts-test-if: provider !== Providers.SQLITE
               date: date,
               time: date,
             },
@@ -63,7 +63,7 @@ testMatrix.setupTestSuite(
         // This test is asserting that JSON.parse does not throw because quotes are used
         const params = JSON.parse(paramsString)
 
-        if (provider === 'sqlite') {
+        if (provider === Providers.SQLITE) {
           expect(params).toHaveLength(3)
         } else {
           expect(params).toHaveLength(5)

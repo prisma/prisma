@@ -14,8 +14,10 @@ export type Pick<T, K extends string | number | symbol> = {
   [P in keyof T as P extends K ? P : never]: T[P]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type ComputeDeep<T> = T extends Function ? T : { [K in keyof T]: ComputeDeep<T[K]> } & unknown
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type Compute<T> = T extends Function ? T : { [K in keyof T]: T[K] } & unknown
 
 export type OptionalFlat<T> = {
