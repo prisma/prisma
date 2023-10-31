@@ -38,9 +38,9 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
   const engineType = getClientEngineType(engineConfig.generator!)
 
   if (engineType === ClientEngineType.Wasm && engineConfig.adapter !== undefined) {
-    return new LibraryEngine(engineConfig)
+    return new LibraryEngine(engineConfig) // this means the wasm loader is available on all builds
   } else if (url?.startsWith('prisma://') || clientConfig.noEngine || TARGET_BUILD_TYPE === 'edge') {
-    return new DataProxyEngine(engineConfig)
+    return new DataProxyEngine(engineConfig) // the data proxy engine is also available on all builds
   } else if (engineType === ClientEngineType.Library && TARGET_BUILD_TYPE === 'library') {
     return new LibraryEngine(engineConfig)
   } else if (engineType === ClientEngineType.Binary && TARGET_BUILD_TYPE === 'binary') {
