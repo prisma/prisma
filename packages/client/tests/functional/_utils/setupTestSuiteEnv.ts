@@ -76,9 +76,13 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
  * @returns
  */
 function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
-  const script = new Script(conditionFromComment)
+  const script = new Script(`
+  ${conditionFromComment}
+  `)
+
   const value = script.runInNewContext({
     ...suiteConfig,
+    Providers,
   })
   return Boolean(value)
 }
@@ -136,7 +140,7 @@ export async function setupTestSuiteDatabase(
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
 
-      if (provider === 'mongodb') {
+      if (provider === Providers.MONGODB) {
         throw new Error('DbExecute not supported with mongodb')
       }
 

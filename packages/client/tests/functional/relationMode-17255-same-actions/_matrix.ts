@@ -1,4 +1,5 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 import { computeMatrix } from '../_utils/relationMode/computeMatrix'
 
 // const RelationModeEnv = process.env.RELATION_MODE
@@ -39,7 +40,7 @@ export default defineMatrix(() => [
   [
     ...computeMatrix({ relationMode: 'foreignKeys' }).filter((entry) => {
       const isSetNull = entry.onDelete === 'SetNull' && entry.onUpdate === 'SetNull'
-      const isSQLite = entry.provider === 'sqlite'
+      const isSQLite = entry.provider === Providers.SQLITE
 
       if (process.platform === 'win32') {
         return !isSetNull && !isSQLite
@@ -49,7 +50,7 @@ export default defineMatrix(() => [
     }),
     ...computeMatrix({ relationMode: 'prisma' }).filter((entry) => {
       const isSetNull = entry.onDelete === 'SetNull' && entry.onUpdate === 'SetNull'
-      const isSQLite = entry.provider === 'sqlite'
+      const isSQLite = entry.provider === Providers.SQLITE
 
       if (process.platform === 'win32') {
         return !isSetNull && !isSQLite

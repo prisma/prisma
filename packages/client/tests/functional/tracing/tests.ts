@@ -14,6 +14,7 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -85,6 +86,8 @@ afterAll(() => {
 
 testMatrix.setupTestSuite(
   ({ provider }, suiteMeta, clientMeta) => {
+    const isMongoDb = provider === Providers.MONGODB
+
     beforeEach(async () => {
       await prisma.$connect()
       inMemorySpanExporter.reset()
@@ -186,13 +189,13 @@ testMatrix.setupTestSuite(
     }
 
     function findManyDbQuery() {
-      const statement = provider === 'mongodb' ? 'db.User.findMany(*)' : 'SELECT'
+      const statement = isMongoDb ? 'db.User.findMany(*)' : 'SELECT'
 
       return dbQuery(expect.stringContaining(statement))
     }
 
     function createDbQueries(tx = true) {
-      if (provider === 'mongodb') {
+      if (isMongoDb) {
         return [
           dbQuery(expect.stringContaining('db.User.insertOne(*)')),
           dbQuery(expect.stringContaining('db.User.findOne(*)')),
@@ -264,7 +267,7 @@ testMatrix.setupTestSuite(
 
         let dbQueries: Tree[]
 
-        if (provider === 'mongodb') {
+        if (isMongoDb) {
           dbQueries = [
             dbQuery(expect.stringContaining('db.User.findMany(*)')),
             dbQuery(expect.stringContaining('db.User.updateMany(*)')),
@@ -299,7 +302,7 @@ testMatrix.setupTestSuite(
 
         let dbQueries: Tree[]
 
-        if (provider === 'mongodb') {
+        if (isMongoDb) {
           dbQueries = [
             dbQuery(expect.stringContaining('db.User.findOne(*)')),
             dbQuery(expect.stringContaining('db.User.findMany(*)')),
@@ -335,7 +338,7 @@ testMatrix.setupTestSuite(
 
         let dbQueries: Tree[]
 
-        if (provider === 'mongodb') {
+        if (isMongoDb) {
           dbQueries = [
             dbQuery(expect.stringContaining('db.User.findMany(*)')),
             dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
@@ -372,7 +375,7 @@ testMatrix.setupTestSuite(
 
         let dbQueries: Tree[]
 
-        if (provider === 'mongodb') {
+        if (isMongoDb) {
           dbQueries = [...createDbQueries(false), findManyDbQuery()]
         } else {
           dbQueries = [
@@ -420,7 +423,7 @@ testMatrix.setupTestSuite(
 
         let txQueries: Tree[] = []
 
-        if (provider !== 'mongodb') {
+        if (provider !== Providers.MONGODB) {
           txQueries = [dbQuery(expect.stringContaining('BEGIN'), false), dbQuery('COMMIT', false)]
         }
 
@@ -460,9 +463,9 @@ testMatrix.setupTestSuite(
       })
     })
 
-    describeIf(provider !== 'mongodb')('tracing on $raw methods', () => {
+    describeIf(provider !== Providers.MONGODB)('tracing on $raw methods', () => {
       test('$queryRaw', async () => {
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         await prisma.$queryRaw`SELECT 1 + 1;`
         await waitForSpanTree(
           operation(undefined, 'queryRaw', [
@@ -474,11 +477,11 @@ testMatrix.setupTestSuite(
 
       test('$executeRaw', async () => {
         // Raw query failed. Code: `N/A`. Message: `Execute returned results, which is not allowed in SQLite.`
-        if (provider === 'sqlite' || provider === 'mongodb') {
+        if (provider === Providers.SQLITE || isMongoDb) {
           return
         }
 
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         await prisma.$executeRaw`SELECT 1 + 1;`
 
         await waitForSpanTree(

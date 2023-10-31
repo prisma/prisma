@@ -17,6 +17,7 @@ export default ESLintUtils.RuleCreator.withoutDocs({
 
   create(context) {
     const checkImport = (
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       node: TSESTree.ImportDeclaration | TSESTree.ExportAllDeclaration | TSESTree.ExportNamedDeclaration,
     ) => {
       if (!node.source) {
