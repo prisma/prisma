@@ -577,5 +577,5 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 }
 
 function isUserFacingError(e: unknown): e is RequestError['user_facing_error'] {
-  return typeof e === 'object' && e !== null && e['error_code']
+  return typeof e === 'object' && e !== null && e['error_code'] !== undefined
 }
