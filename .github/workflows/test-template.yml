@@ -148,7 +148,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -220,7 +220,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -298,7 +298,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer neon_wsproxy planetscale_proxy
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -368,7 +368,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer # mysql mysql_isolated mssql mongo cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -464,7 +464,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -515,7 +515,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -658,7 +658,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer mysql mariadb mssql
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -712,7 +712,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer mysql mssql
 
       - name: Set CLI Engine Type
         run: |
@@ -774,7 +774,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
       - name: Set CLI Engine Type
         run: |
@@ -836,7 +836,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres pgbouncer
 
       - name: Set CLI Engine Type
         run: |
