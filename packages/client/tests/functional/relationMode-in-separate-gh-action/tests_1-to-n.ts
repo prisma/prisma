@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { ProviderFlavors, Providers, RelationModes } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
@@ -61,7 +61,7 @@ testMatrix.setupTestSuite(
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isPostgreSQL = suiteConfig.provider === Providers.POSTGRESQL
     const isSQLite = suiteConfig.provider === Providers.SQLITE
-    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
+    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === RelationModes.PRISMA
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
@@ -198,7 +198,7 @@ testMatrix.setupTestSuite(
         describeIf(![Providers.SQLITE].includes(suiteConfig.provider))('not sqlite', () => {
           // SQLite doesn't support createMany
           test('[create] nested child [createMany]', async () => {
-            // @ts-test-if: provider !== 'sqlite'
+            // @ts-test-if: provider !== Providers.SQLITE
             await prisma[userModel].create({
               data: {
                 id: '1',

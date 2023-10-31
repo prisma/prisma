@@ -25,16 +25,16 @@ export function getMethodJSDoc(action: DMMF.ModelAction, mapping: DMMF.ModelMapp
   return wrapComment(getMethodJSDocBody(action, mapping, model))
 }
 export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
-  if (actionName === 'count') {
+  if (actionName === DMMF.ModelAction.count) {
     return ''
   }
-  if (actionName === 'aggregate') {
+  if (actionName === DMMF.ModelAction.aggregate) {
     return `<T extends ${getAggregateArgsName(name)}>`
   }
-  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
     return ''
   }
-  if (actionName === 'findFirst' || actionName === 'findUnique') {
+  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
     return `<T extends ${getModelArgName(name, actionName)}<ExtArgs>>`
   }
   const modelArgName = getModelArgName(name, actionName)
@@ -45,13 +45,13 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
   return `<T extends ${modelArgName}<ExtArgs>>`
 }
 export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
-  if (actionName === 'count') {
+  if (actionName === DMMF.ModelAction.count) {
     return `args?: Omit<${getModelArgName(modelName, DMMF.ModelAction.findMany)}, 'select' | 'include' | 'distinct' >`
   }
-  if (actionName === 'aggregate') {
+  if (actionName === DMMF.ModelAction.aggregate) {
     return `args: Subset<T, ${getAggregateArgsName(modelName)}>`
   }
-  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
     return `args?: ${getModelArgName(modelName, actionName)}`
   }
   return `args${

@@ -200,7 +200,7 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
     ;async () => {
       const xprisma = prisma.$extends({})
 
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       const data = await xprisma.$transaction([xprisma.user.findFirst({ select: { id: true } })], {
         isolationLevel: 'Serializable',
       })

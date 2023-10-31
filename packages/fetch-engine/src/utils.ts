@@ -67,9 +67,14 @@ export function getDownloadUrl({
     process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
     process.env.PRISMA_ENGINES_MIRROR ||
     'https://binaries.prisma.sh'
+
   const finalExtension =
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
   if (binaryName === BinaryType.QueryEngineLibrary) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     binaryName = getNodeAPIName(platform, 'url')
   }
 
