@@ -17,7 +17,7 @@ process.env.CI = 'true'
 
 describe('postgresql - missing database', () => {
   const defaultConnectionString =
-    process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
+    process.env.TEST_POSTGRES_URI_MIGRATE
 
   // replace database name, e.g., 'tests-migrate', with 'unknown-database'
   const connectionString = defaultConnectionString.split('/').slice(0, -1).join('/') + '/unknown-database'
