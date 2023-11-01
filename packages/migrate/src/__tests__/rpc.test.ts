@@ -398,7 +398,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
     const result = migrate.engine.getDatabaseVersion({
       datasource: {
         tag: 'ConnectionString',
-        url: process.env.TEST_POSTGRES_URI!,
+        url: process.env.TEST_POSTGRES_URI_MIGRATE!,
       },
     })
     await expect(result).resolves.toContain('PostgreSQL')
