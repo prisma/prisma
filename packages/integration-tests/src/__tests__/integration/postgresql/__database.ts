@@ -8,7 +8,7 @@ export const database = {
     url: (ctx) => getConnectionString(ctx),
   },
   async connect(ctx) {
-    const connectionString = getConnectionString(ctx)
+    const connectionString = process.env.TEST_POSTGRES_URI
     const db = new PG.Client({ connectionString })
     await db.connect()
     return db
@@ -23,9 +23,3 @@ export const database = {
   },
   close: (db) => db.end(),
 } as Input<PG.Client>['database']
-
-function getConnectionString(ctx: Context) {
-  const serviceConnectionString = process.env.TEST_POSTGRES_BASE_URI!
-  const connectionString = `${serviceConnectionString}/tests?schema=${ctx.id}&connection_limit=1`
-  return connectionString
-}
