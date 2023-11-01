@@ -18,7 +18,7 @@ export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientE
   }
 
   // by default just make it work on node.js by turning the file into a module
-  return `config.getQueryEngineWasmModule = () => {
+  return `config.getQueryEngineWasmModule = async () => {
   const queryEngineWasmFilePath = require('path').join(config.dirname, 'query-engine.wasm')
   const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
 
