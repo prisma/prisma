@@ -33,8 +33,8 @@ importers:
         specifier: 0.0.37
         version: 0.0.37
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 20.8.9
         version: 20.8.9
@@ -87,8 +87,8 @@ importers:
         specifier: 2.29.0
         version: 2.29.0(@typescript-eslint/parser@6.9.0)(eslint@8.52.0)
       eslint-plugin-jest:
-        specifier: 27.4.3
-        version: 27.4.3(@typescript-eslint/eslint-plugin@6.9.0)(eslint@8.52.0)(typescript@5.2.2)
+        specifier: 27.6.0
+        version: 27.6.0(@typescript-eslint/eslint-plugin@6.9.0)(eslint@8.52.0)(typescript@5.2.2)
       eslint-plugin-local-rules:
         specifier: 2.0.0
         version: 2.0.0
@@ -296,8 +296,8 @@ importers:
         specifier: 9.0.13
         version: 9.0.13
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -386,8 +386,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
-        version: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
+        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -501,8 +501,8 @@ importers:
         specifier: 9.0.13
         version: 9.0.13
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/js-levenshtein':
         specifier: 1.1.2
         version: 1.1.2
@@ -676,8 +676,8 @@ importers:
         version: 6.0.1
     devDependencies:
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -710,8 +710,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
-        version: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
+        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -725,8 +725,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -795,8 +795,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
-        version: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
+        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
       '@swc/core':
         specifier: 1.3.95
         version: 1.3.95
@@ -804,8 +804,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -853,8 +853,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -917,8 +917,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -954,8 +954,8 @@ importers:
         specifier: 1.3.95
         version: 1.3.95
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -990,8 +990,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/mssql':
         specifier: 9.1.2
         version: 9.1.2
@@ -1077,8 +1077,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
-        version: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
+        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
       archiver:
         specifier: 6.0.1
         version: 6.0.1
@@ -1155,8 +1155,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0
       resolve:
-        specifier: 1.22.6
-        version: 1.22.6
+        specifier: 1.22.8
+        version: 1.22.8
       string-width:
         specifier: 4.2.3
         version: 4.2.3
@@ -1189,8 +1189,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.2.204)
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -1258,11 +1258,11 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
       mariadb:
-        specifier: 3.2.1
-        version: 3.2.1
+        specifier: 3.2.2
+        version: 3.2.2
       mongoose:
-        specifier: 7.6.0
-        version: 7.6.0
+        specifier: 8.0.0
+        version: 8.0.0
       mssql:
         specifier: 10.0.1
         version: 10.0.1
@@ -1289,8 +1289,8 @@ importers:
         version: 5.0.5
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
-        version: 5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b
+        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1304,8 +1304,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.95)
       '@types/jest':
-        specifier: 29.5.6
-        version: 29.5.6
+        specifier: 29.5.7
+        version: 29.5.7
       '@types/node':
         specifier: 18.18.6
         version: 18.18.6
@@ -2862,7 +2862,6 @@ packages:
     dependencies:
       sparse-bitfield: 3.0.3
     dev: false
-    optional: true
 
   /@neon-rs/load@0.0.4:
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
@@ -3286,8 +3285,8 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/engines-version@5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b:
-    resolution: {integrity: sha512-lzMRssOkDk3EAh5VlA2x+9Mf/3UCffR9eD3lNjjlAuShr6bAj2IUNMa7FrKNlrlNUd3LwuImwrI5xhWOUiPWzg==}
+  /@prisma/engines-version@5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0:
+    resolution: {integrity: sha512-XlqcAiJzahcpHO1CedlySlHgQaEFzQGYgFcrGZx3Z1C5PKEY9jZhc5/jnUIOx7EnK9GzGfX8r3g8fTjGeMTo9w==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3295,8 +3294,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.6.0-8.582b416e6b0ed6f95140cdea85b3a49e2dc3e52b:
-    resolution: {integrity: sha512-WI6/DzoRy34NaHdbDpL9rGszMgbk6OfuQMXnpi3iChPfjInfw2wnLz37V0pOzXtmx6a/c++Ui9PqfJ9KmLf8Dg==}
+  /@prisma/prisma-schema-wasm@5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0:
+    resolution: {integrity: sha512-oG2fw3Q0D6AY1cDGeCoQdG7Aqvga2pWta8cN9I/49K2dVm1sScbgCv8Y4QsMSmVvSs2BKUu5fbm816UZviqqIA==}
     dev: false
 
   /@prisma/query-engine-wasm@0.0.5:
@@ -4014,8 +4013,8 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest@29.5.6:
-    resolution: {integrity: sha512-/t9NnzkOpXb4Nfvg17ieHE6EeSjDS2SGSpNYfoLbUAeL/EOueU/RSdOWFpfQTXBEM7BguYW1XQ0EbM+6RlIh6w==}
+  /@types/jest@29.5.7:
+    resolution: {integrity: sha512-HLyetab6KVPSiF+7pFcUyMeLsx25LDNDemw9mGsJBkai/oouwrjTycocSDYopMEwFhN2Y4s9oPyOCZNofgSt2g==}
     dependencies:
       expect: 29.7.0
       pretty-format: 29.7.0
@@ -5197,9 +5196,9 @@ packages:
       node-int64: 0.4.0
     dev: true
 
-  /bson@5.5.0:
-    resolution: {integrity: sha512-B+QB4YmDx9RStKv8LLSl/aVIEV3nYJc3cJNNTK2Cd1TL+7P+cNpw9mAPeCgc5K+j01Dv6sxUzcITXDx7ZU3F0w==}
-    engines: {node: '>=14.20.1'}
+  /bson@6.2.0:
+    resolution: {integrity: sha512-ID1cI+7bazPDyL9wYy9GaQ8gEEohWvcUl/Yf0dIdutJxnmInEEyCsb4awy/OiBfall7zBA179Pahi3vCdFze3Q==}
+    engines: {node: '>=16.20.1'}
     dev: false
 
   /buffer-crc32@0.2.13:
@@ -5380,7 +5379,7 @@ packages:
   /call-bind@1.0.2:
     resolution: {integrity: sha512-7O+FbCihrB5WGbFYesctwmTKae6rOiIzmz1icreWJ+0aA7LJfuqhEso2T9ncpcFtzMQtzXf2QGGueWJGTYsqrA==}
     dependencies:
-      function-bind: 1.1.1
+      function-bind: 1.1.2
       get-intrinsic: 1.2.1
 
   /callsites@3.1.0:
@@ -6394,7 +6393,7 @@ packages:
       define-data-property: 1.1.0
       define-properties: 1.2.1
       es-abstract: 1.22.1
-      function-bind: 1.1.1
+      function-bind: 1.1.2
       get-intrinsic: 1.2.1
       globalthis: 1.0.3
       has-property-descriptors: 1.0.0
@@ -6635,8 +6634,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-jest@27.4.3(@typescript-eslint/eslint-plugin@6.9.0)(eslint@8.52.0)(typescript@5.2.2):
-    resolution: {integrity: sha512-7S6SmmsHsgIm06BAGCAxL+ABd9/IB3MWkz2pudj6Qqor2y1qQpWPfuFU4SG9pWj4xDjF0e+D7Llh5useuSzAZw==}
+  /eslint-plugin-jest@27.6.0(@typescript-eslint/eslint-plugin@6.9.0)(eslint@8.52.0)(typescript@5.2.2):
+    resolution: {integrity: sha512-MTlusnnDMChbElsszJvrwD1dN3x6nZl//s4JD23BxB6MgR66TZlL064su24xEIS3VACfAoHV1vgyMgPw8nkdng==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': ^5.0.0 || ^6.0.0
@@ -7303,12 +7302,8 @@ packages:
       rc: 1.2.8
     dev: true
 
-  /function-bind@1.1.1:
-    resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==}
-
   /function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
-    dev: true
 
   /function.prototype.name@1.1.5:
     resolution: {integrity: sha512-uN7m/BzVKQnCUF/iW8jYea67v++2u7m5UgENbHRtdDVclOUP+FMPlCNdmk0h/ysGyo2tavMJEDqJAkJdRa1vMA==}
@@ -7380,7 +7375,7 @@ packages:
   /get-intrinsic@1.2.1:
     resolution: {integrity: sha512-2DcsyfABl+gVHEfCOaTrWgyt+tb6MSEGmKq+kI5HwLbIYgjgmMcV8KQ41uaKz1xxUcn9tJtgFbQUEVcEbd0FYw==}
     dependencies:
-      function-bind: 1.1.1
+      function-bind: 1.1.2
       has: 1.0.3
       has-proto: 1.0.1
       has-symbols: 1.0.3
@@ -7764,7 +7759,7 @@ packages:
     resolution: {integrity: sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==}
     engines: {node: '>= 0.4.0'}
     dependencies:
-      function-bind: 1.1.1
+      function-bind: 1.1.2
 
   /hasha@5.2.2:
     resolution: {integrity: sha512-Hrp5vIK/xr5SkeN2onO32H0MgNZ0f17HRNH39WfL0SYUNOTZ5Lz1TJ8Pajo/87dYGEFlLMm7mIc/k/s6Bvz9HQ==}
@@ -7779,7 +7774,6 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       function-bind: 1.1.2
-    dev: true
 
   /hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
@@ -8088,6 +8082,7 @@ packages:
   /ip@2.0.0:
     resolution: {integrity: sha512-WKa+XuLG1A1R0UWhl2+1XQSi+fZWMsYKffMZTTYsiZaUD8k2yDAj5atimTUD2TZkyCkNEeYE5NhFZmupOGtjYQ==}
     requiresBuild: true
+    dev: true
 
   /ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
@@ -8154,16 +8149,10 @@ packages:
       ci-info: 3.9.0
     dev: true
 
-  /is-core-module@2.13.0:
-    resolution: {integrity: sha512-Z7dk6Qo8pOCp3l4tsX2C5ZVas4V+UxwQodwZhLopL91TX8UyyHEXafPcyoeeWuLrwzHcr3igO78wNLwHJHsMCQ==}
-    dependencies:
-      has: 1.0.3
-
   /is-core-module@2.13.1:
     resolution: {integrity: sha512-hHrIjvZsftOsvKSn2TRYl63zvxsgE0K+0mYMoH6gD4omR5IWB2KynivBQczo3+wF1cCkjzvptnI9Q0sPU66ilw==}
     dependencies:
       hasown: 2.0.0
-    dev: true
 
   /is-date-object@1.0.5:
     resolution: {integrity: sha512-9YQaSxsAiSwcvS33MBk3wTCVnWK+HhF8VZR2jRxehM16QcVOdHqPn4VPHmRK4lSr38n9JriurInLcP90xsYNfQ==}
@@ -9630,17 +9619,6 @@ packages:
     resolution: {integrity: sha512-CkYQrPYZfWnu/DAmVCpTSX/xHpKZ80eKh2lAkyA6AJTef6bW+6JpbQZN5rofum7da+SyN1bi5ctTm+lTfcCW3g==}
     dev: true
 
-  /mariadb@3.2.1:
-    resolution: {integrity: sha512-EWCsvu8IwK5WRYPJ9iRekFiBfHfKB/wBcUwAzbhQKhSc6ivbvLcO/cktkYTCz3HVoGNYVWhBN38485Cq3qMSbQ==}
-    engines: {node: '>= 12'}
-    dependencies:
-      '@types/geojson': 7946.0.10
-      '@types/node': 17.0.45
-      denque: 2.1.0
-      iconv-lite: 0.6.3
-      lru-cache: 10.0.1
-    dev: false
-
   /mariadb@3.2.2:
     resolution: {integrity: sha512-9ClJCFsLcK7WnPXVxuKGd7p0CBvNch3i5nwAf1HEqERj7RV60DG/0dJu4DfO33gpYQd9Cr4jq17O76/2VjSbkg==}
     engines: {node: '>= 12'}
@@ -9650,7 +9628,6 @@ packages:
       denque: 2.1.0
       iconv-lite: 0.6.3
       lru-cache: 10.0.1
-    dev: true
 
   /matcher@3.0.0:
     resolution: {integrity: sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng==}
@@ -9722,7 +9699,6 @@ packages:
     resolution: {integrity: sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg==}
     requiresBuild: true
     dev: false
-    optional: true
 
   /meow@5.0.0:
     resolution: {integrity: sha512-CbTqYU17ABaLefO8vCU153ZZlprKYWDljcndKKDCFcYQITzWCXZAVk4QMFZPgvzrnUQ3uItnIE/LoUOwrT15Ig==}
@@ -9994,19 +9970,23 @@ packages:
       whatwg-url: 11.0.0
     dev: false
 
-  /mongodb@5.9.0:
-    resolution: {integrity: sha512-g+GCMHN1CoRUA+wb1Agv0TI4YTSiWr42B5ulkiAfLLHitGK1R+PkSAf3Lr5rPZwi/3F04LiaZEW0Kxro9Fi2TA==}
-    engines: {node: '>=14.20.1'}
+  /mongodb@6.2.0:
+    resolution: {integrity: sha512-d7OSuGjGWDZ5usZPqfvb36laQ9CPhnWkAGHT61x5P95p/8nMVeH8asloMwW6GcYFeB0Vj4CB/1wOTDG2RA9BFA==}
+    engines: {node: '>=16.20.1'}
     peerDependencies:
       '@aws-sdk/credential-providers': ^3.188.0
-      '@mongodb-js/zstd': ^1.0.0
-      kerberos: ^1.0.0 || ^2.0.0
-      mongodb-client-encryption: '>=2.3.0 <3'
+      '@mongodb-js/zstd': ^1.1.0
+      gcp-metadata: ^5.2.0
+      kerberos: ^2.0.1
+      mongodb-client-encryption: '>=6.0.0 <7'
       snappy: ^7.2.2
+      socks: ^2.7.1
     peerDependenciesMeta:
       '@aws-sdk/credential-providers':
         optional: true
       '@mongodb-js/zstd':
+        optional: true
+      gcp-metadata:
         optional: true
       kerberos:
         optional: true
@@ -10014,21 +9994,21 @@ packages:
         optional: true
       snappy:
         optional: true
+      socks:
+        optional: true
     dependencies:
-      bson: 5.5.0
-      mongodb-connection-string-url: 2.6.0
-      socks: 2.7.1
-    optionalDependencies:
       '@mongodb-js/saslprep': 1.1.0
+      bson: 6.2.0
+      mongodb-connection-string-url: 2.6.0
     dev: false
 
-  /mongoose@7.6.0:
-    resolution: {integrity: sha512-ztQ12rm0BQN5i7LB6xhWX4l9a9w2aa3jEwa/mM2vAutYJRyAwOzcusvKJBULMzFHyUDBOVW15grisexypgMIWA==}
-    engines: {node: '>=14.20.1'}
+  /mongoose@8.0.0:
+    resolution: {integrity: sha512-PzwkLgm1Jhj0NQdgGfnFsu0QP9V1sBFgbavEgh/IPAUzKAagzvEhuaBuAQOQGjczVWnpIU9tBqyd02cOTgsPlA==}
+    engines: {node: '>=16.20.1'}
     dependencies:
-      bson: 5.5.0
+      bson: 6.2.0
       kareem: 2.5.1
-      mongodb: 5.9.0
+      mongodb: 6.2.0
       mpath: 0.9.0
       mquery: 5.0.0
       ms: 2.1.3
@@ -10036,9 +10016,11 @@ packages:
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/zstd'
+      - gcp-metadata
       - kerberos
       - mongodb-client-encryption
       - snappy
+      - socks
       - supports-color
     dev: false
 
@@ -10271,7 +10253,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       hosted-git-info: 4.1.0
-      is-core-module: 2.13.0
+      is-core-module: 2.13.1
       semver: 7.5.4
       validate-npm-package-license: 3.0.4
     dev: true
@@ -10281,7 +10263,7 @@ packages:
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dependencies:
       hosted-git-info: 6.1.1
-      is-core-module: 2.13.0
+      is-core-module: 2.13.1
       semver: 7.5.4
       validate-npm-package-license: 3.0.4
     dev: true
@@ -11769,24 +11751,15 @@ packages:
   /resolve@1.19.0:
     resolution: {integrity: sha512-rArEXAgsBG4UgRGcynxWIWKFvh/XZCcS8UJdHhwy91zwAvCZIbcs+vAbflgBnNjYMs/i/i+/Ux6IZhML1yPvxg==}
     dependencies:
-      is-core-module: 2.13.0
+      is-core-module: 2.13.1
       path-parse: 1.0.7
     dev: true
-
-  /resolve@1.22.6:
-    resolution: {integrity: sha512-njhxM7mV12JfufShqGy3Rz8j11RPdLy4xi15UurGJeoHLfJpVXKdh3ueuOqbYUcDZnffr6X739JBo5LzyahEsw==}
-    hasBin: true
-    dependencies:
-      is-core-module: 2.13.0
-      path-parse: 1.0.7
-      supports-preserve-symlinks-flag: 1.0.0
-    dev: false
 
   /resolve@1.22.8:
     resolution: {integrity: sha512-oKWePCxqpd6FlLvGV1VU0x7bkPmmCNolxzjMf4NczoDnQcIWrAF+cPtZn5i6n+RfD2d9i0tzpKnG6Yk168yIyw==}
     hasBin: true
     dependencies:
-      is-core-module: 2.13.0
+      is-core-module: 2.13.1
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
 
@@ -12175,6 +12148,7 @@ packages:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
     requiresBuild: true
+    dev: true
 
   /socks-proxy-agent@6.2.1:
     resolution: {integrity: sha512-a6KW9G+6B3nWZ1yB8G7pJwL3ggLy1uTzKAgCb7ttblwqdz9fMGJUuTy3uFzEP48FAs9FLILlmzDlE2JJhVQaXQ==}
@@ -12205,6 +12179,7 @@ packages:
     dependencies:
       ip: 2.0.0
       smart-buffer: 4.2.0
+    dev: true
 
   /sort-keys@2.0.0:
     resolution: {integrity: sha512-/dPCrG1s3ePpWm6yBbxZq5Be1dXGLyLn9Z791chDC3NFrpkVbWGzkBwPN1knaciexFXgRJ7hzdnwZ4stHSDmjg==}
@@ -12260,7 +12235,6 @@ packages:
     dependencies:
       memory-pager: 1.5.0
     dev: false
-    optional: true
 
   /spawn-sync@1.0.15:
     resolution: {integrity: sha512-9DWBgrgYZzNghseho0JOuh+5fg9u6QWhAWa51QC7+U5rCheZ/j1DrEZnyE0RBBRqZ9uEXGPgSSM0nky6burpVw==}
