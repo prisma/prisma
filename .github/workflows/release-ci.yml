@@ -32,7 +32,7 @@ env:
 
 jobs:
   release:
-    timeout-minutes: 45
+    timeout-minutes: 75
     # environment: 'npm-ci'
     runs-on: ubuntu-latest
     permissions:
