@@ -16,7 +16,7 @@ import { toolingHasTamperedWithEngineCopy } from './errors/engine-not-found/tool
 const debug = Debug('prisma:client:engines:resolveEnginePath')
 
 // this name will be injected by esbuild when we build/bundle the runtime
-const runtimeFileRegex = () => new RegExp(`runtime[\\\\/]${TARGET_ENGINE_TYPE}\\.m?js$`)
+const runtimeFileRegex = () => new RegExp(`runtime[\\\\/]${TARGET_BUILD_TYPE}\\.m?js$`)
 
 /**
  * Resolves the path of a given engine type (binary or library) and config. If
@@ -59,6 +59,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
     runtimeBinaryTarget: binaryTarget,
     queryEngineName: getQueryEngineName(engineType, binaryTarget),
     expectedLocation: path.relative(process.cwd(), config.dirname), // TODO pathToPosix
+    errorStack: new Error().stack,
   }
 
   let errorMessage: string

@@ -63,7 +63,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_ENGINE_TYPE: 'binary' | 'library' | 'edge'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge'
 }
 
 // used by esbuild for tree-shaking
@@ -278,6 +278,14 @@ export type GetPrismaClientConfig = {
    * runtime, this means the client will be bound to be using the Data Proxy.
    */
   noEngine?: boolean
+
+  /**
+   * Loads the raw wasm module for the wasm query engine. This configuration is
+   * generated specifically for each type of client, eg. Node.js client and Edge
+   * clients will have different implementations.
+   * @remarks this is a callback on purpose, we only load the wasm if needed.
+   */
+  getQueryEngineWasmModule?: () => Promise<unknown>
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -400,6 +408,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             ),
           env: loadedEnv?.parsed ?? {},
           flags: [],
+          getQueryEngineWasmModule: config.getQueryEngineWasmModule,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
