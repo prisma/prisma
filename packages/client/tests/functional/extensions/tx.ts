@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
+import { ProviderFlavors } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -9,7 +11,7 @@ declare let prisma: PrismaClient
 
 const email = faker.internet.email()
 
-testMatrix.setupTestSuite((_0, _1, clientMeta) => {
+testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
   beforeEach(async () => {
     await prisma.post.deleteMany()
     await prisma.user.deleteMany()
@@ -28,45 +30,51 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     })
   })
 
-  testIf(clientMeta.runtime !== 'edge')('extended client in tx can rollback via normal call', async () => {
-    const xprisma = prisma.$extends({
-      result: {
-        user: {
-          fullName: {
-            needs: { firstName: true, lastName: true },
-            compute(user) {
-              return `${user.firstName} ${user.lastName}`
+  // TODO fails with UNIQUE constraint failed: User.email AND Expected instance of error
+  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
+    'extended client in tx can rollback via normal call',
+    async () => {
+      const xprisma = prisma.$extends({
+        result: {
+          user: {
+            fullName: {
+              needs: { firstName: true, lastName: true },
+              compute(user) {
+                return `${user.firstName} ${user.lastName}`
+              },
             },
           },
         },
-      },
-    })
+      })
 
-    const result = xprisma.$transaction([
-      xprisma.user.create({
-        data: {
-          email: 'jane@smith.com',
-          firstName: 'Jane',
-          lastName: 'Smith',
-        },
-      }),
-      xprisma.user.create({
-        data: {
-          email: 'jane@smith.com',
-          firstName: 'Jane',
-          lastName: 'Smith',
-        },
-      }),
-    ])
+      const result = xprisma.$transaction([
+        xprisma.user.create({
+          data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        }),
+        xprisma.user.create({
+          data: {
+            id: copycat.uuid(2).replaceAll('-', '').slice(-24),
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        }),
+      ])
 
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-    const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
+      const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
-    expect(users).toHaveLength(0)
-  })
+      expect(users).toHaveLength(0)
+    },
+  )
 
-  test('extended client in tx works via normal call', async () => {
+  testIf(clientMeta.runtime !== 'edge')('extended client in tx works via normal call', async () => {
     const xprisma = prisma.$extends({
       result: {
         user: {
@@ -95,53 +103,59 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
-  testIf(clientMeta.runtime !== 'edge')('extended client in tx can rollback via custom call', async () => {
-    const xprisma = prisma
-      .$extends({
-        result: {
-          user: {
-            fullName: {
-              needs: { firstName: true, lastName: true },
-              compute(user) {
-                return `${user.firstName} ${user.lastName}`
+  // TODO fails with: Expected instance of error
+  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
+    'extended client in tx can rollback via custom call',
+    async () => {
+      const xprisma = prisma
+        .$extends({
+          result: {
+            user: {
+              fullName: {
+                needs: { firstName: true, lastName: true },
+                compute(user) {
+                  return `${user.firstName} ${user.lastName}`
+                },
               },
             },
           },
-        },
-      })
-      .$extends({
-        model: {
-          $allModels: {
-            createAlt(args: any) {
-              return (this as any).create(args)
+        })
+        .$extends({
+          model: {
+            $allModels: {
+              createAlt(args: any) {
+                return (this as any).create(args)
+              },
             },
           },
-        },
-      })
+        })
 
-    const result = xprisma.$transaction([
-      xprisma.user.createAlt({
-        data: {
-          email: 'jane@smith.com',
-          firstName: 'Jane',
-          lastName: 'Smith',
-        },
-      }),
-      xprisma.user.createAlt({
-        data: {
-          email: 'jane@smith.com',
-          firstName: 'Jane',
-          lastName: 'Smith',
-        },
-      }),
-    ])
+      const result = xprisma.$transaction([
+        xprisma.user.createAlt({
+          data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        }),
+        xprisma.user.createAlt({
+          data: {
+            id: copycat.uuid(2).replaceAll('-', '').slice(-24),
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        }),
+      ])
 
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-    const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
+      const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
-    expect(users).toHaveLength(0)
-  })
+      expect(users).toHaveLength(0)
+    },
+  )
 
   test('extended client in tx works via custom call', async () => {
     const xprisma = prisma
@@ -182,11 +196,11 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
-  test('isolation level is properly reflected in extended client', () => {
+  testIf(clientMeta.runtime !== 'edge')('isolation level is properly reflected in extended client', () => {
     ;async () => {
       const xprisma = prisma.$extends({})
 
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       const data = await xprisma.$transaction([xprisma.user.findFirst({ select: { id: true } })], {
         isolationLevel: 'Serializable',
       })

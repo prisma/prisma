@@ -1,3 +1,5 @@
+import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+
 import type { QueryEngineConfig } from '../../common/types/QueryEngine'
 
 export type QueryEngineInstance = {
@@ -17,7 +19,11 @@ export type QueryEngineInstance = {
 }
 
 export interface QueryEngineConstructor {
-  new (config: QueryEngineConfig, logger: (log: string) => void): QueryEngineInstance
+  new (
+    config: QueryEngineConfig,
+    logger: (log: string) => void,
+    adapter?: ErrorCapturingDriverAdapter,
+  ): QueryEngineInstance
 }
 
 export interface LibraryLoader {

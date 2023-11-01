@@ -6,62 +6,9 @@ To run tests requiring a database, start the test databases using Docker, see [D
 
 ## Environment variables
 
-- Create a `.envrc` in the root directory of the project with this content:
+These are located in the [.db.env](./.db.env) file which is loaded automatically by the test commands.
 
-  ```sh
-  # PostgreSQL
-  export TEST_POSTGRES_BASE_URI="postgres://prisma:prisma@localhost:5432"
-  export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
-  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-postgres/test.ts)
-  export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
-  export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
-  export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
-
-  # MySQL
-  export TEST_MYSQL_BASE_URI="mysql://root:root@localhost:3306"
-  export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
-  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-mysql/test.ts)
-  export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
-  export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
-  export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"
-
-  # MariaDB
-  export TEST_MARIADB_BASE_URI="mysql://root:root@localhost:4306"
-  export TEST_MARIADB_URI="mysql://prisma:prisma@localhost:4306/tests"
-
-  # SQL Server
-  export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master" # for `mssql` lib used in some tests
-  export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-  export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-  export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-
-  # MongoDB
-  export TEST_MONGO_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
-  export TEST_MONGO_URI_MIGRATE="mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
-  export TEST_MONGO_URI_MIGRATE_EXISTING_DB="mongodb://root:prisma@localhost:27017/tests-migrate-existing-db?authSource=admin"
-
-  # CockroachDB
-  export TEST_COCKROACH_URI="postgresql://prisma@localhost:26257/tests"
-  export TEST_COCKROACH_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate"
-  export TEST_COCKROACH_SHADOWDB_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate-shadowdb"
-
-  # Prisma Client - Functional test suite
-  export TEST_FUNCTIONAL_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME"
-  export TEST_FUNCTIONAL_MYSQL_URI="mysql://root:root@localhost:3306/PRISMA_DB_NAME"
-  export TEST_FUNCTIONAL_VITESS_8_URI="mysql://root:root@localhost:33807/PRISMA_DB_NAME"
-  export TEST_FUNCTIONAL_MSSQL_URI="sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-  export TEST_FUNCTIONAL_MONGO_URI="mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin"
-  export TEST_FUNCTIONAL_COCKROACH_URI="postgresql://prisma@localhost:26257/PRISMA_DB_NAME"
-
-  # To hide "Update available 0.0.0 -> x.x.x"
-  export PRISMA_HIDE_UPDATE_MESSAGE="true"
-  ```
-
-- Load the environment variables with:
-
-  ```sh
-  direnv allow
-  ```
+Optionally, if you want the environment variables to always be accessible, you can install [direnv](https://github.com/direnv/direnv/blob/master/docs/installation.md).
 
 ## Jest tips
 
@@ -118,8 +65,6 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - Integration tests for generator interface implementation
 - **`migrate`**
   - Unit and integration tests for `migrate` and `db` commands
-- **`react-prisma`**
-  - Doesn't have tests
 - **`internals`**
   - Convert credentials to connection string and back
   - Dotenv expansion
@@ -227,11 +172,11 @@ import { defineMatrix } from '../_utils/defineMatrix'
 export default defineMatrix(() => [
   [
     {
-      provider: 'sqlite',
+      provider: Providers.SQLITE
       testEmail: 'sqlite-user@example.com',
     },
     {
-      provider: 'mongodb',
+      provider: Providers.MONGODB
       testEmail: 'mongo-user@example.com',
     },
   ],
@@ -246,10 +191,10 @@ import { defineMatrix } from '../_utils/defineMatrix'
 export default defineMatrix(() => [
   [
     {
-      provider: 'sqlite',
+      provider: Providers.SQLITE,
     },
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
     },
   ],
   [
@@ -266,10 +211,10 @@ export default defineMatrix(() => [
 
 Will generate following test suites:
 
-- `{ provider: 'sqlite', providerFeatures: '' }`
-- `{ provider: 'sqlite', providerFeatures: 'improvedQueryRaw' }`
-- `{ provider: 'postgresql', providerFeatures: '' }`
-- `{ provider: 'postgresql', providerFeatures: 'improvedQueryRaw' }`
+- `{ provider: Providers.SQLITE providerFeatures: '' }`
+- `{ provider: Providers.SQLITE providerFeatures: 'improvedQueryRaw' }`
+- `{ provider: Providers.POSTGRESQL providerFeatures: '' }`
+- `{ provider: Providers.POSTGRESQL providerFeatures: 'improvedQueryRaw' }`
 
 You can also optionally exclude certain combinations from matrix by using second argument of `defineMatrix` function:
 
@@ -280,10 +225,10 @@ export default defineMatrix(
   () => [
     [
       {
-        provider: 'sqlite',
+        provider: Providers.SQLITE,
       },
       {
-        provider: 'postgresql',
+        provider: Providers.POSTGRESQL,
       },
     ],
     [
@@ -297,7 +242,8 @@ export default defineMatrix(
     ],
   ],
   {
-    exclude: ({ provider, providerFeatures }) => provider === 'sqlite' && providerFeatures === 'improvedQueryRaw',
+    exclude: ({ provider, providerFeatures }) =>
+      provider === Providers.SQLITE && providerFeatures === 'improvedQueryRaw',
   },
 )
 ```
@@ -400,7 +346,7 @@ correct code for one suite config won't pass type checks for a different one. In
 can use `@ts-test-if` magical comment to conditionally skip type checks. For example:
 
 ```ts
-// @ts-test-if: provider !== 'mongodb'
+// @ts-test-if: provider !== Providers.MONGODB
 prisma.$queryRaw`...`
 ```
 
@@ -498,29 +444,40 @@ You will need to have installed the Rust toolchain and just a few extra dependen
 
 By creating a Pull Request the following pipelines will be triggered
 
-- [Buildkite `[Test] Prisma TypeScript`](https://buildkite.com/prisma/test-prisma-typescript)
 - [GitHub Action `CI`](https://github.com/prisma/prisma/blob/main/.github/workflows/test.yml)
+- [GitHub Action `Benchmark`](https://github.com/prisma/prisma/blob/main/.github/workflows/benchmark.yml)
 
-They are both running the same tests but with different Node.js version and will need to be successful before merging ("flaky" tests might show up and might be ignored).
+`CI` will need to be successful before merging ("flaky" tests might show up and might be ignored).
 
-By default, some of the node version/engine/engine protocol combination are tested only
-during daily builds. If you need to run all of them for your PR leave `ci test all` comment on the PR and re-run the workflow.
+By default, some tests are tested only during daily builds (e.g. `binary` engine). If you need to run all of them for your PR leave a `ci test all` comment on the PR and re-run the workflow.
 
-### Publishing an integration version of all the packages
+### Publishing all the packages to npm on the `integration` tag
 
-If a branch name starts with `integration/` like `integration/fix-all-the-things` the [Buildkite `[Release] Prisma TypeScript`](https://buildkite.com/prisma/release-prisma-typescript) pipeline will be triggered.
-If tests pass, a new version of the packages will be published to npm with a version like `3.12.0-integration-fix-all-the-things.1` (where `3.12.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this integration branch)
+If a branch name starts with `integration/` like `integration/fix-all-the-things` the [GitHub Actions - npm - release to dev/integration](https://github.com/prisma/prisma/blob/main/.github/workflows/release-ci.yml) pipeline will be triggered.
+This workflow will directly publish (without running tests) the packages to npm on the `integration` tag with a version like `5.3.0-integration-fix-all-the-things.1` (where `5.3.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this branch)
 
-To make a PR which will release an integration version, the name of the branch of the PR would need to start with `integration/`.
-The `Buildkite [Release] Prisma TypeScript` will show its status in the PR checks and might take up to 30min to finish.
+To make a Pull Request which will release a version to the `integration` tag automatically, the name of the branch of the PR would need to start with `integration/`.
+Alternatively, add `/integration` in the Pull Request description:
+
+- If this is added before opening the Pull Request, a release will happen automatically
+- If this is added after the creation of the PR, the `Detect jobs to run` job from the `CI` workflow would need to be re-triggered to get a release.
+
+The [GitHub Actions - npm - release to dev/integration](https://github.com/prisma/prisma/blob/main/.github/workflows/release-ci.yml) workflow can also be manually triggered to run on any branch.
+Example:
+
+- Go to https://github.com/prisma/prisma/actions/workflows/release-ci.yml?query=branch%3Ajoel%2Fdotenv
+- Click "Run workflow"
+- Change "Use workflow from" to match the branch you want to release, here `joel/dotenv`
+- Check the box for "Check to force an integration release for any given branch name"
+- Wait for the workflow to finish
 
 Once published to npm the version will need to be installed with the exact version like:
 
 ```
-npm install -D prisma@3.12.0-fix-all-the-things.1
+npm install -D prisma@5.3.0-fix-all-the-things.1
 
 # or executed with npx like
-npx prisma@3.12.0-fix-all-the-things.1
+npx prisma@5.3.0-fix-all-the-things.1
 ```
 
 (Note that npm version upgrades or the update notifier in Prisma CLI might behave weird and unexpectedly with these integration versions.)

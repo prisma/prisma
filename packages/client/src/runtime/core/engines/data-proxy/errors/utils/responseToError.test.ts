@@ -1,4 +1,4 @@
-import type { RequestResponse } from '../../utils/request'
+import { NodeHeaders, type RequestResponse } from '../../utils/request'
 import { responseToError } from './responseToError'
 
 const response = (body: string, code?: number, requestId?: string): RequestResponse => ({
@@ -7,9 +7,9 @@ const response = (body: string, code?: number, requestId?: string): RequestRespo
   url: '',
   ok: false,
   status: code || 400,
-  headers: {
+  headers: new NodeHeaders({
     'prisma-request-id': requestId,
-  },
+  }),
 })
 
 describe('responseToError', () => {

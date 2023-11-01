@@ -3,11 +3,18 @@ description: Boilerplate steps needed by most jobs.
 
 inputs:
   node-version:
-    description: Version of Node.js to use.
+    description: 'Version of Node.js to use.'
     required: true
   pnpm-version:
-    description: Version of pnpm to use.
+    description: 'Version of pnpm to use.'
     required: true
+  skip-tsc:
+    description: 'Skip type checking.'
+    required: true
+  skip-build:
+    description: 'Skip build (Default: false).'
+    required: false
+    default: 'false'
 
 runs:
   using: composite
@@ -17,7 +24,7 @@ runs:
         version: ${{ inputs.pnpm-version }}
 
     - name: Use Node.js ${{ inputs.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'pnpm'
@@ -28,5 +35,10 @@ runs:
     - run: pnpm install
       shell: bash
 
-    - run: pnpm run setup
+    - run: pnpm -r run dev
+      if: inputs.skip-tsc == 'true' && inputs.skip-build != 'true'
+      shell: bash
+
+    - run: pnpm run build
+      if: inputs.skip-tsc == 'false' && inputs.skip-build != 'true'
       shell: bash

@@ -1,7 +1,7 @@
 import { Client } from '../../getPrismaClient'
-import { Args } from './$extends'
+import { ExtensionArgs } from '../types/exported/ExtensionArgs'
 
-export function defineExtension(ext: Args | ((client: Client) => Client)) {
+export function defineExtension(ext: ExtensionArgs | ((client: Client) => Client)) {
   if (typeof ext === 'function') {
     return ext
   }

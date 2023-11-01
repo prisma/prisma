@@ -6,7 +6,7 @@ test('client-version-error', async () => {
   try {
     await prisma.user.findMany({ invalidArg: true })
   } catch (e) {
-    expect(e.clientVersion).toMatchInlineSnapshot(`client-test-version`)
+    expect(e.clientVersion).toMatchInlineSnapshot(`0.0.0`)
     expect(e).toMatchInlineSnapshot(`
 
             Invalid \`prisma.user.findMany()\` invocation in
@@ -26,7 +26,7 @@ test('client-version-error', async () => {
                   ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
                   })
 
-            Unknown argument \`invalidArg\`. Available options are listed in green.
+            Unknown argument \`invalidArg\`. Available options are marked with ?.
         `)
     await prisma.$disconnect()
   }

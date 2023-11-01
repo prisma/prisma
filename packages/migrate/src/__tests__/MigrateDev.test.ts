@@ -1354,7 +1354,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
       Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  }, 40000)
+  }, 40_000)
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-cockroachdb')

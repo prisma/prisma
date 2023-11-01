@@ -19,9 +19,6 @@ Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Eng
 1. Install [`pnpm`](https://pnpm.io/) (for installing npm dependencies, using pnpm workspaces)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing databases for our tests)
 1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node.js scripts written in TypeScript)
-1. Install [`direnv`](https://github.com/direnv/direnv/blob/master/docs/installation.md) (for managing .envrc for environment variables)
-
-https://github.com/direnv/direnv/blob/master/docs/installation.md
 
 Copy paste these commands to install the global dependencies:
 
@@ -29,7 +26,6 @@ Copy paste these commands to install the global dependencies:
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
 nvm install 18
 npm install --global pnpm@8 ts-node
-# For direnv see https://github.com/direnv/direnv/blob/master/docs/installation.md
 ```
 
 ## General Setup
@@ -40,7 +36,7 @@ To set up and build all the packages, follow these steps:
 git clone https://github.com/prisma/prisma.git
 cd prisma
 pnpm i
-pnpm run setup
+pnpm -r run dev
 ```
 
 > 💡 For Windows users: use the latest version of [Git Bash](https://gitforwindows.org/).
@@ -268,7 +264,6 @@ List of directories in the monorepo
 - integration-tests
 - internals
 - migrate
-- react-prisma
 
 ## Legal
 

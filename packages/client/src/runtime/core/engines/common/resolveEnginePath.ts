@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { getNodeAPIName, getPlatform, Platform } from '@prisma/get-platform'
-import { chmodPlusX } from '@prisma/internals'
+import { chmodPlusX, ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -26,7 +26,7 @@ const runtimeFileRegex = () => new RegExp(`runtime[\\\\/]${TARGET_ENGINE_TYPE}\\
  * @param config
  * @returns
  */
-export async function resolveEnginePath(engineType: 'binary' | 'library', config: EngineConfig) {
+export async function resolveEnginePath(engineType: ClientEngineType, config: EngineConfig) {
   // if the user provided a custom path, or if engine previously found
   const prismaPath =
     {
@@ -42,7 +42,7 @@ export async function resolveEnginePath(engineType: 'binary' | 'library', config
   debug('enginePath', enginePath)
 
   // if we find it, we apply +x chmod to the binary, cache, and return
-  if (enginePath !== undefined && engineType === 'binary') chmodPlusX(enginePath)
+  if (enginePath !== undefined && engineType === ClientEngineType.Binary) chmodPlusX(enginePath)
   if (enginePath !== undefined) return (config.prismaPath = enginePath)
 
   // if we don't find it, then we will throw helpful error messages
@@ -82,7 +82,7 @@ export async function resolveEnginePath(engineType: 'binary' | 'library', config
  * @param config
  * @returns
  */
-async function findEnginePath(engineType: 'binary' | 'library', config: EngineConfig) {
+async function findEnginePath(engineType: ClientEngineType, config: EngineConfig) {
   const binaryTarget = await getPlatform()
   const searchedLocations: string[] = []
 
@@ -120,8 +120,8 @@ async function findEnginePath(engineType: 'binary' | 'library', config: EngineCo
  * @param binaryTarget
  * @returns
  */
-export function getQueryEngineName(engineType: 'binary' | 'library', binaryTarget: Platform) {
-  if (engineType === 'library') {
+export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: Platform) {
+  if (engineType === ClientEngineType.Library) {
     return getNodeAPIName(binaryTarget, 'fs')
   } else {
     return `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`

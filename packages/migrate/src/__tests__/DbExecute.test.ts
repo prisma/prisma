@@ -400,6 +400,11 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
       expect.assertions(2)
 
+      // In CI, sometimes 5s is not enough
+      if (process.env.CI) {
+        jest.setTimeout(10_000)
+      }
+
       fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
@@ -443,10 +448,10 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              db error: ERROR: syntax error at or near "ThisisnotSQLitshouldfail"
+        ERROR: syntax error at or near "ThisisnotSQLitshouldfail"
 
 
-            `)
+      `)
     })
   })
 
@@ -501,7 +506,7 @@ DROP SCHEMA "test-dbexecute";`
       fs.writeFileSync('script.sql', sqlScript)
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
-    }, 10000)
+    }, 10_000)
 
     it('should use env var from .env file', async () => {
       ctx.fixture('schema-only-cockroachdb')
@@ -516,7 +521,7 @@ DROP SCHEMA "test-dbexecute";`
               Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`26257\`.
 
             `)
-    }, 10000)
+    }, 10_000)
 
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-cockroachdb')
@@ -533,7 +538,7 @@ COMMIT;`,
       )
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
-    }, 10000)
+    }, 10_000)
 
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
@@ -639,7 +644,7 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        db error: ERROR: at or near "thisisnotsqlitshouldfail": syntax error
+        ERROR: at or near "thisisnotsqlitshouldfail": syntax error
         DETAIL: source SQL:
         ThisisnotSQLitshouldfail
         ^

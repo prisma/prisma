@@ -1,6 +1,6 @@
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { RuntimeDataModel } from '../runtimeDataModel'
-import { JsArgs } from '../types/JsApi'
+import { JsArgs } from '../types/exported/JsApi'
 import { applyResultExtensions } from './applyResultExtensions'
 import { MergedExtensionsList } from './MergedExtensionsList'
 import { visitQueryResult } from './visitQueryResult'
@@ -24,7 +24,11 @@ export function applyAllResultExtensions({
   extensions,
   runtimeDataModel,
 }: ApplyAllResultExtensionsParams) {
-  if (extensions.isEmpty() || result == null) {
+  // We return the result directly (not applying result extensions) if
+  // - there is no extension to apply
+  // - result is `null`
+  // - result is not an object (e.g. `.count()`)
+  if (extensions.isEmpty() || result == null || typeof result !== 'object') {
     return result
   }
   const model = runtimeDataModel.models[modelName]

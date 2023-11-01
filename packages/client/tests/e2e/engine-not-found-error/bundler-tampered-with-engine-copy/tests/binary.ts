@@ -12,10 +12,10 @@ test('test', async () => {
 Invalid \`prisma.user.create()\` invocation:
 
 
-Prisma Client could not locate the Query Engine for runtime "debian-openssl-1.1.x".
+Prisma Client could not locate the Query Engine for runtime "debian-openssl-3.0.x".
 
-This is likely caused by a bundler that has not copied "query-engine-debian-openssl-1.1.x" next to the resulting bundle.
-Ensure that "query-engine-debian-openssl-1.1.x" has been copied next to the bundle or in "prisma/client".
+This is likely caused by a bundler that has not copied "query-engine-debian-openssl-3.0.x" next to the resulting bundle.
+Ensure that "query-engine-debian-openssl-3.0.x" has been copied next to the bundle or in "prisma/client".
 
 We would appreciate if you could take the time to share some information with us.
 Please help us by answering a few questions: https://pris.ly/engine-not-found-bundler-investigation

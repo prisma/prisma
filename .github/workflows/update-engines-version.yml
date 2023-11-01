@@ -27,13 +27,13 @@ jobs:
         run: |
           echo $THE_INPUT
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v2.4.0
         with:
           version: 8
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           cache: 'pnpm'
           node-version: '16'
@@ -203,7 +203,7 @@ jobs:
 
       - name: Slack Notification on Failure
         if: ${{ failure() }}
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@v2.2.1
         env:
           SLACK_TITLE: 'Update Engines Version failed :x:'
           SLACK_COLOR: '#FF0000'

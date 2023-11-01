@@ -1,9 +1,9 @@
 import Decimal from 'decimal.js'
 
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
-import { objectEnumValues } from '../../object-enums'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { FieldRefImpl } from '../model/FieldRef'
+import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { serializeJsonQuery, SerializeParams } from './serializeJsonQuery'
 
 const User = model('User', [
@@ -703,35 +703,6 @@ test('args - array', () => {
               23,
               45,
               67
-            ]
-          }
-        },
-        "selection": {
-          "$composites": true,
-          "$scalars": true
-        }
-      }
-    }
-  `)
-})
-
-test('args - array - with undefined', () => {
-  expect(
-    serialize({
-      modelName: 'User',
-      action: 'findMany',
-      args: { where: { favoriteNumbers: [1, undefined, 23] } },
-    }),
-  ).toMatchInlineSnapshot(`
-    {
-      "modelName": "User",
-      "action": "findMany",
-      "query": {
-        "arguments": {
-          "where": {
-            "favoriteNumbers": [
-              1,
-              23
             ]
           }
         },

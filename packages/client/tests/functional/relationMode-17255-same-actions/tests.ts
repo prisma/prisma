@@ -1,4 +1,4 @@
-import { Providers } from '../_utils/providers'
+import { ProviderFlavors, Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
@@ -91,6 +91,12 @@ testMatrix.setupTestSuite(
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `aliceId`',
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
+                  [ProviderFlavors.JS_PG]:
+                    'update or delete on table "Alice" violates foreign key constraint "Main_aliceId_fkey" on table "Main"',
+                  [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
+                  [ProviderFlavors.JS_PLANETSCALE]:
+                    "The change you are trying to make would violate the required relation 'AliceToMain' between the `Main` and `Alice` models.",
                 },
                 prisma: errors[onDelete],
               }),

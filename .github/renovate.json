@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates"],
+  "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates", ":pinAllExceptPeerDependencies"],
   "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
@@ -166,20 +166,6 @@
     {
       "groupName": "esbuild packages",
       "packagePatterns": ["^esbuild"],
-      "schedule": ["before 7am on Wednesday"]
-    },
-    {
-      "groupName": "react-prisma",
-      "automerge": "true",
-      "paths": ["packages/react-prisma/**"],
-      "rangeStrategy": "replace",
-      "schedule": ["before 7am on Wednesday"]
-    },
-    {
-      "groupName": "react-prisma peerDependencies: react >=17",
-      "paths": ["packages/react-prisma/**"],
-      "matchDepTypes": ["peerDependencies"],
-      "rangeStrategy": "widen",
       "schedule": ["before 7am on Wednesday"]
     },
     {
