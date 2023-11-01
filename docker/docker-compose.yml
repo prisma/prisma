@@ -80,7 +80,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
-      - MYSQL_USER=prisma
+      - MYSQL_USER=prisma # not used
+      - MYSQL_PASSWORD=prisma
     ports:
       - '3306:3306'
     healthcheck:
@@ -96,7 +97,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
-      - MYSQL_USER=prisma
+      - MYSQL_USER=prisma  # not used
       - MYSQL_PASSWORD=prisma
     ports:
       - '3307:3306'
@@ -112,7 +113,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
-      - MYSQL_USER=prisma
+      - MYSQL_USER=prisma # not used
       - MYSQL_PASSWORD=prisma
     ports:
       - '4306:3306'
