@@ -11,7 +11,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 
-import { fieldToColumnType, type PlanetScaleColumnType } from './conversion'
+import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
 
 const debug = Debug('prisma:driver-adapter:planetscale')
@@ -73,6 +73,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Connection | planetScale.
     try {
       const result = await this.client.execute(sql, values, {
         as: 'array',
+        cast,
       })
       return ok(result)
     } catch (e) {
