@@ -5,7 +5,8 @@ import { createMemoryTest } from '../_utils/createMemoryTest'
 //@ts-ignore
 type PrismaModule = typeof import('./.generated/node_modules/@prisma/client')
 
-const numberOfQueries = 200
+// reduced to 50, 200 was taking too long in CI
+const numberOfQueries = 50
 
 createMemoryTest({
   async prepare({ PrismaClient, Prisma }: PrismaModule) {
