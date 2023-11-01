@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../providers'
+import { ProviderFlavors, Providers, RelationModes } from '../providers'
 
 type ComputeMatrix = {
   relationMode: 'prisma' | 'foreignKeys' | ''
@@ -88,7 +88,7 @@ export function computeMatrix({ relationMode }: ComputeMatrix) {
     // So we only run it
     // when the datasource property relationMode is not set (default) or set to `prisma`.
     // Which also matches the error expectations in our test suite
-    if (!relationMode || relationMode === 'prisma') {
+    if (!relationMode || relationMode === RelationModes.PRISMA) {
       const mongoDBMatrixBase = {
         provider: Providers.MONGODB,
         id: 'String @id @map("_id")',

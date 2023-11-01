@@ -5,9 +5,14 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/driver-adapter-utils"
+  },
   "scripts": {
-    "build": "tsup ./src/index.ts --format cjs,esm --dts",
-    "lint": "tsc -p ./tsconfig.build.json"
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts"
   },
   "files": [
     "dist",
@@ -18,9 +23,9 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "debug": "^4.3.4"
+    "debug": "4.3.4"
   },
   "devDependencies": {
-    "@types/debug": "^4.1.8"
+    "@types/debug": "4.1.10"
   }
 }

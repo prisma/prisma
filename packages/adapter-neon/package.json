@@ -5,9 +5,14 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/adapter-neon"
+  },
   "scripts": {
-    "build": "tsup ./src/index.ts --format cjs,esm --dts",
-    "lint": "tsc -p ./tsconfig.build.json"
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts"
   },
   "files": [
     "dist",
@@ -19,10 +24,10 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "postgres-array": "^3.0.2"
+    "postgres-array": "3.0.2"
   },
   "devDependencies": {
-    "@neondatabase/serverless": "^0.6.0"
+    "@neondatabase/serverless": "0.6.0"
   },
   "peerDependencies": {
     "@neondatabase/serverless": "^0.6.0"

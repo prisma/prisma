@@ -13,27 +13,6 @@ it('can create database - sqlite', async () => {
 })
 
 //
-// Would need logic to be reproducible
+// Would need logic to be reproducible for testing other databases
 // createDatabase is already tested in the `@prisma/internals` tests
 //
-
-// it('can create database - postgresql', async () => {
-//   ctx.fixture('schema-only-postgresql')
-//   const schemaPath = (await getSchemaPath())!
-//   const result = ensureDatabaseExists('create', schemaPath)
-//   await expect(result).resolves.toMatchInlineSnapshot(`undefined`)
-// })
-
-// it('can create database - sqlserver', async () => {
-//   ctx.fixture('schema-only-sqlserver')
-//   const schemaPath = (await getSchemaPath())!
-//   const result = ensureDatabaseExists('create', schemaPath)
-//   await expect(result).resolves.toMatchInlineSnapshot(`undefined`)
-// })
-
-// it('can create database - mysql', async () => {
-//   ctx.fixture('schema-only-mysql')
-//   const schemaPath = (await getSchemaPath())!
-//   const result = ensureDatabaseExists('create', schemaPath)
-//   await expect(result).resolves.toMatchInlineSnapshot(`undefined`)
-// })

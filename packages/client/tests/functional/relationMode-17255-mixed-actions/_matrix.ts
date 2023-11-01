@@ -1,4 +1,5 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 import { computeMatrix } from '../_utils/relationMode/computeMatrix'
 
 // Run on all databases
@@ -34,7 +35,7 @@ export default defineMatrix(() => [
       // So it's skipped for now, not ideal but "ok"
       //
       const isCascade = entry.onDelete === 'Cascade' && entry.onUpdate === 'Cascade'
-      const isSQLite = entry.provider === 'sqlite'
+      const isSQLite = entry.provider === Providers.SQLITE
       if (process.platform === 'win32') {
         return isCascade && !isSQLite
       } else {

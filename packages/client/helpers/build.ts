@@ -20,7 +20,7 @@ function nodeRuntimeBuildConfig(targetEngineType: ClientEngineType): BuildOption
     bundle: true,
     minify: true,
     sourcemap: 'linked',
-    emitTypes: targetEngineType === 'library',
+    emitTypes: targetEngineType === ClientEngineType.Library,
     define: {
       NODE_CLIENT: 'true',
       TARGET_ENGINE_TYPE: JSON.stringify(targetEngineType),

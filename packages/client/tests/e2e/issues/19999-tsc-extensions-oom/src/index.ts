@@ -5,6 +5,7 @@ export const extension = Prisma.defineExtension((client) => {
     model: {
       $allModels: {
         someOperation<T, A>(this: T, _: Prisma.Exact<A, Prisma.Args<T, 'findMany'>>) {
+          // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
           return {} as Prisma.Result<T, A, 'findMany'> & { prop: string }
         },
       },
@@ -18,6 +19,7 @@ export const xprismaViaInlineExt = new PrismaClient().$extends({
   model: {
     $allModels: {
       someOperation<T, A>(this: T, _: Prisma.Exact<A, Prisma.Args<T, 'findMany'>>) {
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         return {} as Prisma.Result<T, A, 'findMany'> & { prop: string }
       },
     },
