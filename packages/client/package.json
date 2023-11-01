@@ -38,14 +38,16 @@
       "types": "./index.d.ts",
       "require": {
         "node": "./index.js",
-        "workerd": "./edge.js",
         "edge-light": "./edge.js",
+        "workerd": "./edge.js",
+        "worker": "./edge.js",
         "browser": "./index-browser.js"
       },
       "import": {
         "node": "./index.js",
-        "workerd": "./edge.js",
         "edge-light": "./edge.js",
+        "workerd": "./edge.js",
+        "worker": "./edge.js",
         "browser": "./index-browser.js"
       },
       "default": "./index.js"
