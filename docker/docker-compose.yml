@@ -36,7 +36,7 @@ services:
       POSTGRESQL_PASSWORD: prisma
       POSTGRESQL_DATABASE: tests
       POSTGRESQL_PORT: 5432
-      PGBOUNCER_DATABASE: tests
+      PGBOUNCER_DATABASE: '*'
       PGBOUNCER_POOL_MODE: 'transaction'
       PGBOUNCER_MAX_CLIENT_CONN: '1000'
       PGBOUNCER_MAX_PREPARED_STATEMENTS: 0
@@ -45,8 +45,8 @@ services:
       - postgres:postgres
     ports:
       - 5432:6432 # PgBouncer port
-    volumes:
-      - ./pgbouncer/conf/:/bitnami/pgbouncer/conf/
+    # volumes:
+    #   - ./pgbouncer/conf/:/bitnami/pgbouncer/conf/
 
   postgres_isolated:
     image: postgres:10
