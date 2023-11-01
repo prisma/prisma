@@ -2,14 +2,15 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 
 let prisma
 
-describe('invalid-url', () => {
+// TODO The error message surfaced here are actually slightly misleading: https://github.com/prisma/prisma/issues/21732
+describe('invalid connection string url parameter', () => {
   beforeAll(async () => {
     await generateTestClient()
     const { PrismaClient } = require('./node_modules/@prisma/client')
     prisma = new PrismaClient()
   })
 
-  test('auto-connect', async () => {
+  test('should throw with auto-connect', async () => {
     expect.assertions(1)
 
     try {
@@ -33,7 +34,7 @@ describe('invalid-url', () => {
     }
   })
 
-  test('explicit connect', async () => {
+  test('show through with explicit connect', async () => {
     expect.assertions(1)
     try {
       await prisma.$connect()
