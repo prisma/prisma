@@ -88,7 +88,7 @@ export class LibraryEngine extends Engine<undefined> {
 
     if (TARGET_BUILD_TYPE === 'library') {
       // for "library" builds, we can use both the wasm and native engines
-      if (engineType === ClientEngineType.Wasm && config.adapter !== undefined) {
+      if (engineType === ClientEngineType.Wasm) {
         this.libraryLoader = libraryLoader ?? wasmLibraryLoader
       } else {
         this.libraryLoader = libraryLoader ?? defaultLibraryLoader

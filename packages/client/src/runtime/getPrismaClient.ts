@@ -285,7 +285,7 @@ export type GetPrismaClientConfig = {
    * clients will have different implementations.
    * @remarks this is a callback on purpose, we only load the wasm if needed.
    */
-  getQueryEngineWasmModule?: () => Promise<any>
+  getQueryEngineWasmModule?: () => Promise<unknown>
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
