@@ -98,7 +98,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case ArrayColumnType.BOOL_ARRAY:
       return ColumnTypeEnum.BooleanArray
     case ArrayColumnType.CHAR_ARRAY:
-      return ColumnTypeEnum.CharArray
+      return ColumnTypeEnum.CharacterArray
     case ArrayColumnType.BPCHAR_ARRAY:
     case ArrayColumnType.TEXT_ARRAY:
     case ArrayColumnType.VARCHAR_ARRAY:
