@@ -22,8 +22,24 @@ test('bundled prisma client will fail if generated client is gone', async () => 
   const { somePrismaCall } = require('../dist/index.js')
 
   await expect(somePrismaCall()).rejects.toThrowErrorMatchingInlineSnapshot(`
-"Prisma Client could not find its \`schema.prisma\`. This is likely caused by a bundling step, which leads to \`schema.prisma\` not being copied near the resulting bundle. We would appreciate if you could take the time to share some information with us.
-Please help us by answering a few questions: https://pris.ly/bundler-investigation-error"
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Prisma Client could not locate the Query Engine for runtime "debian-openssl-3.0.x".
+
+This is likely caused by a bundler that has not copied "libquery_engine-debian-openssl-3.0.x.so.node" next to the resulting bundle.
+Ensure that "libquery_engine-debian-openssl-3.0.x.so.node" has been copied next to the bundle or in "generated/client".
+
+We would appreciate if you could take the time to share some information with us.
+Please help us by answering a few questions: https://pris.ly/engine-not-found-bundler-investigation
+
+The following locations have been searched:
+  /test/bundler-detection-error/generated/client
+  /test/bundler-detection-error
+  /.prisma/client
+  /tmp/prisma-engines
+  /test/bundler-detection-error/prisma"
 `)
 })
 

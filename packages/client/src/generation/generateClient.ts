@@ -265,7 +265,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       await fs.writeFile(filePath, file)
     }),
   )
-  const runtimeSourceDir = testMode
+  const runtimeSourceDir: string = testMode
     ? eval(`require('path').join(__dirname, '../../runtime')`)
     : eval(`require('path').join(__dirname, '../runtime')`)
 
@@ -293,7 +293,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (transpile === true && noEngine !== true) {
+  if (transpile === true && noEngine !== true && getClientEngineType(generator) !== ClientEngineType.Wasm) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
@@ -311,6 +311,13 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
     await fs.copyFile(schemaPath, schemaTargetPath)
+  }
+
+  // copy the necessary engine files needed for the wasm/driver-adapter engine
+  if (getClientEngineType(generator) === ClientEngineType.Wasm) {
+    const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
+    const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
+    await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
@@ -512,7 +519,13 @@ function getNodeRuntimeName(engineType: ClientEngineType): string {
   if (engineType === ClientEngineType.Binary) {
     return 'binary'
   }
+
   if (engineType === ClientEngineType.Library) {
+    return 'library'
+  }
+
+  // the wasm engine fully depends on the library engine
+  if (engineType === ClientEngineType.Wasm) {
     return 'library'
   }
 

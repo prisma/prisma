@@ -23,6 +23,7 @@ import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
+import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
@@ -41,7 +42,6 @@ import { detectPrisma1 } from './utils/detectPrisma1'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
-import { DebugInfo } from './DebugInfo'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
