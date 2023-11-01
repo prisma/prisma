@@ -276,7 +276,6 @@ describe('postgresql-multischema', () => {
 
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     const introspect = new DbPull()
-    // postgres://prisma:prisma@localhost:5432/tests-migrate?schema=does-not-exist
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).rejects.toThrow(`P4001`)
@@ -289,7 +288,6 @@ describe('postgresql-multischema', () => {
 
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
-    // postgres://prisma:prisma@localhost:5432/tests-migrate?schema=base
     const connectionString = `${setupParams.connectionString}?schema=base`
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)
