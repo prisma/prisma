@@ -5,10 +5,10 @@ import type { Context, Input } from '../../__helpers__/integrationTest'
 export const database = {
   name: 'postgresql',
   datasource: {
-    url: process.env.TEST_POSTGRES_URI,
+    url: (ctx) => getConnectionString(ctx),
   },
-  async connect() {
-    const connectionString = process.env.TEST_POSTGRES_URI
+  async connect(ctx) {
+    const connectionString = getConnectionString(ctx)
     const db = new PG.Client({ connectionString })
     await db.connect()
     return db
@@ -23,3 +23,7 @@ export const database = {
   },
   close: (db) => db.end(),
 } as Input<PG.Client>['database']
+
+function getConnectionString(ctx: Context) {
+  return process.env.TEST_POSTGRES_URI + `?schema=${ctx.id}&connection_limit=1`
+}
