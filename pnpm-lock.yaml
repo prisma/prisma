@@ -386,8 +386,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
-        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        specifier: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
+        version: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -707,8 +707,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
-        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        specifier: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
+        version: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -792,8 +792,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
-        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        specifier: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
+        version: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
       '@swc/core':
         specifier: 1.3.95
         version: 1.3.95
@@ -1074,8 +1074,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
-        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        specifier: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
+        version: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
       archiver:
         specifier: 6.0.1
         version: 6.0.1
@@ -1286,8 +1286,8 @@ importers:
         version: 5.0.5
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
-        version: 5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0
+        specifier: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
+        version: 5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -2853,8 +2853,8 @@ packages:
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
     dev: true
 
-  /@mongodb-js/saslprep@1.1.0:
-    resolution: {integrity: sha512-Xfijy7HvfzzqiOAhAepF4SGN5e9leLkMvg/OPOF97XemjfVCYN/oWa75wnkc6mltMSTwY+XlbhWgUOJmkFspSw==}
+  /@mongodb-js/saslprep@1.1.1:
+    resolution: {integrity: sha512-t7c5K033joZZMspnHg/gWPE4kandgc2OxE74aYOtGKfgB9VPuVJPix0H6fhmm2erj5PBJ21mqcx34lpIGtUCsQ==}
     requiresBuild: true
     dependencies:
       sparse-bitfield: 3.0.3
@@ -3283,8 +3283,8 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/engines-version@5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0:
-    resolution: {integrity: sha512-XlqcAiJzahcpHO1CedlySlHgQaEFzQGYgFcrGZx3Z1C5PKEY9jZhc5/jnUIOx7EnK9GzGfX8r3g8fTjGeMTo9w==}
+  /@prisma/engines-version@5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400:
+    resolution: {integrity: sha512-fXgopQbhKc9xJiUrQ0g5tPYg8Yjjpbm7YerNi4tvYOzY+tRDOxm7vK6okzVJy3omGivfjezW7EGfP5tkhCs9sA==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3292,8 +3292,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.6.0-9.49b44c541132ae3c617fa9a61ad7c048cce871f0:
-    resolution: {integrity: sha512-oG2fw3Q0D6AY1cDGeCoQdG7Aqvga2pWta8cN9I/49K2dVm1sScbgCv8Y4QsMSmVvSs2BKUu5fbm816UZviqqIA==}
+  /@prisma/prisma-schema-wasm@5.6.0-11.82dc77df83bf91471cbfcd4d418e06dd04567400:
+    resolution: {integrity: sha512-m0hHki6DUHiqdHhGRGvkpEdclBXOiypp9Ux97t92i8gVngsh0LYnRt3bJzfwhdxUURTKopvMynHXtIsl7nb0FQ==}
     dev: false
 
   /@prisma/studio-common@0.494.0:
@@ -9989,7 +9989,7 @@ packages:
       mongodb-connection-string-url: 2.6.0
       socks: 2.7.1
     optionalDependencies:
-      '@mongodb-js/saslprep': 1.1.0
+      '@mongodb-js/saslprep': 1.1.1
     dev: false
 
   /mongoose@7.6.4:
