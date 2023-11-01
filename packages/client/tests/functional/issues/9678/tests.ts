@@ -1,6 +1,7 @@
 // @ts-ignore
 import crypto from 'crypto'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 import { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
@@ -53,9 +54,9 @@ testMatrix.setupTestSuite(
       // The expectation for all providers that `hasRetried` would be set as `true`
       // It has changed for MySQL and SQL Server only
       // and also for cockroachdb, but not deterministic
-      if (provider === 'cockroachdb') {
+      if (provider === Providers.COCKROACHDB) {
         // no expectation, it looks flaky
-      } else if (provider === 'mysql' || provider === 'sqlserver') {
+      } else if (provider === Providers.MYSQL || provider === Providers.SQLSERVER) {
         expect(hasRetried).toBe(false)
       } else {
         expect(hasRetried).toBe(true)
@@ -69,10 +70,6 @@ testMatrix.setupTestSuite(
         sqlite - concurrent transactions are not supported
         mongo - isolation levels are not supported
       `,
-    },
-    skipProviderFlavor: {
-      from: ['js_pg'],
-      reason: 'Error: could not serialize access due to concurrent update',
     },
   },
 )

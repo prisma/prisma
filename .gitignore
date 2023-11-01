@@ -1,6 +1,7 @@
 node_modules
 
 yarn-error.log
+declaration
 dist
 build
 tmp
@@ -42,3 +43,5 @@ junit.xml
 /output.txt
 
 .envrc.local
+
+.idea/

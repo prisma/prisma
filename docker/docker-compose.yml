@@ -18,7 +18,9 @@ services:
     ports:
       - '5432:5432'
     healthcheck:
-      test: ['CMD', 'pg_isready']
+      # specifying user and database is needed to avoid `FATAL:  role "root" does not exist`
+      # spam in the logs
+      test: ['CMD', 'pg_isready', '-U', 'prisma', '-d', 'tests']
       interval: 5s
       timeout: 2s
       retries: 20
@@ -53,7 +55,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:bc563c2bd68aafc97c691653db9d271af5c196ed5ecab788c1181ba6b1e0ab69
+    image: vitess/vttestserver:mysql80@sha256:b66b1785026147f3716245465683480b31025ba9bd90c13b2e93b6e47122e858
     restart: unless-stopped
     ports:
       - 33807:33807

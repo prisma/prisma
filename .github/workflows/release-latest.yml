@@ -47,7 +47,7 @@ jobs:
 
       - uses: ./.github/actions/setup
         with:
-          node-version: 16
+          node-version: 18
           pnpm-version: 8
           skip-tsc: false
 
@@ -82,18 +82,6 @@ jobs:
           THE_OUTPUT: '${{ toJson(steps.publish.outputs) }}'
         run: |
           echo $THE_OUTPUT
-
-      - name: Trigger npm release workflow for Driver Adapters packages
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          repo: prisma/prisma-engines
-          workflow: publish-driver-adapters.yml
-          token: ${{ secrets.BOT_TOKEN }}
-          inputs: '{ "enginesHash": "${{ env.COMMIT_HASH }}", "prismaVersion": "${{ env.PRISMA_VERSION }}", "npmDistTag": "${{ env.NPM_TAG }}" }'
-        env:
-          NPM_TAG: '${{ steps.publish.outputs.tag }}'
-          PRISMA_VERSION: '${{ steps.publish.outputs.prismaVersion }}'
-          COMMIT_HASH: '${{ steps.publish.outputs.enginesCommitHash }}'
 
       # TODO de-duplicate (currently duplicated in release-*.yml)
       # Docs https://octokit.github.io/rest.js/v20#git-create-tag

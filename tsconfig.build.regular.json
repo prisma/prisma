@@ -23,7 +23,6 @@
     "**/__tests__",
     "./reproductions",
     "./eslint-local-rules",
-
     "**/dist",
     "**/build",
     "**/fixtures",

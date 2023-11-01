@@ -85,7 +85,7 @@ export namespace DMMF {
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
     relationFromFields?: string[]
-    relationToFields?: any[]
+    relationToFields?: string[]
     relationOnDelete?: string
     relationName?: string
     documentation?: string

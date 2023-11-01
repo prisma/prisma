@@ -530,7 +530,7 @@ export class SchemaEngine {
     })
   }
 
-  private getRPCPayload(method: string, params: unknown | undefined): RPCPayload {
+  private getRPCPayload(method: string, params: unknown): RPCPayload {
     return {
       id: messageId++,
       jsonrpc: '2.0',

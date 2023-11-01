@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { faker } from '@faker-js/faker'
 import { expectTypeOf } from 'expect-type'
 

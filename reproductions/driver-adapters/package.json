@@ -22,21 +22,21 @@
   "dependencies": {
     "@neondatabase/serverless": "0.6.0",
     "@planetscale/database": "1.11.0",
-    "@prisma/adapter-neon": "5.4.0",
-    "@prisma/adapter-pg": "5.4.0",
-    "@prisma/adapter-planetscale": "5.4.0",
+    "@prisma/adapter-neon": "5.5.2",
+    "@prisma/adapter-pg": "5.5.2",
+    "@prisma/adapter-planetscale": "5.5.2",
     "@prisma/client": "../../packages/client",
-    "@prisma/driver-adapter-utils": "5.4.0",
+    "@prisma/driver-adapter-utils": "5.5.2",
     "pg": "8.11.3",
-    "superjson": "1.13.3",
-    "undici": "5.26.3"
+    "superjson": "2.2.0",
+    "undici": "5.27.0"
   },
   "devDependencies": {
-    "@types/node": "18.18.3",
-    "@types/pg": "8.10.3",
+    "@types/node": "18.18.6",
+    "@types/pg": "8.10.7",
     "cross-env": "7.0.3",
     "prisma": "../../packages/cli",
-    "tsx": "3.13.0",
+    "tsx": "3.14.0",
     "typescript": "5.2.2"
   }
 }

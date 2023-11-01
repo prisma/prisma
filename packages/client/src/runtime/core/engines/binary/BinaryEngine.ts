@@ -86,6 +86,9 @@ export class BinaryEngine extends Engine<undefined> {
   private stderrLogs = ''
   private currentRequestPromise?: any
   private platformPromise?: Promise<Platform>
+  // The rule is ignored here, using String didn't work as expected,
+  // see https://github.com/prisma/prisma/pull/20165/commits/8059a14d8f2edbb15d6f7dbeeac74ba4a0a568ec
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   private platform?: Platform | string
   private datasourceOverrides?: { name: string; url: string }[]
   private startPromise?: Promise<void>
@@ -162,13 +165,6 @@ export class BinaryEngine extends Engine<undefined> {
 
     this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = config.engineEndpoint
-
-    if (this.config.adapter) {
-      throw new PrismaClientInitializationError(
-        `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
-        this.clientVersion!,
-      )
-    }
 
     if (this.platform) {
       if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
