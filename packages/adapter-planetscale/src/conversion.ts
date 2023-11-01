@@ -53,9 +53,9 @@ export function fieldToColumnType(field: PlanetScaleColumnType): ColumnType {
     case 'INT24':
     case 'UINT24':
     case 'INT32':
-    case 'UINT32':
     case 'YEAR':
       return ColumnTypeEnum.Int32
+    case 'UINT32':
     case 'INT64':
     case 'UINT64':
       return ColumnTypeEnum.Int64
