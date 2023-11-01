@@ -31,8 +31,7 @@ export const database = {
 } as Input<mariadb.Connection>['database']
 
 function getConnectionInfo(ctx: Context) {
-  const serviceConnectionString = process.env.TEST_MARIADB_BASE_URI!
-  const connectionString = `${serviceConnectionString}/${ctx.id}`
+  const connectionString = process.env.TEST_MARIADB_URI!.replace('tests', ctx.id)
   const credentials = uriToCredentials(connectionString)
 
   return {
