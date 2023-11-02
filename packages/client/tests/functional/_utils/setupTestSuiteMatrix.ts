@@ -134,10 +134,21 @@ function setupTestSuiteMatrix(
 
       afterAll(async () => {
         for (const client of clients) {
+          // @ts-ignore
+          console.log('client', client)
+
+          // @ts-ignore
+          console.log('client._adapter', client._adapter)
+
           await client.$disconnect().catch(() => {
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
+
+          if (client._adapter) {
+            await client._adapter.close()
+          }
+
           if (clientMeta.dataProxy) {
             await stopMiniProxyQueryEngine(client, globalThis['datasourceInfo'])
           }
