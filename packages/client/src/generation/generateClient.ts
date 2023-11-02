@@ -112,11 +112,16 @@ export async function buildClient({
 
   const fileMap = {} // we will store the generated contents here
 
+  fileMap['index.js'] = 'module.exports = { ...require("prisma-client") }'
+  fileMap['index.d.ts'] = 'export * from "prisma-client"'
+  fileMap['edge.js'] = 'module.exports = { ...require("prisma-client/edge") }'
+  fileMap['edge.d.ts'] = 'export * from "prisma-client"'
+
   // we generate the default client that is meant to work on Node
-  fileMap['index.js'] = await JS(nodeTsClient, false)
-  fileMap['index.d.ts'] = await TS(nodeTsClient)
-  fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
-  fileMap['package.json'] = JSON.stringify(
+  fileMap['node_modules/prisma-client/index.js'] = await JS(nodeTsClient, false)
+  fileMap['node_modules/prisma-client/index.d.ts'] = await TS(nodeTsClient)
+  fileMap['node_modules/prisma-client/index-browser.js'] = await BrowserJS(nodeTsClient)
+  fileMap['node_modules/prisma-client/package.json'] = JSON.stringify(
     {
       name: GENERATED_PACKAGE_NAME,
       types: clientPackage.types,
@@ -129,8 +134,8 @@ export async function buildClient({
     2,
   )
 
-  fileMap['edge.js'] = await JS(edgeTsClient, true)
-  fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
+  fileMap['node_modules/prisma-client/edge.js'] = await JS(edgeTsClient, true)
+  fileMap['node_modules/prisma-client/edge.d.ts'] = await TS(edgeTsClient, true)
 
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
     // we create a client that is fit for edge runtimes
@@ -245,7 +250,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   await ensureDir(finalOutputDir)
-  await ensureDir(path.join(outputDir, 'runtime'))
+  await ensureDir(path.join(outputDir, 'node_modules', 'prisma-client'))
+  await ensureDir(path.join(outputDir, 'node_modules', 'prisma-client', 'runtime'))
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
     await ensureDir(path.join(outputDir, 'deno'))
   }
@@ -270,7 +276,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   // if users use a custom output dir
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
-    const copyTarget = path.join(outputDir, 'runtime')
+    const copyTarget = path.join(outputDir, 'node_modules', 'prisma-client', 'runtime')
     await ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {
       await copyRuntimeFiles({
@@ -302,19 +308,19 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       const target =
         process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
           ? path.join('/tmp/prisma-engines', fileName)
-          : path.join(finalOutputDir, fileName)
+          : path.join(finalOutputDir, 'node_modules', 'prisma-client', fileName)
       await overwriteFile(filePath, target)
     }
   }
 
-  const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
+  const schemaTargetPath = path.join(finalOutputDir, 'node_modules', 'prisma-client', 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
     await fs.copyFile(schemaPath, schemaTargetPath)
   }
 
-  const proxyIndexJsPath = path.join(outputDir, 'index.js')
-  const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
-  const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
+  const proxyIndexJsPath = path.join(outputDir, 'node_modules', 'prisma-client', 'index.js')
+  const proxyIndexBrowserJsPath = path.join(outputDir, 'node_modules', 'prisma-client', 'index-browser.js')
+  const proxyIndexDTSPath = path.join(outputDir, 'node_modules', 'prisma-client', 'index.d.ts')
   if (!existsSync(proxyIndexJsPath)) {
     await fs.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
   }
