@@ -2,7 +2,9 @@
 
 Prisma driver adapter for [Neon Serverless Driver](https://github.com/neondatabase/serverless). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) for more details.
 
-> **Note:**: The Neon driver adapter is availalble from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.0) and later.
+> **Note:**: Support for Neon's serverless driver is available from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.0) and later.
+
+The [Neon serverless driver](https://github.com/neondatabase/serverless) is a low-latency Postgres driver for JavaScript and TypeScript that allows you to query data from serverless and edge environments over HTTP or WebSockets.
 
 ## Getting started
 
@@ -57,7 +59,7 @@ const prisma = new PrismaClient({ adapter })
 // Use Prisma Client as normal
 ```
 
-Your Prisma Client will now take advantage of the Neon serverless driver. The Neon serverless driver comes with benefits such as WebSocket connections and [message pipelining](https://neon.tech/blog/quicker-serverless-postgres), while Prisma covers connection creation and destruction, error handling, and type safety.
+You can now use Prisma Client as you normally would with full type-safety. Your Prisma Client instance now uses Neon's serverless driver to connect to your database. This comes with benefits such as WebSocket connections and [message pipelining](https://neon.tech/blog/quicker-serverless-postgres).
 
 ## Feedback
 
