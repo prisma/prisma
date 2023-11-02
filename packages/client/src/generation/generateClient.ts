@@ -249,15 +249,20 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await deleteOutputDir(finalOutputDir)
   }
 
+  console.log('A')
+
   await ensureDir(finalOutputDir)
-  await ensureDir(path.join(outputDir, 'node_modules', 'prisma-client'))
-  await ensureDir(path.join(outputDir, 'node_modules', 'prisma-client', 'runtime'))
+  await ensureDir(path.join(finalOutputDir, 'node_modules', 'prisma-client', 'runtime'))
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    await ensureDir(path.join(outputDir, 'deno'))
+    await ensureDir(path.join(finalOutputDir, 'deno'))
   }
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
   // outputDir:       /home/millsp/Work/prisma/packages/client
   // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
+  console.log('B')
+
+  console.log('finalOutputDir', finalOutputDir)
+  console.log('outputDir', outputDir)
 
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
@@ -274,9 +279,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     ? eval(`require('path').join(__dirname, '../../runtime')`)
     : eval(`require('path').join(__dirname, '../runtime')`)
 
+  console.log('C')
   // if users use a custom output dir
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
-    const copyTarget = path.join(outputDir, 'node_modules', 'prisma-client', 'runtime')
+    const copyTarget = path.join(finalOutputDir, 'node_modules', 'prisma-client', 'runtime')
     await ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {
       await copyRuntimeFiles({
@@ -298,6 +304,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
+  console.log('D')
+
   if (transpile === true && noEngine !== true) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
@@ -313,14 +321,16 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     }
   }
 
+  console.log('E')
+
   const schemaTargetPath = path.join(finalOutputDir, 'node_modules', 'prisma-client', 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
     await fs.copyFile(schemaPath, schemaTargetPath)
   }
 
-  const proxyIndexJsPath = path.join(outputDir, 'node_modules', 'prisma-client', 'index.js')
-  const proxyIndexBrowserJsPath = path.join(outputDir, 'node_modules', 'prisma-client', 'index-browser.js')
-  const proxyIndexDTSPath = path.join(outputDir, 'node_modules', 'prisma-client', 'index.d.ts')
+  const proxyIndexJsPath = path.join(finalOutputDir, 'node_modules', 'prisma-client', 'index.js')
+  const proxyIndexBrowserJsPath = path.join(finalOutputDir, 'node_modules', 'prisma-client', 'index-browser.js')
+  const proxyIndexDTSPath = path.join(finalOutputDir, 'node_modules', 'prisma-client', 'index.d.ts')
   if (!existsSync(proxyIndexJsPath)) {
     await fs.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
   }
