@@ -1,6 +1,6 @@
 # Prisma driver adapter for PlanetScale@prisma/adapter-planetscale
 
-Prisma driver adapter for [PlanetScale Serverless Driver](https://github.com/planetscale/database-js). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) for more details.
+Prisma driver adapter for [PlanetScale Serverless Driver](https://github.com/planetscale/database-js). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) and our [docs](https://www.prisma.io/docs/guides/database/planetscale#how-to-use-the-planetscale-serverless-driver-with-prisma-preview) for more details..
 
 > **Note:**: Support for PlanetScale's serverless driver is available from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.0) and later.
 
