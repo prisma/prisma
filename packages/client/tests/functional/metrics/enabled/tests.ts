@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../../_utils/providers'
+import { Providers } from '../../_utils/providers'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -19,6 +19,7 @@ const executeOneQuery = async () => {
 
 testMatrix.setupTestSuite(
   ({ provider, providerFlavor }) => {
+    const usesDriverAdapter = providerFlavor !== undefined
     describe('empty', () => {
       test('$metrics.prometheus() does not crash before client is connected', async () => {
         await expect(prisma.$metrics.prometheus()).resolves.not.toThrow()
@@ -214,210 +215,210 @@ testMatrix.setupTestSuite(
         expect(histogramsBefore.length).toBeLessThan(histogramsAfter.length)
       })
 
-      // TODO test fails with Expected `"value": 1"` but got `"value": 0` for key "prisma_pool_connections_opened_total" See https://github.com/prisma/team-orm/issues/372
-      skipTestIf(
-        providerFlavor === ProviderFlavors.JS_NEON ||
-          providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL ||
-          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
-      )('SQL Providers: should have the same keys, before and after a query', async () => {
-        if (provider === Providers.MONGODB) {
-          return
-        }
-
-        const metricBefore = await prisma.$metrics.json()
-        // console.log(JSON.stringify(metricBefore, null, 2))
-        const { counters: countersBefore, gauges: gaugesBefore, histograms: histogramsBefore } = metricBefore
-        expect(countersBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
-          {
-            key: 'prisma_client_queries_total',
-            labels: {},
-            value: 0,
-            description: 'The total number of Prisma Client queries executed',
-          },
-          {
-            key: 'prisma_datasource_queries_total',
-            labels: {},
-            value: 0,
-            description: 'The total number of datasource queries executed',
-          },
-          {
-            key: 'prisma_pool_connections_closed_total',
-            labels: {},
-            value: 0,
-            description: 'The total number of pool connections closed',
-          },
-          {
-            key: 'prisma_pool_connections_opened_total',
-            labels: {},
-            value: 1,
-            description: 'The total number of pool connections opened',
-          },
-        ])
-        expect(gaugesBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
-          {
-            key: 'prisma_client_queries_active',
-            labels: {},
-            value: 0,
-            description: 'The number of currently active Prisma Client queries',
-          },
-          {
-            key: 'prisma_client_queries_wait',
-            labels: {},
-            value: 0,
-            description: 'The number of datasource queries currently waiting for a free connection',
-          },
-          {
-            key: 'prisma_pool_connections_busy',
-            labels: {},
-            value: 0,
-            description: 'The number of pool connections currently executing datasource queries',
-          },
-          {
-            key: 'prisma_pool_connections_idle',
-            labels: {},
-            value: expect.any(Number),
-            description: 'The number of pool connections that are not busy running a query',
-          },
-          {
-            key: 'prisma_pool_connections_open',
-            labels: {},
-            value: expect.any(Number), // usually the value is 1 but sometimes 0 on Windows CI
-            description: 'The number of pool connections currently open',
-          },
-        ])
-        expect(histogramsBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
-          {
-            key: 'prisma_client_queries_wait_histogram_ms',
-            labels: {},
-            value: {
-              buckets: [
-                [0, 0],
-                [1, 1],
-                [5, 0],
-                [10, 0],
-                [50, 0],
-                [100, 0],
-                [500, 0],
-                [1000, 0],
-                [5000, 0],
-                [50000, 0],
-              ],
-              sum: expect.any(Number),
-              count: 1,
+      testIf(provider !== Providers.MONGODB)(
+        'SQL Providers: should have the same keys, before and after a query',
+        async () => {
+          const metricBefore = await prisma.$metrics.json()
+          // console.log(JSON.stringify(metricBefore, null, 2))
+          const { counters: countersBefore, gauges: gaugesBefore, histograms: histogramsBefore } = metricBefore
+          expect(countersBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
+            {
+              key: 'prisma_client_queries_total',
+              labels: {},
+              value: 0,
+              description: 'The total number of Prisma Client queries executed',
             },
-            description: 'The distribution of the time all datasource queries spent waiting for a free connection',
-          },
-        ])
-
-        // Send 1 query
-        await executeOneQuery()
-
-        const metricAfter = await prisma.$metrics.json()
-        // console.log(JSON.stringify(metricAfter, null, 2))
-        const { counters: countersAfter, gauges: gaugesAfter, histograms: histogramsAfter } = metricAfter
-        expect(countersAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
-          {
-            key: 'prisma_client_queries_total',
-            labels: {},
-            value: 2, // different from before
-            description: 'The total number of Prisma Client queries executed',
-          },
-          {
-            key: 'prisma_datasource_queries_total',
-            labels: {},
-            value: expect.any(Number), // different from before
-            description: 'The total number of datasource queries executed',
-          },
-          {
-            key: 'prisma_pool_connections_closed_total',
-            labels: {},
-            value: 0,
-            description: 'The total number of pool connections closed',
-          },
-          {
-            key: 'prisma_pool_connections_opened_total',
-            labels: {},
-            value: expect.any(Number),
-            description: 'The total number of pool connections opened',
-          },
-        ])
-        expect(gaugesAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
-          {
-            key: 'prisma_client_queries_active',
-            labels: {},
-            value: 0,
-            description: 'The number of currently active Prisma Client queries',
-          },
-          {
-            key: 'prisma_client_queries_wait',
-            labels: {},
-            value: 0,
-            description: 'The number of datasource queries currently waiting for a free connection',
-          },
-          {
-            key: 'prisma_pool_connections_busy',
-            labels: {},
-            value: 0,
-            description: 'The number of pool connections currently executing datasource queries',
-          },
-          {
-            key: 'prisma_pool_connections_idle',
-            labels: {},
-            value: expect.any(Number),
-            description: 'The number of pool connections that are not busy running a query',
-          },
-          {
-            key: 'prisma_pool_connections_open',
-            labels: {},
-            value: expect.any(Number),
-            description: 'The number of pool connections currently open',
-          },
-        ])
-        expect(histogramsAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
-          {
-            key: 'prisma_client_queries_duration_histogram_ms',
-            labels: {},
-            value: {
-              buckets: [
-                [0, 0],
-                [1, expect.any(Number)],
-                [5, expect.any(Number)],
-                [10, expect.any(Number)],
-                [50, expect.any(Number)],
-                [100, expect.any(Number)],
-                [500, expect.any(Number)],
-                [1000, expect.any(Number)],
-                [5000, expect.any(Number)],
-                [50000, expect.any(Number)],
-              ],
-              sum: expect.any(Number),
-              count: expect.any(Number),
+            {
+              key: 'prisma_datasource_queries_total',
+              labels: {},
+              value: 0,
+              description: 'The total number of datasource queries executed',
             },
-            description: 'The distribution of the time Prisma Client queries took to run end to end',
-          },
-          {
-            key: 'prisma_client_queries_wait_histogram_ms',
-            labels: {},
-            value: {
-              buckets: [
-                [0, 0],
-                [1, expect.any(Number)],
-                [5, expect.any(Number)],
-                [10, expect.any(Number)],
-                [50, expect.any(Number)],
-                [100, expect.any(Number)],
-                [500, expect.any(Number)],
-                [1000, expect.any(Number)],
-                [5000, expect.any(Number)],
-                [50000, expect.any(Number)],
-              ],
-              sum: expect.any(Number),
-              count: expect.any(Number),
+            {
+              key: 'prisma_pool_connections_closed_total',
+              labels: {},
+              value: 0,
+              description: 'The total number of pool connections closed',
             },
-            description: 'The distribution of the time all datasource queries spent waiting for a free connection',
-          },
-          {
+            {
+              key: 'prisma_pool_connections_opened_total',
+              labels: {},
+              value: usesDriverAdapter ? 0 : 1,
+              description: 'The total number of pool connections opened',
+            },
+          ])
+          expect(gaugesBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
+            {
+              key: 'prisma_client_queries_active',
+              labels: {},
+              value: 0,
+              description: 'The number of currently active Prisma Client queries',
+            },
+            {
+              key: 'prisma_client_queries_wait',
+              labels: {},
+              value: 0,
+              description: 'The number of datasource queries currently waiting for a free connection',
+            },
+            {
+              key: 'prisma_pool_connections_busy',
+              labels: {},
+              value: 0,
+              description: 'The number of pool connections currently executing datasource queries',
+            },
+            {
+              key: 'prisma_pool_connections_idle',
+              labels: {},
+              value: expect.any(Number),
+              description: 'The number of pool connections that are not busy running a query',
+            },
+            {
+              key: 'prisma_pool_connections_open',
+              labels: {},
+              value: expect.any(Number), // usually the value is 1 but sometimes 0 on Windows CI
+              description: 'The number of pool connections currently open',
+            },
+          ])
+
+          if (!usesDriverAdapter) {
+            expect(histogramsBefore.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
+              {
+                key: 'prisma_client_queries_wait_histogram_ms',
+                labels: {},
+                value: {
+                  buckets: [
+                    [0, 0],
+                    [1, 1],
+                    [5, 0],
+                    [10, 0],
+                    [50, 0],
+                    [100, 0],
+                    [500, 0],
+                    [1000, 0],
+                    [5000, 0],
+                    [50000, 0],
+                  ],
+                  sum: expect.any(Number),
+                  count: 1,
+                },
+                description: 'The distribution of the time all datasource queries spent waiting for a free connection',
+              },
+            ])
+          }
+
+          // Send 1 query
+          await executeOneQuery()
+
+          const metricAfter = await prisma.$metrics.json()
+          const { counters: countersAfter, gauges: gaugesAfter, histograms: histogramsAfter } = metricAfter
+          expect(countersAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
+            {
+              key: 'prisma_client_queries_total',
+              labels: {},
+              value: 2, // different from before
+              description: 'The total number of Prisma Client queries executed',
+            },
+            {
+              key: 'prisma_datasource_queries_total',
+              labels: {},
+              value: expect.any(Number), // different from before
+              description: 'The total number of datasource queries executed',
+            },
+            {
+              key: 'prisma_pool_connections_closed_total',
+              labels: {},
+              value: 0,
+              description: 'The total number of pool connections closed',
+            },
+            {
+              key: 'prisma_pool_connections_opened_total',
+              labels: {},
+              value: expect.any(Number),
+              description: 'The total number of pool connections opened',
+            },
+          ])
+          expect(gaugesAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject([
+            {
+              key: 'prisma_client_queries_active',
+              labels: {},
+              value: 0,
+              description: 'The number of currently active Prisma Client queries',
+            },
+            {
+              key: 'prisma_client_queries_wait',
+              labels: {},
+              value: 0,
+              description: 'The number of datasource queries currently waiting for a free connection',
+            },
+            {
+              key: 'prisma_pool_connections_busy',
+              labels: {},
+              value: 0,
+              description: 'The number of pool connections currently executing datasource queries',
+            },
+            {
+              key: 'prisma_pool_connections_idle',
+              labels: {},
+              value: expect.any(Number),
+              description: 'The number of pool connections that are not busy running a query',
+            },
+            {
+              key: 'prisma_pool_connections_open',
+              labels: {},
+              value: expect.any(Number),
+              description: 'The number of pool connections currently open',
+            },
+          ])
+
+          const expectedHistograms = [
+            {
+              key: 'prisma_client_queries_duration_histogram_ms',
+              labels: {},
+              value: {
+                buckets: [
+                  [0, 0],
+                  [1, expect.any(Number)],
+                  [5, expect.any(Number)],
+                  [10, expect.any(Number)],
+                  [50, expect.any(Number)],
+                  [100, expect.any(Number)],
+                  [500, expect.any(Number)],
+                  [1000, expect.any(Number)],
+                  [5000, expect.any(Number)],
+                  [50000, expect.any(Number)],
+                ],
+                sum: expect.any(Number),
+                count: expect.any(Number),
+              },
+              description: 'The distribution of the time Prisma Client queries took to run end to end',
+            },
+          ]
+
+          if (!usesDriverAdapter) {
+            expectedHistograms.push({
+              key: 'prisma_client_queries_wait_histogram_ms',
+              labels: {},
+              value: {
+                buckets: [
+                  [0, 0],
+                  [1, expect.any(Number)],
+                  [5, expect.any(Number)],
+                  [10, expect.any(Number)],
+                  [50, expect.any(Number)],
+                  [100, expect.any(Number)],
+                  [500, expect.any(Number)],
+                  [1000, expect.any(Number)],
+                  [5000, expect.any(Number)],
+                  [50000, expect.any(Number)],
+                ],
+                sum: expect.any(Number),
+                count: expect.any(Number),
+              },
+              description: 'The distribution of the time all datasource queries spent waiting for a free connection',
+            })
+          }
+
+          expectedHistograms.push({
             key: 'prisma_datasource_queries_duration_histogram_ms',
             labels: {},
             value: {
@@ -437,17 +438,18 @@ testMatrix.setupTestSuite(
               count: expect.any(Number),
             },
             description: 'The distribution of the time datasource queries took to run',
-          },
-        ])
+          })
+          expect(histogramsAfter.sort((a, b) => a.key.localeCompare(b.key))).toMatchObject(expectedHistograms)
 
-        expect(countersBefore.length).toEqual(countersAfter.length)
-        expect(gaugesBefore.length).toEqual(gaugesAfter.length)
-        // TODO: this is currently failing
-        // See https://github.com/prisma/prisma/issues/21070
-        // expect(histogramsBefore.length).toEqual(histogramsAfter.length)
-        // So we test the current behavior
-        expect(histogramsBefore.length).toBeLessThan(histogramsAfter.length)
-      })
+          expect(countersBefore.length).toEqual(countersAfter.length)
+          expect(gaugesBefore.length).toEqual(gaugesAfter.length)
+          // TODO: this is currently failing
+          // See https://github.com/prisma/prisma/issues/21070
+          // expect(histogramsBefore.length).toEqual(histogramsAfter.length)
+          // So we test the current behavior
+          expect(histogramsBefore.length).toBeLessThan(histogramsAfter.length)
+        },
+      )
     })
 
     describe('after a query', () => {
@@ -456,17 +458,12 @@ testMatrix.setupTestSuite(
       })
 
       // TODO test fails with Expected `11` but got `0` for key "/prisma_client_queries_wait_histogram_ms_bucket/g" See https://github.com/prisma/team-orm/issues/372
-      skipTestIf(
-        providerFlavor === ProviderFlavors.JS_NEON ||
-          providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL ||
-          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
-      )('returns metrics in prometheus format', async () => {
+      test('returns metrics in prometheus format', async () => {
         const metrics = await prisma.$metrics.prometheus()
-
         expect((metrics.match(/prisma_client_queries_total \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_client_queries_active \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_client_queries_wait \d/g) || []).length).toBe(1)
+
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_bucket/g) || []).length).toBe(11)
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_sum .*/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_count \d/g) || []).length).toBe(1)
@@ -487,7 +484,8 @@ testMatrix.setupTestSuite(
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_bucket/g) || []).length).toBe(0)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_sum .*/g) || []).length).toBe(0)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_count \d/g) || []).length).toBe(0)
-        } else {
+        } else if (!usesDriverAdapter) {
+          // JS providers have no connection pool metrics
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_bucket/g) || []).length).toBe(11)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_sum .*/g) || []).length).toBe(1)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_count \d/g) || []).length).toBe(1)
@@ -500,13 +498,7 @@ testMatrix.setupTestSuite(
         expect(metrics).toContain('{label1="value1",label2="value2"}')
       })
 
-      // TODO test fails with missing `prisma_client_queries_wait_histogram_ms` counter key See https://github.com/prisma/team-orm/issues/372
-      skipTestIf(
-        providerFlavor === ProviderFlavors.JS_NEON ||
-          providerFlavor === ProviderFlavors.JS_PG ||
-          providerFlavor === ProviderFlavors.JS_LIBSQL ||
-          providerFlavor === ProviderFlavors.JS_PLANETSCALE,
-      )('returns metrics in json format', async () => {
+      test('returns metrics in json format', async () => {
         const { counters, gauges, histograms } = await prisma.$metrics.json()
 
         expect(counters.length).toBeGreaterThan(0)
@@ -535,10 +527,10 @@ testMatrix.setupTestSuite(
         expect(histograms[0].value.count).toBeGreaterThan(0)
         expect(histograms[0].value.sum).toBeGreaterThan(0)
         const histogramsKeys = histograms.map((c) => c.key)
-        if (provider === Providers.MONGODB) {
+        if (provider === Providers.MONGODB || usesDriverAdapter) {
+          // mongo and driver adapter don't use connection pool
           expect(histogramsKeys).toEqual([
             'prisma_client_queries_duration_histogram_ms',
-            // 'prisma_client_queries_wait_histogram_ms',
             'prisma_datasource_queries_duration_histogram_ms',
           ])
         } else {
