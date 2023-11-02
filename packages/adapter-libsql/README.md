@@ -1,29 +1,47 @@
-# @prisma/adapter-libsql
+# Prisma driver adapter for libSQL
 
-Prisma driver adapter for Turso and libSQL.
+Prisma driver adapter for Turso and libSQL. Refer to the [announcement blog post](https://prisma.io/turso) and our [docs](https://www.prisma.io/docs/guides/database/turso) for more details.
 
-See https://prisma.io/turso for details.
+> **Note**: Support for Turso is available in [Early Access](https://www.prisma.io/docs/about/prisma/releases#early-access) from Prisma versions 5.4.2 and later.
 
-The following usage tutorial is valid for Prisma 5.4.2 and later versions.
+## Getting started
 
-## How to install
+<details>
 
-After [getting started with Turso](https://www.prisma.io/blog/prisma-turso-ea-support-rXGd_Tmy3UXX#create-a-database-on-turso), you can use the Turso serverless driver to connect to your database. You will need to install the `@prisma/adapter-libsql` driver adapter and the `@libsql/client` serverless driver.
+<summary> <b>Set up a database on Turso and retrieve database credentials</b> </summary>
+
+Ensure that you have the [Turso CLI](https://docs.turso.tech/reference/turso-cli) installed to manage your databases.
+
+1. To provision a database on Turso, run the following command:
 
 ```sh
-npm install @prisma/adapter-libsql
-npm install @libsql/client
+turso db create turso-prisma-db
 ```
 
-Make sure your Turso database connection string and authentication token is copied over to your `.env` file. The connection string will start with `libsql://`.
+2. Retrieve the database's connection string:
 
-```env
-# .env
-TURSO_AUTH_TOKEN="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9..."
-TURSO_DATABASE_URL="libsql://turso-prisma-random-user.turso.io"
+```sh
+turso db show turso-prisma-db
 ```
 
-You can now reference this environment variable in your `schema.prisma` datasource. Make sure you also include the `driverAdapters` Preview feature.
+3. Create an authentication token that will allow you to connect to the database:
+
+  ```sh
+  turso db tokens create turso-prisma-db
+  ```
+
+4. Update your `.env` file with the authentication token and connection string:
+
+  ```text
+  TURSO_AUTH_TOKEN="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9..."
+  TURSO_DATABASE_URL="libsql://turso-prisma-db-user.turso.io"
+  ```
+
+</details>
+
+<br/>
+
+To get started, enable the `driverAdapters` Preview feature flag in your Prisma schema:
 
 ```prisma
 // schema.prisma
@@ -38,36 +56,22 @@ datasource db {
 }
 ```
 
-Now run `npx prisma generate` to re-generate Prisma Client.
-
-## How to setup migrations
-
-As Turso needs to sync between a local sqlite database and another one hosted on Turso Cloud, an additional migration setup is needed. In particular, anytime you modify models and relations in your `schema.prisma` file, you should:
-
-1. Create a baseline migration
+Generate Prisma Client:
 
 ```sh
-npx prisma migrate diff --from-empty \
-  --to-schema-datamodel prisma/schema.prisma \
-  --script > baseline.sql
+npx prisma generate
 ```
 
-2. Apply the migration to your Turso database
+Install the libSQL database client and Prisma driver adapter for libSQL packages:
 
 ```sh
-turso db shell turso-prisma < baseline.sql
+npm install @prisma/adapter-libsql
+npm install @libsql/client
 ```
 
-## How to use
+Update your Prisma Client instance to use the libSQL database Client and the Prisma driver adapter for libSQL:
 
-In TypeScript, you will need to:
-
-1. Import packages
-2. Set up the libSQL serverless database driver
-3. Instantiate the Prisma libSQL adapter with the libSQL serverless database driver
-4. Pass the driver adapter to the Prisma Client instance
-
-```typescript
+```ts
 // Import needed packages
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
@@ -88,8 +92,31 @@ const prisma = new PrismaClient({ adapter })
 // Use Prisma Client as normal
 ```
 
-Your Prisma Client instance now uses a **single** remote Turso database.
-You can take it a step further by setting up database replicas. Turso automatically picks the closest replica to your app for read queries when you create replicas. No additional logic is required to define how the routing of the read queries should be handled. Write queries will be forwarded to the primary database.
+The above setup uses a **single** remote Turso database. You can take this a step further by setting up [remote replicas](https://docs.turso.tech/concepts#replica) and [embedded replicas](https://blog.turso.tech/introducing-embedded-replicas-deploy-turso-anywhere-2085aa0dc242) with Turso.
+
+## How to manage schema changes
+
+Prisma Migrate and Introspection workflows are currently not supported when working with Turso. This is because Turso uses HTTP to connect to your database, which Prisma Migrate doesn't support.
+
+To update your database schema:
+
+1. Generate a migration file using `prisma migrate dev` against a local SQLite database:
+
+   ```sh
+   npx prisma migrate dev --name init # Migration name
+   ```
+
+2. Apply the migration using Turso's CLI:
+
+   ```sh
+   turso db shell turso-prisma-db < ./prisma/migrations/20230922132717_init/migration.sql # Replace `20230922132717_init` with the existing migration
+   ```
+
+For subsequent migrations, repeat the above steps to apply changes to your database. This workflow does not support tracking the history of applied migrations.
+
+
+## Feedback
+
 We encourage you to create an issue if you find something missing or run into a bug.
 
-If you have any feedback about our libSQL Serverless Driver support, please leave a comment on our [dedicated GitHub issue](https://github.com/prisma/prisma/discussions/21345) and we'll use it as we continue development.
+If you have any feedback about our libSQL driver support. Leave a comment on our [dedicated GitHub issue](https://github.com/prisma/prisma/discussions/21345) and we'll use it as we continue development.
