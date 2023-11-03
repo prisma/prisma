@@ -41,13 +41,14 @@ export class DebugInfo implements Command {
       return this.help()
     }
 
-    const formatEnvValue = (name: string) => {
+    const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
+      const line = `- ${name}${text ? ` ${text}` : ''}`
 
       if (value === undefined) {
-        return dim(`- ${name}:`)
+        return dim(line + ':')
       }
-      return bold(`- ${name}: \`${value}\``)
+      return bold(line + `: \`${value}\``)
     }
 
     let schemaPath
@@ -93,7 +94,7 @@ ${formatEnvValue('PRISMA_HIDE_UPDATE_MESSAGE')}
 
 For downloading engines
 ${formatEnvValue('PRISMA_ENGINES_MIRROR')}
-${formatEnvValue('PRISMA_BINARIES_MIRROR')} ${dim('- (deprecated)')}
+${formatEnvValue('PRISMA_BINARIES_MIRROR', '(deprecated)')}
 ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
 ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
 
@@ -118,7 +119,7 @@ ${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
 
 For Prisma Client
 ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
-${formatEnvValue('PRISMA_CLIENT_NO_RETRY')} ${dim('- (Binary engine only)')}
+${formatEnvValue('PRISMA_CLIENT_NO_RETRY', '(Binary engine only)')}}
 
 For Prisma Migrate
 ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}
@@ -132,7 +133,7 @@ ${underline('-- Terminal is interactive? --')}
 ${isInteractive()}
 
 ${underline('-- CI detected? --')}
-${isCi() ? 'Yes' : 'No'}
+${isCi()}
 `
   }
 
