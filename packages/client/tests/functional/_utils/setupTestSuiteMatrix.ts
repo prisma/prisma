@@ -1,3 +1,5 @@
+import { setTimeout } from 'node:timers/promises'
+
 import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
@@ -134,12 +136,6 @@ function setupTestSuiteMatrix(
 
       afterAll(async () => {
         for (const client of clients) {
-          // @ts-ignore
-          console.log('client', client)
-
-          // @ts-ignore
-          console.log('client._adapter', client._adapter)
-
           await client.$disconnect().catch(() => {
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
@@ -147,6 +143,8 @@ function setupTestSuiteMatrix(
 
           if (client._adapter) {
             await client._adapter.close()
+            console.log('Waiting for Driver Adapters to close the connection...')
+            await setTimeout(10_000)
           }
 
           if (clientMeta.dataProxy) {
