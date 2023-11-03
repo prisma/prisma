@@ -95,16 +95,19 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
+          const client = new globalThis['loaded']['PrismaClient']({
+            ...newDriverAdapter(),
+            ...args,
+          })
           clients.push(client)
           return client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']({ ...driverAdapter })
+          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
