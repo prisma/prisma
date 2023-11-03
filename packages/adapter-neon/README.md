@@ -1,4 +1,4 @@
-# Prisma driver adapter for Neon
+# Prisma driver adapter for Neon serverless driver
 
 Prisma driver adapter for [Neon Serverless Driver](https://github.com/neondatabase/serverless). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) and our [docs](https://www.prisma.io/docs/guides/database/neon#how-to-use-neons-serverless-driver-with-prisma-preview) for more details.
 

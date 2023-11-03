@@ -6,41 +6,6 @@ Prisma driver adapter for Turso and libSQL. Refer to the [announcement blog post
 
 ## Getting started
 
-<details>
-
-<summary> <b>Set up a database on Turso and retrieve database credentials</b> </summary>
-
-Ensure that you have the [Turso CLI](https://docs.turso.tech/reference/turso-cli) installed to manage your databases.
-
-1. To provision a database on Turso, run the following command:
-
-```sh
-turso db create turso-prisma-db
-```
-
-2. Retrieve the database's connection string:
-
-```sh
-turso db show turso-prisma-db
-```
-
-3. Create an authentication token that will allow you to connect to the database:
-
-  ```sh
-  turso db tokens create turso-prisma-db
-  ```
-
-4. Update your `.env` file with the authentication token and connection string:
-
-  ```text
-  TURSO_AUTH_TOKEN="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9..."
-  TURSO_DATABASE_URL="libsql://turso-prisma-db-user.turso.io"
-  ```
-
-</details>
-
-<br/>
-
 To get started, enable the `driverAdapters` Preview feature flag in your Prisma schema:
 
 ```prisma
@@ -89,31 +54,12 @@ const libsql = createClient({
 const adapter = new PrismaLibSQL(libsql)
 const prisma = new PrismaClient({ adapter })
 
-// Use Prisma Client as normal
+
 ```
 
 The above setup uses a **single** remote Turso database. You can take this a step further by setting up [remote replicas](https://docs.turso.tech/concepts#replica) and [embedded replicas](https://blog.turso.tech/introducing-embedded-replicas-deploy-turso-anywhere-2085aa0dc242) with Turso.
 
-## How to manage schema changes
-
-Prisma Migrate and Introspection workflows are currently not supported when working with Turso. This is because Turso uses HTTP to connect to your database, which Prisma Migrate doesn't support.
-
-To update your database schema:
-
-1. Generate a migration file using `prisma migrate dev` against a local SQLite database:
-
-   ```sh
-   npx prisma migrate dev --name init # Migration name
-   ```
-
-2. Apply the migration using Turso's CLI:
-
-   ```sh
-   turso db shell turso-prisma-db < ./prisma/migrations/20230922132717_init/migration.sql # Replace `20230922132717_init` with the existing migration
-   ```
-
-For subsequent migrations, repeat the above steps to apply changes to your database. This workflow does not support tracking the history of applied migrations.
-
+Refer to our [docs](https://www.prisma.io/docs/guides/database/turso#how-to-manage-schema-changes) to learn how to manage schema changes when using Prisma and Turso.
 
 ## Feedback
 

@@ -1,4 +1,4 @@
-# Prisma driver adapter for PlanetScale@prisma/adapter-planetscale
+# Prisma driver adapter for PlanetScale serverless driver
 
 Prisma driver adapter for [PlanetScale Serverless Driver](https://github.com/planetscale/database-js). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) and our [docs](https://www.prisma.io/docs/guides/database/planetscale#how-to-use-the-planetscale-serverless-driver-with-prisma-preview) for more details..
 
@@ -25,9 +25,9 @@ datasource db {
 
 > **Note**: Ensure you update the host value in your connection string to `aws.connect.psdb.cloud`. You can learn more about this [here](https://planetscale.com/docs/tutorials/planetscale-serverless-driver#add-and-use-the-planetscale-serverless-driver-for-javascript-to-your-project).
 >
-> ```bash
-> DATABASE_URL='mysql://johndoe:strongpassword@aws.connect.psdb.cloud/clear_nightsky?sslaccept=strict'
-> ```
+>```bash
+>DATABASE_URL="mysql://johndoe:strongpassword@aws.connect.psdb.cloud/clear_nightsky?sslaccept=strict"
+>```
 
 Generate Prisma Client:
 
