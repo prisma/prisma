@@ -78,7 +78,7 @@ describe('createDatabase', () => {
   })
 
   test('postgresql - create database', async () => {
-    const uri = process.env.TEST_POSTGRES_URI!
+    const uri = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-createDatabase')
     const credentials = uriToCredentials(uri)
     credentials.database = 'can-create-a-db'
     const uriFromCredentials = credentialsToUri(credentials)
@@ -106,7 +106,7 @@ describe('createDatabase', () => {
   })
 
   test('mysql - create database', async () => {
-    const uri = process.env.TEST_MYSQL_URI!
+    const uri = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-createDatabase')
     const credentials = uriToCredentials(uri)
     credentials.database = 'can-create-a-db'
     const uriFromCredentials = credentialsToUri(credentials)
@@ -117,7 +117,7 @@ describe('createDatabase', () => {
   })
 
   test('mysql - database already exists', async () => {
-    const uri = process.env.TEST_MYSQL_URI!
+    const uri = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-createDatabase-already-exists')
     const credentials = uriToCredentials(uri)
     credentials.database = 'alreadyexists'
     const uriFromCredentials = credentialsToUri(credentials)
