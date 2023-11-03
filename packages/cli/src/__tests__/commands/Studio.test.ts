@@ -35,7 +35,7 @@ describe('studio with alternative urls and prisma://', () => {
 
   test('queries work if url is prisma:// and directUrl is set', async () => {
     process.env.PDP_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
-    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_URI}-${Date.now()}-studio`
+    process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', `tests-${Date.now()}-studio`)
 
     ctx.fixture('schema-only-data-proxy-direct-url')
 
@@ -69,7 +69,7 @@ describe('studio with alternative urls and prisma://', () => {
   })
 
   testIf(process.platform !== 'win32')('queries work if url is prisma:// via the mini-proxy', async () => {
-    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_URI}-${Date.now()}-studio`
+    process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', `tests-${Date.now()}-studio`)
     process.env.PDP_URL = miniProxy.generateConnectionString({
       envVar: 'PDP_URL',
       databaseUrl: process.env.DATABASE_URL,
