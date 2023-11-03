@@ -71,7 +71,7 @@ export { isCurrentBinInstalledGlobally } from './utils/isCurrentBinInstalledGlob
 export { isInteractive } from './utils/isInteractive'
 export { isPromiseLike } from './utils/isPromiseLike'
 export { keyBy } from './utils/keyBy'
-export { link, linkWithoutFallback } from './utils/link'
+export { link } from './utils/link'
 export { loadLibrary as load } from './utils/load'
 export { loadEnvFile } from './utils/loadEnvFile'
 export { mapObjectValues } from './utils/mapObjectValues'

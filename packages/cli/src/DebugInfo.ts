@@ -1,14 +1,5 @@
 import type { Command } from '@prisma/internals'
-import {
-  arg,
-  format,
-  getSchemaPath,
-  HelpError,
-  isCi,
-  isError,
-  isInteractive,
-  linkWithoutFallback,
-} from '@prisma/internals'
+import { arg, format, getSchemaPath, HelpError, isCi, isError, isInteractive, link } from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 import { getRootCacheDir } from '../../fetch-engine/src/utils'
@@ -62,11 +53,11 @@ export class DebugInfo implements Command {
 
     let schemaPath
     try {
-      schemaPath = linkWithoutFallback(await getSchemaPath(args['--schema']))
+      schemaPath = link(await getSchemaPath(args['--schema']))
     } catch (e) {
       schemaPath = e.message
     }
-    const rootCacheDir = linkWithoutFallback(await getRootCacheDir())
+    const rootCacheDir = link(await getRootCacheDir())
 
     return `${underline('-- Prisma schema --')}
 Path: ${schemaPath}
@@ -94,7 +85,7 @@ ${formatEnvValue('https_proxy')}
 ${formatEnvValue('HTTPS_PROXY')}
 
 For more information about Prisma environment variables:
-See ${linkWithoutFallback('https://www.prisma.io/docs/reference/api-reference/environment-variables-reference')}
+See ${link('https://www.prisma.io/docs/reference/api-reference/environment-variables-reference')}
 
 For hiding messages
 ${formatEnvValue('PRISMA_DISABLE_WARNINGS')}

@@ -6,7 +6,3 @@ export function link(url): string {
     fallback: (url) => underline(url),
   })
 }
-
-export function linkWithoutFallback(url): string {
-  return terminalLink(url, url)
-}
