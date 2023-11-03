@@ -8,4 +8,5 @@ export type EngineNotFoundErrorInput = {
   runtimeBinaryTarget: Platform
   searchedLocations: string[]
   expectedLocation: string
+  errorStack: string | undefined
 }

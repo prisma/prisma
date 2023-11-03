@@ -278,7 +278,7 @@ testMatrix.setupTestSuite(() => {
     xprisma.$executeRawCustom(Prisma.sql`SELECT * FROM User`, { extra: true })
 
     // it will not error on mongo, as the param does not exist, becomes `any`
-    // @ts-test-if: provider === 'mongodb'
+    // @ts-test-if: provider === Providers.MONGODB
     xprisma.$executeRawCustom(42, { extra: true })
   })
 
@@ -287,55 +287,55 @@ testMatrix.setupTestSuite(() => {
       const xprisma = prisma.$extends({})
 
       const typeDataSql = await xprisma.$transaction([
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$executeRaw<1>(Prisma.sql`...`),
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$executeRaw<2>`...`,
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$executeRawUnsafe<3>('...'),
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$queryRaw<4>(Prisma.sql`...`),
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$queryRaw<5>`...`,
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$queryRawUnsafe<6>('...'),
       ])
 
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf(typeDataSql).toEqualTypeOf<[1, 2, 3, 4, 5, 6]>()
 
       const defaultDataSql = await xprisma.$transaction([
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$executeRaw(Prisma.sql`...`),
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$executeRaw`...`,
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$executeRawUnsafe('...'),
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$queryRaw(Prisma.sql`...`),
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$queryRaw`...`,
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$queryRawUnsafe('...'),
       ])
 
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf(defaultDataSql).toEqualTypeOf<[number, number, number, unknown, unknown, unknown]>()
 
       const typeDataMongo = await xprisma.$transaction([
-        // @ts-test-if: provider === 'mongodb'
+        // @ts-test-if: provider === Providers.MONGODB
         xprisma.$runCommandRaw<1>({ value: '...' }),
       ])
 
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       expectTypeOf(typeDataMongo).toEqualTypeOf<[1]>()
 
       const defaultDataMongo = await xprisma.$transaction([
-        // @ts-test-if: provider === 'mongodb'
+        // @ts-test-if: provider === Providers.MONGODB
         xprisma.$runCommandRaw({ value: '...' }),
       ])
 
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       expectTypeOf(defaultDataMongo).toEqualTypeOf<[PrismaNamespace.JsonObject]>()
     }
   })

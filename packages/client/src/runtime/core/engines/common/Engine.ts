@@ -147,6 +147,14 @@ export interface EngineConfig {
    * in the current working directory. This usually means it has been bundled.
    */
   isBundled?: boolean
+
+  /**
+   * Loads the raw wasm module for the wasm query engine. This configuration is
+   * generated specifically for each type of client, eg. Node.js client and Edge
+   * clients will have different implementations.
+   * @remarks this is a callback on purpose, we only load the wasm if needed.
+   */
+  getQueryEngineWasmModule?: () => Promise<unknown>
 }
 
 export type GetConfigResult = {

@@ -1,4 +1,5 @@
-import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { cast as defaultCast } from '@planetscale/database'
+import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
 
 // See: https://github.com/planetscale/vitess-types/blob/06235e372d2050b4c0fff49972df8111e696c564/src/vitess/query/v16/query.proto#L108-L218
 export type PlanetScaleColumnType =
@@ -52,9 +53,9 @@ export function fieldToColumnType(field: PlanetScaleColumnType): ColumnType {
     case 'INT24':
     case 'UINT24':
     case 'INT32':
-    case 'UINT32':
     case 'YEAR':
       return ColumnTypeEnum.Int32
+    case 'UINT32':
     case 'INT64':
     case 'UINT64':
       return ColumnTypeEnum.Int64
@@ -72,7 +73,6 @@ export function fieldToColumnType(field: PlanetScaleColumnType): ColumnType {
     case 'DECIMAL':
       return ColumnTypeEnum.Numeric
     case 'CHAR':
-      return ColumnTypeEnum.Char
     case 'TEXT':
     case 'VARCHAR':
       return ColumnTypeEnum.Text
@@ -95,4 +95,11 @@ export function fieldToColumnType(field: PlanetScaleColumnType): ColumnType {
     default:
       throw new Error(`Unsupported column type: ${field}`)
   }
+}
+
+export const cast: typeof defaultCast = (field, value) => {
+  if (field.type === 'JSON' && value === 'null') {
+    return JsonNullMarker
+  }
+  return defaultCast(field, value)
 }

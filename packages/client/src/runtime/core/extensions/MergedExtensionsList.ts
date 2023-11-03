@@ -57,6 +57,7 @@ class MergedExtensionsListNode {
     })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   getAllQueryCallbacks(jsModelName: string | '$none', operation: string) {
     return this.queryCallbacksCache.getOrCreate(`${jsModelName}:${operation}`, () => {
       const prevCbs = this.previous?.getAllQueryCallbacks(jsModelName, operation) ?? []

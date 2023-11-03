@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -18,12 +19,12 @@ testMatrix.setupTestSuite(({ provider }) => {
         })
       },
     ],
-    ...(provider !== 'sqlite'
+    ...(provider !== Providers.SQLITE
       ? [
           [
             'createMany',
             (email: string) => {
-              // @ts-test-if: provider !== 'sqlite'
+              // @ts-test-if: provider !== Providers.SQLITE
               return prisma.user.createMany({
                 data: [
                   {
@@ -152,35 +153,35 @@ testMatrix.setupTestSuite(({ provider }) => {
         })
       },
     ],
-    ...(provider !== 'mongodb'
+    ...(provider !== Providers.MONGODB
       ? [
           [
             '$queryRaw',
             () => {
-              // @ts-test-if: provider !== 'mongodb'
+              // @ts-test-if: provider !== Providers.MONGODB
               return prisma.$queryRaw`SELECT 1 + 1;`
             },
           ],
           [
             '$queryRawUnsafe',
             () => {
-              // @ts-test-if: provider !== 'mongodb'
+              // @ts-test-if: provider !== Providers.MONGODB
               return prisma.$queryRawUnsafe(`SELECT 1 + 1;`)
             },
           ],
-          ...(provider !== 'sqlite'
+          ...(provider !== Providers.SQLITE
             ? [
                 [
                   '$executeRaw',
                   () => {
-                    // @ts-test-if: provider !== 'mongodb'
+                    // @ts-test-if: provider !== Providers.MONGODB
                     return prisma.$executeRaw`SELECT 1 + 1;`
                   },
                 ],
                 [
                   '$executeRawUnsafe',
                   () => {
-                    // @ts-test-if: provider !== 'mongodb'
+                    // @ts-test-if: provider !== Providers.MONGODB
                     return prisma.$executeRawUnsafe(`SELECT 1 + 1;`)
                   },
                 ],
@@ -188,12 +189,12 @@ testMatrix.setupTestSuite(({ provider }) => {
             : []),
         ]
       : []),
-    ...(provider === 'mongodb'
+    ...(provider === Providers.MONGODB
       ? [
           [
             '$runCommandRaw',
             () => {
-              // @ts-test-if: provider === 'mongodb'
+              // @ts-test-if: provider === Providers.MONGODB
               return prisma.$runCommandRaw({
                 aggregate: 'User',
                 pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
