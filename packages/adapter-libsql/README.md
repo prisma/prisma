@@ -53,8 +53,6 @@ const libsql = createClient({
 })
 const adapter = new PrismaLibSQL(libsql)
 const prisma = new PrismaClient({ adapter })
-
-
 ```
 
 The above setup uses a **single** remote Turso database. You can take this a step further by setting up [remote replicas](https://docs.turso.tech/concepts#replica) and [embedded replicas](https://blog.turso.tech/introducing-embedded-replicas-deploy-turso-anywhere-2085aa0dc242) with Turso.

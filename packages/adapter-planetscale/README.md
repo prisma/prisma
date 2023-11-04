@@ -25,9 +25,9 @@ datasource db {
 
 > **Note**: Ensure you update the host value in your connection string to `aws.connect.psdb.cloud`. You can learn more about this [here](https://planetscale.com/docs/tutorials/planetscale-serverless-driver#add-and-use-the-planetscale-serverless-driver-for-javascript-to-your-project).
 >
->```bash
->DATABASE_URL="mysql://johndoe:strongpassword@aws.connect.psdb.cloud/clear_nightsky?sslaccept=strict"
->```
+> ```bash
+> DATABASE_URL="mysql://johndoe:strongpassword@aws.connect.psdb.cloud/clear_nightsky?sslaccept=strict"
+> ```
 
 Generate Prisma Client:
 
@@ -72,4 +72,3 @@ You can now use Prisma Client as you normally would with full type-safety. Your 
 We encourage you to create an issue if you find something missing or run into a bug.
 
 If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/21347).
-

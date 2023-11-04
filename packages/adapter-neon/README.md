@@ -37,7 +37,6 @@ npm install @neondatabase/serverless
 npm install ws
 ```
 
-
 Update your Prisma Client instance to use the Neon serverless driver using a WebSocket connection:
 
 ```ts
