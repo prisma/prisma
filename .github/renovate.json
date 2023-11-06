@@ -1,23 +1,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    ":disableRateLimiting",
-    ":noUnscheduledUpdates",
-    ":pinAllExceptPeerDependencies"
-  ],
+  "extends": ["config:recommended", ":disableRateLimiting", ":noUnscheduledUpdates", ":pinAllExceptPeerDependencies"],
   "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "pin",
-  "ignoreDeps": [
-    "sqlite3",
-    "@prisma/engines-version",
-    "@prisma/prisma-schema-wasm",
-    "redis",
-    "@types/redis"
-  ],
+  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-schema-wasm", "redis", "@types/redis"],
   "constraints": {
     "pnpm": "8"
   },
@@ -41,11 +30,7 @@
       "automerge": true,
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch"],
-      "excludePackageNames": [
-        "@prisma/studio",
-        "@prisma/studio-server",
-        "checkpoint-client"
-      ],
+      "excludePackageNames": ["@prisma/studio", "@prisma/studio-server", "checkpoint-client"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
