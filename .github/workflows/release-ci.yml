@@ -8,17 +8,20 @@ on:
       - 'integration/*'
       - '*.*.x'
     paths-ignore:
+      # Any update here needs to be done for 
+      # all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
       - '*.md'
+      - '*.bench.ts'
+      - 'LICENSE'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
       - '.vscode/**'
-      - '.github/ISSUE_TEMPLATE/**'
-      - 'LICENSE'
-      - '.github/CODEOWNERS'
-      - '.github/DISCUSSION_TEMPLATE/**'
-      - '.dockerignore'
-      - '*.bench.ts'
       - 'graphs/**'
-      - '.github/renovate.json'
   workflow_dispatch:
     inputs:
       dryRun:
