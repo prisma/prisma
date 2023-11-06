@@ -9,7 +9,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const originalEnv = { ...process.env }
 
 function cleanSnapshot(str: string): string {
-  str = str.replace(new RegExp('(Path: ).*', 'g'), '$1 REDACTED_PATH')
+  str = str.replace(new RegExp('(Path: ).*', 'g'), '$1REDACTED_PATH')
   return str
 }
 
@@ -76,10 +76,10 @@ describe('debug', () => {
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
       -- Prisma schema --
-      Path:  REDACTED_PATH
+      Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
-      Path:  REDACTED_PATH
+      Path: REDACTED_PATH
 
       -- Environment variables --
       When not set, the line is dimmed and no value is displayed.
@@ -168,10 +168,10 @@ describe('debug', () => {
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
       -- Prisma schema --
-      Path:  REDACTED_PATH
+      Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
-      Path:  REDACTED_PATH
+      Path: REDACTED_PATH
 
       -- Environment variables --
       When not set, the line is dimmed and no value is displayed.
@@ -252,10 +252,10 @@ describe('debug', () => {
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
       -- Prisma schema --
-      Path:  REDACTED_PATH
+      Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
-      Path:  REDACTED_PATH
+      Path: REDACTED_PATH
 
       -- Environment variables --
       When not set, the line is dimmed and no value is displayed.
