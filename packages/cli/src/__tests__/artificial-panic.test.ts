@@ -40,7 +40,7 @@ describe('artificial-panic introspection', () => {
       expect(e.schemaPath).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
         // This is your Prisma schema file,
-        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+        // learn more about it in the docs: https://pris.ly/prisma-schema
 
         generator client {
           provider = "prisma-client-js"
@@ -114,7 +114,7 @@ describe('artificial-panic get-config', () => {
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
         // This is your Prisma schema file,
-        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+        // learn more about it in the docs: https://pris.ly/prisma-schema
 
         generator client {
           provider = "prisma-client-js"
@@ -157,7 +157,7 @@ describe('artificial-panic validate', () => {
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
         // This is your Prisma schema file,
-        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+        // learn more about it in the docs: https://pris.ly/prisma-schema
 
         generator client {
           provider = "prisma-client-js"
@@ -192,7 +192,7 @@ describe('artificial-panic validate', () => {
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
         // This is your Prisma schema file,
-        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+        // learn more about it in the docs: https://pris.ly/prisma-schema
 
         generator client {
           provider = "prisma-client-js"
