@@ -8,8 +8,8 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 /* eslint-disable @typescript-eslint/require-await */
 
 beforeAll(async () => {
-  process.env.TEST_MYSQL_URI += '-wrong-native-types'
-  await tearDownMysql(process.env.TEST_MYSQL_URI!)
+  process.env.DATABASE_URL = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-wrong-native-types')
+  await tearDownMysql(process.env.DATABASE_URL)
   await migrateDb({
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })

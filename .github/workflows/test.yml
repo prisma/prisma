@@ -19,6 +19,7 @@ on:
       - '*.bench.ts'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
+      - '.github/renovate.json'
   pull_request:
     paths-ignore:
       # Any update here needs to be done for
@@ -34,6 +35,7 @@ on:
       - '*.bench.ts'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
+      - '.github/renovate.json'
   workflow_dispatch:
 
 jobs:
