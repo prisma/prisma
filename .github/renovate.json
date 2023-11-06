@@ -10,6 +10,7 @@
   "constraints": {
     "pnpm": "8"
   },
+  "configMigration": true,
   "packageRules": [
     {
       "groupName": "Studio",
