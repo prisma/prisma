@@ -224,7 +224,7 @@ testMatrix.setupTestSuite(
         await selectWith2InFilters(ids)
       })
 
-      // See: https://github.com/prisma/team-orm/issues/531.
+      // See: https://github.com/prisma/prisma/issues/21803.
       test('Selecting 65536 ids at once in two inclusive disjunct filters results in error', async () => {
         const ids = generatedIds(65536)
 
