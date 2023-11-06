@@ -33,7 +33,7 @@ export const defaultSchema = (props?: {
     output = defaultOutput,
   } = props || {}
   return `// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// learn more about it in the docs: https://pris.ly/prisma-schema
 
 generator client {
   provider = "${generatorProvider}"
