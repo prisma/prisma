@@ -149,8 +149,7 @@ function setupTestSuiteMatrix(
 
           if (client._adapter) {
             await client._adapter.close()
-            console.log('Waiting for Driver Adapters to close the connection...')
-            await setTimeout(10_000)
+            await setTimeout(40_000)
           }
 
           if (clientMeta.dataProxy) {
@@ -172,7 +171,7 @@ function setupTestSuiteMatrix(
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']
-      }, 180_000)
+      }, 220_000)
 
       if (originalEnv.TEST_GENERATE_ONLY === 'true') {
         // because we have our own custom `test` global call defined that reacts
