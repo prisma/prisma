@@ -143,8 +143,7 @@ function setupTestSuiteMatrix(
 
           if (client._adapter) {
             await client._adapter.close()
-            console.log('Waiting for Driver Adapters to close the connection...')
-            await setTimeout(10_000)
+            await setTimeout(20_000)
           }
 
           if (clientMeta.dataProxy) {
