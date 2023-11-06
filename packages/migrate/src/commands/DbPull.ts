@@ -270,9 +270,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
       if (e.code === 'P4001' && introspectionSchema.trim() === '') {
         /* P4001: The introspected database was empty */
-        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')} ${
-          url ? underline(url) : ''
-        }
+        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')}
 
 ${bold('prisma db pull')} could not create any models in your ${bold(
           'schema.prisma',
@@ -291,9 +289,7 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
-        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')} ${
-          url ? underline(url) : ''
-        }
+        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')}
 
 ${bold('prisma db pull')} could not create any models in your ${bold(
           'schema.prisma',
