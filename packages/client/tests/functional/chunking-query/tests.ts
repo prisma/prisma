@@ -84,7 +84,7 @@ testMatrix.setupTestSuite(
         return ids
       }
 
-      beforeEach(async () => {
+      afterEach(async () => {
         await clean()
       }, 80_000)
 
