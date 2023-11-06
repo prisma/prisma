@@ -3,7 +3,7 @@ name: Bundle size
 on:
   pull_request:
     paths-ignore:
-      # Any update here needs to be done for 
+      # Any update here needs to be done for
       # all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
       - '*.md'
       - '*.bench.ts'
