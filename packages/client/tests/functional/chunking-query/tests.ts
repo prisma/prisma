@@ -229,8 +229,6 @@ testMatrix.setupTestSuite(
         const ids = generatedIds(65536)
 
         try {
-          // Note: this results in 3 batches of `SELECT` statements, with
-          // 98303 + 98303 + 65541 = 262147 total params
           await selectWith2InFilters(ids)
           // unreachable
           expect(true).toBe(false)
