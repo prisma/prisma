@@ -18,6 +18,7 @@ on:
       - '.dockerignore'
       - '*.bench.ts'
       - 'graphs/**'
+      - '.github/renovate.json'
   workflow_dispatch:
     inputs:
       dryRun:
