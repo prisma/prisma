@@ -1,5 +1,3 @@
-import { setTimeout } from 'node:timers/promises'
-
 import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
@@ -149,7 +147,6 @@ function setupTestSuiteMatrix(
 
           if (client._adapter) {
             await client._adapter.close()
-            await setTimeout(40_000)
           }
 
           if (clientMeta.dataProxy) {
