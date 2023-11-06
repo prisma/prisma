@@ -14,7 +14,7 @@ on:
       - '*.bench.ts'
       - 'LICENSE'
       - '.dockerignore'
-      - 'scripts/ci/publish.ts'
+      # - 'scripts/ci/publish.ts' -> should not be ignored in this workflow
       - '.github/CODEOWNERS'
       - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
