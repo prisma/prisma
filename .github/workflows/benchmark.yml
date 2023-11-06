@@ -1,40 +1,41 @@
 name: Benchmark
+# Run on `push` only for main, if not it will trigger `push` & `pull_request` on PRs at the same time
 on:
   push:
     branches:
       - main
       - '*.*.x'
     paths-ignore:
-      # Any update here needs to be done for
-      # - `pull_request` see below
+      # Any update here needs to be done for `pull_request`, see below
+      # and all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
       - '*.md'
-      - '.devcontainer/**'
-      - '.vscode/**'
-      - 'docs/**'
-      - 'examples/**'
+      - '*.bench.ts'
       - 'LICENSE'
-      - '.github/CODEOWNERS'
-      - '.github/DISCUSSION_TEMPLATE/**'
-      - '.github/ISSUE_TEMPLATE/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
-      - 'graphs/**'
+      - '.github/CODEOWNERS'
       - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'graphs/**'
   pull_request:
     paths-ignore:
+      # Any update here needs to be done for `push`, see above
+      # and all files (test.yml, benchmark.yml, release-ci.yml)
       - '*.md'
-      - '.devcontainer/**'
-      - '.vscode/**'
-      - 'docs/**'
-      - 'examples/**'
+      - '*.bench.ts'
       - 'LICENSE'
-      - '.github/CODEOWNERS'
-      - '.github/DISCUSSION_TEMPLATE/**'
-      - '.github/ISSUE_TEMPLATE/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
-      - 'graphs/**'
+      - '.github/CODEOWNERS'
       - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'graphs/**'
   workflow_dispatch:
 
 env:
