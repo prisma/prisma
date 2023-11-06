@@ -11,6 +11,8 @@ const allProviders = new Set(Object.values(Providers))
 const allProviderFlavors = new Set(Object.values(ProviderFlavors))
 
 // See https://jestjs.io/docs/cli
+// Not all Jest params are defined below
+// If one is missing and you want to use it, you can add it
 const jestArgs = {
   // Whether to use the cache. Defaults to true. Disable the cache using --no-cache.
   '--cache': Boolean,
@@ -102,7 +104,7 @@ const args = arg(
     // Run tests for specific provider flavors (and excludes regular provider tests)
     '--flavor': [String],
     //
-    // Jest flags
+    // Jest params
     //
     ...jestArgs,
   },
@@ -115,7 +117,7 @@ async function main(): Promise<number | void> {
 
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let jestCli = jestCliBase
-  // Pass all the Jest flags to Jest
+  // Pass all the Jest params to Jest CLI
   for (const cliArg of Object.keys(args)) {
     // If it's a boolean, we only need to pass the flag
     if (typeof jestArgs[cliArg] === 'function' && jestArgs[cliArg].name === 'Boolean') {
