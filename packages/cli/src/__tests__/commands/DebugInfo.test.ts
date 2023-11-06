@@ -69,7 +69,7 @@ describe('debug', () => {
     const envVarsSetToUndefined = Object.fromEntries(Object.keys(envVars).map((key) => [key, undefined]))
     Object.assign(process.env, envVarsSetToUndefined)
     // To make sure the terminal is always detected
-    // as non interactive, llocaly and in CI
+    // as non interactive, locally and in CI
     process.env.TERM = 'dumb'
 
     const result = await DebugInfo.new().parse([])
