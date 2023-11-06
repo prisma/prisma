@@ -26,7 +26,7 @@ describe('postgresql - missing database', () => {
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      P1003 The introspected database does not exist: postgres://prisma:prisma@localhost:5432/unknown-database
+      P1003 The introspected database does not exist:
 
       prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
