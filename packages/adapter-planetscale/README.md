@@ -1,8 +1,8 @@
 # Prisma driver adapter for PlanetScale serverless driver
 
-Prisma driver adapter for [PlanetScale Serverless Driver](https://github.com/planetscale/database-js). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) and our [docs](https://www.prisma.io/docs/guides/database/planetscale#how-to-use-the-planetscale-serverless-driver-with-prisma-preview) for more details..
+Prisma driver adapter for [PlanetScale Serverless Driver](https://github.com/planetscale/database-js). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) and our [docs](https://www.prisma.io/docs/guides/database/planetscale#how-to-use-the-planetscale-serverless-driver-with-prisma-preview) for more details.
 
-> **Note:**: Support for PlanetScale's serverless driver is available from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.0) and later.
+> **Note:**: Support for PlanetScale's serverless driver is available from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.2) and later.
 
 PlanetScale's serverless driver provides a way of communicating with your PlanetScale database over HTTP which can improve [connection reliability and performance](https://planetscale.com/blog/faster-mysql-with-http3)
 
@@ -18,7 +18,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 ```

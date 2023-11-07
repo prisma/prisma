@@ -2,7 +2,7 @@
 
 Prisma driver adapter for Turso and libSQL. Refer to the [announcement blog post](https://prisma.io/turso) and our [docs](https://www.prisma.io/docs/guides/database/turso) for more details.
 
-> **Note**: Support for Turso is available in [Early Access](https://www.prisma.io/docs/about/prisma/releases#early-access) from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.0) and later.
+> **Note**: Support for Turso is available in [Early Access](https://www.prisma.io/docs/about/prisma/releases#early-access) from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.2) and later.
 
 ## Getting started
 
