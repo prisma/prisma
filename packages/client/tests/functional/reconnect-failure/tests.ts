@@ -1,4 +1,3 @@
-import { ProviderFlavors } from '../_utils/providers'
 import { Db, NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -10,9 +9,8 @@ declare const db: Db
 let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ providerFlavor }) => {
-    // TODO fails sometimes with Rejected to value: [LibsqlError: : no such table: main.User]
-    skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('example', async () => {
+  () => {
+    test('example', async () => {
       // Ensure that the db is down
       await db.dropDb()
 

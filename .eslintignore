@@ -1,4 +1,5 @@
 # common
+.github/renovate.json
 dist/
 esm/
 build/

@@ -95,16 +95,22 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
+          const client = new globalThis['loaded']['PrismaClient']({
+            // each Prisma Client instance uses its own instance of
+            // the driver adapter, and the driver adapter is only first instantiated
+            // when creating the first Prisma Client instance.
+            ...newDriverAdapter(),
+            ...args,
+          })
           clients.push(client)
           return client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']({ ...driverAdapter })
+          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
@@ -138,6 +144,7 @@ function setupTestSuiteMatrix(
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
+
           if (clientMeta.dataProxy) {
             await stopMiniProxyQueryEngine(client, globalThis['datasourceInfo'])
           }
