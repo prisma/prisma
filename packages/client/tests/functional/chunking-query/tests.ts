@@ -178,13 +178,16 @@ testMatrix.setupTestSuite(
 
       describeIf(providerFlavor === undefined)('With Rust drivers only', () => {
         // See: https://github.com/prisma/prisma/issues/21802.
-        test('Selecting 32767 ids at once in two inclusive disjunct filters results in error: "too many bind variables"', async () => {
+        test('Selecting 32767 ids at once in two inclusive disjunct filters results in error: "too many bind variables", but not with mysql', async () => {
           const ids = generatedIds(32767)
 
           try {
             await selectWith2InFilters(ids)
-            // unreachable
-            expect(true).toBe(false)
+
+            if (!['mysql'].includes(provider)) {
+              // unreachable
+              expect(true).toBe(false)
+            }
           } catch (error) {
             const e = error as Error
 
@@ -193,7 +196,8 @@ testMatrix.setupTestSuite(
               expect(e.message).toContain('too many bind variables in prepared statement')
               expect(e.message).toContain(`expected maximum of 32767, received 65534`)
             } else {
-              expect(e.message).toContain('Prepared statement contains too many placeholders')
+              // unreachable
+              expect(true).toBe(false)
             }
           }
         })
