@@ -261,9 +261,5 @@ testMatrix.setupTestSuite(
       // query server parameter.
       reason: 'Vitess supports at most 10k rows returned in a single query, so this test is not applicable.',
     },
-    skipDataProxy: {
-      runtimes: ['node', 'edge'],
-      reason: 'Unreachable assertions in the data proxy',
-    },
   },
 )
