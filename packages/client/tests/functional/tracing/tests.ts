@@ -14,7 +14,7 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
-import { Providers } from '../_utils/providers'
+import { Providers, RelationModes } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -84,308 +84,378 @@ afterAll(() => {
   context.disable()
 })
 
-testMatrix.setupTestSuite(
-  ({ provider }, suiteMeta, clientMeta) => {
-    const isMongoDb = provider === Providers.MONGODB
+testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMeta, clientMeta) => {
+  const isMongoDb = provider === Providers.MONGODB
 
-    beforeEach(async () => {
-      await prisma.$connect()
-      inMemorySpanExporter.reset()
+  const usesSyntheticTxQueries =
+    providerFlavor !== undefined && ['js_libsql', 'js_planetscale'].includes(providerFlavor)
+
+  beforeEach(async () => {
+    await prisma.$connect()
+    inMemorySpanExporter.reset()
+  })
+
+  async function waitForSpanTree(expectedTree: Tree): Promise<void> {
+    await waitFor(async () => {
+      await processor.forceFlush()
+      const spans = inMemorySpanExporter.getFinishedSpans()
+      const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
+      const tree = buildTree(rootSpan, spans)
+
+      expect(tree).toEqual(expectedTree)
     })
+  }
 
-    async function waitForSpanTree(expectedTree: Tree): Promise<void> {
-      await waitFor(async () => {
-        await processor.forceFlush()
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree(rootSpan, spans)
+  enum AdapterQueryChildSpans {
+    ArgsAndResult,
+    ArgsOnly,
+    None,
+  }
 
-        expect(tree).toEqual(expectedTree)
-      })
+  function dbQuery(statement: string, driverAdapterChildSpans = AdapterQueryChildSpans.ArgsAndResult): Tree {
+    const span = {
+      name: 'prisma:engine:db_query',
+      attributes: {
+        'db.statement': statement,
+      },
     }
 
-    function dbQuery(statement: string, hasDriverAdapterResultSpan = true): Tree {
-      const span = {
-        name: 'prisma:engine:db_query',
+    // extra children spans for driver adapters, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
+    if (clientMeta.driverAdapter && driverAdapterChildSpans !== AdapterQueryChildSpans.None) {
+      const children = [] as Tree[]
+
+      children.push({
+        name: 'js:query:args',
+      })
+
+      // result span only exists for returning queries
+      if (driverAdapterChildSpans !== AdapterQueryChildSpans.ArgsOnly) {
+        children.push({
+          name: 'js:query:result',
+        })
+      }
+
+      children.push({
+        name: 'js:query:sql',
         attributes: {
           'db.statement': statement,
         },
-      }
+      })
 
-      // extra children spans for driver adapters
-      if (clientMeta.driverAdapter) {
-        const children = [] as Tree[]
-
-        // args span always exists for any query
-        children.push({
-          name: 'js:query:args',
-        })
-
-        // result span only exists for returning queries
-        if (hasDriverAdapterResultSpan === true) {
-          children.push({
-            name: 'js:query:result',
-          })
-        }
-
-        // sql span always exists for any query
-        children.push({
-          name: 'js:query:sql',
-          attributes: {
-            'db.statement': statement,
-          },
-        })
-
-        span['children'] = children
-      }
-
-      return span
+      span['children'] = children
     }
 
-    function operation(model: string | undefined, method: string, children: Tree[]) {
-      const attributes: Attributes = {
-        method,
-        name: model ? `${model}.${method}` : method,
-      }
+    return span
+  }
 
-      if (model) {
-        attributes.model = model
-      }
-      return {
-        name: 'prisma:client:operation',
-        attributes,
-        children,
-      }
+  function txBegin() {
+    if (usesSyntheticTxQueries) {
+      return dbQuery('-- Implicit "BEGIN" query via underlying driver', AdapterQueryChildSpans.None)
+    } else {
+      return dbQuery(expect.stringContaining('BEGIN'), AdapterQueryChildSpans.ArgsOnly)
+    }
+  }
+
+  function txCommit() {
+    if (usesSyntheticTxQueries) {
+      return dbQuery('-- Implicit "COMMIT" query via underlying driver', AdapterQueryChildSpans.None)
+    } else {
+      return dbQuery('COMMIT', AdapterQueryChildSpans.ArgsOnly)
+    }
+  }
+
+  function operation(model: string | undefined, method: string, children: Tree[]) {
+    const attributes: Attributes = {
+      method,
+      name: model ? `${model}.${method}` : method,
     }
 
-    function engine(children: Tree[]) {
-      return {
-        name: 'prisma:engine',
-        children,
-      }
+    if (model) {
+      attributes.model = model
+    }
+    return {
+      name: 'prisma:client:operation',
+      attributes,
+      children,
+    }
+  }
+
+  function engine(children: Tree[]) {
+    return {
+      name: 'prisma:engine',
+      children,
+    }
+  }
+
+  function clientSerialize() {
+    return { name: 'prisma:client:serialize' }
+  }
+
+  function engineSerializeQueryResult() {
+    return { name: 'prisma:engine:serialize' }
+  }
+
+  function engineSerializeFinalResponse() {
+    if (clientMeta.dataProxy || getClientEngineType() === ClientEngineType.Binary) {
+      return []
+    }
+    return [{ name: 'prisma:engine:response_json_serialization' }]
+  }
+
+  function engineSerialize() {
+    return [...engineSerializeFinalResponse(), engineSerializeQueryResult()]
+  }
+
+  function engineConnection() {
+    return { name: 'prisma:engine:connection', attributes: { 'db.type': expect.any(String) } }
+  }
+
+  function findManyDbQuery() {
+    const statement = isMongoDb ? 'db.User.findMany(*)' : 'SELECT'
+
+    return dbQuery(expect.stringContaining(statement))
+  }
+
+  function createDbQueries(tx = true) {
+    if (isMongoDb) {
+      return [
+        dbQuery(expect.stringContaining('db.User.insertOne(*)')),
+        dbQuery(expect.stringContaining('db.User.findOne(*)')),
+      ]
     }
 
-    function clientSerialize() {
-      return { name: 'prisma:client:serialize' }
+    if (['postgresql', 'cockroachdb'].includes(provider)) {
+      return [dbQuery(expect.stringContaining('INSERT'))]
+    }
+    const dbQueries: Tree[] = []
+    if (tx) {
+      dbQueries.push(txBegin())
     }
 
-    function engineSerializeQueryResult() {
-      return { name: 'prisma:engine:serialize' }
+    dbQueries.push(dbQuery(expect.stringContaining('INSERT')), dbQuery(expect.stringContaining('SELECT')))
+
+    if (tx) {
+      dbQueries.push(txCommit())
     }
+    return dbQueries
+  }
 
-    function engineSerializeFinalResponse() {
-      if (clientMeta.dataProxy || getClientEngineType() === ClientEngineType.Binary) {
-        return []
-      }
-      return [{ name: 'prisma:engine:response_json_serialization' }]
-    }
+  describe('tracing on crud methods', () => {
+    let sharedEmail = faker.internet.email()
 
-    function engineSerialize() {
-      return [...engineSerializeFinalResponse(), engineSerializeQueryResult()]
-    }
+    test('create', async () => {
+      await prisma.user.create({
+        data: {
+          email: sharedEmail,
+        },
+      })
 
-    function engineConnection() {
-      return { name: 'prisma:engine:connection', attributes: { 'db.type': expect.any(String) } }
-    }
+      await waitForSpanTree(
+        operation('User', 'create', [
+          clientSerialize(),
+          engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+        ]),
+      )
+    })
 
-    function findManyDbQuery() {
-      const statement = isMongoDb ? 'db.User.findMany(*)' : 'SELECT'
+    test('read', async () => {
+      await prisma.user.findMany({
+        where: {
+          email: sharedEmail,
+        },
+      })
 
-      return dbQuery(expect.stringContaining(statement))
-    }
+      await waitForSpanTree(
+        operation('User', 'findMany', [
+          clientSerialize(),
+          engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
+        ]),
+      )
+    })
 
-    function createDbQueries(tx = true) {
+    test('update', async () => {
+      const newEmail = faker.internet.email()
+
+      await prisma.user.update({
+        data: {
+          email: newEmail,
+        },
+        where: {
+          email: sharedEmail,
+        },
+      })
+
+      sharedEmail = newEmail
+
+      let expectedDbQueries: Tree[]
+
       if (isMongoDb) {
-        return [
-          dbQuery(expect.stringContaining('db.User.insertOne(*)')),
+        expectedDbQueries = [
+          dbQuery(expect.stringContaining('db.User.findMany(*)')),
+          dbQuery(expect.stringContaining('db.User.updateMany(*)')),
           dbQuery(expect.stringContaining('db.User.findOne(*)')),
+        ]
+      } else if (['postgresql', 'cockroachdb'].includes(provider)) {
+        expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
+      } else {
+        expectedDbQueries = [
+          txBegin(),
+          dbQuery(expect.stringContaining('SELECT')),
+          dbQuery(expect.stringContaining('UPDATE'), AdapterQueryChildSpans.ArgsOnly),
+          dbQuery(expect.stringContaining('SELECT')),
+          txCommit(),
         ]
       }
 
-      if (['postgresql', 'cockroachdb'].includes(provider)) {
-        return [dbQuery(expect.stringContaining('INSERT'))]
+      await waitForSpanTree(
+        operation('User', 'update', [
+          clientSerialize(),
+          engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+        ]),
+      )
+    })
+
+    test('delete', async () => {
+      await prisma.user.delete({
+        where: {
+          email: sharedEmail,
+        },
+      })
+
+      let expectedDbQueries: Tree[]
+
+      if (isMongoDb) {
+        expectedDbQueries = [
+          dbQuery(expect.stringContaining('db.User.findOne(*)')),
+          dbQuery(expect.stringContaining('db.User.findMany(*)')),
+          dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
+        ]
+      } else {
+        expectedDbQueries = [
+          txBegin(),
+          dbQuery(expect.stringContaining('SELECT')),
+          dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
+          txCommit(),
+        ]
       }
-      const dbQueries: Tree[] = []
-      if (tx) {
-        dbQueries.push(dbQuery(expect.stringContaining('BEGIN'), false))
+      await waitForSpanTree(
+        operation('User', 'delete', [
+          clientSerialize(),
+          engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+        ]),
+      )
+    })
+
+    test('deleteMany()', async () => {
+      // Needed to see `deleteMany` for MongoDB
+      // for context https://github.com/prisma/prisma-engines/blob/a437f71ab038893c0001b09743862e841bedca01/query-engine/connectors/mongodb-query-connector/src/root_queries/write.rs#L259-L261
+      await prisma.user.create({
+        data: {
+          email: sharedEmail,
+        },
+      })
+      inMemorySpanExporter.reset()
+
+      await prisma.user.deleteMany()
+
+      let expectedDbQueries: Tree[]
+
+      if (isMongoDb) {
+        expectedDbQueries = [
+          dbQuery(expect.stringContaining('db.User.findMany(*)')),
+          dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
+        ]
+      } else if (relationMode === RelationModes.PRISMA) {
+        expectedDbQueries = [
+          txBegin(),
+          dbQuery(expect.stringContaining('SELECT')),
+          dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
+          txCommit(),
+        ]
+      } else {
+        expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly)]
       }
 
-      dbQueries.push(dbQuery(expect.stringContaining('INSERT')), dbQuery(expect.stringContaining('SELECT')))
+      await waitForSpanTree(
+        operation('User', 'deleteMany', [
+          clientSerialize(),
+          engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+        ]),
+      )
+    })
+  })
 
-      if (tx) {
-        dbQueries.push(dbQuery('COMMIT', false))
+  describe('tracing on transactions', () => {
+    test('$transaction', async () => {
+      const email = faker.internet.email()
+
+      await prisma.$transaction([
+        prisma.user.create({
+          data: {
+            email,
+          },
+        }),
+        prisma.user.findMany({
+          where: {
+            email,
+          },
+        }),
+      ])
+
+      let expectedDbQueries: Tree[]
+
+      if (isMongoDb) {
+        expectedDbQueries = [...createDbQueries(false), findManyDbQuery()]
+      } else {
+        expectedDbQueries = [txBegin(), ...createDbQueries(false), findManyDbQuery(), txCommit()]
       }
-      return dbQueries
-    }
 
-    describe('tracing on crud methods', () => {
-      let sharedEmail = faker.internet.email()
-
-      test('create', async () => {
-        await prisma.user.create({
-          data: {
-            email: sharedEmail,
-          },
-        })
-
-        await waitForSpanTree(
-          operation('User', 'create', [
-            clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+      await waitForSpanTree({
+        name: 'prisma:client:transaction',
+        attributes: {
+          method: '$transaction',
+        },
+        children: [
+          operation('User', 'create', [clientSerialize()]),
+          operation('User', 'findMany', [clientSerialize()]),
+          engine([
+            engineConnection(),
+            ...expectedDbQueries,
+            ...engineSerializeFinalResponse(),
+            engineSerializeQueryResult(),
+            engineSerializeQueryResult(),
           ]),
-        )
-      })
-
-      test('read', async () => {
-        await prisma.user.findMany({
-          where: {
-            email: sharedEmail,
-          },
-        })
-
-        await waitForSpanTree(
-          operation('User', 'findMany', [
-            clientSerialize(),
-            engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
-          ]),
-        )
-      })
-
-      test('update', async () => {
-        const newEmail = faker.internet.email()
-
-        await prisma.user.update({
-          data: {
-            email: newEmail,
-          },
-          where: {
-            email: sharedEmail,
-          },
-        })
-
-        sharedEmail = newEmail
-
-        let dbQueries: Tree[]
-
-        if (isMongoDb) {
-          dbQueries = [
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.updateMany(*)')),
-            dbQuery(expect.stringContaining('db.User.findOne(*)')),
-          ]
-        } else if (['postgresql', 'cockroachdb'].includes(provider)) {
-          dbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
-        } else {
-          dbQueries = [
-            dbQuery(expect.stringContaining('BEGIN'), false),
-            dbQuery(expect.stringContaining('SELECT')),
-            dbQuery(expect.stringContaining('UPDATE')),
-            dbQuery(expect.stringContaining('SELECT')),
-            dbQuery('COMMIT', false),
-          ]
-        }
-
-        await waitForSpanTree(
-          operation('User', 'update', [
-            clientSerialize(),
-            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
-          ]),
-        )
-      })
-
-      test('delete', async () => {
-        await prisma.user.delete({
-          where: {
-            email: sharedEmail,
-          },
-        })
-
-        let dbQueries: Tree[]
-
-        if (isMongoDb) {
-          dbQueries = [
-            dbQuery(expect.stringContaining('db.User.findOne(*)')),
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
-          ]
-        } else {
-          dbQueries = [
-            dbQuery(expect.stringContaining('BEGIN'), false),
-            dbQuery(expect.stringContaining('SELECT')),
-            dbQuery(expect.stringContaining('DELETE'), false),
-            dbQuery('COMMIT', false),
-          ]
-        }
-        await waitForSpanTree(
-          operation('User', 'delete', [
-            clientSerialize(),
-            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
-          ]),
-        )
-      })
-
-      test('deleteMany()', async () => {
-        // Needed to see `deleteMany` for MongoDB
-        // for context https://github.com/prisma/prisma-engines/blob/a437f71ab038893c0001b09743862e841bedca01/query-engine/connectors/mongodb-query-connector/src/root_queries/write.rs#L259-L261
-        await prisma.user.create({
-          data: {
-            email: sharedEmail,
-          },
-        })
-        inMemorySpanExporter.reset()
-
-        await prisma.user.deleteMany()
-
-        let dbQueries: Tree[]
-
-        if (isMongoDb) {
-          dbQueries = [
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
-          ]
-        } else {
-          dbQueries = [dbQuery(expect.stringContaining('DELETE'), false)]
-        }
-
-        await waitForSpanTree(
-          operation('User', 'deleteMany', [
-            clientSerialize(),
-            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
-          ]),
-        )
+        ],
       })
     })
 
-    describe('tracing on transactions', () => {
-      test('$transaction', async () => {
-        const email = faker.internet.email()
+    test('interactive-transactions', async () => {
+      const email = faker.internet.email()
 
-        await prisma.$transaction([
-          prisma.user.create({
-            data: {
-              email,
-            },
-          }),
-          prisma.user.findMany({
-            where: {
-              email,
-            },
-          }),
-        ])
+      await prisma.$transaction(async (client) => {
+        await client.user.create({
+          data: {
+            email,
+          },
+        })
+        await client.user.findMany({
+          where: {
+            email,
+          },
+        })
+      })
 
-        let dbQueries: Tree[]
+      let txQueries: Tree[] = []
 
-        if (isMongoDb) {
-          dbQueries = [...createDbQueries(false), findManyDbQuery()]
-        } else {
-          dbQueries = [
-            dbQuery(expect.stringContaining('BEGIN'), false),
-            ...createDbQueries(false),
-            findManyDbQuery(),
-            dbQuery('COMMIT', false),
-          ]
-        }
+      if (provider !== Providers.MONGODB) {
+        txQueries = [txBegin(), txCommit()]
+      }
 
+      // skipping on data proxy because the functionality is broken
+      // in this case at the moment and `itx_runner` span occasionally does
+      // not make it to the client when running via DP.
+      // See https://github.com/prisma/prisma/issues/20694
+      if (!clientMeta.dataProxy) {
         await waitForSpanTree({
           name: 'prisma:client:transaction',
           attributes: {
@@ -394,226 +464,172 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [clientSerialize()]),
             operation('User', 'findMany', [clientSerialize()]),
-            engine([
-              engineConnection(),
-              ...dbQueries,
-              ...engineSerializeFinalResponse(),
-              engineSerializeQueryResult(),
-              engineSerializeQueryResult(),
-            ]),
+
+            {
+              name: 'prisma:engine:itx_runner',
+              attributes: { itx_id: expect.any(String) },
+              children: [
+                engineConnection(),
+                ...txQueries,
+                {
+                  name: 'prisma:engine:itx_query_builder',
+                  children: [...createDbQueries(false), engineSerializeQueryResult()],
+                },
+                {
+                  name: 'prisma:engine:itx_query_builder',
+                  children: [findManyDbQuery(), engineSerializeQueryResult()],
+                },
+              ],
+            },
           ],
         })
-      })
+      }
+    })
+  })
 
-      test('interactive-transactions', async () => {
-        const email = faker.internet.email()
-
-        await prisma.$transaction(async (client) => {
-          await client.user.create({
-            data: {
-              email,
-            },
-          })
-          await client.user.findMany({
-            where: {
-              email,
-            },
-          })
-        })
-
-        let txQueries: Tree[] = []
-
-        if (provider !== Providers.MONGODB) {
-          txQueries = [dbQuery(expect.stringContaining('BEGIN'), false), dbQuery('COMMIT', false)]
-        }
-
-        // skipping on data proxy because the functionality is broken
-        // in this case at the moment and `itx_runner` span occasionally does
-        // not make it to the client when running via DP.
-        // See https://github.com/prisma/prisma/issues/20694
-        if (!clientMeta.dataProxy) {
-          await waitForSpanTree({
-            name: 'prisma:client:transaction',
-            attributes: {
-              method: '$transaction',
-            },
-            children: [
-              operation('User', 'create', [clientSerialize()]),
-              operation('User', 'findMany', [clientSerialize()]),
-
-              {
-                name: 'prisma:engine:itx_runner',
-                attributes: { itx_id: expect.any(String) },
-                children: [
-                  engineConnection(),
-                  ...txQueries,
-                  {
-                    name: 'prisma:engine:itx_query_builder',
-                    children: [...createDbQueries(false), engineSerializeQueryResult()],
-                  },
-                  {
-                    name: 'prisma:engine:itx_query_builder',
-                    children: [findManyDbQuery(), engineSerializeQueryResult()],
-                  },
-                ],
-              },
-            ],
-          })
-        }
-      })
+  describeIf(provider !== Providers.MONGODB)('tracing on $raw methods', () => {
+    test('$queryRaw', async () => {
+      // @ts-test-if: provider !== Providers.MONGODB
+      await prisma.$queryRaw`SELECT 1 + 1;`
+      await waitForSpanTree(
+        operation(undefined, 'queryRaw', [
+          clientSerialize(),
+          engine([engineConnection(), dbQuery('SELECT 1 + 1;'), ...engineSerialize()]),
+        ]),
+      )
     })
 
-    describeIf(provider !== Providers.MONGODB)('tracing on $raw methods', () => {
-      test('$queryRaw', async () => {
-        // @ts-test-if: provider !== Providers.MONGODB
-        await prisma.$queryRaw`SELECT 1 + 1;`
-        await waitForSpanTree(
-          operation(undefined, 'queryRaw', [
-            clientSerialize(),
-            engine([engineConnection(), dbQuery('SELECT 1 + 1;', true), ...engineSerialize()]),
-          ]),
-        )
-      })
+    test('$executeRaw', async () => {
+      // Raw query failed. Code: `N/A`. Message: `Execute returned results, which is not allowed in SQLite.`
+      if (provider === Providers.SQLITE || isMongoDb) {
+        return
+      }
 
-      test('$executeRaw', async () => {
-        // Raw query failed. Code: `N/A`. Message: `Execute returned results, which is not allowed in SQLite.`
-        if (provider === Providers.SQLITE || isMongoDb) {
-          return
-        }
+      // @ts-test-if: provider !== Providers.MONGODB
+      await prisma.$executeRaw`SELECT 1 + 1;`
 
-        // @ts-test-if: provider !== Providers.MONGODB
-        await prisma.$executeRaw`SELECT 1 + 1;`
-
-        await waitForSpanTree(
-          operation(undefined, 'executeRaw', [
-            clientSerialize(),
-            engine([engineConnection(), dbQuery('SELECT 1 + 1;', false), ...engineSerialize()]),
-          ]),
-        )
-      })
+      await waitForSpanTree(
+        operation(undefined, 'executeRaw', [
+          clientSerialize(),
+          engine([engineConnection(), dbQuery('SELECT 1 + 1;', AdapterQueryChildSpans.ArgsOnly), ...engineSerialize()]),
+        ]),
+      )
     })
+  })
 
-    test('tracing with custom span', async () => {
-      const tracer = trace.getTracer('MyApp')
-      const email = faker.internet.email()
+  test('tracing with custom span', async () => {
+    const tracer = trace.getTracer('MyApp')
+    const email = faker.internet.email()
 
-      await tracer.startActiveSpan('create-user', async (span) => {
-        try {
-          return await prisma.user.create({
-            data: {
-              email: email,
-            },
-          })
-        } finally {
-          span.end()
-        }
-      })
-
-      await waitForSpanTree({
-        name: 'create-user',
-        children: [
-          operation('User', 'create', [
-            clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
-          ]),
-        ],
-      })
-    })
-
-    describe('tracing with middleware', () => {
-      let _prisma: PrismaClient
-
-      beforeAll(async () => {
-        _prisma = newPrismaClient()
-
-        await _prisma.$connect()
-      })
-
-      test('should succeed', async () => {
-        const email = faker.internet.email()
-
-        _prisma.$use(async (params, next) => {
-          // Manipulate params here
-          const result = await next(params)
-          // See results here
-          return result
-        })
-        _prisma.$use(async (params, next) => {
-          // Manipulate params here
-          const result = await next(params)
-          // See results here
-          return result
-        })
-
-        await _prisma.user.create({
+    await tracer.startActiveSpan('create-user', async (span) => {
+      try {
+        return await prisma.user.create({
           data: {
             email: email,
           },
         })
-
-        await waitForSpanTree(
-          operation('User', 'create', [
-            { name: 'prisma:client:middleware', attributes: { method: '$use' } },
-            { name: 'prisma:client:middleware', attributes: { method: '$use' } },
-            clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
-          ]),
-        )
-      })
+      } finally {
+        span.end()
+      }
     })
 
-    // $connect is a no-op with Data Proxy
-    describeIf(!clientMeta.dataProxy)('tracing connect', () => {
-      let _prisma: PrismaClient
+    await waitForSpanTree({
+      name: 'create-user',
+      children: [
+        operation('User', 'create', [
+          clientSerialize(),
+          engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+        ]),
+      ],
+    })
+  })
 
-      beforeEach(() => {
-        _prisma = newPrismaClient()
-      })
+  describe('tracing with middleware', () => {
+    let _prisma: PrismaClient
 
-      afterEach(async () => {
-        await _prisma.$disconnect()
-      })
+    beforeAll(async () => {
+      _prisma = newPrismaClient()
 
-      test('should trace the implicit $connect call', async () => {
-        const email = faker.internet.email()
-
-        await _prisma.user.findMany({
-          where: {
-            email: email,
-          },
-        })
-
-        await waitForSpanTree(
-          operation('User', 'findMany', [
-            { name: 'prisma:client:connect' },
-            clientSerialize(),
-            engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
-          ]),
-        )
-      })
+      await _prisma.$connect()
     })
 
-    // $disconnect is a no-op with Data Proxy
-    describeIf(!clientMeta.dataProxy)('tracing disconnect', () => {
-      let _prisma: PrismaClient
+    test('should succeed', async () => {
+      const email = faker.internet.email()
 
-      beforeAll(async () => {
-        _prisma = newPrismaClient()
-        await _prisma.$connect()
+      _prisma.$use(async (params, next) => {
+        // Manipulate params here
+        const result = await next(params)
+        // See results here
+        return result
+      })
+      _prisma.$use(async (params, next) => {
+        // Manipulate params here
+        const result = await next(params)
+        // See results here
+        return result
       })
 
-      test('should trace $disconnect', async () => {
-        await _prisma.$disconnect()
-
-        await waitForSpanTree({ name: 'prisma:client:disconnect' })
+      await _prisma.user.create({
+        data: {
+          email: email,
+        },
       })
+
+      await waitForSpanTree(
+        operation('User', 'create', [
+          { name: 'prisma:client:middleware', attributes: { method: '$use' } },
+          { name: 'prisma:client:middleware', attributes: { method: '$use' } },
+          clientSerialize(),
+          engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+        ]),
+      )
     })
-  },
-  {
-    skipProviderFlavor: {
-      from: ['js_libsql', 'js_planetscale'],
-      reason:
-        'The spans are not consistent, or not in a way that makes sense compared to the other driver adapters. Needs investigation.',
-    },
-  },
-)
+  })
+
+  // $connect is a no-op with Data Proxy
+  describeIf(!clientMeta.dataProxy)('tracing connect', () => {
+    let _prisma: PrismaClient
+
+    beforeEach(() => {
+      _prisma = newPrismaClient()
+    })
+
+    afterEach(async () => {
+      await _prisma.$disconnect()
+    })
+
+    test('should trace the implicit $connect call', async () => {
+      const email = faker.internet.email()
+
+      await _prisma.user.findMany({
+        where: {
+          email: email,
+        },
+      })
+
+      await waitForSpanTree(
+        operation('User', 'findMany', [
+          { name: 'prisma:client:connect' },
+          clientSerialize(),
+          engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
+        ]),
+      )
+    })
+  })
+
+  // $disconnect is a no-op with Data Proxy
+  describeIf(!clientMeta.dataProxy)('tracing disconnect', () => {
+    let _prisma: PrismaClient
+
+    beforeAll(async () => {
+      _prisma = newPrismaClient()
+      await _prisma.$connect()
+    })
+
+    test('should trace $disconnect', async () => {
+      await _prisma.$disconnect()
+
+      await waitForSpanTree({ name: 'prisma:client:disconnect' })
+    })
+  })
+})
