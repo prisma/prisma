@@ -1,6 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
-import { ProviderFlavors, Providers } from '../../_utils/providers'
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -43,7 +43,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO snapshot for planetscale is `":vtg1 /* INT64 */": 1n` while mysql is `"1": 1n`, maybe it's normal?
-    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('select 1 via queryRaw', async () => {
+    test('select 1 via queryRaw', async () => {
       const result: any = await prisma.$queryRaw`
         SELECT 1
       `
@@ -55,7 +55,15 @@ testMatrix.setupTestSuite(
         sqlserver: [{ '': 1 }],
       }
 
-      expect(result).toStrictEqual(results[provider])
+      const resultsByDriverAdapter = {
+        js_planetscale: [{ ':vtg1 /* INT64 */': BigInt('1') }],
+      }
+
+      if (providerFlavor && resultsByDriverAdapter[providerFlavor]) {
+        expect(result).toStrictEqual(resultsByDriverAdapter[providerFlavor])
+      } else {
+        expect(result).toStrictEqual(results[provider])
+      }
     })
 
     test('select 1 via queryRawUnsafe', async () => {
@@ -90,7 +98,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO snapshot for planetscale is `":vtg1 /* INT64 */": 1n` while mysql is `"1": 1n`, maybe it's normal?
-    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('select values via queryRawUnsafe', async () => {
+    test('select values via queryRawUnsafe', async () => {
       const result: any = await prisma.$queryRawUnsafe(`
         SELECT 1
       `)
@@ -103,7 +111,15 @@ testMatrix.setupTestSuite(
         sqlserver: [{ '': 1 }],
       }
 
-      expect(result).toStrictEqual(results[provider])
+      const resultsByDriverAdapter = {
+        js_planetscale: [{ ':vtg1 /* INT64 */': BigInt('1') }],
+      }
+
+      if (providerFlavor && resultsByDriverAdapter[providerFlavor]) {
+        expect(result).toStrictEqual(resultsByDriverAdapter[providerFlavor])
+      } else {
+        expect(result).toStrictEqual(results[provider])
+      }
     })
 
     test('select * via queryRawUnsafe', async () => {

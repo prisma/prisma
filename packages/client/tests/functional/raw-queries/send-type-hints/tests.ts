@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../../_utils/providers'
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -7,9 +7,8 @@ declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
-    // TODO the buffer returned by the driver adapter seems to be an ArrayBufferView, not a Node.js Buffer
-    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('Buffer ($queryRaw)', async () => {
+  ({ provider }) => {
+    test('Buffer ($queryRaw)', async () => {
       if (provider === Providers.MYSQL) {
         await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('1', ${Buffer.from('hello')})`
       } else {
@@ -25,8 +24,7 @@ testMatrix.setupTestSuite(
       expect(record?.binary).toEqual(Buffer.from('hello'))
     })
 
-    // TODO the buffer returned by the driver adapter seems to be an ArrayBufferView, not a Node.js Buffer
-    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('Buffer ($executeRaw)', async () => {
+    test('Buffer ($executeRaw)', async () => {
       if (provider === Providers.MYSQL) {
         await prisma.$executeRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('2', ${Buffer.from('hello')})`
       } else {
@@ -42,8 +40,7 @@ testMatrix.setupTestSuite(
       expect(record?.binary).toEqual(Buffer.from('hello'))
     })
 
-    // TODO the buffer returned by the driver adapter seems to be an ArrayBufferView, not a Node.js Buffer
-    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('Buffer ($queryRaw + Prisma.sql)', async () => {
+    test('Buffer ($queryRaw + Prisma.sql)', async () => {
       if (provider === Providers.MYSQL) {
         await prisma.$queryRaw(
           Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('3', ${Buffer.from('hello')})`,
@@ -61,8 +58,7 @@ testMatrix.setupTestSuite(
       expect(record?.binary).toEqual(Buffer.from('hello'))
     })
 
-    // TODO the buffer returned by the driver adapter seems to be an ArrayBufferView, not a Node.js Buffer
-    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('Buffer ($executeRaw + Prisma.sql)', async () => {
+    test('Buffer ($executeRaw + Prisma.sql)', async () => {
       if (provider === Providers.MYSQL) {
         await prisma.$executeRaw(
           Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('4', ${Buffer.from('hello')})`,
