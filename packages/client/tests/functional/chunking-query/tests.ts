@@ -12,65 +12,6 @@ testMatrix.setupTestSuite(
       return ids
     }
 
-    function selectWith2InFilters(ids: number[]) {
-      return prisma.tag.findMany({
-        where: {
-          OR: [
-            {
-              id: { in: ids },
-            },
-            {
-              id: { in: ids },
-            },
-          ],
-        },
-      })
-    }
-
-    async function getTagsParams(ids: number[]): Promise<Tag[]> {
-      const idsParams = ids.map((paramIdx) => {
-        const param = ['mysql'].includes(provider) ? '?' : `\$${paramIdx}`
-        return param
-      })
-
-      const tags = await prisma.$queryRawUnsafe<Tag[]>(
-        `
-        SELECT *
-        FROM tag
-        WHERE "id" IN (${idsParams.join(', ')})
-      `,
-        ...ids,
-      )
-      return tags
-    }
-
-    async function getTagsFindManyIn(ids: number[]): Promise<Tag[]> {
-      const tags = await prisma.tag.findMany({
-        where: {
-          id: {
-            in: ids,
-          },
-        },
-      })
-      return tags
-    }
-
-    async function getTagsFindManyInclude(): Promise<Tag[]> {
-      const tags = await prisma.tag.findMany({
-        include: {
-          posts: true,
-        },
-      })
-      return tags
-    }
-
-    async function clean() {
-      const cleanPrismaPromises = [prisma.tagsOnPosts.deleteMany(), prisma.post.deleteMany(), prisma.tag.deleteMany()]
-      for (const promise of cleanPrismaPromises) {
-        await promise
-      }
-    }
-
     // Note: we're excluding `sqlite` from the success cases until `createMany` is added
     // to the SQLite driver. See https://github.com/prisma/prisma/issues/10710.
     // We're also excluding `js_neon` the `createMany` would take ages otherwise (while `js_pg` is much).
@@ -82,6 +23,50 @@ testMatrix.setupTestSuite(
           data,
         })
         return ids
+      }
+
+      async function getTagsFindManyInclude(): Promise<Tag[]> {
+        const tags = await prisma.tag.findMany({
+          include: {
+            posts: true,
+          },
+        })
+        return tags
+      }
+
+      async function getTagsParams(ids: number[]): Promise<Tag[]> {
+        const idsParams = ids.map((paramIdx) => {
+          const param = ['mysql'].includes(provider) ? '?' : `\$${paramIdx}`
+          return param
+        })
+
+        const tags = await prisma.$queryRawUnsafe<Tag[]>(
+          `
+          SELECT *
+          FROM tag
+          WHERE "id" IN (${idsParams.join(', ')})
+        `,
+          ...ids,
+        )
+        return tags
+      }
+
+      async function getTagsFindManyIn(ids: number[]): Promise<Tag[]> {
+        const tags = await prisma.tag.findMany({
+          where: {
+            id: {
+              in: ids,
+            },
+          },
+        })
+        return tags
+      }
+
+      async function clean() {
+        const cleanPrismaPromises = [prisma.tagsOnPosts.deleteMany(), prisma.post.deleteMany(), prisma.tag.deleteMany()]
+        for (const promise of cleanPrismaPromises) {
+          await promise
+        }
       }
 
       afterEach(async () => {
@@ -175,70 +160,87 @@ testMatrix.setupTestSuite(
       })
     })
 
-    describeIf(providerFlavor === undefined)('With Rust drivers only', () => {
-      // See: https://github.com/prisma/prisma/issues/21802.
-      test('Selecting 32767 ids at once in two inclusive disjunct filters results in error: "too many bind variables"', async () => {
-        const ids = generatedIds(32767)
+    describe('chunking logic does not trigger with 2 IN filters, and results vary between Rust drivers and Driver Adapters', () => {
+      function selectWith2InFilters(ids: number[]) {
+        return prisma.tag.findMany({
+          where: {
+            OR: [
+              {
+                id: { in: ids },
+              },
+              {
+                id: { in: ids },
+              },
+            ],
+          },
+        })
+      }
 
-        try {
-          await selectWith2InFilters(ids)
-          // unreachable
-          expect(true).toBe(false)
-        } catch (error) {
-          const e = error as Error
+      describeIf(providerFlavor === undefined)('With Rust drivers only', () => {
+        // See: https://github.com/prisma/prisma/issues/21802.
+        test('Selecting 32767 ids at once in two inclusive disjunct filters results in error: "too many bind variables"', async () => {
+          const ids = generatedIds(32767)
 
-          if (['postgresql', 'cockroachdb'].includes(provider)) {
-            expect(e.message).toContain('Assertion violation on the database')
-            expect(e.message).toContain('too many bind variables in prepared statement')
-            expect(e.message).toContain(`expected maximum of 32767, received 65534`)
-          } else {
-            expect(e.message).toContain('Prepared statement contains too many placeholders')
+          try {
+            await selectWith2InFilters(ids)
+            // unreachable
+            expect(true).toBe(false)
+          } catch (error) {
+            const e = error as Error
+
+            if (['postgresql', 'cockroachdb'].includes(provider)) {
+              expect(e.message).toContain('Assertion violation on the database')
+              expect(e.message).toContain('too many bind variables in prepared statement')
+              expect(e.message).toContain(`expected maximum of 32767, received 65534`)
+            } else {
+              expect(e.message).toContain('Prepared statement contains too many placeholders')
+            }
           }
-        }
+        })
+
+        test('Selecting 32768 ids at once in two inclusive disjunct filters results in error: "too many bind variables"', async () => {
+          const ids = generatedIds(32768)
+
+          try {
+            await selectWith2InFilters(ids)
+            // unreachable
+            expect(true).toBe(false)
+          } catch (error) {
+            const e = error as Error
+
+            if (['postgresql', 'cockroachdb'].includes(provider)) {
+              expect(e.message).toContain('Assertion violation on the database')
+              expect(e.message).toContain('too many bind variables in prepared statement')
+              expect(e.message).toContain(`expected maximum of 32767, received 65535`)
+            } else {
+              expect(e.message).toContain('Prepared statement contains too many placeholders')
+            }
+          }
+        })
       })
 
-      test('Selecting 32768 ids at once in two inclusive disjunct filters results in error: "too many bind variables"', async () => {
-        const ids = generatedIds(32768)
-
-        try {
+      describeIf(providerFlavor !== undefined)('With Driver Adapters only', () => {
+        test('Selecting 32768 ids at once in two inclusive disjunct filters works', async () => {
+          const ids = generatedIds(32768)
           await selectWith2InFilters(ids)
-          // unreachable
-          expect(true).toBe(false)
-        } catch (error) {
-          const e = error as Error
+        })
 
-          if (['postgresql', 'cockroachdb'].includes(provider)) {
-            expect(e.message).toContain('Assertion violation on the database')
-            expect(e.message).toContain('too many bind variables in prepared statement')
-            expect(e.message).toContain(`expected maximum of 32767, received 65535`)
-          } else {
-            expect(e.message).toContain('Prepared statement contains too many placeholders')
+        // See: https://github.com/prisma/prisma/issues/21803.
+        test('Selecting 65536 ids at once in two inclusive disjunct filters results in error', async () => {
+          const ids = generatedIds(65536)
+
+          try {
+            await selectWith2InFilters(ids)
+            // unreachable
+            expect(true).toBe(false)
+          } catch (error) {
+            const e = error as Error
+
+            if (['postgresql', 'cockroachdb'].includes(provider)) {
+              expect(e.message).toContain('bind message has 32767 parameter formats but 0 parameters')
+            }
           }
-        }
-      })
-    })
-
-    describeIf(providerFlavor !== undefined)('With Driver Adapters only', () => {
-      test('Selecting 32768 ids at once in two inclusive disjunct filters works', async () => {
-        const ids = generatedIds(32768)
-        await selectWith2InFilters(ids)
-      })
-
-      // See: https://github.com/prisma/prisma/issues/21803.
-      test('Selecting 65536 ids at once in two inclusive disjunct filters results in error', async () => {
-        const ids = generatedIds(65536)
-
-        try {
-          await selectWith2InFilters(ids)
-          // unreachable
-          expect(true).toBe(false)
-        } catch (error) {
-          const e = error as Error
-
-          if (['postgresql', 'cockroachdb'].includes(provider)) {
-            expect(e.message).toContain('bind message has 32767 parameter formats but 0 parameters')
-          }
-        }
+        })
       })
     })
   },
