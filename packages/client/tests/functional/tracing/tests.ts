@@ -287,18 +287,18 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
 
       sharedEmail = newEmail
 
-      let dbQueries: Tree[]
+      let expectedDbQueries: Tree[]
 
       if (isMongoDb) {
-        dbQueries = [
+        expectedDbQueries = [
           dbQuery(expect.stringContaining('db.User.findMany(*)')),
           dbQuery(expect.stringContaining('db.User.updateMany(*)')),
           dbQuery(expect.stringContaining('db.User.findOne(*)')),
         ]
       } else if (['postgresql', 'cockroachdb'].includes(provider)) {
-        dbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
+        expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
       } else {
-        dbQueries = [
+        expectedDbQueries = [
           txBegin(),
           dbQuery(expect.stringContaining('SELECT')),
           dbQuery(expect.stringContaining('UPDATE'), QueryChildSpans.ArgsOnly),
@@ -310,7 +310,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
       await waitForSpanTree(
         operation('User', 'update', [
           clientSerialize(),
-          engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
+          engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
         ]),
       )
     })
@@ -322,16 +322,16 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
         },
       })
 
-      let dbQueries: Tree[]
+      let expectedDbQueries: Tree[]
 
       if (isMongoDb) {
-        dbQueries = [
+        expectedDbQueries = [
           dbQuery(expect.stringContaining('db.User.findOne(*)')),
           dbQuery(expect.stringContaining('db.User.findMany(*)')),
           dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
         ]
       } else {
-        dbQueries = [
+        expectedDbQueries = [
           txBegin(),
           dbQuery(expect.stringContaining('SELECT')),
           dbQuery(expect.stringContaining('DELETE'), QueryChildSpans.ArgsOnly),
@@ -341,7 +341,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
       await waitForSpanTree(
         operation('User', 'delete', [
           clientSerialize(),
-          engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
+          engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
         ]),
       )
     })
@@ -358,28 +358,28 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
 
       await prisma.user.deleteMany()
 
-      let dbQueries: Tree[]
+      let expectedDbQueries: Tree[]
 
       if (isMongoDb) {
-        dbQueries = [
+        expectedDbQueries = [
           dbQuery(expect.stringContaining('db.User.findMany(*)')),
           dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
         ]
       } else if (relationMode === RelationModes.PRISMA) {
-        dbQueries = [
+        expectedDbQueries = [
           txBegin(),
           dbQuery(expect.stringContaining('SELECT')),
           dbQuery(expect.stringContaining('DELETE'), QueryChildSpans.ArgsOnly),
           txCommit(),
         ]
       } else {
-        dbQueries = [dbQuery(expect.stringContaining('DELETE'), QueryChildSpans.ArgsOnly)]
+        expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'), QueryChildSpans.ArgsOnly)]
       }
 
       await waitForSpanTree(
         operation('User', 'deleteMany', [
           clientSerialize(),
-          engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
+          engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
         ]),
       )
     })
@@ -402,12 +402,12 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
         }),
       ])
 
-      let dbQueries: Tree[]
+      let expectedDbQueries: Tree[]
 
       if (isMongoDb) {
-        dbQueries = [...createDbQueries(false), findManyDbQuery()]
+        expectedDbQueries = [...createDbQueries(false), findManyDbQuery()]
       } else {
-        dbQueries = [txBegin(), ...createDbQueries(false), findManyDbQuery(), txCommit()]
+        expectedDbQueries = [txBegin(), ...createDbQueries(false), findManyDbQuery(), txCommit()]
       }
 
       await waitForSpanTree({
@@ -420,7 +420,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
           operation('User', 'findMany', [clientSerialize()]),
           engine([
             engineConnection(),
-            ...dbQueries,
+            ...expectedDbQueries,
             ...engineSerializeFinalResponse(),
             engineSerializeQueryResult(),
             engineSerializeQueryResult(),
