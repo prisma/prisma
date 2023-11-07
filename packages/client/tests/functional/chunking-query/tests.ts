@@ -12,9 +12,6 @@ testMatrix.setupTestSuite(
       return ids
     }
 
-    // Note: we're excluding `sqlite` from the success cases until `createMany` is added
-    // to the SQLite driver. See https://github.com/prisma/prisma/issues/10710.
-    // We're also excluding `js_neon` the `createMany` would take ages otherwise (while `js_pg` is much).
     describe('issues #8832 / #9326 success cases', () => {
       async function createTags(n: number): Promise<number[]> {
         const ids = generatedIds(n)
@@ -251,7 +248,8 @@ testMatrix.setupTestSuite(
   {
     optOut: {
       from: ['sqlserver', 'mongodb', 'sqlite'],
-      reason: 'not relevant for this test',
+      reason:
+        'not relevant for this test. Sqlite is excluded due to it lacking `createMany` (see: https://github.com/prisma/prisma/issues/10710).',
     },
     skipProviderFlavor: {
       from: ['js_planetscale'],
