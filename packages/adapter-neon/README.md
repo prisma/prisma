@@ -26,7 +26,7 @@ datasource db {
 > **Note**: Make sure your connection string exists in your `.env` file. Refer to [Neon's docs](https://neon.tech/docs/connect/connect-from-any-app) to learn how to retrieve your database's connection string.
 >
 > ```bash
-> DATABASE_URL="postgres://daniel:<password>@ep-mute-rain-952417.us-east-2.aws.neon.tech/neondb"
+> DATABASE_URL="postgres://user:password@server.us-east-2.aws.neon.tech/neondb"
 > ```
 
 Generate Prisma Client:
