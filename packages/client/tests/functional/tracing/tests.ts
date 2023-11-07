@@ -106,13 +106,13 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
     })
   }
 
-  enum QueryChildSpans {
+  enum AdapterQueryChildSpans {
     ArgsAndResult,
     ArgsOnly,
     None,
   }
 
-  function dbQuery(statement: string, driverAdapterChildSpans = QueryChildSpans.ArgsAndResult): Tree {
+  function dbQuery(statement: string, driverAdapterChildSpans = AdapterQueryChildSpans.ArgsAndResult): Tree {
     const span = {
       name: 'prisma:engine:db_query',
       attributes: {
@@ -121,7 +121,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
     }
 
     // extra children spans for driver adapters, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
-    if (clientMeta.driverAdapter && driverAdapterChildSpans !== QueryChildSpans.None) {
+    if (clientMeta.driverAdapter && driverAdapterChildSpans !== AdapterQueryChildSpans.None) {
       const children = [] as Tree[]
 
       children.push({
@@ -129,7 +129,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
       })
 
       // result span only exists for returning queries
-      if (driverAdapterChildSpans !== QueryChildSpans.ArgsOnly) {
+      if (driverAdapterChildSpans !== AdapterQueryChildSpans.ArgsOnly) {
         children.push({
           name: 'js:query:result',
         })
@@ -150,17 +150,17 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
 
   function txBegin() {
     if (usesSyntheticTxQueries) {
-      return dbQuery('-- Implicit "BEGIN" query via underlying driver', QueryChildSpans.None)
+      return dbQuery('-- Implicit "BEGIN" query via underlying driver', AdapterQueryChildSpans.None)
     } else {
-      return dbQuery(expect.stringContaining('BEGIN'), QueryChildSpans.ArgsOnly)
+      return dbQuery(expect.stringContaining('BEGIN'), AdapterQueryChildSpans.ArgsOnly)
     }
   }
 
   function txCommit() {
     if (usesSyntheticTxQueries) {
-      return dbQuery('-- Implicit "COMMIT" query via underlying driver', QueryChildSpans.None)
+      return dbQuery('-- Implicit "COMMIT" query via underlying driver', AdapterQueryChildSpans.None)
     } else {
-      return dbQuery('COMMIT', QueryChildSpans.ArgsOnly)
+      return dbQuery('COMMIT', AdapterQueryChildSpans.ArgsOnly)
     }
   }
 
@@ -301,7 +301,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
         expectedDbQueries = [
           txBegin(),
           dbQuery(expect.stringContaining('SELECT')),
-          dbQuery(expect.stringContaining('UPDATE'), QueryChildSpans.ArgsOnly),
+          dbQuery(expect.stringContaining('UPDATE'), AdapterQueryChildSpans.ArgsOnly),
           dbQuery(expect.stringContaining('SELECT')),
           txCommit(),
         ]
@@ -334,7 +334,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
         expectedDbQueries = [
           txBegin(),
           dbQuery(expect.stringContaining('SELECT')),
-          dbQuery(expect.stringContaining('DELETE'), QueryChildSpans.ArgsOnly),
+          dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
           txCommit(),
         ]
       }
@@ -369,11 +369,11 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
         expectedDbQueries = [
           txBegin(),
           dbQuery(expect.stringContaining('SELECT')),
-          dbQuery(expect.stringContaining('DELETE'), QueryChildSpans.ArgsOnly),
+          dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
           txCommit(),
         ]
       } else {
-        expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'), QueryChildSpans.ArgsOnly)]
+        expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly)]
       }
 
       await waitForSpanTree(
@@ -511,7 +511,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
       await waitForSpanTree(
         operation(undefined, 'executeRaw', [
           clientSerialize(),
-          engine([engineConnection(), dbQuery('SELECT 1 + 1;', QueryChildSpans.ArgsOnly), ...engineSerialize()]),
+          engine([engineConnection(), dbQuery('SELECT 1 + 1;', AdapterQueryChildSpans.ArgsOnly), ...engineSerialize()]),
         ]),
       )
     })
