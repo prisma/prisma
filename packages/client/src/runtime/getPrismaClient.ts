@@ -315,7 +315,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _activeProvider: string
     _extensions: MergedExtensionsList
     _engine: Engine
-    _adapter?: DriverAdapter
     /**
      * A fully constructed/applied Client that references the parent
      * PrismaClient. This is used for Client extensions only.
@@ -331,7 +330,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
-      this._adapter = adapter
 
       const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
