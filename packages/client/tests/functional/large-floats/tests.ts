@@ -33,15 +33,15 @@ testMatrix.setupTestSuite(
   },
   {
     skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
+      from: ['js_pg'],
       reason: `
-        Fails with:
-          Expected: 9007199254740991 Received: 9007199254740990
+      Fails with:
+        Expected: 9007199254740991 Received: 9007199254740990
 
-        Underlying problem is in PG itself https://github.com/brianc/node-postgres/issues/3092,
-        only postgres < 12 is affected. If not fixed by then, should be ok to unskip after Postgres 11 goes
-        out of support.
-      `,
+      Underlying problem is in PG itself https://github.com/brianc/node-postgres/issues/3092,
+      only postgres < 12 is affected. If not fixed by then, should be ok to unskip after Postgres 11 goes
+      out of support.
+    `,
     },
   },
 )
