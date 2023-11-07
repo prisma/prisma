@@ -250,7 +250,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['cockroachdb', 'sqlserver', 'mongodb', 'sqlite'],
+      from: ['sqlserver', 'mongodb', 'sqlite'],
       reason: 'not relevant for this test',
     },
     skipProviderFlavor: {
