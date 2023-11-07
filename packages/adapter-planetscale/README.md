@@ -26,7 +26,7 @@ datasource db {
 > **Note**: Ensure you update the host value in your connection string to `aws.connect.psdb.cloud`. You can learn more about this [here](https://planetscale.com/docs/tutorials/planetscale-serverless-driver#add-and-use-the-planetscale-serverless-driver-for-javascript-to-your-project).
 >
 > ```bash
-> DATABASE_URL="mysql://johndoe:strongpassword@aws.connect.psdb.cloud/clear_nightsky?sslaccept=strict"
+> DATABASE_URL="mysql://user:password@aws.connect.psdb.cloud/database_name?sslaccept=strict"
 > ```
 
 Generate Prisma Client:
