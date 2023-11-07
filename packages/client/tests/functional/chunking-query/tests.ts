@@ -42,10 +42,10 @@ testMatrix.setupTestSuite(
 
         const tags = await prisma.$queryRawUnsafe<Tag[]>(
           `
-          SELECT *
-          FROM tag
-          WHERE "id" IN (${idsParams.join(', ')})
-        `,
+            SELECT *
+            FROM tag
+            WHERE id IN (${idsParams.join(', ')})
+          `,
           ...ids,
         )
         return tags
