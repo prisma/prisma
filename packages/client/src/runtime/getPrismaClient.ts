@@ -330,6 +330,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
+
       const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
         //
