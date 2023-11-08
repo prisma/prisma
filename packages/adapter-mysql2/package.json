@@ -1,14 +1,14 @@
 {
-  "name": "@prisma/adapter-pg",
+  "name": "@prisma/adapter-mysql2",
   "version": "0.0.0",
-  "description": "Prisma's driver adapter for \"pg\"",
+  "description": "Prisma's driver adapter for \"mysql2\"",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/adapter-pg"
+    "directory": "packages/adapter-mysql2"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -19,18 +19,14 @@
     "README.md"
   ],
   "keywords": [],
-  "author": "Tom Houlé <houle@prisma.io>",
+  "author": "Jan Piotrowski <piotrowski@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "postgres-array": "3.0.2"
-  },
-  "devDependencies": {
-    "@types/pg": "8.10.2",
-    "pg": "8.11.3"
+    "mysql2": "^3.6.3"
   },
   "peerDependencies": {
-    "pg": "^8.11.3"
+    "mysql2": "^3.6.3"
   }
 }

@@ -1,1 +1,1 @@
-export { PrismaPg } from './pg'
+export { PrismaMysql2 } from './mysql2'
