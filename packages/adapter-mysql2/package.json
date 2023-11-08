@@ -28,5 +28,9 @@
   },
   "peerDependencies": {
     "mysql2": "^3.6.3"
+  },
+  "devDependencies": {
+    "jest": "29.7.0",
+    "ts-jest": "^29.1.1"
   }
 }
