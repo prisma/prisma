@@ -21,7 +21,7 @@ type TransactionClient = any
  */
 class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly flavour = 'mysql'
-  
+
   constructor(protected readonly client: ClientT) {}
 
   async queryRaw(params: Query): Promise<Result<ResultSet>> {
@@ -61,7 +61,7 @@ export class PrismaMySQL2 extends MySQL2Queryable<StdClient> implements DriverAd
   constructor(client: StdClient) {
     super(client)
   }
-  
+
   async startTransaction(): Promise<Result<Transaction>> {
     throw new Error('Method not implemented.')
   }
