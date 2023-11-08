@@ -22,9 +22,9 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@opentelemetry/api": "1.6.0",
-    "@opentelemetry/instrumentation": "0.44.0",
-    "@opentelemetry/sdk-trace-base": "1.17.1"
+    "@opentelemetry/api": "1.7.0",
+    "@opentelemetry/instrumentation": "0.45.0",
+    "@opentelemetry/sdk-trace-base": "1.18.0"
   },
   "files": [
     "dist"
