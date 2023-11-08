@@ -90,6 +90,7 @@
     "@opentelemetry/semantic-conventions": "1.17.1",
     "@planetscale/database": "1.11.0",
     "@prisma/adapter-libsql": "workspace:*",
+    "@prisma/adapter-mysql2": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",

@@ -188,6 +188,7 @@ const excludeEnvToProviderFlavorMap = {
   TEST_SKIP_NEON: ProviderFlavors.JS_NEON,
   TEST_SKIP_PLANETSCALE: ProviderFlavors.JS_PLANETSCALE,
   TEST_SKIP_LIBSQL: ProviderFlavors.JS_LIBSQL,
+  TEST_SKIP_MYSQL2: ProviderFlavors.JS_MYSQL2,
 }
 
 function getExclusionsFromEnv(exclusionMap: Record<string, string>) {

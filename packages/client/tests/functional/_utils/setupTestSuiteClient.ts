@@ -121,6 +121,10 @@ export function setupTestSuiteClientDriverAdapter({
     return { adapter: new PrismaPg(pool) }
   }
 
+  if (providerFlavor === ProviderFlavors.JS_MYSQL2) {
+    // TODO
+  }
+
   if (providerFlavor === ProviderFlavors.JS_NEON) {
     const { neonConfig, Pool } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
     const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')

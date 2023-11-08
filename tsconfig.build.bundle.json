@@ -17,6 +17,7 @@
       "@prisma/instrumentation": ["./packages/instrumentation/src"],
       "@prisma/driver-adapter-utils": ["./packages/driver-adapter-utils/src"],
       "@prisma/adapter-libsql": ["./packages/adapter-libsql/src"],
+      "@prisma/adapter-mysql2": ["./packages/adapter-mysql2/src"],
       "@prisma/adapter-neon": ["./packages/adapter-neon/src"],
       "@prisma/adapter-pg": ["./packages/adapter-pg/src"],
       "@prisma/adapter-planetscale": ["./packages/adapter-planetscale/src"]

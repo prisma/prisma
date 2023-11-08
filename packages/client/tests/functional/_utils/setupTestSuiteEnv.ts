@@ -292,6 +292,7 @@ function getDbUrlFromFlavor(providerFlavor: ProviderFlavors | undefined, provide
       .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
       .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
       .with(ProviderFlavors.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
+      .with(ProviderFlavors.JS_MYSQL2, () => requireEnvVariable('TEST_FUNCTIONAL_MYSQL_URI'))
       .otherwise(() => getDbUrl(provider))
   )
 }

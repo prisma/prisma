@@ -13,6 +13,7 @@ export enum ProviderFlavors {
   JS_NEON = 'js_neon',
   JS_LIBSQL = 'js_libsql',
   VITESS_8 = 'vitess_8',
+  JS_MYSQL2 = 'js_mysql2',
 }
 
 export enum RelationModes {
@@ -22,7 +23,7 @@ export enum RelationModes {
 
 export const flavorsForProvider = {
   [Providers.POSTGRESQL]: [ProviderFlavors.JS_PG, ProviderFlavors.JS_NEON],
-  [Providers.MYSQL]: [ProviderFlavors.JS_PLANETSCALE],
+  [Providers.MYSQL]: [ProviderFlavors.JS_PLANETSCALE, ProviderFlavors.JS_MYSQL2],
   [Providers.SQLITE]: [ProviderFlavors.JS_LIBSQL],
   [Providers.MONGODB]: [],
   [Providers.COCKROACHDB]: [],
@@ -35,6 +36,7 @@ export const relationModesForFlavor = {
   [ProviderFlavors.JS_NEON]: undefined,
   [ProviderFlavors.JS_LIBSQL]: undefined,
   [ProviderFlavors.VITESS_8]: RelationModes.PRISMA,
+  [ProviderFlavors.JS_MYSQL2]: undefined,
 } as Record<ProviderFlavors, RelationModes | undefined>
 
 export const allProviders = Object.values(Providers).map((p) => ({ provider: p }))
