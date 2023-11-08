@@ -175,7 +175,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.6.0-19.e62f312231dc614321fc97dca4911c1bfcb5415d"
+    "@prisma/engines-version": "5.6.0-20.integration-ps-datetime-fidelity-e596b1a3d11a649b11e48da239c60e780cbaf9e2"
   },
   "sideEffects": false
 }
