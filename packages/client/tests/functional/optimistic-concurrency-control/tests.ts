@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
  * Regression test for issue #8612
  * Optimistic concurrency control (OCC)
  */
-testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
+testMatrix.setupTestSuite(({ provider }) => {
   beforeEach(async () => {
     await prisma.resource.create({ data: {} })
   })
@@ -18,11 +18,11 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
     await prisma.resource.deleteMany()
   })
 
-  // TODO optimistic concurrency control is not working for JS_PLANETSCALE
-  skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('updateMany', async () => {
+  test('updateMany', async () => {
     const fn = async () => {
       // we get our concurrent resource at some point in time
-      const resource = (await prisma.resource.findFirst())!
+      const resource = await prisma.resource.findFirstOrThrow()
+      console.log(resource.occStamp)
 
       // at this stage, the occStamp is always equal to `0`
       expect(resource).toMatchObject({ occStamp: 0 })
@@ -49,8 +49,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
   })
 
-  // TODO optimistic concurrency control is not working for JS_PLANETSCALE
-  skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('update', async () => {
+  test('update', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 
