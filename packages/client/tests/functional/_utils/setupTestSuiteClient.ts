@@ -122,7 +122,9 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_MYSQL2) {
-    // TODO
+    const { PrismaMySQL2 } = require('@prisma/adapter-mysql2') as typeof import('@prisma/adapter-mysql2')
+
+    return { adapter: new PrismaMySQL2(undefined) }
   }
 
   if (providerFlavor === ProviderFlavors.JS_NEON) {
