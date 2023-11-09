@@ -60,10 +60,7 @@ testMatrix.setupTestSuite(
       }
 
       async function clean() {
-        const cleanPrismaPromises = [prisma.tagsOnPosts.deleteMany(), prisma.post.deleteMany(), prisma.tag.deleteMany()]
-        for (const promise of cleanPrismaPromises) {
-          await promise
-        }
+        await prisma.$transaction([prisma.tagsOnPosts.deleteMany(), prisma.post.deleteMany(), prisma.tag.deleteMany()])
       }
 
       afterEach(async () => {
