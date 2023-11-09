@@ -109,11 +109,11 @@
   },
   "size-limit": [
     {
-      "path": "packages/client/runtime/library.d.ts",
+      "path": "packages/client/runtime/library.js",
       "gzip": false
     },
     {
-      "path": "packages/client/runtime/library.js",
+      "path": "packages/client/runtime/library.d.ts",
       "gzip": false
     },
     {
@@ -121,7 +121,23 @@
       "gzip": false
     },
     {
+      "path": "packages/client/runtime/binary.d.ts",
+      "gzip": false
+    },
+    {
       "path": "packages/client/runtime/edge.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/edge-esm.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/index-browser.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/index-browser.d.ts",
       "gzip": false
     },
     {
