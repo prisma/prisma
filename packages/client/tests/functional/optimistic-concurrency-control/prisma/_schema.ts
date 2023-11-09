@@ -1,7 +1,7 @@
 import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider }) => {
+export default testMatrix.setupSchema(({ provider, relationMode }) => {
   return /* Prisma */ `
     generator client {
       provider = "prisma-client-js"
@@ -10,6 +10,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     datasource db {
       provider = "${provider}"
       url      = env("DATABASE_URI_${provider}")
+      relationMode = "${relationMode}"
     }
 
     model Resource {

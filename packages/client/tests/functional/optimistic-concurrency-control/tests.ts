@@ -22,7 +22,6 @@ testMatrix.setupTestSuite(({ provider }) => {
     const fn = async () => {
       // we get our concurrent resource at some point in time
       const resource = await prisma.resource.findFirstOrThrow()
-      console.log(resource.occStamp)
 
       // at this stage, the occStamp is always equal to `0`
       expect(resource).toMatchObject({ occStamp: 0 })
