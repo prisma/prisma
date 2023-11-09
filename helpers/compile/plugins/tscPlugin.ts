@@ -65,7 +65,7 @@ function bundleTypeDefinitions(filename: string, outfile: string, externals: boo
 /**
  * Triggers the TypeScript compiler and the type bundler.
  */
-export const tscPlugin: (emitTypes?: boolean) => esbuild.Plugin = (emitTypes?: boolean) => ({
+export const tscPlugin = (emitTypes?: boolean): esbuild.Plugin => ({
   name: 'tscPlugin',
   setup(build) {
     const options = build.initialOptions

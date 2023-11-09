@@ -3,6 +3,7 @@
 /generator-build
 /runtime
 /scripts/default-index.js
+/scripts/default-index.mjs
 /tests/memory/memory-report.html
 
 *.tsbuildinfo

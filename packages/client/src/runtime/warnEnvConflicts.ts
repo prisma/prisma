@@ -1,5 +1,7 @@
 import { tryLoadEnvs } from '@prisma/internals'
 
 export function warnEnvConflicts(envPaths) {
-  tryLoadEnvs(envPaths, { conflictCheck: 'warn' })
+  if (TARGET_BUILD_TYPE !== 'edge') {
+    tryLoadEnvs(envPaths, { conflictCheck: 'warn' })
+  }
 }

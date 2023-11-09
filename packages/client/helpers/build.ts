@@ -6,12 +6,10 @@ import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { edgePreset } from '../../../helpers/compile/plugins/fill-plugin/presets/edge'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm'))
-const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
-const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
-const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
@@ -32,6 +30,21 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
     },
     plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/)],
   }
+}
+
+// does not compile anything, just copies
+const wasmEngineConfig: BuildOptions = {
+  name: 'wasm',
+  emitTypes: false,
+  write: false,
+  plugins: [
+    copyFilePlugin([
+      {
+        from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
+        to: path.join(runtimeDir, 'query-engine.wasm'),
+      },
+    ]),
+  ],
 }
 
 // we define the config for browser
@@ -64,37 +77,8 @@ const edgeRuntimeBuildConfig: BuildOptions = {
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
-  plugins: [
-    fillPlugin({
-      // we remove eval and Function for vercel
-      eval: { define: 'undefined' },
-      Function: {
-        define: 'fn',
-        inject: functionPolyfillPath,
-      },
-      // we shim WeakRef, it does not exist on CF
-      WeakRef: {
-        inject: weakrefPolyfillPath,
-      },
-      // these can not be exported anymore
-      './warnEnvConflicts': { contents: '' },
-    }),
-    copyFilePlugin([
-      {
-        from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
-        to: path.join(runtimeDir, 'query-engine.wasm'),
-      },
-    ]),
-  ],
+  plugins: [fillPlugin(edgePreset)],
   logLevel: 'error',
-}
-
-// we define the config for edge in esm format (used by deno)
-const edgeEsmRuntimeBuildConfig: BuildOptions = {
-  ...edgeRuntimeBuildConfig,
-  name: 'edge-esm',
-  outfile: 'runtime/edge-esm',
-  format: 'esm',
 }
 
 // we define the config for generator
@@ -115,18 +99,17 @@ const defaultIndexConfig: BuildOptions = {
   emitTypes: false,
 }
 
-function writeDtsRexport(fileName: string) {
-  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
-}
-
-void build([
+// all the configs expanded with esm configs
+const configs: BuildOptions[] = [
+  wasmEngineConfig,
+  defaultIndexConfig,
+  browserBuildConfig,
   generatorBuildConfig,
+  edgeRuntimeBuildConfig,
   nodeRuntimeBuildConfig(ClientEngineType.Binary),
   nodeRuntimeBuildConfig(ClientEngineType.Library),
-  browserBuildConfig,
-  edgeRuntimeBuildConfig,
-  edgeEsmRuntimeBuildConfig,
-  defaultIndexConfig,
-]).then(() => {
-  writeDtsRexport('binary.d.ts')
+].flatMap((options) => [options, { ...options, format: 'esm' }])
+
+void build(configs).then(function writeDtsReexport() {
+  fs.writeFileSync(path.join(runtimeDir, 'binary.d.ts'), 'export * from "./library"\n')
 })
