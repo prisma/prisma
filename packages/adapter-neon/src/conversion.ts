@@ -2,41 +2,9 @@ import { types } from '@neondatabase/serverless'
 import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
 import { parse as parseArray } from 'postgres-array'
 
-const ScalarColumnType = types.builtins
+import { ArrayColumnType, maxSystemCatalogOID, PgType } from './pg-types'
 
-/**
- * PostgreSQL array column types (not defined in ScalarColumnType).
- *
- * See the semantics of each of this code in:
- *   https://github.com/postgres/postgres/blob/master/src/include/catalog/pg_type.dat
- */
-const ArrayColumnType = {
-  BIT_ARRAY: 1561,
-  BOOL_ARRAY: 1000,
-  BYTEA_ARRAY: 1001,
-  BPCHAR_ARRAY: 1014,
-  CHAR_ARRAY: 1002,
-  CIDR_ARRAY: 651,
-  DATE_ARRAY: 1182,
-  FLOAT4_ARRAY: 1021,
-  FLOAT8_ARRAY: 1022,
-  INET_ARRAY: 1041,
-  INT2_ARRAY: 1005,
-  INT4_ARRAY: 1007,
-  INT8_ARRAY: 1016,
-  JSONB_ARRAY: 3807,
-  JSON_ARRAY: 199,
-  MONEY_ARRAY: 791,
-  NUMERIC_ARRAY: 1231,
-  OID_ARRAY: 1028,
-  TEXT_ARRAY: 1009,
-  TIMESTAMP_ARRAY: 1115,
-  TIME_ARRAY: 1183,
-  UUID_ARRAY: 2951,
-  VARBIT_ARRAY: 1563,
-  VARCHAR_ARRAY: 1015,
-  XML_ARRAY: 143,
-}
+const ScalarColumnType = types.builtins
 
 export class UnsupportedNativeDataType extends Error {
   // map of type codes to type names
@@ -157,10 +125,10 @@ export class UnsupportedNativeDataType extends Error {
 
   type: string
 
-  constructor(code: number) {
+  constructor(type: PgType) {
     super()
-    this.type = UnsupportedNativeDataType.typeNames[code] || 'Unknown'
-    this.message = `Unsupported column type ${this.type}`
+    this.type = type.name ?? UnsupportedNativeDataType.typeNames[type.id] ?? 'Unknown'
+    this.message = `Unsupported column type ${this.type} (OID=${type.id})`
   }
 }
 
@@ -169,8 +137,8 @@ export class UnsupportedNativeDataType extends Error {
  * module to see how other attributes of the field packet such as the field length are used to infer
  * the correct quaint::Value variant.
  */
-export function fieldToColumnType(fieldTypeId: number): ColumnType {
-  switch (fieldTypeId) {
+export function fieldToColumnType(fieldType: PgType): ColumnType {
+  switch (fieldType.id) {
     case ScalarColumnType['INT2']:
     case ScalarColumnType['INT4']:
       return ColumnTypeEnum.Int32
@@ -251,11 +219,14 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case ArrayColumnType.OID_ARRAY:
       return ColumnTypeEnum.Int64Array
     default:
-      if (fieldTypeId >= 10000) {
-        // Postgres Custom Types
+      // Postgres Custom Types
+      if (fieldType.id > maxSystemCatalogOID) {
+        if (fieldType.name !== undefined && ['citext', 'ltree', 'lquery', 'ltxtquery'].includes(fieldType.name)) {
+          return ColumnTypeEnum.Text
+        }
         return ColumnTypeEnum.Enum
       }
-      throw new UnsupportedNativeDataType(fieldTypeId)
+      throw new UnsupportedNativeDataType(fieldType)
   }
 }
 

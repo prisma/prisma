@@ -10,52 +10,59 @@ import type {
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+import { Debug, err, ok, sequence } from '@prisma/driver-adapter-utils'
 
 import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { PgTypesCache } from './pg-types'
 
 const debug = Debug('prisma:driver-adapter:neon')
 
 type ARRAY_MODE_ENABLED = true
 
-type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_ENABLED>
+type PerformIOResult = neon.QueryArrayResult<unknown[]> | neon.FullQueryResults<ARRAY_MODE_ENABLED>
 
 /**
  * Base class for http client, ws client and ws transaction
  */
 abstract class NeonQueryable implements Queryable {
   readonly flavour = 'postgres'
+  protected typesCache = new PgTypesCache(this)
 
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const res = await this.performIO(query)
+    const ioResult = await this.performIO(query)
 
-    if (!res.ok) {
-      return err(res.error)
+    if (!ioResult.ok) {
+      return err(ioResult.error)
     }
 
-    const { fields, rows } = res.value
-    const columnNames = fields.map((field) => field.name)
-    let columnTypes: ColumnType[] = []
+    const { fields, rows } = ioResult.value
 
-    try {
-      columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
-    } catch (e) {
-      if (e instanceof UnsupportedNativeDataType) {
-        return err({
-          kind: 'UnsupportedNativeDataType',
-          type: e.type,
-        })
+    const typesResult = sequence(await Promise.all(fields.map((field) => this.typesCache.typeById(field.dataTypeID))))
+
+    return typesResult.flatMap((types) => {
+      const columnNames = fields.map((field) => field.name)
+      let columnTypes: ColumnType[]
+
+      try {
+        columnTypes = types.map(fieldToColumnType)
+      } catch (e) {
+        if (e instanceof UnsupportedNativeDataType) {
+          return err({
+            kind: 'UnsupportedNativeDataType',
+            type: e.type,
+          })
+        }
+        throw e
       }
-      throw e
-    }
 
-    return ok({
-      columnNames,
-      columnTypes,
-      rows,
+      return ok({
+        columnNames,
+        columnTypes,
+        rows,
+      })
     })
   }
 
@@ -102,8 +109,9 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 }
 
 class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
-  constructor(client: neon.PoolClient, readonly options: TransactionOptions) {
+  constructor(client: neon.PoolClient, readonly options: TransactionOptions, typesCache: PgTypesCache) {
     super(client)
+    this.typesCache = typesCache
   }
 
   async commit(): Promise<Result<void>> {
@@ -137,7 +145,7 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
     debug(`${tag} options: %O`, options)
 
     const connection = await this.client.connect()
-    return ok(new NeonTransaction(connection, options))
+    return ok(new NeonTransaction(connection, options, this.typesCache))
   }
 
   async close() {
