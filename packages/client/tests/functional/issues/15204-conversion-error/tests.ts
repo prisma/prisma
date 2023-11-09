@@ -20,23 +20,14 @@ testMatrix.setupTestSuite(
           }),
         )
       } else {
-        if (fieldType === 'Int') {
-          await expect(prisma.testModel.findMany()).rejects.toThrow(
-            expect.objectContaining({
-              code: 'P2023',
-              meta: {
-                message: expect.stringContaining(`Conversion failed: number must be an integer in column 'field'`),
-              },
-            }),
-          )
-        } else {
-          await expect(prisma.testModel.findMany()).rejects.toThrow(
-            expect.objectContaining({
-              code: 'P2023',
-              message: expect.stringContaining(`Inconsistent column data: Conversion failed: number must be an i64`),
-            }),
-          )
-        }
+        await expect(prisma.testModel.findMany()).rejects.toThrow(
+          expect.objectContaining({
+            code: 'P2023',
+            message: expect.stringContaining(
+              `Conversion failed: number must be an integer in column 'field', got '1.84467440724388e19'`,
+            ),
+          }),
+        )
       }
     })
   },
