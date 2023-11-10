@@ -3454,7 +3454,7 @@ packages:
     dependencies:
       '@slack/types': 2.9.0
       '@types/node': 20.8.9
-      axios: 1.5.1
+      axios: 1.6.1
     transitivePeerDependencies:
       - debug
     dev: true
@@ -4965,8 +4965,8 @@ packages:
     resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}
     engines: {node: '>= 0.4'}
 
-  /axios@1.5.1:
-    resolution: {integrity: sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==}
+  /axios@1.6.1:
+    resolution: {integrity: sha512-vfBmhDpKafglh0EldBEbVuoe7DyAavGSLWhuSm5ZSEKQnHhBf0xAAwybbNH1IkrJNGnS/VG4I5yxig1pCEXE4g==}
     dependencies:
       follow-redirects: 1.15.2
       form-data: 4.0.0
