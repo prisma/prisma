@@ -19,7 +19,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
   })
 
   // TODO optimistic concurrency control is not working for JS_PLANETSCALE
-  skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('updateMany', async () => {
+  test('updateMany', async () => {
     const fn = async () => {
       // we get our concurrent resource at some point in time
       const resource = (await prisma.resource.findFirst())!
