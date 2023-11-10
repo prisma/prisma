@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import type planetScale from '@planetscale/database'
+import planetScale from '@planetscale/database'
 import type {
   DriverAdapter,
   Query,
@@ -146,6 +146,14 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
 
 export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
   constructor(client: planetScale.Client) {
+    if (client['constructor']?.['name'] !== 'Client') {
+      console.log(Object.prototype.toString.call(client))
+      throw new TypeError(`PrismaPlanetScale must be initialized with and instance of Client:
+import { Client } from '@planetscale/database'
+const client = new Client({ url })
+const adapter = new PrismaPlanetScale(client)
+`)
+    }
     super(client)
   }
 
