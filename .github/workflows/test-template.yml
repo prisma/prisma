@@ -658,7 +658,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -712,7 +712,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql vitess-8
 
       - name: Set CLI Engine Type
         run: |
@@ -774,7 +774,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb vitess-8
 
       - name: Set CLI Engine Type
         run: |
