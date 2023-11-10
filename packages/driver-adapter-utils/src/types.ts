@@ -40,7 +40,7 @@ export type Error =
     }
   | {
       kind: 'UnsupportedNativeDataType'
-      type: number | string
+      type: string
     }
   | {
       kind: 'Postgres'

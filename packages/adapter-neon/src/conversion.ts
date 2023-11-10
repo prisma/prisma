@@ -39,10 +39,10 @@ const ArrayColumnType = {
 }
 
 export class UnsupportedNativeDataType extends Error {
-  type: number
-  constructor(columnType: number) {
-    super(`Unsupported native date type for column: ${columnType}`)
-    this.type = columnType
+  type: string
+  constructor(type: string) {
+    super(`Unsupported native date type for column: ${type}`)
+    this.type = type
   }
 }
 
@@ -137,7 +137,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
         // Postgres Custom Types
         return ColumnTypeEnum.Enum
       }
-      throw new UnsupportedNativeDataType(fieldTypeId)
+      throw new UnsupportedNativeDataType(fieldTypeId.toString())
   }
 }
 
