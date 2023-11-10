@@ -39,6 +39,10 @@ export type Error =
       id: number
     }
   | {
+      kind: 'UnsupportedNativeDataType'
+      type: number | string
+    }
+  | {
       kind: 'Postgres'
       code: string
       severity: string

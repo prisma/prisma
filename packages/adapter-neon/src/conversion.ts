@@ -38,6 +38,14 @@ const ArrayColumnType = {
   XML_ARRAY: 143,
 }
 
+export class UnsupportedNativeDataType extends Error {
+  type: number
+  constructor(columnType: number) {
+    super(`Unsupported native date type for column: ${columnType}`)
+    this.type = columnType
+  }
+}
+
 /**
  * This is a simplification of quaint's value inference logic. Take a look at quaint's conversion.rs
  * module to see how other attributes of the field packet such as the field length are used to infer
@@ -129,7 +137,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
         // Postgres Custom Types
         return ColumnTypeEnum.Enum
       }
-      throw new Error(`Unsupported column type: ${fieldTypeId}`)
+      throw new UnsupportedNativeDataType(fieldTypeId)
   }
 }
 
