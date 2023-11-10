@@ -15,6 +15,9 @@ inputs:
     description: 'Skip build (Default: false).'
     required: false
     default: 'false'
+  engine-hash:
+    description: 'Pick up custom built engine from cache'
+    required: false
 
 runs:
   using: composite
@@ -39,6 +42,37 @@ runs:
       if: inputs.skip-tsc == 'true' && inputs.skip-build != 'true'
       shell: bash
 
+    - name: Download custom engines
+      id: custom-engine
+      uses: actions/cache/restore@v3
+      with:
+        key: ${{ runner.os }}-engine-${{ inputs.engine-hash }}-${{ github.event.number }}
+        path: |
+          target/release/schema-engine
+          target/release/schema-engine.exe
+          target/release/query-engine
+          target/release/query-engine.exe
+          target/release/libquery_engine.so
+          target/release/libquery_engine.dylib
+          target/release/libquery_engine.dll
+    - name: Set environment variables for custom engine
+      if: steps.custom-engine.outputs.cache-hit == 'true'
+      run: |
+        RELEASE_DIR="$(pwd)/target/release"
+        if [ -f "$RELEASE_DIR/libquery_engine.so" ]; then
+          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.so" >> $GITHUB_ENV
+          echo "PRISMA_QUERY_ENGINE_BINARY=$RELEASE_DIR/query-engine" >> $GITHUB_ENV
+          echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
+        elif [ -f "$RELEASE_DIR/libquery_engine.dll" ]; then
+          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.dll" >> $GITHUB_ENV
+          echo "PRISMA_QUERY_ENGINE_BINARY=$RELEASE_DIR/query-engine.exe" >> $GITHUB_ENV
+          echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine.exe" >> $GITHUB_ENV
+        elif [ -f "target/release/libquery_engine.dylib" ]; then
+          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.dylib" >> $GITHUB_ENV
+          echo "PRISMA_QUERY_ENGINE_BINARY=$RELEASE_DIR/query-engine" >> $GITHUB_ENV
+          echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
+        fi
+      shell: bash
     - run: pnpm run build
       if: inputs.skip-tsc == 'false' && inputs.skip-build != 'true'
       shell: bash

@@ -34,6 +34,10 @@ on:
         description: pnpm package manager version
         type: string
         default: '8'
+      engineHash:
+        description: Customly-built engine hash to use
+        type: string
+        required: false
     secrets:
       BUILDPULSE_ACCESS_KEY_ID:
         required: false
@@ -76,6 +80,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
       # https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
@@ -155,6 +160,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
@@ -227,6 +233,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
@@ -305,6 +312,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
       - run: pnpm run test:functional --flavor ${{ matrix.flavor }} --shard ${{ matrix.shard }} --runInBand
@@ -375,6 +383,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test:memory
@@ -471,6 +480,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
@@ -522,6 +532,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       # shouldn't take more than 15 minutes
@@ -578,6 +589,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
@@ -612,6 +624,7 @@ jobs:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
+          engine-hash: ${{ inputs.engineHash }}
 
       - run: pnpm tsc -p tsconfig.utils.typecheck.json
 
@@ -665,6 +678,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -727,6 +741,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -789,6 +804,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -851,6 +867,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -886,6 +903,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -1010,6 +1028,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
           pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
 
@@ -1085,6 +1104,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 

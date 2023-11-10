@@ -101,11 +101,31 @@ jobs:
           inputs: '{ "forceIntegrationRelease": "true" }'
           ref: ${{ github.event.pull_request.head.ref }}
 
+  build_custom_engine:
+    name: Build custom engine
+    needs: detect_jobs_to_run
+    uses: ./.github/workflows/build-engine-branch.yml
+
+  check_custom_engine:
+    name: Block merge if custom engine is used
+    needs: build_custom_engine
+    runs-on: ubuntu-latest
+    if: ${{ needs.build_custom_engine.outputs.engineHash != '' }}
+    steps:
+      - name: Block merge
+        run: |
+          echo "Custom engine is used, failing the job"
+          echo "Don't forget to remove /engine-branch command from PR body before merge"
+          exit 1
+
   run_tests:
     name: Tests
-    needs: detect_jobs_to_run
+    needs:
+      - detect_jobs_to_run
+      - build_custom_engine
     uses: ./.github/workflows/test-template.yml
     with:
       jobsToRun: ${{ needs.detect_jobs_to_run.outputs.jobs }}
       queryEngine: ${{ needs.detect_jobs_to_run.outputs.queryEngine }}
+      engineHash: ${{ needs.build_custom_engine.outputs.engineHash }}
     secrets: inherit
