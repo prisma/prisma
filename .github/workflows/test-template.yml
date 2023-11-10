@@ -939,6 +939,16 @@ jobs:
           name: engines-${{ matrix.os }}
 
       - run: pnpm run test
+        name: 'adapter-planetscale'
+        working-directory: packages/adapter-planetscale
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/adapter-planetscale/src/__tests__/coverage/clover.xml
+          flags: adapter-planetscale,${{ matrix.os }},library,binary
+          name: adapter-planetscale-${{ matrix.os }}
+
+      - run: pnpm run test
         name: 'instrumentation'
         working-directory: packages/instrumentation
 
