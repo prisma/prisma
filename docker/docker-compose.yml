@@ -72,19 +72,20 @@ services:
       timeout: 2s
       retries: 20
 
-  # Planetscale
-  # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
+  # Vitess (~Planetscale)
+  # https://vitess.io/docs/18.0/get-started/vttestserver-docker-image/
+  # mysql -h localhost -P 33807 --protocol=TCP -u root -p
   vitess-8:
     image: vitess/vttestserver:mysql80@sha256:db0f79df9275b73054ca49d52bd77c204ebe8e354a547da0aa4af7c2ff955bb4
     restart: unless-stopped
     ports:
       - 33807:33807
     environment:
-      PORT: '33804' # unused in testing, but required by vttestserver
+      PORT: '33804' # defines that accessible port will be 33807 (33804 + 3)
       KEYSPACES: 'unsharded' # unused in testing, but required by vttestserver
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
       MYSQL_BIND_HOST: '0.0.0.0'
-      FOREIGN_KEY_MODE: 'disallow'
+      FOREIGN_KEY_MODE: 'allow'
       MYSQL_MAX_CONNECTIONS: 100000
       TABLET_REFRESH_INTERVAL: '1s'
     healthcheck:
@@ -92,6 +93,8 @@ services:
       interval: 5s
       timeout: 2s
       retries: 20
+    volumes:
+      - ./vitess-config:/vt/schema/unsharded
 
   mysql:
     image: mysql:8.0
