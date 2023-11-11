@@ -87,7 +87,7 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
   const binaryTarget = await getPlatform()
   const searchedLocations: string[] = []
 
-  const dirname = eval('__dirname') as string
+  const dirname = path.dirname(__filename)
   const searchLocations: string[] = [
     config.dirname, // generation directory
     path.resolve(dirname, '..'), // generation directory one level up
