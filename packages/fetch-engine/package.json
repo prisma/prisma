@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "5.6.0-15.0a4f17d75f9571ce96148c80783bf460f07795b2",
+    "@prisma/engines-version": "5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719",
     "@swc/core": "1.3.95",
     "@swc/jest": "0.2.29",
     "@types/jest": "29.5.7",
