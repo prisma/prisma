@@ -21,7 +21,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary.toString('base64')).toEqual(Buffer.from('hello').toString('base64'))
     })
 
     test('Buffer ($executeRaw)', async () => {
@@ -37,7 +37,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary.toString('base64')).toEqual(Buffer.from('hello').toString('base64'))
     })
 
     test('Buffer ($queryRaw + Prisma.sql)', async () => {
@@ -55,7 +55,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary.toString('base64')).toEqual(Buffer.from('hello').toString('base64'))
     })
 
     test('Buffer ($executeRaw + Prisma.sql)', async () => {
@@ -73,22 +73,13 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary.toString('base64')).toEqual(Buffer.from('hello').toString('base64'))
     })
   },
   {
     optOut: {
       from: ['mongodb'],
       reason: '$queryRaw only works on SQL based providers',
-    },
-    skipDataProxy: {
-      runtimes: ['edge'],
-      reason: `
-        This test is broken with the edge client. It needs to be updated to
-        send ArrayBuffers and expect them as results, and the client might need
-        to be fixed to return ArrayBuffers and not polyfilled Buffers in
-        query results.
-      `,
     },
   },
 )

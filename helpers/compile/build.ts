@@ -14,6 +14,7 @@ import { depCheckPlugin } from './plugins/depCheckPlugin'
 import { fillPlugin } from './plugins/fill-plugin/fillPlugin'
 import { esmPreset } from './plugins/fill-plugin/presets/esm'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
+import { metaFilePlugin } from './plugins/metaFilePlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
 import { requireToImportPlugin } from './plugins/requireToImportPlugin'
 import { tscPlugin } from './plugins/tscPlugin'
@@ -34,7 +35,6 @@ const applyDefaults = (options: BuildOptions) => {
 
   const defaultOptions: BuildOptions = {
     format: 'cjs',
-    metafile: true,
     platform: 'node',
     target: 'ES2020',
     logLevel: 'error',
@@ -46,7 +46,13 @@ const applyDefaults = (options: BuildOptions) => {
     }),
     mainFields: ['module', 'main'],
     ...options,
-    plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
+    plugins: [
+      ...(options.plugins ?? []),
+      fixImportsPlugin,
+      tscPlugin(options.emitTypes),
+      metaFilePlugin,
+      onErrorPlugin,
+    ],
   }
 
   if (options.outfile !== undefined) {

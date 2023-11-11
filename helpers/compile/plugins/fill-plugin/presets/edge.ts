@@ -5,7 +5,7 @@ import { Fillers, load } from '../fillPlugin'
 const edgePreset: Fillers = {
   // enabled
   // assert: { path: load('assert-browserify') },
-  buffer: { path: path.join(__dirname, 'edge', 'buffer.ts') },
+  buffer: { path: path.join(__dirname, 'edge', 'buffer.js') },
   // constants: { path: load('constants-browserify') },
   // crypto: { path: load('crypto-browserify') },
   // domain: { path: load('domain-browser') },
@@ -62,7 +62,7 @@ const edgePreset: Fillers = {
 
   // globals
   Buffer: {
-    inject: path.join(__dirname, 'edge', 'buffer.ts'),
+    inject: path.join(__dirname, 'edge', 'buffer.js'),
   },
   process: {
     inject: path.join(__dirname, 'edge', 'process.ts'),

@@ -548,7 +548,6 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'index-browser.js',
     'index-browser.d.ts',
     'edge.js',
-    'edge-esm.js',
   ]
 
   files.push(`${runtimeName}.js`)
