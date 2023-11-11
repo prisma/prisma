@@ -36,7 +36,7 @@
     "@types/pg": "8.10.7",
     "cross-env": "7.0.3",
     "prisma": "../../packages/cli",
-    "tsx": "4.0.0",
+    "tsx": "4.1.1",
     "typescript": "5.2.2"
   }
 }
