@@ -2,7 +2,11 @@ import { Prism, Token } from './prism'
 import type { SyntaxDefinition } from './types'
 
 export function highlightTS(str: string) {
-  return highlight(str, Prism.languages.javascript)
+  if (TARGET_BUILD_TYPE === 'edge') {
+    return str
+  } else {
+    return highlight(str, Prism.languages.javascript)
+  }
 }
 
 function highlight(str: string, grammar: SyntaxDefinition) {
