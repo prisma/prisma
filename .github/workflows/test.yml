@@ -126,8 +126,10 @@ jobs:
           body: |
             <!-- custom-engine -->
             🔴 **CUSTOM ENGINE IS USED**
-            This PR is using custom engine, built for branch
-            `${{ needs.build_custom_engine.outputs.branchName }}`, commit [`${{ needs.build_custom_engine.outputs.engineHash }}`](https://github.com/prisma/prisma-engines/commit/${{ needs.build_custom_engine.outputs.engineHash }}).
+            This PR is using custom engine: 
+              
+            Built from branch: `${{ needs.build_custom_engine.outputs.branchName }}`, 
+            Commit [`${{ needs.build_custom_engine.outputs.engineHash }}`](https://github.com/prisma/prisma-engines/commit/${{ needs.build_custom_engine.outputs.engineHash }}).
 
             Don't forget to remove `/engine-branch` command from PR body and re-run the tests with default engine before merging.
           edit-mode: replace
