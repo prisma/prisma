@@ -2,6 +2,9 @@ name: Build custom engine branch if needed
 on:
   workflow_call:
     outputs:
+      branchName:
+        description: The name of the branch of checked out engine
+        value: ${{ jobs.parseCommand.outputs.branchName }}
       engineHash:
         description: Commit hash of the checked out engine
         value: ${{ jobs.build.outputs.engineHash }}
