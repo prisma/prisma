@@ -98,15 +98,5 @@ export async function generateTestClient({ projectDir, engineType }: GenerateTes
     transpile: true,
     useBuiltRuntime: false,
     overrideEngineType: engineType,
-    noEngine: shouldSkipEngines(engineType),
   })
-}
-
-function shouldSkipEngines(engineType: ClientEngineType = getClientEngineType()) {
-  if (engineType === ClientEngineType.Binary) {
-    return Boolean(process.env.PRISMA_QUERY_ENGINE_BINARY)
-  } else if (engineType === ClientEngineType.Library) {
-    return Boolean(process.env.PRISMA_QUERY_ENGINE_LIBRARY)
-  }
-  return false
 }
