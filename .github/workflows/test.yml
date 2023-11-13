@@ -128,15 +128,15 @@ jobs:
             🔴 **CUSTOM ENGINE IS USED**
             This PR is using custom engine: 
               
-            Built from branch: `${{ needs.build_custom_engine.outputs.branchName }}`, 
-            Commit [`${{ needs.build_custom_engine.outputs.engineHash }}`](https://github.com/prisma/prisma-engines/commit/${{ needs.build_custom_engine.outputs.engineHash }}).
+            Branch: [`${{ needs.build_custom_engine.outputs.branchName }}`](https://github.com/prisma/prisma-engines/tree/${{ needs.build_custom_engine.outputs.branchName }})
+            Commit: [`${{ needs.build_custom_engine.outputs.engineHash }}`](https://github.com/prisma/prisma-engines/commit/${{ needs.build_custom_engine.outputs.engineHash }}).
 
             Don't forget to remove `/engine-branch` command from PR body and re-run the tests with default engine before merging.
           edit-mode: replace
 
       - name: Create or update comment (clear)
         uses: peter-evans/create-or-update-comment@v3
-        if: ${{ steps.findEngineComment.outputs.comment-id != '' && needs.build_custom_engine.outputs.engineHash != '' }}
+        if: ${{ steps.findEngineComment.outputs.comment-id != '' && needs.build_custom_engine.outputs.engineHash == '' }}
         with:
           comment-id: ${{ steps.findEngineComment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
