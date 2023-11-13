@@ -18,6 +18,7 @@
     "redis",
     "@types/redis"
   ],
+  "ignorePaths": ["reproductions/**"],
   "constraints": {
     "pnpm": "8"
   },

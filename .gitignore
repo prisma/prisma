@@ -33,7 +33,9 @@ coverage
 .pnpm-debug.log
 
 esm
+
 reproductions/*
+!reproductions/README.md
 !reproductions/basic-sqlite
 !reproductions/tracing
 !reproductions/pnpm-workspace.yaml
