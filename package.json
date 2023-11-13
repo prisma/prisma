@@ -31,11 +31,11 @@
     "size": "pnpm run build && pnpm size-limit"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.38.0",
+    "@microsoft/api-extractor": "7.38.3",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "9.0.0",
-    "@slack/webhook": "7.0.0",
+    "@slack/webhook": "7.0.1",
     "@types/benchmark": "2.1.4",
     "@types/fs-extra": "9.0.13",
     "@types/graphviz": "0.0.37",
