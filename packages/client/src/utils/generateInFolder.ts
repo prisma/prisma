@@ -29,6 +29,7 @@ export interface GenerateInFolderOptions {
   packageSource?: string
   useBuiltRuntime?: boolean
   overrideEngineType?: ClientEngineType
+  noEngine?: boolean
 }
 
 export async function generateInFolder({
@@ -38,6 +39,7 @@ export async function generateInFolder({
   packageSource,
   useBuiltRuntime,
   overrideEngineType,
+  noEngine,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
@@ -141,6 +143,7 @@ export async function generateInFolder({
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
     overrideEngineType,
+    noEngine,
   })
 
   const time = performance.now() - before
