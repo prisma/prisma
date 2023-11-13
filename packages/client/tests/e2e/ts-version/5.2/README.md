@@ -1,3 +1,3 @@
 # Readme
 
-This is testing TypeScript version 5.1.x
+This is testing TypeScript version 5.2.x
