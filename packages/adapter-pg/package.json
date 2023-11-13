@@ -27,7 +27,7 @@
     "postgres-array": "3.0.2"
   },
   "devDependencies": {
-    "@types/pg": "8.10.2",
+    "@types/pg": "8.10.9",
     "pg": "8.11.3"
   },
   "peerDependencies": {
