@@ -126,8 +126,8 @@ importers:
         specifier: 4.1.5
         version: 4.1.5
       lint-staged:
-        specifier: 15.0.2
-        version: 15.0.2
+        specifier: 15.1.0
+        version: 15.1.0
       p-map:
         specifier: 4.0.0
         version: 4.0.0
@@ -246,6 +246,18 @@ importers:
       '@planetscale/database':
         specifier: 1.11.0
         version: 1.11.0
+      '@swc/core':
+        specifier: 1.2.204
+        version: 1.2.204
+      '@swc/jest':
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.2.204)
+      jest:
+        specifier: 29.7.0
+        version: 29.7.0(@types/node@20.8.9)(ts-node@10.9.1)
+      jest-junit:
+        specifier: 16.0.0
+        version: 16.0.0
 
   packages/cli:
     dependencies:
@@ -386,8 +398,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
-        version: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
+        specifier: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
+        version: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -710,8 +722,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
-        version: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
+        specifier: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
+        version: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -795,8 +807,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
-        version: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
+        specifier: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
+        version: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
       '@swc/core':
         specifier: 1.3.95
         version: 1.3.95
@@ -1077,8 +1089,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
-        version: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
+        specifier: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
+        version: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
       archiver:
         specifier: 6.0.1
         version: 6.0.1
@@ -1289,8 +1301,8 @@ importers:
         version: 5.0.5
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
-        version: 5.6.0-21.296391964949386b93591f4ef436aa255e952130
+        specifier: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
+        version: 5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3285,8 +3297,8 @@ packages:
     engines: {node: '>=16'}
     dev: true
 
-  /@prisma/engines-version@5.6.0-21.296391964949386b93591f4ef436aa255e952130:
-    resolution: {integrity: sha512-ySJuXqoxvfwCDSk/g+kV6WRrtyI2ASZm2aLnQI9eCzIbeMpqRapH09f6u/JliTJrYRiZvlf9WlL1UK/iDWYWOw==}
+  /@prisma/engines-version@5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719:
+    resolution: {integrity: sha512-kYVR9XNASXj6/y73JMT/cweb49DceX72I/eupDssWKs0dBtLDHGv90akRFzrJjKHFG8kh27opwuw5txkOZMVqA==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3294,8 +3306,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.6.0-21.296391964949386b93591f4ef436aa255e952130:
-    resolution: {integrity: sha512-mfanLwoikUV5D9j3f5otIjQanQnuLlPwLn7EOe/XyMYnTAwEUKP7FOvyGnepHt3wphsHojVV3F1ESnvhqI/hKA==}
+  /@prisma/prisma-schema-wasm@5.6.0-25.0a383f5645e8d5567f55109a60ec45c0c2c8e719:
+    resolution: {integrity: sha512-iim6o3QwvBRWyS15+WMq6VeSiu95mnzzcUR6srJ0eRqyQea/lXlLYAWxNHU0jCPNsa9KF0QiJLPVxMu1OHKZeg==}
     dev: false
 
   /@prisma/query-engine-wasm@0.0.5:
@@ -5889,6 +5901,25 @@ packages:
       - ts-node
     dev: true
 
+  /create-jest@29.7.0(@types/node@20.8.9)(ts-node@10.9.1):
+    resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
+    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    hasBin: true
+    dependencies:
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      exit: 0.1.2
+      graceful-fs: 4.2.10
+      jest-config: 29.7.0(@types/node@20.8.9)(ts-node@10.9.1)
+      jest-util: 29.7.0
+      prompts: 2.4.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+    dev: true
+
   /create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
     dev: true
@@ -7187,7 +7218,7 @@ packages:
     engines: {node: '>=14'}
     dependencies:
       cross-spawn: 7.0.3
-      signal-exit: 4.0.2
+      signal-exit: 4.1.0
     dev: true
 
   /form-data@4.0.0:
@@ -8546,6 +8577,34 @@ packages:
       - ts-node
     dev: true
 
+  /jest-cli@29.7.0(@types/node@20.8.9)(ts-node@10.9.1):
+    resolution: {integrity: sha512-OVVobw2IubN/GSYsxETi+gOe7Ka59EFMR/twOU3Jb2GnKKeMGJB5SGUUrEz3SFVmJASUdZUzy83sLNNQ2gZslg==}
+    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    hasBin: true
+    peerDependencies:
+      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+    peerDependenciesMeta:
+      node-notifier:
+        optional: true
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.1)
+      '@jest/test-result': 29.7.0
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      create-jest: 29.7.0(@types/node@20.8.9)(ts-node@10.9.1)
+      exit: 0.1.2
+      import-local: 3.1.0
+      jest-config: 29.7.0(@types/node@20.8.9)(ts-node@10.9.1)
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      yargs: 17.6.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+    dev: true
+
   /jest-config@29.7.0(@types/node@18.18.6)(ts-node@10.9.1):
     resolution: {integrity: sha512-uXbpfeQ7R6TZBqI3/TxCU4q4ttk3u0PJeC+E0zbfSoSjq6bJ7buBPxzQPL0ifrkY4DNu4JUdk0ImlBUYi840eQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -8966,6 +9025,27 @@ packages:
       - ts-node
     dev: true
 
+  /jest@29.7.0(@types/node@20.8.9)(ts-node@10.9.1):
+    resolution: {integrity: sha512-NIy3oAFp9shda19hy4HK0HRTWKtPJmGdnvywu01nOqNC2vZg+Z+fvJDxpMQA88eb2I9EcafcdjYgsDthnYTvGw==}
+    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    hasBin: true
+    peerDependencies:
+      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+    peerDependenciesMeta:
+      node-notifier:
+        optional: true
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.1)
+      '@jest/types': 29.6.3
+      import-local: 3.1.0
+      jest-cli: 29.7.0(@types/node@20.8.9)(ts-node@10.9.1)
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+    dev: true
+
   /jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
     dev: true
@@ -9246,8 +9326,8 @@ packages:
   /lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
-  /lint-staged@15.0.2:
-    resolution: {integrity: sha512-vnEy7pFTHyVuDmCAIFKR5QDO8XLVlPFQQyujQ/STOxe40ICWqJ6knS2wSJ/ffX/Lw0rz83luRDh+ET7toN+rOw==}
+  /lint-staged@15.1.0:
+    resolution: {integrity: sha512-ZPKXWHVlL7uwVpy8OZ7YQjYDAuO5X4kMh0XgZvPNxLcCCngd0PO5jKQyy3+s4TL2EnHoIXIzP1422f/l3nZKMw==}
     engines: {node: '>=18.12.0'}
     hasBin: true
     dependencies:
@@ -9260,7 +9340,7 @@ packages:
       micromatch: 4.0.5
       pidtree: 0.6.0
       string-argv: 0.3.2
-      yaml: 2.3.3
+      yaml: 2.3.4
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -12051,11 +12131,6 @@ packages:
   /signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
 
-  /signal-exit@4.0.2:
-    resolution: {integrity: sha512-MY2/qGx4enyjprQnFaZsHib3Yadh3IXyV2C321GY0pjGfVBu4un0uDJkwgdxqO+Rdx8JMT8IfJIRwbYVz3Ob3Q==}
-    engines: {node: '>=14'}
-    dev: true
-
   /signal-exit@4.1.0:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
@@ -13778,6 +13853,11 @@ packages:
 
   /yaml@2.3.3:
     resolution: {integrity: sha512-zw0VAJxgeZ6+++/su5AFoqBbZbrEakwu+X0M5HmcwUiBL7AzcuPKjj5we4xfQLp78LkEMpD0cOnUhmgOVy3KdQ==}
+    engines: {node: '>= 14'}
+    dev: true
+
+  /yaml@2.3.4:
+    resolution: {integrity: sha512-8aAvwVUSHpfEqTQ4w/KMlf3HcRdt50E5ODIQJBw1fQ5RL34xabzxtUlzTXVqc4rkZsPbvrXKWnABCD7kWSmocA==}
     engines: {node: '>= 14'}
     dev: true
 

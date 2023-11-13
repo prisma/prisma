@@ -70,7 +70,7 @@
     "is-ci": "3.0.1",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
-    "lint-staged": "15.0.2",
+    "lint-staged": "15.1.0",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
     "p-retry": "4.6.2",
@@ -109,11 +109,11 @@
   },
   "size-limit": [
     {
-      "path": "packages/client/runtime/library.d.ts",
+      "path": "packages/client/runtime/library.js",
       "gzip": false
     },
     {
-      "path": "packages/client/runtime/library.js",
+      "path": "packages/client/runtime/library.d.ts",
       "gzip": false
     },
     {
@@ -121,7 +121,23 @@
       "gzip": false
     },
     {
+      "path": "packages/client/runtime/binary.d.ts",
+      "gzip": false
+    },
+    {
       "path": "packages/client/runtime/edge.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/edge-esm.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/index-browser.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/index-browser.d.ts",
       "gzip": false
     },
     {
