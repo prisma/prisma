@@ -29,14 +29,14 @@
     "@prisma/driver-adapter-utils": "5.5.2",
     "pg": "8.11.3",
     "superjson": "2.2.0",
-    "undici": "5.27.0"
+    "undici": "5.27.2"
   },
   "devDependencies": {
     "@types/node": "18.18.6",
     "@types/pg": "8.10.7",
     "cross-env": "7.0.3",
     "prisma": "../../packages/cli",
-    "tsx": "3.14.0",
+    "tsx": "4.0.0",
     "typescript": "5.2.2"
   }
 }

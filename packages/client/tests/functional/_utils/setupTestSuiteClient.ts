@@ -138,15 +138,15 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-    const { connect } = require('@planetscale/database') as typeof import('@planetscale/database')
+    const { Client } = require('@planetscale/database') as typeof import('@planetscale/database')
     const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
 
-    const connection = connect({
+    const client = new Client({
       url: 'http://root:root@127.0.0.1:8085',
       fetch, // TODO remove when Node 16 is deprecated
     })
 
-    return { adapter: new PrismaPlanetScale(connection) }
+    return { adapter: new PrismaPlanetScale(client) }
   }
 
   if (providerFlavor === ProviderFlavors.JS_LIBSQL) {

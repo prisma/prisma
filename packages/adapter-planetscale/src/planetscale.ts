@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import type planetScale from '@planetscale/database'
+import planetScale from '@planetscale/database'
 import type {
   DriverAdapter,
   Query,
@@ -27,7 +27,7 @@ class RollbackError extends Error {
   }
 }
 
-class PlanetScaleQueryable<ClientT extends planetScale.Connection | planetScale.Transaction> implements Queryable {
+class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
   readonly flavour = 'mysql'
   constructor(protected client: ClientT) {}
 
@@ -144,8 +144,15 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 }
 
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Connection> implements DriverAdapter {
-  constructor(client: planetScale.Connection) {
+export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
+  constructor(client: planetScale.Client) {
+    if (client['constructor']?.['name'] !== 'Client') {
+      throw new TypeError(`PrismaPlanetScale must be initialized with an instance of Client:
+import { Client } from '@planetscale/database'
+const client = new Client({ url })
+const adapter = new PrismaPlanetScale(client)
+`)
+    }
     super(client)
   }
 
