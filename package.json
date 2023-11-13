@@ -39,7 +39,7 @@
     "@types/benchmark": "2.1.4",
     "@types/fs-extra": "9.0.13",
     "@types/graphviz": "0.0.37",
-    "@types/jest": "29.5.7",
+    "@types/jest": "29.5.8",
     "@types/node": "20.8.9",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.4",
