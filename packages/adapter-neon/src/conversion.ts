@@ -40,7 +40,7 @@ const ArrayColumnType = {
 
 export class UnsupportedNativeDataType extends Error {
   // map of type codes to type names
-  typeNames: { [key: number]: string } = {
+  static typeNames: { [key: number]: string } = {
     16: 'bool',
     17: 'bytea',
     18: 'char',
@@ -159,7 +159,7 @@ export class UnsupportedNativeDataType extends Error {
 
   constructor(code: number) {
     super()
-    this.type = this.typeNames[code] || 'Unknown'
+    this.type = UnsupportedNativeDataType.typeNames[code] || 'Unknown'
     this.message = `Unsupported column type ${this.type}`
   }
 }
