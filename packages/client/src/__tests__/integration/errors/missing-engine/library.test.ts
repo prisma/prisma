@@ -5,7 +5,9 @@ import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('missing-engine: library', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
+testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine: library', async () => {
   if (getClientEngineType() !== ClientEngineType.Library) {
     return
   }
