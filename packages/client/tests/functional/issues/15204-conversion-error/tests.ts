@@ -24,7 +24,7 @@ testMatrix.setupTestSuite(
           expect.objectContaining({
             code: 'P2023',
             message: expect.stringContaining(
-              `Conversion failed: number must be an integer in column 'field', got 1.84467440724388e19`,
+              `Conversion failed: number must be an integer in column 'field', got '1.84467440724388e19'`,
             ),
           }),
         )
