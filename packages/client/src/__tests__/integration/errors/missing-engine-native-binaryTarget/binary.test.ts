@@ -44,10 +44,10 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_BINARY)('missing-engine-native-binaryTar
     Invalid \`prisma.user.findMany()\` invocation in
     /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/binary.test.ts:0:0
 
-      36 })
-      37 
-      38 await expect(async () => {
-    → 39   await prisma.user.findMany(
+      38 })
+      39 
+      40 await expect(async () => {
+    → 41   await prisma.user.findMany(
     Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
     This is likely caused by tooling that has not copied "query-engine-TEST_PLATFORM" to the deployment folder.

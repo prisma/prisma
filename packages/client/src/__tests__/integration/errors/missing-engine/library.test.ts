@@ -39,10 +39,10 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine: library', asyn
     Invalid \`prisma.user.findMany()\` invocation in
     /client/src/__tests__/integration/errors/missing-engine/library.test.ts:0:0
 
-      34 })
-      35 
-      36 await expect(async () => {
-    → 37   await prisma.user.findMany(
+      33 })
+      34 
+      35 await expect(async () => {
+    → 36   await prisma.user.findMany(
     Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
     This is likely caused by tooling that has not copied "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" to the deployment folder.
