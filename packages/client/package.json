@@ -133,6 +133,7 @@
     "globby": "11.1.0",
     "indent-string": "4.0.0",
     "jest": "29.7.0",
+    "jest-extended": "4.0.2",
     "jest-junit": "16.0.0",
     "jest-serializer-ansi-escapes": "2.0.1",
     "jest-snapshot": "29.7.0",
