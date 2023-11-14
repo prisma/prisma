@@ -7,6 +7,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
+console.log({ PRISMA_QUERY_ENGINE_LIBRARY: process.env.PRISMA_QUERY_ENGINE_LIBRARY })
 testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine: library', async () => {
   if (getClientEngineType() !== ClientEngineType.Library) {
     return
