@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await */
+// default import does not work correctly for JS values inside,
+// i.e. client
 import * as planetScale from '@planetscale/database'
 import type {
   DriverAdapter,
