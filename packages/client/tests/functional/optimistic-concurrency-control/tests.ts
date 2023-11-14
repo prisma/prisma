@@ -18,8 +18,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
     await prisma.resource.deleteMany()
   })
 
-  // TODO optimistic concurrency control is not working for JS_PLANETSCALE
-  skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('updateMany', async () => {
+  test('updateMany', async () => {
     const fn = async () => {
       // we get our concurrent resource at some point in time
       const resource = (await prisma.resource.findFirst())!
@@ -49,8 +48,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
   })
 
-  // TODO optimistic concurrency control is not working for JS_PLANETSCALE
-  skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('update', async () => {
+  test('update', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 
