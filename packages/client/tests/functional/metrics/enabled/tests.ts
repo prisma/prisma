@@ -271,7 +271,7 @@ testMatrix.setupTestSuite(
               labels: {},
               // This can sometimes be reported as 1 or 0,
               // as metrics are reported asynchronously.
-              value: 0 || 1,
+              value: expect.toBeOneOf([0, 1]),
               description: 'The number of pool connections that are not busy running a query',
             },
             {
@@ -363,7 +363,7 @@ testMatrix.setupTestSuite(
               labels: {},
               // This can sometimes be reported as 1 or 0,
               // as metrics are reported asynchronously.
-              value: 0 || 1,
+              value: expect.toBeOneOf([0, 1]),
               description: 'The number of pool connections that are not busy running a query',
             },
             {
