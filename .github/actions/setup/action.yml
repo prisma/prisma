@@ -67,10 +67,14 @@ runs:
           echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.dll" >> $GITHUB_ENV
           echo "PRISMA_QUERY_ENGINE_BINARY=$RELEASE_DIR/query-engine.exe" >> $GITHUB_ENV
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine.exe" >> $GITHUB_ENV
-        elif [ -f "target/release/libquery_engine.dylib" ]; then
+        elif [ -f "$RELEASE_DIR/libquery_engine.dylib" ]; then
           echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.dylib" >> $GITHUB_ENV
           echo "PRISMA_QUERY_ENGINE_BINARY=$RELEASE_DIR/query-engine" >> $GITHUB_ENV
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
+        else
+          echo "Something went wrong. Build cache for engines exists, but no binaries for current OS found"
+          ls -la "$RELEASE_DIR"
+          exit 1
         fi
       shell: bash
     - run: pnpm run build
