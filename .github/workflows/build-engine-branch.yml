@@ -59,6 +59,11 @@ jobs:
         shell: bash
         run: echo "engineHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
+      - name: Get current engine hash
+        id: engine-hash
+        shell: bash
+        run: echo "engineHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
       - uses: actions/cache@v3
         name: Artifacts cache
         id: artifacts-cache
