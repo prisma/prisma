@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
  * Regression test for issue #8612
  * Optimistic concurrency control (OCC)
  */
-testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
+testMatrix.setupTestSuite(({ provider }) => {
   beforeEach(async () => {
     await prisma.resource.create({ data: {} })
   })
