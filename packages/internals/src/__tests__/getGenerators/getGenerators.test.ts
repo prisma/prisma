@@ -10,6 +10,7 @@ import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 if (process.env.CI) {
   // 20s is often not enough on CI, especially on macOS.
@@ -578,7 +579,7 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
-  test('inject engines', async () => {
+  testIf(!process.env.PRISMA_SCHEMA_ENGINE_BINARY)('inject engines', async () => {
     const aliases = {
       'predefined-generator': {
         generatorPath: generatorPath,
