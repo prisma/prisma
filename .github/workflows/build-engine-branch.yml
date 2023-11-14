@@ -28,7 +28,7 @@ jobs:
             github.event.pull_request.author_association == 'CONTRIBUTOR'
           )
         run: |
-          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_BODY="$(gh pr view ${{ github.event.number }} --json body -q .body)"
           BRANCH_NAME=$(echo "$PR_BODY" | grep -o '/engine-branch \S*' | awk '{print $2}')
           if [ -z "$BRANCH_NAME" ]; then
             echo "Branch name not specified in /engine-branch command."
