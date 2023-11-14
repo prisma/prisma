@@ -59,11 +59,6 @@ jobs:
         shell: bash
         run: echo "engineHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Get current engine hash
-        id: engine-hash
-        shell: bash
-        run: echo "engineHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
       - uses: actions/cache@v3
         name: Artifacts cache
         id: artifacts-cache
@@ -79,11 +74,11 @@ jobs:
           key: ${{ runner.os }}-engine-${{ steps.engine-hash.outputs.engineHash }}-${{ github.event.number }}
 
       - uses: dtolnay/rust-toolchain@stable
-        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        # if: steps.artifacts-cache.outputs.cache-hit != 'true'
 
       - uses: actions/cache@v3
         name: Dependencies cache
-        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        # if: steps.artifacts-cache.outputs.cache-hit != 'true'
         with:
           path: |
             ~/.cargo/bin/
@@ -94,10 +89,11 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build custom engines with cargo
-        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        # if: steps.artifacts-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           cargo build --release \
             -p query-engine \
             -p query-engine-node-api \
             -p schema-engine-cli
+          ls -la target/release
