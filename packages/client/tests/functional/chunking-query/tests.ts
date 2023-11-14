@@ -235,6 +235,7 @@ testMatrix.setupTestSuite(
             const e = error as Error
 
             if (['postgresql', 'cockroachdb'].includes(provider)) {
+              // Note: this sometimes fails with "bind message has 5 parameter formats but 0 parameters" on Neon
               expect(e.message).toContain('bind message has 32767 parameter formats but 0 parameters')
             }
           }
@@ -249,12 +250,13 @@ testMatrix.setupTestSuite(
         'not relevant for this test. Sqlite is excluded due to it lacking `createMany` (see: https://github.com/prisma/prisma/issues/10710).',
     },
     skipProviderFlavor: {
-      from: ['js_planetscale'],
+      from: ['js_planetscale', 'js_neon'],
 
       // `rpc error: code = Aborted desc = Row count exceeded 10000 (CallerID: userData1)", state: "70100"`
       // This could potentially be configured in Vitess by increasing the `queryserver-config-max-result-size`
       // query server parameter.
-      reason: 'Vitess supports at most 10k rows returned in a single query, so this test is not applicable.',
+      reason:
+        'Vitess supports at most 10k rows returned in a single query, so this test is not applicable. Neon occasionally fails with different parameter counts in its error messages.',
     },
   },
 )
