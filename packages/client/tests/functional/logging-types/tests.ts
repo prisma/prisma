@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -37,7 +38,7 @@ testMatrix.setupTestSuite(
         // We always have at least one quaint log item with native Rust SQL connectors,
         // and the API calls related logs with Data Proxy, but with driver adapters and
         // with MongoDB there might not necessarily be any info logs in this test.
-        if (!clientMeta.driverAdapter && !(provider === 'mongodb' && !clientMeta.dataProxy)) {
+        if (!clientMeta.driverAdapter && !(provider === Providers.MONGODB && !clientMeta.dataProxy)) {
           expect(infoLogs.length).toBeGreaterThan(0)
         }
       })
