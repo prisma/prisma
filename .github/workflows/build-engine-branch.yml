@@ -70,7 +70,7 @@ jobs:
             target/release/query-engine.exe
             target/release/libquery_engine.so
             target/release/libquery_engine.dylib
-            target/release/libquery_engine.dll
+            target/release/query_engine.dll
           key: ${{ runner.os }}-engine-${{ steps.engine-hash.outputs.engineHash }}-${{ github.event.number }}
 
       - uses: dtolnay/rust-toolchain@stable
