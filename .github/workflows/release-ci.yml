@@ -22,7 +22,7 @@ on:
       - '.devcontainer/**'
       - '.vscode/**'
       - 'graphs/**'
-      - 'reproductions/**'
+      - 'sandbox/**'
   workflow_dispatch:
     inputs:
       dryRun:

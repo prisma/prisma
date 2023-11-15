@@ -27,7 +27,7 @@
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "bench-stdout-only": "ts-node scripts/bench.ts",
     "prepare": "is-ci || husky install",
-    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /reproductions",
+    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
     "size": "pnpm run build && pnpm size-limit"
   },
   "devDependencies": {
