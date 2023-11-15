@@ -1234,8 +1234,8 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
       yarn:
-        specifier: 1.22.19
-        version: 1.22.19
+        specifier: 1.22.21
+        version: 1.22.21
 
   packages/migrate:
     dependencies:
@@ -13890,8 +13890,8 @@ packages:
       yargs-parser: 21.1.1
     dev: true
 
-  /yarn@1.22.19:
-    resolution: {integrity: sha512-/0V5q0WbslqnwP91tirOvldvYISzaqhClxzyUKXYxs07yUILIs5jx/k6CFe8bvKSkds5w+eiOqta39Wk3WxdcQ==}
+  /yarn@1.22.21:
+    resolution: {integrity: sha512-ynXaJsADJ9JiZ84zU25XkPGOvVMmZ5b7tmTSpKURYwgELdjucAOydqIOrOfTxVYcNXe91xvLZwcRh68SR3liCg==}
     engines: {node: '>=4.0.0'}
     hasBin: true
     requiresBuild: true
