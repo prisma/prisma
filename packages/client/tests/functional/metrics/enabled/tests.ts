@@ -269,7 +269,9 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_idle',
               labels: {},
-              value: expect.any(Number),
+              // This can sometimes be reported as 1 or 0,
+              // as metrics are reported asynchronously.
+              value: expect.toBeOneOf([0, 1]),
               description: 'The number of pool connections that are not busy running a query',
             },
             {
@@ -359,7 +361,9 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_idle',
               labels: {},
-              value: expect.any(Number),
+              // This can sometimes be reported as 1 or 0,
+              // as metrics are reported asynchronously.
+              value: expect.toBeOneOf([0, 1]),
               description: 'The number of pool connections that are not busy running a query',
             },
             {
