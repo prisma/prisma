@@ -38,7 +38,7 @@ Prisma Client can be used in _any_ Node.js or TypeScript backend application (in
 
 ## Getting started
 
-The fastest way to get started with Prisma is by following the [**Quickstart (5 min)**](https://www.prisma.io/docs/getting-started/quickstart).
+The fastest way to get started with Prisma is by following the [**Quickstart (5 min)**](https://pris.ly/quickstart).
 
 The Quickstart is based on a preconfigured SQLite database. You can also get started with your own database (PostgreSQL and MySQL) by following one of these guides:
 
