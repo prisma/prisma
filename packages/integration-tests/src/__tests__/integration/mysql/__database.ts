@@ -16,7 +16,7 @@ export const database = {
       user: credentials.user,
       password: credentials.password,
       multipleStatements: true,
-      allowPublicKeyRetrieval: true
+      allowPublicKeyRetrieval: true,
     })
   },
   beforeEach: async (db, sqlScenario, ctx) => {
