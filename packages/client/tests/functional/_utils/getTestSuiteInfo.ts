@@ -14,6 +14,7 @@ export type NamedTestSuiteConfig = {
     provider: Providers
     providerFlavor?: ProviderFlavors
     relationMode?: RelationModes
+    engineType?: 'binary' | 'library' | 'wasm'
   }
 }
 
@@ -23,7 +24,7 @@ const allProvidersRegexUnion = Object.values(Providers).join('|')
 const schemaPreviewFeaturesRegex = /previewFeatures\s*=\s*(.*)/
 const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-js"/
 const schemaProviderRegex = new RegExp(`provider\\s*=\\s*"(?:${allProvidersRegexUnion})"`, 'g')
-const schemaPrismaRelationModeRegex = /relationMode\s*=\s*".*"/
+const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
 
 /**
  * Get the generated test suite name, used for the folder name.
@@ -159,9 +160,11 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
   const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
   const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
-  const prismaRelationModeMatch = schema.match(schemaPrismaRelationModeRegex)
+  const prismaRelationModeMatch = schema.match(schemaRelationModeRegex)
   const providerMatch = schema.match(schemaProviderRegex)
   const previewFeatures = getTestSuitePreviewFeatures(schema)
+
+  const { engineType, relationMode } = matrixOptions
 
   // By default, mini-proxy distinguishes different engine instances using
   // inline schema hash. In case 2 tests are running in parallel with identical
@@ -182,15 +185,22 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
 
   // if there's no preview features, append them to the default generator block
   if (previewFeatureMatch === null && defaultGeneratorMatch !== null) {
-    schema = schema.replace(defaultGeneratorMatch[0], `${defaultGeneratorMatch[0]}\n${previewFeaturesStr}`)
+    const replacement = `${defaultGeneratorMatch[0]}\n${previewFeaturesStr}`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
+  }
+
+  // if an engine type is specified, append it to the default generator block
+  if (matrixOptions.engineType !== undefined && defaultGeneratorMatch !== null) {
+    const replacement = `${defaultGeneratorMatch[0]}\nengineType = "${engineType}"`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
   }
 
   // for PlanetScale and Vitess, we need to add `relationMode = "prisma"` to the schema
   if (matrixOptions.relationMode && providerMatch !== null) {
-    const relationModeStr = `relationMode = "${matrixOptions.relationMode}"`
+    const replacement = `${providerMatch![0]}\nrelationMode = "${relationMode}"`
 
     if (prismaRelationModeMatch === null) {
-      schema = schema.replace(providerMatch[0], `${providerMatch![0]}\n${relationModeStr}`)
+      schema = schema.replace(providerMatch[0], replacement)
     }
   }
 
@@ -241,6 +251,7 @@ export function getTestSuiteMeta() {
 export function getTestSuiteCliMeta(): TestCliMeta {
   const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
   const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
+  const engineType = process.env.TEST_ENGINE_TYPE as any
 
   if (edge && !dataProxy) {
     throw new Error('Edge client requires Data Proxy')
@@ -248,6 +259,7 @@ export function getTestSuiteCliMeta(): TestCliMeta {
 
   return {
     dataProxy,
+    engineType,
     runtime: edge ? 'edge' : 'node',
   }
 }

@@ -40,6 +40,10 @@ export function getTestSuitePlan(
     return getExpandedTestSuitePlanWithProviderFlavors(config)
   })
 
+  expandedSuiteConfigs.forEach((config) => {
+    config.matrixOptions.engineType ??= testCliMeta.engineType
+  })
+
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
     skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
