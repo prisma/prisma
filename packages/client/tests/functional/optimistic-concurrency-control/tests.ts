@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { Providers, RelationModes } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
  * Regression test for issue #8612
  * Optimistic concurrency control (OCC)
  */
-testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
+testMatrix.setupTestSuite(({ provider, relationMode }) => {
   beforeEach(async () => {
     await prisma.resource.create({ data: {} })
   })
@@ -18,8 +18,9 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
     await prisma.resource.deleteMany()
   })
 
-  // TODO optimistic concurrency control is not working for JS_PLANETSCALE
-  skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('updateMany', async () => {
+  // TODO optimistic concurrency control is not working with relationMode=prisma
+  // See https://github.com/prisma/prisma/issues/21867
+  skipTestIf(relationMode === RelationModes.PRISMA)('updateMany', async () => {
     const fn = async () => {
       // we get our concurrent resource at some point in time
       const resource = (await prisma.resource.findFirst())!
@@ -49,8 +50,9 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }) => {
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
   })
 
-  // TODO optimistic concurrency control is not working for JS_PLANETSCALE
-  skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('update', async () => {
+  // TODO optimistic concurrency control is not working with relationMode=prisma
+  // See https://github.com/prisma/prisma/issues/21867
+  skipTestIf(relationMode === RelationModes.PRISMA)('update', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 
