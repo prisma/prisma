@@ -128,7 +128,6 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
-  // TODO Fails with: Expected instance of error on snapshot
   testIf(clientMeta.runtime !== 'edge')('extended client in itx can rollback via custom call', async () => {
     const xprisma = prisma
       .$extends({
