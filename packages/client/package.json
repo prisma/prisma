@@ -176,7 +176,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.6.0-32.e95e739751f42d8ca026f6b910f5a2dc5adeaeee"
+    "@prisma/engines-version": "5.7.0-1.joel-engineer-retry-download-7ef6d1d93d3c39f7c636c741222dec23dd784934"
   },
   "sideEffects": false
 }
