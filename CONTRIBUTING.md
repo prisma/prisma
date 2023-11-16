@@ -68,7 +68,7 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 Set up a local project that will be linked to the local packages.
 
 ```sh
-cd reproductions
+cd sandbox
 # Copy a template from the reproduction folder
 cp -r basic-sqlite my-repro && cd my-repro
 # Install dependencies
@@ -97,7 +97,7 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
   
   #### Detailed steps for a locally-linked dev folder
   ```sh
-  cd reproductions
+  cd sandbox
   mkdir my-repro
   cd my-repro
   pnpm init
@@ -199,7 +199,7 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 Set up a local project that will be linked to the local packages.
 
 ```sh
-cd reproductions && pnpm install
+cd sandbox && pnpm install
 # Copy a template from the reproduction folder
 cp -r basic-sqlite my-repro && cd my-repro
 # Do some code changes, compile, then try it out

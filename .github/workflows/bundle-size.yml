@@ -17,6 +17,7 @@ on:
       - '.devcontainer/**'
       - '.vscode/**'
       - 'graphs/**'
+      - 'sandbox/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

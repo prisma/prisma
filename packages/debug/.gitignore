@@ -8,4 +8,3 @@ pnpm-debug.log
 dist/
 
 *.tsbuildinfo
-sandbox
