@@ -12,7 +12,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   ({ providerFlavor, engineType }) => {
     // TODO planetscale cannot snapshot this error because the id cannot be hidden
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
+    testIf(engineType !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
       'stored query triggered twice should fail but not exit process',
       async () => {
         const query = prisma.resource.create({

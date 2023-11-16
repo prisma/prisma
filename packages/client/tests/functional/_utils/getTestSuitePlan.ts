@@ -115,8 +115,8 @@ function shouldSkipSuiteConfig(
   }
 
   // if the test needs to skip the dataproxy test, skip
-  if (testCliMeta.dataProxy && options?.skipDataProxy) {
-    return options.skipDataProxy.runtimes.includes(testCliMeta.runtime)
+  if (testCliMeta.dataProxy && options?.skipDataProxy?.runtimes.includes(testCliMeta.runtime)) {
+    return true
   }
 
   // if the client doesn't support the provider, skip
