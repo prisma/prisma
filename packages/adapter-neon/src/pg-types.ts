@@ -44,8 +44,8 @@ export const maxSystemCatalogOID = 9999
  * A PostgreSQL type representation with both OID and optional introspected type name.
  */
 export type PgType = {
-  id: number
-  name?: string
+  readonly id: number
+  readonly name?: string
 }
 
 export class PgTypesCache {
