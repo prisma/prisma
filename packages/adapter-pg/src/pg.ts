@@ -75,7 +75,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<Result<pg.QueryArrayResult<any>>> {
+  async performIO(query: Query): Promise<Result<pg.QueryArrayResult<any>>> {
     const { sql, args: values } = query
 
     try {
