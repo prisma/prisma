@@ -127,7 +127,7 @@ export class UnsupportedNativeDataType extends Error {
 
   constructor(type: PgType) {
     super()
-    this.type = type.name ?? UnsupportedNativeDataType.typeNames[type.id] ?? 'Unknown'
+    this.type = type.name ?? UnsupportedNativeDataType.typeNames[type.id] ?? String(type.id)
     this.message = `Unsupported column type ${this.type} (OID=${type.id})`
   }
 }
