@@ -215,7 +215,7 @@ async function main(): Promise<number | void> {
   }
 
   try {
-    if (args['-u']) {
+    if (args['--updateSnapshot']) {
       const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
