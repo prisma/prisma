@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
@@ -34,8 +34,6 @@ export function getTestSuitePlan(
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  const shouldSkipAll = shouldSkipTestSuite(testCliMeta, options)
-
   const expandedSuiteConfigs = suiteConfigs.flatMap((config) => {
     return getExpandedTestSuitePlanWithProviderFlavors(config)
   })
@@ -46,7 +44,7 @@ export function getTestSuitePlan(
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
+    skip: shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
     suiteConfig: namedConfig,
   }))
 }
@@ -81,16 +79,6 @@ function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuite
   return [suiteConfig, ...suiteConfigExpansions]
 }
 
-function shouldSkipTestSuite(clientMeta: TestCliMeta, options?: MatrixOptions): boolean {
-  if (options?.skipBinary && getClientEngineType() === ClientEngineType.Binary) {
-    return true
-  }
-  if (options?.skipDataProxy && clientMeta.dataProxy) {
-    return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
-  }
-  return false
-}
-
 function shouldSkipSuiteConfig(
   {
     updateSnapshots,
@@ -107,6 +95,7 @@ function shouldSkipSuiteConfig(
   const provider = config.matrixOptions.provider
   const flavor = config.matrixOptions.providerFlavor
   const relationMode = config.matrixOptions.relationMode
+  const engineType = config.matrixOptions.engineType
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
@@ -118,6 +107,16 @@ function shouldSkipSuiteConfig(
     // when updating external snapshots, we assume that inline snapshots update was run just before it - so
     // there is no reason to re-run the first suite
     return true
+  }
+
+  // if the test doesn't support the engine type, skip
+  if (options?.skipBinary && engineType === ClientEngineType.Binary) {
+    return true
+  }
+
+  // if the test needs to skip the dataproxy test, skip
+  if (testCliMeta.dataProxy && options?.skipDataProxy) {
+    return options.skipDataProxy.runtimes.includes(testCliMeta.runtime)
   }
 
   // if the client doesn't support the provider, skip
