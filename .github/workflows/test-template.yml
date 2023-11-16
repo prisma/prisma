@@ -380,7 +380,7 @@ jobs:
       - run: pnpm run test:memory
         working-directory: packages/client
 
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         if: ${{ failure() && github.event_name == 'pull_request' }}
         id: upload-report
         env:

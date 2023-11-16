@@ -1,7 +1,7 @@
 import { ClientEngineType } from '@prisma/internals'
 import { copycat } from '@snaplet/copycat'
 
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { Providers } from '../_utils/providers'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -13,7 +13,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-testMatrix.setupTestSuite(({ provider, providerFlavor, engineType }, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(({ provider, engineType }, _suiteMeta, clientMeta) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
@@ -186,8 +186,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, engineType }, _suiteMeta,
   /**
    * If one of the query fails, all queries should cancel
    */
-  // TODO fails with: Expected instance of error
-  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)('rollback query', async () => {
+  testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({
         data: {
@@ -277,12 +276,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, engineType }, _suiteMeta,
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  // TODO fails with: Expected instance of error
-  testIf(
-    engineType === ClientEngineType.Library &&
-      clientMeta.runtime !== 'edge' &&
-      providerFlavor !== ProviderFlavors.JS_LIBSQL,
-  )('batching rollback', async () => {
+  testIf(engineType === ClientEngineType.Library && clientMeta.runtime !== 'edge')('batching rollback', async () => {
     const result = prisma.$transaction([
       prisma.user.create({
         data: {
@@ -305,41 +299,37 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, engineType }, _suiteMeta,
     expect(users.length).toBe(0)
   })
 
-  // TODO fails with expected instance of error
-  testIf(clientMeta.runtime !== 'edge' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
-    'batching rollback within callback',
-    async () => {
-      const result = prisma.$transaction(async (tx) => {
-        await Promise.all([
-          tx.user.create({
-            data: {
-              id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-              email: 'user_1@website.com',
-            },
-          }),
-          tx.user.create({
-            data: {
-              id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-              email: 'user_2@website.com',
-            },
-          }),
-        ])
-
-        await tx.user.create({
+  testIf(clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
+    const result = prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.user.create({
           data: {
-            id: copycat.uuid(3).replaceAll('-', '').slice(-24),
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
             email: 'user_1@website.com',
           },
-        })
+        }),
+        tx.user.create({
+          data: {
+            id: copycat.uuid(2).replaceAll('-', '').slice(-24),
+            email: 'user_2@website.com',
+          },
+        }),
+      ])
+
+      await tx.user.create({
+        data: {
+          id: copycat.uuid(3).replaceAll('-', '').slice(-24),
+          email: 'user_1@website.com',
+        },
       })
+    })
 
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-      const users = await prisma.user.findMany()
+    const users = await prisma.user.findMany()
 
-      expect(users.length).toBe(0)
-    },
-  )
+    expect(users.length).toBe(0)
+  })
 
   /**
    * A bad batch should rollback using the interactive transaction logic
