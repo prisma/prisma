@@ -153,7 +153,7 @@ async function main(): Promise<number | void> {
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
 
       if (args['--data-proxy'] || args['--engine-type'] === 'binary') {
-        throw new Error('Driver adapters are not compatible with --data-proxy or the binary engine')
+        throw new Error('Driver adapters are not compatible with --data-proxy or --engine-type=binary')
       }
     }
 
