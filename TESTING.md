@@ -20,7 +20,7 @@ Optionally, if you want the environment variables to always be accessible, you c
 
 1. We use the [Jest test framework](https://jestjs.io/). Its CLI is powerful and removes the need for npm scripts mostly. For most cases this is what you need to know:
 
-   Note: the following command `pnpm run test` can be used inside the packages folders like `packages/client`. In the base folder you can only run `pnpm run test` without extra arguments.
+   Note: the following command `pnpm run test` can be used inside the packages folders like [`packages/client/`](./packages/client/). In the base folder you can only run `pnpm run test` without extra arguments.
 
    ```sh
    pnpm run test <fileNamePattern> -t <testNamePattern>
@@ -32,7 +32,7 @@ Optionally, if you want the environment variables to always be accessible, you c
    pnpm run test <fileNamePattern> -u
    ```
 
-1. In `integration-tests` [Jest's `each` feature](https://jestjs.io/docs/en/api#testeachtablename-fn-timeout) is used. If you only want to run a subset of the test cases, simply leverage the `-t` flag on the command line (see above point). For example in `packages/cli` here is how you would run Just the `findOne where PK` cases for sqlite integration:
+1. In [`packages/integration-tests/`](./packages/integration-tests/) [Jest's `each` feature](https://jestjs.io/docs/en/api#testeachtablename-fn-timeout) is used. If you only want to run a subset of the test cases, simply leverage the `-t` flag on the command line (see above point). Here is an example to run only the `findOne where PK` cases for SQLite:
 
    ```sh
    pnpm run jest integration.sqlite -t 'findOne where PK'
@@ -51,14 +51,15 @@ Rule of thumb: If you can write a test in `prisma/prisma`, prefer that over a te
 In the `prisma/prisma` repository we have a few places where you can write tests:
 
 - **`cli`**
-  - Tests for `prisma studio`, `prisma version`, `prisma format`, `prisma generate`, `prisma doctor`, loading .env files, testing the built cli
+  - [`./packages/cli/src/__tests__/`](./packages/cli/src/__tests__/) - Tests for `prisma studio`, `prisma version`, `prisma format`, `prisma generate`, `prisma generate`, loading `.env` file loading...
 - **`client`**
-  - `src/__tests__/*.test.ts` - Unit tests
-  - `test/functional` - New functional tests setup
-  - `test/memory` - Memory leaks tests
-  - `src/__tests__/integration/happy/**` - Legacy integration tests for the happy path. Please, write functional tests instead.
-  - `src/__tests__/integration/errors/**` - Legacy integration tests for error cases. Please write functional tests instead.
-  - `src/__tests__/types/**` - Tests for generated Client TS Types
+  - [`./packages/client/tests/functional/`](./packages/client/tests/functional/) - The functional test setup, current default place where to add tests, tests are fully isolated and can easily be ran on all supported databases.
+    - Check out the example test: [`./packages/client/tests/functional/_example/`](./packages/client/tests/functional/_example/)
+  - [`./packages/client/tests/memory/`](./packages/client/tests/memory/) - Memory leaks tests
+  - [`./packages/client/src/__tests__/*.test.ts`](./packages/client/src/__tests__/) - Unit tests
+  - [`./packages/client/src/__tests__/integration/happy/**`](./packages/client/src/__tests__/integration/happy/) - Legacy integration tests for the happy path. Please, write functional tests instead.
+  - [`./packages/client/src/__tests__/integration/errors/**`](./packages/client/src/__tests__/integration/errors/) - Legacy integration tests for error cases. Please write functional tests instead.
+  - [`./packages/client/src/__tests__/types/**`](./packages/client/src/__tests__/types/) - Tests for generated Client TS Types
 - **`debug`**
   - Unit tests for `debug` package
 - **`generator-helper`**
@@ -79,51 +80,14 @@ In the `prisma/prisma` repository we have a few places where you can write tests
     - mysql
     - postgresql
     - sqlite
-  - While these tests also test the client itself, they're rather just our base to make sure that basic query engine functionality actually works in the Prisma Client
+  - While these tests also test the client itself, they're rather only a base to make sure that basic query engine functionality actually works in the Prisma Client
   - When you want to test very specific queries for a new feature, you can write a functional test in the `client` package, as that's usually easier
 
-## So you just got a reproduction for the client
-
-If the users did their homework and provide a reproduction repository, you usually just want to turn that into an integration test in the `client` package.
-If it's about an ugly error, that could be handled nicer, it should go into `integration/errors`.
-If it's about making sure, that a specific feature works as intended, you can create a new test case in `integration/happy`.
-
-The `integration/happy/minimal` test is always a good start if you just want to test the JS interface of the client.
-
-In case you want to test the actually generated client, have a look at the `integration/happy/blog` test as an example.
-
-## How to trigger artificial panics
-
-Sometimes it may be useful to trigger a panic in the Rust binaries or libraries used by Prisma under the hood.
-Most of the Rust artifacts are shipped as binaries, whereas `query-engine` is shipped both as a library (by default) and as a binary (on demand).
-To change the default Rust artifacts' type used under the hood, you can set the `PRISMA_CLI_QUERY_ENGINE_TYPE` environment variable to either `library` or `binary`.
-
-### Setup
-
-- `mkdir artificial-panics && cd artificial-panics`
-- `npx prisma init --datasource-provider sqlite`
-
-### Trigger panic in Schema Engine
-
-- run `FORCE_PANIC_SCHEMA_ENGINE=1 npx prisma migrate dev`
-
-### Trigger panic in Formatter
-
-- run `FORCE_PANIC_PRISMA_SCHEMA=1 npx prisma format`
-
-### Trigger panic in Query Engine - Get DMMF
-
-- run `FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate`
-
-### Trigger panic in Query Engine - Get Config
-
-- run `FORCE_PANIC_QUERY_ENGINE_GET_CONFIG=1 npx prisma validate`
-
-## Functional tests for the client
+## Prisma Client: functional tests
 
 Functional tests in the client package are testing that all aspects of client and query engine work correctly. They strive to be as close as possible to the way client will be used in real project: they generate an actual client, talk to a real database, perform the type checks and generally test the client through its public API.
 
-### Creating new functional test
+### Creating a new functional test
 
 To create new test, run following command
 
@@ -133,7 +97,7 @@ pnpm new-test
 
 You'll then be asked for the name of your test and list of providers you want to run this test on. If you opt out of testing any of the providers, you'll also have to specify the reason. New test will be created under `test/functional/<name of the test>` directory.
 
-### Structure of the functional test
+### Structure of the functional test setup
 
 Test consists of the 3 files:
 
@@ -326,7 +290,7 @@ This test will run for every permutation of the parameters from the matrix. Curr
 
 - `pnpm test:functional:code` generates and runs the test suites, defined by test matrix. It does no typechecking, but prepares all necessary files for it.
 - `pnpm test:functional:types` runs typechecking on all the suites, generated by `pnpm test:functional:code` command. If it reports any errors, you might want to examine generated test suite under `tests/functional/<your test name>/.generated` directory to get a better diagnostic.
-- `pnpm test:functional` will run tests and perform type checks.
+- `pnpm test:functional` will run tests and then perform type checks.
 
 Add `--data-proxy` CLI flag to any of these commands to generate the Data Proxy client and run the
 tests under the local Data Proxy simulator called Mini-Proxy.
@@ -412,11 +376,11 @@ However, you may want to use a custom engine via from a branch in [`prisma/prism
 
 ### Prerequisites
 
-You will need to have installed the Rust toolchain and just a few extra dependencies. See [Building Prisma Engines](https://github.com/prisma/prisma-engines#building-prisma-engines).
+You will need to have installed the Rust toolchain and a few extra dependencies. See [Building Prisma Engines](https://github.com/prisma/prisma-engines#building-prisma-engines).
 
 ### Using custom engines
 
-1. Edit `prisma/packages/fetch-engine/package.json`
+1. Edit [`./packages/fetch-engine/package.json`](./packages/fetch-engine/package.json)
 
 - **Either, add a `branch` property to `enginesOverride`**
 
@@ -490,3 +454,30 @@ Once the integration version is published on npm:
 
 - The `check-for-update` workflow, which runs continuously, will find the new version, update the package.json and do a commit on the [`integration` branch](https://github.com/prisma/ecosystem-tests/tree/integration)
 - The tests workflows will then run for that commit and will be visible [here](https://github.com/prisma/ecosystem-tests/actions?query=branch%3Aintegration)
+
+## How to trigger artificial panics for our engines
+
+Sometimes it may be useful to trigger a panic in the Rust binaries or libraries used by Prisma under the hood.
+Most of the Rust artifacts are shipped as binaries, whereas `query-engine` is shipped both as a library (by default) and as a binary (on demand).
+To change the default Rust artifacts' type used under the hood, you can set the `PRISMA_CLI_QUERY_ENGINE_TYPE` environment variable to either `library` or `binary`.
+
+### Setup
+
+- `mkdir artificial-panics && cd artificial-panics`
+- `npx prisma init --datasource-provider sqlite`
+
+### Trigger panic in Schema Engine
+
+- run `FORCE_PANIC_SCHEMA_ENGINE=1 npx prisma migrate dev`
+
+### Trigger panic in Formatter
+
+- run `FORCE_PANIC_PRISMA_SCHEMA=1 npx prisma format`
+
+### Trigger panic in Query Engine - Get DMMF
+
+- run `FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate`
+
+### Trigger panic in Query Engine - Get Config
+
+- run `FORCE_PANIC_QUERY_ENGINE_GET_CONFIG=1 npx prisma validate`

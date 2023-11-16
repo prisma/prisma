@@ -23,7 +23,7 @@ Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Eng
 Copy paste these commands to install the global dependencies:
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 nvm install 18
 npm install --global pnpm@8 ts-node
 ```
@@ -45,17 +45,17 @@ pnpm -r run dev
 
 In the root directory:
 
-- `pnpm run setup` will install and build all the packages
-- `pnpm -r run build` (-r for recursive) will build all the packages
-- `pnpm -r run dev` (-r for recursive) will build all the packages, without running `tsc`
-- `pnpm run watch` will continuously build any packages that have been modified, without running `tsc` (Fastest)
+- `pnpm run setup` will install and build all the packages.
+- `pnpm -r run build` (-r for recursive) will build all the packages.
+- `pnpm -r run dev` (-r for recursive) will build all the packages, without running `tsc`.
+- `pnpm run watch` will continuously build any packages that have been modified, without running `tsc` (Fastest).
 
 In a package directory, like `packages/client`:
 
-- `pnpm run build` will build the package
-- `pnpm run dev` will build the package without running `tsc` (Fastest)
+- `pnpm run build` will build the package.
+- `pnpm run dev` will build the package without running `tsc` (Fastest).
 
-> 💡 Our builder is built on top of esbuild
+> 💡 Our builder is built on top of `esbuild`
 
 ## Prisma Client
 
@@ -190,6 +190,11 @@ Tests fixtures are located in [`./packages/migrate/src/__tests__/fixtures`](./pa
 
 ## Prisma CLI
 
+For the list of commands and parameters, you can check out the [documentation](https://www.prisma.io/docs/reference/api-reference/command-reference).
+
+We also maintain a [completion spec](https://github.com/withfig/autocomplete/blob/master/src/prisma.ts).
+It is consumed by the following tools: [Warp terminal (macOS only)](https://www.warp.dev/), [Fig terminal (macOS only)](https://fig.io/), [inshellisense (all OS)](https://github.com/microsoft/inshellisense)
+
 ### First contribution
 
 Create a reproduction folder for developing, trying a new feature, or a fix.
@@ -197,6 +202,10 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 #### Setting up a locally-linked development folder
 
 Set up a local project that will be linked to the local packages.
+
+> 💡 This works best when compiling with `pnpm run watch` in the background.
+
+> 💡 In any successful setup `pnpx prisma -v` should return version `0.0.0`.
 
 ```sh
 cd reproductions && pnpm install
@@ -206,19 +215,25 @@ cp -r basic-sqlite my-repro && cd my-repro
 pnpx prisma generate
 ```
 
-> 💡 This works best when compiling with `pnpm run watch` in the background.
-
-> 💡 In any successful setup `pnpx prisma -v` should return version `0.0.0`.
-
 <details>
   <summary><b>Alternatives</b></summary>
 
 ```sh
 cd packages/cli
-../src/bin.ts generate # Try it out
+./src/bin.ts -v # should return the version `prisma: 0.0.0` in the output
+./src/bin.ts generate # for `prisma generate`
 ```
 
 </details>
+
+### Tests
+
+For an overview, adding, running tests & guidelines see [TESTING.md](./TESTING.md).
+
+Tests are located under [`./packages/cli/src/__tests__/`](./packages/cli/src/__tests__/)
+
+- Commands are tested in [`./packages/cli/src/__tests__/commands/`](./packages/cli/src/__tests__/commands/)
+- Fixtures are in [`./packages/cli/src/__tests__/fixtures/`](./packages/cli/src/__tests__/fixtures/)
 
 ## Conventions
 
@@ -251,11 +266,16 @@ List of types:
 - test: Adding missing or correcting existing tests
 - chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
 
-List of directories in the monorepo
+List of directories in the monorepo:
 
+- adapter-libsql
+- adapter-neon
+- adapter-pg
+- adapter-planetscale
 - cli
 - client
 - debug
+- driver-adapter-utils
 - engines
 - fetch-engine
 - generator-helper
@@ -264,6 +284,7 @@ List of directories in the monorepo
 - integration-tests
 - internals
 - migrate
+- nextjs-monorepo-workaround-plugin
 
 ## Legal
 
