@@ -9,6 +9,6 @@ dist/
 /packages/client/generator-build
 /packages/client/declaration
 /packages/client/scripts/default-index.js
-/reproductions
+/sandbox
 .idea/
 .vscode/
