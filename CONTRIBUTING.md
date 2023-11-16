@@ -229,7 +229,8 @@ When opening a PR these are the expectations before it can be merged:
   - If you are a Prismanaut, you can add `/integration` in the description to get a version released to npm to the `integration` tag, see [TESTING.md](./TESTING.md) for more details.
 - Tests are written and cover the changes.
 - `Lint` & `CLI commands` & `All pkgs (win+mac)` GitHub Actions workflows should be successful.
-- The reported bundle size of `packages/cli/build/index.js` in the [`Bundle size` GitHub Actions workflow](https://github.com/prisma/prisma/actions/workflows/bundle-size.yml) stays below 6MB and later once a dev version is published, the unpacked size of the CLI stays below ~16MB on [npm](https://www.npmjs.com/package/prisma).
+- The reported bundle size of `packages/cli/build/index.js` in the `size-limit report 📦` comment in the PR needs stays below ~6MB. (The comment will be posted by the [bundle-size GitHub Action workflow](https://github.com/prisma/prisma/actions/workflows/bundle-size.yml) automatically.
+  - Later once a dev version is published, the unpacked size of the CLI stays below ~16MB on [npm](https://www.npmjs.com/package/prisma).
 - There is a tracking issue or/and an open PR to update the [documentation](https://www.prisma.io/docs), especially the [Prisma CLI reference](https://www.prisma.io/docs/reference/api-reference/command-reference).
 
 #### Setting up a locally-linked development directory
