@@ -48,6 +48,10 @@ export type PgType = {
   readonly name?: string
 }
 
+/**
+ * Postgres types cache pluggable into the client. All connections to the same database should
+ * preferably use the same instance to avoid duplicating requests.
+ */
 export class PgTypesCache {
   // cache the promises and not the results to avoid concurrent requests for the same type
   #cachedRequests = new Map<number, Promise<Result<PgType>>>()
@@ -59,10 +63,6 @@ export class PgTypesCache {
   ) {}
 
   typeById(id: number): Promise<Result<PgType>> {
-    if (id <= maxSystemCatalogOID) {
-      return Promise.resolve(ok({ id }))
-    }
-
     let req = this.#cachedRequests.get(id)
 
     if (req === undefined) {
@@ -74,6 +74,13 @@ export class PgTypesCache {
   }
 
   async #loadType(id: number): Promise<Result<PgType>> {
+    if (id <= maxSystemCatalogOID && knownSystemTypeNames[id]) {
+      return ok({
+        id,
+        name: knownSystemTypeNames[id],
+      })
+    }
+
     const result = (
       await this.client.performIO({
         sql: 'SELECT typname FROM pg_catalog.pg_type WHERE oid = $1',
@@ -98,4 +105,122 @@ export class PgTypesCache {
 
     return result
   }
+}
+
+/**
+ * Known built-in type names
+ */
+const knownSystemTypeNames: Record<number, string | undefined> = {
+  16: 'bool',
+  17: 'bytea',
+  18: 'char',
+  19: 'name',
+  20: 'int8',
+  21: 'int2',
+  22: 'int2vector',
+  23: 'int4',
+  24: 'regproc',
+  25: 'text',
+  26: 'oid',
+  27: 'tid',
+  28: 'xid',
+  29: 'cid',
+  30: 'oidvector',
+  32: 'pg_ddl_command',
+  71: 'pg_type',
+  75: 'pg_attribute',
+  81: 'pg_proc',
+  83: 'pg_class',
+  114: 'json',
+  142: 'xml',
+  194: 'pg_node_tree',
+  269: 'table_am_handler',
+  325: 'index_am_handler',
+  600: 'point',
+  601: 'lseg',
+  602: 'path',
+  603: 'box',
+  604: 'polygon',
+  628: 'line',
+  650: 'cidr',
+  700: 'float4',
+  701: 'float8',
+  705: 'unknown',
+  718: 'circle',
+  774: 'macaddr8',
+  790: 'money',
+  829: 'macaddr',
+  869: 'inet',
+  1033: 'aclitem',
+  1042: 'bpchar',
+  1043: 'varchar',
+  1082: 'date',
+  1083: 'time',
+  1114: 'timestamp',
+  1184: 'timestamptz',
+  1186: 'interval',
+  1266: 'timetz',
+  1560: 'bit',
+  1562: 'varbit',
+  1700: 'numeric',
+  1790: 'refcursor',
+  2202: 'regprocedure',
+  2203: 'regoper',
+  2204: 'regoperator',
+  2205: 'regclass',
+  2206: 'regtype',
+  2249: 'record',
+  2275: 'cstring',
+  2276: 'any',
+  2277: 'anyarray',
+  2278: 'void',
+  2279: 'trigger',
+  2280: 'language_handler',
+  2281: 'internal',
+  2283: 'anyelement',
+  2287: '_record',
+  2776: 'anynonarray',
+  2950: 'uuid',
+  2970: 'txid_snapshot',
+  3115: 'fdw_handler',
+  3220: 'pg_lsn',
+  3310: 'tsm_handler',
+  3361: 'pg_ndistinct',
+  3402: 'pg_dependencies',
+  3500: 'anyenum',
+  3614: 'tsvector',
+  3615: 'tsquery',
+  3642: 'gtsvector',
+  3734: 'regconfig',
+  3769: 'regdictionary',
+  3802: 'jsonb',
+  3831: 'anyrange',
+  3838: 'event_trigger',
+  3904: 'int4range',
+  3906: 'numrange',
+  3908: 'tsrange',
+  3910: 'tstzrange',
+  3912: 'daterange',
+  3926: 'int8range',
+  4072: 'jsonpath',
+  4089: 'regnamespace',
+  4096: 'regrole',
+  4191: 'regcollation',
+  4451: 'int4multirange',
+  4532: 'nummultirange',
+  4533: 'tsmultirange',
+  4534: 'tstzmultirange',
+  4535: 'datemultirange',
+  4536: 'int8multirange',
+  4537: 'anymultirange',
+  4538: 'anycompatiblemultirange',
+  4600: 'pg_brin_bloom_summary',
+  4601: 'pg_brin_minmax_multi_summary',
+  5017: 'pg_mcv_list',
+  5038: 'pg_snapshot',
+  5069: 'xid8',
+  5077: 'anycompatible',
+  5078: 'anycompatiblearray',
+  5079: 'anycompatiblenonarray',
+  5080: 'anycompatiblerange',
 }

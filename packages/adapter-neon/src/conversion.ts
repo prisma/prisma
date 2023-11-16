@@ -1,173 +1,47 @@
 import { types } from '@neondatabase/serverless'
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum, err, JsonNullMarker, ok, type Result } from '@prisma/driver-adapter-utils'
 import { parse as parseArray } from 'postgres-array'
 
 import { ArrayColumnType, maxSystemCatalogOID, PgType } from './pg-types'
 
 const ScalarColumnType = types.builtins
 
-export class UnsupportedNativeDataType extends Error {
-  // map of type codes to type names
-  static typeNames: { [key: number]: string } = {
-    16: 'bool',
-    17: 'bytea',
-    18: 'char',
-    19: 'name',
-    20: 'int8',
-    21: 'int2',
-    22: 'int2vector',
-    23: 'int4',
-    24: 'regproc',
-    25: 'text',
-    26: 'oid',
-    27: 'tid',
-    28: 'xid',
-    29: 'cid',
-    30: 'oidvector',
-    32: 'pg_ddl_command',
-    71: 'pg_type',
-    75: 'pg_attribute',
-    81: 'pg_proc',
-    83: 'pg_class',
-    114: 'json',
-    142: 'xml',
-    194: 'pg_node_tree',
-    269: 'table_am_handler',
-    325: 'index_am_handler',
-    600: 'point',
-    601: 'lseg',
-    602: 'path',
-    603: 'box',
-    604: 'polygon',
-    628: 'line',
-    650: 'cidr',
-    700: 'float4',
-    701: 'float8',
-    705: 'unknown',
-    718: 'circle',
-    774: 'macaddr8',
-    790: 'money',
-    829: 'macaddr',
-    869: 'inet',
-    1033: 'aclitem',
-    1042: 'bpchar',
-    1043: 'varchar',
-    1082: 'date',
-    1083: 'time',
-    1114: 'timestamp',
-    1184: 'timestamptz',
-    1186: 'interval',
-    1266: 'timetz',
-    1560: 'bit',
-    1562: 'varbit',
-    1700: 'numeric',
-    1790: 'refcursor',
-    2202: 'regprocedure',
-    2203: 'regoper',
-    2204: 'regoperator',
-    2205: 'regclass',
-    2206: 'regtype',
-    2249: 'record',
-    2275: 'cstring',
-    2276: 'any',
-    2277: 'anyarray',
-    2278: 'void',
-    2279: 'trigger',
-    2280: 'language_handler',
-    2281: 'internal',
-    2283: 'anyelement',
-    2287: '_record',
-    2776: 'anynonarray',
-    2950: 'uuid',
-    2970: 'txid_snapshot',
-    3115: 'fdw_handler',
-    3220: 'pg_lsn',
-    3310: 'tsm_handler',
-    3361: 'pg_ndistinct',
-    3402: 'pg_dependencies',
-    3500: 'anyenum',
-    3614: 'tsvector',
-    3615: 'tsquery',
-    3642: 'gtsvector',
-    3734: 'regconfig',
-    3769: 'regdictionary',
-    3802: 'jsonb',
-    3831: 'anyrange',
-    3838: 'event_trigger',
-    3904: 'int4range',
-    3906: 'numrange',
-    3908: 'tsrange',
-    3910: 'tstzrange',
-    3912: 'daterange',
-    3926: 'int8range',
-    4072: 'jsonpath',
-    4089: 'regnamespace',
-    4096: 'regrole',
-    4191: 'regcollation',
-    4451: 'int4multirange',
-    4532: 'nummultirange',
-    4533: 'tsmultirange',
-    4534: 'tstzmultirange',
-    4535: 'datemultirange',
-    4536: 'int8multirange',
-    4537: 'anymultirange',
-    4538: 'anycompatiblemultirange',
-    4600: 'pg_brin_bloom_summary',
-    4601: 'pg_brin_minmax_multi_summary',
-    5017: 'pg_mcv_list',
-    5038: 'pg_snapshot',
-    5069: 'xid8',
-    5077: 'anycompatible',
-    5078: 'anycompatiblearray',
-    5079: 'anycompatiblenonarray',
-    5080: 'anycompatiblerange',
-  }
-
-  type: string
-
-  constructor(type: PgType) {
-    super()
-    this.type = type.name ?? UnsupportedNativeDataType.typeNames[type.id] ?? String(type.id)
-    this.message = `Unsupported column type ${this.type} (OID=${type.id})`
-  }
-}
-
 /**
  * This is a simplification of quaint's value inference logic. Take a look at quaint's conversion.rs
  * module to see how other attributes of the field packet such as the field length are used to infer
  * the correct quaint::Value variant.
  */
-export function fieldToColumnType(fieldType: PgType): ColumnType {
+export function fieldToColumnType(fieldType: PgType): Result<ColumnType> {
   switch (fieldType.id) {
     case ScalarColumnType['INT2']:
     case ScalarColumnType['INT4']:
-      return ColumnTypeEnum.Int32
+      return ok(ColumnTypeEnum.Int32)
     case ScalarColumnType['INT8']:
-      return ColumnTypeEnum.Int64
+      return ok(ColumnTypeEnum.Int64)
     case ScalarColumnType['FLOAT4']:
-      return ColumnTypeEnum.Float
+      return ok(ColumnTypeEnum.Float)
     case ScalarColumnType['FLOAT8']:
-      return ColumnTypeEnum.Double
+      return ok(ColumnTypeEnum.Double)
     case ScalarColumnType['BOOL']:
-      return ColumnTypeEnum.Boolean
+      return ok(ColumnTypeEnum.Boolean)
     case ScalarColumnType['DATE']:
-      return ColumnTypeEnum.Date
+      return ok(ColumnTypeEnum.Date)
     case ScalarColumnType['TIME']:
     case ScalarColumnType['TIMETZ']:
-      return ColumnTypeEnum.Time
+      return ok(ColumnTypeEnum.Time)
     case ScalarColumnType['TIMESTAMP']:
     case ScalarColumnType['TIMESTAMPTZ']:
-      return ColumnTypeEnum.DateTime
+      return ok(ColumnTypeEnum.DateTime)
     case ScalarColumnType['NUMERIC']:
     case ScalarColumnType['MONEY']:
-      return ColumnTypeEnum.Numeric
+      return ok(ColumnTypeEnum.Numeric)
     case ScalarColumnType['JSON']:
     case ScalarColumnType['JSONB']:
-      return ColumnTypeEnum.Json
+      return ok(ColumnTypeEnum.Json)
     case ScalarColumnType['UUID']:
-      return ColumnTypeEnum.Uuid
+      return ok(ColumnTypeEnum.Uuid)
     case ScalarColumnType['OID']:
-      return ColumnTypeEnum.Int64
+      return ok(ColumnTypeEnum.Int64)
     case ScalarColumnType['BPCHAR']:
     case ScalarColumnType['TEXT']:
     case ScalarColumnType['VARCHAR']:
@@ -176,23 +50,23 @@ export function fieldToColumnType(fieldType: PgType): ColumnType {
     case ScalarColumnType['INET']:
     case ScalarColumnType['CIDR']:
     case ScalarColumnType['XML']:
-      return ColumnTypeEnum.Text
+      return ok(ColumnTypeEnum.Text)
     case ScalarColumnType['BYTEA']:
-      return ColumnTypeEnum.Bytes
+      return ok(ColumnTypeEnum.Bytes)
     case ArrayColumnType.INT2_ARRAY:
     case ArrayColumnType.INT4_ARRAY:
-      return ColumnTypeEnum.Int32Array
+      return ok(ColumnTypeEnum.Int32Array)
     case ArrayColumnType.FLOAT4_ARRAY:
-      return ColumnTypeEnum.FloatArray
+      return ok(ColumnTypeEnum.FloatArray)
     case ArrayColumnType.FLOAT8_ARRAY:
-      return ColumnTypeEnum.DoubleArray
+      return ok(ColumnTypeEnum.DoubleArray)
     case ArrayColumnType.NUMERIC_ARRAY:
     case ArrayColumnType.MONEY_ARRAY:
-      return ColumnTypeEnum.NumericArray
+      return ok(ColumnTypeEnum.NumericArray)
     case ArrayColumnType.BOOL_ARRAY:
-      return ColumnTypeEnum.BooleanArray
+      return ok(ColumnTypeEnum.BooleanArray)
     case ArrayColumnType.CHAR_ARRAY:
-      return ColumnTypeEnum.CharacterArray
+      return ok(ColumnTypeEnum.CharacterArray)
     case ArrayColumnType.BPCHAR_ARRAY:
     case ArrayColumnType.TEXT_ARRAY:
     case ArrayColumnType.VARCHAR_ARRAY:
@@ -201,32 +75,35 @@ export function fieldToColumnType(fieldType: PgType): ColumnType {
     case ArrayColumnType.INET_ARRAY:
     case ArrayColumnType.CIDR_ARRAY:
     case ArrayColumnType.XML_ARRAY:
-      return ColumnTypeEnum.TextArray
+      return ok(ColumnTypeEnum.TextArray)
     case ArrayColumnType.DATE_ARRAY:
-      return ColumnTypeEnum.DateArray
+      return ok(ColumnTypeEnum.DateArray)
     case ArrayColumnType.TIME_ARRAY:
-      return ColumnTypeEnum.TimeArray
+      return ok(ColumnTypeEnum.TimeArray)
     case ArrayColumnType.TIMESTAMP_ARRAY:
-      return ColumnTypeEnum.DateTimeArray
+      return ok(ColumnTypeEnum.DateTimeArray)
     case ArrayColumnType.JSON_ARRAY:
     case ArrayColumnType.JSONB_ARRAY:
-      return ColumnTypeEnum.JsonArray
+      return ok(ColumnTypeEnum.JsonArray)
     case ArrayColumnType.BYTEA_ARRAY:
-      return ColumnTypeEnum.BytesArray
+      return ok(ColumnTypeEnum.BytesArray)
     case ArrayColumnType.UUID_ARRAY:
-      return ColumnTypeEnum.UuidArray
+      return ok(ColumnTypeEnum.UuidArray)
     case ArrayColumnType.INT8_ARRAY:
     case ArrayColumnType.OID_ARRAY:
-      return ColumnTypeEnum.Int64Array
+      return ok(ColumnTypeEnum.Int64Array)
     default:
       // Postgres Custom Types
       if (fieldType.id > maxSystemCatalogOID) {
         if (fieldType.name !== undefined && ['citext', 'ltree', 'lquery', 'ltxtquery'].includes(fieldType.name)) {
-          return ColumnTypeEnum.Text
+          return ok(ColumnTypeEnum.Text)
         }
-        return ColumnTypeEnum.Enum
+        return ok(ColumnTypeEnum.Enum)
       }
-      throw new UnsupportedNativeDataType(fieldType)
+      return err({
+        kind: 'UnsupportedNativeDataType',
+        type: fieldType.name ?? `Unknown (${fieldType.id})`,
+      })
   }
 }
 

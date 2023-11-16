@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 import type neon from '@neondatabase/serverless'
 import type {
-  ColumnType,
   DriverAdapter,
   Query,
   Queryable,
@@ -12,7 +11,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok, sequence } from '@prisma/driver-adapter-utils'
 
-import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType } from './conversion'
 import { PgTypesCache } from './pg-types'
 
 const debug = Debug('prisma:driver-adapter:neon')
@@ -39,31 +38,22 @@ abstract class NeonQueryable implements Queryable {
     }
 
     const { fields, rows } = ioResult.value
+    const columnNames = fields.map((field) => field.name)
 
-    const typesResult = sequence(await Promise.all(fields.map((field) => this.typesCache.typeById(field.dataTypeID))))
+    const columnTypesResult = sequence(
+      await Promise.all(
+        fields.map(async (field) => {
+          const type = await this.typesCache.typeById(field.dataTypeID)
+          return type.flatMap(fieldToColumnType)
+        }),
+      ),
+    )
 
-    return typesResult.flatMap((types) => {
-      const columnNames = fields.map((field) => field.name)
-      let columnTypes: ColumnType[]
-
-      try {
-        columnTypes = types.map(fieldToColumnType)
-      } catch (e) {
-        if (e instanceof UnsupportedNativeDataType) {
-          return err({
-            kind: 'UnsupportedNativeDataType',
-            type: e.type,
-          })
-        }
-        throw e
-      }
-
-      return ok({
-        columnNames,
-        columnTypes,
-        rows,
-      })
-    })
+    return columnTypesResult.map((columnTypes) => ({
+      columnNames,
+      columnTypes,
+      rows,
+    }))
   }
 
   async executeRaw(query: Query): Promise<Result<number>> {
