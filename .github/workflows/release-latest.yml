@@ -86,7 +86,7 @@ jobs:
       # TODO de-duplicate (currently duplicated in release-*.yml)
       # Docs https://octokit.github.io/rest.js/v20#git-create-tag
       - name: Create a tag on prisma-engines repository
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         id: tag-prisma-engines
         env:
           REPO_NAME: 'prisma-engines'

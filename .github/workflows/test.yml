@@ -20,6 +20,7 @@ on:
       - '.devcontainer/**'
       - '.vscode/**'
       - 'graphs/**'
+      - 'sandbox/**'
   pull_request:
     paths-ignore:
       # Any update here needs to be done for `push`, see above
@@ -36,6 +37,7 @@ on:
       - '.devcontainer/**'
       - '.vscode/**'
       - 'graphs/**'
+      - 'sandbox/**'
   workflow_dispatch:
 
 jobs:
