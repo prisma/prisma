@@ -101,6 +101,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
   constructor(client: neon.PoolClient, readonly options: TransactionOptions, typesCache: PgTypesCache) {
     super(client)
+    // Share the types cache with the main queryable
     this.typesCache = typesCache
   }
 
