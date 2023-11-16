@@ -1,6 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
-import { ProviderFlavors } from '../../_utils/providers'
+import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -9,7 +9,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(({ providerFlavor }) => {
+testMatrix.setupTestSuite(() => {
   beforeAll(async () => {
     prisma = newPrismaClient({
       log: [
@@ -49,18 +49,18 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
       },
     })
 
-    await new Promise((r) => setTimeout(r, 1000))
+    await new Promise((r) => setTimeout(r, 1_000))
   })
 
-  // TODO this test has to be skipped as is seems polluted by some state in a previous test or above, does not fail locally
-  skipTestIf(providerFlavor === ProviderFlavors.JS_LIBSQL)('findUnique batching', async () => {
+  test('findUnique batching', async () => {
     // regex for 0wCIl-826241-1694134591596
     const mySqlSchemaIdRegex = /\w+-\d+-\d+/g
+    let executedBatchQuery: string | undefined
 
     expect.assertions(2)
 
     prisma.$on('query', (event) => {
-      expect(event.query.replace(mySqlSchemaIdRegex, '').trim()).toMatchSnapshot()
+      executedBatchQuery = event.query.replace(mySqlSchemaIdRegex, '').trim()
     })
 
     const results = await Promise.all([
@@ -69,6 +69,14 @@ testMatrix.setupTestSuite(({ providerFlavor }) => {
       prisma.user.findUnique({ where: { email: copycat.email(3) } }),
       prisma.user.findUnique({ where: { email: copycat.email(4) } }),
     ])
+
+    await waitFor(() => {
+      if (executedBatchQuery === undefined) {
+        throw new Error('executedBatchQuery is undefined')
+      }
+    })
+
+    expect(executedBatchQuery).toMatchSnapshot()
 
     expect(results).toMatchInlineSnapshot(`
       [

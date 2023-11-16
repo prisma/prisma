@@ -200,8 +200,8 @@ describe('push', () => {
 
     const sqliteDbSizeAfter = ctx.fs.inspect('prisma/dev.db')!.size
 
-    expect(sqliteDbSizeBefore).toBeGreaterThan(10000)
-    expect(sqliteDbSizeAfter).toBeGreaterThan(10000)
+    expect(sqliteDbSizeBefore).toBeGreaterThan(10_000)
+    expect(sqliteDbSizeAfter).toBeGreaterThan(10_000)
     expect(sqliteDbSizeAfter).toBeLessThan(sqliteDbSizeBefore)
 
     expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`

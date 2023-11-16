@@ -1,52 +1,65 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates", ":pinAllExceptPeerDependencies"],
+  "extends": [
+    "config:recommended",
+    ":disableRateLimiting",
+    ":noUnscheduledUpdates",
+    ":pinAllExceptPeerDependencies"
+  ],
   "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "pin",
-  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-schema-wasm", "redis", "@types/redis"],
+  "ignoreDeps": [
+    "sqlite3",
+    "@prisma/engines-version",
+    "@prisma/prisma-schema-wasm",
+    "redis",
+    "@types/redis"
+  ],
+  "ignorePaths": ["sandbox/**"],
   "constraints": {
     "pnpm": "8"
   },
+  "configMigration": true,
   "packageRules": [
     {
       "groupName": "Studio",
-      "automerge": "true",
-      "packageNames": ["@prisma/studio", "@prisma/studio-server"],
-      "updateTypes": ["patch", "minor"],
+      "automerge": true,
+      "matchPackageNames": ["@prisma/studio", "@prisma/studio-server"],
+      "matchUpdateTypes": ["patch", "minor"],
       "schedule": ["at any time"]
     },
     {
-      "groupName": ["Prisma Driver Adapters"],
-      "matchPackagePatterns": "@prisma/*adapter*"
-    },
-    {
       "groupName": "checkpoint-client",
-      "packageNames": ["checkpoint-client"],
-      "updateTypes": ["patch", "minor"],
+      "matchPackageNames": ["checkpoint-client"],
+      "matchUpdateTypes": ["patch", "minor"],
       "schedule": ["at any time"]
     },
     {
       "groupName": "devDependencies patch (non-major)",
-      "automerge": "true",
-      "depTypeList": ["devDependencies"],
-      "updateTypes": ["patch"],
-      "excludePackageNames": ["@prisma/studio", "@prisma/studio-server", "checkpoint-client"],
+      "automerge": true,
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "excludePackageNames": [
+        "@prisma/studio",
+        "@prisma/studio-server",
+        "checkpoint-client"
+      ],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "dependencies patch (non-major)",
-      "depTypeList": ["dependencies"],
-      "updateTypes": ["patch"],
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["patch"],
       "excludePackageNames": ["checkpoint-client"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "ESM devDependencies & dependencies (patch & minor)",
-      "depTypeList": ["dependencies", "devDependencies"],
-      "updateTypes": ["patch", "minor"],
+      "matchDepTypes": ["dependencies", "devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
       "matchPackageNames": [
         "get-port",
         "is-obj",
@@ -84,8 +97,8 @@
     },
     {
       "groupName": "ESM devDependencies & dependencies (major)",
-      "depTypeList": ["dependencies", "devDependencies"],
-      "updateTypes": ["major"],
+      "matchDepTypes": ["dependencies", "devDependencies"],
+      "matchUpdateTypes": ["major"],
       "matchPackageNames": [
         "get-port",
         "is-obj",
@@ -123,58 +136,58 @@
     },
     {
       "groupName": "definitelyTyped",
-      "automerge": "true",
-      "packagePatterns": ["^@types/"],
-      "updateTypes": ["patch", "minor"],
+      "automerge": true,
+      "matchPackagePatterns": ["^@types/"],
+      "matchUpdateTypes": ["patch", "minor"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "Jest",
-      "automerge": "true",
+      "automerge": true,
       "matchPackagePatterns": [".*jest.*"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "sql-template-tag",
-      "packageNames": ["sql-template-tag"],
-      "updateTypes": ["patch", "minor"],
+      "matchPackageNames": ["sql-template-tag"],
+      "matchUpdateTypes": ["patch", "minor"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "node-fetch",
       "ignoreUnstable": false,
-      "packageNames": ["node-fetch"],
+      "matchPackageNames": ["node-fetch"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "tsd",
-      "packageNames": ["tsd"],
+      "matchPackageNames": ["tsd"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "npm-packlist",
-      "packageNames": ["npm-packlist"],
+      "matchPackageNames": ["npm-packlist"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "@swc/core for internals",
-      "paths": ["packages/internals/**"],
-      "packageNames": ["@swc/core"],
+      "matchFileNames": ["packages/internals/**"],
+      "matchPackageNames": ["@swc/core"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "opentelemetry packages",
-      "packagePatterns": ["^@opentelemetry/"],
+      "matchPackagePatterns": ["^@opentelemetry/"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "esbuild packages",
-      "packagePatterns": ["^esbuild"],
+      "matchPackagePatterns": ["^esbuild"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "Weekly vitess docker image version update",
-      "packageNames": ["vitess/vttestserver"],
+      "matchPackageNames": ["vitess/vttestserver"],
       "schedule": ["before 7am on Wednesday"]
     }
   ]

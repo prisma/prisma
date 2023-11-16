@@ -29,7 +29,6 @@ import {
   unApplyModelsAndClientExtensions,
 } from './core/model/applyModelsAndClientExtensions'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
-import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import {
   checkAlter,
   rawQueryArgsMapper,
@@ -46,9 +45,10 @@ import { UserArgs } from './core/request/UserArgs'
 import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { JsInputValue } from './core/types/JsApi'
+import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
+import { JsInputValue } from './core/types/exported/JsApi'
+import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
 import { getLogLevel } from './getLogLevel'
-import { itxClientDenyList } from './itxClientDenyList'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
@@ -63,7 +63,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_ENGINE_TYPE: 'binary' | 'library' | 'edge'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge'
 }
 
 // used by esbuild for tree-shaking
@@ -278,6 +278,14 @@ export type GetPrismaClientConfig = {
    * runtime, this means the client will be bound to be using the Data Proxy.
    */
   noEngine?: boolean
+
+  /**
+   * Loads the raw wasm module for the wasm query engine. This configuration is
+   * generated specifically for each type of client, eg. Node.js client and Edge
+   * clients will have different implementations.
+   * @remarks this is a callback on purpose, we only load the wasm if needed.
+   */
+  getQueryEngineWasmModule?: () => Promise<unknown>
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -321,6 +329,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         validatePrismaClientOptions(optionsArg, config)
       }
 
+      const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
+
       const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
         //
@@ -343,7 +353,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
+        (NODE_CLIENT && !adapter && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -399,6 +409,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             ),
           env: loadedEnv?.parsed ?? {},
           flags: [],
+          getQueryEngineWasmModule: config.getQueryEngineWasmModule,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
@@ -410,7 +421,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
-          adapter: options?.adapter ? bindAdapter(options.adapter) : undefined,
+          adapter,
         }
 
         debug('clientVersion', config.clientVersion)

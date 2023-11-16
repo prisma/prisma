@@ -5,7 +5,7 @@ import { Sql } from 'sql-template-tag'
 import { MiddlewareArgsMapper } from '../../getPrismaClient'
 import { mssqlPreparedStatement } from '../../utils/mssqlPreparedStatement'
 import { serializeRawParameters } from '../../utils/serializeRawParameters'
-import { RawQueryArgs } from './RawQueryArgs'
+import { RawQueryArgs } from '../types/exported/RawQueryArgs'
 
 const ALTER_RE = /^(\s*alter\s)/i
 

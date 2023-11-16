@@ -16,6 +16,7 @@ import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
+import { buildGetQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
@@ -125,7 +126,7 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
-
+${buildGetQueryEngineWasmModule(edge, engineType)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}

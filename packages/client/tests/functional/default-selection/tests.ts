@@ -1,95 +1,87 @@
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(
-  ({ provider }) => {
-    beforeAll(async () => {
-      const input: Partial<PrismaNamespace.ModelCreateInput> = {
-        value: 'Foo',
-        relation: {
-          create: {},
-        },
-      }
-
-      if (provider !== 'sqlite' && provider !== 'sqlserver') {
-        // @ts-test-if: provider !== 'sqlite' && provider !== 'sqlserver'
-        input.enum = 'A'
-      }
-
-      if (provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb') {
-        // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
-        input.list = ['Hello', 'world']
-        // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
-        input.enumList = ['A', 'B']
-      }
-
-      if (provider === 'mongodb') {
-        // @ts-test-if: provider === 'mongodb'
-        input.composite = { value: 'I am composite' }
-      }
-
-      await prisma.model.create({ data: input as PrismaNamespace.ModelCreateInput })
-    })
-
-    test('includes scalars', async () => {
-      const model = await prisma.model.findFirstOrThrow()
-
-      expect(model.id).toBeDefined()
-      expect(model.value).toBeDefined()
-      expect(model.otherId).toBeDefined()
-    })
-
-    test('does not include relations', async () => {
-      const model = await prisma.model.findFirstOrThrow()
-
-      expectTypeOf(model).not.toHaveProperty('relation')
-      expect(model).not.toHaveProperty('relation')
-    })
-
-    testIf(provider !== 'sqlite' && provider !== 'sqlserver')('includes enums', async () => {
-      const model = await prisma.model.findFirstOrThrow()
-
-      // @ts-test-if: provider !== 'sqlite' && provider !== 'sqlserver'
-      expect(model.enum).toBeDefined()
-    })
-
-    testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb')(
-      'includes lists',
-      async () => {
-        const model = await prisma.model.findFirstOrThrow()
-
-        // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
-        expect(model.list).toBeDefined()
+testMatrix.setupTestSuite(({ provider }) => {
+  beforeAll(async () => {
+    const input: Partial<PrismaNamespace.ModelCreateInput> = {
+      value: 'Foo',
+      relation: {
+        create: {},
       },
-    )
+    }
 
-    testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb')(
-      'includes enum lists',
-      async () => {
-        const model = await prisma.model.findFirstOrThrow()
+    if (provider !== Providers.SQLITE && provider !== Providers.SQLSERVER) {
+      // @ts-test-if: provider !== Providers.SQLITE && provider !== Providers.SQLSERVER
+      input.enum = 'A'
+    }
 
-        // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
-        expect(model.enumList).toBeDefined()
-      },
-    )
+    if (provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB) {
+      // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
+      input.list = ['Hello', 'world']
+      // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
+      input.enumList = ['A', 'B']
+    }
 
-    testIf(provider === 'mongodb')('includes composites', async () => {
+    if (provider === Providers.MONGODB) {
+      // @ts-test-if: provider === Providers.MONGODB
+      input.composite = { value: 'I am composite' }
+    }
+
+    await prisma.model.create({ data: input as PrismaNamespace.ModelCreateInput })
+  })
+
+  test('includes scalars', async () => {
+    const model = await prisma.model.findFirstOrThrow()
+
+    expect(model.id).toBeDefined()
+    expect(model.value).toBeDefined()
+    expect(model.otherId).toBeDefined()
+  })
+
+  test('does not include relations', async () => {
+    const model = await prisma.model.findFirstOrThrow()
+
+    expectTypeOf(model).not.toHaveProperty('relation')
+    expect(model).not.toHaveProperty('relation')
+  })
+
+  testIf(provider !== Providers.SQLITE && provider !== Providers.SQLSERVER)('includes enums', async () => {
+    const model = await prisma.model.findFirstOrThrow()
+
+    // @ts-test-if: provider !== Providers.SQLITE && provider !== Providers.SQLSERVER
+    expect(model.enum).toBeDefined()
+  })
+
+  testIf(provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB)(
+    'includes lists',
+    async () => {
       const model = await prisma.model.findFirstOrThrow()
 
-      // @ts-test-if: provider === 'mongodb'
-      expect(model.composite).toBeDefined()
-    })
-  },
-  {
-    skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
-      reason:
-        "scalar lists, here a text array, don't work yet. Unsupported column type: 1009 - tracked in https://github.com/prisma/team-orm/issues/374",
+      // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
+      expect(model.list).toBeDefined()
     },
-  },
-)
+  )
+
+  testIf(provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB)(
+    'includes enum lists',
+    async () => {
+      const model = await prisma.model.findFirstOrThrow()
+
+      // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB
+      expect(model.enumList).toBeDefined()
+    },
+  )
+
+  testIf(provider === Providers.MONGODB)('includes composites', async () => {
+    const model = await prisma.model.findFirstOrThrow()
+
+    // @ts-test-if: provider === Providers.MONGODB
+    expect(model.composite).toBeDefined()
+  })
+})

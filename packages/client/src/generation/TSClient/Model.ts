@@ -115,7 +115,7 @@ export class Model implements Generatable {
     return `
 
 
-export type ${groupByArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+export type ${groupByArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(
   groupByRootField.args
     .map((arg) => {
@@ -233,7 +233,7 @@ ${
     : ''
 }
 
-export type ${aggregateArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+export type ${aggregateArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(
   aggregateRootField.args
     .map((arg) => {
@@ -335,7 +335,9 @@ export class ModelDelegate implements Generatable {
    * @returns
    */
   private getNonAggregateActions(availableActions: DMMF.ModelAction[]): DMMF.ModelAction[] {
-    const actions = availableActions.filter((key) => key !== 'aggregate' && key !== 'groupBy' && key !== 'count')
+    const actions = availableActions.filter(
+      (key) => key !== DMMF.ModelAction.aggregate && key !== DMMF.ModelAction.groupBy && key !== DMMF.ModelAction.count,
+    )
 
     return actions
   }
@@ -356,14 +358,14 @@ export class ModelDelegate implements Generatable {
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `type ${countArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
-  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
+    ? `type ${countArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include' | 'distinct' > & {
     select?: ${getCountAggregateInputName(name)} | true
   }
 `
     : ''
 }
-export interface ${name}Delegate<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+export interface ${name}Delegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
 ${indent(`[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`, TAB_SIZE)}
 ${indent(
   nonAggregateActions
@@ -479,7 +481,7 @@ readonly fields: ${getFieldRefsTypeName(name)};
  * Because we want to prevent naming conflicts as mentioned in
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export interface Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+export interface Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: 'PrismaPromise';
 ${indent(
   fields

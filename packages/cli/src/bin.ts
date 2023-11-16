@@ -23,6 +23,7 @@ import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
+import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
@@ -106,20 +107,9 @@ async function main(): Promise<number> {
       validate: Validate.new(),
       format: Format.new(),
       telemetry: Telemetry.new(),
+      debug: DebugInfo.new(),
     },
-    [
-      'version',
-      'init',
-      'migrate',
-      'db',
-      'introspect',
-      'studio',
-      'generate',
-      'validate',
-      'format',
-      'doctor',
-      'telemetry',
-    ],
+    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
   // Execute the command

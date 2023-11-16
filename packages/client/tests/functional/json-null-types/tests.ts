@@ -6,7 +6,7 @@ declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  (_suiteConfig, _suiteMeta, clientMeta) => {
+  (_config, _suiteMeta, clientMeta) => {
     describe('nullableJsonField', () => {
       test('JsonNull', async () => {
         const data = await prisma.nullableJsonField.create({
@@ -28,8 +28,6 @@ testMatrix.setupTestSuite(
     })
 
     describe('requiredJsonField', () => {
-      // TODO adapter does not seem to make a difference between JsonNull and DbNull
-      // Error converting field "json" of expected non-nullable type "Json", found incompatible value of "null".
       test('JsonNull', async () => {
         const data = await prisma.requiredJsonField.create({
           data: {

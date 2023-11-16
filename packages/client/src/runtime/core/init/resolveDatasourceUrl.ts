@@ -31,7 +31,7 @@ export function resolveDatasourceUrl({
 
   // env var is set for use but url is undefined
   if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
-    if (TARGET_ENGINE_TYPE === 'edge' && detectRuntime() === 'workerd') {
+    if (TARGET_BUILD_TYPE === 'edge' && detectRuntime() === 'workerd') {
       throw new PrismaClientInitializationError(
         `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.
 

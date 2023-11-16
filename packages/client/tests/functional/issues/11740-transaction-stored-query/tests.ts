@@ -11,11 +11,15 @@ declare let prisma: PrismaClient
  */
 testMatrix.setupTestSuite(
   ({ providerFlavor }) => {
-    // TODO fails with: Expected instance of error
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
+    // TODO planetscale cannot snapshot this error because the id cannot be hidden
+    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
       'stored query triggered twice should fail but not exit process',
       async () => {
-        const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
+        const query = prisma.resource.create({
+          data: {
+            email: 'john@prisma.io',
+          },
+        })
 
         const result = prisma.$transaction([query, query])
 
@@ -23,11 +27,15 @@ testMatrix.setupTestSuite(
       },
     )
 
-    // TODO fails with: Expected instance of error
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_LIBSQL)(
+    // TODO planetscale cannot snapshot this error because the id cannot be hidden
+    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
       'stored query trigger .requestTransaction twice should fail',
       async () => {
-        const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
+        const query = prisma.resource.create({
+          data: {
+            email: 'john@prisma.io',
+          },
+        })
 
         const fn = async () => {
           await (query as any).requestTransaction({ kind: 'batch', lock: Promise.resolve() })

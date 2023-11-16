@@ -76,9 +76,13 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
  * @returns
  */
 function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
-  const script = new Script(conditionFromComment)
+  const script = new Script(`
+  ${conditionFromComment}
+  `)
+
   const value = script.runInNewContext({
     ...suiteConfig,
+    Providers,
   })
   return Boolean(value)
 }
@@ -116,14 +120,19 @@ export async function setupTestSuiteDatabase(
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const dbPushParams = ['--schema', schemaPath, '--skip-generate']
 
-    // we reuse and clean the db when running in single-threaded mode
-    if (process.env.JEST_MAX_WORKERS === '1') {
+    // we reuse and clean the db when it is explicitly required
+    if (process.env.TEST_REUSE_DATABASE === 'true') {
       dbPushParams.push('--force-reset')
     }
+
     await DbPush.new().parse(dbPushParams)
 
-    if (suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8) {
-      await new Promise((r) => setTimeout(r, 300)) // wait for vitess to catch up
+    if (
+      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8 ||
+      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE
+    ) {
+      // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
+      await new Promise((r) => setTimeout(r, 1_000))
     }
 
     if (alterStatementCallback) {
@@ -131,7 +140,7 @@ export async function setupTestSuiteDatabase(
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
 
-      if (provider === 'mongodb') {
+      if (provider === Providers.MONGODB) {
         throw new Error('DbExecute not supported with mongodb')
       }
 
@@ -218,7 +227,7 @@ export function setupTestSuiteDbURI(
     .with(undefined, () => getDbUrl(provider))
     .otherwise(() => getDbUrlFromFlavor(providerFlavor, provider))
 
-  if (process.env.JEST_MAX_WORKERS === '1') {
+  if (process.env.TEST_REUSE_DATABASE === 'true') {
     // we reuse and clean the same db when running in single-threaded mode
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-0000-00000000')
   } else {
@@ -274,13 +283,17 @@ function getDbUrl(provider: Providers): string {
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
 function getDbUrlFromFlavor(providerFlavor: ProviderFlavors | undefined, provider: Providers): string {
-  return match(providerFlavor)
-    .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
-    .with(ProviderFlavors.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
-    .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
-    .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
-    .with(ProviderFlavors.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
-    .otherwise(() => getDbUrl(provider))
+  return (
+    match(providerFlavor)
+      .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+      // Note: we're using Postgres 10 for Postgres (Rust driver, `pg` driver adapter),
+      // and Postgres 16 for Neon due to https://github.com/prisma/team-orm/issues/511.
+      .with(ProviderFlavors.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+      .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
+      .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+      .with(ProviderFlavors.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
+      .otherwise(() => getDbUrl(provider))
+  )
 }
 
 /**

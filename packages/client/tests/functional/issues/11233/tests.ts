@@ -35,7 +35,10 @@ testMatrix.setupTestSuite(
           break
 
         case 'mysql':
-          expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
+          // TODO the error does not match to the usual one
+          providerFlavor === ProviderFlavors.JS_PLANETSCALE
+            ? expect((result as Error).message).toContain('Query was empty (errno 1065) (sqlstate 42000)')
+            : expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
           break
 
         default:
@@ -69,7 +72,10 @@ testMatrix.setupTestSuite(
           break
 
         case 'mysql':
-          expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
+          // TODO the error does not match to the usual one
+          providerFlavor === ProviderFlavors.JS_PLANETSCALE
+            ? expect((result as Error).message).toContain('Query was empty (errno 1065) (sqlstate 42000)')
+            : expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
           break
 
         default:

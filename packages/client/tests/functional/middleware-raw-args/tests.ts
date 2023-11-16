@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -32,7 +33,7 @@ testMatrix.setupTestSuite(
     })
 
     // $executeRaw for sqlite is not allowed to return results
-    testIf(provider !== 'sqlite')('$executeRaw with template string', async () => {
+    testIf(provider !== Providers.SQLITE)('$executeRaw with template string', async () => {
       expect.assertions(1)
       const prisma = newPrismaClient()
       prisma.$use(({ args }, next) => {
@@ -44,7 +45,7 @@ testMatrix.setupTestSuite(
     })
 
     // $executeRaw for sqlite is not allowed to return results
-    testIf(provider !== 'sqlite')('$executeRaw with Prisma.sql instance', async () => {
+    testIf(provider !== Providers.SQLITE)('$executeRaw with Prisma.sql instance', async () => {
       expect.assertions(1)
       const prisma = newPrismaClient()
       prisma.$use(({ args }, next) => {
