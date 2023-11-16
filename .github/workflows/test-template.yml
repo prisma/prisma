@@ -163,7 +163,7 @@ jobs:
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
-      - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
+      - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }}
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
 
@@ -1014,7 +1014,7 @@ jobs:
           skip-tsc: true
 
       - name: Test packages/client
-        run: pnpm run test:functional:code --silent --shard ${{matrix.shard}}
+        run: pnpm run test:functional:code --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
         working-directory: packages/client
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
