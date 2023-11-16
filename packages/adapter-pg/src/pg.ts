@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
 import type {
-  ColumnType,
   DriverAdapter,
   Query,
   Queryable,
@@ -9,10 +8,11 @@ import type {
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+import { Debug, err, ok, sequence } from '@prisma/driver-adapter-utils'
 import type pg from 'pg'
 
-import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType } from './conversion'
+import { PgTypesCache } from './pg-types'
 
 const debug = Debug('prisma:driver-adapter:pg')
 
@@ -21,6 +21,7 @@ type TransactionClient = pg.PoolClient
 
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly flavour = 'postgres'
+  protected typesCache = new PgTypesCache(this)
 
   constructor(protected readonly client: ClientT) {}
 
@@ -31,33 +32,29 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const res = await this.performIO(query)
+    const ioResult = await this.performIO(query)
 
-    if (!res.ok) {
-      return err(res.error)
+    if (!ioResult.ok) {
+      return err(ioResult.error)
     }
 
-    const { fields, rows } = res.value
+    const { fields, rows } = ioResult.value
     const columnNames = fields.map((field) => field.name)
-    let columnTypes: ColumnType[] = []
 
-    try {
-      columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
-    } catch (e) {
-      if (e instanceof UnsupportedNativeDataType) {
-        return err({
-          kind: 'UnsupportedNativeDataType',
-          type: e.type,
-        })
-      }
-      throw e
-    }
+    const columnTypesResult = sequence(
+      await Promise.all(
+        fields.map(async (field) => {
+          const type = await this.typesCache.typeById(field.dataTypeID)
+          return type.flatMap(fieldToColumnType)
+        }),
+      ),
+    )
 
-    return ok({
+    return columnTypesResult.map((columnTypes) => ({
       columnNames,
       columnTypes,
       rows,
-    })
+    }))
   }
 
   /**
@@ -104,8 +101,10 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 }
 
 class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
-  constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
+  constructor(client: pg.PoolClient, readonly options: TransactionOptions, typesCache: PgTypesCache) {
     super(client)
+    // Share the types cache with the main queryable
+    this.typesCache = typesCache
   }
 
   async commit(): Promise<Result<void>> {
@@ -137,7 +136,7 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
     debug(`${tag} options: %O`, options)
 
     const connection = await this.client.connect()
-    return ok(new PgTransaction(connection, options))
+    return ok(new PgTransaction(connection, options, this.typesCache))
   }
 
   async close() {
