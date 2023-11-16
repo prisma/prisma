@@ -42,7 +42,7 @@ Optionally, if you want the environment variables to always be accessible, you c
 
 Something is broken? You built a new feature? It's time to write a test! But where?
 
-Everything related to working with specific frameworks like Next.js or deploying to Netlify should be covered by an [Ecosystem Test](https://github.com/prisma/ecosystem-tests).
+Everything related to working with specific frameworks like Next.js or using external resources like deploying to Netlify should be covered by an [Ecosystem Test](https://github.com/prisma/ecosystem-tests).
 
 Everything that is more basic functionality like a specific query or feature, that doesn't need a platform specific test (yet) should get a test in the `prisma/prisma` repo.
 
@@ -82,6 +82,34 @@ In the `prisma/prisma` repository we have a few places where you can write tests
     - sqlite
   - While these tests also test the client itself, they're rather only a base to make sure that basic query engine functionality actually works in the Prisma Client
   - When you want to test very specific queries for a new feature, you can write a functional test in the `client` package, as that's usually easier
+
+## Prisma CLI
+
+### Testing a namespace
+
+See how `db` namespace is tested in [`DbCommand.test.ts`](./packages/migrate/src/__tests__/DbCommand.test.ts)
+When creating a new namespace, a `<command>Command.test.ts` file must be created and filled with unit tests.
+
+### Testing a command
+
+See how the `init` command is tested in [`Init.test.ts`](./packages/cli/src/__tests__/commands/Init.test.ts)
+When creating a new command, a `<command>.test.ts` file must be created and filled with unit tests.
+
+### Running tests using Jest
+
+If the tests you want to run require a database, see [Docker](./docker/README.md).
+
+For running all tests
+
+```
+pnpm run test
+```
+
+For running tests for a single command use `pnpm run test <name>`
+
+```
+pnpm run test init
+```
 
 ## Prisma Client: functional tests
 

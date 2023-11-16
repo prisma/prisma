@@ -31,23 +31,9 @@ const cliInstance = CLI.new(
     // version: Version.new(),
     // validate: Validate.new(),
     // format: Format.new(),
-    // doctor: Doctor.new(),
     // telemetry: Telemetry.new(),
   },
-  [
-    'version',
-    'init',
-    'migrate',
-    'db',
-    'introspect',
-    'dev',
-    'studio',
-    'generate',
-    'validate',
-    'format',
-    'doctor',
-    'telemetry',
-  ],
+  ['version', 'init', 'migrate', 'db', 'introspect', 'dev', 'studio', 'generate', 'validate', 'format', 'telemetry'],
 )
 
 it('no params should return help', async () => {
