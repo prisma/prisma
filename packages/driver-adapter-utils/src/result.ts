@@ -4,7 +4,6 @@ export type Result<T> = {
   // common methods
   map<U>(fn: (value: T) => U): Result<U>
   flatMap<U>(fn: (value: T) => Result<U>): Result<U>
-  asyncFlatMap<U>(fn: (value: T) => Promise<Result<U>>): Promise<Result<U>>
 } & (
   | {
       readonly ok: true
@@ -26,9 +25,6 @@ export function ok<T>(value: T): Result<T> {
     flatMap(fn) {
       return fn(value)
     },
-    asyncFlatMap(fn) {
-      return fn(value)
-    },
   }
 }
 
@@ -41,9 +37,6 @@ export function err<T>(error: Error): Result<T> {
     },
     flatMap() {
       return err(error)
-    },
-    asyncFlatMap() {
-      return Promise.resolve(err(error))
     },
   }
 }
