@@ -2,7 +2,7 @@ import type neon from '@neondatabase/serverless'
 import { ok, type Query, type Result } from '@prisma/driver-adapter-utils'
 
 /**
- * PostgreSQL array column types (not defined in `import('@neondatabase/serverless).types.builtins`).
+ * PostgreSQL array column types (not defined in `import('@neondatabase/serverless').types.builtins`).
  *
  * See the semantics of each of this code in:
  *   https://github.com/postgres/postgres/blob/master/src/include/catalog/pg_type.dat
