@@ -1,3 +1,4 @@
+import { ClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { matrix } from '../../../../../helpers/blaze/matrix'
@@ -190,7 +191,7 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   }
 
   // if an engine type is specified, append it to the default generator block
-  if (matrixOptions.engineType !== undefined && defaultGeneratorMatch !== null) {
+  if (engineType !== undefined && defaultGeneratorMatch !== null) {
     const replacement = `${defaultGeneratorMatch[0]}\nengineType = "${engineType}"`
     schema = schema.replace(defaultGeneratorMatch[0], replacement)
   }
@@ -259,7 +260,7 @@ export function getTestSuiteCliMeta(): TestCliMeta {
 
   return {
     dataProxy,
-    engineType,
+    engineType: engineType ?? ClientEngineType.Library,
     runtime: edge ? 'edge' : 'node',
   }
 }
