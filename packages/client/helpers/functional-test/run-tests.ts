@@ -152,7 +152,11 @@ async function main(): Promise<number | void> {
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
 
-      if (args['--data-proxy'] || (args['--engine-type'] || process.env.PRISMA_CLIENT_ENGINE_TYPE) === 'binary') {
+      if (
+        args['--data-proxy'] ||
+        args['--engine-type'] === 'binary' ||
+        process.env.PRISMA_CLIENT_ENGINE_TYPE === 'binary'
+      ) {
         throw new Error('Driver adapters are not compatible with --data-proxy or the binary engine')
       }
     }
