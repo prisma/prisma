@@ -152,11 +152,7 @@ async function main(): Promise<number | void> {
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
 
-      if (
-        args['--data-proxy'] ||
-        args['--engine-type'] === 'binary' ||
-        process.env.PRISMA_CLIENT_ENGINE_TYPE === 'binary'
-      ) {
+      if (args['--data-proxy'] || args['--engine-type'] === 'binary') {
         throw new Error('Driver adapters are not compatible with --data-proxy or the binary engine')
       }
     }
@@ -166,6 +162,7 @@ async function main(): Promise<number | void> {
 
   if (args['--engine-type']) {
     jestCli = jestCli.withEnv({ TEST_ENGINE_TYPE: args['--engine-type'] })
+    jestCli = jestCli.withEnv({ PRISMA_CLIENT_ENGINE_TYPE: '' })
   }
 
   if (args['--data-proxy']) {
@@ -211,6 +208,10 @@ async function main(): Promise<number | void> {
     jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
   } else {
     jestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'relationMode-in-separate-gh-action'])
+  }
+
+  if (process.env.PRISMA_CLIENT_ENGINE_TYPE && !args['--engine-type']) {
+    throw new Error('Functional tests expect --engine-type to be explicitly set, not via env var')
   }
 
   try {
