@@ -759,13 +759,13 @@ importers:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
+      '@prisma/engines-version':
+        specifier: 5.7.0-5.49084afc23169e0ab97feab4626eb8145d595903
+        version: 5.7.0-5.49084afc23169e0ab97feab4626eb8145d595903
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
     devDependencies:
-      '@prisma/engines-version':
-        specifier: 5.7.0-5.49084afc23169e0ab97feab4626eb8145d595903
-        version: 5.7.0-5.49084afc23169e0ab97feab4626eb8145d595903
       '@swc/core':
         specifier: 1.3.96
         version: 1.3.96
