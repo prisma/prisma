@@ -5,8 +5,8 @@
   "scripts": {},
   "dependencies": {
     "@libsql/client": "^0.3.5",
-    "@prisma/adapter-libsql": "^0.5.0",
-    "@prisma/adapter-pg": "^0.6.0",
+    "@prisma/adapter-libsql": "^5.0.0",
+    "@prisma/adapter-pg": "^5.0.0",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
     "pg": "^8.11.3"
   },
