@@ -33,10 +33,10 @@ export async function sendPanic({
   getDatabaseVersionSafe,
 }: SendPanic): Promise<number> {
   const schema: string | undefined = match(error)
-    .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
+    .with({ schemaPath: P.not(P.nullish) }, (err) => {
       return fs.readFileSync(err.schemaPath, 'utf-8')
     })
-    .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
+    .with({ schema: P.not(P.nullish) }, (err) => err.schema)
     .otherwise(() => undefined)
 
   const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined

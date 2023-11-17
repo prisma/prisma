@@ -8,11 +8,10 @@ import type { Prisma, PrismaClient } from './node_modules/.prisma/client'
 
 let prisma: PrismaClient
 let PrismaUtil: typeof Prisma
-const baseUri = process.env.TEST_MYSQL_URI
 describe('json-filtering(mysql)', () => {
   beforeAll(async () => {
-    process.env.TEST_MYSQL_URI += '-json-filtering'
-    await tearDownMysql(process.env.TEST_MYSQL_URI!)
+    process.env.DATABASE_URL = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-json-filtering')
+    await tearDownMysql(process.env.DATABASE_URL)
     await migrateDb({
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
@@ -58,7 +57,6 @@ describe('json-filtering(mysql)', () => {
   afterAll(async () => {
     await prisma.user.deleteMany()
     await prisma.$disconnect()
-    process.env.TEST_MYSQL_URI = baseUri
   })
 
   test('lt(2)', async () => {

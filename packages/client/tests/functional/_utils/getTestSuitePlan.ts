@@ -2,7 +2,7 @@ import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
-import { flavorsForProvider, ProviderFlavors, relationModesForFlavor } from './providers'
+import { flavorsForProvider, ProviderFlavors, Providers, relationModesForFlavor } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { MatrixOptions, TestCliMeta } from './types'
 
@@ -117,7 +117,7 @@ function shouldSkipSuiteConfig(
   }
 
   // if the client doesn't support the provider, skip
-  if (testCliMeta.dataProxy && provider === 'sqlite') {
+  if (testCliMeta.dataProxy && provider === Providers.SQLITE) {
     return true
   }
 
@@ -147,7 +147,12 @@ function shouldSkipSuiteConfig(
   }
 
   // if there is a relation mode set and the flavor doesn't support it, skip
-  if (flavor !== undefined && relationMode !== undefined && relationMode !== relationModesForFlavor[flavor]) {
+  if (
+    flavor !== undefined &&
+    relationMode !== undefined &&
+    relationModesForFlavor[flavor] !== undefined &&
+    relationMode !== relationModesForFlavor[flavor]
+  ) {
     return true
   }
 

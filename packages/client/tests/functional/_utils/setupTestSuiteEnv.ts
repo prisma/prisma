@@ -76,9 +76,13 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
  * @returns
  */
 function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
-  const script = new Script(conditionFromComment)
+  const script = new Script(`
+  ${conditionFromComment}
+  `)
+
   const value = script.runInNewContext({
     ...suiteConfig,
+    Providers,
   })
   return Boolean(value)
 }
@@ -136,7 +140,7 @@ export async function setupTestSuiteDatabase(
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
 
-      if (provider === 'mongodb') {
+      if (provider === Providers.MONGODB) {
         throw new Error('DbExecute not supported with mongodb')
       }
 
@@ -279,13 +283,17 @@ function getDbUrl(provider: Providers): string {
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
 function getDbUrlFromFlavor(providerFlavor: ProviderFlavors | undefined, provider: Providers): string {
-  return match(providerFlavor)
-    .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
-    .with(ProviderFlavors.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
-    .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
-    .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
-    .with(ProviderFlavors.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
-    .otherwise(() => getDbUrl(provider))
+  return (
+    match(providerFlavor)
+      .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+      // Note: we're using Postgres 10 for Postgres (Rust driver, `pg` driver adapter),
+      // and Postgres 16 for Neon due to https://github.com/prisma/team-orm/issues/511.
+      .with(ProviderFlavors.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+      .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
+      .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+      .with(ProviderFlavors.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
+      .otherwise(() => getDbUrl(provider))
+  )
 }
 
 /**

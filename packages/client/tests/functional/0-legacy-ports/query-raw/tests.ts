@@ -1,6 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
-import { ProviderFlavors } from '../../_utils/providers'
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -43,7 +43,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO snapshot for planetscale is `":vtg1 /* INT64 */": 1n` while mysql is `"1": 1n`, maybe it's normal?
-    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('select 1 via queryRaw', async () => {
+    test('select 1 via queryRaw', async () => {
       const result: any = await prisma.$queryRaw`
         SELECT 1
       `
@@ -55,7 +55,15 @@ testMatrix.setupTestSuite(
         sqlserver: [{ '': 1 }],
       }
 
-      expect(result).toStrictEqual(results[provider])
+      const resultsByDriverAdapter = {
+        js_planetscale: [{ ':vtg1 /* INT64 */': BigInt('1') }],
+      }
+
+      if (providerFlavor && resultsByDriverAdapter[providerFlavor]) {
+        expect(result).toStrictEqual(resultsByDriverAdapter[providerFlavor])
+      } else {
+        expect(result).toStrictEqual(results[provider])
+      }
     })
 
     test('select 1 via queryRawUnsafe', async () => {
@@ -90,7 +98,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO snapshot for planetscale is `":vtg1 /* INT64 */": 1n` while mysql is `"1": 1n`, maybe it's normal?
-    skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('select values via queryRawUnsafe', async () => {
+    test('select values via queryRawUnsafe', async () => {
       const result: any = await prisma.$queryRawUnsafe(`
         SELECT 1
       `)
@@ -103,12 +111,20 @@ testMatrix.setupTestSuite(
         sqlserver: [{ '': 1 }],
       }
 
-      expect(result).toStrictEqual(results[provider])
+      const resultsByDriverAdapter = {
+        js_planetscale: [{ ':vtg1 /* INT64 */': BigInt('1') }],
+      }
+
+      if (providerFlavor && resultsByDriverAdapter[providerFlavor]) {
+        expect(result).toStrictEqual(resultsByDriverAdapter[providerFlavor])
+      } else {
+        expect(result).toStrictEqual(results[provider])
+      }
     })
 
     test('select * via queryRawUnsafe', async () => {
       let result: any[] = []
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRawUnsafe(`
           SELECT * FROM User WHERE age >= ${45} AND age <= ${60}
         `)
@@ -140,9 +156,9 @@ testMatrix.setupTestSuite(
 
     test('select * via queryRawUnsafe with values', async () => {
       let result: any[] = []
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM User WHERE age >= ? AND age <= ?`, 45, 60)
-      } else if (provider === 'sqlserver') {
+      } else if (provider === Providers.SQLSERVER) {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM "User" WHERE age >= @P1 AND age <= @P2`, 45, 60)
       } else {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM "User" WHERE age >= $1 AND age <= $2`, 45, 60)
@@ -170,7 +186,7 @@ testMatrix.setupTestSuite(
 
     test('select * via queryRaw', async () => {
       let result: any[] = []
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRaw`
           SELECT * FROM User WHERE age >= ${45} AND age <= ${60}
         `
@@ -203,7 +219,7 @@ testMatrix.setupTestSuite(
     test('select fields via queryRaw using Prisma.join', async () => {
       let result: any[] = []
 
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRaw`
           SELECT ${Prisma.join([
             Prisma.raw('age'),
@@ -242,7 +258,7 @@ testMatrix.setupTestSuite(
     test('select fields via queryRaw using Prisma.join and Prisma.sql', async () => {
       let result: any[] = []
 
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         result = await prisma.$queryRaw(Prisma.sql`
           SELECT ${Prisma.join([
             Prisma.raw('age'),

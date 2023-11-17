@@ -1,34 +1,35 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 
 export default defineMatrix(() => [
   [
     {
-      provider: 'sqlite',
+      provider: Providers.SQLITE,
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'mysql',
+      provider: Providers.MYSQL,
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'sqlserver',
+      provider: Providers.SQLSERVER,
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'cockroachdb',
+      provider: Providers.COCKROACHDB,
       id: 'BigInt @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'mongodb',
+      provider: Providers.MONGODB,
       id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
       providerFeatures: '"mongoDb", ',
     },

@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.utils.typecheck.json",
   "include": ["./**/*", ".eslintrc.js"],
-  // same list as in tsconfig.regular.json, minus extra test exclusion and reproductions
+  // same list as in tsconfig.regular.json, minus extra test exclusion and sandbox
   "exclude": [
     "**/dist",
     "**/build",

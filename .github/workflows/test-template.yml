@@ -380,7 +380,7 @@ jobs:
       - run: pnpm run test:memory
         working-directory: packages/client
 
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         if: ${{ failure() && github.event_name == 'pull_request' }}
         id: upload-report
         env:
@@ -937,6 +937,16 @@ jobs:
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}
+
+      - run: pnpm run test
+        name: 'adapter-planetscale'
+        working-directory: packages/adapter-planetscale
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/adapter-planetscale/src/__tests__/coverage/clover.xml
+          flags: adapter-planetscale,${{ matrix.os }},library,binary
+          name: adapter-planetscale-${{ matrix.os }}
 
       - run: pnpm run test
         name: 'instrumentation'

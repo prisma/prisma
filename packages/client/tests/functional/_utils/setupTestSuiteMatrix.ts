@@ -95,16 +95,22 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
+          const client = new globalThis['loaded']['PrismaClient']({
+            // each Prisma Client instance uses its own instance of
+            // the driver adapter, and the driver adapter is only first instantiated
+            // when creating the first Prisma Client instance.
+            ...newDriverAdapter(),
+            ...args,
+          })
           clients.push(client)
           return client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']({ ...driverAdapter })
+          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
@@ -138,12 +144,13 @@ function setupTestSuiteMatrix(
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
+
           if (clientMeta.dataProxy) {
             await stopMiniProxyQueryEngine(client, globalThis['datasourceInfo'])
           }
         }
         clients.length = 0
-        // CI=false: Only drop the db if not skipped, and if the db does not need to be reused. 
+        // CI=false: Only drop the db if not skipped, and if the db does not need to be reused.
         // CI=true always skip to save time
         if (options?.skipDb !== true && process.env.TEST_REUSE_DATABASE !== 'true' && process.env.CI !== 'true') {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo

@@ -126,6 +126,9 @@ export const process: NodeJS.Process = {
   setgid: noop(undefined),
   setgroups: noop(undefined),
   setuid: noop(undefined),
+  // See https://nodejs.org/api/process.html#processsourcemapsenabled
+  // Added in: v20.7.0
+  sourceMapsEnabled: false,
   stderr: {
     fd: 2,
   } as any,

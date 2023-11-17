@@ -144,13 +144,13 @@ export class Init implements Command {
   Set up a new Prisma project and specify MySQL as the datasource provider to use
     ${dim('$')} prisma init --datasource-provider mysql
 
-  Set up a new Prisma project and specify prisma-client-go as the generator provider to use
+  Set up a new Prisma project and specify \`prisma-client-go\` as the generator provider to use
     ${dim('$')} prisma init --generator-provider prisma-client-go
 
-  Set up a new Prisma project and specify x and y as the preview features to use
+  Set up a new Prisma project and specify \`x\` and \`y\` as the preview features to use
     ${dim('$')} prisma init --preview-feature x --preview-feature y
 
-  Set up a new Prisma project and specify ./generated-client as the output path to use
+  Set up a new Prisma project and specify \`./generated-client\` as the output path to use
     ${dim('$')} prisma init --output ./generated-client
   
   Set up a new Prisma project and specify the url that will be used
