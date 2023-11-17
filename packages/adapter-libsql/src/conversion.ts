@@ -1,5 +1,3 @@
-import { isArrayBuffer } from 'node:util/types'
-
 import { Row, Value } from '@libsql/client'
 import { ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
 
@@ -111,7 +109,7 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
 }
 
 function inferObjectType(value: {}): ColumnType {
-  if (isArrayBuffer(value)) {
+  if (value instanceof ArrayBuffer) {
     return ColumnTypeEnum.Bytes
   }
   throw new UnexpectedTypeError(value)
@@ -138,7 +136,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
     // Base64 would've been more efficient but would collide with the existing
     // logic that treats string values of type Bytes as raw UTF-8 bytes that was
     // implemented for other adapters.
-    if (isArrayBuffer(value)) {
+    if (value instanceof ArrayBuffer) {
       result[i] = Array.from(new Uint8Array(value))
       continue
     }
