@@ -3,8 +3,7 @@ const process = require('node:process')
 const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
 
 export function main() {
-  // Node.js version, without the `v` prefix (e.g. `16.13.0`)
-  const nodeVersion = process.versions.node
+  const nodeVersion = process.version.slice(1)
 
   printMessageAndExitIfUnsupportedNodeVersion(nodeVersion)
 }
@@ -16,10 +15,18 @@ function extractSemanticVersionParts(version) {
     .map((v) => parseInt(v, 10))
 }
 
+/**
+ * Given a Node.js version (e.g. `v16.13.0`), prints an error and exits the process
+ * if the Node.js version is not supported by Prisma.
+ */
 export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion) {
+  // Node.js version, without the `v` prefix (e.g. `16.13.0`)
+  const semanticNodeVersion = nodeVersion.slice(1)
+  const [nodeMajorVersion, nodeMinorVersion] = extractSemanticVersionParts(semanticNodeVersion)
+
+  // Minimum Node.js version supported by Prisma
   const MIN_NODE_VERSION = '16.13'
   const [MIN_NODE_MAJOR_VERSION, MIN_NODE_MINOR_VERSION] = extractSemanticVersionParts(MIN_NODE_VERSION)
-  const [nodeMajorVersion, nodeMinorVersion] = extractSemanticVersionParts(nodeVersion)
 
   if (
     nodeMajorVersion < MIN_NODE_MAJOR_VERSION ||
