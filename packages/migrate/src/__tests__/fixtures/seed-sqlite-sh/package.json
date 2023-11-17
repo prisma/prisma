@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "16.18.11"
+    "@types/node": "20.9.1"
   },
   "prisma": {
     "seed": "./prisma/seed.sh"

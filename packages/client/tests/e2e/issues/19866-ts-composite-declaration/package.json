@@ -8,7 +8,7 @@
     "typescript": "4.9.4"
   },
   "devDependencies": {
-    "@types/node": "16.18.11",
+    "@types/node": "20.9.1",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   }
 }
