@@ -317,7 +317,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   if (getClientEngineType(generator) === ClientEngineType.Wasm) {
     const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
     const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
-    await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
+
+    const copyOrSymlink = testMode ? fs.symlink : fs.copyFile
+    await copyOrSymlink(queryEngineWasmFilePath, queryEngineWasmTargetPath)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')

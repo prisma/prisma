@@ -12,7 +12,7 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 
 import { Providers, RelationModes } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
@@ -84,7 +84,7 @@ afterAll(() => {
   context.disable()
 })
 
-testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode, engineType }, _suiteMeta, clientMeta) => {
   const isMongoDb = provider === Providers.MONGODB
 
   const usesSyntheticTxQueries =
@@ -196,7 +196,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode }, _suiteMet
   }
 
   function engineSerializeFinalResponse() {
-    if (clientMeta.dataProxy || getClientEngineType() === ClientEngineType.Binary) {
+    if (clientMeta.dataProxy || engineType === ClientEngineType.Binary) {
       return []
     }
     return [{ name: 'prisma:engine:response_json_serialization' }]
