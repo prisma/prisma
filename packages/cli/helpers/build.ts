@@ -58,12 +58,31 @@ const cliLifecyclePlugin: esbuild.Plugin = {
   },
 }
 
+/**
+ * Marks package.json as an external, regardless of specific import path used
+ */
+const externalPackageJson: esbuild.Plugin = {
+  name: 'externalPackageJson',
+  setup(build) {
+    const pkgJson = path.resolve(__dirname, '..', 'package.json')
+    const outfile = path.resolve(build.initialOptions.outfile!)
+    const outdir = path.dirname(outfile)
+    const pkgJsonRelative = path.relative(outdir, pkgJson)
+    build.onResolve({ filter: /package\.json$/ }, (args) => {
+      if (path.resolve(args.resolveDir, args.path) == pkgJson) {
+        return { path: pkgJsonRelative, external: true }
+      }
+      return undefined
+    })
+  },
+}
+
 // we define the config for cli
 const cliBuildConfig: BuildOptions = {
   name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
-  plugins: [cliLifecyclePlugin],
+  plugins: [cliLifecyclePlugin, externalPackageJson],
   bundle: true,
   emitTypes: false,
   minify: true,
@@ -79,7 +98,16 @@ const preinstallBuildConfig: BuildOptions = {
   minify: true,
 }
 
-void build([cliBuildConfig, preinstallBuildConfig])
+const migrateBuildConfig: BuildOptions = {
+  name: 'migrate',
+  entryPoints: ['src/migrate/index.ts'],
+  outfile: 'build/migrate',
+  external: ['@prisma/engines'],
+  plugins: [externalPackageJson],
+  bundle: true,
+}
+
+void build([cliBuildConfig, preinstallBuildConfig, migrateBuildConfig])
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

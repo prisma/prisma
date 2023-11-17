@@ -1,5 +1,4 @@
-import { DbDrop, DbPush } from '@prisma/migrate'
-
+import { DbDrop, DbPush } from '../../../../cli/src/migrate'
 import { MemoryTestDir } from './MemoryTestDir'
 
 /**

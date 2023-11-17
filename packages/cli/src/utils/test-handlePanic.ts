@@ -1,7 +1,8 @@
 import { handlePanic } from '@prisma/internals'
-import { SchemaEngine } from '@prisma/migrate'
 import fs from 'fs'
 import path from 'path'
+
+import { SchemaEngine } from '../migrate'
 
 async function main() {
   const packageJsonVersion = '0.0.0'

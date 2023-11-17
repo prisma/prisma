@@ -14,7 +14,6 @@
   "devDependencies": {
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
-    "@prisma/migrate": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@swc/core": "1.3.96",
     "@swc/jest": "0.2.29",

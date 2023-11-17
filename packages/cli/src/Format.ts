@@ -1,7 +1,8 @@
 import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import fs from 'fs'
 import { bold, dim, red, underline } from 'kleur/colors'
+
+import { getSchemaPathAndPrint } from './migrate'
 
 /**
  * $ prisma format

@@ -1,4 +1,3 @@
-import { SchemaEngine } from '@prisma/migrate'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import type { FSJetpack } from 'fs-jetpack/types'

@@ -18,7 +18,6 @@ import {
   missingGeneratorMessage,
   parseEnvValue,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
@@ -27,6 +26,7 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
+import { getSchemaPathAndPrint } from './migrate'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
 

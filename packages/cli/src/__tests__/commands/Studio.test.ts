@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
 
-import { DbPush } from '../../../../migrate/src/commands/DbPush'
+import { DbPush } from '../../migrate'
 import { Studio } from '../../Studio'
 
 const originalEnv = { ...process.env }

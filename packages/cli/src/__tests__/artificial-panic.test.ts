@@ -1,9 +1,9 @@
 import { jestContext } from '@prisma/get-platform'
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import { getDMMF, isRustPanic } from '@prisma/internals'
-import { DbPull } from '@prisma/migrate'
 
 import { Format } from '../Format'
+import { DbPull } from '../migrate'
 import { Validate } from '../Validate'
 
 const ctx = jestContext.new().assemble()

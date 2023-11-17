@@ -11,13 +11,14 @@ import {
   loadEnvFile,
   resolveUrl,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
 import fs from 'fs'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
+
+import { getSchemaPathAndPrint } from './migrate'
 
 // Note that we have a test relying on the namespace
 // Any change to the namespace must be done in the test as well

@@ -1,4 +1,4 @@
-import { DbPush } from '@prisma/migrate'
+import { DbPush } from '../../../../../cli/src/migrate'
 
 /**
  * Creates/Resets the database and apply necessary SQL to be in sync with the provided Prisma schema

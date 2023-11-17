@@ -1,7 +1,7 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { DbPull } from '@prisma/migrate'
 
 import { CLI } from '../../CLI'
+import { DbPull } from '../../migrate'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

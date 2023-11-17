@@ -3,6 +3,14 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
+import { bold, red } from 'kleur/colors'
+import path from 'path'
+
+import { CLI } from './CLI'
+import { DebugInfo } from './DebugInfo'
+import { Format } from './Format'
+import { Generate } from './Generate'
+import { Init } from './Init'
 import {
   DbCommand,
   DbExecute,
@@ -18,15 +26,7 @@ import {
   MigrateReset,
   MigrateResolve,
   MigrateStatus,
-} from '@prisma/migrate'
-import { bold, red } from 'kleur/colors'
-import path from 'path'
-
-import { CLI } from './CLI'
-import { DebugInfo } from './DebugInfo'
-import { Format } from './Format'
-import { Generate } from './Generate'
-import { Init } from './Init'
+} from './migrate'
 import { Platform } from './platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
