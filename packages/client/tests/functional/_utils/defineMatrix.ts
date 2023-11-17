@@ -25,6 +25,7 @@ type TestsFactoryFn<MatrixT extends TestSuiteMatrix> = (
     provider: Providers
     providerFlavor?: ProviderFlavors
     relationMode?: RelationModes
+    engineType?: 'binary' | 'library' | 'wasm'
   },
   suiteMeta: TestCallbackSuiteMeta,
   clientMeta: ClientMeta,
