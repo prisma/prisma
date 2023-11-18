@@ -60,7 +60,7 @@ async function main() {
   }
 
   // if process is killed by hand, ensure that package.json is restored
-  // process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
+  process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
 
   // we prepare to replace references to local packages with their tarballs names
   const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
@@ -79,8 +79,6 @@ async function main() {
 
     await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
   }
-
-  process.exit(0)
 
   try {
     if (args['--skipBuild'] !== true) {
