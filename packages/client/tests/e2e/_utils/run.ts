@@ -60,11 +60,11 @@ async function main() {
   }
 
   // if process is killed by hand, ensure that package.json is restored
-  process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
+  // process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
 
   // we prepare to replace references to local packages with their tarballs names
   const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
-  const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma${p}`), 'prisma']
+  const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma']
   const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
   const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
   const allPkgJson = allPkgJsonPaths.map((p) => require(p))
@@ -79,6 +79,8 @@ async function main() {
 
     await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
   }
+
+  process.exit(0)
 
   try {
     if (args['--skipBuild'] !== true) {
