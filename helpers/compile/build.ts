@@ -49,7 +49,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
   plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
-  external: getProjectExternals(options),
+  external: [...(options.external ?? []), ...getProjectExternals(options)],
 })
 
 /**
@@ -224,10 +224,10 @@ function getProjectExternals(options: BuildOptions) {
   const regDeps = Object.keys(pkg.dependencies ?? {})
 
   // when bundling, only the devDeps will be bundled
-  if (options.bundle === true) {
+  if (!process.env.IGNORE_EXTERNALS && options.bundle === true) {
     return [...new Set([...peerDeps, ...regDeps])]
   }
 
-  // otherwise, no dependency will be ever bundled
-  return undefined
+  // otherwise, all the dependencies will be bundled
+  return []
 }
