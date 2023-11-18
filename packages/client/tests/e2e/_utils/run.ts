@@ -62,16 +62,18 @@ async function main() {
   // if process is killed by hand, ensure that package.json is restored
   process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
 
+  // we prepare to replace references to local packages with tarballs names
   const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
+  const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma${p}`), 'prisma']
   const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
   const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
-  const allPkgJson = allPackageFolders.map((p) => require(p))
+  const allPkgJson = allPkgJsonPaths.map((p) => require(p))
 
   // replace references to unbundled local packages with built and packaged tarballs
   for (let i = 0; i < allPkgJson.length; i++) {
-    for (const key of Object.keys(allPkgJson[i].dependencies)) {
-      if (key.startsWith('@prisma/')) {
-        allPkgJson[i].dependencies[key] = `/tmp/${key.replace('@', '').replace('/', '-')}-0.0.0.tgz`
+    for (const key of Object.keys(allPkgJson[i].dependencies ?? {})) {
+      if (localPackageNames.includes(key)) {
+        allPkgJson[i].dependencies[key] = `/tmp/${key.replace('@prisma/', 'prisma-')}-0.0.0.tgz`
       }
     }
 
