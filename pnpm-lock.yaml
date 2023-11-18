@@ -844,10 +844,11 @@ importers:
         version: 5.2.2
 
   packages/generator-helper:
-    devDependencies:
+    dependencies:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
+    devDependencies:
       '@swc-node/register':
         specifier: 1.6.8
         version: 1.6.8(@swc/core@1.3.96)(typescript@5.2.2)
