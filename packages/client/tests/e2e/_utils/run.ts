@@ -62,7 +62,7 @@ async function main() {
   // if process is killed by hand, ensure that package.json is restored
   process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
 
-  // we prepare to replace references to local packages with tarballs names
+  // we prepare to replace references to local packages with their tarballs names
   const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
   const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma${p}`), 'prisma']
   const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
@@ -88,7 +88,7 @@ async function main() {
     }
 
     if (args['--skipPack'] !== true) {
-      await $`pnpm -r exec pnpm pack --pack-destination`
+      await $`pnpm -r exec pnpm pack --pack-destination /tmp/`
     }
   } catch (e) {
     console.log(e.message)
