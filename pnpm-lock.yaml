@@ -719,7 +719,7 @@ importers:
         version: 4.1.12
 
   packages/engines:
-    devDependencies:
+    dependencies:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -732,6 +732,7 @@ importers:
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
+    devDependencies:
       '@swc/core':
         specifier: 1.3.96
         version: 1.3.96
@@ -3165,6 +3166,7 @@ packages:
 
   /@prisma/engines-version@5.7.0-5.49084afc23169e0ab97feab4626eb8145d595903:
     resolution: {integrity: sha512-Te1uZauBs9VzfISVyNzS7teUD2VtJtrJKinbDNEDIEMzY3Tnw2xLoPYqRydjxX8WutmT0C9Lleat+wNtHmFKYw==}
+    dev: false
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}

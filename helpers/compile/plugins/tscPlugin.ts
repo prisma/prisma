@@ -11,9 +11,21 @@ import { run } from '../run'
  * @param outfile the output bundled file
  */
 function bundleTypeDefinitions(filename: string, outfile: string, externals: string[]) {
-  const { dependencies, devDependencies } = require(`${process.cwd()}/package.json`)
-  const deps = Object.keys({ ...(dependencies ?? {}), ...(devDependencies ?? {}) })
-  const bundledPackages = deps.filter((dep) => !externals.includes(dep))
+  const { dependencies, peerDependencies, devDependencies } = require(`${process.cwd()}/package.json`)
+
+  const dependenciesKeys = Object.keys(dependencies ?? {}).flatMap((p) => {
+    return p.startsWith('@') ? [p] : [p, `@types/${p}`]
+  })
+  const peerDependenciesKeys = Object.keys(peerDependencies ?? {}).flatMap((p) => {
+    return p.startsWith('@') ? [p] : [p, `@types/${p}`]
+  })
+  const devDependenciesKeys = Object.keys(devDependencies ?? {}).flatMap((p) => {
+    return p.startsWith('@') ? [p] : [p, `@types/${p}`]
+  })
+
+  const includeDeps = devDependenciesKeys
+  const excludeDeps = [...dependenciesKeys, ...peerDependenciesKeys, ...externals]
+  const bundledPackages = includeDeps.filter((dep) => !excludeDeps.includes(dep))
 
   // we give the config in its raw form instead of a file
   const extractorConfig = ExtractorConfig.prepare({
