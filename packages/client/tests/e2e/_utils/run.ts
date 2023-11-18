@@ -52,11 +52,11 @@ async function main() {
   console.log('🎠 Preparing e2e tests')
 
   // this process will need to modify some package.json, we save copies
-  await $`pnpm -r exec cp package.json "/tmp/$(basename $(pwd)).package.json"`
+  await $`pnpm -r exec cp package.json copy.package.json`
 
   // we provide a function that can revert modified package.json back
   const restoreOriginal = async () => {
-    await $`pnpm -r exec cp "/tmp/$(basename $(pwd)).package.json" package.json`
+    await $`pnpm -r exec cp copy.package.json package.json`
   }
 
   // if process is killed by hand, ensure that package.json is restored
@@ -109,7 +109,8 @@ async function main() {
   }
 
   const dockerVolumes = [
-    ...[allPackageFolderNames, 'prisma'].map((p) => `/tmp/${p}-0.0.0.tgz:/tmp/${p}-0.0.0.tgz`),
+    `/tmp/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`, // hardcoded because folder doesn't match name
+    ...allPackageFolderNames.map((p) => `/tmp/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
     `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
     `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
