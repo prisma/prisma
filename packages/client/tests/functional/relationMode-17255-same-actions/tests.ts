@@ -3,13 +3,10 @@ import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
+/* eslint-disablejest/no-identical-title */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
-
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 // 1:1 relation
 async function createXItems({ count }) {
@@ -40,7 +37,7 @@ async function createXItems({ count }) {
 }
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (suiteConfig) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
       .with('providerFlavor', suiteConfig.providerFlavor)
@@ -92,11 +89,9 @@ testMatrix.setupTestSuite(
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                   [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
-                  [ProviderFlavors.JS_PG]:
-                    'update or delete on table "Alice" violates foreign key constraint "Main_aliceId_fkey" on table "Main"',
-                  [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
-                  [ProviderFlavors.JS_PLANETSCALE]:
-                    "The change you are trying to make would violate the required relation 'AliceToMain' between the `Main` and `Alice` models.",
+                  [ProviderFlavors.JS_PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
+                  [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [ProviderFlavors.JS_PLANETSCALE]: 'Foreign key constraint failed on the field: `aliceId',
                 },
                 prisma: errors[onDelete],
               }),

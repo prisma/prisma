@@ -8,16 +8,21 @@ on:
       - 'integration/*'
       - '*.*.x'
     paths-ignore:
+      # Any update here needs to be done for
+      # all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
       - '*.md'
+      - '*.bench.ts'
+      - 'LICENSE'
+      - '.dockerignore'
+      # - 'scripts/ci/publish.ts' -> should not be ignored in this workflow
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
       - '.vscode/**'
-      - '.github/ISSUE_TEMPLATE/**'
-      - 'LICENSE'
-      - '.github/CODEOWNERS'
-      - '.github/DISCUSSION_TEMPLATE/**'
-      - '.dockerignore'
-      - '*.bench.ts'
       - 'graphs/**'
+      - 'sandbox/**'
   workflow_dispatch:
     inputs:
       dryRun:
@@ -84,7 +89,7 @@ jobs:
       # TODO de-duplicate (currently duplicated in release-*.yml)
       # Docs https://octokit.github.io/rest.js/v20#git-create-tag
       - name: Create a tag on prisma-engines repository
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         id: tag-prisma-engines
         env:
           REPO_NAME: 'prisma-engines'

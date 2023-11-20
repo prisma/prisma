@@ -27,25 +27,25 @@
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "bench-stdout-only": "ts-node scripts/bench.ts",
     "prepare": "is-ci || husky install",
-    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /reproductions",
+    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
     "size": "pnpm run build && pnpm size-limit"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.38.0",
+    "@microsoft/api-extractor": "7.38.3",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "9.0.0",
-    "@slack/webhook": "7.0.0",
-    "@types/benchmark": "2.1.4",
+    "@slack/webhook": "7.0.1",
+    "@types/benchmark": "2.1.5",
     "@types/fs-extra": "9.0.13",
-    "@types/graphviz": "0.0.37",
-    "@types/jest": "29.5.7",
-    "@types/node": "20.8.9",
+    "@types/graphviz": "0.0.38",
+    "@types/jest": "29.5.8",
+    "@types/node": "20.9.0",
     "@types/redis": "2.8.32",
-    "@types/resolve": "1.20.4",
-    "@typescript-eslint/eslint-plugin": "6.9.0",
-    "@typescript-eslint/parser": "6.9.0",
-    "@typescript-eslint/utils": "6.9.0",
+    "@types/resolve": "1.20.5",
+    "@typescript-eslint/eslint-plugin": "6.10.0",
+    "@typescript-eslint/parser": "6.10.0",
+    "@typescript-eslint/utils": "6.10.0",
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
     "buffer": "6.0.3",
@@ -53,7 +53,7 @@
     "dotenv-cli": "7.3.0",
     "esbuild": "0.19.5",
     "esbuild-register": "3.5.0",
-    "eslint": "8.52.0",
+    "eslint": "8.53.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.29.0",
@@ -70,7 +70,7 @@
     "is-ci": "3.0.1",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
-    "lint-staged": "15.0.2",
+    "lint-staged": "15.1.0",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
     "p-retry": "4.6.2",
@@ -88,7 +88,7 @@
     "staged-git-files": "1.3.0",
     "ts-node": "10.9.1",
     "ts-toolbelt": "9.6.0",
-    "tsup": "7.2.0",
+    "tsup": "7.3.0",
     "tty-browserify": "0.0.1",
     "typescript": "5.2.2",
     "util": "0.12.5",
@@ -109,11 +109,11 @@
   },
   "size-limit": [
     {
-      "path": "packages/client/runtime/library.d.ts",
+      "path": "packages/client/runtime/library.js",
       "gzip": false
     },
     {
-      "path": "packages/client/runtime/library.js",
+      "path": "packages/client/runtime/library.d.ts",
       "gzip": false
     },
     {
@@ -121,7 +121,23 @@
       "gzip": false
     },
     {
+      "path": "packages/client/runtime/binary.d.ts",
+      "gzip": false
+    },
+    {
       "path": "packages/client/runtime/edge.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/edge-esm.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/index-browser.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/index-browser.d.ts",
       "gzip": false
     },
     {
