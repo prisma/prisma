@@ -74,7 +74,6 @@
     "extension.d.ts"
   ],
   "devDependencies": {
-    "@prisma/engines-version": "5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1",
     "@codspeed/benchmark.js-plugin": "2.3.1",
     "@faker-js/faker": "8.3.1",
     "@fast-check/jest": "1.7.3",
@@ -97,6 +96,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
+    "@prisma/engines-version": "5.7.0-10.7025c28a99be33ac6e150c344958fbcd0b7ffa9c",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -176,6 +176,5 @@
       "optional": true
     }
   },
-  "dependencies": {},
   "sideEffects": false
 }

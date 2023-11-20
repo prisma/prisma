@@ -22,15 +22,13 @@
     "@types/node-fetch": "2.6.9",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
-    "jest": "29.7.0",
-    "strip-ansi": "6.0.1",
-    "typescript": "5.2.2",
     "execa": "5.1.1",
     "find-cache-dir": "3.3.2",
     "fs-extra": "11.1.1",
     "hasha": "5.2.2",
     "http-proxy-agent": "7.0.0",
     "https-proxy-agent": "7.0.2",
+    "jest": "29.7.0",
     "kleur": "4.1.5",
     "node-fetch": "2.7.0",
     "p-filter": "2.1.0",
@@ -38,12 +36,14 @@
     "p-retry": "4.6.2",
     "progress": "2.0.3",
     "rimraf": "3.0.2",
+    "strip-ansi": "6.0.1",
     "temp-dir": "2.0.0",
-    "tempy": "1.0.1"
+    "tempy": "1.0.1",
+    "typescript": "5.2.2"
   },
   "dependencies": {
-    "@prisma/engines-version": "5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1",
     "@prisma/debug": "workspace:*",
+    "@prisma/engines-version": "5.7.0-10.7025c28a99be33ac6e150c344958fbcd0b7ffa9c",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
