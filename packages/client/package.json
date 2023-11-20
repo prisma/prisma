@@ -74,7 +74,7 @@
     "extension.d.ts"
   ],
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "2.2.0",
+    "@codspeed/benchmark.js-plugin": "2.3.1",
     "@faker-js/faker": "8.3.1",
     "@fast-check/jest": "1.7.3",
     "@jest/create-cache-key-function": "29.7.0",
