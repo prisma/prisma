@@ -10,7 +10,7 @@ Invalid \`.findMany()\` invocation in
   XX   const result = prisma.user
 → XX     .findMany(
 Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })), transient: false })
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })), transient: false })
 `;
 
 exports[`fulltext-search (provider=mysql, js_planetscale) bad query 1`] = `
@@ -23,7 +23,7 @@ Invalid \`.findMany()\` invocation in
   XX   const result = prisma.user
 → XX     .findMany(
 Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "rpc error: code = InvalidArgument desc = syntax error, unexpected '-'", state: "42000" })), transient: false })
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "rpc error: code = InvalidArgument desc = syntax error, unexpected '-'", state: "42000" })), transient: false })
 `;
 
 exports[`fulltext-search (provider=postgresql) bad query 1`] = `
