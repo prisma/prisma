@@ -51,9 +51,11 @@ export const resolvePathsPlugin: esbuild.Plugin = {
     const packagesRegex = new RegExp(`^(${Object.keys(resolvedTsPaths).join('|')})$`)
 
     build.onResolve({ filter: packagesRegex }, (args) => {
-      return {
-        path: `${resolvedTsPaths[args.path][0]}/index.ts`,
+      if (build.initialOptions.external?.includes(args.path)) {
+        return { path: args.path, external: true }
       }
+
+      return { path: `${resolvedTsPaths[args.path][0]}/index.ts` }
     })
   },
 }
