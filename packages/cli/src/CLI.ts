@@ -59,8 +59,7 @@ export class CLI implements Command {
     }
 
     const cmd = this.cmds[cmdName]
-    const isVisible = cmdName !== 'platform' || Boolean(args['--early-access-feature'])
-    if (cmd && isVisible) {
+    if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
         await ensureBinariesExist()
