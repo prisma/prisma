@@ -74,6 +74,7 @@
     "extension.d.ts"
   ],
   "devDependencies": {
+    "@prisma/engines-version": "5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1",
     "@codspeed/benchmark.js-plugin": "2.3.1",
     "@faker-js/faker": "8.3.1",
     "@fast-check/jest": "1.7.3",
@@ -175,8 +176,6 @@
       "optional": true
     }
   },
-  "dependencies": {
-    "@prisma/engines-version": "5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1"
-  },
+  "dependencies": {},
   "sideEffects": false
 }
