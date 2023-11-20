@@ -52,11 +52,11 @@ async function main() {
   console.log('🎠 Preparing e2e tests')
 
   // this process will need to modify some package.json, we save copies
-  await $`pnpm -r exec cp package.json copy.package.json`
+  await $`pnpm -r exec cp package.json package.copy.json`
 
   // we provide a function that can revert modified package.json back
   const restoreOriginal = async () => {
-    await $`pnpm -r exec cp copy.package.json package.json`
+    await $`pnpm -r exec cp package.copy.json package.json`
   }
 
   // if process is killed by hand, ensure that package.json is restored
