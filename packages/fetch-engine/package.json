@@ -42,7 +42,7 @@
     "tempy": "1.0.1"
   },
   "dependencies": {
-    "@prisma/engines-version": "5.7.0-5.49084afc23169e0ab97feab4626eb8145d595903",
+    "@prisma/engines-version": "5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1",
     "@prisma/debug": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
