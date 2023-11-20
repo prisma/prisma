@@ -393,10 +393,6 @@ importers:
         version: 7.2.3
 
   packages/client:
-    dependencies:
-      '@prisma/engines-version':
-        specifier: 5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1
-        version: 5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.3.1
@@ -464,6 +460,9 @@ importers:
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
+      '@prisma/engines-version':
+        specifier: 5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1
+        version: 5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -3163,7 +3162,6 @@ packages:
 
   /@prisma/engines-version@5.7.0-9.8736624d641a76de5d527dc7c266573b8d01c7a1:
     resolution: {integrity: sha512-OoGaeACCnmNdok9HJW4QG6THNVfWIwlEs9G0IeBlR3NM6K7Z1YLO4kPJ3Hoa7Yi7OK1YAfP4dBTpeyOe0Z73lg==}
-    dev: false
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
