@@ -9,7 +9,7 @@ describe('using cli', () => {
     const resultIsError = isError(result)
     expect(resultIsError).toBeTruthy()
     if (resultIsError) {
-      expect(result.message).toMatch('You must pass --early-access-feature to use platform commands.')
+      expect(result.message).toMatch('This feature is currently in Early Access.')
     }
   })
 })
