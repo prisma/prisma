@@ -17,6 +17,7 @@ export const esmSplitCodeToCjs: esbuild.Plugin = {
         allowOverwrite: true,
         format: 'cjs',
         logLevel: 'error',
+        packages: 'external',
       })
     })
   },
