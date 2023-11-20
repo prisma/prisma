@@ -10,6 +10,9 @@ async function main() {
   })
 
   console.log(JSON.stringify(record))
+
+  // necessary for the binary engine
+  await prisma.$disconnect()
 }
 
 void main()

@@ -10,9 +10,9 @@ declare let prisma: PrismaClient
  * Stored queries in variables for batched tx
  */
 testMatrix.setupTestSuite(
-  ({ providerFlavor }) => {
+  ({ providerFlavor, engineType }) => {
     // TODO planetscale cannot snapshot this error because the id cannot be hidden
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
+    testIf(engineType !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
       'stored query triggered twice should fail but not exit process',
       async () => {
         const query = prisma.resource.create({
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
     )
 
     // TODO planetscale cannot snapshot this error because the id cannot be hidden
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
+    testIf(engineType !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
       'stored query trigger .requestTransaction twice should fail',
       async () => {
         const query = prisma.resource.create({
@@ -46,7 +46,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('no multiple resolves should happen', async () => {
+    testIf(engineType !== 'binary')('no multiple resolves should happen', async () => {
       const mockMultipleResolve = jest.fn()
 
       process.on('multipleResolves', mockMultipleResolve)

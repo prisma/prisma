@@ -103,6 +103,8 @@ const args = arg(
     '--relation-mode-tests-only': Boolean,
     // Run tests for specific provider flavors (and excludes regular provider tests)
     '--flavor': [String],
+    // Forces any given test to be run with `engineType=` binary, library, or wasm
+    '--engine-type': String,
     //
     // Jest params
     //
@@ -139,9 +141,10 @@ async function main(): Promise<number | void> {
 
   if (args['--flavor']) {
     const providerFlavors = args['--flavor'] as ProviderFlavors[]
-    const unknownFlavor = providerFlavors.filter((flavor) => !allProviderFlavors.has(flavor))
-    if (unknownFlavor.length > 0) {
-      throw new Error(`Unknown flavors: ${unknownFlavor.join(', ')}`)
+    const unknownFlavors = providerFlavors.filter((flavor) => !allProviderFlavors.has(flavor))
+
+    if (unknownFlavors.length > 0) {
+      throw new Error(`Unknown flavors: ${unknownFlavors.join(', ')}`)
     }
 
     if (providerFlavors.some(isDriverAdapterProviderFlavor)) {
@@ -149,12 +152,17 @@ async function main(): Promise<number | void> {
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
 
-      if (args['--data-proxy'] || process.env.PRISMA_CLIENT_ENGINE_TYPE === 'binary') {
-        throw new Error('Driver adapters are not compatible with --data-proxy or the binary engine')
+      if (args['--data-proxy'] || args['--engine-type'] === 'binary') {
+        throw new Error('Driver adapters are not compatible with --data-proxy or --engine-type=binary')
       }
     }
 
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_FLAVORS: providerFlavors.join(',') })
+  }
+
+  if (args['--engine-type']) {
+    jestCli = jestCli.withEnv({ TEST_ENGINE_TYPE: args['--engine-type'] })
+    jestCli = jestCli.withEnv({ PRISMA_CLIENT_ENGINE_TYPE: '' })
   }
 
   if (args['--data-proxy']) {
@@ -202,8 +210,12 @@ async function main(): Promise<number | void> {
     jestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'relationMode-in-separate-gh-action'])
   }
 
+  if (process.env.PRISMA_CLIENT_ENGINE_TYPE && !args['--engine-type']) {
+    throw new Error('Functional tests expect --engine-type to be explicitly set, not via env var')
+  }
+
   try {
-    if (args['-u']) {
+    if (args['--updateSnapshot']) {
       const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()

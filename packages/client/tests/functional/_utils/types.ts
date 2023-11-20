@@ -36,6 +36,7 @@ export type ClientRuntime = 'node' | 'edge'
 export type TestCliMeta = {
   dataProxy: boolean
   runtime: 'node' | 'edge'
+  engineType: 'binary' | 'library' | 'wasm' | undefined
 }
 
 export type ClientMeta = {

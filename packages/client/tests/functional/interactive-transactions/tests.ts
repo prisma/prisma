@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 import { copycat } from '@snaplet/copycat'
 
 import { Providers } from '../_utils/providers'
@@ -13,7 +13,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(({ provider, engineType }, _suiteMeta, clientMeta) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
@@ -276,31 +276,28 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(getClientEngineType() === ClientEngineType.Library && clientMeta.runtime !== 'edge')(
-    'batching rollback',
-    async () => {
-      const result = prisma.$transaction([
-        prisma.user.create({
-          data: {
-            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
-          },
-        }),
-        prisma.user.create({
-          data: {
-            id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
-          },
-        }),
-      ])
+  testIf(engineType === ClientEngineType.Library && clientMeta.runtime !== 'edge')('batching rollback', async () => {
+    const result = prisma.$transaction([
+      prisma.user.create({
+        data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+          email: 'user_1@website.com',
+        },
+      }),
+      prisma.user.create({
+        data: {
+          id: copycat.uuid(2).replaceAll('-', '').slice(-24),
+          email: 'user_1@website.com',
+        },
+      }),
+    ])
 
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-      const users = await prisma.user.findMany()
+    const users = await prisma.user.findMany()
 
-      expect(users.length).toBe(0)
-    },
-  )
+    expect(users.length).toBe(0)
+  })
 
   testIf(clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
     const result = prisma.$transaction(async (tx) => {
@@ -338,47 +335,46 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(
-    getClientEngineType() === ClientEngineType.Library &&
-      provider !== Providers.MONGODB &&
-      clientMeta.runtime !== 'edge',
-  )('batching raw rollback', async () => {
-    await prisma.user.create({
-      data: {
-        id: '1',
-        email: 'user_1@website.com',
-      },
-    })
+  testIf(engineType === ClientEngineType.Library && provider !== Providers.MONGODB && clientMeta.runtime !== 'edge')(
+    'batching raw rollback',
+    async () => {
+      await prisma.user.create({
+        data: {
+          id: '1',
+          email: 'user_1@website.com',
+        },
+      })
 
-    const result =
-      provider === Providers.MYSQL
-        ? prisma.$transaction([
-            // @ts-test-if: provider !== Providers.MONGODB
-            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-            // @ts-test-if: provider !== Providers.MONGODB
-            prisma.$queryRaw`DELETE FROM User`,
-            // @ts-test-if: provider !== Providers.MONGODB
-            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-            // @ts-test-if: provider !== Providers.MONGODB
-            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-          ])
-        : prisma.$transaction([
-            // @ts-test-if: provider !== Providers.MONGODB
-            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-            // @ts-test-if: provider !== Providers.MONGODB
-            prisma.$queryRaw`DELETE FROM "User"`,
-            // @ts-test-if: provider !== Providers.MONGODB
-            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-            // @ts-test-if: provider !== Providers.MONGODB
-            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-          ])
+      const result =
+        provider === Providers.MYSQL
+          ? prisma.$transaction([
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$queryRaw`DELETE FROM User`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
+          : prisma.$transaction([
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$queryRaw`DELETE FROM "User"`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
 
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-    const users = await prisma.user.findMany()
+      const users = await prisma.user.findMany()
 
-    expect(users.length).toBe(1)
-  })
+      expect(users.length).toBe(1)
+    },
+  )
 
   // running this test on isolated prisma instance since
   // middleware change the return values of model methods

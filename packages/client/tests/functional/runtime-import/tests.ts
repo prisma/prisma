@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs/promises'
 
 import testMatrix from './_matrix'
@@ -8,7 +8,7 @@ const binaryRuntime = 'runtime/binary'
 const edgeRuntime = 'runtime/edge'
 const nftAnnotation = '// file annotations for bundling tools'
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(({ engineType }, suiteMeta, clientMeta) => {
   test('imports correct runtime', async () => {
     const clientModule = clientMeta.runtime === 'edge' ? '@prisma/client/edge' : '@prisma/client'
     const clientModuleEntryPoint = require.resolve(clientModule, { paths: [suiteMeta.generatedFolder] })
@@ -18,19 +18,19 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
       expect(generatedClientContents).toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
-    } else if (clientMeta.dataProxy && getClientEngineType() === ClientEngineType.Library) {
+    } else if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
       expect(generatedClientContents).toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
-    } else if (clientMeta.dataProxy && getClientEngineType() === ClientEngineType.Binary) {
+    } else if (clientMeta.dataProxy && engineType === ClientEngineType.Binary) {
       expect(generatedClientContents).toContain(binaryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
-    } else if (getClientEngineType() === ClientEngineType.Library) {
+    } else if (engineType === ClientEngineType.Library) {
       expect(generatedClientContents).toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
-    } else if (getClientEngineType() === ClientEngineType.Binary) {
+    } else if (engineType === ClientEngineType.Binary) {
       expect(generatedClientContents).toContain(binaryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
@@ -46,13 +46,13 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
 
     if (clientMeta.dataProxy && clientMeta.runtime === 'edge') {
       expect(generatedClientContents).not.toContain(nftAnnotation)
-    } else if (clientMeta.dataProxy && getClientEngineType() === ClientEngineType.Library) {
+    } else if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
       expect(generatedClientContents).not.toContain(nftAnnotation)
-    } else if (clientMeta.dataProxy && getClientEngineType() === ClientEngineType.Binary) {
+    } else if (clientMeta.dataProxy && engineType === ClientEngineType.Binary) {
       expect(generatedClientContents).not.toContain(nftAnnotation)
-    } else if (getClientEngineType() === ClientEngineType.Library) {
+    } else if (engineType === ClientEngineType.Library) {
       expect(generatedClientContents).toContain(nftAnnotation)
-    } else if (getClientEngineType() === ClientEngineType.Binary) {
+    } else if (engineType === ClientEngineType.Binary) {
       expect(generatedClientContents).toContain(nftAnnotation)
     } else {
       throw new Error('Unhandled case')
