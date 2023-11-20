@@ -14,6 +14,7 @@ import { transduce } from '../blaze/transduce'
 import { depCheckPlugin } from './plugins/depCheckPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
+import { resolvePathsPlugin } from './plugins/resolvePathsPlugin'
 import { tscPlugin } from './plugins/tscPlugin'
 
 export type BuildResult = esbuild.BuildResult
@@ -48,7 +49,13 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
-  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
+  plugins: [
+    ...(options.plugins ?? []),
+    resolvePathsPlugin,
+    fixImportsPlugin,
+    tscPlugin(options.emitTypes),
+    onErrorPlugin,
+  ],
   external: [...(options.external ?? []), ...getProjectExternals(options)],
 })
 
