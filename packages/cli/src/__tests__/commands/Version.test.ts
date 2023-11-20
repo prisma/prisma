@@ -110,6 +110,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   //                                                                                    ^^^^^^^^^^^^^^^^^^^
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
+  str = str.replace(/\(at \.\..*(\/|\\)/g, '(at sanitized_path/')
 
   // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
   // Currently, the engine version of @prisma/prisma-schema-wasm isn't necessarily the same as the enginesVersion
