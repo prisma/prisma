@@ -27,7 +27,7 @@ import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
-import { Platform } from './platform2'
+import { Platform } from './platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
