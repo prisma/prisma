@@ -9,6 +9,7 @@ export class PlatformCommand implements Command {
 
   public async parse(argv: string[]) {
     const isHasEarlyAccessFeatureFlag = Boolean(argv.find((_) => _.match(/early-access-feature/)))
+    // TODO: throw instead and adapt tests
     if (!isHasEarlyAccessFeatureFlag) return new EarlyAccessFlagError() // prettier-ignore
 
     // todo Molt Command does not support CJS
