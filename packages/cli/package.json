@@ -114,6 +114,7 @@
     "zx": "7.2.3"
   },
   "scripts": {
+    "prisma": "ts-node src/bin.ts",
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "dotenv -e ../../.db.env -- node -r esbuild-register helpers/run-tests.ts",
