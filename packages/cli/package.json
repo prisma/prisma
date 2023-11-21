@@ -123,6 +123,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
+    "@molt/command": "^0.9.0",
     "@prisma/engines": "workspace:*"
   },
   "sideEffects": false
