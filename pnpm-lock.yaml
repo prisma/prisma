@@ -261,6 +261,9 @@ importers:
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
+      arg:
+        specifier: 5.0.2
+        version: 5.0.2
     devDependencies:
       '@prisma/client':
         specifier: workspace:*

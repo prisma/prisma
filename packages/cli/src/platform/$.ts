@@ -1,6 +1,7 @@
-import { Command, Commands } from '@prisma/internals'
+import { arg, Command, Commands, isError } from '@prisma/internals'
 
 import { EarlyAccessFlagError } from '../../../migrate/src/utils/flagErrors'
+import { dispatchToSubCommand } from '../helpers'
 
 export class $ implements Command {
   public static new(commands: Commands): $ {
@@ -12,9 +13,8 @@ export class $ implements Command {
   public async parse(argv: string[]) {
     const isHasEarlyAccessFeatureFlag = Boolean(argv.find((_) => _.match(/early-access-feature/)))
     if (!isHasEarlyAccessFeatureFlag) throw new EarlyAccessFlagError()
-
-    await Promise.resolve('todo')
-
-    return ''
+    const args = arg(argv, {})
+    if (isError(args)) throw args
+    return dispatchToSubCommand(this.commands, args)
   }
 }
