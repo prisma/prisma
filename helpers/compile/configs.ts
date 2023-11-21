@@ -9,7 +9,6 @@ export const adapterConfig: BuildOptions[] = [
     outfile: 'dist/index',
     outExtension: { '.js': '.js' },
     emitTypes: true,
-    packages: 'external',
   },
   {
     name: 'esm',
@@ -19,6 +18,5 @@ export const adapterConfig: BuildOptions[] = [
     outfile: 'dist/index',
     outExtension: { '.js': '.mjs' },
     emitTypes: true,
-    packages: 'external',
   },
 ]

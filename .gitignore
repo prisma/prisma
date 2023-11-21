@@ -40,3 +40,5 @@ junit.xml
 .envrc.local
 
 .idea/
+
+package.copy.json

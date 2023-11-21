@@ -27,7 +27,7 @@ import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
-import { PlatformCommand } from './platform/PlatformCommand'
+import { Platform } from './platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -83,7 +83,30 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
-      platform: PlatformCommand.new(),
+      platform: Platform.$.new({
+        login: Platform.Login.new(),
+        logout: Platform.Logout.new(),
+        workspace: Platform.Workspace.$.new({
+          show: Platform.Workspace.Show.new(),
+        }),
+        auth: Platform.Auth.$.new({
+          show: Platform.Auth.Show.new(),
+        }),
+        project: Platform.Project.$.new({
+          create: Platform.Project.Create.new(),
+          delete: Platform.Project.Delete.new(),
+          show: Platform.Project.Show.new(),
+        }),
+        accelerate: Platform.Accelerate.$.new({
+          enable: Platform.Accelerate.Enable.new(),
+          disable: Platform.Accelerate.Disable.new(),
+        }),
+        apikeys: Platform.APIKeys.$.new({
+          create: Platform.APIKeys.Create.new(),
+          delete: Platform.APIKeys.Delete.new(),
+          show: Platform.APIKeys.Show.new(),
+        }),
+      }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
