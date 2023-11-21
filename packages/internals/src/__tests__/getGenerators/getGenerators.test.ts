@@ -717,7 +717,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if no model(s) found - sqlite', async () => {
+  test('warn if the models are missing', async () => {
     expect.assertions(5)
     const aliases = {
       'predefined-generator': {
@@ -726,70 +726,20 @@ describe('getGenerators', () => {
       },
     }
 
-    try {
-      await getGenerators({
-        schemaPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
-        providerAliases: aliases,
-      })
-    } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        You don't have any models defined in your schema.prisma, so nothing will be generated.
-        You can define a model like this:
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+      providerAliases: aliases,
+    })
 
-        model User {
-          id    Int     @id @default(autoincrement())
-          email String  @unique
-          name  String?
-        }
-
-        More information in our documentation:
-        https://pris.ly/d/prisma-schema
-        "
-      `)
-    }
+    expect(generators.length).toEqual(1)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('fail if no model(s) found - mongodb', async () => {
-    expect.assertions(5)
-    const aliases = {
-      'predefined-generator': {
-        generatorPath: generatorPath,
-        outputPath: __dirname,
-      },
-    }
-
-    try {
-      await getGenerators({
-        schemaPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
-        providerAliases: aliases,
-      })
-    } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        You don't have any models defined in your schema.prisma, so nothing will be generated.
-        You can define a model like this:
-
-        model User {
-          id    String  @id @default(auto()) @map("_id") @db.ObjectId
-          email String  @unique
-          name  String?
-        }
-
-        More information in our documentation:
-        https://pris.ly/d/prisma-schema
-        "
-      `)
-    }
-
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    "
+    warn You don't have any models defined in your schema.prisma, so nothing will be generated.
+    "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 

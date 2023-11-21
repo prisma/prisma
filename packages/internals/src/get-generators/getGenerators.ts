@@ -15,7 +15,7 @@ import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
-import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
+import { missingModelMessage } from '../utils/missingGeneratorMessage'
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
 import { pick } from '../utils/pick'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
@@ -136,12 +136,9 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   })
 
   if (dmmf.datamodel.models.length === 0) {
-    // MongoDB needs extras for @id: @map("_id") @db.ObjectId
-    if (config.datasources.some((d) => d.provider === 'mongodb')) {
-      throw new Error(missingModelMessageMongoDB)
-    }
-
-    throw new Error(missingModelMessage)
+    dmmf.schema.inputObjectTypes = { model: [], prisma: [] }
+    dmmf.schema.outputObjectTypes.model = []
+    console.warn(missingModelMessage)
   }
 
   checkFeatureFlags(config, options)

@@ -330,10 +330,11 @@ export class PrismaClientClass implements Generatable {
   ) {
     this.clientExtensionsDefinitions = clientExtensionsDefinitions.bind(this)()
   }
+
   private get jsDoc(): string {
     const { dmmf } = this
-
-    const example = dmmf.mappings.modelOperations[0]
+    const modelMappings = dmmf.mappings.modelOperations
+    const example = modelMappings.length > 1 ? modelMappings[0] : { plural: 'models', model: 'model' }
     return `/**
  * ##  Prisma Client ʲˢ
  * 
@@ -349,6 +350,7 @@ export class PrismaClientClass implements Generatable {
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */`
   }
+
   public toTSWithoutNamespace(): string {
     const { dmmf } = this
     return `${this.jsDoc}
