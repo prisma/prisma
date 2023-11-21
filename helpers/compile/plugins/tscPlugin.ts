@@ -13,15 +13,10 @@ import { run } from '../run'
 function bundleTypeDefinitions(filename: string, outfile: string, externals: string[]) {
   const { dependencies, peerDependencies, devDependencies } = require(`${process.cwd()}/package.json`)
 
-  const dependenciesKeys = Object.keys(dependencies ?? {}).flatMap((p) => {
-    return p.startsWith('@') ? [p] : [p, `@types/${p}`]
-  })
-  const peerDependenciesKeys = Object.keys(peerDependencies ?? {}).flatMap((p) => {
-    return p.startsWith('@') ? [p] : [p, `@types/${p}`]
-  })
-  const devDependenciesKeys = Object.keys(devDependencies ?? {}).flatMap((p) => {
-    return p.startsWith('@') ? [p] : [p, `@types/${p}`]
-  })
+  // get the list of bundled and non bundled as well as their eventual type dependencies
+  const dependenciesKeys = Object.keys(dependencies ?? {}).flatMap((p) => [p, getTypeDependencyPackageName(p)])
+  const peerDependenciesKeys = Object.keys(peerDependencies ?? {}).flatMap((p) => [p, getTypeDependencyPackageName(p)])
+  const devDependenciesKeys = Object.keys(devDependencies ?? {}).flatMap((p) => [p, getTypeDependencyPackageName(p)])
 
   const includeDeps = devDependenciesKeys
   const excludeDeps = [...dependenciesKeys, ...peerDependenciesKeys, ...externals]
@@ -114,3 +109,19 @@ export const tscPlugin: (emitTypes?: boolean) => esbuild.Plugin = (emitTypes?: b
     })
   },
 })
+
+/**
+ * Automatically get the type dependency package name, following the
+ * DefinitelyTyped naming conventions.
+ * @param npmPackage
+ * @returns
+ */
+function getTypeDependencyPackageName(npmPackage: string) {
+  if (npmPackage.startsWith('@')) {
+    const [scope, name] = npmPackage.split('/')
+
+    return `@types/${scope.slice(1)}__${name}`
+  } else {
+    return `@types/${npmPackage}`
+  }
+}
