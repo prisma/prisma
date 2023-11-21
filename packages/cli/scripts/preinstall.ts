@@ -1,5 +1,4 @@
-// @ts-check
-const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
+import { drawBox } from '@prisma/internals'
 
 export function main() {
   // process.version (e.g. `v16.0.0`)

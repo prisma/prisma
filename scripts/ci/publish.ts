@@ -1,4 +1,4 @@
-import { devDependencies as devDependenciesPrismaEnginesPkg } from '@prisma/engines/package.json'
+import { dependencies as dependenciesPrismaEnginesPkg } from '@prisma/engines/package.json'
 import slugify from '@sindresorhus/slugify'
 import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
@@ -655,7 +655,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 }
 
 function getEnginesCommitHash(): string {
-  const npmEnginesVersion = devDependenciesPrismaEnginesPkg['@prisma/engines-version']
+  const npmEnginesVersion = dependenciesPrismaEnginesPkg['@prisma/engines-version']
   const sha1Pattern = /\b[0-9a-f]{5,40}\b/
   const commitHash = npmEnginesVersion.match(sha1Pattern)![0]
 
