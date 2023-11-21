@@ -1,3 +1,3 @@
 export * from './$'
-export * from './Disable'
-export * from './Enable'
+export * from './disable'
+export * from './enable'
