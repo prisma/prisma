@@ -1,6 +1,6 @@
 import { isError } from '@prisma/internals'
 
-import { $ } from '../../../platform/$'
+import { $ } from '../../../platform2/$'
 
 describe('--early-access-feature flag', () => {
   it('should not work without it', () => {
