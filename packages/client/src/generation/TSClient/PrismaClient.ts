@@ -334,7 +334,7 @@ export class PrismaClientClass implements Generatable {
   private get jsDoc(): string {
     const { dmmf } = this
     const modelMappings = dmmf.mappings.modelOperations
-    const example = modelMappings.length > 1 ? modelMappings[0] : { plural: 'models', model: 'model' }
+    const example = modelMappings[0] ?? { plural: 'models', model: 'model' }
     return `/**
  * ##  Prisma Client ʲˢ
  * 
