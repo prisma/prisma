@@ -59,7 +59,7 @@ export const platformRequestOrThrow = async (params: {
   route: string
   token: string
   path: string
-  payload: object
+  payload?: object
 }) => {
   const { path, payload, token, route } = params
   const url = new URL(`https://console.prisma.io/${path.replace(/^\//, '')}?_data=routes/${route}`)
@@ -67,14 +67,13 @@ export const platformRequestOrThrow = async (params: {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   })
-  const body = JSON.stringify(payload)
   const response = await fetch(url, {
-    method: 'POST',
+    method: payload ? 'POST' : 'GET',
     headers,
-    body,
+    body: payload ? JSON.stringify(payload) : undefined,
   })
   const text = await response.text()
-  const json = JSON.stringify(text)
+  const json = JSON.parse(text)
   return json
 }
 

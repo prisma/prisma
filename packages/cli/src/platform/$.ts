@@ -15,6 +15,7 @@ export class $ implements Command {
     if (!isHasEarlyAccessFeatureFlag) throw new EarlyAccessFlagError()
     const args = arg(argv, {})
     if (isError(args)) throw args
-    return dispatchToSubCommand(this.commands, args)
+    const result = await dispatchToSubCommand(this.commands, args)
+    return JSON.stringify(result)
   }
 }
