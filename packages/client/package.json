@@ -96,7 +96,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba",
+    "@prisma/engines-version": "5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",

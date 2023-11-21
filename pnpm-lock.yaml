@@ -461,8 +461,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
-        version: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
+        specifier: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
+        version: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -720,8 +720,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
-        version: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
+        specifier: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
+        version: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -757,8 +757,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
-        version: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
+        specifier: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
+        version: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1082,8 +1082,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
-        version: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
+        specifier: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
+        version: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1239,8 +1239,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
-        version: 5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba
+        specifier: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
+        version: 5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3160,8 +3160,8 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@prisma/engines-version@5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba:
-    resolution: {integrity: sha512-96Ou0tkeCWbD4jPTiGPPRwEfRiErViOXYQVvPa0QQ46BqGQSSXSTfltbYcHHuy7Euu97oBUX79LvR3VVHYxRyQ==}
+  /@prisma/engines-version@5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5:
+    resolution: {integrity: sha512-uhFC1zHei5K6VYGPhEW4Fr9a8mZdJCTbOV3scP+dNRbTCCdU+BgZhTzkYRVrpzcVozkiqu6EuYjMLE95Cfn/Xg==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3169,8 +3169,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.7.0-12.63a4fd930b2737b5802f17da8282a5bbbbdeeaba:
-    resolution: {integrity: sha512-cnCpQ4yIeR+1hojYrTl6OVZdB3Esx2s0UJd1vCFOXsUXgVm4q+R4vMxylUW+eTrOqPLR7rsOfTNrJ+PLB8TAdw==}
+  /@prisma/prisma-schema-wasm@5.7.0-13.driver-adapters-remove-dispose-method-for-js-transaction-interface-fc5d9935df947f2d7440701bc3eb8a5e93b039e5:
+    resolution: {integrity: sha512-1ZGKcokCTW2lxNiF+d+UbtV8hA7bkqRu9A25oiFDVbmzUerLVnLhEvLTZEN2Y/yraEXvmfkK2WwN4SPbu9GMYw==}
     dev: false
 
   /@prisma/query-engine-wasm@0.6.1:
