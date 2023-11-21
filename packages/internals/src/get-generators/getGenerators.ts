@@ -136,8 +136,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   })
 
   if (dmmf.datamodel.models.length === 0) {
-    dmmf.schema.inputObjectTypes = { model: [], prisma: [] }
-    dmmf.schema.outputObjectTypes.model = []
+    dmmf.schema.inputObjectTypes.prisma ??= []
+    dmmf.schema.outputObjectTypes.model ??= []
     console.warn(missingModelMessage)
   }
 
