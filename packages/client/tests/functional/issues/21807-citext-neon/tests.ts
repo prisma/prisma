@@ -22,7 +22,10 @@ testMatrix.setupTestSuite(
         },
       })
 
+      const readRecordsRaw = await prisma.$queryRaw`SELECT * FROM "Model" WHERE "slug" = 'someslug'`
+
       expect(readRecords).toEqual([writtenRecord])
+      expect(readRecordsRaw).toEqual([writtenRecord])
       expect(writtenRecord.slug).toBe('someslug')
     })
   },
