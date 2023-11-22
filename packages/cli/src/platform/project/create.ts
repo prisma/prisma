@@ -5,7 +5,7 @@ import {
   getRequiredParameterOrThrow,
   platformParameters,
   platformRequestOrThrow,
-} from '../../helpers'
+} from '../../utils/platform'
 
 export class Create implements Command {
   public static new(): Create {

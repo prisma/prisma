@@ -1,6 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getRequiredParameterOrThrow, platformParameters, platformRequestOrThrow } from '../../helpers'
+import { getRequiredParameterOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
 export class Enable implements Command {
   public static new(): Enable {
