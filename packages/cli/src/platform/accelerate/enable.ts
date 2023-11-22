@@ -17,7 +17,6 @@ export class Enable implements Command {
     const workspace = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const project = getRequiredParameterOrThrow(args, ['--project', '-p'])
     const url = getRequiredParameterOrThrow(args, ['--url'])
-    if (isError(args)) throw args
     return platformRequestOrThrow({
       token,
       path: `/${workspace}/${project}/accelerate/setup`,

@@ -15,7 +15,6 @@ export class Delete implements Command {
     const token = getRequiredParameterOrThrow(args, ['--token', '-t'], 'PRISMA_TOKEN')
     const workspace = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const project = getRequiredParameterOrThrow(args, ['--project', '-p'])
-    if (isError(args)) throw args
     return platformRequestOrThrow({
       token,
       path: `/${workspace}/${project}/settings/general`,

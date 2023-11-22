@@ -22,7 +22,6 @@ export class Create implements Command {
     const token = getRequiredParameterOrThrow(args, ['--token', '-t'], 'PRISMA_TOKEN')
     const workspace = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const displayName = getOptionalParameter(args, ['--display-name', '-d'])
-    if (isError(args)) throw args
     return platformRequestOrThrow({
       token,
       path: `/${workspace}/overview/create`,
