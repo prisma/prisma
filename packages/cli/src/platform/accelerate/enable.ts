@@ -12,7 +12,7 @@ export class Enable implements Command {
       ...platformParameters.project,
       '--url': String,
     })
-    if (isError(args)) throw args
+    if (isError(args)) return args
     const token = getRequiredParameterOrThrow(args, ['--token', '-t'], 'PRISMA_TOKEN')
     const workspace = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const project = getRequiredParameterOrThrow(args, ['--project', '-p'])

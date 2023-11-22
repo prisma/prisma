@@ -11,7 +11,7 @@ export class Show implements Command {
     const args = arg(argv, {
       ...platformParameters.workspace,
     })
-    if (isError(args)) throw args
+    if (isError(args)) return args
     const token = getRequiredParameterOrThrow(args, ['--token', '-t'], 'PRISMA_TOKEN')
     const workspace = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     return platformRequestOrThrow({

@@ -14,7 +14,7 @@ export class $ implements Command {
     const isHasEarlyAccessFeatureFlag = Boolean(argv.find((_) => _.match(/early-access-feature/)))
     if (!isHasEarlyAccessFeatureFlag) throw new EarlyAccessFlagError()
     const args = arg(argv, {})
-    if (isError(args)) throw args
+    if (isError(args)) return args
     const result = await dispatchToSubCommand(this.commands, args)
     return JSON.stringify(result)
   }

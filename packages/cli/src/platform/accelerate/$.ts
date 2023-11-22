@@ -11,7 +11,7 @@ export class $ implements Command {
 
   public async parse(argv: string[]) {
     const args = arg(argv, {})
-    if (isError(args)) throw args
+    if (isError(args)) return args
     return dispatchToSubCommand(this.commands, args)
   }
 }
