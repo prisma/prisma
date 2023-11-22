@@ -1,6 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getRequiredParameterOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import { getRequiredParameter, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
 export class Enable implements Command {
   public static new(): Enable {
@@ -13,10 +13,14 @@ export class Enable implements Command {
       '--url': String,
     })
     if (isError(args)) return args
-    const token = getRequiredParameterOrThrow(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    const workspace = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
-    const project = getRequiredParameterOrThrow(args, ['--project', '-p'])
-    const url = getRequiredParameterOrThrow(args, ['--url'])
+    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
+    if (isError(token)) return token
+    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
+    if (isError(workspace)) return workspace
+    const project = getRequiredParameter(args, ['--project', '-p'])
+    if (isError(project)) return project
+    const url = getRequiredParameter(args, ['--url'])
+    if (isError(token)) return token
     return platformRequestOrThrow({
       token,
       path: `/${workspace}/${project}/accelerate/setup`,

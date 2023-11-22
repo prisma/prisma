@@ -46,13 +46,13 @@ export const getOptionalParameter = <$Args extends Record<string, unknown>, $Nam
   return (entry?.[1] ?? undefined) as any
 }
 
-export const getRequiredParameterOrThrow = <$Args extends Record<string, unknown>, $Names extends (keyof $Args)[]>(
+export const getRequiredParameter = <$Args extends Record<string, unknown>, $Names extends (keyof $Args)[]>(
   args: $Args,
   names: $Names,
   environmentVariable?: string,
-): Exclude<$Args[$Names[number]], undefined> => {
+): Error | Exclude<$Args[$Names[number]], undefined> => {
   const value = getOptionalParameter(args, names, environmentVariable)
-  if (value === undefined) throw new Error(`Missing value for ${names.join(' or ')} parameter`)
+  if (value === undefined) return new Error(`Missing value for ${names.join(' or ')} parameter`)
   return value
 }
 
