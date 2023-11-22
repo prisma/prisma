@@ -14,6 +14,6 @@ describe('--early-access-feature flag', () => {
     const result = await $.new({}).parse(['--early-access-feature'])
     const resultIsError = isError(result)
     expect(resultIsError).toBeFalsy()
-    expect(result).toBe(undefined)
+    expect(result).toBe('""')
   })
 })
