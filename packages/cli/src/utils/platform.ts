@@ -1,6 +1,8 @@
 import { Commands } from '@prisma/internals'
 import fetch, { Headers } from 'node-fetch'
 
+import { getInstalledPrismaClientVersion } from './getClientVersion'
+
 export const platformParameters = {
   global: {
     // TODO Remove this from global once we have a way for parents to strip out flags upon parsing.
@@ -66,9 +68,11 @@ export const platformRequestOrThrow = async (params: {
 }) => {
   const { path, payload, token, route } = params
   const url = new URL(`${platformAPIBaseURL}${path.replace(/^\//, '')}?_data=routes/${route}`)
+  const prismaClientVersion = await getInstalledPrismaClientVersion()
   const headers = new Headers({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
+    'user-agent': `prisma@${prismaClientVersion}`,
   })
   const response = await fetch(url, {
     method: payload ? 'POST' : 'GET',
