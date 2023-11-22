@@ -3,9 +3,7 @@ const process = require('node:process')
 const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
 
 export function main() {
-  const nodeVersion = process.version.slice(1)
-
-  printMessageAndExitIfUnsupportedNodeVersion(nodeVersion)
+  printMessageAndExitIfUnsupportedNodeVersion(process.version)
 }
 
 function extractSemanticVersionParts(version) {
