@@ -87,6 +87,7 @@
     "@types/node": "18.18.9",
     "@types/node-fetch": "2.6.9",
     "@types/rimraf": "3.0.2",
+    "async-listen": "^3.0.1",
     "checkpoint-client": "1.1.27",
     "debug": "4.3.4",
     "dotenv": "16.0.3",
@@ -97,6 +98,7 @@
     "fs-jetpack": "5.1.0",
     "get-port": "5.1.1",
     "global-dirs": "3.0.1",
+    "http": "0.0.1-security",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
@@ -111,6 +113,7 @@
     "strip-ansi": "6.0.1",
     "ts-pattern": "5.0.5",
     "typescript": "5.2.2",
+    "xdg-app-paths": "^8.3.0",
     "zx": "7.2.3"
   },
   "scripts": {
