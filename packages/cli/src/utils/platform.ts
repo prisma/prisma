@@ -1,5 +1,8 @@
 import { Commands, unknownCommand } from '@prisma/internals'
+import fs from 'fs-extra'
 import fetch, { Headers } from 'node-fetch'
+import path from 'path'
+import XdgAppPaths from 'xdg-app-paths'
 
 import { getInstalledPrismaClientVersion } from './getClientVersion'
 
@@ -56,7 +59,8 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
   return value
 }
 
-const platformAPIBaseURL = 'https://console.prisma.io/'
+// const platformAPIBaseURL = 'https://console.prisma.io/'
+export const platformAPIBaseURL = 'http://localhost:8788'
 
 /**
  *
@@ -100,4 +104,42 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[]) =
   if (!command) return unknownCommand('', commandName)
   const result = await command.parse(argv.slice(1))
   return result
+}
+
+/**
+ *
+ * Authentication related utils
+ *
+ */
+export interface AuthConfig {
+  token?: string | null
+}
+
+export const configDirectoryPath = new XdgAppPaths('prisma-platform-cli').config()
+export const authConfigPath = path.join(configDirectoryPath, 'auth.json')
+
+export async function writeAuthConfig(data: AuthConfig) {
+  await fs.mkdirp(configDirectoryPath)
+
+  return await fs.writeJSON(authConfigPath, data)
+}
+
+export async function readAuthConfig(): Promise<AuthConfig> {
+  if (!(await fs.pathExists(authConfigPath))) {
+    return {
+      token: null,
+    }
+  }
+
+  return await fs.readJSON(authConfigPath)
+}
+
+export async function deleteAuthConfig() {
+  if (!(await fs.pathExists(authConfigPath))) {
+    return {
+      token: null,
+    }
+  }
+
+  return await fs.remove(authConfigPath)
 }
