@@ -1,4 +1,6 @@
-import { Command } from '@prisma/internals'
+import { arg, Command, isError } from '@prisma/internals'
+
+import { getRequiredParameter, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
 export class Delete implements Command {
   public static new(): Delete {
@@ -6,7 +8,23 @@ export class Delete implements Command {
   }
 
   public async parse(argv: string[]) {
-    await Promise.resolve('todo')
-    return JSON.stringify(argv)
+    const args = arg(argv, {
+      ...platformParameters.project,
+    })
+    if (isError(args)) return args
+    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
+    if (isError(token)) return token
+    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
+    if (isError(workspace)) return workspace
+    const project = getRequiredParameter(args, ['--project', '-p'])
+    if (isError(project)) return project
+    return platformRequestOrThrow({
+      token,
+      path: `/${workspace}/${project}/settings/general`,
+      route: '_app.$organizationId_.$projectId.settings.general',
+      payload: {
+        intent: 'delete',
+      },
+    })
   }
 }
