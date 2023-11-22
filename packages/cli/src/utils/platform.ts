@@ -1,4 +1,4 @@
-import { Commands } from '@prisma/internals'
+import { Commands, unknownCommand } from '@prisma/internals'
 import fetch, { Headers } from 'node-fetch'
 
 import { getInstalledPrismaClientVersion } from './getClientVersion'
@@ -99,7 +99,7 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[]) =
   if (next.startsWith('-')) return ''
   const commandName = next
   const command = commands[commandName]
-  if (!command) throw new Error(`Command ${commandName} not found`)
+  if (!command) return unknownCommand('', commandName)
   const result = await command.parse(argv.slice(1))
   return result
 }
