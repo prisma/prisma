@@ -33,6 +33,7 @@ export const getOptionalParameter = <$Args extends Record<string, unknown>, $Nam
 ): Exclude<$Args[$Names[number]], undefined> => {
   const entry = Object.entries(args).find(([key]) => names.includes(key))
   if (!entry) {
+    // TODO document for our users when the CLI goes production that environment variables are overridden by flags
     if (environmentVariable) {
       const value = process.env[environmentVariable]
       if (value) {
