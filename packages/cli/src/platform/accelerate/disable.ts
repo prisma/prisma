@@ -26,6 +26,6 @@ export class Disable implements Command {
         intent: 'disable',
         projectId: project,
       },
-    })
+    }) as Promise<any>
   }
 }

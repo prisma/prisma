@@ -24,6 +24,6 @@ export class Show implements Command {
       token,
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
-    })
+    }) as Promise<any>
   }
 }

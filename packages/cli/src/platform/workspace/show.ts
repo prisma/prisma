@@ -18,6 +18,6 @@ export class Show implements Command {
       token,
       path: `/settings/workspaces`,
       route: '_app._user.settings.workspaces',
-    })
+    }) as Promise<any>
   }
 }

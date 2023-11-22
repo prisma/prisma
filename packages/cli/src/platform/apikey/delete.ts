@@ -29,6 +29,6 @@ export class Delete implements Command {
       payload: {
         id: apikey,
       },
-    })
+    }) as Promise<any>
   }
 }

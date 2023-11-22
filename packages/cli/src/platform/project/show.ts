@@ -20,6 +20,6 @@ export class Show implements Command {
       token,
       path: `/${workspace}/overview`,
       route: '_app.$organizationId.overview',
-    })
+    }) as Promise<any>
   }
 }
