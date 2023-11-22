@@ -101,10 +101,10 @@ async function main(): Promise<number> {
           enable: Platform.Accelerate.Enable.new(),
           disable: Platform.Accelerate.Disable.new(),
         }),
-        apikeys: Platform.APIKeys.$.new({
-          create: Platform.APIKeys.Create.new(),
-          delete: Platform.APIKeys.Delete.new(),
-          show: Platform.APIKeys.Show.new(),
+        apikey: Platform.APIKey.$.new({
+          create: Platform.APIKey.Create.new(),
+          delete: Platform.APIKey.Delete.new(),
+          show: Platform.APIKey.Show.new(),
         }),
       }),
       migrate: MigrateCommand.new({

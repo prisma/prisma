@@ -1,5 +1,7 @@
 import { Command, Commands } from '@prisma/internals'
 
+import { dispatchToSubCommand } from '../../utils/platform'
+
 export class $ implements Command {
   public static new(commands: Commands): $ {
     return new $(commands)
@@ -8,8 +10,6 @@ export class $ implements Command {
   private constructor(private readonly commands: Commands) {}
 
   public async parse(argv: string[]) {
-    await Promise.resolve('todo')
-
-    return JSON.stringify(argv)
+    return dispatchToSubCommand(this.commands, argv)
   }
 }

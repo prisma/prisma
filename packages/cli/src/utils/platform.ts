@@ -87,7 +87,7 @@ export const platformRequestOrThrow = async (params: {
     body: payload ? JSON.stringify(payload) : undefined,
   })
   const text = await response.text()
-  const json = JSON.parse(text)
+  const json = JSON.parse(text || '""')
   return json
 }
 
