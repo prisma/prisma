@@ -1,4 +1,4 @@
-import { arg, Command, Commands, isError } from '@prisma/internals'
+import { Command, Commands } from '@prisma/internals'
 
 import { dispatchToSubCommand } from '../../helpers'
 
@@ -10,8 +10,6 @@ export class $ implements Command {
   private constructor(private readonly commands: Commands) {}
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {})
-    if (isError(args)) return args
-    return dispatchToSubCommand(this.commands, args)
+    return dispatchToSubCommand(this.commands, argv)
   }
 }

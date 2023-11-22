@@ -1,5 +1,4 @@
 import { Commands } from '@prisma/internals'
-import Arg from 'arg'
 import fetch, { Headers } from 'node-fetch'
 
 export const platformParameters = {
@@ -79,10 +78,13 @@ export const platformRequestOrThrow = async (params: {
   return json
 }
 
-export const dispatchToSubCommand = async (commands: Commands, args: Arg.Result<{}>) => {
-  const commandName = args._[0]
+export const dispatchToSubCommand = async (commands: Commands, argv: string[]) => {
+  const next = argv[0]
+  if (!next) return ''
+  if (next.startsWith('-')) return ''
+  const commandName = next
   const command = commands[commandName]
   if (!command) throw new Error(`Command ${commandName} not found`)
-  const result = await command.parse(args._.slice(1))
+  const result = await command.parse(argv.slice(1))
   return result
 }
