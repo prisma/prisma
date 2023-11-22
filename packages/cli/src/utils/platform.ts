@@ -60,6 +60,14 @@ export const getRequiredParameterOrThrow = <$Args extends Record<string, unknown
 
 const platformAPIBaseURL = 'https://console.prisma.io/'
 
+/**
+ *
+ * @remarks
+ *
+ * TODO Feedback from Joel:
+ *    It could be interesting to set a default timeout because it's not part of fetch spec, see:
+ *    npmjs.com/package/node-fetch#request-cancellation-with-abortsignal
+ */
 export const platformRequestOrThrow = async (params: {
   route: string
   token: string
@@ -68,6 +76,7 @@ export const platformRequestOrThrow = async (params: {
 }) => {
   const { path, payload, token, route } = params
   const url = new URL(`${platformAPIBaseURL}${path.replace(/^\//, '')}?_data=routes/${route}`)
+  // TODO error handling, when this fails, do not fail the request
   const prismaClientVersion = await getInstalledPrismaClientVersion()
   const headers = new Headers({
     'Content-Type': 'application/json',
