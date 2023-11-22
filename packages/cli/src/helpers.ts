@@ -3,6 +3,7 @@ import fetch, { Headers } from 'node-fetch'
 
 export const platformParameters = {
   global: {
+    // TODO Remove this from global once we have a way for parents to strip out flags upon parsing.
     '--early-access-feature': Boolean,
     '--token': String,
     '-t': '--token',
