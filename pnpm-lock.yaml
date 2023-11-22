@@ -261,9 +261,6 @@ importers:
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
-      arg:
-        specifier: 5.0.2
-        version: 5.0.2
     devDependencies:
       '@prisma/client':
         specifier: workspace:*
@@ -319,6 +316,9 @@ importers:
       '@types/rimraf':
         specifier: 3.0.2
         version: 3.0.2
+      arg:
+        specifier: 5.0.2
+        version: 5.0.2
       checkpoint-client:
         specifier: 1.1.27
         version: 1.1.27

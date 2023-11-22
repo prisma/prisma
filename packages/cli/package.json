@@ -87,6 +87,7 @@
     "@types/node": "18.18.9",
     "@types/node-fetch": "2.6.9",
     "@types/rimraf": "3.0.2",
+    "arg": "5.0.2",
     "checkpoint-client": "1.1.27",
     "debug": "4.3.4",
     "dotenv": "16.0.3",
@@ -123,8 +124,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "workspace:*",
-    "arg": "5.0.2"
+    "@prisma/engines": "workspace:*"
   },
   "sideEffects": false
 }
