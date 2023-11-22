@@ -55,6 +55,8 @@ export const getRequiredParameterOrThrow = <$Args extends Record<string, unknown
   return value
 }
 
+const platformAPIBaseURL = 'https://console.prisma.io/'
+
 export const platformRequestOrThrow = async (params: {
   route: string
   token: string
@@ -62,7 +64,7 @@ export const platformRequestOrThrow = async (params: {
   payload?: object
 }) => {
   const { path, payload, token, route } = params
-  const url = new URL(`https://console.prisma.io/${path.replace(/^\//, '')}?_data=routes/${route}`)
+  const url = new URL(`${platformAPIBaseURL}${path.replace(/^\//, '')}?_data=routes/${route}`)
   const headers = new Headers({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
