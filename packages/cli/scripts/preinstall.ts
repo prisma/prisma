@@ -1,6 +1,6 @@
-const process = require('node:process')
-// @ts-check
-const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
+import process from 'node:process'
+
+import { drawBox } from '@prisma/internals'
 
 export function main() {
   printMessageAndExitIfUnsupportedNodeVersion(process.version)

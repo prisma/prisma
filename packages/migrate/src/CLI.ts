@@ -1,7 +1,6 @@
+import type { Command, Commands } from '@prisma/internals'
+import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
-
-import type { Command, Commands } from '../../internals/src'
-import { arg, format, HelpError, isError, unknownCommand } from '../../internals/src'
 
 /**
  * Convenient Migrate CLI command, not public facing
