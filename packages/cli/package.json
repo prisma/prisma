@@ -98,7 +98,6 @@
     "fs-jetpack": "5.1.0",
     "get-port": "5.1.1",
     "global-dirs": "3.0.1",
-    "http": "0.0.1-security",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
