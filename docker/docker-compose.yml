@@ -75,7 +75,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:db0f79df9275b73054ca49d52bd77c204ebe8e354a547da0aa4af7c2ff955bb4
+    image: vitess/vttestserver:mysql80@sha256:ca9d837ca7ca4d088feeaaf3558a8cc6debae564c29bc553408ec7ac23029a99
     restart: unless-stopped
     ports:
       - 33807:33807
@@ -95,7 +95,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
+    command: --lower_case_table_names=1
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
@@ -112,7 +112,7 @@ services:
 
   mysql_isolated:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
+    command: --lower_case_table_names=1
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root

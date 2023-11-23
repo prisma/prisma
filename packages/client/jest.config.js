@@ -13,7 +13,6 @@ module.exports = {
     '<rootDir>/generator-build/',
     '<rootDir>/runtime/',
     '<rootDir>/runtime-dist/',
-    '<rootDir>/sandbox/',
     '<rootDir>/scripts/',
     '<rootDir>/tests/memory',
     '<rootDir>/tests/functional',
