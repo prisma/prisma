@@ -1,3 +1,5 @@
+export type { Platform } from '@prisma/get-platform'
+export { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
@@ -92,5 +94,3 @@ export { type LoadedEnv, tryLoadEnvs } from './utils/tryLoadEnvs'
 export { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
 export { warnOnce } from './warnOnce'
 export * as wasm from './wasm'
-export type { Platform } from '@prisma/get-platform'
-export { getNodeAPIName, getPlatform } from '@prisma/get-platform'

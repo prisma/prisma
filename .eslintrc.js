@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import', 'local-rules'],
+  plugins: ['@typescript-eslint', 'jest', 'import', 'local-rules'],
   env: {
     node: true,
     es6: true,
@@ -82,9 +82,6 @@ module.exports = {
     'jest/no-export': 'off',
     'jest/no-standalone-expect': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
-    // https://github.com/lydell/eslint-plugin-simple-import-sort
-    'simple-import-sort/imports': 'error',
-    'simple-import-sort/exports': 'error',
     'import/first': 'error',
     'import/newline-after-import': 'error',
     'import/no-duplicates': 'error',

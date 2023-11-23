@@ -5,6 +5,7 @@ import type { DMMFHelper } from '../dmmf'
 import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
+import { InputField } from './../TSClient'
 import {
   getAggregateArgsName,
   getAggregateGetName,
@@ -26,7 +27,6 @@ import {
   getReturnType,
   getSumAggregateName,
 } from '../utils'
-import { InputField } from './../TSClient'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
