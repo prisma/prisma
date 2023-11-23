@@ -59,6 +59,11 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
   return value
 }
 
+/**
+ * @remark
+ * For the time being, console and api url are the same. This will change in the future.
+ */
+export const platformConsoleUrl = 'https://console.prisma.io'
 const platformAPIBaseURL = 'https://console.prisma.io/'
 
 /**

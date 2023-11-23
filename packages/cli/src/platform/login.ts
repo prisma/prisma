@@ -4,9 +4,7 @@ import http from 'http'
 import { red, underline } from 'kleur/colors'
 import open from 'open'
 
-import { writeAuthConfig } from '../utils/platform'
-
-const CONSOLE_URL = `https://console.prisma.io`
+import { platformConsoleUrl, writeAuthConfig } from '../utils/platform'
 
 interface AuthResult {
   token: string
@@ -51,7 +49,7 @@ export class Login implements Command {
             resolve({ token, user })
 
             // Redirect the user's web browser back to Console's CLI Auth success page
-            const location = new URL(`${CONSOLE_URL}/auth/cli`)
+            const location = new URL(`${platformConsoleUrl}/auth/cli`)
 
             location.pathname += '/success'
             location.searchParams.set('email', user.email)
@@ -79,5 +77,5 @@ export class Login implements Command {
 const generateAuthSigninUrl = (params: { connection: string; redirectTo: string }) => {
   const state = Buffer.from(JSON.stringify(params), `utf-8`).toString(`base64`)
   const queryParams = new URLSearchParams({ state })
-  return new URL(`${CONSOLE_URL}/auth/cli?${queryParams.toString()}`)
+  return new URL(`${platformConsoleUrl}/auth/cli?${queryParams.toString()}`)
 }
