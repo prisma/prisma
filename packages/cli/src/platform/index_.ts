@@ -1,6 +1,6 @@
 export * from './$'
 export * from './accelerate'
-export * from './apikeys'
+export * from './apikey'
 export * from './auth'
 export * from './login'
 export * from './logout'
