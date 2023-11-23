@@ -118,10 +118,10 @@ export declare type PipeMultiSync = {
 }
 
 export declare type PipeMultiAsync = {
-  // eslint-disable-next-line prettier/prettier
+  // dprint-ignore
   <R0, P extends any[]>(...fns: [F.Function<P, R0>]): F.Function<P, Promise<A.Await<R0>>>
   <R0, R1, P extends any[]>(
-    // eslint-disable-next-line prettier/prettier
+    // dprint-ignore
     ...fns: [F.Function<P, R0>, F.Function<[A.Await<R0>], R1>]
   ): F.Function<P, Promise<A.Await<R1>>>
   <R0, R1, R2, P extends any[]>(

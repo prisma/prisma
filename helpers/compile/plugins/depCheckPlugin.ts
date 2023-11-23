@@ -13,7 +13,7 @@ const unusedIgnore = [
   'husky',
   'is-ci',
   'lint-staged',
-  'prettier',
+  'dprint',
   'typescript',
   'ts-node',
   'ts-jest',

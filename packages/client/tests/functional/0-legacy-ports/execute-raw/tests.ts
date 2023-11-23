@@ -84,7 +84,7 @@ testMatrix.setupTestSuite(
       let affected: number
 
       if (isMySql) {
-        // eslint-disable-next-line prettier/prettier
+        // dprint-ignore
         affected = await prisma.$executeRawUnsafe(`UPDATE User SET age = ? WHERE age >= ? AND age <= ?`, 65, 45, 60)
       } else if (provider === Providers.SQLSERVER) {
         affected = await prisma.$executeRawUnsafe(
