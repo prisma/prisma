@@ -100,7 +100,7 @@
     }
   },
   "lint-staged": {
-    "*.{md,yml,json}": "dprint fmt",
+    "*.{md,yml,json}": "pnpm run format",
     "*.{js,ts}": [
       "eslint --fix"
     ]
