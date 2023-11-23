@@ -18,7 +18,7 @@
     "status": "ts-node scripts/ci/publish.ts --status",
     "pull": "ts-node scripts/ci/publish.ts --pull",
     "preinstall": "node ./scripts/only-allow-pnpm.js pnpm",
-    "precommit": "lint-staged",
+    "precommit": "pnpm run format && lint-staged",
     "eslint": "pnpm run format:check && eslint",
     "lint": "pnpm run format && eslint --fix --ext .ts .",
     "check-engines-override": "node -r esbuild-register scripts/check-engines-override.ts",
@@ -100,7 +100,6 @@
     }
   },
   "lint-staged": {
-    "*.{md,yml,json}": "pnpm run format",
     "*.{js,ts}": [
       "eslint --fix"
     ]
