@@ -24,7 +24,7 @@ export class Login implements Command {
   }
 
   public async parse() {
-    console.log('Authenticating to Prisma Platform via browser')
+    console.log('Authenticating to Prisma Platform CLI via browser')
 
     const server = http.createServer()
     const { port } = await listen(server, 0, '127.0.0.1')

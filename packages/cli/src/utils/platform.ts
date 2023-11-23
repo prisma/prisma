@@ -59,8 +59,7 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
   return value
 }
 
-// const platformAPIBaseURL = 'https://console.prisma.io/'
-export const platformAPIBaseURL = 'http://localhost:8788'
+const platformAPIBaseURL = 'https://console.prisma.io/'
 
 /**
  *
