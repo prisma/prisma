@@ -1,9 +1,8 @@
-/* eslint-disable prettier/prettier */
-
+// dprint-ignore-file
 import { OperationPayload } from './Payload'
 import { Equals, JsonObject, Select } from './Utils'
 
-// prettier-ignore
+// dprint-ignore
 export type Operation =
 // finds
 | 'findFirst'
@@ -47,7 +46,7 @@ export type FluentOperation =
 
 export type Count<O> = { [K in keyof O]: Count<number> } & {}
 
-// prettier-ignore
+// dprint-ignore
 export type GetFindResult<P extends OperationPayload, A> =
   Equals<A, any> extends 1 ? DefaultSelection<P> :
   A extends
@@ -75,12 +74,12 @@ export type GetFindResult<P extends OperationPayload, A> =
     } & (A extends { include: any } & Record<string, unknown> ? DefaultSelection<P> : unknown)
   : DefaultSelection<P>
 
-// prettier-ignore
+// dprint-ignore
 export type SelectablePayloadFields<K extends PropertyKey, O> =
   | { objects: { [k in K]: O } }
   | { composites: { [k in K]: O } }
 
-// prettier-ignore
+// dprint-ignore
 export type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> =
   P extends { objects: Record<K, any> } 
   ? P['objects'][K]
@@ -88,10 +87,10 @@ export type SelectField<P extends SelectablePayloadFields<any, any>, K extends P
     ? P['composites'][K]
     : never
 
-// prettier-ignore
+// dprint-ignore
 export type DefaultSelection<P> = UnwrapPayload<{ default: P }>['default']
 
-// prettier-ignore
+// dprint-ignore
 export type UnwrapPayload<P> = {} extends P ? unknown : {
   [K in keyof P]: 
     P[K] extends { scalars: infer S, composites: infer C }[]
@@ -105,7 +104,7 @@ export type GetCountResult<A> = A extends { select: infer S } ? (S extends true 
 
 export type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum'
 
-// prettier-ignore
+// dprint-ignore
 export type GetAggregateResult<P extends OperationPayload, A> = {
   [K in keyof A as K extends Aggregate ? K : never]:
     K extends '_count'
@@ -115,7 +114,7 @@ export type GetAggregateResult<P extends OperationPayload, A> = {
 
 export type GetBatchResult = { count: number }
 
-// prettier-ignore
+// dprint-ignore
 export type GetGroupByResult<P extends OperationPayload, A> =
   A extends { by: string[] }
   ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
@@ -123,7 +122,7 @@ export type GetGroupByResult<P extends OperationPayload, A> =
     ? Array<GetAggregateResult<P, A> & { [K in A['by']]: P['scalars'][K]}>
     : {}[]
 
-// prettier-ignore
+// dprint-ignore
 export type GetResult<P extends OperationPayload, A, O extends Operation = 'findUniqueOrThrow'> = {
   findUnique: GetFindResult<P, A> | null,
   findUniqueOrThrow: GetFindResult<P, A>,

@@ -4,7 +4,7 @@
   // List of extensions which should be recommended for users of this workspace.
   "recommendations": [
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
+    "dprint.dprint",
     "ms-azuretools.vscode-docker",
     "Prisma.prisma-insider"
   ],

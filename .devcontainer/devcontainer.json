@@ -23,7 +23,7 @@
   "extensions": [
     // "dbaeumer.vscode-eslint",
     "Prisma.prisma-insider",
-    "esbenp.prettier-vscode",
+    "dprint.dprint",
     "Orta.vscode-jest",
     "GitHub.vscode-pull-request-github"
   ],

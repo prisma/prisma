@@ -1,5 +1,8 @@
 {
+  "lineWidth": 120,
   "typescript": {
+    "quoteStyle": "preferSingle",
+    "semiColons": "asi"
   },
   "json": {
   },
@@ -9,6 +12,8 @@
   },
   "dockerfile": {
   },
+  "useTabs": false,
+  "indentWidth": 2,
   "excludes": [
     "**/node_modules",
     "**/*-lock.json",

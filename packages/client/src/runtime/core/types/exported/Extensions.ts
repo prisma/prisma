@@ -43,7 +43,7 @@ export type GetSelect<
 
 /** Query */
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicQueryExtensionArgs<
   Q_, 
   TypeMap extends TypeMapDef,
@@ -74,7 +74,7 @@ export type DynamicQueryExtensionArgs<
         : never
 }
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicQueryExtensionCb<
   TypeMap extends TypeMapDef,
   _0 extends PropertyKey,
@@ -84,7 +84,7 @@ export type DynamicQueryExtensionCb<
   <A extends DynamicQueryExtensionCbArgs<TypeMap, _0, _1, _2>>(args: A) =>
     Promise<TypeMap[_0][_1][_2]['result']>
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicQueryExtensionCbArgs<
   TypeMap extends TypeMapDef,
   _0 extends PropertyKey,
@@ -137,7 +137,7 @@ export type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends Pro
 
 /** Model */
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicModelExtensionArgs<
   M_, 
   TypeMap extends TypeMapDef, 
@@ -166,7 +166,7 @@ export type DynamicModelExtensionArgs<
       : never
 }
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicModelExtensionThis<
   TypeMap extends TypeMapDef, 
   M extends PropertyKey, 
@@ -196,7 +196,7 @@ export type DynamicModelExtensionOperationFn<
       args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
     ) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicModelExtensionFnResult<
   TypeMap extends TypeMapDef,
   M extends PropertyKey,
@@ -215,7 +215,7 @@ export type DynamicModelExtensionFnResultBase<
   P extends PropertyKey,
 > = GetOperationResult<TypeMap['model'][M]['payload'], A, P & Operation>
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicModelExtensionFluentApi<
   TypeMap extends TypeMapDef,
   M extends PropertyKey,
@@ -234,7 +234,7 @@ export type DynamicModelExtensionFluentApi<
     >
 }
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicModelExtensionFnResultNull<P extends PropertyKey> =
   P extends 'findUnique' | 'findFirst' ? null : never
 
@@ -255,7 +255,7 @@ export type DynamicClientExtensionArgs<
   }
 }
 
-// prettier-ignore
+// dprint-ignore
 export type DynamicClientExtensionThis<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,

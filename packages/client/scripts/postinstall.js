@@ -389,11 +389,11 @@ function parsePackageManagerName(userAgent) {
   return packageManager
 }
 
-// prettier-ignore
+// dprint-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING'
-// prettier-ignore
+// dprint-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR'
-// prettier-ignore
+// dprint-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR'
 
 // expose for testing

@@ -63,7 +63,7 @@ describe('npm_config_user_agent', () => {
 })
 
 describe('fails gracefully with', () => {
-  // prettier-ignore
+  // dprint-ignore
   test.each([
     ['envar missing', undefined, UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING],
     ['envar bad json', 'bah', UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR +': bah'],

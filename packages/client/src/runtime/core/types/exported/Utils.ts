@@ -30,7 +30,7 @@ export type ReadonlyDeep<T> = {
 
 export type Narrowable = string | number | bigint | boolean | []
 
-// prettier-ignore
+// dprint-ignore
 export type Narrow<A> = {
   [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]>
 } | (A extends Narrowable ? A : never)
@@ -59,7 +59,7 @@ export type UnwrapTuple<Tuple extends readonly unknown[]> = {
     : UnwrapPromise<Tuple[K]>
 }
 
-// prettier-ignore
+// dprint-ignore
 export type Path<O, P, Default = never> =
   O extends unknown
   ? P extends [infer K, ...infer R]
@@ -93,13 +93,13 @@ export type Optional<O, K extends keyof any = keyof O> = {
 export type Return<T> = T extends (...args: any[]) => infer R ? R : T
 
 export type ToTuple<T> = T extends any[] ? T : [T]
-// prettier-ignore
+// dprint-ignore
 export type RenameAndNestPayloadKeys<P> = {
   [K in keyof P as K extends 'scalars' | 'objects' | 'composites' ? keyof P[K] : never]:
     P[K] // we lift the value up with the same key name so we can flatten it later
 }
 
-// prettier-ignore
+// dprint-ignore
 export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayloadKeys<P>> = {
   [K in keyof O]?: O[K][K] extends any[]
                    ? PayloadToResult<O[K][K][number]>[]
@@ -110,7 +110,7 @@ export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayload
 
 export type Select<T, U> = T extends U ? T : never
 
-// prettier-ignore
+// dprint-ignore
 export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? 1 : 0
 
 export type Or<A extends 1 | 0, B extends 1 | 0> = {

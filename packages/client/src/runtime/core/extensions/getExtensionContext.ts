@@ -5,7 +5,7 @@
  * a unified API for context management in generic and non-generic extensions.
  */
 
-/* eslint-disable prettier/prettier */
+// dprint-ignore
 export type Context<T> = T extends { [K: symbol]: { ctx: infer C } }
   ? C &
       T & {
