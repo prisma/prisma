@@ -64,12 +64,11 @@ export function validate(options: ValidateOptions): void {
         })
         prismaSchemaWasm.validate(params)
       },
-      (e) =>
-        ({
-          type: 'wasm-error' as const,
-          reason: '(validate wasm)',
-          error: e as Error | WasmPanic,
-        } as const),
+      (e) => ({
+        type: 'wasm-error' as const,
+        reason: '(validate wasm)',
+        error: e as Error | WasmPanic,
+      } as const),
     ),
   )
 

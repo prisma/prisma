@@ -21,20 +21,20 @@ testMatrix.setupTestSuite(({ provider }) => {
     ],
     ...(provider !== Providers.SQLITE
       ? [
-          [
-            'createMany',
-            (email: string) => {
-              // @ts-test-if: provider !== Providers.SQLITE
-              return prisma.user.createMany({
-                data: [
-                  {
-                    email,
-                  },
-                ],
-              })
-            },
-          ],
-        ]
+        [
+          'createMany',
+          (email: string) => {
+            // @ts-test-if: provider !== Providers.SQLITE
+            return prisma.user.createMany({
+              data: [
+                {
+                  email,
+                },
+              ],
+            })
+          },
+        ],
+      ]
       : []),
     [
       'findMany',
@@ -155,54 +155,54 @@ testMatrix.setupTestSuite(({ provider }) => {
     ],
     ...(provider !== Providers.MONGODB
       ? [
-          [
-            '$queryRaw',
-            () => {
-              // @ts-test-if: provider !== Providers.MONGODB
-              return prisma.$queryRaw`SELECT 1 + 1;`
-            },
-          ],
-          [
-            '$queryRawUnsafe',
-            () => {
-              // @ts-test-if: provider !== Providers.MONGODB
-              return prisma.$queryRawUnsafe(`SELECT 1 + 1;`)
-            },
-          ],
-          ...(provider !== Providers.SQLITE
-            ? [
-                [
-                  '$executeRaw',
-                  () => {
-                    // @ts-test-if: provider !== Providers.MONGODB
-                    return prisma.$executeRaw`SELECT 1 + 1;`
-                  },
-                ],
-                [
-                  '$executeRawUnsafe',
-                  () => {
-                    // @ts-test-if: provider !== Providers.MONGODB
-                    return prisma.$executeRawUnsafe(`SELECT 1 + 1;`)
-                  },
-                ],
-              ]
-            : []),
-        ]
+        [
+          '$queryRaw',
+          () => {
+            // @ts-test-if: provider !== Providers.MONGODB
+            return prisma.$queryRaw`SELECT 1 + 1;`
+          },
+        ],
+        [
+          '$queryRawUnsafe',
+          () => {
+            // @ts-test-if: provider !== Providers.MONGODB
+            return prisma.$queryRawUnsafe(`SELECT 1 + 1;`)
+          },
+        ],
+        ...(provider !== Providers.SQLITE
+          ? [
+            [
+              '$executeRaw',
+              () => {
+                // @ts-test-if: provider !== Providers.MONGODB
+                return prisma.$executeRaw`SELECT 1 + 1;`
+              },
+            ],
+            [
+              '$executeRawUnsafe',
+              () => {
+                // @ts-test-if: provider !== Providers.MONGODB
+                return prisma.$executeRawUnsafe(`SELECT 1 + 1;`)
+              },
+            ],
+          ]
+          : []),
+      ]
       : []),
     ...(provider === Providers.MONGODB
       ? [
-          [
-            '$runCommandRaw',
-            () => {
-              // @ts-test-if: provider === Providers.MONGODB
-              return prisma.$runCommandRaw({
-                aggregate: 'User',
-                pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
-                explain: false,
-              })
-            },
-          ],
-        ]
+        [
+          '$runCommandRaw',
+          () => {
+            // @ts-test-if: provider === Providers.MONGODB
+            return prisma.$runCommandRaw({
+              aggregate: 'User',
+              pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
+              explain: false,
+            })
+          },
+        ],
+      ]
       : []),
   ] as Array<[string, (email: string) => any]>
 

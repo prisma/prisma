@@ -151,10 +151,10 @@ function shouldSkipSuiteConfig(
 
   // if there is a relation mode set and the flavor doesn't support it, skip
   if (
-    flavor !== undefined &&
-    relationMode !== undefined &&
-    relationModesForFlavor[flavor] !== undefined &&
-    relationMode !== relationModesForFlavor[flavor]
+    flavor !== undefined
+    && relationMode !== undefined
+    && relationModesForFlavor[flavor] !== undefined
+    && relationMode !== relationModesForFlavor[flavor]
   ) {
     return true
   }

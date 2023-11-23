@@ -128,9 +128,11 @@ ${bold('Examples')}
       console.info(
         `${green('Database reset successful')}
 
-The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
-          'migration.sql': '',
-        })}`,
+The following migration(s) have been applied:\n\n${
+          printFilesFromMigrationIds('migrations', migrationIds, {
+            'migration.sql': '',
+          })
+        }`,
       )
     }
 

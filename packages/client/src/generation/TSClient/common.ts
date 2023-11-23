@@ -10,11 +10,12 @@ export const commonCodeJS = ({
   clientVersion,
   engineVersion,
   deno,
-}: TSClientOptions): string => `${deno ? 'const exports = {}' : ''}
+}: TSClientOptions): string =>
+  `${deno ? 'const exports = {}' : ''}
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
-  deno
-    ? `
+    deno
+      ? `
 import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
@@ -35,8 +36,8 @@ import {
   defineDmmfProperty,
   Public,
 } from '${runtimeDir}/edge-esm.js'`
-    : browser
-    ? `
+      : browser
+      ? `
 const {
   Decimal,
   objectEnumValues,
@@ -45,7 +46,7 @@ const {
   detectRuntime,
 } = require('${runtimeDir}/${runtimeName}')
 `
-    : `
+      : `
 const {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
@@ -68,7 +69,7 @@ const {
   Public,
 } = require('${runtimeDir}/${runtimeName}')
 `
-}
+  }
 
 const Prisma = {}
 
@@ -122,16 +123,18 @@ Prisma.NullTypes = {
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
-  if (browser)
+  if (browser) {
     return `() => {
   throw new Error(\`${fnc} is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}`
+  }
   return fnc
 }
 
 export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
+  tsWithoutNamespace: () =>
+    `import * as runtime from '${runtimeDir}/${runtimeName}';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
@@ -140,7 +143,8 @@ import $Result = runtime.Types.Result
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 `,
-  ts: () => `export import DMMF = runtime.DMMF
+  ts: () =>
+    `export import DMMF = runtime.DMMF
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 

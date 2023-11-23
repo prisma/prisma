@@ -102,8 +102,8 @@ export function iterateAndCallBatchCallbacks(
       })),
       transaction: transaction
         ? {
-            isolationLevel: transaction.kind === 'batch' ? transaction.isolationLevel : undefined,
-          }
+          isolationLevel: transaction.kind === 'batch' ? transaction.isolationLevel : undefined,
+        }
         : undefined,
     },
     __internalParams: params,

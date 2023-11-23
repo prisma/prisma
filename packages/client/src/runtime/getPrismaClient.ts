@@ -175,9 +175,8 @@ export type LogDefinition = {
 }
 
 export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition
-  ? T['emit'] extends 'event'
-    ? T['level']
-    : never
+  ? T['emit'] extends 'event' ? T['level']
+  : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -297,7 +296,7 @@ const BatchTxIdCounter = {
   },
 }
 
-export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
+export type Client = ReturnType<typeof getPrismaClient> extends new() => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
@@ -346,10 +345,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._activeProvider = config.activeProvider
       this._tracingHelper = getTracingHelper(this._previewFeatures)
       const envPaths = {
-        rootEnvPath:
-          config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
-        schemaEnvPath:
-          config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
+        rootEnvPath: config.relativeEnvPaths.rootEnvPath
+          && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
+        schemaEnvPath: config.relativeEnvPaths.schemaEnvPath
+          && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
@@ -400,9 +399,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           generator: config.generator,
           showColors: this._errorFormat === 'pretty',
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
-          logQueries:
-            options.log &&
-            Boolean(
+          logQueries: options.log
+            && Boolean(
               typeof options.log === 'string'
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
@@ -906,8 +904,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             extensions: this._extensions,
             errorFormat: this._errorFormat,
             clientVersion: this._clientVersion,
-          }),
-        )
+          }))
 
         // as prettyPrintArguments takes a bit of compute
         // we only want to do it, if debug is enabled for 'prisma-client'

@@ -27,9 +27,9 @@ export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
   const scalarsType = isComposite
     ? scalars
     : ts
-        .namedType('$Extensions.GetPayloadResult')
-        .addGenericArgument(scalars)
-        .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name)))
+      .namedType('$Extensions.GetPayloadResult')
+      .addGenericArgument(scalars)
+      .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name)))
 
   const payloadTypeDeclaration = ts.typeDeclaration(
     getPayloadName(model.name, false),

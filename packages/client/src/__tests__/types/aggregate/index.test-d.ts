@@ -9,7 +9,6 @@ const prisma = new PrismaClient({
     },
   },
 })
-
 ;(async () => {
   expectError(
     await prisma.user.aggregate({

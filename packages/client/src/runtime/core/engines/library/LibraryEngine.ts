@@ -124,9 +124,11 @@ export class LibraryEngine extends Engine<undefined> {
   private checkForTooManyEngines() {
     if (engineInstanceCount === 10) {
       console.warn(
-        `${yellow(
-          'warn(prisma-client)',
-        )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
+        `${
+          yellow(
+            'warn(prisma-client)',
+          )
+        } This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
       )
     }
   }
@@ -206,9 +208,11 @@ export class LibraryEngine extends Engine<undefined> {
       const platform = await getPlatform()
       if (!knownPlatforms.includes(platform)) {
         throw new PrismaClientInitializationError(
-          `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${green(
-            knownPlatforms.join(', '),
-          )} or a path to the query engine library.
+          `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${
+            green(
+              knownPlatforms.join(', '),
+            )
+          } or a path to the query engine library.
 You may have to run ${green('prisma generate')} for your changes to take effect.`,
           this.config.clientVersion!,
         )

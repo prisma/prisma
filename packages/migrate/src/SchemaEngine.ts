@@ -336,9 +336,9 @@ export class SchemaEngine {
         }
 
         if (
-          this.enabledPreviewFeatures &&
-          Array.isArray(this.enabledPreviewFeatures) &&
-          this.enabledPreviewFeatures.length > 0
+          this.enabledPreviewFeatures
+          && Array.isArray(this.enabledPreviewFeatures)
+          && this.enabledPreviewFeatures.length > 0
         ) {
           args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
         }
@@ -506,11 +506,13 @@ export class SchemaEngine {
             } else {
               reject(
                 new Error(
-                  `${red('Error in RPC')}\n Request: ${JSON.stringify(request, null, 2)}\nResponse: ${JSON.stringify(
-                    response,
-                    null,
-                    2,
-                  )}\n${response.error.message}\n`,
+                  `${red('Error in RPC')}\n Request: ${JSON.stringify(request, null, 2)}\nResponse: ${
+                    JSON.stringify(
+                      response,
+                      null,
+                      2,
+                    )
+                  }\n${response.error.message}\n`,
                 ),
               )
             }
@@ -537,8 +539,8 @@ export class SchemaEngine {
       method,
       params: params
         ? {
-            ...params,
-          }
+          ...params,
+        }
         : undefined,
     }
   }

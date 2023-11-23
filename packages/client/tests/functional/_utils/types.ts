@@ -22,7 +22,7 @@ export type MatrixOptions = {
   alterStatementCallback?: AlterStatementCallback
 }
 
-export type NewPrismaClient<T extends new (...args: any) => any> = (
+export type NewPrismaClient<T extends new(...args: any) => any> = (
   ...args: ConstructorParameters<T>
 ) => InstanceType<T>
 

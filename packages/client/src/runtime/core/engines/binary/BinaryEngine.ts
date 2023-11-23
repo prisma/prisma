@@ -157,9 +157,11 @@ export class BinaryEngine extends Engine<undefined> {
 
     if (removedFlagsUsed.length > 0 && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
       console.log(
-        `${blue(bold('info'))} The preview flags \`${removedFlagsUsed.join(
-          '`, `',
-        )}\` were removed, you can now safely remove them from your schema.prisma.`,
+        `${blue(bold('info'))} The preview flags \`${
+          removedFlagsUsed.join(
+            '`, `',
+          )
+        }\` were removed, you can now safely remove them from your schema.prisma.`,
       )
     }
 
@@ -169,9 +171,11 @@ export class BinaryEngine extends Engine<undefined> {
     if (this.platform) {
       if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
         throw new PrismaClientInitializationError(
-          `Unknown ${red('PRISMA_QUERY_ENGINE_BINARY')} ${red(bold(this.platform))}. Possible binaryTargets: ${green(
-            knownPlatforms.join(', '),
-          )} or a path to the query engine binary.
+          `Unknown ${red('PRISMA_QUERY_ENGINE_BINARY')} ${red(bold(this.platform))}. Possible binaryTargets: ${
+            green(
+              knownPlatforms.join(', '),
+            )
+          } or a path to the query engine binary.
 You may have to run ${green('prisma generate')} for your changes to take effect.`,
           this.clientVersion!,
         )
@@ -212,9 +216,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       const runningEngines = engines.filter((e) => e.child)
       if (runningEngines.length === 10) {
         console.warn(
-          `${bold(
-            yellow('warn(prisma-client)'),
-          )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
+          `${
+            bold(
+              yellow('warn(prisma-client)'),
+            )
+          } This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
         )
       }
     }
@@ -422,10 +428,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             debug('stdout', getMessage(json))
 
             if (
-              this.engineStartDeferred &&
-              json.level === 'INFO' &&
-              json.target === 'query_engine::server' &&
-              json.fields?.message?.startsWith('Started query engine http server')
+              this.engineStartDeferred
+              && json.level === 'INFO'
+              && json.target === 'query_engine::server'
+              && json.fields?.message?.startsWith('Started query engine http server')
             ) {
               const ip = json.fields.ip
               const port = json.fields.port
@@ -822,12 +828,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
-        this.transactionHttpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/commit`),
+        (result) => this.transactionHttpErrorHandler(result),
       )
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
-        this.transactionHttpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/rollback`),
+        (result) => this.transactionHttpErrorHandler(result),
       )
     }
 

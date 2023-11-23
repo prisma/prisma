@@ -222,7 +222,7 @@ describe('dotenvExpand', () => {
   })
 })
 
-describe('integration', function () {
+describe('integration', function() {
   let dotenv
 
   beforeEach(() => {

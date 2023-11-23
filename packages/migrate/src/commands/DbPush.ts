@@ -118,8 +118,7 @@ ${bold('Examples')}
       // If schemas are defined in the datasource block, print them
       if (datasourceInfo.schemas && schemasLength > 0) {
         successfulResetMsg += ` schema${schemasLength > 1 ? 's' : ''} "${datasourceInfo.schemas.join(', ')}"`
-      }
-      // Otherwise, print the schema if it's defined in the connection string
+      } // Otherwise, print the schema if it's defined in the connection string
       else if (datasourceInfo.schema) {
         successfulResetMsg += ` schema "${datasourceInfo.schema}"`
       }
@@ -156,9 +155,11 @@ ${bold('Examples')}
       if (!canPrompt()) {
         migrate.stop()
         throw new Error(`${messages.join('\n')}\n
-Use the --force-reset flag to drop the database before push like ${bold(
-          green(getCommandWithExecutor('prisma db push --force-reset')),
-        )}
+Use the --force-reset flag to drop the database before push like ${
+          bold(
+            green(getCommandWithExecutor('prisma db push --force-reset')),
+          )
+        }
 ${bold(red('All data will be lost.'))}
         `)
       } else {
@@ -169,9 +170,11 @@ ${bold(red('All data will be lost.'))}
       const confirmation = await prompt({
         type: 'confirm',
         name: 'value',
-        message: `To apply this change we need to reset the database, do you want to continue? ${red(
-          'All data will be lost',
-        )}.`,
+        message: `To apply this change we need to reset the database, do you want to continue? ${
+          red(
+            'All data will be lost',
+          )
+        }.`,
       })
 
       if (!confirmation.value) {

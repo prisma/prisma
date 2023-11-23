@@ -36,12 +36,12 @@ model CategoryManyToMany {
 
 model CategoriesOnPostsManyToMany {
   post        PostManyToMany        @relation(fields: [postId], references: [id] ${
-    supportsRequired ? referentialActionLine : ''
-  })
+      supportsRequired ? referentialActionLine : ''
+    })
   postId      String                @map("postId_AtMap")
   category    CategoryManyToMany    @relation(fields: [categoryId], references: [id] ${
-    supportsRequired ? referentialActionLine : ''
-  })
+      supportsRequired ? referentialActionLine : ''
+    })
   categoryId  String                @map("categoryId_AtMap")
 
   @@id([postId, categoryId])
@@ -86,12 +86,12 @@ model CategoryManyToMany {
 
 model CategoriesOnPostsManyToMany {
   post        PostManyToMany        @relation(fields: [postId], references: [id] ${
-    supportsRequired ? referentialActionLine : ''
-  })
+      supportsRequired ? referentialActionLine : ''
+    })
   postId      String
   category    CategoryManyToMany    @relation(fields: [categoryId], references: [id] ${
-    supportsRequired ? referentialActionLine : ''
-  })
+      supportsRequired ? referentialActionLine : ''
+    })
   categoryId  String
 
   @@id([postId, categoryId])

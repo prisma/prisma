@@ -373,16 +373,16 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('when any type is passed as an input default selection type is returned', () => {
-    ;async () => {
+    ;(async () => {
       const xprisma = prisma.$extends({})
 
       const data = await xprisma.user.findFirstOrThrow({} as any)
       expectTypeOf(data).toEqualTypeOf<User>()
-    }
+    })
   })
 
   test('when args have both include and select and one of them is optional, result includes both', () => {
-    ;async () => {
+    ;(async () => {
       const xprisma = prisma.$extends({})
 
       const userFindMany: PrismaNamespace.UserFindManyArgs = {}
@@ -408,6 +408,6 @@ testMatrix.setupTestSuite(() => {
 
       expectTypeOf(usersPrisma[0].email).toEqualTypeOf<string>()
       expectTypeOf(usersPrisma[0].posts).toEqualTypeOf<Post[]>()
-    }
+    })
   })
 })

@@ -44,7 +44,7 @@ testMatrix.setupTestSuite(
           'SELECT 2',
           'SELECT 3',
           expect.stringContaining('COMMIT'),
-        ]),
+        ])
       )
     })
 
@@ -75,7 +75,7 @@ testMatrix.setupTestSuite(
           'SELECT 2',
           'SELECT 3',
           expect.stringContaining('COMMIT'),
-        ]),
+        ])
       )
     })
   },

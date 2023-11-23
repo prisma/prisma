@@ -37,7 +37,7 @@ type BaseContext = {
  * - Fixture loader for bootstrapping the temporary directory with content
  */
 export const jestContext = {
-  new: function (ctx: BaseContext = {} as any) {
+  new: function(ctx: BaseContext = {} as any) {
     const c = ctx as BaseContext
 
     beforeEach(() => {

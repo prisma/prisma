@@ -13,11 +13,11 @@ export function parseEnvValue(object: EnvValue) {
     const value = process.env[object.fromEnvVar]
     if (!value) {
       throw new Error(
-        `Attempted to load provider value using \`env(${
-          object.fromEnvVar
-        })\` but it was not present. Please ensure that ${dim(
-          object.fromEnvVar,
-        )} is present in your Environment Variables`,
+        `Attempted to load provider value using \`env(${object.fromEnvVar})\` but it was not present. Please ensure that ${
+          dim(
+            object.fromEnvVar,
+          )
+        } is present in your Environment Variables`,
       )
     }
 
@@ -39,11 +39,11 @@ export function parseBinaryTargetsEnvValue(object: BinaryTargetsEnvValue): strin
     const value = process.env[object.fromEnvVar]
     if (!value) {
       throw new Error(
-        `Attempted to load binaryTargets value using \`env(${
-          object.fromEnvVar
-        })\` but it was not present. Please ensure that ${dim(
-          object.fromEnvVar,
-        )} is present in your Environment Variables`,
+        `Attempted to load binaryTargets value using \`env(${object.fromEnvVar})\` but it was not present. Please ensure that ${
+          dim(
+            object.fromEnvVar,
+          )
+        } is present in your Environment Variables`,
       )
     }
 

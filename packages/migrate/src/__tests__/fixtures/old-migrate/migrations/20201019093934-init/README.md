@@ -6,7 +6,6 @@ You can check out the [state of the schema](./schema.prisma) after the migration
 ## Database Steps
 
 ```sql
-
 ```
 
 ## Changes

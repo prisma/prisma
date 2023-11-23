@@ -500,9 +500,11 @@ async function publish() {
     const releaseRegex = /\d{1,2}\.\d{1,2}\.\d{1,2}/
     if (!releaseRegex.test(args['--release'])) {
       throw new Error(
-        `New release version ${bold(underline(args['--release']))} does not follow the stable naming scheme: ${bold(
-          underline('x.y.z'),
-        )}`,
+        `New release version ${bold(underline(args['--release']))} does not follow the stable naming scheme: ${
+          bold(
+            underline('x.y.z'),
+          )
+        }`,
       )
     }
 
@@ -546,13 +548,12 @@ async function publish() {
     if (branch && (process.env.FORCE_INTEGRATION_RELEASE || branch.startsWith('integration/'))) {
       prismaVersion = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
-    }
-    // Is it a patch branch? (Like 2.20.x)
+    } // Is it a patch branch? (Like 2.20.x)
     else if (patchBranch) {
       prismaVersion = await getNewPatchDevVersion(packages, patchBranch)
       tag = 'patch-dev'
       if (args['--release']) {
-        tagForEcosystemTestsCheck = 'patch-dev' //?
+        tagForEcosystemTestsCheck = 'patch-dev' // ?
         prismaVersion = args['--release']
         tag = 'latest'
       }
@@ -823,9 +824,11 @@ async function publishPackages(
 
   console.log(
     blue(
-      `\n${bold(underline(prismaVersion))}: ${publishStr}(all) ${bold(
-        String(Object.values(packages).length),
-      )} packages. Publish order:`,
+      `\n${bold(underline(prismaVersion))}: ${publishStr}(all) ${
+        bold(
+          String(Object.values(packages).length),
+        )
+      } packages. Publish order:`,
     ),
   )
   console.log(blue(publishOrder.map((o, i) => `  ${i + 1}. ${o.join(', ')}`).join('\n')))
@@ -1051,15 +1054,15 @@ async function sendSlackMessage({ version, enginesCommitInfo, prismaCommitInfo, 
     `${dryRunStr}<https://www.npmjs.com/package/prisma/v/${version}|prisma@${version}> has just been released. Install via \`npm i -g prisma@${version}\` or \`npx prisma@${version}\`
 What's shipped:
 \`prisma/prisma\`
-<https://github.com/prisma/prisma/commit/${prismaCommitInfo.hash}|${
-      prismaLines[0]
-    }\t\t\t\t-  ${prismaCommitInfo.hash.slice(0, 7)}>
+<https://github.com/prisma/prisma/commit/${prismaCommitInfo.hash}|${prismaLines[0]}\t\t\t\t-  ${
+      prismaCommitInfo.hash.slice(0, 7)
+    }>
 ${prismaLines.join('\n')}${prismaLines.length > 1 ? '\n' : ''}${authoredByString(prismaCommitInfo.author)}
 
 \`prisma/prisma-engines\`
-<https://github.com/prisma/prisma-engines/commit/${enginesCommitInfo.hash}|${
-      enginesLines[0]
-    }\t\t\t\t-  ${enginesCommitInfo.hash.slice(0, 7)}>
+<https://github.com/prisma/prisma-engines/commit/${enginesCommitInfo.hash}|${enginesLines[0]}\t\t\t\t-  ${
+      enginesCommitInfo.hash.slice(0, 7)
+    }>
 ${enginesLines.join('\n')}${enginesLines.length > 1 ? '\n' : ''}${authoredByString(enginesCommitInfo.author)}`,
   )
 }

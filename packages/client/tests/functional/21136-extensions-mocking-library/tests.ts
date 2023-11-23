@@ -11,7 +11,7 @@ declare let prisma: $.PrismaClient
 // this is a minimal type representation of a mocking library originally taken
 // from `vitest-mock-extended` which is a fork of `jest-mock-extended`
 interface Mock<A extends any[] = any[], R = any> {
-  new (...args: A): R
+  new(...args: A): R
   (...args: A): R
 
   mockReturnValue(obj: R): this
@@ -21,9 +21,11 @@ interface Mock<A extends any[] = any[], R = any> {
 
 // this is the actual interesting bit, a proxy that recursively mocks all
 // functions, and also happened not to play well with Accelerate inference
-type DeepMockProxy<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => infer R ? Mock<A, R> : DeepMockProxy<T[K]>
-} & T
+type DeepMockProxy<T> =
+  & {
+    [K in keyof T]: T[K] extends (...args: infer A) => infer R ? Mock<A, R> : DeepMockProxy<T[K]>
+  }
+  & T
 
 // this is ma minimal representation of a mocking proxy, doesn't do anything
 declare function mockDeep<T>(_mockImplementation?: T): DeepMockProxy<T>
@@ -86,7 +88,7 @@ testMatrix.setupTestSuite(
   () => {
     describe('with full override extension', () => {
       test('output inference (via `mockResolvedValue`)', () => {
-        ;() => {
+        ;(() => {
           const prismaMock = mockDeep(getOverrideExtension(prisma))
 
           prismaMock.user.aggregate.mockResolvedValue({})
@@ -106,11 +108,11 @@ testMatrix.setupTestSuite(
           expectTypeOf(prismaMock.user.findUnique.mockResolvedValue).parameter(0).toEqualTypeOf<{} | null>()
           expectTypeOf(prismaMock.user.findUniqueOrThrow.mockResolvedValue).parameter(0).toEqualTypeOf<{}>()
           expectTypeOf(prismaMock.user.groupBy.mockResolvedValue).parameter(0).toEqualTypeOf<{}[]>()
-        }
+        })
       })
 
       test('input inference (via `calledWith`)', () => {
-        ;() => {
+        ;(() => {
           const prismaMock = mockDeep(getOverrideExtension(prisma))
 
           prismaMock.user.aggregate.calledWith({ where: { id: 1 } })
@@ -130,22 +132,22 @@ testMatrix.setupTestSuite(
           expectTypeOf(prismaMock.user.findUnique.calledWith).parameter(0).toEqualTypeOf<{}>()
           expectTypeOf(prismaMock.user.findUniqueOrThrow.calledWith).parameter(0).toEqualTypeOf<{}>()
           expectTypeOf(prismaMock.user.groupBy.calledWith).parameter(0).toEqualTypeOf<{}>()
-        }
+        })
       })
 
       test('call still work as usual', () => {
-        ;() => {
+        ;(() => {
           const prismaMock = mockDeep(getOverrideExtension(prisma))
 
           const data = prismaMock.user.findFirst({ where: { id: '1' } })
           expectTypeOf(data).toEqualTypeOf<{ id: string } | null>()
-        }
+        })
       })
     })
 
     describe('with empty extension', () => {
       test('output inference (via `mockResolvedValue`)', () => {
-        ;() => {
+        ;(() => {
           const xprisma = prisma.$extends({})
           const prismaMock = mockDeep(xprisma)
 
@@ -180,11 +182,11 @@ testMatrix.setupTestSuite(
           expectTypeOf(prismaMock.user.groupBy.mockResolvedValue)
             .parameter(0)
             .toEqualTypeOf<Awaited<ReturnType<typeof xprisma.user.groupBy>>>()
-        }
+        })
       })
 
       test('input inference (via `calledWith`)', () => {
-        ;() => {
+        ;(() => {
           const xprisma = prisma.$extends({})
           const prismaMock = mockDeep(xprisma)
 
@@ -221,17 +223,17 @@ testMatrix.setupTestSuite(
           expectTypeOf(prismaMock.user.groupBy.calledWith)
             .parameter(0)
             .toEqualTypeOf<Parameters<typeof xprisma.user.groupBy>[0]>()
-        }
+        })
       })
 
       test('call still work as usual', () => {
-        ;async () => {
+        ;(async () => {
           const xprisma = prisma.$extends({})
           const prismaMock = mockDeep(xprisma)
 
           const data = await prismaMock.user.findFirst({ where: { id: '1' } })
           expectTypeOf(data).toEqualTypeOf<{ id: string } | null>()
-        }
+        })
       })
     })
   },

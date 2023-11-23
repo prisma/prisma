@@ -129,14 +129,16 @@ export class MinimalArgsType implements Generatable {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${typeName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-${indent(
-  args
-    .map((arg) => {
-      return new InputField(arg, this.context.genericArgsInfo).toTS()
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
+${
+      indent(
+        args
+          .map((arg) => {
+            return new InputField(arg, this.context.genericArgsInfo).toTS()
+          })
+          .join('\n'),
+        TAB_SIZE,
+      )
+    }
 }
 `
   }

@@ -253,7 +253,7 @@ Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/mai
 
 ## Tests Status
 
-- Prisma Tests Status:  
+- Prisma Tests Status:\
   [![Prisma Tests Status](https://github.com/prisma/prisma/workflows/CI/badge.svg)](https://github.com/prisma/prisma/actions/workflows/test.yml?query=branch%3Amain)
-- Ecosystem Tests Status:  
+- Ecosystem Tests Status:\
   [![Ecosystem Tests Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions/workflows/test.yaml?query=branch%3Adev)

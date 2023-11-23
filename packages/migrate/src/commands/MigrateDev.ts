@@ -39,8 +39,10 @@ export class MigrateDev implements Command {
 
   private static help = format(`
 ${
-  process.platform === 'win32' ? '' : '🏋️  '
-}Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
+    process.platform === 'win32'
+      ? ''
+      : '🏋️  '
+  }Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
  
 ${bold('Usage')}
 
@@ -171,13 +173,15 @@ ${bold('Examples')}
       if (appliedMigrationNames.length > 0) {
         console.info() // empty line
         console.info(
-          `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
-            'migrations',
-            appliedMigrationNames,
-            {
-              'migration.sql': '',
-            },
-          )}`,
+          `The following migration(s) have been applied:\n\n${
+            printFilesFromMigrationIds(
+              'migrations',
+              appliedMigrationNames,
+              {
+                'migration.sql': '',
+              },
+            )
+          }`,
         )
       }
     } catch (e) {
@@ -264,9 +268,11 @@ ${bold('Examples')}
       if (args['--create-only']) {
         migrate.stop()
 
-        return `Prisma Migrate created the following migration without applying it ${printMigrationId(
-          createMigrationResult.generatedMigrationName!,
-        )}\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor('prisma migrate dev'))}.`
+        return `Prisma Migrate created the following migration without applying it ${
+          printMigrationId(
+            createMigrationResult.generatedMigrationName!,
+          )
+        }\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor('prisma migrate dev'))}.`
       }
 
       const { appliedMigrationNames } = await migrate.applyMigrations()
@@ -288,13 +294,15 @@ ${bold('Examples')}
     } else {
       console.info() // empty line
       console.info(
-        `The following migration(s) have been created and applied from new schema changes:\n\n${printFilesFromMigrationIds(
-          'migrations',
-          migrationIds,
-          {
-            'migration.sql': '',
-          },
-        )}
+        `The following migration(s) have been created and applied from new schema changes:\n\n${
+          printFilesFromMigrationIds(
+            'migrations',
+            migrationIds,
+            {
+              'migration.sql': '',
+            },
+          )
+        }
 
 ${green('Your database is now in sync with your schema.')}`,
       )
@@ -308,9 +316,9 @@ ${green('Your database is now in sync with your schema.')}`,
 
     // If database was created or reset we want to run the seed if not skipped
     if (
-      (wasDbCreated || devDiagnostic.action.tag === 'reset') &&
-      !process.env.PRISMA_MIGRATE_SKIP_SEED &&
-      !args['--skip-seed']
+      (wasDbCreated || devDiagnostic.action.tag === 'reset')
+      && !process.env.PRISMA_MIGRATE_SKIP_SEED
+      && !args['--skip-seed']
     ) {
       // Run seed if 1 or more seed files are present
       // And catch the error to continue execution

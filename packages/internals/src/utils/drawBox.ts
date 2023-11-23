@@ -34,12 +34,12 @@ export function drawBox({ title, width, height, str, horizontalPadding }: BoxOpt
   width = Math.max(width, maxLineLength(str) + horizontalPadding * 2)
 
   const topLine = title
-    ? grey(chars.topLeft + chars.horizontal) +
-      ' ' +
-      reset(bold(title)) +
-      ' ' +
-      grey(chars.horizontal.repeat(width - title.length - 2 - 3) + chars.topRight) +
-      reset()
+    ? grey(chars.topLeft + chars.horizontal)
+      + ' '
+      + reset(bold(title))
+      + ' '
+      + grey(chars.horizontal.repeat(width - title.length - 2 - 3) + chars.topRight)
+      + reset()
     : grey(chars.topLeft + chars.horizontal) + grey(chars.horizontal.repeat(width - 3) + chars.topRight)
 
   const bottomLine = chars.bottomLeft + chars.horizontal.repeat(width - 2) + chars.bottomRight
@@ -55,9 +55,11 @@ export function drawBox({ title, width, height, str, horizontalPadding }: BoxOpt
     .map((l) => {
       const lineWidth = Math.min(stringWidth(l), width)
       const paddingRight = Math.max(width - lineWidth - 2, 0)
-      return `${grey(chars.vertical)}${' '.repeat(horizontalPadding!)}${reset(cliTruncate(l, width - 2))}${' '.repeat(
-        paddingRight - horizontalPadding!,
-      )}${grey(chars.vertical)}`
+      return `${grey(chars.vertical)}${' '.repeat(horizontalPadding!)}${reset(cliTruncate(l, width - 2))}${
+        ' '.repeat(
+          paddingRight - horizontalPadding!,
+        )
+      }${grey(chars.vertical)}`
     })
     .join('\n')
 

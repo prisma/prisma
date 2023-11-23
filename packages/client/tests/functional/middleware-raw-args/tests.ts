@@ -56,7 +56,6 @@ testMatrix.setupTestSuite(
       await prisma.$executeRaw(Prisma.sql`SELECT ${1}`)
     })
   },
-
   {
     optOut: {
       from: ['mongodb'],

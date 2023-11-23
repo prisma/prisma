@@ -14,9 +14,11 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
   const systemLibraryNotFound = (library: string) =>
     `Prisma cannot find the required \`${library}\` system library in your system`
   const hasLinkingProblem = error.message.includes('cannot open shared object file')
-  const referToSystemRequirementsDocs = `Please refer to the documentation about Prisma's system requirements: ${link(
-    'https://pris.ly/d/system-requirements',
-  )}`
+  const referToSystemRequirementsDocs = `Please refer to the documentation about Prisma's system requirements: ${
+    link(
+      'https://pris.ly/d/system-requirements',
+    )
+  }`
 
   const errorTitle = `Unable to require(\`${dim(args.id)}\`).`
 

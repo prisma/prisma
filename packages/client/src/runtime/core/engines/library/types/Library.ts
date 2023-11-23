@@ -20,7 +20,7 @@ export type QueryEngineInstance = {
 }
 
 export interface QueryEngineConstructor {
-  new (
+  new(
     config: QueryEngineConfig,
     logger: (log: string) => void,
     adapter?: ErrorCapturingDriverAdapter,

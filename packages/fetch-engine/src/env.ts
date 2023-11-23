@@ -33,9 +33,11 @@ export function getBinaryEnvVarPath(binaryName: BinaryType): PathFromEnvValue | 
       )
     }
     debug(
-      `Using env var ${bold(envVar)} for binary ${bold(binaryName)}, which points to ${underline(
-        process.env[envVar]!,
-      )}`,
+      `Using env var ${bold(envVar)} for binary ${bold(binaryName)}, which points to ${
+        underline(
+          process.env[envVar]!,
+        )
+      }`,
     )
     return {
       path: envVarPath,
@@ -53,16 +55,20 @@ function getEnvVarToUse(binaryType: BinaryType): string {
   if (deprecatedEnvVar && process.env[deprecatedEnvVar]) {
     if (process.env[envVar]) {
       console.warn(
-        `${yellow('prisma:warn')} Both ${bold(envVar)} and ${bold(deprecatedEnvVar)} are specified, ${bold(
-          envVar,
-        )} takes precedence. ${bold(deprecatedEnvVar)} is deprecated.`,
+        `${yellow('prisma:warn')} Both ${bold(envVar)} and ${bold(deprecatedEnvVar)} are specified, ${
+          bold(
+            envVar,
+          )
+        } takes precedence. ${bold(deprecatedEnvVar)} is deprecated.`,
       )
       return envVar
     } else {
       console.warn(
-        `${yellow('prisma:warn')} ${bold(deprecatedEnvVar)} environment variable is deprecated, please use ${bold(
-          envVar,
-        )} instead`,
+        `${yellow('prisma:warn')} ${bold(deprecatedEnvVar)} environment variable is deprecated, please use ${
+          bold(
+            envVar,
+          )
+        } instead`,
       )
       return deprecatedEnvVar
     }

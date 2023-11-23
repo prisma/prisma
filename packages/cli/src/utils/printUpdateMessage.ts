@@ -27,9 +27,11 @@ export function printUpdateMessage(checkResult: { status: 'ok'; data: Check.Resp
     }
   } catch (e) {}
 
-  const boxText = `\n${blue(
-    'Update available',
-  )} ${currentVersionInstalled} -> ${latestVersionAvailable}\n${majorText}Run the following to update
+  const boxText = `\n${
+    blue(
+      'Update available',
+    )
+  } ${currentVersionInstalled} -> ${latestVersionAvailable}\n${majorText}Run the following to update
   ${bold(prismaCLICommand)}
   ${bold(prismaClientCommand)}`
 

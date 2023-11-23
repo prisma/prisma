@@ -33,7 +33,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:jest/recommended',
-    'prettier'
+    'prettier',
   ],
   rules: {
     '@typescript-eslint/no-use-before-define': 'off',

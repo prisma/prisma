@@ -2,12 +2,12 @@ FROM golang:1
 
 RUN apt update && apt install netcat-openbsd -y
 
-# planetscale-proxy below is the name of our git repository 
+# planetscale-proxy below is the name of our git repository
 # forked from https://github.com/mattrobenolt/ps-http-sim
 RUN cd /go/src && git clone https://github.com/prisma/planetscale-proxy.git
 RUN cd /go/src/planetscale-proxy && go install .
 
-# ps-http-sim is the original repository name 
+# ps-http-sim is the original repository name
 # and the go module name needed to start the service
 ENTRYPOINT /go/bin/ps-http-sim \
   -http-addr=0.0.0.0 \

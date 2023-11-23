@@ -55,7 +55,7 @@ function deepCloneValue(x: JsInputValue): JsInputValue {
   if (Array.isArray(x)) {
     let k = x.length
     let copy
-    for (copy = Array(k); k--; ) {
+    for (copy = Array(k); k--;) {
       copy[k] = deepCloneValue(x[k])
     }
     return copy

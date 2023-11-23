@@ -144,9 +144,9 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
     // If an integer is required and the current number isn't one,
     // discard the fractional part.
     if (
-      typeof value === 'number' &&
-      (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64) &&
-      !Number.isInteger(value)
+      typeof value === 'number'
+      && (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64)
+      && !Number.isInteger(value)
     ) {
       result[i] = Math.trunc(value)
       continue

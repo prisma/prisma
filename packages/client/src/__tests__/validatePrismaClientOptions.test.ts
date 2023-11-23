@@ -52,7 +52,7 @@ describe('invalid options', () => {
           errorsFormat: 'minimal',
         } as any,
         config,
-      ),
+      )
     ).toThrowErrorMatchingInlineSnapshot(`
       Unknown property errorsFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
       Read more at https://pris.ly/d/client-constructor
@@ -66,7 +66,7 @@ describe('invalid options', () => {
           },
         },
         config,
-      ),
+      )
     ).toThrowErrorMatchingInlineSnapshot(`
       Unknown datasource asd provided to PrismaClient constructor. Available datasources: db
       Read more at https://pris.ly/d/client-constructor
@@ -80,7 +80,7 @@ describe('invalid options', () => {
           },
         } as any,
         config,
-      ),
+      )
     ).toThrowErrorMatchingInlineSnapshot(`
       Invalid value {"db":{"murl":""}} for datasource "db" provided to PrismaClient constructor.
       It should have this form: { url: "CONNECTION_STRING" }
@@ -93,7 +93,7 @@ describe('invalid options', () => {
           log: [{ helo: 'world' }],
         } as any,
         config,
-      ),
+      )
     ).toThrowErrorMatchingInlineSnapshot(`
       Invalid property helo for "log" provided to PrismaClient constructor
       Read more at https://pris.ly/d/client-constructor
@@ -105,7 +105,7 @@ describe('invalid options', () => {
           log: ['muery'],
         } as any,
         config,
-      ),
+      )
     ).toThrowErrorMatchingInlineSnapshot(`
       Invalid log level "muery" provided to PrismaClient constructor. Did you mean "query"?
       Read more at https://pris.ly/d/client-constructor

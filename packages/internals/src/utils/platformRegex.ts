@@ -9,11 +9,11 @@ import escapeString from 'escape-string-regexp'
  * whole instead of "darwin" and "arm" separately)
  */
 export const platformRegex = new RegExp(
-  '(' +
-    [...platforms]
+  '('
+    + [...platforms]
       .sort((a, b) => b.length - a.length)
       .map((p) => escapeString(p))
-      .join('|') +
-    ')',
+      .join('|')
+    + ')',
   'g',
 )

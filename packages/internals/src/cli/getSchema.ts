@@ -42,10 +42,9 @@ export async function getSchemaPathInternal(
   // 2. Try the package.json `prisma.schema` custom path
   // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths
   // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
-  const schemaPath =
-    (await getSchemaPathFromPackageJson(opts.cwd)) ??
-    (await getRelativeSchemaPath(opts.cwd)) ??
-    (await resolveYarnSchema(opts.cwd))
+  const schemaPath = (await getSchemaPathFromPackageJson(opts.cwd))
+    ?? (await getRelativeSchemaPath(opts.cwd))
+    ?? (await resolveYarnSchema(opts.cwd))
 
   if (schemaPath) {
     return schemaPath
@@ -89,10 +88,12 @@ export async function getSchemaPathFromPackageJson(cwd: string): Promise<string 
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
-      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
-        cwd,
-        prismaConfig.packagePath,
-      )}\` must be of type string`,
+      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${
+        path.relative(
+          cwd,
+          prismaConfig.packagePath,
+        )
+      }\` must be of type string`,
     )
   }
 
@@ -102,10 +103,12 @@ export async function getSchemaPathFromPackageJson(cwd: string): Promise<string 
 
   if ((await exists(absoluteSchemaPath)) === false) {
     throw new Error(
-      `Provided schema path \`${path.relative(cwd, absoluteSchemaPath)}\` from \`${path.relative(
-        cwd,
-        prismaConfig.packagePath,
-      )}\` doesn't exist.`,
+      `Provided schema path \`${path.relative(cwd, absoluteSchemaPath)}\` from \`${
+        path.relative(
+          cwd,
+          prismaConfig.packagePath,
+        )
+      }\` doesn't exist.`,
     )
   }
 
@@ -137,16 +140,16 @@ async function resolveYarnSchema(cwd: string): Promise<string | null> {
       // Iterate over the workspaces
       for (const workspace of workspaces) {
         const workspacePath = path.join(workspaceRootDir, workspace.location)
-        const workspaceSchemaPath =
-          getSchemaPathFromPackageJsonSync(workspacePath) ?? getRelativeSchemaPathSync(workspacePath)
+        const workspaceSchemaPath = getSchemaPathFromPackageJsonSync(workspacePath)
+          ?? getRelativeSchemaPathSync(workspacePath)
 
         if (workspaceSchemaPath) {
           return workspaceSchemaPath
         }
       }
 
-      const workspaceSchemaPathFromRoot =
-        getSchemaPathFromPackageJsonSync(workspaceRootDir) ?? getRelativeSchemaPathSync(workspaceRootDir)
+      const workspaceSchemaPathFromRoot = getSchemaPathFromPackageJsonSync(workspaceRootDir)
+        ?? getRelativeSchemaPathSync(workspaceRootDir)
 
       if (workspaceSchemaPathFromRoot) {
         return workspaceSchemaPathFromRoot
@@ -183,16 +186,16 @@ function resolveYarnSchemaSync(cwd: string): string | null {
       // Iterate over the workspaces
       for (const workspace of workspaces) {
         const workspacePath = path.join(workspaceRootDir, workspace.location)
-        const workspaceSchemaPath =
-          getSchemaPathFromPackageJsonSync(workspacePath) ?? getRelativeSchemaPathSync(workspacePath)
+        const workspaceSchemaPath = getSchemaPathFromPackageJsonSync(workspacePath)
+          ?? getRelativeSchemaPathSync(workspacePath)
 
         if (workspaceSchemaPath) {
           return workspaceSchemaPath
         }
       }
 
-      const workspaceSchemaPathFromRoot =
-        getSchemaPathFromPackageJsonSync(workspaceRootDir) ?? getRelativeSchemaPathSync(workspaceRootDir)
+      const workspaceSchemaPathFromRoot = getSchemaPathFromPackageJsonSync(workspaceRootDir)
+        ?? getRelativeSchemaPathSync(workspaceRootDir)
 
       if (workspaceSchemaPathFromRoot) {
         return workspaceSchemaPathFromRoot
@@ -250,13 +253,19 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
 
   if (!schemaPath) {
     throw new Error(
-      `Could not find a ${bold(
-        'schema.prisma',
-      )} file that is required for this command.\nYou can either provide it with ${green(
-        '--schema',
-      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${green(
-        './prisma/schema.prisma',
-      )} https://pris.ly/d/prisma-schema-location`,
+      `Could not find a ${
+        bold(
+          'schema.prisma',
+        )
+      } file that is required for this command.\nYou can either provide it with ${
+        green(
+          '--schema',
+        )
+      }, set it as \`prisma.schema\` in your package.json or put it into the default location ${
+        green(
+          './prisma/schema.prisma',
+        )
+      } https://pris.ly/d/prisma-schema-location`,
     )
   }
 
@@ -292,8 +301,8 @@ export function getSchemaPathSyncInternal(
   // 2. Try the package.json `prisma.schema` custom path
   // 3. Try the conventional `./schema.prisma` or `./prisma/schema.prisma` paths
   // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
-  const schemaPath =
-    getSchemaPathFromPackageJsonSync(opts.cwd) ?? getRelativeSchemaPathSync(opts.cwd) ?? resolveYarnSchemaSync(opts.cwd)
+  const schemaPath = getSchemaPathFromPackageJsonSync(opts.cwd) ?? getRelativeSchemaPathSync(opts.cwd)
+    ?? resolveYarnSchemaSync(opts.cwd)
 
   if (schemaPath) {
     return schemaPath
@@ -312,10 +321,12 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
-      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
-        cwd,
-        pkgJson.path,
-      )}\` must be of type string`,
+      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${
+        path.relative(
+          cwd,
+          pkgJson.path,
+        )
+      }\` must be of type string`,
     )
   }
 
@@ -325,10 +336,12 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
 
   if (fs.existsSync(absoluteSchemaPath) === false) {
     throw new Error(
-      `Provided schema path \`${path.relative(cwd, absoluteSchemaPath)}\` from \`${path.relative(
-        cwd,
-        pkgJson.path,
-      )}\` doesn't exist.`,
+      `Provided schema path \`${path.relative(cwd, absoluteSchemaPath)}\` from \`${
+        path.relative(
+          cwd,
+          pkgJson.path,
+        )
+      }\` doesn't exist.`,
     )
   }
 

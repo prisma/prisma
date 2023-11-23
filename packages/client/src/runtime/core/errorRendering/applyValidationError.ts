@@ -87,9 +87,11 @@ function applyIncludeAndSelectError(error: IncludeAndSelectError, argsTree: Argu
 
   argsTree.addErrorMessage(
     (colors) =>
-      `Please ${colors.bold('either')} use ${colors.green('`include`')} or ${colors.green(
-        '`select`',
-      )}, but ${colors.red('not both')} at the same time.`,
+      `Please ${colors.bold('either')} use ${colors.green('`include`')} or ${
+        colors.green(
+          '`select`',
+        )
+      }, but ${colors.red('not both')} at the same time.`,
   )
 }
 
@@ -165,13 +167,17 @@ function applyEmptySelectionError(error: EmptySelectionError, argsTree: Argument
 
   argsTree.addErrorMessage((colors) => {
     if (isEmpty) {
-      return `The ${colors.red('`select`')} statement for type ${colors.bold(
-        outputType.name,
-      )} must not be empty. ${availableOptionsMessage(colors)}`
+      return `The ${colors.red('`select`')} statement for type ${
+        colors.bold(
+          outputType.name,
+        )
+      } must not be empty. ${availableOptionsMessage(colors)}`
     }
-    return `The ${colors.red('`select`')} statement for type ${colors.bold(outputType.name)} needs ${colors.bold(
-      'at least one truthy value',
-    )}.`
+    return `The ${colors.red('`select`')} statement for type ${colors.bold(outputType.name)} needs ${
+      colors.bold(
+        'at least one truthy value',
+      )
+    }.`
   })
 }
 
@@ -209,7 +215,7 @@ function applyUnknownArgumentError(error: UnknownArgumentError, argsTree: Argume
       colors,
       argName,
       error.arguments.map((arg) => arg.name),
-    ),
+    )
   )
 }
 
@@ -230,7 +236,7 @@ function applyUnknownInputFieldError(error: UnknownInputFieldError, argsTree: Ar
       colors,
       argName,
       error.inputType.fields.map((f) => f.name),
-    ),
+    )
   )
 }
 
@@ -307,9 +313,11 @@ function applyInvalidArgumentTypeError(error: InvalidArgumentTypeError, args: Ar
       error.argument.typeNames.map((type) => colors.green(type)),
     )
     // TODO: print value
-    return `Argument \`${colors.bold(argName)}\`: Invalid value provided. Expected ${expected}, provided ${colors.red(
-      error.inferredType,
-    )}.`
+    return `Argument \`${colors.bold(argName)}\`: Invalid value provided. Expected ${expected}, provided ${
+      colors.red(
+        error.inferredType,
+      )
+    }.`
   })
 }
 
@@ -376,10 +384,12 @@ function applySomeFieldsMissingError(error: SomeFieldsMissingError, args: Argume
     if (error.constraints.minFieldCount === 1) {
       if (error.constraints.requiredFields) {
         parts.push(
-          `${colors.green('at least one of')} ${joinWithPreposition(
-            'or',
-            error.constraints.requiredFields.map((f) => `\`${colors.bold(f)}\``),
-          )} arguments.`,
+          `${colors.green('at least one of')} ${
+            joinWithPreposition(
+              'or',
+              error.constraints.requiredFields.map((f) => `\`${colors.bold(f)}\``),
+            )
+          } arguments.`,
         )
       } else {
         parts.push(`${colors.green('at least one')} argument.`)
@@ -415,10 +425,12 @@ function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: Argu
     }
 
     parts.push(
-      `but you provided ${joinWithPreposition(
-        'and',
-        providedArguments.map((arg) => colors.red(arg)),
-      )}. Please choose`,
+      `but you provided ${
+        joinWithPreposition(
+          'and',
+          providedArguments.map((arg) => colors.red(arg)),
+        )
+      }. Please choose`,
     )
 
     if (error.constraints.maxFieldCount === 1) {

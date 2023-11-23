@@ -546,7 +546,7 @@ testMatrix.setupTestSuite(() => {
 
   // here we want to check that type utils are equivalent to real results
   test('generic client - generic type utilities', () => {
-    ;async () => {
+    ;(async () => {
       const xprisma = prisma.$extends(allResultsGenericExtensionObjectViaDefault())
 
       const _aggregate = xprisma.user._aggregate({ _min: { id: true } })
@@ -660,6 +660,6 @@ testMatrix.setupTestSuite(() => {
       const queryRawUnsafe = await prisma.$queryRawUnsafe('')
       // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf<typeof _queryRawUnsafe>().toEqualTypeOf<typeof queryRawUnsafe>()
-    }
+    })
   })
 })

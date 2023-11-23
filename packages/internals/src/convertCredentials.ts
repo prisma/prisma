@@ -114,8 +114,7 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
       // here it's only the file name?
       database = path.basename(uri.pathname)
     }
-  }
-  // why length more than 1?
+  } // why length more than 1?
   // probably for slicing `/` or `?`?
   else if (uri.pathname.length > 1) {
     database = uri.pathname.slice(1)

@@ -176,10 +176,10 @@ Set composite types introspection depth to 2 levels
             // since cockroachdb is compatible with postgresql
             // we only error if it's a different combination
             if (
-              providerFromSchema &&
-              providerFromUrl &&
-              providerFromSchema !== providerFromUrl &&
-              Boolean(providerFromSchema === 'cockroachdb' && providerFromUrl === 'postgresql') === false
+              providerFromSchema
+              && providerFromUrl
+              && providerFromSchema !== providerFromUrl
+              && Boolean(providerFromSchema === 'cockroachdb' && providerFromUrl === 'postgresql') === false
             ) {
               throw new Error(
                 `The database provider found in --url (${providerFromUrl}) is different from the provider found in the Prisma schema (${providerFromSchema}).`,
@@ -225,13 +225,19 @@ Set composite types introspection depth to 2 levels
       const isReintrospection = modelMatch
 
       if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
-        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
-You can explicitly ignore and override your current local schema file with ${green(
-          getCommandWithExecutor('prisma db pull --force'),
-        )}
-Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
-          'https://github.com/prisma/prisma/issues/9585',
-        )} for more info.`)
+        throw new Error(
+          `Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
+You can explicitly ignore and override your current local schema file with ${
+            green(
+              getCommandWithExecutor('prisma db pull --force'),
+            )
+          }
+Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${
+            link(
+              'https://github.com/prisma/prisma/issues/9585',
+            )
+          } for more info.`,
+        )
       }
     }
 
@@ -240,10 +246,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       schemaPath: schemaPath ?? undefined,
     })
 
-    const basedOn =
-      !args['--url'] && schemaPath
-        ? ` based on datasource defined in ${underline(path.relative(process.cwd(), schemaPath))}`
-        : ''
+    const basedOn = !args['--url'] && schemaPath
+      ? ` based on datasource defined in ${underline(path.relative(process.cwd(), schemaPath))}`
+      : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
     const before = Math.round(performance.now())
@@ -272,18 +277,24 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         /* P4001: The introspected database was empty */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')}
 
-${bold('prisma db pull')} could not create any models in your ${bold(
-          'schema.prisma',
-        )} file and you will not be able to generate Prisma Client with the ${bold(
-          getCommandWithExecutor('prisma generate'),
-        )} command.
+${bold('prisma db pull')} could not create any models in your ${
+          bold(
+            'schema.prisma',
+          )
+        } file and you will not be able to generate Prisma Client with the ${
+          bold(
+            getCommandWithExecutor('prisma generate'),
+          )
+        } command.
 
 ${bold('To fix this, you have two options:')}
 
 - manually create a table in your database.
-- make sure the database connection URL inside the ${bold('datasource')} block in ${bold(
-          'schema.prisma',
-        )} points to a database that is not empty (it must contain at least one table).
+- make sure the database connection URL inside the ${bold('datasource')} block in ${
+          bold(
+            'schema.prisma',
+          )
+        } points to a database that is not empty (it must contain at least one table).
 
 Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
@@ -291,18 +302,24 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
         /* P1003: Database does not exist */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')}
 
-${bold('prisma db pull')} could not create any models in your ${bold(
-          'schema.prisma',
-        )} file and you will not be able to generate Prisma Client with the ${bold(
-          getCommandWithExecutor('prisma generate'),
-        )} command.
+${bold('prisma db pull')} could not create any models in your ${
+          bold(
+            'schema.prisma',
+          )
+        } file and you will not be able to generate Prisma Client with the ${
+          bold(
+            getCommandWithExecutor('prisma generate'),
+          )
+        } command.
 
 ${bold('To fix this, you have two options:')}
 
 - manually create a database.
-- make sure the database connection URL inside the ${bold('datasource')} block in ${bold(
-          'schema.prisma',
-        )} points to an existing database.
+- make sure the database connection URL inside the ${bold('datasource')} block in ${
+          bold(
+            'schema.prisma',
+          )
+        } points to an existing database.
 
 Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
@@ -316,12 +333,16 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
         throw new Error(`${red(`${e.message}`)}
 Introspection failed as your current Prisma schema file is invalid
 
-Please fix your current schema manually (using either ${green(
-          getCommandWithExecutor('prisma validate'),
-        )} or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
-Or run this command with the ${green(
-          '--force',
-        )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
+Please fix your current schema manually (using either ${
+          green(
+            getCommandWithExecutor('prisma validate'),
+          )
+        } or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
+Or run this command with the ${
+          green(
+            '--force',
+          )
+        } flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
 
       console.info() // empty line
@@ -351,14 +372,15 @@ Or run this command with the ${green(
       } else {
         modelsAndTypesMessage = `${modelsCountMessage}`
       }
-      const modelsAndTypesCountMessage =
-        modelsCount + typesCount > 1
-          ? `${modelsAndTypesMessage} and wrote them`
-          : `${modelsAndTypesMessage} and wrote it`
+      const modelsAndTypesCountMessage = modelsCount + typesCount > 1
+        ? `${modelsAndTypesMessage} and wrote them`
+        : `${modelsAndTypesMessage} and wrote it`
 
-      introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
-        path.relative(process.cwd(), schemaPath),
-      )} in ${bold(formatms(Math.round(performance.now()) - before))}
+      introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${
+        underline(
+          path.relative(process.cwd(), schemaPath),
+        )
+      } in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
 ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }

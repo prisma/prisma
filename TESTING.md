@@ -139,18 +139,18 @@ If you have related tests but different schemas, you can nest directories. For e
 
 `composite-index/`
 
-1.  `list/`
+1. `list/`
 
-    - `test.ts`
-    - `_matrix.ts`
-    - `prisma/`
-      - `_schema.ts`
+   - `test.ts`
+   - `_matrix.ts`
+   - `prisma/`
+     - `_schema.ts`
 
-2.  `named/`
-    - `test.ts`
-    - `_matrix.ts`
-    - `prisma/`
-      - ` _schema.ts`
+2. `named/`
+   - `test.ts`
+   - `_matrix.ts`
+   - `prisma/`
+     - `_schema.ts`
 
 #### Test matrix
 
@@ -365,7 +365,7 @@ Tests are created using `createMemoryTest` function:
 ```ts
 import { createMemoryTest } from '../_utils/createMemoryTest'
 
-//@ts-ignore
+// @ts-ignore
 type PrismaModule = typeof import('./.generated/node_modules/@prisma/client')
 
 void createMemoryTest({

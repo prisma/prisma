@@ -26,7 +26,8 @@ describe('lint valid schema with a deprecated preview feature', () => {
     start: 91,
     end: 106,
     is_warning: true,
-    text: `Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.`,
+    text:
+      `Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.`,
   }
 
   test('should return a deprecated preview feature warning', () => {
@@ -71,14 +72,16 @@ describe('lint invalid schema with a deprecated preview feature', () => {
     start: 91,
     end: 106,
     is_warning: true,
-    text: `Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.`,
+    text:
+      `Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.`,
   }
 
   const expectedError: LintError = {
     start: 344,
     end: 425,
     is_warning: false,
-    text: `Error parsing attribute "@relation": The \`onUpdate\` referential action of a relation must not be set to \`SetNull\` when a referenced field is required.
+    text:
+      `Error parsing attribute "@relation": The \`onUpdate\` referential action of a relation must not be set to \`SetNull\` when a referenced field is required.
 Either choose another referential action, or make the referenced fields optional.
 `,
   }

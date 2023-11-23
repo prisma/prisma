@@ -111,7 +111,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           reason: 'Unable to parse JSON',
           error: e as Error,
         }),
-      ),
+      )
     ),
   )
 

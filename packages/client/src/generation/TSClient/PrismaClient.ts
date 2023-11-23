@@ -28,26 +28,30 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
   meta: {
     modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
     txIsolationLevel: ${
-      this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma') ? 'Prisma.TransactionIsolationLevel' : 'never'
-    }
+    this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma') ? 'Prisma.TransactionIsolationLevel' : 'never'
+  }
   },
-  model: {${modelNames.reduce((acc, modelName) => {
-    const actions = getModelActions(this.dmmf, modelName)
+  model: {${
+    modelNames.reduce((acc, modelName) => {
+      const actions = getModelActions(this.dmmf, modelName)
 
-    return `${acc}
+      return `${acc}
     ${modelName}: {
       payload: ${getPayloadName(modelName)}<ExtArgs>
       fields: Prisma.${getFieldRefsTypeName(modelName)}
-      operations: {${actions.reduce((acc, action) => {
-        return `${acc}
+      operations: {${
+        actions.reduce((acc, action) => {
+          return `${acc}
         ${action}: {
           args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
           result: ${clientTypeMapModelsResultDefinition(modelName, action)}
         }`
-      }, '')}
+        }, '')
+      }
       }
     }`
-  }, '')}
+    }, '')
+  }
   }
 }`
 }
@@ -94,13 +98,15 @@ function clientTypeMapOthersDefinition(this: PrismaClientClass) {
   return `{
   other: {
     payload: any
-    operations: {${otherOperationsNames.reduce((acc, action) => {
+    operations: {${
+    otherOperationsNames.reduce((acc, action) => {
       return `${acc}
       ${action}: {
         args: ${argsResultMap[action].args},
         result: ${argsResultMap[action].result}
       }`
-    }, '')}
+    }, '')
+  }
     }
   }
 }`
@@ -119,7 +125,8 @@ export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.Defau
 
 function clientExtensionsDefinitions(this: PrismaClientClass) {
   const typeMap = clientTypeMapDefinition.call(this)
-  const define = `export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>`
+  const define =
+    `export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>`
   const extend = `  $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>`
 
   return {
@@ -381,27 +388,30 @@ export class PrismaClient<
    */
   $use(cb: Prisma.Middleware): void
 
-${[
-  executeRawDefinition.bind(this)(),
-  queryRawDefinition.bind(this)(),
-  batchingTransactionDefinition.bind(this)(),
-  interactiveTransactionDefinition.bind(this)(),
-  runCommandRawDefinition.bind(this)(),
-  metricDefinition.bind(this)(),
-  this.clientExtensionsDefinitions.prismaClientDefinitions,
-]
-  .join('\n')
-  .trim()}
+${
+      [
+        executeRawDefinition.bind(this)(),
+        queryRawDefinition.bind(this)(),
+        batchingTransactionDefinition.bind(this)(),
+        interactiveTransactionDefinition.bind(this)(),
+        runCommandRawDefinition.bind(this)(),
+        metricDefinition.bind(this)(),
+        this.clientExtensionsDefinitions.prismaClientDefinitions,
+      ]
+        .join('\n')
+        .trim()
+    }
 
-    ${indent(
-      dmmf.mappings.modelOperations
-        .filter((m) => m.findMany)
-        .map((m) => {
-          let methodName = lowerCase(m.model)
-          if (methodName === 'constructor') {
-            methodName = '["constructor"]'
-          }
-          return `\
+    ${
+      indent(
+        dmmf.mappings.modelOperations
+          .filter((m) => m.findMany)
+          .map((m) => {
+            let methodName = lowerCase(m.model)
+            if (methodName === 'constructor') {
+              methodName = '["constructor"]'
+            }
+            return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
   * Example usage:
@@ -411,10 +421,11 @@ ${[
   * \`\`\`
   */
 get ${methodName}(): Prisma.${m.model}Delegate<ExtArgs>;`
-        })
-        .join('\n\n'),
-      2,
-    )}
+          })
+          .join('\n\n'),
+        2,
+      )
+    }
 }`
   }
   public toTS(): string {

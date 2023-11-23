@@ -31,22 +31,20 @@ async function main() {
   const packageCache: { [key: string]: PackageUser[] } = {}
 
   for (const p of packages) {
-    const handler =
-      (dev) =>
-      ([name, version]: any) => {
-        const v = version.replace('^', '')
-        if (packageCache[name]) {
-          if (packageCache[name].find((c) => c.version !== v)) {
-            packageCache[name].push({
-              path: p.path,
-              version: v,
-              dev,
-            })
-          }
-        } else {
-          packageCache[name] = [{ path: p.path, version: v, dev }]
+    const handler = (dev) => ([name, version]: any) => {
+      const v = version.replace('^', '')
+      if (packageCache[name]) {
+        if (packageCache[name].find((c) => c.version !== v)) {
+          packageCache[name].push({
+            path: p.path,
+            version: v,
+            dev,
+          })
         }
+      } else {
+        packageCache[name] = [{ path: p.path, version: v, dev }]
       }
+    }
     if (p.package.dependencies) {
       Object.entries(p.package.dependencies).forEach(handler(false))
     }

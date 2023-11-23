@@ -10,11 +10,11 @@ import { platforms } from '../platforms'
  * whole instead of "darwin" and "arm" separately)
  */
 export const platformRegex = new RegExp(
-  '(' +
-    [...platforms]
+  '('
+    + [...platforms]
       .sort((a, b) => b.length - a.length)
       .map((p) => escapeString(p))
-      .join('|') +
-    ')',
+      .join('|')
+    + ')',
   'g',
 )

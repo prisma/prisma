@@ -16,13 +16,13 @@ export type BatchTransactionOptions = {
 
 export type TransactionOptions<InteractiveTransactionPayload> =
   | {
-      kind: 'itx'
-      options: InteractiveTransactionOptions<InteractiveTransactionPayload>
-    }
+    kind: 'itx'
+    options: InteractiveTransactionOptions<InteractiveTransactionPayload>
+  }
   | {
-      kind: 'batch'
-      options: BatchTransactionOptions
-    }
+    kind: 'batch'
+    options: BatchTransactionOptions
+  }
 
 export type InteractiveTransactionOptions<Payload> = Transaction.InteractiveTransactionInfo<Payload>
 

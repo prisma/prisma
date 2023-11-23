@@ -101,9 +101,11 @@ export class GeneratorProcess {
         if ((error as NodeJS.ErrnoException).code === 'EACCES') {
           reject(
             new Error(
-              `The executable at ${this.pathOrCommand} lacks the right permissions. Please use ${bold(
-                `chmod +x ${this.pathOrCommand}`,
-              )}`,
+              `The executable at ${this.pathOrCommand} lacks the right permissions. Please use ${
+                bold(
+                  `chmod +x ${this.pathOrCommand}`,
+                )
+              }`,
             ),
           )
         } else {

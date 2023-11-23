@@ -10,8 +10,9 @@ test('custom engine binary path (internal API)', async () => {
 
   const platform = await getPlatform()
 
-  let binaryFileName =
-    getClientEngineType() === ClientEngineType.Library ? getNodeAPIName(platform, 'fs') : `query-engine-${platform}`
+  let binaryFileName = getClientEngineType() === ClientEngineType.Library
+    ? getNodeAPIName(platform, 'fs')
+    : `query-engine-${platform}`
 
   if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {
     binaryFileName += '.exe'

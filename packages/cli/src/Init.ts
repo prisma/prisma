@@ -38,10 +38,10 @@ export const defaultSchema = (props?: {
 generator client {
   provider = "${generatorProvider}"
 ${
-  previewFeatures.length > 0
-    ? `  previewFeatures = [${previewFeatures.map((feature) => `"${feature}"`).join(', ')}]\n`
-    : ''
-}${output != defaultOutput ? `  output = "${output}"\n` : ''}}
+    previewFeatures.length > 0
+      ? `  previewFeatures = [${previewFeatures.map((feature) => `"${feature}"`).join(', ')}]\n`
+      : ''
+  }${output != defaultOutput ? `  output = "${output}"\n` : ''}}
 
 datasource db {
   provider = "${datasourceProvider}"
@@ -223,7 +223,9 @@ export class Init implements Command {
           const providerLowercase = input['--datasource-provider'].toLowerCase()
           if (!['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb'].includes(providerLowercase)) {
             throw new Error(
-              `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
+              `Provider "${
+                args['--datasource-provider']
+              }" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
             )
           }
           const provider = providerLowercase as ConnectorType
@@ -300,9 +302,11 @@ export class Init implements Command {
       const config = dotenv.parse(envFile) // will return an object
       if (Object.keys(config).includes('DATABASE_URL')) {
         warnings.push(
-          `${yellow('warn')} Prisma would have added DATABASE_URL but it already exists in ${bold(
-            path.relative(outputDir, envPath),
-          )}`,
+          `${yellow('warn')} Prisma would have added DATABASE_URL but it already exists in ${
+            bold(
+              path.relative(outputDir, envPath),
+            )
+          }`,
         )
       } else {
         fs.appendFileSync(envPath, `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(url))
@@ -315,9 +319,11 @@ export class Init implements Command {
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code === 'EEXIST') {
         warnings.push(
-          `${yellow(
-            'warn',
-          )} You already have a .gitignore file. Don't forget to add \`.env\` in it to not commit any private information.`,
+          `${
+            yellow(
+              'warn',
+            )
+          } You already have a .gitignore file. Don't forget to add \`.env\` in it to not commit any private information.`,
         )
       } else {
         console.error('Failed to write .gitignore file, reason: ', e)
@@ -335,26 +341,34 @@ export class Init implements Command {
     }
 
     steps.push(
-      `Run ${green(
-        getCommandWithExecutor('prisma generate'),
-      )} to generate the Prisma Client. You can then start querying your database.`,
+      `Run ${
+        green(
+          getCommandWithExecutor('prisma generate'),
+        )
+      } to generate the Prisma Client. You can then start querying your database.`,
     )
 
     if (!url || args['--datasource-provider']) {
       if (!args['--datasource-provider']) {
         steps.unshift(
-          `Set the ${green('provider')} of the ${green('datasource')} block in ${green(
-            'schema.prisma',
-          )} to match your database: ${green('postgresql')}, ${green('mysql')}, ${green('sqlite')}, ${green(
-            'sqlserver',
-          )}, ${green('mongodb')} or ${green('cockroachdb')}.`,
+          `Set the ${green('provider')} of the ${green('datasource')} block in ${
+            green(
+              'schema.prisma',
+            )
+          } to match your database: ${green('postgresql')}, ${green('mysql')}, ${green('sqlite')}, ${
+            green(
+              'sqlserver',
+            )
+          }, ${green('mongodb')} or ${green('cockroachdb')}.`,
         )
       }
 
       steps.unshift(
-        `Set the ${green('DATABASE_URL')} in the ${green(
-          '.env',
-        )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started`,
+        `Set the ${green('DATABASE_URL')} in the ${
+          green(
+            '.env',
+          )
+        } file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started`,
       )
     }
 

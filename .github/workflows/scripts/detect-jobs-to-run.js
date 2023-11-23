@@ -36,7 +36,7 @@ async function main() {
   } else {
     /**
      * @type string[]
-     **/
+     */
     const filesChanged = JSON.parse(stdinData)
     console.debug('filesChanged:', filesChanged)
 
@@ -64,6 +64,6 @@ async function main() {
   }
 }
 
-main().then(function () {
+main().then(function() {
   console.log('Done')
 })

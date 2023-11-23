@@ -7,11 +7,11 @@ export function isDecimalJsLike(value: unknown): value is DecimalJsLike {
     return true
   }
   return (
-    value !== null &&
-    typeof value === 'object' &&
-    typeof value['s'] === 'number' &&
-    typeof value['e'] === 'number' &&
-    typeof value['toFixed'] === 'function' &&
-    Array.isArray(value['d'])
+    value !== null
+    && typeof value === 'object'
+    && typeof value['s'] === 'number'
+    && typeof value['e'] === 'number'
+    && typeof value['toFixed'] === 'function'
+    && Array.isArray(value['d'])
   )
 }

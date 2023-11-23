@@ -13,7 +13,6 @@ import * as runtime from '@prisma/client/runtime/library'
  * const users = await prisma.user.findMany()
  * ```
  *
- *
  * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client).
  */
 export declare const PrismaClient: any
@@ -29,7 +28,6 @@ export declare const PrismaClient: any
  * const users = await prisma.user.findMany()
  * ```
  *
- *
  * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client).
  */
 export declare type PrismaClient = any
@@ -37,21 +35,23 @@ export declare type PrismaClient = any
 export declare class PrismaClientExtends<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
 > {
-  $extends: { extArgs: ExtArgs } & (<
-    R extends runtime.Types.Extensions.UserArgs['result'] = {},
-    M extends runtime.Types.Extensions.UserArgs['model'] = {},
-    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
-    C extends runtime.Types.Extensions.UserArgs['client'] = {},
-    Args extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.InternalArgs<R, M, {}, C>,
-  >(
-    args:
-      | ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } })
-      | { name?: string }
-      | { result?: R & runtime.Types.Extensions.UserArgs['result'] }
-      | { model?: M & runtime.Types.Extensions.UserArgs['model'] }
-      | { query?: Q & runtime.Types.Extensions.UserArgs['query'] }
-      | { client?: C & runtime.Types.Extensions.UserArgs['client'] },
-  ) => PrismaClientExtends<Args & ExtArgs> & Args['client'])
+  $extends:
+    & { extArgs: ExtArgs }
+    & (<
+      R extends runtime.Types.Extensions.UserArgs['result'] = {},
+      M extends runtime.Types.Extensions.UserArgs['model'] = {},
+      Q extends runtime.Types.Extensions.UserArgs['query'] = {},
+      C extends runtime.Types.Extensions.UserArgs['client'] = {},
+      Args extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.InternalArgs<R, M, {}, C>,
+    >(
+      args:
+        | ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } })
+        | { name?: string }
+        | { result?: R & runtime.Types.Extensions.UserArgs['result'] }
+        | { model?: M & runtime.Types.Extensions.UserArgs['model'] }
+        | { query?: Q & runtime.Types.Extensions.UserArgs['query'] }
+        | { client?: C & runtime.Types.Extensions.UserArgs['client'] },
+    ) => PrismaClientExtends<Args & ExtArgs> & Args['client'])
 
   $transaction<R>(
     fn: (prisma: Omit<this, runtime.ITXClientDenyList>) => Promise<R>,

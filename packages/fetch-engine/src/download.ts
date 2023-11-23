@@ -72,15 +72,17 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   if (os.targetDistro && ['nixos'].includes(os.targetDistro) && !allEngineEnvVarsSet(Object.keys(options.binaries))) {
     console.error(
-      `${yellow('Warning')} Precompiled engine files are not available for ${
-        os.targetDistro
-      }, please provide the paths via environment variables, see https://pris.ly/d/custom-engines`,
+      `${
+        yellow('Warning')
+      } Precompiled engine files are not available for ${os.targetDistro}, please provide the paths via environment variables, see https://pris.ly/d/custom-engines`,
     )
   } else if (['freebsd11', 'freebsd12', 'freebsd13', 'openbsd', 'netbsd'].includes(platform)) {
     console.error(
-      `${yellow(
-        'Warning',
-      )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
+      `${
+        yellow(
+          'Warning',
+        )
+      } Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
   } else if (BinaryType.QueryEngineLibrary in options.binaries) {
     assertNodeAPISupported()
@@ -113,7 +115,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         envVarPath: getBinaryEnvVarPath(binaryName as BinaryType)?.path,
         skipCacheIntegrityCheck: !!opts.skipCacheIntegrityCheck,
       }
-    }),
+    })
   )
 
   if (process.env.BINARY_DOWNLOAD_VERSION) {
@@ -129,10 +131,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const binariesToDownload = await pFilter(binaryJobs, async (job) => {
     const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, opts.version)
     const isSupported = platforms.includes(job.binaryTarget as Platform)
-    const shouldDownload =
-      isSupported &&
-      !job.envVarPath && // this is for custom binaries
-      needsToBeDownloaded
+    const shouldDownload = isSupported
+      && !job.envVarPath // this is for custom binaries
+      && needsToBeDownloaded
     if (needsToBeDownloaded && !isSupported) {
       throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom engine files were provided`)
     }
@@ -201,30 +202,29 @@ function getCollectiveBar(options: DownloadOptions): {
 } {
   const hasNodeAPI = 'libquery-engine' in options.binaries
   const bar = getBar(
-    `Downloading Prisma engines${hasNodeAPI ? ' for Node-API' : ''} for ${options.binaryTargets
-      ?.map((p) => bold(p))
-      .join(' and ')}`,
+    `Downloading Prisma engines${hasNodeAPI ? ' for Node-API' : ''} for ${
+      options.binaryTargets
+        ?.map((p) => bold(p))
+        .join(' and ')
+    }`,
   )
 
   const progressMap: { [key: string]: number } = {}
   // Object.values is faster than Object.keys
   const numDownloads = Object.values(options.binaries).length * Object.values(options?.binaryTargets ?? []).length
-  const setProgress =
-    (sourcePath: string) =>
-    (progress): void => {
-      progressMap[sourcePath] = progress
-      const progressValues = Object.values(progressMap)
-      const totalProgress =
-        progressValues.reduce((acc, curr) => {
-          return acc + curr
-        }, 0) / numDownloads
-      if (options.progressCb) {
-        options.progressCb(totalProgress)
-      }
-      if (bar) {
-        bar.update(totalProgress)
-      }
+  const setProgress = (sourcePath: string) => (progress): void => {
+    progressMap[sourcePath] = progress
+    const progressValues = Object.values(progressMap)
+    const totalProgress = progressValues.reduce((acc, curr) => {
+      return acc + curr
+    }, 0) / numDownloads
+    if (options.progressCb) {
+      options.progressCb(totalProgress)
     }
+    if (bar) {
+      bar.update(totalProgress)
+    }
+  }
 
   return {
     setProgress,

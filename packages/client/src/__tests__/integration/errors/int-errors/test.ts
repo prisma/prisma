@@ -46,7 +46,7 @@ describe('int-errors', () => {
           age: 'thisisastringwith30characters',
         },
       })
-      expect(1).toEqual(0) //should never reach.
+      expect(1).toEqual(0) // should never reach.
     } catch (e) {
       expect(e).toMatchSnapshot()
     }
@@ -60,7 +60,7 @@ describe('int-errors', () => {
           age: 999,
         },
       })
-      expect(1).toEqual(0) //should never reach.
+      expect(1).toEqual(0) // should never reach.
     } catch (e) {
       expect(e).toMatchSnapshot()
     }
@@ -74,7 +74,7 @@ describe('int-errors', () => {
           age: -999,
         },
       })
-      expect(1).toEqual(0) //should never reach.
+      expect(1).toEqual(0) // should never reach.
     } catch (e) {
       expect(e).toMatchSnapshot()
     }

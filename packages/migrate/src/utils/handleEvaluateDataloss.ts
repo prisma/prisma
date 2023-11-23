@@ -19,9 +19,11 @@ export function handleUnexecutableSteps(unexecutableSteps: MigrationFeedback[], 
     } else {
       return `${messages.join('\n')}
 
-You can use ${getCommandWithExecutor(
-        'prisma migrate dev --create-only',
-      )} to create the migration file, and manually modify it to address the underlying issue(s).
+You can use ${
+        getCommandWithExecutor(
+          'prisma migrate dev --create-only',
+        )
+      } to create the migration file, and manually modify it to address the underlying issue(s).
 Then run ${getCommandWithExecutor('prisma migrate dev')} to apply it and verify it works.\n`
     }
   }

@@ -3,13 +3,12 @@ import { Providers } from '../../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
-  const compatibleTypes =
-    provider !== Providers.SQLITE
-      ? `
+  const compatibleTypes = provider !== Providers.SQLITE
+    ? `
           date DateTime @db.Date 
           time DateTime @db.Time
         `
-      : ''
+    : ''
 
   return /* Prisma */ `
     generator client {

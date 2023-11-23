@@ -107,7 +107,6 @@ describe('getAllComputedFields', () => {
       {
         fullName: { name: 'fullName', needs: ['firstName', 'lastName'], compute: jest.fn() },
       },
-
       {
         result: {
           user: {
@@ -131,7 +130,6 @@ describe('getAllComputedFields', () => {
       {
         fullName: { name: 'fullName', needs: ['firstName', 'lastName'], compute: jest.fn() },
       },
-
       {
         result: {
           user: {
@@ -154,7 +152,6 @@ describe('getAllComputedFields', () => {
   test('allows to shadow normal field with a computed fields', () => {
     const result = getComputedFields(
       {},
-
       {
         result: {
           user: {

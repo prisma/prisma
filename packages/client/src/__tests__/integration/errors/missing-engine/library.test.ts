@@ -16,10 +16,9 @@ test('missing-engine: library', async () => {
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
   const platform = await getPlatform()
-  const binaryPath =
-    getClientEngineType() === ClientEngineType.Library
-      ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(platform, 'fs'))
-      : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
+  const binaryPath = getClientEngineType() === ClientEngineType.Library
+    ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(platform, 'fs'))
+    : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
   fs.unlinkSync(binaryPath)
   const prisma = new PrismaClient({
     log: [

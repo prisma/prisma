@@ -120,8 +120,6 @@ export type RequiredArgumentMissingError = {
  * ```
  * prisma.user.findMany({ take: 'everything' })
  * ```
- *
- *
  */
 export type InvalidArgumentTypeError = {
   kind: 'InvalidArgumentType'

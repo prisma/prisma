@@ -29,11 +29,15 @@ export async function checkTypeScriptVersion() {
       const currentVersion = pjson.version
       if (semverLt(currentVersion, minVersion)) {
         logger.warn(
-          `Prisma detected that your ${bold(
-            'TypeScript',
-          )} version ${currentVersion} is outdated. If you want to use Prisma Client with TypeScript please update it to version ${bold(
-            minVersion,
-          )} or ${bold('newer')}. ${dim(`TypeScript found in: ${bold(typescriptPath)}`)}`,
+          `Prisma detected that your ${
+            bold(
+              'TypeScript',
+            )
+          } version ${currentVersion} is outdated. If you want to use Prisma Client with TypeScript please update it to version ${
+            bold(
+              minVersion,
+            )
+          } or ${bold('newer')}. ${dim(`TypeScript found in: ${bold(typescriptPath)}`)}`,
         )
       }
     }

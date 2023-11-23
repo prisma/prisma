@@ -38,7 +38,7 @@ export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: b
     const matches = envValue.match(/(.?\${(?:[a-zA-Z0-9_]+)?})/g)
 
     return (
-      matches?.reduce(function (newEnv, match) {
+      matches?.reduce(function(newEnv, match) {
         const parts = /(.?)\${([a-zA-Z0-9_]+)?}/g.exec(match)
         if (!parts) {
           return newEnv

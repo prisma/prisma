@@ -4,13 +4,19 @@ import { bold, green } from 'kleur/colors'
 export class NoSchemaFoundError extends Error {
   constructor() {
     super(
-      `Could not find a ${bold(
-        'schema.prisma',
-      )} file that is required for this command.\nYou can either provide it with ${green(
-        '--schema',
-      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${green(
-        './prisma/schema.prisma',
-      )} ${link('https://pris.ly/d/prisma-schema-location')}`,
+      `Could not find a ${
+        bold(
+          'schema.prisma',
+        )
+      } file that is required for this command.\nYou can either provide it with ${
+        green(
+          '--schema',
+        )
+      }, set it as \`prisma.schema\` in your package.json or put it into the default location ${
+        green(
+          './prisma/schema.prisma',
+        )
+      } ${link('https://pris.ly/d/prisma-schema-location')}`,
     )
   }
 }
@@ -19,9 +25,11 @@ setClassName(NoSchemaFoundError, 'NoSchemaFoundError')
 export class DbPushIgnoreWarningsWithFlagError extends Error {
   constructor() {
     super(
-      `Use the --accept-data-loss flag to ignore the data loss warnings like ${bold(
-        green(getCommandWithExecutor('prisma db push --accept-data-loss')),
-      )}`,
+      `Use the --accept-data-loss flag to ignore the data loss warnings like ${
+        bold(
+          green(getCommandWithExecutor('prisma db push --accept-data-loss')),
+        )
+      }`,
     )
   }
 }
@@ -30,9 +38,11 @@ setClassName(DbPushIgnoreWarningsWithFlagError, 'DbPushIgnoreWarningsWithFlagErr
 export class MigrateNeedsForceError extends Error {
   constructor(subcommand: string) {
     super(
-      `Use the --force flag to use the ${subcommand} command in an unattended environment like ${bold(
-        green(getCommandWithExecutor(`prisma migrate ${subcommand} --force`)),
-      )}`,
+      `Use the --force flag to use the ${subcommand} command in an unattended environment like ${
+        bold(
+          green(getCommandWithExecutor(`prisma migrate ${subcommand} --force`)),
+        )
+      }`,
     )
   }
 }
@@ -66,9 +76,11 @@ setClassName(MigrateDevEnvNonInteractiveError, 'MigrateDevEnvNonInteractiveError
 export class DbDropNeedsForceError extends Error {
   constructor(subcommand: string) {
     super(
-      `Use the --force flag to use the ${subcommand} command in an unattended environment like ${bold(
-        green(getCommandWithExecutor(`prisma db ${subcommand} --force --preview-feature`)),
-      )}`,
+      `Use the --force flag to use the ${subcommand} command in an unattended environment like ${
+        bold(
+          green(getCommandWithExecutor(`prisma db ${subcommand} --force --preview-feature`)),
+        )
+      }`,
     )
   }
 }

@@ -55,22 +55,22 @@ export type DriftDiagnostic =
   | { diagnostic: 'driftDetected'; rollback: string }
   // A migration failed to cleanly apply to a temporary database.
   | {
-      diagnostic: 'migrationFailedToApply'
-      error: UserFacingError
-    }
+    diagnostic: 'migrationFailedToApply'
+    error: UserFacingError
+  }
 
 export type HistoryDiagnostic =
   | { diagnostic: 'databaseIsBehind'; unappliedMigrationNames: string[] }
   | {
-      diagnostic: 'migrationsDirectoryIsBehind'
-      unpersistedMigrationNames: string[]
-    }
+    diagnostic: 'migrationsDirectoryIsBehind'
+    unpersistedMigrationNames: string[]
+  }
   | {
-      diagnostic: 'historiesDiverge'
-      lastCommonMigrationName: string
-      unpersistedMigrationNames: string[]
-      unappliedMigrationNames: string[]
-    }
+    diagnostic: 'historiesDiverge'
+    lastCommonMigrationName: string
+    unpersistedMigrationNames: string[]
+    unappliedMigrationNames: string[]
+  }
 
 export interface MigrationFeedback {
   message: string

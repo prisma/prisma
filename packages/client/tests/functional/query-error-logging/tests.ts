@@ -30,7 +30,7 @@ testMatrix.setupTestSuite(
           where: {
             email,
           },
-        }),
+        })
       ).rejects.toThrow('No User found')
 
       expect(errors).toHaveLength(1)
@@ -48,7 +48,7 @@ testMatrix.setupTestSuite(
           where: {
             email,
           },
-        }),
+        })
       ).rejects.toThrow('No User found')
 
       expect(errors).toHaveLength(1)
@@ -77,7 +77,7 @@ testMatrix.setupTestSuite(
           where: {
             email,
           },
-        }),
+        })
       ).rejects.toThrow('Middleware error')
 
       prisma = newPrismaClient()
@@ -95,7 +95,7 @@ testMatrix.setupTestSuite(
           where: {
             email,
           },
-        }),
+        })
       ).rejects.toThrow('Middleware error')
     })
   },

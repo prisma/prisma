@@ -326,7 +326,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
   })
 
   test('isolation level is properly reflected in extended client', () => {
-    ;async () => {
+    ;(async () => {
       const xprisma = prisma.$extends({})
 
       // @ts-test-if: provider !== Providers.MONGODB
@@ -341,6 +341,6 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
 
       // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf(data).toEqualTypeOf<number>()
-    }
+    })
   })
 })

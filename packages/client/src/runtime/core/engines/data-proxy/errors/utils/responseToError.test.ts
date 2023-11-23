@@ -104,7 +104,8 @@ describe('responseToError', () => {
       EngineNotStarted: {
         reason: {
           KnownEngineStartupError: {
-            msg: 'Authentication failed against database server at `my-database.random-id.eu-west-1.rds.amazonaws.com`, the provided database credentials for `username` are not valid.\n\nPlease make sure to provide valid database credentials for the database server at `my-database.random-id.eu-west-1.rds.amazonaws.com`.',
+            msg:
+              'Authentication failed against database server at `my-database.random-id.eu-west-1.rds.amazonaws.com`, the provided database credentials for `username` are not valid.\n\nPlease make sure to provide valid database credentials for the database server at `my-database.random-id.eu-west-1.rds.amazonaws.com`.',
             error_code: 'P1000',
           },
         },

@@ -27,7 +27,7 @@ export { Debug } from '@prisma/debug'
 export type { DriverAdapter } from '@prisma/driver-adapter-utils'
 export { default as Decimal } from 'decimal.js'
 export type { RawValue, Value } from 'sql-template-tag'
-export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
+export { empty, join, raw, Sql,default as sqltag } from 'sql-template-tag'
 
 export { Types }
 export { Extensions }

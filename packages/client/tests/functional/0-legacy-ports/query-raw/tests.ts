@@ -221,19 +221,23 @@ testMatrix.setupTestSuite(
 
       if (provider === Providers.MYSQL) {
         result = await prisma.$queryRaw`
-          SELECT ${Prisma.join([
+          SELECT ${
+          Prisma.join([
             Prisma.raw('age'),
             Prisma.raw('email'),
             Prisma.raw('id'),
-          ])} FROM User WHERE age IN (${Prisma.join([45, 60])})
+          ])
+        } FROM User WHERE age IN (${Prisma.join([45, 60])})
         `
       } else {
         result = await prisma.$queryRaw`
-          SELECT ${Prisma.join([
+          SELECT ${
+          Prisma.join([
             Prisma.raw('age'),
             Prisma.raw('email'),
             Prisma.raw('id'),
-          ])} FROM "User" WHERE age IN (${Prisma.join([45, 60])})
+          ])
+        } FROM "User" WHERE age IN (${Prisma.join([45, 60])})
         `
       }
 
@@ -260,19 +264,23 @@ testMatrix.setupTestSuite(
 
       if (provider === Providers.MYSQL) {
         result = await prisma.$queryRaw(Prisma.sql`
-          SELECT ${Prisma.join([
+          SELECT ${
+          Prisma.join([
             Prisma.raw('age'),
             Prisma.raw('email'),
             Prisma.raw('id'),
-          ])} FROM User WHERE age IN (${Prisma.join([45, 60])})
+          ])
+        } FROM User WHERE age IN (${Prisma.join([45, 60])})
         `)
       } else {
         result = await prisma.$queryRaw(Prisma.sql`
-          SELECT ${Prisma.join([
+          SELECT ${
+          Prisma.join([
             Prisma.raw('age'),
             Prisma.raw('email'),
             Prisma.raw('id'),
-          ])} FROM "User" WHERE age IN (${Prisma.join([45, 60])})
+          ])
+        } FROM "User" WHERE age IN (${Prisma.join([45, 60])})
         `)
       }
 

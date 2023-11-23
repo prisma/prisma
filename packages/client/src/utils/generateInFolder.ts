@@ -106,18 +106,17 @@ export async function generateInFolder({
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
-  const binaryPaths =
-    clientEngineType === ClientEngineType.Library
-      ? {
-          libqueryEngine: {
-            [platform]: queryEngineLibraryPath,
-          },
-        }
-      : {
-          queryEngine: {
-            [platform]: queryEngineBinaryPath,
-          },
-        }
+  const binaryPaths = clientEngineType === ClientEngineType.Library
+    ? {
+      libqueryEngine: {
+        [platform]: queryEngineLibraryPath,
+      },
+    }
+    : {
+      queryEngine: {
+        [platform]: queryEngineBinaryPath,
+      },
+    }
 
   // TODO: use engine.getDmmf()
   const dmmf = await getDMMF({

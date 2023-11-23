@@ -20,15 +20,10 @@ export const removeDir = (dir: string) =>
 export const removeFile = (filePath: string) =>
   pipe(TE.tryCatch(() => fs.unlink(filePath), createTaggedSystemError('fs-remove-file', { filePath })))
 
-export const getNestedFoldersInDir =
-  (dir: string): T.Task<string[]> =>
-  () =>
-    fsUtils.getNestedFoldersInDir(dir)
+export const getNestedFoldersInDir = (dir: string): T.Task<string[]> => () => fsUtils.getNestedFoldersInDir(dir)
 
-export const getFilesInDir =
-  (dir: string, pattern = '**'): T.Task<string[]> =>
-  () =>
-    fsUtils.getFilesInDir(dir, pattern)
+export const getFilesInDir = (dir: string, pattern = '**'): T.Task<string[]> => () =>
+  fsUtils.getFilesInDir(dir, pattern)
 
 /**
  * Closure that creates a tagged system error for a given error callback.
@@ -36,10 +31,9 @@ export const getFilesInDir =
  * @param meta any additional metadata about what caused the error
  */
 function createTaggedSystemError<Tag extends string, Meta extends Record<string, unknown>>(type: Tag, meta: Meta) {
-  return (e: unknown /* untyped error */) =>
-    ({
-      type,
-      error: e as Error & { code: string },
-      meta,
-    } as const)
+  return (e: unknown /* untyped error */) => ({
+    type,
+    error: e as Error & { code: string },
+    meta,
+  } as const)
 }

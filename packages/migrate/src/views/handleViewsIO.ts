@@ -66,10 +66,8 @@ async function createViewsIO(
   const pipeline = pipe(
     // create the views directory, idempotently
     fsFunctional.createDirIfNotExists(viewsDir),
-
     // create the view directories, idempotently and concurrently, collapsing the possible errors
     TE.chainW(() => TE.traverseArray(fsFunctional.createDirIfNotExists)(viewPathsToWrite)),
-
     // write the view definitions in the directories just created, idempotently and concurrently, collapsing the possible errors
     TE.chainW(() => TE.traverseArray(fsFunctional.writeFile)(viewsFilesToWrite)),
   )
@@ -106,7 +104,6 @@ async function cleanLeftoversIO(viewsDir: string, viewFilesToKeep: string[] = []
       const viewFilesToRemove = filesInViewsDir.filter((file) => !viewFilesToKeep.includes(file))
       return TE.traverseArray(fsFunctional.removeFile)(viewFilesToRemove)
     }),
-
     // remove any empty directories in the views directory, recursively
     TE.chainW(() => fsFunctional.removeEmptyDirs(viewsDir)),
   )

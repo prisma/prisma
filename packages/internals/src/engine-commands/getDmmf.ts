@@ -74,13 +74,12 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
         debug(`Reading datamodel from the given datamodel path ${options.datamodelPath!}`)
         return fs.promises.readFile(options.datamodelPath!, { encoding: 'utf-8' })
       },
-      (e) =>
-        ({
-          type: 'read-datamodel-path' as const,
-          reason: 'Error while trying to read the datamodel path',
-          error: e as Error,
-          datamodelPath: options.datamodelPath,
-        } as const),
+      (e) => ({
+        type: 'read-datamodel-path' as const,
+        reason: 'Error while trying to read the datamodel path',
+        error: e as Error,
+        datamodelPath: options.datamodelPath,
+      } as const),
     ),
     TE.chainW((datamodel) => {
       return pipe(
@@ -98,12 +97,11 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
             const data = prismaSchemaWasm.get_dmmf(params)
             return data
           },
-          (e) =>
-            ({
-              type: 'wasm-error' as const,
-              reason: '(get-dmmf wasm)',
-              error: e as Error | WasmPanic,
-            } as const),
+          (e) => ({
+            type: 'wasm-error' as const,
+            reason: '(get-dmmf wasm)',
+            error: e as Error | WasmPanic,
+          } as const),
         ),
         E.map((result) => ({ result })),
         E.chainW(({ result }) =>
@@ -115,7 +113,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
               reason: 'Unable to parse JSON',
               error: e as Error,
             }),
-          ),
+          )
         ),
         TE.fromEither,
       )

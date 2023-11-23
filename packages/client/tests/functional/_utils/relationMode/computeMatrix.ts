@@ -70,10 +70,9 @@ export function computeMatrix({ relationMode }: ComputeMatrix) {
   })
 
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {
-    const denyList =
-      referentialActionsDenylistByProviderFlavor[relationMode || 'foreignKeys'][
-        entry.providerFlavor ?? entry.provider
-      ] || []
+    const denyList = referentialActionsDenylistByProviderFlavor[relationMode || 'foreignKeys'][
+      entry.providerFlavor ?? entry.provider
+    ] || []
     const referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
     const referentialActionMatrixForSQL = referentialActions.map((referentialAction) => ({

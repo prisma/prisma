@@ -84,10 +84,9 @@ export async function buildClient({
     document,
     datasources,
     generator,
-    platforms:
-      clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as Platform[])
-        : (Object.keys(binaryPaths.queryEngine ?? {}) as Platform[]),
+    platforms: clientEngineType === ClientEngineType.Library
+      ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as Platform[])
+      : (Object.keys(binaryPaths.queryEngine ?? {}) as Platform[]),
     schemaPath,
     outputDir,
     clientVersion,
@@ -163,9 +162,9 @@ async function getDefaultOutdir(outputDir: string): Promise<string> {
     return path.join(outputDir, '../../.prisma/client')
   }
   if (
-    process.env.INIT_CWD &&
-    process.env.npm_lifecycle_event === 'postinstall' &&
-    !process.env.PWD?.includes('.pnpm')
+    process.env.INIT_CWD
+    && process.env.npm_lifecycle_event === 'postinstall'
+    && !process.env.PWD?.includes('.pnpm')
   ) {
     // INIT_CWD is the dir, in which "npm install" has been invoked. That can e.g. be in ./src
     // If we're in ./ - there'll also be a package.json, so we can directly go for it
@@ -228,9 +227,11 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
-    let message = `${bold(
-      red('Error: '),
-    )}The schema at "${schemaPath}" contains reserved keywords.\n       Rename the following items:`
+    let message = `${
+      bold(
+        red('Error: '),
+      )
+    }The schema at "${schemaPath}" contains reserved keywords.\n       Rename the following items:`
 
     for (const error of denylistsErrors) {
       message += '\n         - ' + error.message
@@ -282,8 +283,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       })
     }
   }
-  const enginePath =
-    clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
+  const enginePath = clientEngineType === ClientEngineType.Library
+    ? binaryPaths.libqueryEngine
+    : binaryPaths.queryEngine
 
   if (!enginePath) {
     throw new Error(
@@ -300,10 +302,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
       const fileName = path.basename(filePath)
-      const target =
-        process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
-          ? path.join('/tmp/prisma-engines', fileName)
-          : path.join(finalOutputDir, fileName)
+      const target = process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
+        ? path.join('/tmp/prisma-engines', fileName)
+        : path.join(finalOutputDir, fileName)
       await overwriteFile(filePath, target)
     }
   }

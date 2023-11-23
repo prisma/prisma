@@ -71,13 +71,13 @@ export async function sendPanic({
 
   const migrateRequest = error.request
     ? JSON.stringify(
-        mapScalarValues(error.request, (value) => {
-          if (typeof value === 'string') {
-            return maskSchema(value)
-          }
-          return value
-        }),
-      )
+      mapScalarValues(error.request, (value) => {
+        if (typeof value === 'string') {
+          return maskSchema(value)
+        }
+        return value
+      }),
+    )
     : undefined
 
   const params = {

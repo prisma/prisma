@@ -11,7 +11,7 @@ import { generateTestClient } from '../../../utils/getTestClient'
 
 let suite = withCodSpeed(new Benchmark.Suite('typescript')).add('client generation ~50 Models', {
   defer: true,
-  fn: function (deferred) {
+  fn: function(deferred) {
     generateTestClient({ projectDir: __dirname })
       .then(() => {
         deferred.resolve()
@@ -26,7 +26,7 @@ let suite = withCodSpeed(new Benchmark.Suite('typescript')).add('client generati
 if (!process.env.CODSPEED_BENCHMARK) {
   suite = suite.add('typescript compilation ~50 Models', {
     defer: true,
-    fn: function (deferred) {
+    fn: function(deferred) {
       compileFile(path.join(__dirname, './compile.ts'))
         .then(() => {
           deferred.resolve()

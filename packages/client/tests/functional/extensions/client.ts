@@ -283,7 +283,7 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('raw queries can override their default output types', () => {
-    ;async () => {
+    ;(async () => {
       const xprisma = prisma.$extends({})
 
       const typeDataSql = await xprisma.$transaction([
@@ -337,7 +337,7 @@ testMatrix.setupTestSuite(() => {
 
       // @ts-test-if: provider === Providers.MONGODB
       expectTypeOf(defaultDataMongo).toEqualTypeOf<[PrismaNamespace.JsonObject]>()
-    }
+    })
   })
 
   test('an extension can also reference a previous one via parent', async () => {

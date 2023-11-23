@@ -15,8 +15,7 @@ export async function getMigrationName(name?: string): Promise<getMigrationNameO
     return {
       name: slugify(name, { separator: '_' }).substring(0, maxMigrationNameLength),
     }
-  }
-  // We use prompts.inject() for testing in our CI
+  } // We use prompts.inject() for testing in our CI
   // If not TTY or CI, use default name
   else if ((!isInteractive || isCi()) && Boolean(prompt._injected?.length) === false) {
     return {

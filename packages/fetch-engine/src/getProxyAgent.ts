@@ -35,7 +35,7 @@ function uriInNoProxy(uri, noProxy): boolean {
   const noProxyList = noProxy.split(',')
 
   // iterate through the noProxyList until it finds a match.
-  return noProxyList.map(parseNoProxyZone).some(function (noProxyZone) {
+  return noProxyList.map(parseNoProxyZone).some(function(noProxyZone) {
     const isMatchedAt = hostname.indexOf(noProxyZone.hostname)
     const hostnameMatched = isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyZone.hostname.length
 
@@ -74,8 +74,8 @@ function getProxyFromURI(uri): string | null {
   }
 
   if (uri.protocol === 'https:') {
-    const httpsProxy =
-      process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy || null
+    const httpsProxy = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY
+      || process.env.http_proxy || null
     if (httpsProxy) debug(`uri.protocol is HTTPS and the URL for the proxy is "${httpsProxy}"`)
     return httpsProxy
   }

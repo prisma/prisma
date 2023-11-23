@@ -91,8 +91,7 @@ ${bold('Examples')}
 ${bold(green(getCommandWithExecutor('prisma migrate resolve --applied 20201231000000_example')))}
 ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')))}`,
       )
-    }
-    // if both are defined
+    } // if both are defined
     else if (args['--applied'] && args['--rolled-back']) {
       throw new Error('Pass either --applied or --rolled-back, not both.')
     }
@@ -100,9 +99,11 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
     if (args['--applied']) {
       if (typeof args['--applied'] !== 'string' || args['--applied'].length === 0) {
         throw new Error(
-          `--applied value must be a string like ${bold(
-            green(getCommandWithExecutor('prisma migrate resolve --applied 20201231000000_example')),
-          )}`,
+          `--applied value must be a string like ${
+            bold(
+              green(getCommandWithExecutor('prisma migrate resolve --applied 20201231000000_example')),
+            )
+          }`,
         )
       }
 
@@ -121,9 +122,11 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
     } else {
       if (typeof args['--rolled-back'] !== 'string' || args['--rolled-back'].length === 0) {
         throw new Error(
-          `--rolled-back value must be a string like ${bold(
-            green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')),
-          )}`,
+          `--rolled-back value must be a string like ${
+            bold(
+              green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')),
+            )
+          }`,
         )
       }
 

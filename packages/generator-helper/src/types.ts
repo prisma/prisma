@@ -60,7 +60,6 @@ export type ConnectorType =
   | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
   | 'sqlserver'
   | 'cockroachdb'
-
   // TODO: this should be removed in favor of `'sqlserver'`, as per `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "sqlserver"`
   // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
   | 'jdbc:sqlserver'

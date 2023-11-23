@@ -25,15 +25,12 @@ export type GetPayloadResult<
   Base extends Record<any, any>,
   R extends InternalArgs['result'][string],
   KR extends keyof R = string extends keyof R ? never : keyof R,
-> = unknown extends R
-  ? Base
+> = unknown extends R ? Base
   : {
-      [K in KR | keyof Base]: K extends KR
-        ? R[K] extends () => { compute: (...args: any) => infer C }
-          ? C
-          : never
-        : Base[K]
-    }
+    [K in KR | keyof Base]: K extends KR ? R[K] extends () => { compute: (...args: any) => infer C } ? C
+      : never
+      : Base[K]
+  }
 
 export type GetSelect<
   Base extends Record<any, any>,
@@ -109,8 +106,7 @@ export type DynamicQueryExtensionCbArgsArgs<
   _0 extends PropertyKey,
   _1 extends PropertyKey,
   _2 extends PropertyKey,
-> = _2 extends '$queryRaw' | '$executeRaw'
-  ? Sql // Override args type for raw queries
+> = _2 extends '$queryRaw' | '$executeRaw' ? Sql // Override args type for raw queries
   : TypeMap[_0][_1]['operations'][_2]['args']
 
 /** Result */
@@ -124,11 +120,13 @@ export type DynamicResultExtensionArgs<R_, TypeMap extends TypeMapDef> = {
   }
 }
 
-export type DynamicResultExtensionNeeds<TypeMap extends TypeMapDef, M extends PropertyKey, S> = {
-  [K in keyof S]: K extends keyof TypeMap['model'][M]['payload']['scalars'] ? S[K] : never
-} & {
-  [N in keyof TypeMap['model'][M]['payload']['scalars']]?: boolean
-}
+export type DynamicResultExtensionNeeds<TypeMap extends TypeMapDef, M extends PropertyKey, S> =
+  & {
+    [K in keyof S]: K extends keyof TypeMap['model'][M]['payload']['scalars'] ? S[K] : never
+  }
+  & {
+    [N in keyof TypeMap['model'][M]['payload']['scalars']]?: boolean
+  }
 
 export type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKey, S> = GetFindResult<
   TypeMap['model'][M]['payload'],
@@ -190,11 +188,11 @@ export type DynamicModelExtensionOperationFn<
   P extends PropertyKey,
 > = {} extends TypeMap['model'][M]['operations'][P]['args'] // will match fully optional args
   ? <A extends TypeMap['model'][M]['operations'][P]['args']>(
-      args?: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
-    ) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
+    args?: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
+  ) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
   : <A extends TypeMap['model'][M]['operations'][P]['args']>(
-      args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
-    ) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
+    args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
+  ) => DynamicModelExtensionFnResult<TypeMap, M, A, P>
 
 // dprint-ignore
 export type DynamicModelExtensionFnResult<
@@ -245,15 +243,17 @@ export type DynamicClientExtensionArgs<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
   ExtArgs extends Record<string, any>,
-> = {
-  [P in keyof C_]: unknown
-} & {
-  [K: symbol]: {
-    ctx: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> & {
-      $parent: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>
+> =
+  & {
+    [P in keyof C_]: unknown
+  }
+  & {
+    [K: symbol]: {
+      ctx: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> & {
+        $parent: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>
+      }
     }
   }
-}
 
 // dprint-ignore
 export type DynamicClientExtensionThis<
@@ -315,11 +315,13 @@ export interface ExtendsHook<
     M_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown },
     M,
     Q_ extends {
-      [K in
-        | TypeMap['meta']['modelProps']
-        | '$allModels'
-        | keyof TypeMap['other']['operations']
-        | '$allOperations']?: unknown
+      [
+        K in
+          | TypeMap['meta']['modelProps']
+          | '$allModels'
+          | keyof TypeMap['other']['operations']
+          | '$allOperations'
+      ]?: unknown
     },
     C_ extends { [K in string]?: unknown },
     C,
@@ -329,12 +331,12 @@ export interface ExtendsHook<
     extension:
       | ((client: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>) => { $extends: { extArgs: Args } })
       | {
-          name?: string
-          query?: DynamicQueryExtensionArgs<Q_, TypeMap>
-          result?: DynamicResultExtensionArgs<R_, TypeMap> & R
-          model?: DynamicModelExtensionArgs<M_, TypeMap, TypeMapCb, ExtArgs> & M
-          client?: DynamicClientExtensionArgs<C_, TypeMap, TypeMapCb, ExtArgs> & C
-        },
+        name?: string
+        query?: DynamicQueryExtensionArgs<Q_, TypeMap>
+        result?: DynamicResultExtensionArgs<R_, TypeMap> & R
+        model?: DynamicModelExtensionArgs<M_, TypeMap, TypeMapCb, ExtArgs> & M
+        client?: DynamicClientExtensionArgs<C_, TypeMap, TypeMapCb, ExtArgs> & C
+      },
   ): {
     extends: DynamicClientExtensionThis<Call<TypeMapCb, { extArgs: MergedArgs }>, TypeMapCb, MergedArgs>
     define: (client: any) => { $extends: { extArgs: Args } }
@@ -384,8 +386,7 @@ export type DevTypeMapFnDef = {
 
 export type TypeMapCbDef = Fn<{ extArgs: InternalArgs }, TypeMapDef>
 
-export type ModelKey<TypeMap extends TypeMapDef, M extends PropertyKey> = M extends keyof TypeMap['model']
-  ? M
+export type ModelKey<TypeMap extends TypeMapDef, M extends PropertyKey> = M extends keyof TypeMap['model'] ? M
   : Capitalize<M & string>
 
 export type { UserArgs }

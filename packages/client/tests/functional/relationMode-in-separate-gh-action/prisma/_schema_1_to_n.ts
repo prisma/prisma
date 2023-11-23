@@ -31,8 +31,8 @@ model UserOneToMany {
 model PostOneToMany {
   id            ${id} ${provider !== Providers.MONGODB ? `@map("id_AtMap")` : ''}
   author        UserOneToMany   @relation(fields: [authorId], references: [id] ${
-    supportsRequired ? referentialActionLine : ''
-  })
+      supportsRequired ? referentialActionLine : ''
+    })
   authorId      String          @map("authorId_AtMap")
 
   @@map("PostOneToMany_AtAtMap")
@@ -61,8 +61,8 @@ model UserOneToMany {
 model PostOneToMany {
   id            ${id}
   author        UserOneToMany   @relation(fields: [authorId], references: [id] ${
-    supportsRequired ? referentialActionLine : ''
-  })
+      supportsRequired ? referentialActionLine : ''
+    })
   authorId      String
 }
 

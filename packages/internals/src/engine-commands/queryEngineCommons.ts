@@ -32,25 +32,27 @@ function createSchemaValidationError(reason: string) {
   return `${red(bold('Prisma schema validation'))} - ${reason}`
 }
 
-export type QueryEngineErrorInit = {
-  // e.g., `Schema parsing - Error while interacting with query-engine-node-api library`
-  reason: string
+export type QueryEngineErrorInit =
+  & {
+    // e.g., `Schema parsing - Error while interacting with query-engine-node-api library`
+    reason: string
 
-  // e.g., Error validating model "public": The model name \`public\` is invalid.
-  message: string
-} & (
-  | {
+    // e.g., Error validating model "public": The model name \`public\` is invalid.
+    message: string
+  }
+  & (
+    | {
       // parsed as JSON
       readonly _tag: 'parsed'
 
       // e.g., `P1012`
       errorCode?: string
     }
-  | {
+    | {
       // text
       readonly _tag: 'unparsed'
     }
-)
+  )
 
 export type ParseQueryEngineError = {
   errorOutput: string

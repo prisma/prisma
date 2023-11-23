@@ -144,13 +144,12 @@ ${bold('Examples')}
         cliVersion: pkg.version,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
-        noEngine:
-          Boolean(args['--no-engine']) ||
-          Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
-          Boolean(args['--accelerate']) || // legacy, keep for backwards compatibility
-          Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
-          Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
-          Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
+        noEngine: Boolean(args['--no-engine'])
+          || Boolean(args['--data-proxy']) // legacy, keep for backwards compatibility
+          || Boolean(args['--accelerate']) // legacy, keep for backwards compatibility
+          || Boolean(process.env.PRISMA_GENERATE_DATAPROXY) // legacy, keep for backwards compatibility
+          || Boolean(process.env.PRISMA_GENERATE_ACCELERATE) // legacy, keep for backwards compatibility
+          || Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
       })
 
       if (!generators || generators.length === 0) {
@@ -219,18 +218,20 @@ Please run \`prisma generate\` manually.`
         const generator = prismaClientJSGenerator.options?.generator
         const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
         if (isDeno && !generator?.isCustomOutput) {
-          throw new Error(`Can't find output dir for generator ${bold(generator!.name)} with provider ${bold(
-            generator!.provider.value!,
-          )}.
+          throw new Error(`Can't find output dir for generator ${bold(generator!.name)} with provider ${
+            bold(
+              generator!.provider.value!,
+            )
+          }.
 When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
         }
 
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
           ? prefixRelativePathIfNecessary(
-              replacePathSeparatorsIfNecessary(
-                path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
-              ),
-            )
+            replacePathSeparatorsIfNecessary(
+              path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
+            ),
+          )
           : '@prisma/client'
         const breakingChangesStr = printBreakingChangesMessage
           ? `
@@ -239,27 +240,32 @@ ${breakingChangesMessage}`
           : ''
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
-        const versionsWarning =
-          versionsOutOfSync && logger.should.warn()
-            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${pkg.version}`)} and ${bold(
-                `@prisma/client@${clientGeneratorVersion}`,
-              )} don't match.
+        const versionsWarning = versionsOutOfSync && logger.should.warn()
+          ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${pkg.version}`)} and ${
+            bold(
+              `@prisma/client@${clientGeneratorVersion}`,
+            )
+          } don't match.
 This might lead to unexpected behavior.
 Please make sure they have the same version.`
-            : ''
+          : ''
 
         hint = `
 Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
-${highlightTS(`\
+${
+          highlightTS(`\
 import { PrismaClient } from '${importPath}'
-const prisma = new PrismaClient()`)}
+const prisma = new PrismaClient()`)
+        }
 ${dim('```')}
 or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/accelerate')})
 ${dim('```')}
-${highlightTS(`\
+${
+          highlightTS(`\
 import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
-const prisma = new PrismaClient()`)}
+const prisma = new PrismaClient()`)
+        }
 ${dim('```')}
 
 See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}

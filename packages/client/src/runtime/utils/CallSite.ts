@@ -40,18 +40,18 @@ class EnabledCallSite implements CallSite {
       // convert windows path to posix path
       const posixFile = pathToPosix(t.file)
       return (
-        posixFile !== '<anonymous>' && // Ignore as we can not read an <anonymous> file
-        !posixFile.includes('@prisma') && // Internal, unbundled code
-        !posixFile.includes('/packages/client/src/runtime/') && // Runtime sources when source maps are used
-        !posixFile.endsWith('/runtime/binary.js') && // Bundled runtimes
-        !posixFile.endsWith('/runtime/library.js') &&
-        !posixFile.endsWith('/runtime/edge.js') &&
-        !posixFile.endsWith('/runtime/edge-esm.js') &&
-        !posixFile.startsWith('internal/') && // We don't want internal nodejs files
-        !t.methodName.includes('new ') && // "new CallSite" call and maybe other constructors
-        !t.methodName.includes('getCallSite') && // getCallSite function from this module
-        !t.methodName.includes('Proxy.') && // Model proxies
-        t.methodName.split('.').length < 4
+        posixFile !== '<anonymous>' // Ignore as we can not read an <anonymous> file
+        && !posixFile.includes('@prisma') // Internal, unbundled code
+        && !posixFile.includes('/packages/client/src/runtime/') // Runtime sources when source maps are used
+        && !posixFile.endsWith('/runtime/binary.js') // Bundled runtimes
+        && !posixFile.endsWith('/runtime/library.js')
+        && !posixFile.endsWith('/runtime/edge.js')
+        && !posixFile.endsWith('/runtime/edge-esm.js')
+        && !posixFile.startsWith('internal/') // We don't want internal nodejs files
+        && !t.methodName.includes('new ') // "new CallSite" call and maybe other constructors
+        && !t.methodName.includes('getCallSite') // getCallSite function from this module
+        && !t.methodName.includes('Proxy.') // Model proxies
+        && t.methodName.split('.').length < 4
       )
     })
 

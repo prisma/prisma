@@ -20,7 +20,7 @@ import { getPrismaClient } from '../runtime/getPrismaClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
 
-//TODO Rename to generateTestClientInMemory
+// TODO Rename to generateTestClientInMemory
 /**
  * Returns an in-memory client for testing
  */

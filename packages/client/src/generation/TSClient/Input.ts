@@ -136,14 +136,16 @@ export class InputType implements Generatable {
     const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `{
-${indent(
-  fields
-    .map((arg) => {
-      return new InputField(arg, this.genericsInfo, source).toTS()
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
+${
+      indent(
+        fields
+          .map((arg) => {
+            return new InputField(arg, this.genericsInfo, source).toTS()
+          })
+          .join('\n'),
+        TAB_SIZE,
+      )
+    }
 }`
     return `
 export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`

@@ -58,8 +58,10 @@ export class MigrateDiff implements Command {
 
   private static help = format(`
 ${
-  process.platform === 'win32' ? '' : '🔍 '
-}Compares the database schema from two arbitrary sources, and outputs the differences either as a human-readable summary (by default) or an executable script.
+    process.platform === 'win32'
+      ? ''
+      : '🔍 '
+  }Compares the database schema from two arbitrary sources, and outputs the differences either as a human-readable summary (by default) or an executable script.
 
 ${green(`prisma migrate diff`)} is a read-only command that does not write to your datasource(s).
 ${green(`prisma db execute`)} can be used to execute its ${green(`--script`)} output.
@@ -157,19 +159,17 @@ ${bold('Examples')}
       return this.help()
     }
 
-    const numberOfFromParameterProvided =
-      Number(Boolean(args['--from-empty'])) +
-      Number(Boolean(args['--from-schema-datasource'])) +
-      Number(Boolean(args['--from-schema-datamodel'])) +
-      Number(Boolean(args['--from-url'])) +
-      Number(Boolean(args['--from-migrations']))
+    const numberOfFromParameterProvided = Number(Boolean(args['--from-empty']))
+      + Number(Boolean(args['--from-schema-datasource']))
+      + Number(Boolean(args['--from-schema-datamodel']))
+      + Number(Boolean(args['--from-url']))
+      + Number(Boolean(args['--from-migrations']))
 
-    const numberOfToParameterProvided =
-      Number(Boolean(args['--to-empty'])) +
-      Number(Boolean(args['--to-schema-datasource'])) +
-      Number(Boolean(args['--to-schema-datamodel'])) +
-      Number(Boolean(args['--to-url'])) +
-      Number(Boolean(args['--to-migrations']))
+    const numberOfToParameterProvided = Number(Boolean(args['--to-empty']))
+      + Number(Boolean(args['--to-schema-datasource']))
+      + Number(Boolean(args['--to-schema-datamodel']))
+      + Number(Boolean(args['--to-url']))
+      + Number(Boolean(args['--to-migrations']))
 
     // One of --to or --from is required
     if (numberOfFromParameterProvided !== 1 || numberOfToParameterProvided !== 1) {

@@ -70,7 +70,7 @@ export function getLogs(numChars = 7500): string {
 
           return JSON.stringify(item)
         })
-        .join(' '),
+        .join(' ')
     )
     .join('\n')
 

@@ -55,21 +55,23 @@ export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
     return `args?: ${getModelArgName(modelName, actionName)}`
   }
   return `args${
-    actionName === DMMF.ModelAction.findMany ||
-    actionName === DMMF.ModelAction.findFirst ||
-    actionName === DMMF.ModelAction.deleteMany ||
-    actionName === DMMF.ModelAction.createMany ||
-    actionName === DMMF.ModelAction.findUniqueOrThrow ||
-    actionName === DMMF.ModelAction.findFirstOrThrow
+    actionName === DMMF.ModelAction.findMany
+      || actionName === DMMF.ModelAction.findFirst
+      || actionName === DMMF.ModelAction.deleteMany
+      || actionName === DMMF.ModelAction.createMany
+      || actionName === DMMF.ModelAction.findUniqueOrThrow
+      || actionName === DMMF.ModelAction.findFirstOrThrow
       ? '?'
       : ''
   }: SelectSubset<T, ${getModelArgName(modelName, actionName)}<ExtArgs>>`
 }
 export function wrapComment(str: string): string {
-  return `/**\n${str
-    .split('\n')
-    .map((l) => ' * ' + l)
-    .join('\n')}\n**/`
+  return `/**\n${
+    str
+      .split('\n')
+      .map((l) => ' * ' + l)
+      .join('\n')
+  }\n**/`
 }
 export function getArgFieldJSDoc(
   type?: DMMF.OutputType,

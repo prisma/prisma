@@ -22,11 +22,11 @@ interface DotenvLoadEnvResult {
 // our type for loaded env data
 export type LoadedEnv =
   | {
-      message?: string
-      parsed: {
-        [x: string]: string
-      }
+    message?: string
+    parsed: {
+      [x: string]: string
     }
+  }
   | undefined
 
 export function tryLoadEnvs(
@@ -94,20 +94,26 @@ function checkForConflicts(
       const relativeRootEnvPath = path.relative(process.cwd(), rootEnvInfo!.path)
       const relativeEnvPath = path.relative(process.cwd(), envPath)
       if (type === 'error') {
-        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${underline(
-          relativeRootEnvPath,
-        )} and ${underline(relativeEnvPath)}
+        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${
+          underline(
+            relativeRootEnvPath,
+          )
+        } and ${underline(relativeEnvPath)}
 Conflicting env vars:
 ${conflicts.map((conflict) => `  ${bold(conflict)}`).join('\n')}
 
-We suggest to move the contents of ${underline(relativeEnvPath)} to ${underline(
-          relativeRootEnvPath,
-        )} to consolidate your env vars.\n`
+We suggest to move the contents of ${underline(relativeEnvPath)} to ${
+          underline(
+            relativeRootEnvPath,
+          )
+        } to consolidate your env vars.\n`
         throw new Error(message)
       } else if (type === 'warn') {
-        const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts
-          .map((c) => bold(c))
-          .join(', ')} in ${underline(relativeRootEnvPath)} and ${underline(relativeEnvPath)}
+        const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${
+          conflicts
+            .map((c) => bold(c))
+            .join(', ')
+        } in ${underline(relativeRootEnvPath)} and ${underline(relativeEnvPath)}
 Env vars from ${underline(relativeEnvPath)} overwrite the ones from ${underline(relativeRootEnvPath)}
       `
         console.warn(`${yellow('warn(prisma)')} ${message}`)

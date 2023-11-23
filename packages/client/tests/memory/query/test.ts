@@ -1,6 +1,6 @@
 import { createMemoryTest } from '../_utils/createMemoryTest'
 
-//@ts-ignore
+// @ts-ignore
 type PrismaModule = typeof import('./.generated/node_modules/@prisma/client')
 
 void createMemoryTest({

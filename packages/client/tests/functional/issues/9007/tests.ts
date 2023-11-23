@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
             // @ts-expect-error
             uuid: { contains: 'foo-bar' },
           },
-        }),
+        })
       ).rejects.toThrow()
     })
 

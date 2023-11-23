@@ -188,7 +188,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   })
 
   testIf(clientMeta.runtime !== 'edge')('isolation level is properly reflected in extended client', () => {
-    ;async () => {
+    ;(async () => {
       const xprisma = prisma.$extends({})
 
       // @ts-test-if: provider !== Providers.MONGODB
@@ -197,11 +197,11 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       })
 
       expectTypeOf(data).toEqualTypeOf<[{ id: string } | null]>()
-    }
+    })
   })
 
   test('type inference allows for destructuring the array', () => {
-    ;async () => {
+    ;(async () => {
       const xprisma = prisma.$extends({})
 
       const [data, count] = await xprisma.$transaction([
@@ -211,6 +211,6 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
 
       expectTypeOf(data).toEqualTypeOf<{ id: string } | null>()
       expectTypeOf(count).toEqualTypeOf<number>()
-    }
+    })
   })
 })

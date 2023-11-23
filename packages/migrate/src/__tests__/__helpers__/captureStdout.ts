@@ -9,7 +9,7 @@ class CaptureStdout {
   public startCapture = () => {
     /* eslint-disable @typescript-eslint/unbound-method */
     this.oldStdoutWrite = process.stdout.write
-    //@ts-ignore
+    // @ts-ignore
     process.stdout.write = this.writeCapture
   }
 

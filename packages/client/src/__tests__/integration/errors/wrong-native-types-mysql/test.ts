@@ -40,7 +40,7 @@ test('wrong-native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', as
         bInt: true,
         tInt: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
     Invalid \`prisma.a.create()\` invocation:
@@ -92,7 +92,7 @@ test('wrong-native-types-mysql B: Float, Double, Decimal, Numeric', async () => 
         decFloat: true,
         numFloat: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
     Invalid \`prisma.b.create()\` invocation:
@@ -146,7 +146,7 @@ test('wrong-native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, Lon
         text: true,
         lText: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
               Invalid \`prisma.c.create()\` invocation:
@@ -183,7 +183,7 @@ test('wrong-native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async 
         ts: true,
         year: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
     Invalid \`prisma.d.create()\` invocation:
@@ -241,7 +241,7 @@ test('wrong-native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, Medium
         mBlob: true,
         lBlob: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
     Invalid \`prisma.e.create()\` invocation:

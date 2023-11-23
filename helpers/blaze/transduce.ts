@@ -35,17 +35,13 @@ async function transduceAsync<I, R>(list: L.List<I>, transformer: ASyncTransform
   return transduced
 }
 
-const Filter =
-  <I>(filter: (item: I) => boolean) =>
-  (item: I) => {
-    return filter(item) ? item : (skip as never)
-  }
+const Filter = <I>(filter: (item: I) => boolean) => (item: I) => {
+  return filter(item) ? item : (skip as never)
+}
 
-const Mapper =
-  <I, R>(mapper: (item: I) => R) =>
-  (item: I) => {
-    return mapper(item)
-  }
+const Mapper = <I, R>(mapper: (item: I) => R) => (item: I) => {
+  return mapper(item)
+}
 
 /**
  * Transducers enable efficient data processing. They allow the composition of

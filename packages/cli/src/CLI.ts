@@ -46,14 +46,17 @@ export class CLI implements Command {
     // Throw if "lift"
     if (cmdName === 'lift') {
       throw new Error(`${red('prisma lift')} has been renamed to ${green('prisma migrate')}`)
-    }
-    // warn if "introspect"
+    } // warn if "introspect"
     else if (cmdName === 'introspect') {
       logger.warn('')
       logger.warn(
-        `${bold(
-          `The ${underline('prisma introspect')} command is deprecated. Please use ${green('prisma db pull')} instead.`,
-        )}`,
+        `${
+          bold(
+            `The ${underline('prisma introspect')} command is deprecated. Please use ${
+              green('prisma db pull')
+            } instead.`,
+          )
+        }`,
       )
       logger.warn('')
     }
@@ -91,8 +94,8 @@ export class CLI implements Command {
 
   private static help = format(`
     ${
-      process.platform === 'win32' ? '' : bold(green('◭  '))
-    }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
+    process.platform === 'win32' ? '' : bold(green('◭  '))
+  }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${bold('Usage')}
 

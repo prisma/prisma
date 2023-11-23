@@ -40,7 +40,7 @@ test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSer
         sInt: true,
         bInt: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
     Invalid \`prisma.a.create()\` invocation:
@@ -92,7 +92,7 @@ test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', a
         decFloat: true,
         numFloat: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
     Invalid \`prisma.b.create()\` invocation:
@@ -146,7 +146,7 @@ test('wrong-native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', as
         vBit: true,
         uuid: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
               Invalid \`prisma.c.create()\` invocation:
@@ -185,7 +185,7 @@ test('wrong-native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
         jsonb: true,
         xml: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
     Invalid \`prisma.d.create()\` invocation:
@@ -239,7 +239,7 @@ test('wrong-native-types-postgres E: Date, Time, Timestamp', async () => {
         time: true,
         ts: true,
       },
-    }),
+    })
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
     Invalid \`prisma.e.create()\` invocation:

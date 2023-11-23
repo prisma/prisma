@@ -5,9 +5,11 @@ import type { A, L, O } from 'ts-toolbelt'
 export type LMapper<L, I, R> = (item: I, pos: A.Keys<L>) => R
 export type OMapper<O, I, R> = (item: I, key: A.Keys<O>) => R
 
-type Map<A, R> = {
-  [K in keyof A]: R
-} & {}
+type Map<A, R> =
+  & {
+    [K in keyof A]: R
+  }
+  & {}
 
 function mapList<T extends L.List, I, R>(object: T & L.List<I>, mapper: LMapper<T, I, R>): Map<T, R> {
   const mapped = new Array(object.length)

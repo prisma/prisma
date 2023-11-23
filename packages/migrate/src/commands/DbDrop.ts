@@ -28,10 +28,12 @@ export class DbDrop implements Command {
   private static help = format(`
 ${process.platform === 'win32' ? '' : '💣  '}Drop the database
 
-${bold(yellow('WARNING'))} ${bold(
-    `Prisma db drop is currently in Preview (${link('https://pris.ly/d/preview')}).
+${bold(yellow('WARNING'))} ${
+    bold(
+      `Prisma db drop is currently in Preview (${link('https://pris.ly/d/preview')}).
 There may be bugs and it's not recommended to use it in production environments.`,
-  )}
+    )
+  }
 ${dim('When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.')}
 
 ${bold('Usage')}
@@ -100,9 +102,10 @@ ${bold('Examples')}
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${datasourceInfo.prettyProvider} database name "${
-          datasourceInfo.dbName
-        }" to drop it.\nLocation: "${datasourceInfo.dbLocation}".\n${red('All data will be lost')}.`,
+        message:
+          `Enter the ${datasourceInfo.prettyProvider} database name "${datasourceInfo.dbName}" to drop it.\nLocation: "${datasourceInfo.dbLocation}".\n${
+            red('All data will be lost')
+          }.`,
       })
       console.info() // empty line
 
@@ -117,9 +120,9 @@ ${bold('Examples')}
 
     // Url exists because we set `throwIfEnvErrors: true` in `getDatasourceInfo`
     if (await dropDatabase(datasourceInfo.url!, schemaDir)) {
-      return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
-        datasourceInfo.dbName
-      }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`
+      return `${
+        process.platform === 'win32' ? '' : '🚀  '
+      }The ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`
     } else {
       return ''
     }

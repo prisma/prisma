@@ -177,9 +177,11 @@ https://pris.ly/d/migrate-baseline`)
         `Following migration${failedMigrations.length > 1 ? 's' : ''} have failed:
 ${failedMigrations.join('\n')}
 
-During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${bold(
-          green(getCommandWithExecutor(`prisma migrate dev`)),
-        )}.\n`,
+During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${
+          bold(
+            green(getCommandWithExecutor(`prisma migrate dev`)),
+          )
+        }.\n`,
       )
 
       console.error(`The failed migration(s) can be marked as rolled back or applied:

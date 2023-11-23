@@ -46,9 +46,11 @@ export class DbExecute implements Command {
   private static help = format(`
 ${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
 
-This command takes as input a datasource, using ${green(`--url`)} or ${green(`--schema`)} and a script, using ${green(
-    `--stdin`,
-  )} or ${green(`--file`)}.
+This command takes as input a datasource, using ${green(`--url`)} or ${green(`--schema`)} and a script, using ${
+    green(
+      `--stdin`,
+    )
+  } or ${green(`--file`)}.
 The input parameters are mutually exclusive, only 1 of each (datasource & script) must be provided.
  
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
@@ -159,8 +161,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
         tag: 'url',
         url: args['--url'],
       }
-    }
-    // Execute command(s) to url from schema
+    } // Execute command(s) to url from schema
     else {
       // validate that schema file exists
       // throws an error if it doesn't

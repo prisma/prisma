@@ -113,13 +113,15 @@ ${buildRequirePath(edge)}
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
-${new Enum(
-  {
-    name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
-  },
-  true,
-).toJS()}
+${
+      new Enum(
+        {
+          name: 'ModelName',
+          values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+        },
+        true,
+      ).toJS()
+    }
 /**
  * Create the Client
  */
@@ -197,8 +199,8 @@ ${commonCode.tsWithoutNamespace()}
 
 ${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
 ${
-  modelEnums.length > 0
-    ? `
+      modelEnums.length > 0
+        ? `
 /**
  * Enums
  */
@@ -208,20 +210,23 @@ export namespace $Enums {
 
 ${modelEnumsAliases.join('\n\n')}
 `
-    : ''
-}
+        : ''
+    }
 ${prismaClientClass.toTSWithoutNamespace()}
 
 export namespace Prisma {
-${indent(
-  `${commonCode.ts()}
-${new Enum(
-  {
-    name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
-  },
-  true,
-).toTS()}
+${
+      indent(
+        `${commonCode.ts()}
+${
+          new Enum(
+            {
+              name: 'ModelName',
+              values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+            },
+            true,
+          ).toTS()
+        }
 
 ${prismaClientClass.toTS()}
 export type Datasource = {
@@ -245,45 +250,49 @@ ${modelAndTypes.map((model) => model.toTS()).join('\n')}
 
 ${prismaEnums.join('\n\n')}
 ${
-  fieldRefs.length > 0
-    ? `
+          fieldRefs.length > 0
+            ? `
 /**
  * Field references 
  */
 
 ${fieldRefs.join('\n\n')}`
-    : ''
-}
+            : ''
+        }
 /**
  * Deep Input Types
  */
 
-${this.dmmf.inputObjectTypes.prisma
-  .reduce((acc, inputType) => {
-    if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-      const needsGeneric = this.genericsInfo.typeNeedsGenericModelArg(inputType)
-      const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
-      const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
-      // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
-      const baseName = `Required<${innerName}>`
-      acc.push(`export type ${typeName} = 
+${
+          this.dmmf.inputObjectTypes.prisma
+            .reduce((acc, inputType) => {
+              if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
+                const needsGeneric = this.genericsInfo.typeNeedsGenericModelArg(inputType)
+                const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
+                const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
+                // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
+                const baseName = `Required<${innerName}>`
+                acc.push(`export type ${typeName} = 
   | PatchUndefined<
       Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType(inputType, this.genericsInfo).overrideName(`${inputType.name}Base`).toTS())
-    } else {
-      acc.push(new InputType(inputType, this.genericsInfo).toTS())
-    }
-    return acc
-  }, [] as string[])
-  .join('\n')}
+                acc.push(new InputType(inputType, this.genericsInfo).overrideName(`${inputType.name}Base`).toTS())
+              } else {
+                acc.push(new InputType(inputType, this.genericsInfo).toTS())
+              }
+              return acc
+            }, [] as string[])
+            .join('\n')
+        }
 
 ${
-  this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
-  ''
-}
+          this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join(
+            '\n',
+          )
+            ?? ''
+        }
 
 /**
  * Aliases for legacy arg types
@@ -303,18 +312,21 @@ export type BatchPayload = {
  */
 export const dmmf: runtime.BaseDMMF
 `,
-  2,
-)}}`
+        2,
+      )
+    }}`
 
     return code
   }
 
   public toBrowserJS(): string {
-    const code = `${commonCodeJS({
-      ...this.options,
-      runtimeName: 'index-browser',
-      browser: true,
-    })}
+    const code = `${
+      commonCodeJS({
+        ...this.options,
+        runtimeName: 'index-browser',
+        browser: true,
+      })
+    }
 /**
  * Enums
  */
@@ -322,13 +334,15 @@ export const dmmf: runtime.BaseDMMF
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
-${new Enum(
-  {
-    name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
-  },
-  true,
-).toJS()}
+${
+      new Enum(
+        {
+          name: 'ModelName',
+          values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+        },
+        true,
+      ).toJS()
+    }
 
 /**
  * This is a stub Prisma Client that will error at runtime if called.

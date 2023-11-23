@@ -31,8 +31,8 @@ model UserOneToOne {
 model ProfileOneToOne {
   id              ${id} ${provider !== Providers.MONGODB ? `@map("id_AtMap")` : ''}
   user            UserOneToOne      @relation(fields: [userId], references: [id] ${
-    supportsRequired ? referentialActionLine : ''
-  })
+      supportsRequired ? referentialActionLine : ''
+    })
   userId          String            @unique      @map("userId_AtMap")
   enabled         Boolean?                       @map("enabled_AtMap")
 
@@ -63,8 +63,8 @@ model UserOneToOne {
 model ProfileOneToOne {
   id              ${id}
   user            UserOneToOne      @relation(fields: [userId], references: [id] ${
-    supportsRequired ? referentialActionLine : ''
-  })
+      supportsRequired ? referentialActionLine : ''
+    })
   userId          String            @unique
   enabled         Boolean?
 }

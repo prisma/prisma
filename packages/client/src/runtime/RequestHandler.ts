@@ -102,8 +102,9 @@ export class RequestHandler {
       }),
 
       singleLoader: async (request) => {
-        const interactiveTransaction =
-          request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
+        const interactiveTransaction = request.transaction?.kind === 'itx'
+          ? getItxTransactionOptions(request.transaction)
+          : undefined
 
         const response = await this.client._engine.request(request.protocolQuery, {
           traceparent: this.client._tracingHelper.getTraceParent(),
@@ -305,8 +306,8 @@ function isMismatchingBatchIndex(error: any, transaction: PrismaPromiseTransacti
 
 function isValidationError(error: PrismaClientKnownRequestError) {
   return (
-    error.code === 'P2009' || // validation error
-    error.code === 'P2012' // required argument missing
+    error.code === 'P2009' // validation error
+    || error.code === 'P2012' // required argument missing
   )
 }
 

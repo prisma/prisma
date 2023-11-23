@@ -23,9 +23,11 @@ export function checkYarnVersion() {
         const minYarnVersion = '1.19.2'
         if (semverLt(currentYarnVersion, minYarnVersion)) {
           logger.warn(
-            `Your ${bold('yarn')} has version ${currentYarnVersion}, which is outdated. Please update it to ${bold(
-              minYarnVersion,
-            )} or ${bold('newer')} in order to use Prisma.`,
+            `Your ${bold('yarn')} has version ${currentYarnVersion}, which is outdated. Please update it to ${
+              bold(
+                minYarnVersion,
+              )
+            } or ${bold('newer')} in order to use Prisma.`,
           )
         }
       }

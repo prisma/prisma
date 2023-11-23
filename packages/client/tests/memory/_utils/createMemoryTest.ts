@@ -7,7 +7,7 @@ declare function gc(): void
 
 type PrismaModule = {
   PrismaClient: {
-    new (...opts: any[]): any
+    new(...opts: any[]): any
   }
   Prisma: any
 }
@@ -26,7 +26,6 @@ type ScenarioOptions<ModuleT extends PrismaModule, PrepareResult> = {
  * Expected to run with `--expose-gc` and results file as a
  * first command argument. The process is launched by
  * `runMemoryTest`.
- *
  *
  * It executes provided callback `iterations` + WARMUP_ITERATIONS iterations number of times,
  * with the assumption that parent process will ignore warmup iterations.

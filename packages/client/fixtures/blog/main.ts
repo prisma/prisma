@@ -24,7 +24,7 @@ async function main() {
   const count = await prisma.user.count()
 
   console.log({
-    //@ts-ignore
+    // @ts-ignore
     engineType: prisma._clientEngineType,
     aggregate,
     groupBy,

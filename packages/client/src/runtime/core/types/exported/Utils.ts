@@ -52,10 +52,8 @@ export type Record<T extends string | number | symbol, U> = {
 export type UnwrapPromise<P> = P extends Promise<infer R> ? R : P
 
 export type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends `${number}`
-    ? Tuple[K] extends PrismaPromise<infer X>
-      ? X
-      : UnwrapPromise<Tuple[K]>
+  [K in keyof Tuple]: K extends `${number}` ? Tuple[K] extends PrismaPromise<infer X> ? X
+    : UnwrapPromise<Tuple[K]>
     : UnwrapPromise<Tuple[K]>
 }
 
@@ -84,11 +82,13 @@ export type OptionalKeys<O> = {
   [K in keyof O]-?: {} extends Pick<O, K> ? K : never
 }[keyof O]
 
-export type Optional<O, K extends keyof any = keyof O> = {
-  [P in K & keyof O]?: O[P]
-} & {
-  [P in Exclude<keyof O, K>]: O[P]
-}
+export type Optional<O, K extends keyof any = keyof O> =
+  & {
+    [P in K & keyof O]?: O[P]
+  }
+  & {
+    [P in Exclude<keyof O, K>]: O[P]
+  }
 
 export type Return<T> = T extends (...args: any[]) => infer R ? R : T
 

@@ -1,8 +1,8 @@
 export function isDate(value: unknown): value is Date {
   return (
-    value instanceof Date ||
+    value instanceof Date
     // date created in other JS context (for example, worker)
-    Object.prototype.toString.call(value) === '[object Date]'
+    || Object.prototype.toString.call(value) === '[object Date]'
   )
 }
 

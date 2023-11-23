@@ -4,10 +4,7 @@ const stripAnsi = require('strip-ansi')
 const { platformRegex } = require('./platformRegex')
 
 // Pipe utility
-const pipe =
-  (...fns) =>
-  (x) =>
-    fns.reduce((v, f) => f(v), x)
+const pipe = (...fns) => (x) => fns.reduce((v, f) => f(v), x)
 
 function normalizePrismaPaths(str) {
   return str

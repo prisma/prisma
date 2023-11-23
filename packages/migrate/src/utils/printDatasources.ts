@@ -21,9 +21,9 @@ export interface GeneratorConfig {
 export type Datasource =
   | string
   | {
-      url: string
-      [key: string]: any
-    }
+    url: string
+    [key: string]: any
+  }
 
 export interface InternalDatasource {
   name: string

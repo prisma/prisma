@@ -188,9 +188,11 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
         } else {
           if (!generatorInstance.manifest || !generatorInstance.manifest.defaultOutput) {
             throw new Error(
-              `Can't resolve output dir for generator ${bold(generator.name)} with provider ${bold(
-                generator.provider.value!,
-              )}.
+              `Can't resolve output dir for generator ${bold(generator.name)} with provider ${
+                bold(
+                  generator.provider.value!,
+                )
+              }.
 The generator needs to either define the \`defaultOutput\` path in the manifest or you need to define \`output\` in the datamodel.prisma file.`,
             )
           }
@@ -256,10 +258,10 @@ generator gen {
     const neededVersions = Object.create(null)
     for (const g of generators) {
       if (
-        g.manifest &&
-        g.manifest.requiresEngines &&
-        Array.isArray(g.manifest.requiresEngines) &&
-        g.manifest.requiresEngines.length > 0
+        g.manifest
+        && g.manifest.requiresEngines
+        && Array.isArray(g.manifest.requiresEngines)
+        && g.manifest.requiresEngines.length > 0
       ) {
         const neededVersion = getEngineVersionForGenerator(g.manifest, version)
         if (!neededVersions[neededVersion]) {
@@ -304,11 +306,11 @@ generator gen {
         // in case cli engine version !== client engine version
         // we need to re-generate the dmmf and pass it into the generator
         if (
-          engineVersion !== version &&
-          generator.options &&
-          generator.manifest.requiresEngines.includes(queryEngineType) &&
-          generatorBinaryPaths[queryEngineType] &&
-          generatorBinaryPaths[queryEngineType]?.[platform]
+          engineVersion !== version
+          && generator.options
+          && generator.manifest.requiresEngines.includes(queryEngineType)
+          && generatorBinaryPaths[queryEngineType]
+          && generatorBinaryPaths[queryEngineType]?.[platform]
         ) {
           const customDmmf = await getDMMF({
             datamodel,
@@ -391,10 +393,9 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
     }
 
     if (generator.binaryTargets) {
-      const binaryTargets =
-        generator.binaryTargets && generator.binaryTargets.length > 0
-          ? generator.binaryTargets
-          : [{ fromEnvVar: null, value: 'native' }]
+      const binaryTargets = generator.binaryTargets && generator.binaryTargets.length > 0
+        ? generator.binaryTargets
+        : [{ fromEnvVar: null, value: 'native' }]
 
       const resolvedBinaryTargets: string[] = binaryTargets
         .flatMap((object) => parseBinaryTargetsEnvValue(object))
@@ -403,9 +404,11 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
       for (const resolvedBinaryTarget of resolvedBinaryTargets) {
         if (oldToNewBinaryTargetsMapping[resolvedBinaryTarget]) {
           throw new Error(
-            `Binary target ${red(bold(resolvedBinaryTarget))} is deprecated. Please use ${green(
-              bold(oldToNewBinaryTargetsMapping[resolvedBinaryTarget]),
-            )} instead.`,
+            `Binary target ${red(bold(resolvedBinaryTarget))} is deprecated. Please use ${
+              green(
+                bold(oldToNewBinaryTargetsMapping[resolvedBinaryTarget]),
+              )
+            } instead.`,
           )
         }
         if (!knownBinaryTargets.includes(resolvedBinaryTarget as Platform)) {
@@ -421,24 +424,34 @@ Possible binaryTargets: ${green(knownBinaryTargets.join(', '))}`,
       if (!resolvedBinaryTargets.includes(platform)) {
         const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(generator.binaryTargets)
 
-        console.log(`${yellow('Warning:')} Your current platform \`${bold(
-          platform,
-        )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
-          originalBinaryTargetsConfig,
-        )}.
+        console.log(`${yellow('Warning:')} Your current platform \`${
+          bold(
+            platform,
+          )
+        }\` is not included in your generator's \`binaryTargets\` configuration ${
+          JSON.stringify(
+            originalBinaryTargetsConfig,
+          )
+        }.
 To fix it, use this generator config in your ${bold('schema.prisma')}:
-${green(
-  printGeneratorConfig({
-    ...generator,
-    binaryTargets: fixBinaryTargets(generator.binaryTargets, platform),
-  }),
-)}
-${gray(
-  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
-Read more about deploying Prisma Client: ${underline(
-    'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
-  )}`,
-)}\n`)
+${
+          green(
+            printGeneratorConfig({
+              ...generator,
+              binaryTargets: fixBinaryTargets(generator.binaryTargets, platform),
+            }),
+          )
+        }
+${
+          gray(
+            `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
+Read more about deploying Prisma Client: ${
+              underline(
+                'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
+              )
+            }`,
+          )
+        }\n`)
       }
     }
   }
@@ -455,9 +468,11 @@ function filterGenerators(generators: GeneratorConfig[], generatorNames: string[
     const missings = generatorNames.filter((name) => filtered.find((generator) => generator.name === name) == null)
     const isSingular = missings.length <= 1
     throw new Error(
-      `The ${isSingular ? 'generator' : 'generators'} ${bold(missings.join(', '))} specified via ${bold(
-        '--generator',
-      )} ${isSingular ? 'does' : 'do'} not exist in your Prisma schema`,
+      `The ${isSingular ? 'generator' : 'generators'} ${bold(missings.join(', '))} specified via ${
+        bold(
+          '--generator',
+        )
+      } ${isSingular ? 'does' : 'do'} not exist in your Prisma schema`,
     )
   }
 

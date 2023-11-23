@@ -172,8 +172,7 @@ export const redactCommandArray = (commandArray: string[]): string[] => {
       // First check for complete match and redact the value
       if (argIndexCompleteMatch) {
         commandArray[i + 1] = REDACTED_TAG
-      }
-      // else check for partial match and redact the value
+      } // else check for partial match and redact the value
       else if (argIndexPartialMatch !== -1) {
         commandArray[i] = `${option}=${REDACTED_TAG}`
       }

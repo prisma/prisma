@@ -23,7 +23,7 @@ export var Prism: any = {
   manual: _self.Prism && _self.Prism.manual,
   disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
   util: {
-    encode: function (tokens: any) {
+    encode: function(tokens: any) {
       if (tokens instanceof Token) {
         const anyTokens: any = tokens
         return new Token(anyTokens.type, Prism.util.encode(anyTokens.content), anyTokens.alias)
@@ -37,11 +37,11 @@ export var Prism: any = {
       }
     },
 
-    type: function (o) {
+    type: function(o) {
       return Object.prototype.toString.call(o).slice(8, -1)
     },
 
-    objId: function (obj) {
+    objId: function(obj) {
       if (!obj['__id']) {
         Object.defineProperty(obj, '__id', { value: ++uniqueId })
       }
@@ -80,7 +80,7 @@ export var Prism: any = {
           clone = []
           visited[id] = clone
 
-          o.forEach(function (v, i) {
+          o.forEach(function(v, i) {
             clone[i] = deepClone(v, visited)
           })
 
@@ -93,7 +93,7 @@ export var Prism: any = {
   },
 
   languages: {
-    extend: function (id, redef) {
+    extend: function(id, redef) {
       const lang = Prism.util.clone(Prism.languages[id])
 
       for (const key in redef) {
@@ -112,7 +112,7 @@ export var Prism: any = {
      * @param insert Object with the key/value pairs to insert
      * @param root The object that contains `inside`. If equal to Prism.languages, it can be omitted.
      */
-    insertBefore: function (inside, before, insert, root) {
+    insertBefore: function(inside, before, insert, root) {
       root = root || Prism.languages
       const grammar = root[inside]
       const ret = {}
@@ -138,7 +138,7 @@ export var Prism: any = {
       root[inside] = ret
 
       // Update references in other language definitions
-      Prism.languages.DFS(Prism.languages, function (this: any, key, value) {
+      Prism.languages.DFS(Prism.languages, function(this: any, key, value) {
         if (value === old && key != inside) {
           this[key] = ret
         }
@@ -173,7 +173,7 @@ export var Prism: any = {
   },
   plugins: {},
 
-  highlight: function (text, grammar, language) {
+  highlight: function(text, grammar, language) {
     const env: any = {
       code: text,
       grammar: grammar,
@@ -185,7 +185,7 @@ export var Prism: any = {
     return Token.stringify(Prism.util.encode(env.tokens), env.language)
   },
 
-  matchGrammar: function (text, strarr, grammar, index, startPos, oneshot, target?: any) {
+  matchGrammar: function(text, strarr, grammar, index, startPos, oneshot, target?: any) {
     for (const token in grammar) {
       if (!grammar.hasOwnProperty(token) || !grammar[token]) {
         continue
@@ -243,7 +243,7 @@ export var Prism: any = {
               p += strarr[k].length
               // Move the index i to the element in strarr that is closest to from
               if (from >= p) {
-                ++i
+                ;++i
                 pos = p
               }
             }
@@ -285,7 +285,7 @@ export var Prism: any = {
           const args: any = [i, delNum]
 
           if (before) {
-            ++i
+            ;++i
             pos += before.length
             args.push(before)
           }
@@ -308,7 +308,7 @@ export var Prism: any = {
     }
   },
 
-  tokenize: function (text, grammar) {
+  tokenize: function(text, grammar) {
     const strarr = [text]
 
     const rest = grammar.rest
@@ -329,7 +329,7 @@ export var Prism: any = {
   hooks: {
     all: {},
 
-    add: function (name, callback) {
+    add: function(name, callback) {
       const hooks = Prism.hooks.all
 
       hooks[name] = hooks[name] || []
@@ -337,14 +337,14 @@ export var Prism: any = {
       hooks[name].push(callback)
     },
 
-    run: function (name, env) {
+    run: function(name, env) {
       const callbacks = Prism.hooks.all[name]
 
       if (!callbacks || !callbacks.length) {
         return
       }
 
-      for (var i = 0, callback; (callback = callbacks[i++]); ) {
+      for (var i = 0, callback; (callback = callbacks[i++]);) {
         callback(env)
       }
     },
@@ -475,14 +475,14 @@ export function Token(this: any, type, content, alias, matchedStr?: any, greedy?
   this.greedy = !!greedy
 }
 
-Token.stringify = function (o, language?: any) {
+Token.stringify = function(o, language?: any) {
   if (typeof o == 'string') {
     return o
   }
 
   if (Array.isArray(o)) {
     return o
-      .map(function (element) {
+      .map(function(element) {
         return Token.stringify(element, language)
       })
       .join('')

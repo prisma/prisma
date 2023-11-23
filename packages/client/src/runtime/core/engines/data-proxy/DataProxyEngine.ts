@@ -526,7 +526,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     callback: (api: { logHttpCall: (url: string) => void }) => Promise<T>
     actionGerund: string
   }): Promise<T> {
-    for (let attempt = 0; ; attempt++) {
+    for (let attempt = 0;; attempt++) {
       const logHttpCall = (url: string) => {
         this.logEmitter.emit('info', {
           message: `Calling ${url} (n=${attempt})`,

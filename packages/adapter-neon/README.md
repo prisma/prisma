@@ -47,7 +47,7 @@ Update your Prisma Client instance to use the Neon serverless driver using a Web
 
 ```ts
 // Import needed packages
-import { Pool, neonConfig } from '@neondatabase/serverless'
+import { neonConfig, Pool } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaClient } from '@prisma/client'
 import ws from 'ws'

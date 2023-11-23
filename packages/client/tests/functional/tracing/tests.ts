@@ -87,8 +87,8 @@ afterAll(() => {
 testMatrix.setupTestSuite(({ provider, providerFlavor, relationMode, engineType }, _suiteMeta, clientMeta) => {
   const isMongoDb = provider === Providers.MONGODB
 
-  const usesSyntheticTxQueries =
-    providerFlavor !== undefined && ['js_libsql', 'js_planetscale'].includes(providerFlavor)
+  const usesSyntheticTxQueries = providerFlavor !== undefined
+    && ['js_libsql', 'js_planetscale'].includes(providerFlavor)
 
   beforeEach(async () => {
     await prisma.$connect()

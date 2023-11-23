@@ -50,7 +50,7 @@ function cloneSpecificValue(val): RegExp | Buffer | Date {
  */
 function deepCloneArray(arr): any {
   const clone: any = []
-  arr.forEach(function (item, index) {
+  arr.forEach(function(item, index) {
     if (typeof item === 'object' && item !== null) {
       if (Array.isArray(item)) {
         clone[index] = deepCloneArray(item)
@@ -79,7 +79,7 @@ function safeGetProperty(object, property): any {
  * object as first argument, like this:
  *   deepExtend({}, yourObj_1, [yourObj_N]);
  */
-export const deepExtend = function (target, ...args): any {
+export const deepExtend = function(target, ...args): any {
   if (!target || typeof target !== 'object') {
     return false
   }

@@ -7,8 +7,8 @@ import tempy from 'tempy'
 import { resolvePkg } from './get-generators/generatorResolvers/prisma-client-js/check-dependencies/resolve'
 
 export async function getPackedPackage(name: string, target?: string, packageDir?: string): Promise<string | void> {
-  packageDir =
-    packageDir || (await resolvePkg(name, { basedir: process.cwd() })) || (await resolvePkg(name, { basedir: target }))
+  packageDir = packageDir || (await resolvePkg(name, { basedir: process.cwd() }))
+    || (await resolvePkg(name, { basedir: target }))
 
   if (!packageDir) {
     const pkg = readPkgUp.sync({

@@ -94,27 +94,28 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
 
 <details>
   <summary><b>Alternatives</b></summary>
-  
-  #### Detailed steps for a locally-linked dev folder
-  ```sh
-  cd sandbox
-  mkdir my-repro
-  cd my-repro
-  pnpm init
-  pnpm add ../../packages/client
-  pnpm add -D ../../packages/cli
-  pnpm add -D typescript ts-node
-  pnpm add -D @types/node
-  touch index.ts
-  pnpm tsc --init
-  pnpm prisma init
-  # > Manually populate the schema.prisma
-  # > Manually add 👇 to the generator block
-  #   output = "../node_modules/.prisma/client"
-  # > Manually populate the index.ts
-  pnpm prisma db push --skip-generate
-  pnpm prisma generate && pnpm ts-node index.ts # Try it out
-  ```
+
+#### Detailed steps for a locally-linked dev folder
+
+```sh
+cd sandbox
+mkdir my-repro
+cd my-repro
+pnpm init
+pnpm add ../../packages/client
+pnpm add -D ../../packages/cli
+pnpm add -D typescript ts-node
+pnpm add -D @types/node
+touch index.ts
+pnpm tsc --init
+pnpm prisma init
+# > Manually populate the schema.prisma
+# > Manually add 👇 to the generator block
+#   output = "../node_modules/.prisma/client"
+# > Manually populate the index.ts
+pnpm prisma db push --skip-generate
+pnpm prisma generate && pnpm ts-node index.ts # Try it out
+```
 
 #### Developing and working in the fixture folder
 

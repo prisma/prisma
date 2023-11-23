@@ -33,7 +33,8 @@ function getConnectionInfo(ctx: Context) {
   const { URL } = url
   const serviceConnectionString = process.env.TEST_MSSQL_URI!
   const connectionUrl = new URL(serviceConnectionString)
-  const connectionString = `sqlserver://${connectionUrl.host};database=master_${ctx.id};user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;`
+  const connectionString =
+    `sqlserver://${connectionUrl.host};database=master_${ctx.id};user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;`
   const credentials = {
     user: 'SA',
     password: 'Pr1sm4_Pr1sm4',

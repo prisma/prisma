@@ -39,9 +39,11 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (projectRoot === undefined) {
       console.warn(
         yellow(
-          `${warningTag} The Prisma schema directory ${bold(baseDir)} and the current working directory ${bold(
-            process.cwd(),
-          )} have no common ancestor. The Prisma schema directory will be used as the project root.`,
+          `${warningTag} The Prisma schema directory ${bold(baseDir)} and the current working directory ${
+            bold(
+              process.cwd(),
+            )
+          } have no common ancestor. The Prisma schema directory will be used as the project root.`,
         ),
       )
       projectRoot = baseDir
@@ -50,9 +52,11 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (!fs.existsSync(path.join(projectRoot, 'package.json'))) {
       console.warn(
         yellow(
-          `${warningTag} Prisma could not find a ${bold('package.json')} file in the inferred project root ${bold(
-            projectRoot,
-          )}. During the next step, when an auto-install of Prisma package(s) will be attempted, it will then be created by your package manager on the appropriate level if necessary.`,
+          `${warningTag} Prisma could not find a ${bold('package.json')} file in the inferred project root ${
+            bold(
+              projectRoot,
+            )
+          }. During the next step, when an auto-install of Prisma package(s) will be attempted, it will then be created by your package manager on the appropriate level if necessary.`,
         ),
       )
     }
@@ -67,13 +71,19 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
       const missingCli = (s: string) => (prismaCliDir === undefined ? s : '')
 
       throw new Error(
-        `Could not resolve ${missingCli(`${bold('prisma')} and `)}${bold(
-          '@prisma/client',
-        )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
-          `${bold(green(`${await getPackageCmd(baseDir, 'add', 'prisma', '-D')}`))} and `,
-        )}${bold(green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`))}, and rerun ${bold(
-          await getPackageCmd(baseDir, 'execute', 'prisma generate'),
-        )} 🙏.`,
+        `Could not resolve ${missingCli(`${bold('prisma')} and `)}${
+          bold(
+            '@prisma/client',
+          )
+        } in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${
+          missingCli(
+            `${bold(green(`${await getPackageCmd(baseDir, 'add', 'prisma', '-D')}`))} and `,
+          )
+        }${bold(green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`))}, and rerun ${
+          bold(
+            await getPackageCmd(baseDir, 'execute', 'prisma generate'),
+          )
+        } 🙏.`,
       )
     }
 
@@ -89,9 +99,11 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (!prismaClientDir) {
       throw new Error(
         `Could not resolve @prisma/client despite the installation that we just tried.
-Please try to install it by hand with ${bold(
-          green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`),
-        )} and rerun ${bold(await getPackageCmd(baseDir, 'execute', 'prisma generate'))} 🙏.`,
+Please try to install it by hand with ${
+          bold(
+            green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`),
+          )
+        } and rerun ${bold(await getPackageCmd(baseDir, 'execute', 'prisma generate'))} 🙏.`,
       )
     }
 
@@ -103,9 +115,11 @@ Please try to install it by hand with ${bold(
   if (!prismaClientDir) {
     throw new Error(
       `Could not resolve @prisma/client.
-Please try to install it with ${bold(green('npm install @prisma/client'))} and rerun ${bold(
-        await getPackageCmd(baseDir, 'execute', 'prisma generate'),
-      )} 🙏.`,
+Please try to install it with ${bold(green('npm install @prisma/client'))} and rerun ${
+        bold(
+          await getPackageCmd(baseDir, 'execute', 'prisma generate'),
+        )
+      } 🙏.`,
     )
   }
 

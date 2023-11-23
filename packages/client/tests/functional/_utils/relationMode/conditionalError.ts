@@ -44,8 +44,8 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
     }
 
     return (
-      errorBase[providerFlavor ?? provider] ||
-      `TODO: add error for provider=${provider} and providerFlavor=${providerFlavor}`
+      errorBase[providerFlavor ?? provider]
+      || `TODO: add error for provider=${provider} and providerFlavor=${providerFlavor}`
     )
   }
 }

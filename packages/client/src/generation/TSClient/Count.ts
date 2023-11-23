@@ -46,26 +46,28 @@ export class Count implements Generatable {
 ${ts.stringify(outputType)}
 
 export type ${getSelectName(name)}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-${indent(
-  type.fields
-    .map((field) => {
-      const types = ['boolean']
-      if (field.outputType.location === 'outputObjectTypes') {
-        types.push(getFieldArgName(field, this.type.name))
-      }
+${
+      indent(
+        type.fields
+          .map((field) => {
+            const types = ['boolean']
+            if (field.outputType.location === 'outputObjectTypes') {
+              types.push(getFieldArgName(field, this.type.name))
+            }
 
-      // TODO: what should happen if both args and output types are present?
-      // Right new, they both will be part of the union, but is it correct?
+            // TODO: what should happen if both args and output types are present?
+            // Right new, they both will be part of the union, but is it correct?
 
-      if (field.args.length > 0) {
-        types.push(getCountArgsType(name, field.name))
-      }
+            if (field.args.length > 0) {
+              types.push(getCountArgsType(name, field.name))
+            }
 
-      return `${field.name}?: ${types.join(' | ')}`
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
+            return `${field.name}?: ${types.join(' | ')}`
+          })
+          .join('\n'),
+        TAB_SIZE,
+      )
+    }
 }
 
 // Custom InputTypes

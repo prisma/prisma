@@ -23,9 +23,9 @@ async function main() {
 
   let v: string = Prisma.prismaVersion.client
 
-  const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw('User')} WHERE 'id' in ${Prisma.join([1, 2, 3])} ${
-    Prisma.empty
-  } `
+  const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw('User')} WHERE 'id' in ${
+    Prisma.join([1, 2, 3])
+  } ${Prisma.empty} `
 
   const queryRaw1 = await prisma.$queryRaw`SELECT * FROM User WHERE id = 1`
   const queryRaw2 = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1}`

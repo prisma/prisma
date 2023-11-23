@@ -14,7 +14,8 @@ export interface JSDocMethodBodyCtx {
 }
 
 const Docs = {
-  cursor: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}`,
+  cursor:
+    `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}`,
   pagination: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}`,
   aggregations: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}`,
   distinct: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}`,
@@ -59,7 +60,8 @@ const JSDocFields = {
 }
 export const JSDocs: JSDocsType = {
   groupBy: {
-    body: (ctx) => `Group by ${ctx.singular}.
+    body: (ctx) =>
+      `Group by ${ctx.singular}.
 ${undefinedNote}
 @param {${getGroupByArgsName(ctx.model.name)}} args - Group by arguments.
 @example
@@ -77,7 +79,8 @@ const result = await prisma.user.groupBy({
     fields: {},
   },
   create: {
-    body: (ctx) => `Create a ${ctx.singular}.
+    body: (ctx) =>
+      `Create a ${ctx.singular}.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create a ${ctx.singular}.
 @example
 // Create one ${ctx.singular}
@@ -92,7 +95,8 @@ const ${ctx.singular} = await ${ctx.method}({
     },
   },
   createMany: {
-    body: (ctx) => `Create many ${ctx.plural}.
+    body: (ctx) =>
+      `Create many ${ctx.plural}.
     @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many ${ctx.plural}.
     @example
     // Create many ${ctx.plural}
@@ -184,9 +188,9 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     body: (ctx) => {
       const onlySelect = ctx.firstScalar
         ? `\n// Only select the \`${ctx.firstScalar.name}\`
-const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({ select: { ${
-            ctx.firstScalar.name
-          }: true } })`
+const ${lowerCase(ctx.mapping.model)}With${
+          capitalize(ctx.firstScalar.name)
+        }Only = await ${ctx.method}({ select: { ${ctx.firstScalar.name}: true } })`
         : ''
 
       return `Find zero or more ${ctx.plural} that matches the filter.
@@ -274,10 +278,12 @@ const ${ctx.singular} = await ${ctx.method}({
     body: (ctx) =>
       `Allows you to perform aggregations operations on a ${ctx.singular}.
 ${undefinedNote}
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Select which aggregations you would like to apply and on what fields.
+@param {${
+        getModelArgName(
+          ctx.model.name,
+          ctx.action,
+        )
+      }} args - Select which aggregations you would like to apply and on what fields.
 @example
 // Ordered by age ascending
 // Where email contains prisma.io

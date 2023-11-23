@@ -48,14 +48,14 @@ type GetOsResultLinux = {
 
 export type GetOSResult =
   | {
-      platform: Omit<NodeJS.Platform, 'linux'>
-      arch: Arch
-      targetDistro?: DistroInfo['targetDistro']
-      familyDistro?: never
-      originalDistro?: never
-      archFromUname?: never
-      libssl?: never
-    }
+    platform: Omit<NodeJS.Platform, 'linux'>
+    arch: Arch
+    targetDistro?: DistroInfo['targetDistro']
+    familyDistro?: never
+    originalDistro?: never
+    archFromUname?: never
+    libssl?: never
+  }
   | GetOsResultLinux
 
 /**
@@ -128,79 +128,71 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
   const distroInfo = match({ id, idLike })
     .with(
       { id: 'alpine' },
-      ({ id: originalDistro }) =>
-        ({
-          targetDistro: 'musl',
-          familyDistro: originalDistro,
-          originalDistro,
-        } as const),
+      ({ id: originalDistro }) => ({
+        targetDistro: 'musl',
+        familyDistro: originalDistro,
+        originalDistro,
+      } as const),
     )
     .with(
       { id: 'raspbian' },
-      ({ id: originalDistro }) =>
-        ({
-          targetDistro: 'arm',
-          familyDistro: 'debian',
-          originalDistro,
-        } as const),
+      ({ id: originalDistro }) => ({
+        targetDistro: 'arm',
+        familyDistro: 'debian',
+        originalDistro,
+      } as const),
     )
     .with(
       { id: 'nixos' },
-      ({ id: originalDistro }) =>
-        ({
-          targetDistro: 'nixos',
-          originalDistro,
-          familyDistro: 'nixos',
-        } as const),
+      ({ id: originalDistro }) => ({
+        targetDistro: 'nixos',
+        originalDistro,
+        familyDistro: 'nixos',
+      } as const),
     )
     .with(
       { id: 'debian' },
       { id: 'ubuntu' },
-      ({ id: originalDistro }) =>
-        ({
-          targetDistro: 'debian',
-          familyDistro: 'debian',
-          originalDistro,
-        } as const),
+      ({ id: originalDistro }) => ({
+        targetDistro: 'debian',
+        familyDistro: 'debian',
+        originalDistro,
+      } as const),
     )
     .with(
       { id: 'rhel' },
       { id: 'centos' },
       { id: 'fedora' },
-      ({ id: originalDistro }) =>
-        ({
-          targetDistro: 'rhel',
-          familyDistro: 'rhel',
-          originalDistro,
-        } as const),
+      ({ id: originalDistro }) => ({
+        targetDistro: 'rhel',
+        familyDistro: 'rhel',
+        originalDistro,
+      } as const),
     )
     .when(
       ({ idLike }) => idLike.includes('debian') || idLike.includes('ubuntu'),
-      ({ id: originalDistro }) =>
-        ({
-          targetDistro: 'debian',
-          familyDistro: 'debian',
-          originalDistro,
-        } as const),
+      ({ id: originalDistro }) => ({
+        targetDistro: 'debian',
+        familyDistro: 'debian',
+        originalDistro,
+      } as const),
     )
     .when(
       ({ idLike }) => id === 'arch' || idLike.includes('arch'),
-      ({ id: originalDistro }) =>
-        ({
-          targetDistro: 'debian',
-          familyDistro: 'arch',
-          originalDistro,
-        } as const),
+      ({ id: originalDistro }) => ({
+        targetDistro: 'debian',
+        familyDistro: 'arch',
+        originalDistro,
+      } as const),
     )
     .when(
       ({ idLike }) =>
         idLike.includes('centos') || idLike.includes('fedora') || idLike.includes('rhel') || idLike.includes('suse'),
-      ({ id: originalDistro }) =>
-        ({
-          targetDistro: 'rhel',
-          familyDistro: 'rhel',
-          originalDistro,
-        } as const),
+      ({ id: originalDistro }) => ({
+        targetDistro: 'rhel',
+        familyDistro: 'rhel',
+        originalDistro,
+      } as const),
     )
     .otherwise(({ id: originalDistro }) => {
       /* Generic distro info fallback */
@@ -313,13 +305,13 @@ export function computeLibSSLSpecificPaths(args: ComputeLibSSLSpecificPathsParam
 
 type GetOpenSSLVersionResult =
   | {
-      libssl: GetOsResultLinux['libssl']
-      strategy: 'libssl-specific-path' | 'ldconfig' | 'openssl-binary'
-    }
+    libssl: GetOsResultLinux['libssl']
+    strategy: 'libssl-specific-path' | 'ldconfig' | 'openssl-binary'
+  }
   | {
-      libssl?: never
-      strategy?: never
-    }
+    libssl?: never
+    strategy?: never
+  }
 
 /**
  * On Linux, returns the libssl version excluding the patch version, e.g. "1.1.x".
@@ -498,9 +490,11 @@ ${additionalMessage}`,
   if (platform === 'linux' && targetDistro === undefined) {
     warn(
       `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".
-Please report your experience by creating an issue at ${link(
-        'https://github.com/prisma/prisma/issues',
-      )} so we can add your distro to the list of known supported distros.`,
+Please report your experience by creating an issue at ${
+        link(
+          'https://github.com/prisma/prisma/issues',
+        )
+      } so we can add your distro to the list of known supported distros.`,
     )
   }
 

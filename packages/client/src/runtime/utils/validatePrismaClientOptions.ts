@@ -31,8 +31,8 @@ const validators: {
 
     for (const [key, value] of Object.entries(options)) {
       if (!datasourceNames.includes(key)) {
-        const didYouMean =
-          getDidYouMean(key, datasourceNames) || ` Available datasources: ${datasourceNames.join(', ')}`
+        const didYouMean = getDidYouMean(key, datasourceNames)
+          || ` Available datasources: ${datasourceNames.join(', ')}`
         throw new PrismaClientConstructorValidationError(
           `Unknown datasource ${key} provided to PrismaClient constructor.${didYouMean}`,
         )
@@ -138,9 +138,11 @@ Expected string or undefined.`,
           if (!emits.includes(value)) {
             const didYouMean = getDidYouMean(value, emits)
             throw new PrismaClientConstructorValidationError(
-              `Invalid value ${JSON.stringify(
-                value,
-              )} for "emit" in logLevel provided to PrismaClient constructor.${didYouMean}`,
+              `Invalid value ${
+                JSON.stringify(
+                  value,
+                )
+              } for "emit" in logLevel provided to PrismaClient constructor.${didYouMean}`,
             )
           }
         },

@@ -1152,7 +1152,7 @@ testMatrix.setupTestSuite(
         query: {
           $allModels: {
             findFirst({ args, query, model }) {
-              ;() => {
+              ;(() => {
                 if (model === 'User') {
                   args.select?.firstName
                   return query(args)
@@ -1165,12 +1165,12 @@ testMatrix.setupTestSuite(
                 }
 
                 return undefined
-              }
+              })
 
               return query(args)
             },
             $allOperations({ args, query, operation }) {
-              ;() => {
+              ;(() => {
                 if (operation === 'findFirst') {
                   args.select?.id
                   return query(args)
@@ -1183,7 +1183,7 @@ testMatrix.setupTestSuite(
                 }
 
                 return undefined
-              }
+              })
 
               return query(args)
             },
@@ -1196,7 +1196,7 @@ testMatrix.setupTestSuite(
       type OptionalDeep<T> = {
         [P in keyof T]?: OptionalDeep<T[P]>
       }
-      ;() =>
+      ;(() =>
         prisma.$extends({
           query: {
             user: {
@@ -1941,7 +1941,7 @@ testMatrix.setupTestSuite(
               return query(args)
             },
           },
-        })
+        }))
     })
   },
   {

@@ -1,19 +1,21 @@
 import { Error } from './types'
 
-export type Result<T> = {
-  // common methods
-  map<U>(fn: (value: T) => U): Result<U>
-  flatMap<U>(fn: (value: T) => Result<U>): Result<U>
-} & (
-  | {
+export type Result<T> =
+  & {
+    // common methods
+    map<U>(fn: (value: T) => U): Result<U>
+    flatMap<U>(fn: (value: T) => Result<U>): Result<U>
+  }
+  & (
+    | {
       readonly ok: true
       readonly value: T
     }
-  | {
+    | {
       readonly ok: false
       readonly error: Error
     }
-)
+  )
 
 export function ok<T>(value: T): Result<T> {
   return {

@@ -1,10 +1,10 @@
 export type SyntaxCondition =
   | RegExp
   | {
-      pattern: RegExp
-      greedy?: boolean
-      lookbehind?: boolean
-    }
+    pattern: RegExp
+    greedy?: boolean
+    lookbehind?: boolean
+  }
 
 export interface SyntaxDefinition {
   comment?: SyntaxCondition | SyntaxCondition[]

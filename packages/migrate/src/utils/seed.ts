@@ -29,9 +29,11 @@ export async function verifySeedConfigAndReturnMessage(schemaPath: string | null
   // If new "seed" config is not set, help user to set it
   const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
 
-  let message = `${red(
-    'To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:',
-  )}
+  let message = `${
+    red(
+      'To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:',
+    )
+  }
 
 1. Open the package.json of your project
 `
@@ -131,19 +133,23 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
   // Validate if seed command is a string
   if (typeof seedCommandFromPkgJson !== 'string') {
     throw new Error(
-      `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
-        cwd,
-        prismaConfig.packagePath,
-      )}\` must be of type string`,
+      `Provided seed command \`${seedCommandFromPkgJson}\` from \`${
+        path.relative(
+          cwd,
+          prismaConfig.packagePath,
+        )
+      }\` must be of type string`,
     )
   }
 
   if (!seedCommandFromPkgJson) {
     throw new Error(
-      `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
-        cwd,
-        prismaConfig.packagePath,
-      )}\` cannot be empty`,
+      `Provided seed command \`${seedCommandFromPkgJson}\` from \`${
+        path.relative(
+          cwd,
+          prismaConfig.packagePath,
+        )
+      }\` cannot be empty`,
     )
   }
 

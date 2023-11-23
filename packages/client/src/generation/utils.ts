@@ -180,9 +180,9 @@ export function getReturnType({
   const isList = actionName === DMMF.ModelAction.findMany
 
   if (
-    actionName === DMMF.ModelAction.deleteMany ||
-    actionName === DMMF.ModelAction.updateMany ||
-    actionName === DMMF.ModelAction.createMany
+    actionName === DMMF.ModelAction.deleteMany
+    || actionName === DMMF.ModelAction.updateMany
+    || actionName === DMMF.ModelAction.createMany
   ) {
     return `Prisma.PrismaPromise<BatchPayload>`
   }
@@ -200,30 +200,38 @@ export function getReturnType({
   }
 
   if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
-    return `Prisma__${name}Client<${getType(
-      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-      isList,
-    )} | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
+    return `Prisma__${name}Client<${
+      getType(
+        `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+        isList,
+      )
+    } | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
   }
 
   if (actionName === DMMF.ModelAction.findFirstOrThrow || actionName === DMMF.ModelAction.findUniqueOrThrow) {
-    return `Prisma__${name}Client<${getType(
-      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-      isList,
-    )}, never, ExtArgs>`
+    return `Prisma__${name}Client<${
+      getType(
+        `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+        isList,
+      )
+    }, never, ExtArgs>`
   }
 
   if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
-    return `Prisma__${name}Client<${getType(
-      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-      isList,
-    )} | null, null, ExtArgs>`
+    return `Prisma__${name}Client<${
+      getType(
+        `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+        isList,
+      )
+    } | null, null, ExtArgs>`
   }
 
-  return `Prisma__${name}Client<${getType(
-    `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-    isList,
-  )}, never, ExtArgs>`
+  return `Prisma__${name}Client<${
+    getType(
+      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+      isList,
+    )
+  }, never, ExtArgs>`
 }
 
 export function capitalize(str: string): string {

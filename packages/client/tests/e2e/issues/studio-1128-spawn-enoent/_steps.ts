@@ -15,8 +15,8 @@ void executeSteps({
     for await (const output of studio.stderr) {
       // Exit as soon as xdg-open subprocess in studio either spawns or reports failure to spawn
       if (
-        output.includes('requested to open the url http://localhost:5555') ||
-        output.includes('failed to open the url http://localhost:5555 in browser')
+        output.includes('requested to open the url http://localhost:5555')
+        || output.includes('failed to open the url http://localhost:5555 in browser')
       ) {
         await studio.nothrow().kill()
         return

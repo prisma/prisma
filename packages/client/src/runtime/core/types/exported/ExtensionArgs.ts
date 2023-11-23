@@ -65,8 +65,8 @@ export type QueryOptions = {
   query: {
     [ModelName in string]:
       | {
-          [ModelAction in string]: ModelQueryOptionsCb
-        }
+        [ModelAction in string]: ModelQueryOptionsCb
+      }
       | QueryOptionsCb // for all queries (eg. raw queries)
   }
 }

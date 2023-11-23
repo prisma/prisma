@@ -1707,7 +1707,7 @@ export const scenarios = [
     ],
   },
   {
-    //todo investigate before merging PR
+    // todo investigate before merging PR
     todo: true,
     name: 'findMany on column_name_that_becomes_empty_string',
     up: `
@@ -1740,7 +1740,7 @@ export const scenarios = [
     expect: [],
   },
   {
-    //todo investigate before merging PR
+    // todo investigate before merging PR
     todo: true,
     name: 'findUnique - check typeof js object is object for Json field',
     up: `
@@ -1778,7 +1778,7 @@ export const scenarios = [
     ],
   },
   {
-    //todo investigate before merging PR
+    // todo investigate before merging PR
     todo: true,
     name: 'findUnique - check typeof Date is string for Json field',
     up: `
@@ -1816,7 +1816,7 @@ export const scenarios = [
     ],
   },
   {
-    //todo investigate before merging PR
+    // todo investigate before merging PR
     todo: true,
     name: 'findUnique - check typeof array for Json field with array',
     up: `

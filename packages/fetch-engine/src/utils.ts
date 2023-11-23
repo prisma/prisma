@@ -63,10 +63,9 @@ export function getDownloadUrl({
   binaryName: string
   extension?: string
 }): string {
-  const baseUrl =
-    process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
-    process.env.PRISMA_ENGINES_MIRROR ||
-    'https://binaries.prisma.sh'
+  const baseUrl = process.env.PRISMA_BINARIES_MIRROR // TODO: remove this
+    || process.env.PRISMA_ENGINES_MIRROR
+    || 'https://binaries.prisma.sh'
 
   const finalExtension =
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison

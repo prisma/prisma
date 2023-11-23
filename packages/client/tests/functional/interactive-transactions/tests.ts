@@ -345,28 +345,27 @@ testMatrix.setupTestSuite(({ provider, engineType }, _suiteMeta, clientMeta) => 
         },
       })
 
-      const result =
-        provider === Providers.MYSQL
-          ? prisma.$transaction([
-              // @ts-test-if: provider !== Providers.MONGODB
-              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-              // @ts-test-if: provider !== Providers.MONGODB
-              prisma.$queryRaw`DELETE FROM User`,
-              // @ts-test-if: provider !== Providers.MONGODB
-              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              // @ts-test-if: provider !== Providers.MONGODB
-              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-            ])
-          : prisma.$transaction([
-              // @ts-test-if: provider !== Providers.MONGODB
-              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-              // @ts-test-if: provider !== Providers.MONGODB
-              prisma.$queryRaw`DELETE FROM "User"`,
-              // @ts-test-if: provider !== Providers.MONGODB
-              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              // @ts-test-if: provider !== Providers.MONGODB
-              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-            ])
+      const result = provider === Providers.MYSQL
+        ? prisma.$transaction([
+          // @ts-test-if: provider !== Providers.MONGODB
+          prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+          // @ts-test-if: provider !== Providers.MONGODB
+          prisma.$queryRaw`DELETE FROM User`,
+          // @ts-test-if: provider !== Providers.MONGODB
+          prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+          // @ts-test-if: provider !== Providers.MONGODB
+          prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+        ])
+        : prisma.$transaction([
+          // @ts-test-if: provider !== Providers.MONGODB
+          prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+          // @ts-test-if: provider !== Providers.MONGODB
+          prisma.$queryRaw`DELETE FROM "User"`,
+          // @ts-test-if: provider !== Providers.MONGODB
+          prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+          // @ts-test-if: provider !== Providers.MONGODB
+          prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+        ])
 
       await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
@@ -665,7 +664,7 @@ testMatrix.setupTestSuite(({ provider, engineType }, _suiteMeta, clientMeta) => 
           return updatedUser
         },
         { timeout: 60_000, maxWait: 60_000 },
-      ),
+      )
     )
 
     await Promise.allSettled(promises)

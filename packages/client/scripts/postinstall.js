@@ -102,9 +102,11 @@ async function main() {
 
   if (!localPath && !installedGlobally) {
     console.error(
-      `${c.yellow(
-        'warning',
-      )} In order to use "@prisma/client", please install Prisma CLI. You can install it with "npm add -D prisma".`,
+      `${
+        c.yellow(
+          'warning',
+        )
+      } In order to use "@prisma/client", please install Prisma CLI. You can install it with "npm add -D prisma".`,
     )
   }
 }
@@ -151,9 +153,11 @@ if (!process.env.PRISMA_SKIP_POSTINSTALL_GENERATE) {
             `${c.yellow('warning')} @prisma/client needs a ${c.bold('schema.prisma')} to function, but couldn't find it.
         Please either create one manually or use ${c.bold('prisma init')}.
         Once you created it, run ${c.bold('prisma generate')}.
-        To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
-          './prisma',
-        )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
+        To keep Prisma related things separate, we recommend creating it in a subfolder called ${
+              c.underline(
+                './prisma',
+              )
+            } like so: ${c.underline('./prisma/schema.prisma')}\n`,
           )
         } else {
           console.error(e.stderr)
@@ -292,7 +296,7 @@ function makeDir(input) {
  */
 function getPostInstallTrigger() {
   /*
-  npm_config_argv` is not officially documented so here are our research notes 
+  npm_config_argv` is not officially documented so here are our research notes
 
   `npm_config_argv` is available to the postinstall script when the containing package has been installed by npm into some project.
 
@@ -340,10 +344,9 @@ function getPostInstallTrigger() {
 
   const npm_config_argv_original = npm_config_argv_original_arr.filter((arg) => arg !== '').join(' ')
 
-  const command =
-    npm_config_argv_original === ''
-      ? getPackageManagerName()
-      : [getPackageManagerName(), npm_config_argv_original].join(' ')
+  const command = npm_config_argv_original === ''
+    ? getPackageManagerName()
+    : [getPackageManagerName(), npm_config_argv_original].join(' ')
 
   return command
 }

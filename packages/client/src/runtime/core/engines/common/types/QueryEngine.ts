@@ -69,12 +69,12 @@ export type QueryEngineResult<T> = {
 
 export type QueryEngineResultBatchQueryResult<T> =
   | {
-      data: T
-      elapsed: number
-    }
+    data: T
+    elapsed: number
+  }
   | {
-      errors: RequestError[]
-    }
+    errors: RequestError[]
+  }
 
 export type QueryEngineBatchRequest = QueryEngineBatchGraphQLRequest | JsonBatchQuery
 

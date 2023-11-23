@@ -116,7 +116,7 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
     },
   })
 
-  proxy[customInspect] = function (depth: number, options: InspectOptions, defaultInspect: typeof inspect = inspect) {
+  proxy[customInspect] = function(depth: number, options: InspectOptions, defaultInspect: typeof inspect = inspect) {
     // Default node.js console.log and util.inspect deliberately avoid triggering any proxy traps and log
     // original target. This is not we want for our usecases: we want console.log to output the result as if
     // the properties actually existed on the target. Using spread operator forces us to produce correct object
