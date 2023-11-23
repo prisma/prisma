@@ -31,6 +31,6 @@ export class Create implements Command {
       payload: {
         displayName,
       },
-    })
+    }) as Promise<any>
   }
 }
