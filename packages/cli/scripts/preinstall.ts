@@ -1,20 +1,38 @@
+import process from 'node:process'
+
 import { drawBox } from '@prisma/internals'
 
 export function main() {
-  // process.version (e.g. `v16.0.0`)
   printMessageAndExitIfUnsupportedNodeVersion(process.version)
 }
 
-export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion) {
-  const nodeVersionAsParts = nodeVersion.split('.')
-  // `.slice(1)` removes `v` from `v16`
-  const nodeMajorVersion = parseInt(nodeVersionAsParts[0].slice(1))
-  const nodeMinorVersion = parseInt(nodeVersionAsParts[1])
+function extractSemanticVersionParts(version) {
+  return version
+    .split('.')
+    .slice(0, 2) // only major and minor version
+    .map((v) => parseInt(v, 10))
+}
 
-  if (nodeMajorVersion < 16 || (nodeMajorVersion === 16 && nodeMinorVersion < 13)) {
+/**
+ * Given a Node.js version (e.g. `v16.13.0`), prints an error and exits the process
+ * if the Node.js version is not supported by Prisma.
+ */
+export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion) {
+  // Node.js version, without the `v` prefix (e.g. `16.13.0`)
+  const semanticNodeVersion = nodeVersion.slice(1)
+  const [nodeMajorVersion, nodeMinorVersion] = extractSemanticVersionParts(semanticNodeVersion)
+
+  // Minimum Node.js version supported by Prisma
+  const MIN_NODE_VERSION = '16.13'
+  const [MIN_NODE_MAJOR_VERSION, MIN_NODE_MINOR_VERSION] = extractSemanticVersionParts(MIN_NODE_VERSION)
+
+  if (
+    nodeMajorVersion < MIN_NODE_MAJOR_VERSION ||
+    (nodeMajorVersion === MIN_NODE_MAJOR_VERSION && nodeMinorVersion < MIN_NODE_MINOR_VERSION)
+  ) {
     console.error(
       drawBox({
-        str: `Prisma only supports Node.js >= 16.13.\nPlease upgrade your Node.js version.`,
+        str: `Prisma only supports Node.js >= ${MIN_NODE_VERSION}.\nPlease upgrade your Node.js version.`,
         height: 2,
         width: 48,
         horizontalPadding: 4,
