@@ -22,8 +22,8 @@
     "eslint": "eslint",
     "lint": "eslint --fix --ext .ts .",
     "check-engines-override": "node -r esbuild-register scripts/check-engines-override.ts",
-    "format": "prettier --write .",
-    "prettier-check": "prettier --check .",
+    "format": "dprint fmt",
+    "format:check": "dprint check",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "bench-stdout-only": "ts-node scripts/bench.ts",
     "prepare": "is-ci || husky install",
@@ -59,7 +59,6 @@
     "eslint-plugin-import": "2.29.0",
     "eslint-plugin-jest": "27.6.0",
     "eslint-plugin-local-rules": "2.0.0",
-    "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-simple-import-sort": "10.0.0",
     "eventemitter3": "5.0.1",
     "execa": "5.1.1",
@@ -75,7 +74,6 @@
     "p-reduce": "2.1.0",
     "p-retry": "4.6.2",
     "path-browserify": "1.0.1",
-    "prettier": "2.8.8",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
     "regenerator-runtime": "0.14.0",
@@ -101,7 +99,7 @@
     }
   },
   "lint-staged": {
-    "*.{md,yml,json}": "prettier --write",
+    "*.{md,yml,json}": "dprint fmt",
     "*.{js,ts}": [
       "eslint --fix"
     ]
