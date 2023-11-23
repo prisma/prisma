@@ -15,6 +15,7 @@ interface AuthResult {
     email: string
   }
 }
+
 export class Login implements Command {
   public static new(): Login {
     return new Login()
@@ -48,13 +49,16 @@ export class Login implements Command {
               location.searchParams.set('error', error)
               reject(new Error(error))
             } else {
-              // TODO: Fetch the user via auth show command
-              const user = JSON.parse(
-                Buffer.from(searchParams.get('user') ?? '', `base64`).toString(`utf-8`),
-              ) as AuthResult['user'] // TODO: Remove this type assertion and use zod or other validation strategy
-              location.pathname += '/success'
-              location.searchParams.set('email', user.email)
-              resolve({ token, user })
+              const user = parseUser(searchParams.get('user') ?? '')
+              if (user) {
+                location.pathname += '/success'
+                location.searchParams.set('email', user.email)
+                resolve({ token, user })
+              } else {
+                location.pathname += '/error'
+                location.searchParams.set('error', 'Invalid user')
+                reject(new Error('Invalid user'))
+              }
             }
 
             res.statusCode = 302
@@ -80,4 +84,24 @@ const generateAuthSigninUrl = (params: { connection: string; redirectTo: string 
   const state = Buffer.from(JSON.stringify(params), `utf-8`).toString(`base64`)
   const queryParams = new URLSearchParams({ state })
   return new URL(`${platformConsoleUrl}/auth/cli?${queryParams.toString()}`)
+}
+
+const isConsoleUser = (maybeUser: unknown): maybeUser is AuthResult['user'] => {
+  if (typeof maybeUser !== 'object' || maybeUser === null) return false
+  const user = maybeUser as AuthResult['user']
+  return (
+    typeof user.id === 'string' &&
+    typeof user.displayName === 'string' &&
+    typeof user.handle === 'string' &&
+    typeof user.email === 'string'
+  )
+}
+
+const parseUser = (stringifiedUser: string) => {
+  try {
+    const maybeUser = JSON.parse(Buffer.from(stringifiedUser, `base64`).toString(`utf-8`))
+    return isConsoleUser(maybeUser) ? maybeUser : null
+  } catch (error) {
+    return null
+  }
 }
