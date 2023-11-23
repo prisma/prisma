@@ -16,7 +16,7 @@ export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientE
   if (edge === true) {
     return `config.getQueryEngineWasmModule = async () => {
       if (detectRuntime() === 'edge-light') {
-        return (await import(\`./query-engine.wasm\`\${'?module'})).default
+        return (await import(\`./query-engine.wasm\${'?module'}\`)).default
       } else {
         return (await import(\`./query-engine.wasm\`)).default
       }
