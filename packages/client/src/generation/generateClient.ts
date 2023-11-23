@@ -320,7 +320,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     // some bundlers (eg. webpack) need this file to exist, even if it's empty
     // this is because they analyze `query-engine.wasm` for references to other
     // files. It does not matter for us, because we bundle query_engine_bg.js.
-    const dummyQueryEngineBgTargetPath = path.join(runtimeSourceDir, 'query_engine_bg.js')
+    const dummyQueryEngineBgTargetPath = path.join(finalOutputDir, 'query_engine_bg.js')
     const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
 
     const copyOrSymlink = testMode ? fs.symlink : fs.copyFile
