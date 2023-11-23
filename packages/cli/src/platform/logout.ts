@@ -9,14 +9,11 @@ export class Logout implements Command {
 
   public async parse() {
     const { token } = await readAuthConfig()
-    console.log('token', token)
     if (!token) {
-      console.log('You are not logged in.')
-      return ''
+      return 'You are not logged in.'
     }
     await deleteAuthConfig()
     // TODO: Add oauth logout
-    console.log('Logged out!')
-    return ``
+    return 'Logged out!'
   }
 }

@@ -9,13 +9,22 @@ import { writeAuthConfig } from '../utils/platform'
 // const CONSOLE_URL = `https://console.prisma.io`
 const CONSOLE_URL = `http://localhost:8788`
 
+interface AuthResult {
+  token: string
+  user: {
+    id: string
+    displayName: string
+    handle: string
+    email: string
+  }
+}
 export class Login implements Command {
   public static new(): Login {
     return new Login()
   }
 
-  public async parse(): Promise<string> {
-    console.log('Authenticating to Cloud Platform via browser')
+  public async parse() {
+    console.log('Authenticating to Prisma Platform via browser')
 
     const server = http.createServer()
     const { port } = await listen(server, 0, '127.0.0.1')
@@ -23,20 +32,22 @@ export class Login implements Command {
     const authRedirectUri = `http://localhost:${port}`
     const authSigninUrl = generateAuthSigninUrl({ connection: `github`, redirectTo: authRedirectUri })
 
-    console.log(`Visit the following URL in your browser to authenticate:`)
+    console.log('Visit the following URL in your browser to authenticate:')
     console.log(underline(authSigninUrl.href))
 
     try {
       const [authResult] = await Promise.all([
-        new Promise<{ token: string; user: { email: string } }>((resolve, reject) => {
+        new Promise<AuthResult>((resolve, reject) => {
           server.once('request', (req, res) => {
             server.close()
             res.setHeader('connection', 'close')
             const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
             const token = searchParams.get('token') ?? ''
-            const user = {
-              email: searchParams.get('user_email') ?? '',
-            }
+
+            // TODO: Fetch the user via auth show command
+            const user = JSON.parse(
+              Buffer.from(searchParams.get('user') ?? '', `base64`).toString(`utf-8`),
+            ) as AuthResult['user'] // TODO: Remove this type assertion and use zod or other validation strategy
 
             resolve({ token, user })
 
@@ -56,8 +67,9 @@ export class Login implements Command {
       ])
 
       await writeAuthConfig({ token: authResult.token })
-
-      return `Authenticated successfully as: ${underline(authResult.user.email)}`
+      console.log('Authenticated successfully as:')
+      console.log(JSON.stringify(authResult.user, null, 4))
+      return ''
     } catch (error) {
       logger.error(red(`Authentication failed: ${isError(error) ? error.message : ''}`))
       throw error
