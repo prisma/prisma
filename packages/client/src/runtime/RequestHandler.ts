@@ -59,6 +59,7 @@ export type HandleErrorParams = {
   clientMethod: string
   callsite?: CallSite
   transaction?: PrismaPromiseTransaction
+  modelName?: string
 }
 
 export class RequestHandler {
@@ -135,8 +136,8 @@ export class RequestHandler {
     try {
       return await this.dataloader.request(params)
     } catch (error) {
-      const { clientMethod, callsite, transaction, args } = params
-      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
+      const { clientMethod, callsite, transaction, args, modelName } = params
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args, modelName })
     }
   }
 
@@ -169,7 +170,7 @@ export class RequestHandler {
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite, transaction, args }: HandleErrorParams): never {
+  handleRequestError({ error, clientMethod, callsite, transaction, args, modelName }: HandleErrorParams): never {
     debug(error)
 
     if (isMismatchingBatchIndex(error, transaction)) {
@@ -213,7 +214,7 @@ export class RequestHandler {
       throw new PrismaClientKnownRequestError(message, {
         code: error.code,
         clientVersion: this.client._clientVersion,
-        meta: error.meta,
+        meta: { modelName, ...error.meta },
         batchRequestIdx: error.batchRequestIdx,
       })
     } else if (error.isPanic) {
