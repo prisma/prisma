@@ -49,6 +49,7 @@ export class Login implements Command {
               location.searchParams.set('error', error)
               reject(new Error(error))
             } else {
+              // TODO: Consider getting the user via Console API instead of passing it via query params
               const user = parseUser(searchParams.get('user') ?? '')
               if (user) {
                 location.pathname += '/success'
