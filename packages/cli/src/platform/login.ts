@@ -6,8 +6,7 @@ import open from 'open'
 
 import { writeAuthConfig } from '../utils/platform'
 
-// const CONSOLE_URL = `https://console.prisma.io`
-const CONSOLE_URL = `http://localhost:8788`
+const CONSOLE_URL = `https://console.prisma.io`
 
 interface AuthResult {
   token: string

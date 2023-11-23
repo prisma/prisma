@@ -8,7 +8,6 @@ export class $ implements Command {
   private constructor(private readonly commands: Commands) {}
 
   public async parse(argv: string[]) {
-    console.log(`haloo`)
     await Promise.resolve('todo')
 
     return JSON.stringify(argv)
