@@ -1,7 +1,7 @@
-import { Command, isError, logger } from '@prisma/internals'
+import { Command, isError } from '@prisma/internals'
 import listen from 'async-listen'
 import http from 'http'
-import { red, underline } from 'kleur/colors'
+import { underline } from 'kleur/colors'
 import open from 'open'
 
 import { platformConsoleUrl, writeAuthConfig } from '../utils/platform'
@@ -40,19 +40,22 @@ export class Login implements Command {
             res.setHeader('connection', 'close')
             const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
             const token = searchParams.get('token') ?? ''
-
-            // TODO: Fetch the user via auth show command
-            const user = JSON.parse(
-              Buffer.from(searchParams.get('user') ?? '', `base64`).toString(`utf-8`),
-            ) as AuthResult['user'] // TODO: Remove this type assertion and use zod or other validation strategy
-
-            resolve({ token, user })
-
-            // Redirect the user's web browser back to Console's CLI Auth success page
+            const error = searchParams.get('error')
             const location = new URL(`${platformConsoleUrl}/auth/cli`)
 
-            location.pathname += '/success'
-            location.searchParams.set('email', user.email)
+            if (error) {
+              location.pathname += '/error'
+              location.searchParams.set('error', error)
+              reject(new Error(error))
+            } else {
+              // TODO: Fetch the user via auth show command
+              const user = JSON.parse(
+                Buffer.from(searchParams.get('user') ?? '', `base64`).toString(`utf-8`),
+              ) as AuthResult['user'] // TODO: Remove this type assertion and use zod or other validation strategy
+              location.pathname += '/success'
+              location.searchParams.set('email', user.email)
+              resolve({ token, user })
+            }
 
             res.statusCode = 302
             res.setHeader('location', location.href)
@@ -68,8 +71,7 @@ export class Login implements Command {
       console.log(JSON.stringify(authResult.user, null, 4))
       return ''
     } catch (error) {
-      logger.error(red(`Authentication failed: ${isError(error) ? error.message : ''}`))
-      throw error
+      throw new Error(`Authentication failed: ${isError(error) ? error.message : ''}`)
     }
   }
 }
