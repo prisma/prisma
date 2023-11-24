@@ -5,7 +5,6 @@
   <a href="https://www.npmjs.com/package/prisma"><img src="https://img.shields.io/npm/v/prisma.svg?style=flat" /></a>
   <a href="https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="https://github.com/prisma/prisma/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
-  <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
   <a href="https://pris.ly/discord"><img alt="Discord" src="https://img.shields.io/discord/937751382725886062?label=Discord"></a>
   <br />
   <br />
@@ -18,8 +17,6 @@
   <a href="https://github.com/prisma/prisma-examples/">Examples</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/blog">Blog</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://slack.prisma.io/">Slack</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://pris.ly/discord">Discord</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -37,6 +34,10 @@ Prisma is a **next-generation ORM** that consists of these tools:
 - [**Prisma Studio**](https://github.com/prisma/studio): GUI to view and edit data in your database
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
+
+**The Prisma ORM can also further be extended with these Prisma solutions:**
+- [Prisma Accelerate](https://prisma.io/docs/data-platform/accelerate/what-is-accelerate?utm_source=github&utm_medium=org-readme): Global database cache with scalable connection pooling
+- [Prisma Pulse](https://www.prisma.io/docs/data-platform/pulse/what-is-pulse?utm_source=github&utm_medium=org-readme): Real-time database events with type-safe subscriptions
 
 ## Getting started
 
