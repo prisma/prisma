@@ -25,6 +25,6 @@ export class Delete implements Command {
       payload: {
         intent: 'delete',
       },
-    })
+    }) as Promise<any>
   }
 }

@@ -79,7 +79,7 @@ export const platformRequestOrThrow = async (params: {
   token: string
   path: string
   payload?: object
-}) => {
+}): Promise<object> => {
   const { path, payload, token, route } = params
   const url = new URL(`${platformAPIBaseURL}${path.replace(/^\//, '')}?_data=routes/${route}`)
   // TODO error handling, when this fails, do not fail the request
@@ -95,7 +95,7 @@ export const platformRequestOrThrow = async (params: {
     body: payload ? JSON.stringify(payload) : undefined,
   })
   const text = await response.text()
-  const json = JSON.parse(text)
+  const json = JSON.parse(text || '""')
   return json
 }
 
