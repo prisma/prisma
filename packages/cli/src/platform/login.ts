@@ -26,10 +26,9 @@ export class Login implements Command {
     console.log('Authenticating to Prisma Platform CLI via browser')
 
     const server = http.createServer()
-    const { port } = await listen(server, 0, '127.0.0.1')
-
-    const authRedirectUri = `http://localhost:${port}`
-    const authSigninUrl = await generateAuthSigninUrl({ connection: `github`, redirectTo: authRedirectUri })
+    // When passing 0 as a port to listen, the OS will assign a random available port
+    const authRedirectUrl = await listen(server, 0, '127.0.0.1')
+    const authSigninUrl = await generateAuthSigninUrl({ connection: `github`, redirectTo: authRedirectUrl.href })
 
     console.log('Visit the following URL in your browser to authenticate:')
     console.log(underline(authSigninUrl.href))
