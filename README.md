@@ -35,7 +35,7 @@ Prisma is a **next-generation ORM** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
 
-**The Prisma ORM can also further be extended with these Prisma solutions:**
+**The Prisma ORM can also further be extended with these Prisma products:**
 - [Prisma Accelerate](https://prisma.io/docs/data-platform/accelerate/what-is-accelerate?utm_source=github&utm_medium=org-readme): Global database cache with scalable connection pooling
 - [Prisma Pulse](https://www.prisma.io/docs/data-platform/pulse/what-is-pulse?utm_source=github&utm_medium=org-readme): Real-time database events with type-safe subscriptions
 
