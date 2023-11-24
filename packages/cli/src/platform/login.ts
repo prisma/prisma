@@ -4,6 +4,7 @@ import http from 'http'
 import { underline } from 'kleur/colors'
 import open from 'open'
 
+import { getInstalledPrismaClientVersion } from '../utils/getClientVersion'
 import { platformConsoleUrl, writeAuthConfig } from '../utils/platform'
 
 interface AuthResult {
@@ -28,7 +29,7 @@ export class Login implements Command {
     const { port } = await listen(server, 0, '127.0.0.1')
 
     const authRedirectUri = `http://localhost:${port}`
-    const authSigninUrl = generateAuthSigninUrl({ connection: `github`, redirectTo: authRedirectUri })
+    const authSigninUrl = await generateAuthSigninUrl({ connection: `github`, redirectTo: authRedirectUri })
 
     console.log('Visit the following URL in your browser to authenticate:')
     console.log(underline(authSigninUrl.href))
@@ -81,9 +82,11 @@ export class Login implements Command {
   }
 }
 
-const generateAuthSigninUrl = (params: { connection: string; redirectTo: string }) => {
-  const state = Buffer.from(JSON.stringify(params), `utf-8`).toString(`base64`)
-  const queryParams = new URLSearchParams({ state })
+const generateAuthSigninUrl = async (params: { connection: string; redirectTo: string }) => {
+  const prismaClientVersion = await getInstalledPrismaClientVersion().catch(() => null)
+  const state = { client: `prisma@${prismaClientVersion}`, ...params }
+  const stateEncoded = Buffer.from(JSON.stringify(state), `utf-8`).toString(`base64`)
+  const queryParams = new URLSearchParams({ state: stateEncoded })
   return new URL(`${platformConsoleUrl}/auth/cli?${queryParams.toString()}`)
 }
 
