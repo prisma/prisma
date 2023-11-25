@@ -317,7 +317,7 @@ importers:
         specifier: 3.0.2
         version: 3.0.2
       async-listen:
-        specifier: ^3.0.1
+        specifier: 3.0.1
         version: 3.0.1
       checkpoint-client:
         specifier: 1.1.27
@@ -392,7 +392,7 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
       xdg-app-paths:
-        specifier: ^8.3.0
+        specifier: 8.3.0
         version: 8.3.0
       zx:
         specifier: 7.2.3

@@ -5,7 +5,7 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "16.18.11",
-    "ts-node": "10",
+    "ts-node": "10.9.1",
     "typescript": "5.2.2"
   },
   "prisma": {
