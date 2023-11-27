@@ -86,7 +86,7 @@ async function main(): Promise<number> {
     platformToken = getTokenParameter(commandArray) || (await readAuthConfig()).token || process.env['PRISMA_TOKEN']
     if (!platformToken) {
       throw new Error(
-        'No platform credentials found. Please provide a token via --token or -t, add PRISMA_TOKEN environment variable or run `prisma platform login`.',
+        'No platform credentials found. Please provide a token via --token or -t, or add PRISMA_TOKEN environment variable or run `prisma platform login`.',
       )
     }
   }
