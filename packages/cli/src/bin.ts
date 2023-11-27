@@ -28,7 +28,6 @@ import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
 import { Platform } from './platform'
-import { parseTokenArgument } from './platform/$'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -41,7 +40,7 @@ import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
-import { readAuthConfig } from './utils/platform'
+import { getTokenParameter, readAuthConfig } from './utils/platform'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -90,7 +89,7 @@ async function main(): Promise<number> {
     argv.includes('platform') && !argv.includes('login') && !argv.includes('logout')
 
   if (requiresPlatformAuthentication(commandArray)) {
-    platformToken = parseTokenArgument(commandArray) || (await readAuthConfig()).token || process.env['PRISMA_TOKEN']
+    platformToken = getTokenParameter(commandArray) || (await readAuthConfig()).token || process.env['PRISMA_TOKEN']
     if (!platformToken) {
       throw new Error(
         'No platform credentials found. Please provide a token via --token or -t, add PRISMA_TOKEN environment variable or run `prisma platform login`.',

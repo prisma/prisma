@@ -3,17 +3,6 @@ import { Command, Commands } from '@prisma/internals'
 import { EarlyAccessFlagError } from '../../../migrate/src/utils/flagErrors'
 import { dispatchToSubCommand } from '../utils/platform'
 
-export const parseTokenArgument = (argv: string[]) => {
-  const tokenIndex = argv.findIndex((arg) => ['--token', '-t'].includes(arg))
-  if (tokenIndex === -1) {
-    const value = process.env['PRISMA_TOKEN']
-    if (value) {
-      return value
-    }
-    return null
-  }
-  return argv[tokenIndex + 1]
-}
 export class $ implements Command {
   public static new(commands: Commands): $ {
     return new $(commands)

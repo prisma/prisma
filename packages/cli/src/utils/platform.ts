@@ -60,6 +60,18 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
   return value
 }
 
+export const getTokenParameter = (argv: string[]) => {
+  const tokenIndex = argv.findIndex((arg) => ['--token', '-t'].includes(arg))
+  if (tokenIndex === -1) {
+    const value = process.env['PRISMA_TOKEN']
+    if (value) {
+      return value
+    }
+    return null
+  }
+  return argv[tokenIndex + 1]
+}
+
 /**
  * @remark
  * For the time being, console and api url are the same. This will change in the future.
@@ -101,14 +113,14 @@ export const platformRequestOrThrow = async (params: {
   return json
 }
 
-export const dispatchToSubCommand = async (commands: Commands, argv: string[], token?: string) => {
+export const dispatchToSubCommand = async (commands: Commands, argv: string[]) => {
   const next = argv[0]
   if (!next) return ''
   if (next.startsWith('-')) return ''
   const commandName = next
   const command = commands[commandName]
   if (!command) return unknownCommand('', commandName)
-  const result = await command.parse(argv.slice(1), token)
+  const result = await command.parse(argv.slice(1))
   return result
 }
 
