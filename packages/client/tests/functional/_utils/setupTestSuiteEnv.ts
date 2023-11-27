@@ -282,7 +282,7 @@ function getDbUrl(provider: Providers): string {
  * @param providerFlavor provider variant, e.g. `vitess` for `mysql`
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
-function getDbUrlFromFlavor(providerFlavor: ProviderFlavors | undefined, provider: Providers): string {
+function getDbUrlFromFlavor(providerFlavor: `${ProviderFlavors}` | undefined, provider: Providers): string {
   return (
     match(providerFlavor)
       .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
