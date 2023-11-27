@@ -211,10 +211,11 @@ export class RequestHandler {
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
+      const meta = modelName ? { modelName, ...error.meta } : error.meta
       throw new PrismaClientKnownRequestError(message, {
         code: error.code,
         clientVersion: this.client._clientVersion,
-        meta: { modelName, ...error.meta },
+        meta,
         batchRequestIdx: error.batchRequestIdx,
       })
     } else if (error.isPanic) {
