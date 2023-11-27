@@ -11,9 +11,15 @@ export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientE
 
   // for cloudflare (workers) we need to use import in order to load wasm
   // so we use a dynamic import which is compatible with both cjs and esm
+  // additionally we need to append ?module to the import path for vercel
+  // this is incompatible with cloudflare, so we hide it in a template
   if (edge === true) {
     return `config.getQueryEngineWasmModule = async () => {
-  return (await import('./query-engine.wasm')).default
+      if (detectRuntime() === 'edge-light') {
+        return (await import(\`./query-engine.wasm\${'?module'}\`)).default
+      } else {
+        return (await import(\`./query-engine.wasm\`)).default
+      }
 }`
   }
 

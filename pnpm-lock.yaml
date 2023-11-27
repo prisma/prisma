@@ -467,8 +467,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
-        version: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
+        specifier: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
+        version: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -668,8 +668,8 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
       undici:
-        specifier: 5.27.2
-        version: 5.27.2
+        specifier: 5.28.1
+        version: 5.28.1
       yeoman-generator:
         specifier: 5.10.0
         version: 5.10.0
@@ -726,8 +726,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
-        version: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
+        specifier: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
+        version: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -763,8 +763,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
-        version: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
+        specifier: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
+        version: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,8 +1088,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
-        version: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
+        specifier: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
+        version: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1245,8 +1245,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
-        version: 5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7
+        specifier: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
+        version: 5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3166,8 +3166,8 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@prisma/engines-version@5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7:
-    resolution: {integrity: sha512-PoR1hWOdNPI4Hkw6c8Ln/Foj9PC7waMjA/TGVg8oVnEy+3k1+nhZjFq5qIiSfbTXqGoQhQZNPz0GUxnS1KJcrg==}
+  /@prisma/engines-version@5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad:
+    resolution: {integrity: sha512-pnN6U0tmEYtBiCIj7iS5fmEzVdqbRXC1H4JqnX45CSyK1Ze3Xg5YaqBggqMpR186BfiuS99n4hHR3jpAjoNybQ==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3175,8 +3175,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7:
-    resolution: {integrity: sha512-yn0ILGjGvs7+rQQiJQ0WqJfGWQ+ODBdoHhsTrrsiBLySmUeLLbqaF3UPTarMb+WtYuupWv/zNY621iSJjcHiwQ==}
+  /@prisma/prisma-schema-wasm@5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad:
+    resolution: {integrity: sha512-O9drfQH/lS6uOWRDzoSDV7QrQg4ZdXgRiha+DT7FVeqlQeMqixeJ1hEKyVOc9o+ntjEv54y0+t1RuF6V9P2iMQ==}
     dev: false
 
   /@prisma/query-engine-wasm@0.0.5:
@@ -13537,8 +13537,8 @@ packages:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
     dev: true
 
-  /undici@5.27.2:
-    resolution: {integrity: sha512-iS857PdOEy/y3wlM3yRp+6SNQQ6xU0mmZcwRSriqk+et/cwWAtwmIGf6WkoDN2EK/AMdCO/dfXzIwi+rFMrjjQ==}
+  /undici@5.28.1:
+    resolution: {integrity: sha512-xcIIvj1LOQH9zAL54iWFkuDEaIVEjLrru7qRpa3GrEEHk6OBhb/LycuUY2m7VCcTuDeLziXCxobQVyKExyGeIA==}
     engines: {node: '>=14.0'}
     dependencies:
       '@fastify/busboy': 2.0.0

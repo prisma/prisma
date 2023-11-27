@@ -34,6 +34,7 @@ import {
   Extensions,
   defineDmmfProperty,
   Public,
+  detectRuntime,
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -66,6 +67,7 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
+  detectRuntime,
 } = require('${runtimeDir}/${runtimeName}')
 `
 }

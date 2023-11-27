@@ -96,7 +96,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7",
+    "@prisma/engines-version": "5.7.0-17.589edf692ac8adc643b407682226cfe3ebbea5ad",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -163,7 +163,7 @@
     "ts-pattern": "5.0.5",
     "tsd": "0.29.0",
     "typescript": "5.2.2",
-    "undici": "5.27.2",
+    "undici": "5.28.1",
     "yeoman-generator": "5.10.0",
     "yo": "5.0.0",
     "zx": "7.2.3"
