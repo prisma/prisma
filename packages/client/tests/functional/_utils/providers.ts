@@ -41,6 +41,6 @@ export const allProviders = Object.values(Providers).map((p) => ({ provider: p }
 
 export const sqlProviders = allProviders.filter(({ provider }) => provider !== Providers.MONGODB)
 
-export function isDriverAdapterProviderFlavor(flavor?: ProviderFlavors) {
+export function isDriverAdapterProviderFlavor(flavor?: `${ProviderFlavors}`) {
   return Boolean(flavor?.startsWith('js_'))
 }
