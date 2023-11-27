@@ -491,8 +491,8 @@ importers:
         specifier: 0.9.4
         version: 0.9.4
       '@prisma/query-engine-wasm':
-        specifier: 0.0.5
-        version: 0.0.5
+        specifier: 0.0.9
+        version: 0.0.9
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -3179,8 +3179,8 @@ packages:
     resolution: {integrity: sha512-b8GL5jq8v/qZe5t2sGb9wpcjJDq/toznqdBMj6Qf6MpxJb1DnSq24XTcOFhOkLF4+M5oDhFoQo69qDaWbWQGmw==}
     dev: false
 
-  /@prisma/query-engine-wasm@0.0.5:
-    resolution: {integrity: sha512-qKFnFnb/vENyilUnCWBjxQjzKS5PsIuuCBaQ0KJ8RLxxMK1gokNCSeaNuQh4qXuvgPflYCMgIzrfFHZ3b7kOQQ==}
+  /@prisma/query-engine-wasm@0.0.9:
+    resolution: {integrity: sha512-R4VhQQQhon+399ZaSX+THrw5dWrtXni9jUwVBOYDciF3D7DzmrqL00YT8KKDo+LE4wfV5EXsWhRqFBK6Uo2s5g==}
     dev: true
 
   /@prisma/studio-common@0.495.0:
@@ -8741,7 +8741,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@types/node@20.9.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.3.96)(@types/node@18.18.9)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8782,7 +8782,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@types/node@20.9.0)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.3.96)(@types/node@18.18.9)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
