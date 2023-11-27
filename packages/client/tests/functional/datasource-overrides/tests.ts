@@ -63,5 +63,8 @@ testMatrix.setupTestSuite(
       runtimes: ['edge'],
       reason: 'Smoke test fails since original env var are embedded into client',
     },
+    skipBinary: {
+      reason: 'TODO: fails with timeout on CI: https://github.com/prisma/team-orm/issues/636',
+    },
   },
 )
