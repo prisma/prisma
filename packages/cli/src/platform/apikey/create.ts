@@ -19,15 +19,12 @@ export class Create implements Command {
       '-d': '--display-name',
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
     const displayName = getOptionalParameter(args, ['--display-name', '-d'])
     return platformRequestOrThrow({
-      token,
       path: `/${workspace}/${project}/settings/api-keys/create`,
       route: '_app.$organizationId_.$projectId.settings.api-keys.create',
       payload: {

@@ -28,6 +28,7 @@ import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
 import { Platform } from './platform'
+import { parseTokenArgument } from './platform/$'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -40,6 +41,7 @@ import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
+import { readAuthConfig } from './utils/platform'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -72,6 +74,7 @@ const redactedCommandAsString = redactCommandArray([...commandArray]).join(' ')
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
+export let platformToken: string | undefined
 /**
  * Main function
  */
@@ -80,15 +83,30 @@ async function main(): Promise<number> {
 
   detectPrisma1()
 
+  /**
+   * if commandArray includes platform, do token check
+   */
+  const requiresPlatformAuthentication = (argv: string[]) =>
+    argv.includes('platform') && !argv.includes('login') && !argv.includes('logout')
+
+  if (requiresPlatformAuthentication(commandArray)) {
+    platformToken = parseTokenArgument(commandArray) || (await readAuthConfig()).token || process.env['PRISMA_TOKEN']
+    if (!platformToken) {
+      throw new Error(
+        'No platform credentials found. Please provide a token via --token or -t, add PRISMA_TOKEN environment variable or run `prisma platform login`.',
+      )
+    }
+  }
+
   const cli = CLI.new(
     {
       init: Init.new(),
       platform: Platform.$.new({
-        login: Platform.Login.new(),
-        logout: Platform.Logout.new(),
         workspace: Platform.Workspace.$.new({
           show: Platform.Workspace.Show.new(),
         }),
+        login: Platform.Login.new(),
+        logout: Platform.Logout.new(),
         auth: Platform.Auth.$.new({
           show: Platform.Auth.Show.new(),
         }),

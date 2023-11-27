@@ -14,8 +14,6 @@ export class Enable implements Command {
       '--apikey': Boolean,
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
@@ -25,7 +23,6 @@ export class Enable implements Command {
     const apikey = getRequiredParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
     const accelerate = await platformRequestOrThrow({
-      token,
       path: `/${workspace}/${project}/accelerate/setup`,
       route: '_app.$organizationId_.$projectId.accelerate.setup',
       payload: {
@@ -36,7 +33,6 @@ export class Enable implements Command {
     let apikeyResult: null | object = null
     if (apikey) {
       apikeyResult = await platformRequestOrThrow({
-        token,
         path: `/${workspace}/${project}/settings/api-keys/create`,
         route: '_app.$organizationId_.$projectId.settings.api-keys.create',
         payload: {

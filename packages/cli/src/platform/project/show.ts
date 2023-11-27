@@ -12,12 +12,9 @@ export class Show implements Command {
       ...platformParameters.workspace,
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     return platformRequestOrThrow({
-      token,
       path: `/${workspace}/overview`,
       route: '_app.$organizationId.overview',
     }) as Promise<any>

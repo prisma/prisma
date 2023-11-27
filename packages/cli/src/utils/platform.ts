@@ -4,6 +4,7 @@ import fetch, { Headers } from 'node-fetch'
 import path from 'path'
 import XdgAppPaths from 'xdg-app-paths'
 
+import { platformToken } from '../bin'
 import { getInstalledPrismaClientVersion } from './getClientVersion'
 
 export const platformParameters = {
@@ -64,7 +65,8 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
  * For the time being, console and api url are the same. This will change in the future.
  */
 export const platformConsoleUrl = 'https://console.prisma.io'
-const platformAPIBaseURL = 'https://console.prisma.io/'
+// const platformAPIBaseURL = 'https://console.prisma.io/'
+const platformAPIBaseURL = 'http://127.0.0.1:8788/'
 
 /**
  *
@@ -76,17 +78,17 @@ const platformAPIBaseURL = 'https://console.prisma.io/'
  */
 export const platformRequestOrThrow = async (params: {
   route: string
-  token: string
+  token?: string
   path: string
   payload?: object
 }): Promise<object> => {
-  const { path, payload, token, route } = params
+  const { path, payload, route } = params
   const url = new URL(`${platformAPIBaseURL}${path.replace(/^\//, '')}?_data=routes/${route}`)
   // TODO error handling, when this fails, do not fail the request
   const prismaClientVersion = await getInstalledPrismaClientVersion()
   const headers = new Headers({
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer ${platformToken}`,
     'user-agent': `prisma@${prismaClientVersion}`,
   })
   const response = await fetch(url, {
@@ -99,14 +101,14 @@ export const platformRequestOrThrow = async (params: {
   return json
 }
 
-export const dispatchToSubCommand = async (commands: Commands, argv: string[]) => {
+export const dispatchToSubCommand = async (commands: Commands, argv: string[], token?: string) => {
   const next = argv[0]
   if (!next) return ''
   if (next.startsWith('-')) return ''
   const commandName = next
   const command = commands[commandName]
   if (!command) return unknownCommand('', commandName)
-  const result = await command.parse(argv.slice(1))
+  const result = await command.parse(argv.slice(1), token)
   return result
 }
 

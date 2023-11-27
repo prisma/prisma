@@ -40,7 +40,7 @@ export class Login implements Command {
             server.close()
             res.setHeader('connection', 'close')
             const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
-            const token = searchParams.get('token') ?? ''
+            const token = searchParams.get('token') ?? ``
             const error = searchParams.get('error')
             const location = new URL(`${platformConsoleUrl}/auth/cli`)
 
@@ -76,7 +76,7 @@ export class Login implements Command {
       console.log(JSON.stringify(authResult.user, null, 4))
       return ''
     } catch (error) {
-      throw new Error(`Authentication failed: ${isError(error) ? error.message : ''}`)
+      throw new Error(`Authentication failed: ${isError(error) ? error.message : 'Unknown error'}'}`)
     }
   }
 }

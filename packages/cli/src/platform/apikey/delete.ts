@@ -13,8 +13,6 @@ export class Delete implements Command {
       '--apikey': String,
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
@@ -23,7 +21,6 @@ export class Delete implements Command {
     if (isError(apikey)) return apikey
 
     return platformRequestOrThrow({
-      token,
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
       payload: {

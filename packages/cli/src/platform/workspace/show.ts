@@ -1,6 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getRequiredParameter, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import { platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
 export class Show implements Command {
   public static new(): Show {
@@ -12,10 +12,7 @@ export class Show implements Command {
       ...platformParameters.global,
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
     return platformRequestOrThrow({
-      token,
       path: `/settings/workspaces`,
       route: '_app._user.settings.workspaces',
     }) as Promise<any>

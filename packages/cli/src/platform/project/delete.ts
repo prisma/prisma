@@ -12,14 +12,11 @@ export class Delete implements Command {
       ...platformParameters.project,
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
     return platformRequestOrThrow({
-      token,
       path: `/${workspace}/${project}/settings/general`,
       route: '_app.$organizationId_.$projectId.settings.general',
       payload: {
