@@ -129,6 +129,12 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[]) =
  * Authentication related utils
  *
  */
+
+/**
+ * Utility for checking if a command requires Platform authentication
+ */
+export const requiresPlatformAuthentication = (argv: string[]) =>
+  argv.includes('platform') && !argv.includes('login') && !argv.includes('logout')
 export interface AuthConfig {
   token?: string | null
 }

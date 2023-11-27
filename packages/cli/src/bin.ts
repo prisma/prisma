@@ -40,7 +40,7 @@ import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
-import { getTokenParameter, readAuthConfig } from './utils/platform'
+import { getTokenParameter, readAuthConfig, requiresPlatformAuthentication } from './utils/platform'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -81,12 +81,6 @@ async function main(): Promise<number> {
   // create a new CLI with our subcommands
 
   detectPrisma1()
-
-  /**
-   * if commandArray includes platform, do token check
-   */
-  const requiresPlatformAuthentication = (argv: string[]) =>
-    argv.includes('platform') && !argv.includes('login') && !argv.includes('logout')
 
   if (requiresPlatformAuthentication(commandArray)) {
     platformToken = getTokenParameter(commandArray) || (await readAuthConfig()).token || process.env['PRISMA_TOKEN']
