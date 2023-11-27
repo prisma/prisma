@@ -53,6 +53,8 @@ env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: true
+  # TODO remove
+  PRISMA_TELEMETRY_ENDPOINT: 'https://checkpoint-staging.prisma.io'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

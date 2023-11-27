@@ -63,6 +63,9 @@ export async function runCheckpointClientCheck({
       // Note: This won't be sent to the checkpoint server.
       // TODO: Check if we can remove, probably not needed since cli_path_hash is defined
       cli_path: process.argv[1],
+      // The url of the checkpoint server to send the data to
+      // Overrides the default value (`https://checkpoint.prisma.io`) when defined
+      endpoint: process.env.PRISMA_TELEMETRY_ENDPOINT,
     }
 
     // Call Checkpoint Client and return result
