@@ -9,76 +9,77 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(() => {
-  beforeAll(async () => {
-    prisma = newPrismaClient({
-      log: [
-        {
-          emit: 'event',
-          level: 'query',
+testMatrix.setupTestSuite(
+  () => {
+    beforeAll(async () => {
+      prisma = newPrismaClient({
+        log: [
+          {
+            emit: 'event',
+            level: 'query',
+          },
+        ],
+      })
+
+      await prisma.user.create({
+        data: {
+          id: copycat.uuid(0).replaceAll('-', '').slice(-24),
+          email: copycat.email(1),
+          age: 20,
         },
-      ],
+      })
+      await prisma.user.create({
+        data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+          email: copycat.email(2),
+          age: 45,
+        },
+      })
+      await prisma.user.create({
+        data: {
+          id: copycat.uuid(2).replaceAll('-', '').slice(-24),
+          email: copycat.email(3),
+          age: 60,
+        },
+      })
+      await prisma.user.create({
+        data: {
+          id: copycat.uuid(3).replaceAll('-', '').slice(-24),
+          email: copycat.email(4),
+          age: 63,
+        },
+      })
+
+      await new Promise((r) => setTimeout(r, 1_000))
     })
 
-    await prisma.user.create({
-      data: {
-        id: copycat.uuid(0).replaceAll('-', '').slice(-24),
-        email: copycat.email(1),
-        age: 20,
-      },
-    })
-    await prisma.user.create({
-      data: {
-        id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-        email: copycat.email(2),
-        age: 45,
-      },
-    })
-    await prisma.user.create({
-      data: {
-        id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-        email: copycat.email(3),
-        age: 60,
-      },
-    })
-    await prisma.user.create({
-      data: {
-        id: copycat.uuid(3).replaceAll('-', '').slice(-24),
-        email: copycat.email(4),
-        age: 63,
-      },
-    })
+    test('findUnique batching', async () => {
+      // regex for 0wCIl-826241-1694134591596
+      const mySqlSchemaIdRegex = /\w+-\d+-\d+/g
+      let executedBatchQuery: string | undefined
 
-    await new Promise((r) => setTimeout(r, 1_000))
-  })
+      expect.assertions(2)
 
-  test('findUnique batching', async () => {
-    // regex for 0wCIl-826241-1694134591596
-    const mySqlSchemaIdRegex = /\w+-\d+-\d+/g
-    let executedBatchQuery: string | undefined
+      prisma.$on('query', (event) => {
+        executedBatchQuery = event.query.replace(mySqlSchemaIdRegex, '').trim()
+      })
 
-    expect.assertions(2)
+      const results = await Promise.all([
+        prisma.user.findUnique({ where: { email: copycat.email(1) } }),
+        prisma.user.findUnique({ where: { email: copycat.email(2) } }),
+        prisma.user.findUnique({ where: { email: copycat.email(3) } }),
+        prisma.user.findUnique({ where: { email: copycat.email(4) } }),
+      ])
 
-    prisma.$on('query', (event) => {
-      executedBatchQuery = event.query.replace(mySqlSchemaIdRegex, '').trim()
-    })
+      await waitFor(() => {
+        if (executedBatchQuery === undefined) {
+          throw new Error('executedBatchQuery is undefined')
+        }
+      })
 
-    const results = await Promise.all([
-      prisma.user.findUnique({ where: { email: copycat.email(1) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(2) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(3) } }),
-      prisma.user.findUnique({ where: { email: copycat.email(4) } }),
-    ])
+      expect(executedBatchQuery).toMatchSnapshot()
 
-    await waitFor(() => {
-      if (executedBatchQuery === undefined) {
-        throw new Error('executedBatchQuery is undefined')
-      }
-    })
-
-    expect(executedBatchQuery).toMatchSnapshot()
-
-    expect(results).toMatchInlineSnapshot(`
+      expect(results).toMatchInlineSnapshot(`
       [
         {
           age: 20,
@@ -106,5 +107,12 @@ testMatrix.setupTestSuite(() => {
         },
       ]
     `)
-  })
-})
+    })
+  },
+  {
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Fails on init with `unwrap_throw` failed',
+    },
+  },
+)

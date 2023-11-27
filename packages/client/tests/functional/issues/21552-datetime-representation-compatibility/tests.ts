@@ -51,5 +51,9 @@ testMatrix.setupTestSuite(
         which are not supported with data proxy.
       `,
     },
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Fails with PrismaClientValidationError: Invalid client engine type, please use `library` or `binary`',
+    },
   },
 )

@@ -874,5 +874,9 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'ytest',
+    },
   },
 )

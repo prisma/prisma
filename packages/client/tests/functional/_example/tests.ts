@@ -68,4 +68,10 @@ testMatrix.setupTestSuite(
   //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
   //   },
   // },
+  {
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Fails on init with `unwrap_throw` failed',
+    },
+  },
 )

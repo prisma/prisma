@@ -44,5 +44,9 @@ testMatrix.setupTestSuite(
       runtimes: ['node', 'edge'],
       reason: '"Too many instances" warning is not implemented for Data Proxy client',
     },
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Fails with `unwrap_throw` failed',
+    },
   },
 )

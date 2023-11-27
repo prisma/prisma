@@ -99,5 +99,9 @@ testMatrix.setupTestSuite(
       ALTER TABLE "Post" 
       ADD CONSTRAINT Post_viewCount_check CHECK ("viewCount" >= 0);
     `,
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'itx is not supported in wasm',
+    },
   },
 )

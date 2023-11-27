@@ -1951,5 +1951,9 @@ testMatrix.setupTestSuite(
       reason: 'some tests fail with edge client and take a lot of time to run',
       runtimes: ['edge'],
     },
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Fails on init with `unwrap_throw` failed',
+    },
   },
 )

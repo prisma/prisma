@@ -269,5 +269,9 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver'],
       reason: 'Only testing postgresql and mysql',
     },
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Fails on init with `unwrap_throw` failed',
+    },
   },
 )

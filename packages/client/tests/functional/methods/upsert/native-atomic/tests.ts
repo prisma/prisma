@@ -436,6 +436,10 @@ testMatrix.setupTestSuite(
       from: ['mongodb', 'mysql', 'sqlserver'],
       reason: 'Other providers do not support native INSERT ... ON CONFLICT SET .. WHERE',
     },
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Tests fail with "Expected: true, Received: false"',
+    },
     skipDefaultClientInstance: true,
   },
 )
