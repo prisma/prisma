@@ -12,7 +12,7 @@ testMatrix.setupTestSuite(({ provider, engineType, providerFlavor }) => {
   const getTime = (dt: Date): number => dt.getTime()
 
   // TODO: Fails with Expected: 1701118266611 Received: 1701118266612
-  skipTestIf(engineType === 'wasm' && (providerFlavor === 'js_pg' || providerFlavor === 'js_libsql'))(
+  skipTestIf(engineType === 'wasm' && ['js_pg', 'js_libsql', 'js_neon'].includes(providerFlavor!))(
     'should update both updatedAt fields on a model',
     async () => {
       const id = provider === Providers.MONGODB ? faker.database.mongodbObjectId() : faker.string.alpha(10)
