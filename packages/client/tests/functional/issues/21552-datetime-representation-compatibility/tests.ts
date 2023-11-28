@@ -14,7 +14,7 @@ declare const datasourceInfo: DatasourceInfo
  * Regression test for https://github.com/prisma/prisma/issues/21552
  */
 testMatrix.setupTestSuite(
-  (_suiteConfig, suiteMeta) => {
+  ({ engineType }, suiteMeta) => {
     test('can read back DateTime created via native connector', async () => {
       // Copy the seed script to the generated directory so that it imports the
       // correct client, and so that the schema-relative sqlite database path is
@@ -29,6 +29,10 @@ testMatrix.setupTestSuite(
         env: {
           [datasourceInfo.envVarName]: datasourceInfo.databaseUrl,
           PRISMA_DISABLE_QUAINT_EXECUTORS: '0',
+          // we force the engine type to either binary or library and discard wasm
+          // this is necessary because the seed script is run in a separate process
+          // and is not actually using a driver adapter - which yields an error
+          PRISMA_CLIENT_ENGINE_TYPE: engineType === 'binary' ? 'binary' : 'library',
         },
       })
 
@@ -50,10 +54,6 @@ testMatrix.setupTestSuite(
         The test needs direct access to database, and is only important to run with driver adapters,
         which are not supported with data proxy.
       `,
-    },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails with PrismaClientValidationError: Invalid client engine type, please use `library` or `binary`',
     },
   },
 )

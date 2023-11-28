@@ -6,8 +6,8 @@ declare let prisma: PrismaClient
 
 // Regression test for https://github.com/prisma/prisma/issues/15204
 testMatrix.setupTestSuite(
-  ({ providerFlavor, fieldType, engineType }) => {
-    skipTestIf(engineType === 'wasm')('should return a descriptive error', async () => {
+  ({ providerFlavor, fieldType }) => {
+    test('should return a descriptive error', async () => {
       await prisma.$executeRaw`INSERT INTO "TestModel" ("id", "field") VALUES ("1", 1.84467440724388e+19)`
 
       if (providerFlavor === undefined) {
