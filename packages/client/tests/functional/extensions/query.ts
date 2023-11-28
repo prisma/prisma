@@ -3,7 +3,7 @@ import { assertNever } from '@prisma/internals'
 import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'
 
-import { Providers } from '../_utils/providers'
+import { ProviderFlavors, Providers } from '../_utils/providers'
 import { wait } from '../_utils/tests/wait'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
@@ -23,7 +23,7 @@ const randomId3 = randomBytes(12).toString('hex')
 jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider, providerFlavor }) => {
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -529,14 +529,91 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
-      'hijacking a batch transaction into another one with a simple call',
-      async () => {
-        const fnEmitter = jest.fn()
+    // TODO: skipped for PlanetScale adapter because of https://github.com/prisma/team-orm/issues/495
+    testIf(
+      provider !== Providers.MONGODB &&
+        process.platform !== 'win32' &&
+        providerFlavor !== ProviderFlavors.JS_PLANETSCALE,
+    )('hijacking a batch transaction into another one with a simple call', async () => {
+      const fnEmitter = jest.fn()
 
-        prisma.$on('query', fnEmitter)
+      prisma.$on('query', fnEmitter)
 
-        const xprisma = prisma.$extends({
+      const xprisma = prisma.$extends({
+        query: {
+          user: {
+            async findFirst({ args, query }) {
+              // @ts-test-if: provider !== Providers.MONGODB
+              return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
+            },
+          },
+        },
+      })
+
+      const data = await xprisma.$transaction([
+        xprisma.user.findFirst({
+          select: {
+            lastName: true,
+          },
+        }),
+        xprisma.post.findFirst(),
+      ])
+
+      expect(data).toMatchInlineSnapshot(`
+          [
+            {
+              lastName: Doe,
+            },
+            null,
+          ]
+        `)
+      await waitFor(() => {
+        // user.findFirst 4 queries + post.findFirst 1 query
+        expect(fnEmitter).toHaveBeenCalledTimes(5)
+        const calls = [...fnEmitter.mock.calls]
+
+        // get rid of dandling post.findFirst query
+        if (calls[0][0]['query'].includes('SELECT')) {
+          calls.shift()
+        } else {
+          calls.pop()
+        }
+
+        expect(calls).toMatchObject([
+          [{ query: expect.stringContaining('BEGIN') }],
+          [{ query: expect.stringContaining('SELECT') }],
+          [{ query: expect.stringContaining('SELECT') }],
+          [{ query: expect.stringContaining('COMMIT') }],
+        ])
+      })
+    })
+
+    // TODO: skipped for PlanetScale adapter because of https://github.com/prisma/team-orm/issues/495
+    testIf(
+      provider !== Providers.MONGODB &&
+        process.platform !== 'win32' &&
+        providerFlavor !== ProviderFlavors.JS_PLANETSCALE,
+    )('hijacking a batch transaction into another one with multiple calls', async () => {
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma
+        .$extends({
+          query: {
+            user: {
+              async findFirst({ args, query }) {
+                const data = await query(args)
+
+                expectTypeOf(data).toBeNullable()
+                data!.firstName = '<redacted>'
+
+                return data
+              },
+            },
+          },
+        })
+        .$extends({
           query: {
             user: {
               async findFirst({ args, query }) {
@@ -546,104 +623,32 @@ testMatrix.setupTestSuite(
             },
           },
         })
+        .$extends({
+          query: {
+            user: {
+              async findFirst({ args, query }) {
+                const data = await query(args)
 
-        const data = await xprisma.$transaction([
-          xprisma.user.findFirst({
-            select: {
-              lastName: true,
+                expectTypeOf(data).toBeNullable()
+                data!.lastName = '<redacted>'
+
+                return data
+              },
             },
-          }),
-          xprisma.post.findFirst(),
-        ])
-
-        expect(data).toMatchInlineSnapshot(`
-          [
-            {
-              lastName: Doe,
-            },
-            null,
-          ]
-        `)
-        await waitFor(() => {
-          // user.findFirst 4 queries + post.findFirst 1 query
-          expect(fnEmitter).toHaveBeenCalledTimes(5)
-          const calls = [...fnEmitter.mock.calls]
-
-          // get rid of dandling post.findFirst query
-          if (calls[0][0]['query'].includes('SELECT')) {
-            calls.shift()
-          } else {
-            calls.pop()
-          }
-
-          expect(calls).toMatchObject([
-            [{ query: expect.stringContaining('BEGIN') }],
-            [{ query: expect.stringContaining('SELECT') }],
-            [{ query: expect.stringContaining('SELECT') }],
-            [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          },
         })
-      },
-    )
 
-    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
-      'hijacking a batch transaction into another one with multiple calls',
-      async () => {
-        const fnEmitter = jest.fn()
+      const data = await xprisma.$transaction([
+        xprisma.user.findFirst({
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        }),
+        xprisma.post.findFirst(),
+      ])
 
-        prisma.$on('query', fnEmitter)
-
-        const xprisma = prisma
-          .$extends({
-            query: {
-              user: {
-                async findFirst({ args, query }) {
-                  const data = await query(args)
-
-                  expectTypeOf(data).toBeNullable()
-                  data!.firstName = '<redacted>'
-
-                  return data
-                },
-              },
-            },
-          })
-          .$extends({
-            query: {
-              user: {
-                async findFirst({ args, query }) {
-                  // @ts-test-if: provider !== Providers.MONGODB
-                  return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
-                },
-              },
-            },
-          })
-          .$extends({
-            query: {
-              user: {
-                async findFirst({ args, query }) {
-                  const data = await query(args)
-
-                  expectTypeOf(data).toBeNullable()
-                  data!.lastName = '<redacted>'
-
-                  return data
-                },
-              },
-            },
-          })
-
-        const data = await xprisma.$transaction([
-          xprisma.user.findFirst({
-            select: {
-              firstName: true,
-              lastName: true,
-            },
-          }),
-          xprisma.post.findFirst(),
-        ])
-
-        expect(data).toMatchInlineSnapshot(`
+      expect(data).toMatchInlineSnapshot(`
           [
             {
               firstName: <redacted>,
@@ -653,29 +658,28 @@ testMatrix.setupTestSuite(
           ]
         `)
 
-        await waitFor(() => {
-          // user.findFirst 4 queries + post.findFirst 1 query
-          expect(fnEmitter).toHaveBeenCalledTimes(5)
-          const calls = [...fnEmitter.mock.calls]
+      await waitFor(() => {
+        // user.findFirst 4 queries + post.findFirst 1 query
+        expect(fnEmitter).toHaveBeenCalledTimes(5)
+        const calls = [...fnEmitter.mock.calls]
 
-          // get rid of dandling post.findFirst query
-          if (calls[0][0]['query'].includes('SELECT')) {
-            calls.shift()
-          } else {
-            calls.pop()
-          }
+        // get rid of dandling post.findFirst query
+        if (calls[0][0]['query'].includes('SELECT')) {
+          calls.shift()
+        } else {
+          calls.pop()
+        }
 
-          if (provider !== Providers.MONGODB) {
-            expect(calls).toMatchObject([
-              [{ query: expect.stringContaining('BEGIN') }],
-              [{ query: expect.stringContaining('SELECT') }],
-              [{ query: expect.stringContaining('SELECT') }],
-              [{ query: expect.stringContaining('COMMIT') }],
-            ])
-          }
-        })
-      },
-    )
+        if (provider !== Providers.MONGODB) {
+          expect(calls).toMatchObject([
+            [{ query: expect.stringContaining('BEGIN') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('COMMIT') }],
+          ])
+        }
+      })
+    })
 
     test('extending with $allModels and a specific query', async () => {
       const fnModel = jest.fn()
