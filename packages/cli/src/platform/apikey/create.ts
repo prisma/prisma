@@ -19,7 +19,7 @@ export class Create implements Command {
       '-d': '--display-name',
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
+    const token = await getPlatformToken(args)
     if (isError(token)) return token
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace

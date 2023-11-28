@@ -1,6 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getRequiredParameter, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import { getPlatformToken, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
 export class Show implements Command {
   public static new(): Show {
@@ -12,7 +12,7 @@ export class Show implements Command {
       ...platformParameters.global,
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
+    const token = await getPlatformToken(args)
     if (isError(token)) return token
     return platformRequestOrThrow({
       token,

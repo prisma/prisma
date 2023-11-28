@@ -59,6 +59,23 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
   return value
 }
 
+const ErrorPlatformUnauthorized = new Error(
+  'No platform credentials found. Please provide a token via --token or -t, or add PRISMA_TOKEN environment variable or run `prisma platform login`.',
+)
+
+export const getPlatformToken = async <$Args extends Record<string, unknown>>(args: $Args) => {
+  try {
+    const token = getOptionalParameter(args, ['--token', '-t'], 'PRISMA_TOKEN') || (await readAuthConfig()).token
+    if (!token) {
+      return ErrorPlatformUnauthorized
+    }
+    return token
+  } catch (error) {
+    // Reading auth.json can throw
+    return ErrorPlatformUnauthorized
+  }
+}
+
 /**
  * @remark
  * For the time being, console and api url are the same. This will change in the future.
