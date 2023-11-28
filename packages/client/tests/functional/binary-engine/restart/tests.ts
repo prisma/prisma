@@ -30,7 +30,7 @@ testMatrix.setupTestSuite(({ engineType }) => {
   })
 
   test('should assert that PrismaClient is restarted when it goes down', async () => {
-    // No child process for Node-API, so nothing that can be killed or tested
+    // Only child process for Binary, so nothing that can be killed or tested with other engines
     if (engineType !== ClientEngineType.Binary) {
       return
     }
