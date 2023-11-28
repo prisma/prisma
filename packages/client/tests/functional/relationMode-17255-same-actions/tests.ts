@@ -136,6 +136,7 @@ testMatrix.setupTestSuite(
       )
 
       describeIf(['DEFAULT'].includes(onDelete))('onDelete: DEFAULT', () => {
+        // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
         skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
           '[update] main with nested delete alice should succeed',
           async () => {
@@ -187,6 +188,7 @@ testMatrix.setupTestSuite(
       })
 
       describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {
+        // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
         skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
           '[update] main with nested delete alice should succeed',
           async () => {
@@ -229,6 +231,7 @@ testMatrix.setupTestSuite(
           },
         )
 
+        // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
         skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
           '[update] main with nested disconnect alice should succeed',
           async () => {
