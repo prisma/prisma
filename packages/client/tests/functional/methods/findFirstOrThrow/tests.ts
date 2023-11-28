@@ -11,7 +11,7 @@ declare let Prisma: typeof PrismaNamespace
 const existingEmail = faker.internet.email()
 const nonExistingEmail = faker.internet.email()
 
-testMatrix.setupTestSuite(({ engineType }, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: existingEmail, posts: { create: { title: 'How to exist?' } } } })
   })
@@ -41,22 +41,18 @@ testMatrix.setupTestSuite(({ engineType }, _suiteMeta, clientMeta) => {
     expect(record).toBeNull()
   })
 
-  // TODO: itx is broken in wasm
-  skipTestIf(clientMeta.runtime === 'edge' || engineType === 'wasm')(
-    'works with interactive transactions',
-    async () => {
-      const newEmail = faker.internet.email()
-      const result = prisma.$transaction(async (prisma) => {
-        await prisma.user.create({ data: { email: newEmail } })
-        await prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
-      })
+  skipTestIf(clientMeta.runtime === 'edge')('works with interactive transactions', async () => {
+    const newEmail = faker.internet.email()
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({ data: { email: newEmail } })
+      await prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
+    })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
 
-      const record = await prisma.user.findFirst({ where: { email: newEmail } })
-      expect(record).toBeNull()
-    },
-  )
+    const record = await prisma.user.findFirst({ where: { email: newEmail } })
+    expect(record).toBeNull()
+  })
 
   test('reports correct method name in case of validation error', async () => {
     const record = prisma.user.findFirstOrThrow({
