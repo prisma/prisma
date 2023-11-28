@@ -1,6 +1,11 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getPlatformToken, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import {
+  ErrorPlatformUnauthorized,
+  getPlatformToken,
+  platformParameters,
+  platformRequestOrThrow,
+} from '../../utils/platform'
 
 export class Show implements Command {
   public static new(): Show {
@@ -13,7 +18,7 @@ export class Show implements Command {
     })
     if (isError(args)) return args
     const token = await getPlatformToken(args)
-    if (isError(token)) return token
+    if (!token) throw ErrorPlatformUnauthorized
     return platformRequestOrThrow({
       token,
       path: `/settings/workspaces`,

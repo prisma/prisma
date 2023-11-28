@@ -1,6 +1,7 @@
 import { arg, Command, isError } from '@prisma/internals'
 
 import {
+  ErrorPlatformUnauthorized,
   getOptionalParameter,
   getPlatformToken,
   getRequiredParameter,
@@ -21,7 +22,7 @@ export class Create implements Command {
     })
     if (isError(args)) return args
     const token = await getPlatformToken(args)
-    if (isError(token)) return token
+    if (!token) throw ErrorPlatformUnauthorized
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const displayName = getOptionalParameter(args, ['--display-name', '-d'])
