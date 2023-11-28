@@ -41,7 +41,7 @@ testMatrix.setupTestSuite(({ engineType }, _suiteMeta, clientMeta) => {
     expect(record).toBeNull()
   })
 
-  // TODO: itx is not supported in wasm
+  // TODO: itx is broken in wasm
   skipTestIf(clientMeta.runtime === 'edge' || engineType === 'wasm')(
     'works with interactive transactions',
     async () => {

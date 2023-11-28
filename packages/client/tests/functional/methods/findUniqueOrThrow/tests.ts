@@ -69,7 +69,7 @@ testMatrix.setupTestSuite(
   {
     skipEngine: {
       from: ['wasm'],
-      reason: 'interactive transactions are not supported in wasm',
+      reason: 'itx is broken in wasm',
     },
   },
 )

@@ -43,7 +43,7 @@ testMatrix.setupTestSuite(
       await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })
 
-    // TODO: itx is not supported in wasm
+    // TODO: itx is broken in wasm
     skipTestIf(engineType === 'wasm')('correctly forwards error for itx', async () => {
       const result = prisma.$transaction(() => Promise.resolve())
       await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)

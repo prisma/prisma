@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/15044
 testMatrix.setupTestSuite(({ engineType }) => {
-  // TODO: itx is not supported in wasm
+  // TODO: itx is broken in wasm
   skipTestIf(engineType === 'wasm')('should not throw error when using connect inside transaction', async () => {
     const userName = faker.person.firstName()
     const walletName = faker.person.firstName()

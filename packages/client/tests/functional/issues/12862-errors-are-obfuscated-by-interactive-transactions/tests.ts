@@ -101,7 +101,7 @@ testMatrix.setupTestSuite(
     `,
     skipEngine: {
       from: ['wasm'],
-      reason: 'itx is not supported in wasm',
+      reason: 'itx is broken in wasm',
     },
   },
 )

@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
       await _prisma.$disconnect()
     })
 
-    // TODO Planetscale InvalidArgument desc = Incorrect time value: '2023-09-30T03:07:55.276+00:00
+    // TODO: logging is broken with wasm engine
     skipTestIf(engineType === 'wasm')(
       'should assert Dates, DateTimes, Times and UUIDs are wrapped in quotes and are deserializable',
       async () => {
