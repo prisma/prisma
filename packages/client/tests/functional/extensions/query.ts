@@ -529,6 +529,7 @@ testMatrix.setupTestSuite(
       },
     )
 
+    // TODO: skipped for PlanetScale adapter because of https://github.com/prisma/team-orm/issues/495
     testIf(
       provider !== Providers.MONGODB &&
         process.platform !== 'win32' &&
@@ -587,6 +588,7 @@ testMatrix.setupTestSuite(
       })
     })
 
+    // TODO: skipped for PlanetScale adapter because of https://github.com/prisma/team-orm/issues/495
     testIf(
       provider !== Providers.MONGODB &&
         process.platform !== 'win32' &&
