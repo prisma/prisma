@@ -37,7 +37,7 @@ async function createXItems({ count }) {
 }
 
 testMatrix.setupTestSuite(
-  ({ engineType, provider, providerFlavor, onUpdate, onDelete }) => {
+  ({ engineType, provider, providerFlavor, relationMode, onUpdate, onDelete }) => {
     const conditionalError = ConditionalError.new()
       .with('provider', provider)
       .with('providerFlavor', providerFlavor)
