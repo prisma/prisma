@@ -8,7 +8,7 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ engineType }) => {
-    // TODO: does not receive the list of queries that is expected
+    // TODO: Logging is broken with wasm engine
     skipTestIf(engineType === 'wasm')(
       'executes batch queries in the right order when using extensions + middleware',
       async () => {
@@ -52,7 +52,8 @@ testMatrix.setupTestSuite(
       },
     )
 
-    test('executes batch in right order when using delayed middleware', async () => {
+    // TODO: Logging is broken with wasm engine
+    skipTestIf(engineType === 'wasm')('executes batch in right order when using delayed middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
       }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>

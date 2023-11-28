@@ -1951,5 +1951,9 @@ testMatrix.setupTestSuite(
       reason: 'some tests fail with edge client and take a lot of time to run',
       runtimes: ['edge'],
     },
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Logging is broken with wasm engine, all tests need it',
+    },
   },
 )

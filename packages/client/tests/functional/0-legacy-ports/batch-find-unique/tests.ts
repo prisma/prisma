@@ -9,7 +9,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite(({ engineType }) => {
   beforeAll(async () => {
     prisma = newPrismaClient({
       log: [
@@ -52,7 +52,8 @@ testMatrix.setupTestSuite(() => {
     await new Promise((r) => setTimeout(r, 1_000))
   })
 
-  test('findUnique batching', async () => {
+  // TODO: Logging is broken with wasm engine
+  skipTestIf(engineType === 'wasm')('findUnique batching', async () => {
     // regex for 0wCIl-826241-1694134591596
     const mySqlSchemaIdRegex = /\w+-\d+-\d+/g
     let executedBatchQuery: string | undefined

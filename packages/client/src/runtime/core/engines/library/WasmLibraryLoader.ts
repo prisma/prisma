@@ -8,7 +8,7 @@ import { LibraryLoader } from './types/Library'
 
 declare const WebAssembly: any // TODO not defined in Node types?
 
-let instance: any
+let loadedWasmInstance: any
 export const wasmLibraryLoader: LibraryLoader = {
   async loadLibrary(config) {
     const { generator, clientVersion, adapter } = config
@@ -30,7 +30,7 @@ export const wasmLibraryLoader: LibraryLoader = {
     // we only create the instance once for efficiency and also because wasm
     // bindgen keeps an internal cache of its instance already, when the wasm
     // engine is loaded more than once it crashes with `unwrap_throw failed`.
-    if (instance === undefined) {
+    if (loadedWasmInstance === undefined) {
       const wasmMod = await config.getQueryEngineWasmModule?.()
 
       if (wasmMod === undefined || wasmMod === null) {
@@ -41,8 +41,8 @@ export const wasmLibraryLoader: LibraryLoader = {
       }
 
       // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
-      instance = new WebAssembly.Instance(wasmMod, { './query_engine_bg.js': wasmBindgenRuntime }).exports
-      wasmBindgenRuntime.__wbg_set_wasm(instance)
+      loadedWasmInstance = new WebAssembly.Instance(wasmMod, { './query_engine_bg.js': wasmBindgenRuntime }).exports
+      wasmBindgenRuntime.__wbg_set_wasm(loadedWasmInstance)
     }
 
     return {
