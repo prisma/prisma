@@ -438,7 +438,7 @@ testMatrix.setupTestSuite(
     },
     skipEngine: {
       from: ['wasm'],
-      reason: 'Tests fail with "Expected: true, Received: false"',
+      reason: 'Tests fail with "Expected: true, Received: false", probably related to logging',
     },
     skipDefaultClientInstance: true,
   },

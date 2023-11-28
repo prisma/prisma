@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
       queriesExecuted = 0
     })
 
-    // TODO: fails with Expected 1, Received 0
+    // TODO: fails with Expected 1, Received 0, likely logging related
     skipTestIf(engineType === 'wasm')('batches findUnique', async () => {
       await Promise.all([
         prisma.user.findUnique({ where: { id: id1 } }),
@@ -40,7 +40,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    // TODO: fails with Expected 1, Received 0
+    // TODO: fails with Expected 1, Received 0, likely logging related
     skipTestIf(engineType === 'wasm')('batches findUniqueOrThrow', async () => {
       await Promise.allSettled([
         prisma.user.findUniqueOrThrow({ where: { id: id1 } }),
@@ -52,7 +52,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    // TODO: fails with Expected > 1, Received 0
+    // TODO: fails with Expected > 1, Received 0, likely logging related
     skipTestIf(engineType === 'wasm')('does not batch different models', async () => {
       await Promise.all([
         prisma.user.findUnique({ where: { id: id1 } }),
@@ -65,7 +65,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(queriesExecuted).toBeGreaterThan(1))
     })
 
-    // TODO: fails with Expected > 1, Received 0
+    // TODO: fails with Expected > 1, Received 0, likely logging related
     skipTestIf(engineType === 'wasm')('does not batch different where', async () => {
       await Promise.all([
         prisma.user.findUnique({ where: { id: id1 } }),
@@ -75,7 +75,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(queriesExecuted).toBeGreaterThan(1))
     })
 
-    // TODO: fails with Expected > 1, Received 0
+    // TODO: fails with Expected > 1, Received 0, likely logging related
     skipTestIf(engineType === 'wasm')('does not batch different select', async () => {
       await Promise.all([
         prisma.user.findUnique({ where: { id: id1 }, select: { id: true } }),
