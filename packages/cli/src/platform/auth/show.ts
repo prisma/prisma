@@ -1,4 +1,11 @@
-import { Command } from '@prisma/internals'
+import { arg, Command, isError } from '@prisma/internals'
+
+import {
+  ErrorPlatformUnauthorized,
+  getPlatformToken,
+  platformParameters,
+  platformRequestOrThrow,
+} from '../../utils/platform'
 
 export class Show implements Command {
   public static new(): Show {
@@ -6,7 +13,16 @@ export class Show implements Command {
   }
 
   public async parse(argv: string[]) {
-    await Promise.resolve('todo')
-    return JSON.stringify(argv)
+    const args = arg(argv, {
+      ...platformParameters.global,
+    })
+    if (isError(args)) return args
+    const token = await getPlatformToken(args)
+    if (!token) throw ErrorPlatformUnauthorized
+    return platformRequestOrThrow({
+      token,
+      path: `/settings/account`,
+      route: '_app._user.settings.account',
+    }) as Promise<any>
   }
 }
