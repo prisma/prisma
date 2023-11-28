@@ -6,28 +6,20 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(
-  () => {
-    test('allows to use models of conflicting names', async () => {
-      await prisma.model.create({
-        data: {
-          other: {
-            create: { name: 'Other type' },
-          },
+testMatrix.setupTestSuite(() => {
+  test('allows to use models of conflicting names', async () => {
+    await prisma.model.create({
+      data: {
+        other: {
+          create: { name: 'Other type' },
         },
-      })
-
-      const value = await prisma.model.findFirstOrThrow({ include: { other: true } })
-
-      expect(value.other).toMatchObject({ id: expect.any(String), name: 'Other type' })
-      expectTypeOf(value.other).not.toBeAny()
-      expectTypeOf(value.other).toMatchTypeOf<{ name: string; id: string }>()
+      },
     })
-  },
-  {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails on init with `unwrap_throw` failed',
-    },
-  },
-)
+
+    const value = await prisma.model.findFirstOrThrow({ include: { other: true } })
+
+    expect(value.other).toMatchObject({ id: expect.any(String), name: 'Other type' })
+    expectTypeOf(value.other).not.toBeAny()
+    expectTypeOf(value.other).toMatchTypeOf<{ name: string; id: string }>()
+  })
+})

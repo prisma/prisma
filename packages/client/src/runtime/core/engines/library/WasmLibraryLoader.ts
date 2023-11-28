@@ -29,7 +29,7 @@ export const wasmLibraryLoader: LibraryLoader = {
 
     // we only create the instance once for efficiency and also because wasm
     // bindgen keeps an internal cache of its instance already, when the wasm
-    // engine is loaded more than once it crashes with `unwrap throw failed`.
+    // engine is loaded more than once it crashes with `unwrap_throw failed`.
     if (instance === undefined) {
       const wasmMod = await config.getQueryEngineWasmModule?.()
 

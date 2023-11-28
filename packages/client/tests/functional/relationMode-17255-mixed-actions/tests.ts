@@ -147,9 +147,5 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails on init with `unwrap_throw` failed',
-    },
   },
 )

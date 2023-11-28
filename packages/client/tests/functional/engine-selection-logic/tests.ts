@@ -79,8 +79,7 @@ testMatrix.setupTestSuite(
       )
 
       // test that we can pass a prisma:// url when the tests is not run as a dataproxy
-      // TODO: Fails with `unwrap_throw` failed
-      skipTestIf(clientMeta.dataProxy || engineType === 'wasm')(
+      skipTestIf(clientMeta.dataProxy)(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
           const prisma = newPrismaClient({

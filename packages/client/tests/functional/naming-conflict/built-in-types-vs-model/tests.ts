@@ -16,52 +16,44 @@ function assertModelKey(s: unknown): asserts s is keyof PrismaClient {
   }
 }
 
-testMatrix.setupTestSuite(
-  ({ typeName }) => {
-    beforeAll(async () => {
-      const { id } = await prisma[typeName].create({
-        data: {
-          isUserProvidedType: true,
-        },
-      })
-
-      await prisma.relationHolder.create({
-        data: { modelId: id },
-      })
-    })
-
-    test(`allows to use ${typeName} name for a model name`, async () => {
-      const modelName = uncapitalize(typeName)
-      assertModelKey(modelName)
-      const result = await prisma[modelName].findFirstOrThrow()
-
-      expect(result).toEqual({
-        id: expect.any(String),
+testMatrix.setupTestSuite(({ typeName }) => {
+  beforeAll(async () => {
+    const { id } = await prisma[typeName].create({
+      data: {
         isUserProvidedType: true,
-      })
-
-      expectTypeOf(result).not.toBeAny()
-      expectTypeOf(result).toMatchTypeOf<{ id: string; isUserProvidedType: boolean }>()
+      },
     })
 
-    test(`allows to use ${typeName} name for a model name (relation)`, async () => {
-      const result = await prisma.relationHolder.findFirstOrThrow({
-        include: { model: true },
-      })
-
-      expect(result.model).toEqual({
-        id: expect.any(String),
-        isUserProvidedType: true,
-      })
-
-      expectTypeOf(result.model).not.toBeAny()
-      expectTypeOf(result.model).toMatchTypeOf<{ id: string; isUserProvidedType: boolean }>()
+    await prisma.relationHolder.create({
+      data: { modelId: id },
     })
-  },
-  {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails on init with `unwrap_throw` failed',
-    },
-  },
-)
+  })
+
+  test(`allows to use ${typeName} name for a model name`, async () => {
+    const modelName = uncapitalize(typeName)
+    assertModelKey(modelName)
+    const result = await prisma[modelName].findFirstOrThrow()
+
+    expect(result).toEqual({
+      id: expect.any(String),
+      isUserProvidedType: true,
+    })
+
+    expectTypeOf(result).not.toBeAny()
+    expectTypeOf(result).toMatchTypeOf<{ id: string; isUserProvidedType: boolean }>()
+  })
+
+  test(`allows to use ${typeName} name for a model name (relation)`, async () => {
+    const result = await prisma.relationHolder.findFirstOrThrow({
+      include: { model: true },
+    })
+
+    expect(result.model).toEqual({
+      id: expect.any(String),
+      isUserProvidedType: true,
+    })
+
+    expectTypeOf(result.model).not.toBeAny()
+    expectTypeOf(result.model).toMatchTypeOf<{ id: string; isUserProvidedType: boolean }>()
+  })
+})

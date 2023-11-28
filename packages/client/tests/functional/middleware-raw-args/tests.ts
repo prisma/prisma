@@ -8,7 +8,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }) => {
+  ({ provider }) => {
     test('$queryRaw with template string', async () => {
       expect.assertions(1)
       const prisma = newPrismaClient()
@@ -21,8 +21,7 @@ testMatrix.setupTestSuite(
       await prisma.$queryRaw`SELECT ${1}`
     })
 
-    // TODO: fails with  `unwrap_throw` failed
-    skipTestIf(engineType === 'wasm')('$queryRaw with Prisma.sql instance', async () => {
+    test('$queryRaw with Prisma.sql instance', async () => {
       expect.assertions(1)
       const prisma = newPrismaClient()
       prisma.$use(({ args }, next) => {
@@ -34,8 +33,7 @@ testMatrix.setupTestSuite(
     })
 
     // $executeRaw for sqlite is not allowed to return results
-    // TODO: fails with  `unwrap_throw` failed
-    skipTestIf(engineType === 'wasm' || provider === Providers.SQLITE)('$executeRaw with template string', async () => {
+    skipTestIf(provider === Providers.SQLITE)('$executeRaw with template string', async () => {
       expect.assertions(1)
       const prisma = newPrismaClient()
       prisma.$use(({ args }, next) => {
@@ -47,20 +45,16 @@ testMatrix.setupTestSuite(
     })
 
     // $executeRaw for sqlite is not allowed to return results
-    // TODO: fails with  `unwrap_throw` failed
-    skipTestIf(engineType === 'wasm' || provider === Providers.SQLITE)(
-      '$executeRaw with Prisma.sql instance',
-      async () => {
-        expect.assertions(1)
-        const prisma = newPrismaClient()
-        prisma.$use(({ args }, next) => {
-          expect(args).toEqual([Prisma.sql`SELECT ${1}`])
-          return next(args)
-        })
+    skipTestIf(provider === Providers.SQLITE)('$executeRaw with Prisma.sql instance', async () => {
+      expect.assertions(1)
+      const prisma = newPrismaClient()
+      prisma.$use(({ args }, next) => {
+        expect(args).toEqual([Prisma.sql`SELECT ${1}`])
+        return next(args)
+      })
 
-        await prisma.$executeRaw(Prisma.sql`SELECT ${1}`)
-      },
-    )
+      await prisma.$executeRaw(Prisma.sql`SELECT ${1}`)
+    })
   },
 
   {

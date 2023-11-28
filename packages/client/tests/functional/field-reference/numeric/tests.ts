@@ -7,116 +7,108 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const prisma: PrismaClient
 
 const name = faker.lorem.sentence()
-testMatrix.setupTestSuite(
-  (_suiteConfig, _suiteMeta, { runtime }) => {
-    beforeAll(async () => {
-      const { id: storeId } = await prisma.store.create({
-        data: { name },
-      })
-      await prisma.product.create({
-        data: {
-          title: 'Potato',
-          quantity: 100,
-          minQuantity: 50,
-          maxQuantity: 150,
-          wrongType: 1,
-          storeId,
-        },
-      })
-
-      await prisma.product.create({
-        data: {
-          title: 'Rice',
-          quantity: 500,
-          minQuantity: 20,
-          maxQuantity: 200,
-          wrongType: 1,
-          storeId,
-        },
-      })
-
-      await prisma.product.create({
-        data: {
-          title: 'Tomato',
-          quantity: 30,
-          minQuantity: 100,
-          maxQuantity: 200,
-          wrongType: 1,
-          storeId,
-        },
-      })
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
+  beforeAll(async () => {
+    const { id: storeId } = await prisma.store.create({
+      data: { name },
+    })
+    await prisma.product.create({
+      data: {
+        title: 'Potato',
+        quantity: 100,
+        minQuantity: 50,
+        maxQuantity: 150,
+        wrongType: 1,
+        storeId,
+      },
     })
 
-    test('single condition', async () => {
-      const products = await prisma.product.findMany({
-        where: {
-          quantity: { gt: prisma.product.fields.maxQuantity },
-        },
-      })
-
-      expect(products).toEqual([expect.objectContaining({ title: 'Rice' })])
+    await prisma.product.create({
+      data: {
+        title: 'Rice',
+        quantity: 500,
+        minQuantity: 20,
+        maxQuantity: 200,
+        wrongType: 1,
+        storeId,
+      },
     })
 
-    test('multiple condition', async () => {
-      const products = await prisma.product.findMany({
-        where: {
-          quantity: { gt: prisma.product.fields.minQuantity, lt: prisma.product.fields.maxQuantity },
-        },
-      })
+    await prisma.product.create({
+      data: {
+        title: 'Tomato',
+        quantity: 30,
+        minQuantity: 100,
+        maxQuantity: 200,
+        wrongType: 1,
+        storeId,
+      },
+    })
+  })
 
-      expect(products).toEqual([expect.objectContaining({ title: 'Potato' })])
+  test('single condition', async () => {
+    const products = await prisma.product.findMany({
+      where: {
+        quantity: { gt: prisma.product.fields.maxQuantity },
+      },
     })
 
-    test('aggregate', async () => {
-      const products = await prisma.product.aggregate({
-        where: {
-          quantity: { lt: prisma.product.fields.maxQuantity },
-        },
-        _sum: {
-          quantity: true,
-        },
-      })
-      expect(String(products._sum.quantity)).toBe('130')
+    expect(products).toEqual([expect.objectContaining({ title: 'Rice' })])
+  })
+
+  test('multiple condition', async () => {
+    const products = await prisma.product.findMany({
+      where: {
+        quantity: { gt: prisma.product.fields.minQuantity, lt: prisma.product.fields.maxQuantity },
+      },
     })
 
-    test('relationship', async () => {
-      const store = await prisma.store.findFirst({
-        where: { name },
-        select: { products: { where: { quantity: { gt: prisma.product.fields.maxQuantity } } } },
-      })
-      expect(store?.products).toEqual([expect.objectContaining({ title: 'Rice' })])
-    })
+    expect(products).toEqual([expect.objectContaining({ title: 'Potato' })])
+  })
 
-    // TODO: Edge: skipped because of the error snapshot
-    testIf(runtime !== 'edge')('wrong column numeric type', async () => {
-      const products = prisma.product.findMany({
-        where: {
-          quantity: {
-            // @ts-expect-error
-            gt: prisma.product.fields.wrongType,
-          },
+  test('aggregate', async () => {
+    const products = await prisma.product.aggregate({
+      where: {
+        quantity: { lt: prisma.product.fields.maxQuantity },
+      },
+      _sum: {
+        quantity: true,
+      },
+    })
+    expect(String(products._sum.quantity)).toBe('130')
+  })
+
+  test('relationship', async () => {
+    const store = await prisma.store.findFirst({
+      where: { name },
+      select: { products: { where: { quantity: { gt: prisma.product.fields.maxQuantity } } } },
+    })
+    expect(store?.products).toEqual([expect.objectContaining({ title: 'Rice' })])
+  })
+
+  // TODO: Edge: skipped because of the error snapshot
+  testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+    const products = prisma.product.findMany({
+      where: {
+        quantity: {
+          // @ts-expect-error
+          gt: prisma.product.fields.wrongType,
         },
-      })
-
-      await expect(products).rejects.toMatchPrismaErrorSnapshot()
+      },
     })
 
-    test('via extended client', async () => {
-      const xprisma = prisma.$extends({})
+    await expect(products).rejects.toMatchPrismaErrorSnapshot()
+  })
 
-      const products = await xprisma.product.findMany({
-        where: {
-          quantity: { gt: xprisma.product.fields.maxQuantity },
-        },
-      })
+  test('via extended client', async () => {
+    const xprisma = prisma.$extends({})
 
-      expect(products).toEqual([expect.objectContaining({ title: 'Rice' })])
+    const products = await xprisma.product.findMany({
+      where: {
+        quantity: { gt: xprisma.product.fields.maxQuantity },
+      },
     })
-  },
-  {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails on init with `unwrap_throw` failed',
-    },
-  },
-)
+
+    expect(products).toEqual([expect.objectContaining({ title: 'Rice' })])
+  })
+})

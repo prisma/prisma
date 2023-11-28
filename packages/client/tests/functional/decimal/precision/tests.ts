@@ -62,9 +62,5 @@ testMatrix.setupTestSuite(
         mongo - decimals are not supported
     `,
     },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails on init with `unwrap_throw` failed',
-    },
   },
 )

@@ -52,8 +52,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    // TODO: fails with `unwrap_throw` failed
-    skipTestIf(engineType === 'wasm')('executes batch in right order when using delayed middleware', async () => {
+    test('executes batch in right order when using delayed middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
       }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>
