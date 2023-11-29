@@ -13,7 +13,7 @@ let prisma: PrismaClient
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }) => {
+  ({ provider }) => {
     beforeEach(() => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -333,8 +333,7 @@ testMatrix.setupTestSuite(
       `)
     })
 
-    // TODO: logging is broken in wasm
-    skipTestIf(provider !== Providers.MONGODB || process.platform !== 'win32' || engineType === 'wasm')(
+    skipTestIf(provider !== Providers.MONGODB || process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods',
       async () => {
         const fnEmitter = jest.fn()
@@ -374,8 +373,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    // TODO: logging is broken in wasm
-    skipTestIf(provider !== Providers.MONGODB || process.platform !== 'win32' || engineType === 'wasm')(
+    skipTestIf(provider !== Providers.MONGODB || process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods and query',
       async () => {
         const fnEmitter = jest.fn()

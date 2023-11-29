@@ -7,7 +7,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ engineType }) => {
+  () => {
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -48,8 +48,7 @@ testMatrix.setupTestSuite(
       )
     })
 
-    // TODO: Logging is broken with wasm engine
-    skipTestIf(engineType === 'wasm')('executes batch in right order when using delayed middleware', async () => {
+    test('executes batch in right order when using delayed middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
       }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>
