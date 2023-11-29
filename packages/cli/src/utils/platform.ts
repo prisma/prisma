@@ -8,7 +8,7 @@ import XdgAppPaths from 'xdg-app-paths'
 
 import { getInstalledPrismaClientVersion } from './getClientVersion'
 
-const debug = Debug('prisma:platform')
+const debug = Debug('prisma:cli:platform')
 
 export const platformParameters = {
   global: {
@@ -66,18 +66,19 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
 export const ErrorPlatformUnauthorized = new Error(
   `No platform credentials found. Run ${green(
     getCommandWithExecutor('prisma platform login'),
-  )} first. Alternatively you can provide a token via the '--token' or '-t' parameters, or set the 'PRISMA_TOKEN' environment variable with a token.`,
+  )} first. Alternatively you can provide a token via the \`--token\` or \`-t\` parameters, or set the 'PRISMA_TOKEN' environment variable with a token.`,
 )
 
-export const getPlatformToken = async <$Args extends Record<string, unknown>>(args: $Args) => {
+export const getPlatformTokenOrThrow = async <$Args extends Record<string, unknown>>(args: $Args) => {
   try {
     const token =
       getOptionalParameter(args, ['--token', '-t'], 'PRISMA_TOKEN') ||
       (await readAuthConfig().catch(() => ({ token: '' }))).token
+    if (!token) throw ErrorPlatformUnauthorized
     return token
   } catch (error) {
     debug('Error from getPlatformToken()', error)
-    return null
+    throw ErrorPlatformUnauthorized
   }
 }
 

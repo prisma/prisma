@@ -1,8 +1,7 @@
 import { arg, Command, isError } from '@prisma/internals'
 
 import {
-  ErrorPlatformUnauthorized,
-  getPlatformToken,
+  getPlatformTokenOrThrow,
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
@@ -18,8 +17,8 @@ export class Disable implements Command {
       ...platformParameters.project,
     })
     if (isError(args)) return args
-    const token = await getPlatformToken(args)
-    if (!token) throw ErrorPlatformUnauthorized
+    const token = await getPlatformTokenOrThrow(args)
+
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
