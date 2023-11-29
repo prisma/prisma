@@ -1,11 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import {
-  ErrorPlatformUnauthorized,
-  getPlatformToken,
-  platformParameters,
-  platformRequestOrThrow,
-} from '../../utils/platform'
+import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
 export class Show implements Command {
   public static new(): Show {
@@ -17,8 +12,7 @@ export class Show implements Command {
       ...platformParameters.global,
     })
     if (isError(args)) return args
-    const token = await getPlatformToken(args)
-    if (!token) throw ErrorPlatformUnauthorized
+    const token = await getPlatformTokenOrThrow(args)
     return platformRequestOrThrow({
       token,
       path: `/settings/account`,
