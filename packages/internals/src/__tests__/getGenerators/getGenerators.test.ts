@@ -734,12 +734,22 @@ describe('getGenerators', () => {
     expect(generators.length).toEqual(1)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(stripAnsi(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
     "
-    warn You don't have any models defined in your schema.prisma, so nothing will be generated.
+    info You don't have any models defined in your schema.prisma, so no models will be generated. 
+    If you want to generate model, then you can define a model like this:
+
+    model User {
+      id    Int     @id @default(autoincrement())
+      email String  @unique
+      name  String?
+    }
+
+    More information in our documentation:
+    https://pris.ly/d/prisma-schema
     "
-    `)
+  `)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 

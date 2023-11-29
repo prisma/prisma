@@ -334,7 +334,15 @@ export class PrismaClientClass implements Generatable {
   private get jsDoc(): string {
     const { dmmf } = this
     const modelMappings = dmmf.mappings.modelOperations
-    const example = modelMappings[0] ?? { plural: 'models', model: 'model' }
+    let example: String
+    if (modelMappings[0]) {
+      const firstModelMapping = modelMappings[0]
+      example = ` * // Fetch zero or more ${capitalize(firstModelMapping.plural)}
+ * const ${lowerCase(firstModelMapping.plural)} = await prisma.${lowerCase(firstModelMapping.model)}.findMany()`
+    } else {
+      example = ` * // Fetch zero or more models
+ * const models = await prisma.$queryRaw<Model[]>(\`SELECT * FROM MODELS\`)`
+    }
     return `/**
  * ##  Prisma Client ʲˢ
  * 
@@ -342,8 +350,7 @@ export class PrismaClientClass implements Generatable {
  * @example
  * \`\`\`
  * const prisma = new PrismaClient()
- * // Fetch zero or more ${capitalize(example.plural)}
- * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
+${example}
  * \`\`\`
  *
  * 
