@@ -12,8 +12,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "18.11.18",
-    "@types/react": "18.0.26",
+    "@types/node": "18.18.13",
+    "@types/react": "18.2.39",
     "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz",
     "webpack": "5.75.0"
   },
