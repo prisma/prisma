@@ -8,7 +8,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ engineType }, _suiteMeta, clientMeta) => {
+  (_, _suiteMeta, clientMeta) => {
     const queries: string[] = []
     let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
 
@@ -35,8 +35,7 @@ testMatrix.setupTestSuite(
       name: string,
       { level, expectSql }: { level: () => PrismaNamespace.TransactionIsolationLevel; expectSql: string },
     ) => {
-      // TODO: Fails with Expected value: "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE", Received array: []
-      skipTestIf(engineType === 'wasm')(name, async () => {
+      test(name, async () => {
         await prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
           isolationLevel: level(),
         })

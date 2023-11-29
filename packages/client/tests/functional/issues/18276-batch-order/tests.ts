@@ -8,49 +8,45 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ engineType }) => {
-    // TODO: does not receive the list of queries that is expected
-    skipTestIf(engineType === 'wasm')(
-      'executes batch queries in the right order when using extensions + middleware',
-      async () => {
-        const prisma = newPrismaClient({
-          log: [{ emit: 'event', level: 'query' }],
-        }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>
+    test('executes batch queries in the right order when using extensions + middleware', async () => {
+      const prisma = newPrismaClient({
+        log: [{ emit: 'event', level: 'query' }],
+      }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>
 
-        const queries: string[] = []
+      const queries: string[] = []
 
-        prisma.$on('query', ({ query }) => queries.push(query))
+      prisma.$on('query', ({ query }) => queries.push(query))
 
-        prisma.$use(async (params, next) => {
-          await Promise.resolve()
-          return next(params)
-        })
+      prisma.$use(async (params, next) => {
+        await Promise.resolve()
+        return next(params)
+      })
 
-        const xprisma = prisma.$extends({
-          query: {
-            async $queryRawUnsafe({ args, query }) {
-              const [, result] = await prisma.$transaction([
-                prisma.$queryRawUnsafe('SELECT 1'),
-                query(args),
-                prisma.$queryRawUnsafe('SELECT 3'),
-              ])
-              return result
-            },
+      const xprisma = prisma.$extends({
+        query: {
+          async $queryRawUnsafe({ args, query }) {
+            const [, result] = await prisma.$transaction([
+              prisma.$queryRawUnsafe('SELECT 1'),
+              query(args),
+              prisma.$queryRawUnsafe('SELECT 3'),
+            ])
+            return result
           },
-        })
+        },
+      })
 
-        await xprisma.$queryRawUnsafe('SELECT 2')
+      await xprisma.$queryRawUnsafe('SELECT 2')
 
-        await waitFor(() =>
-          expect(queries).toEqual([
-            expect.stringContaining('BEGIN'),
-            'SELECT 1',
-            'SELECT 2',
-            'SELECT 3',
-            expect.stringContaining('COMMIT'),
-          ]),
-        )
-      },
-    )
+      await waitFor(() =>
+        expect(queries).toEqual([
+          expect.stringContaining('BEGIN'),
+          'SELECT 1',
+          'SELECT 2',
+          'SELECT 3',
+          expect.stringContaining('COMMIT'),
+        ]),
+      )
+    })
 
     // TODO: fails with `unwrap_throw` failed
     skipTestIf(engineType === 'wasm')('executes batch in right order when using delayed middleware', async () => {
