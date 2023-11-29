@@ -185,7 +185,7 @@ export async function deleteAuthConfig() {
 
 /**
  * Load JSON file.
- * Inspired by @link {https://github.com/sindresorhus/load-json-file/blob/main/index.js}
+ * Inspired by @link https://github.com/sindresorhus/load-json-file/blob/main/index.js
  * @remark Eventually this helper could be moved to @prisma/internals
  */
 
