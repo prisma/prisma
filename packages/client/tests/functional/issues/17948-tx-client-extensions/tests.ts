@@ -7,8 +7,8 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@pr
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
-testMatrix.setupTestSuite(({ engineType }) => {
-  skipTestIf(engineType === 'wasm')('extension method is bound to transaction client within itx', async () => {
+testMatrix.setupTestSuite(() => {
+  test('extension method is bound to transaction client within itx', async () => {
     const email = faker.internet.email()
 
     const xprisma = prisma.$extends({

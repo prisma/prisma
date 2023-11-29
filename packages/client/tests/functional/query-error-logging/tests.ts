@@ -101,9 +101,5 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails with "RuntimeError: table index is out of bounds"',
-    },
   },
 )

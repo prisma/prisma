@@ -9,7 +9,7 @@ import testMatrix from './_matrix'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }) => {
+  ({ provider }) => {
     let prisma: PrismaClient
 
     beforeAll(() => {
@@ -43,8 +43,7 @@ testMatrix.setupTestSuite(
       await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })
 
-    // TODO: itx is not supported in wasm
-    skipTestIf(engineType === 'wasm')('correctly forwards error for itx', async () => {
+    test('correctly forwards error for itx', async () => {
       const result = prisma.$transaction(() => Promise.resolve())
       await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })

@@ -21,9 +21,5 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'sqlserver'],
       reason: 'Enums are not supported',
     },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails on init with `unwrap_throw` failed',
-    },
   },
 )

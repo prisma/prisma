@@ -40,8 +40,7 @@ testMatrix.setupTestSuite(
       await expect(prisma.$connect()).resolves.not.toThrow()
     })
 
-    // TODO: Fails with `unwrap_throw` failed
-    skipTestIf(engineType === 'wasm')('does not throw when URL is overridden (shortcut)', async () => {
+    test('does not throw when URL is overridden (shortcut)', async () => {
       const prisma = newPrismaClient({
         datasourceUrl: dbURL,
       })

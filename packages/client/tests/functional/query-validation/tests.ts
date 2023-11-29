@@ -5,7 +5,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ engineType }) => {
+  () => {
     test('include and select are used at the same time', async () => {
       // @ts-expect-error
       const result = prisma.user.findMany({
@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
                 Invalid \`prisma.user.findMany()\` invocation in
                 /client/tests/functional/query-validation/tests.ts:0:0
 
-                   XX ({ engineType }) => {
+                   XX () => {
                    XX   test('include and select are used at the same time', async () => {
                   XX     // @ts-expect-error
                 → XX     const result = prisma.user.findMany({
@@ -437,7 +437,7 @@ testMatrix.setupTestSuite(
                                           `)
     })
 
-    skipTestIf(engineType === 'wasm')('non-serializable value', async () => {
+    test('non-serializable value', async () => {
       const result = prisma.user.findMany({
         where: {
           // @ts-expect-error
@@ -452,7 +452,7 @@ testMatrix.setupTestSuite(
 
           XX })
           XX 
-          XX skipTestIf(engineType === 'wasm')('non-serializable value', async () => {
+          XX test('non-serializable value', async () => {
         → XX   const result = prisma.user.findMany({
                   where: {
                     name: [object Function]

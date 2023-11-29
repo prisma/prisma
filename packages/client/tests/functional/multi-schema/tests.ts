@@ -129,9 +129,5 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'mongodb', 'mysql', 'cockroachdb'],
       reason: 'Multi Schema only working for postgresql and sqlserver',
     },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Fails on init with `unwrap_throw` failed',
-    },
   },
 )

@@ -79,7 +79,14 @@ testMatrix.setupTestSuite(
       )
 
       // test that we can pass a prisma:// url when the tests is not run as a dataproxy
-      // TODO: Fails with `unwrap_throw` failed
+      // TODO: fails with Diagnostics { errors: [DatamodelError { span: Span {
+      // start: 372, end: 402 }, message: "Error validating datasource `db`: the
+      // URL must start with the protocol `postgresql://` or
+      // `postgres://`.\n\nTo use a URL with protocol `prisma://`, you need to
+      // either enable Accelerate or the Data Proxy.\nEnable Accelerate via
+      // `prisma generate --accelerate` or the Data Proxy via `prisma generate
+      // --data-proxy.`\n\nMore information about Data Proxy:
+      // https://pris.ly/d/data-proxy\n" }], warnings: [] }
       skipTestIf(clientMeta.dataProxy || engineType === 'wasm')(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
