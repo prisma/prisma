@@ -84,7 +84,7 @@
     "@types/debug": "4.1.12",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.5.10",
-    "@types/node": "18.18.9",
+    "@types/node": "18.18.13",
     "@types/node-fetch": "2.6.9",
     "@types/rimraf": "3.0.2",
     "async-listen": "^3.0.1",
