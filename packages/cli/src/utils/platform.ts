@@ -196,9 +196,9 @@ interface Options {
   /** Applies a function to the JSON string before parsing. */
   readonly beforeParse?: BeforeParse
   /**
-	Prescribes how the value originally produced by parsing is transformed, before being returned.
-	See the [`JSON.parse` docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse#Using_the_reviver_parameter) for more.
-	*/
+   * Prescribes how the value originally produced by parsing is transformed, before being returned.
+   * See the @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse#Using_the_reviver_parameter for more.
+   */
   readonly reviver?: Reviver
 }
 
