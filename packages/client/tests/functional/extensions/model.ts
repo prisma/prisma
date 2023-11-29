@@ -333,7 +333,7 @@ testMatrix.setupTestSuite(
       `)
     })
 
-    skipTestIf(provider !== Providers.MONGODB || process.platform !== 'win32')(
+    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods',
       async () => {
         const fnEmitter = jest.fn()
@@ -373,7 +373,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    skipTestIf(provider !== Providers.MONGODB || process.platform !== 'win32')(
+    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods and query',
       async () => {
         const fnEmitter = jest.fn()
