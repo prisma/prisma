@@ -8,7 +8,7 @@
     "@prisma/extension-accelerate": "latest"
   },
   "devDependencies": {
-    "@types/jest": "29.5.1",
+    "@types/jest": "29.5.10",
     "@types/node": "16.18.11",
     "expect-type": "0.16.0",
     "prisma": "/tmp/prisma-0.0.0.tgz",
