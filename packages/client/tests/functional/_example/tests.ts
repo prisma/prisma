@@ -68,4 +68,10 @@ testMatrix.setupTestSuite(
   //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
   //   },
   // },
+  {
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Tracing preview feature creates a panic in the wasm engine',
+    },
+  },
 )
