@@ -1,4 +1,4 @@
-import { Command } from '@prisma/internals'
+import { Command, isError } from '@prisma/internals'
 
 import { deleteAuthConfig, readAuthConfig } from '../utils/platform'
 
@@ -8,8 +8,9 @@ export class Logout implements Command {
   }
 
   public async parse() {
-    const { token } = await readAuthConfig()
-    if (!token) {
+    const authJson = await readAuthConfig()
+    if (isError(authJson)) throw authJson
+    if (!authJson.token) {
       return 'You are not logged in.'
     }
     await deleteAuthConfig()

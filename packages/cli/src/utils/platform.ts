@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { Commands, getCommandWithExecutor, unknownCommand } from '@prisma/internals'
+import { Commands, getCommandWithExecutor, isError, unknownCommand } from '@prisma/internals'
 import fs from 'fs-extra'
 import { green } from 'kleur/colors'
 import fetch, { Headers } from 'node-fetch'
@@ -71,9 +71,9 @@ export const ErrorPlatformUnauthorized = new Error(
 
 export const getPlatformTokenOrThrow = async <$Args extends Record<string, unknown>>(args: $Args) => {
   try {
-    const token =
-      getOptionalParameter(args, ['--token', '-t'], 'PRISMA_TOKEN') ||
-      (await readAuthConfig().catch(() => ({ token: '' }))).token
+    const authJson = await readAuthConfig()
+    if (isError(authJson)) throw authJson
+    const token = getOptionalParameter(args, ['--token', '-t'], 'PRISMA_TOKEN') || authJson.token
     if (!token) throw ErrorPlatformUnauthorized
     return token
   } catch (error) {
@@ -146,27 +146,77 @@ export const configDirectoryPath = new XdgAppPaths('prisma-platform-cli').config
 export const authConfigPath = path.join(configDirectoryPath, 'auth.json')
 
 export async function writeAuthConfig(data: AuthConfig) {
-  await fs.mkdirp(configDirectoryPath)
-
-  return await fs.writeJSON(authConfigPath, data)
+  try {
+    await fs.mkdirp(configDirectoryPath)
+    return await fs.writeJSON(authConfigPath, data)
+  } catch (error) {
+    debug('Error from writeAuthConfig()', error)
+    return error as Error
+  }
 }
 
-export async function readAuthConfig(): Promise<AuthConfig> {
-  if (!(await fs.pathExists(authConfigPath))) {
-    return {
-      token: null,
+export async function readAuthConfig(): Promise<AuthConfig | Error> {
+  try {
+    if (!(await fs.pathExists(authConfigPath))) {
+      return {
+        token: null,
+      }
     }
+    return await loadJsonFile(authConfigPath)
+  } catch (error) {
+    debug('Error from readAuthConfig()', error)
+    return error as Error
   }
-
-  return await fs.readJSON(authConfigPath)
 }
 
 export async function deleteAuthConfig() {
-  if (!(await fs.pathExists(authConfigPath))) {
-    return {
-      token: null,
+  try {
+    if (!(await fs.pathExists(authConfigPath))) {
+      return {
+        token: null,
+      }
     }
+    return await fs.remove(authConfigPath)
+  } catch (error) {
+    debug('Error from deleteAuthConfig()', error)
+    return error as Error
   }
+}
 
-  return await fs.remove(authConfigPath)
+/**
+ * Load JSON file.
+ * Inspired by @link {https://github.com/sindresorhus/load-json-file/blob/main/index.js}
+ * @remark Eventually this helper could be moved to @prisma/internals
+ */
+
+type JsonValue = string | number | boolean | null | { [Key in string]?: JsonValue } | JsonValue[]
+type Reviver = (this: unknown, key: string, value: unknown) => unknown
+type BeforeParse = (data: string) => string
+interface Options {
+  /** Applies a function to the JSON string before parsing. */
+  readonly beforeParse?: BeforeParse
+  /**
+	Prescribes how the value originally produced by parsing is transformed, before being returned.
+	See the [`JSON.parse` docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse#Using_the_reviver_parameter) for more.
+	*/
+  readonly reviver?: Reviver
+}
+
+const parse = (buffer: Buffer, { beforeParse, reviver }: Options = {}) => {
+  let data = new TextDecoder().decode(buffer)
+  if (typeof beforeParse === 'function') {
+    data = beforeParse(data)
+  }
+  return JSON.parse(data, reviver)
+}
+
+/**
+ * Loads a JSON file that removes BOM.
+ */
+export const loadJsonFile = async <ReturnValueType = JsonValue>(
+  filePath: string,
+  options?: Options,
+): Promise<ReturnValueType> => {
+  const buffer = await fs.readFile(filePath)
+  return parse(buffer, options)
 }
