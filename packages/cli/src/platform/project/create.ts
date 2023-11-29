@@ -2,6 +2,7 @@ import { arg, Command, isError } from '@prisma/internals'
 
 import {
   getOptionalParameter,
+  getPlatformTokenOrThrow,
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
@@ -19,8 +20,8 @@ export class Create implements Command {
       '-d': '--display-name',
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
+    const token = await getPlatformTokenOrThrow(args)
+
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const displayName = getOptionalParameter(args, ['--display-name', '-d'])
