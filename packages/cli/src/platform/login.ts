@@ -71,7 +71,9 @@ export class Login implements Command {
         open(authSigninUrl.href),
       ])
 
-      await writeAuthConfig({ token: authResult.token })
+      const result = await writeAuthConfig({ token: authResult.token })
+      if (isError(result)) throw result
+
       console.log('Authenticated successfully as:')
       console.log(JSON.stringify(authResult.user, null, 4))
       return ''
