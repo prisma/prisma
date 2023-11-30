@@ -836,8 +836,8 @@ importers:
         specifier: 6.0.1
         version: 6.0.1
       temp-dir:
-        specifier: 2.0.0
-        version: 2.0.0
+        specifier: 3.0.0
+        version: 3.0.0
       tempy:
         specifier: 1.0.1
         version: 1.0.1
@@ -1215,8 +1215,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0
       temp-dir:
-        specifier: 2.0.0
-        version: 2.0.0
+        specifier: 3.0.0
+        version: 3.0.0
       tempy:
         specifier: 1.0.1
         version: 1.0.1
@@ -13023,6 +13023,11 @@ packages:
   /temp-dir@2.0.0:
     resolution: {integrity: sha512-aoBAniQmmwtcKp/7BzsH8Cxzv8OL736p7v1ihGb5e9DJ9kTwGWHrQrVB5+lfVDzfGrdRzXch+ig7LHaY1JTOrg==}
     engines: {node: '>=8'}
+    dev: true
+
+  /temp-dir@3.0.0:
+    resolution: {integrity: sha512-nHc6S/bwIilKHNRgK/3jlhDoIHcp45YgyiwcAk46Tr0LfEqGBVpmiAyuiuxeVE44m3mXnEeVhaipLOEWmH+Njw==}
+    engines: {node: '>=14.16'}
     dev: true
 
   /temp@0.4.0:
