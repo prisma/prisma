@@ -1,4 +1,3 @@
-import { ClientEngineType } from '@prisma/internals'
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
@@ -110,7 +109,7 @@ function shouldSkipSuiteConfig(
   }
 
   // if the test doesn't support the engine type, skip
-  if (options?.skipBinary && engineType === ClientEngineType.Binary) {
+  if (options?.skipEngine?.from.includes(engineType!)) {
     return true
   }
 

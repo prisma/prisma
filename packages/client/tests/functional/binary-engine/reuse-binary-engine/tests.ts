@@ -11,7 +11,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   ({ engineType }) => {
     test('should create data using one PrismaClient and read using another', async () => {
-      if (engineType === ClientEngineType.Library) {
+      if (engineType !== ClientEngineType.Binary) {
         return
       }
 

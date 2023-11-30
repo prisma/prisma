@@ -34,6 +34,14 @@ testMatrix.setupTestSuite(({ engineType }, suiteMeta, clientMeta) => {
       expect(generatedClientContents).toContain(binaryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
+    } else if (engineType === ClientEngineType.Wasm && clientMeta.runtime === 'node') {
+      expect(generatedClientContents).toContain(libraryRuntime)
+      expect(generatedClientContents).not.toContain(edgeRuntime)
+      expect(generatedClientContents).not.toContain(binaryRuntime)
+    } else if (engineType === ClientEngineType.Wasm && clientMeta.runtime === 'edge') {
+      expect(generatedClientContents).toContain(edgeRuntime)
+      expect(generatedClientContents).not.toContain(libraryRuntime)
+      expect(generatedClientContents).not.toContain(binaryRuntime)
     } else {
       throw new Error('Unhandled case')
     }
@@ -54,6 +62,10 @@ testMatrix.setupTestSuite(({ engineType }, suiteMeta, clientMeta) => {
       expect(generatedClientContents).toContain(nftAnnotation)
     } else if (engineType === ClientEngineType.Binary) {
       expect(generatedClientContents).toContain(nftAnnotation)
+    } else if (engineType === ClientEngineType.Wasm && clientMeta.runtime === 'node') {
+      expect(generatedClientContents).toContain(nftAnnotation)
+    } else if (engineType === ClientEngineType.Wasm && clientMeta.runtime === 'edge') {
+      expect(generatedClientContents).not.toContain(nftAnnotation)
     } else {
       throw new Error('Unhandled case')
     }
