@@ -71,9 +71,12 @@ export const ErrorPlatformUnauthorized = new Error(
 
 export const getPlatformTokenOrThrow = async <$Args extends Record<string, unknown>>(args: $Args) => {
   try {
-    const authJson = await readAuthConfig()
-    if (isError(authJson)) throw authJson
-    const token = getOptionalParameter(args, ['--token', '-t'], 'PRISMA_TOKEN') || authJson.token
+    let token = getOptionalParameter(args, ['--token', '-t'], 'PRISMA_TOKEN') as string
+    if (!token) {
+      const authJson = await readAuthConfig()
+      if (isError(authJson)) throw authJson
+      token = authJson.token ?? ''
+    }
     if (!token) throw ErrorPlatformUnauthorized
     return token
   } catch (error) {
