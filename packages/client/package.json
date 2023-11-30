@@ -96,7 +96,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a",
+    "@prisma/engines-version": "5.7.0-23.integration-geometry-e0f834dc25d3a4b4c821df9810dfd890335c0b86",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
