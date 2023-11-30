@@ -22,7 +22,8 @@ export const skipDataProxy: MatrixOptions['skipDataProxy'] = {
  */
 export const defaultTestSuiteOptions: MatrixOptions = {
   skipDefaultClientInstance: true,
-  skipBinary: {
+  skipEngine: {
+    from: ['binary'],
     reason: 'driver adapters are not supported with binary engine',
   },
   skipDataProxy,

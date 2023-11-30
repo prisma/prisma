@@ -1,3 +1,5 @@
+import { ClientEngineType } from '@prisma/internals'
+
 import { ProviderFlavors, Providers } from './providers'
 
 export type MatrixOptions = {
@@ -5,7 +7,8 @@ export type MatrixOptions = {
     from: `${Providers}`[]
     reason: string
   }
-  skipBinary?: {
+  skipEngine?: {
+    from: `${ClientEngineType}`[]
     reason: string
   }
   skipDefaultClientInstance?: boolean

@@ -45,7 +45,7 @@ testMatrix.setupTestSuite(
     })
 
     // $executeRaw for sqlite is not allowed to return results
-    testIf(provider !== Providers.SQLITE)('$executeRaw with Prisma.sql instance', async () => {
+    testIf(provider !== Providers.SQLITE)('$executeRaw with template string', async () => {
       expect.assertions(1)
       const prisma = newPrismaClient()
       prisma.$use(({ args }, next) => {
