@@ -37,7 +37,7 @@ async function createXItems({ count }) {
 }
 
 testMatrix.setupTestSuite(
-  ({ engineType, provider, providerFlavor, relationMode, onUpdate, onDelete }) => {
+  ({ provider, providerFlavor, relationMode, onUpdate, onDelete }) => {
     const conditionalError = ConditionalError.new()
       .with('provider', provider)
       .with('providerFlavor', providerFlavor)
@@ -136,153 +136,141 @@ testMatrix.setupTestSuite(
       )
 
       describeIf(['DEFAULT'].includes(onDelete))('onDelete: DEFAULT', () => {
-        // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
-        skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
-          '[update] main with nested delete alice should succeed',
-          async () => {
-            const bobCountBefore = await prisma.bob.count()
+        test('[update] main with nested delete alice should succeed', async () => {
+          const bobCountBefore = await prisma.bob.count()
 
-            // now, update the main instance and delete alice
-            await prisma.main.update({
-              where: { id: '1' },
-              data: { alice: { delete: true } },
-            })
+          // now, update the main instance and delete alice
+          await prisma.main.update({
+            where: { id: '1' },
+            data: { alice: { delete: true } },
+          })
 
-            const bobCountAfter = await prisma.bob.count()
-            // No deletion should happen
-            expect(bobCountAfter).toEqual(bobCountBefore)
+          const bobCountAfter = await prisma.bob.count()
+          // No deletion should happen
+          expect(bobCountAfter).toEqual(bobCountBefore)
 
-            expect(
-              await prisma.main.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                // We expect that aliceId turns null
-                aliceId: null,
-              },
-              { id: '2', aliceId: '2' },
-            ])
-            expect(
-              await prisma.bob.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                mainId: '1',
-              },
-              { id: '2', mainId: '2' },
-            ])
-            expect(
-              await prisma.alice.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              // We expect the deletion of "1" to happen
-              { id: '2' },
-            ])
-          },
-        )
+          expect(
+            await prisma.main.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
+              id: '1',
+              // We expect that aliceId turns null
+              aliceId: null,
+            },
+            { id: '2', aliceId: '2' },
+          ])
+          expect(
+            await prisma.bob.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
+              id: '1',
+              mainId: '1',
+            },
+            { id: '2', mainId: '2' },
+          ])
+          expect(
+            await prisma.alice.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            // We expect the deletion of "1" to happen
+            { id: '2' },
+          ])
+        })
       })
 
       describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {
-        // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
-        skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
-          '[update] main with nested delete alice should succeed',
-          async () => {
-            const bobCountBefore = await prisma.bob.count()
+        test('[update] main with nested delete alice should succeed', async () => {
+          const bobCountBefore = await prisma.bob.count()
 
-            // now, update the main instance and delete alice
-            await prisma.main.update({
-              where: { id: '1' },
-              data: { alice: { delete: true } },
-            })
+          // now, update the main instance and delete alice
+          await prisma.main.update({
+            where: { id: '1' },
+            data: { alice: { delete: true } },
+          })
 
-            const bobCountAfter = await prisma.bob.count()
-            // Deletion should happen
-            expect(bobCountAfter).toEqual(bobCountBefore - 1)
+          const bobCountAfter = await prisma.bob.count()
+          // Deletion should happen
+          expect(bobCountAfter).toEqual(bobCountBefore - 1)
 
-            expect(
-              await prisma.main.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              // We expect the deletion of "1" to happen
-              { id: '2', aliceId: '2' },
-            ])
-            expect(
-              await prisma.bob.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              // We expect the deletion of "1" to happen
-              { id: '2', mainId: '2' },
-            ])
-            expect(
-              await prisma.alice.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              // We expect the deletion of "1" to happen
-              { id: '2' },
-            ])
-          },
-        )
+          expect(
+            await prisma.main.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            // We expect the deletion of "1" to happen
+            { id: '2', aliceId: '2' },
+          ])
+          expect(
+            await prisma.bob.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            // We expect the deletion of "1" to happen
+            { id: '2', mainId: '2' },
+          ])
+          expect(
+            await prisma.alice.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            // We expect the deletion of "1" to happen
+            { id: '2' },
+          ])
+        })
 
-        // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
-        skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
-          '[update] main with nested disconnect alice should succeed',
-          async () => {
-            const bobCountBefore = await prisma.bob.count()
+        test('[update] main with nested disconnect alice should succeed', async () => {
+          const bobCountBefore = await prisma.bob.count()
 
-            // now, update the main instance and delete alice
-            await prisma.main.update({
-              where: { id: '1' },
-              data: { alice: { disconnect: true } },
-            })
+          // now, update the main instance and delete alice
+          await prisma.main.update({
+            where: { id: '1' },
+            data: { alice: { disconnect: true } },
+          })
 
-            const bobCountAfter = await prisma.bob.count()
+          const bobCountAfter = await prisma.bob.count()
 
-            // No deletion should happen
-            expect(bobCountAfter).toEqual(bobCountBefore)
+          // No deletion should happen
+          expect(bobCountAfter).toEqual(bobCountBefore)
 
-            expect(
-              await prisma.main.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                // We expect the disconnect to happen
-                aliceId: null,
-              },
-              { id: '2', aliceId: '2' },
-            ])
-            expect(
-              await prisma.bob.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                mainId: '1',
-              },
-              { id: '2', mainId: '2' },
-            ])
-            expect(
-              await prisma.alice.findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-              },
-              { id: '2' },
-            ])
-          },
-        )
+          expect(
+            await prisma.main.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
+              id: '1',
+              // We expect the disconnect to happen
+              aliceId: null,
+            },
+            { id: '2', aliceId: '2' },
+          ])
+          expect(
+            await prisma.bob.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
+              id: '1',
+              mainId: '1',
+            },
+            { id: '2', mainId: '2' },
+          ])
+          expect(
+            await prisma.alice.findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
+              id: '1',
+            },
+            { id: '2' },
+          ])
+        })
       })
     })
   },
