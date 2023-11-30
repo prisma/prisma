@@ -20,7 +20,6 @@ export class Enable implements Command {
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
