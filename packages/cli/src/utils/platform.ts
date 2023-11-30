@@ -154,6 +154,7 @@ export async function writeAuthConfig(data: AuthConfig) {
     return await fs.writeJSON(authConfigPath, data)
   } catch (error) {
     debug('Error from writeAuthConfig()', error)
+    // TODO: Consider adding errorFromMaybeError helper
     return error as Error
   }
 }
