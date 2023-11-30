@@ -491,8 +491,8 @@ importers:
         specifier: 0.9.4
         version: 0.9.4
       '@prisma/query-engine-wasm':
-        specifier: 0.0.5
-        version: 0.0.5
+        specifier: 0.0.16
+        version: 0.0.16
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -3179,8 +3179,8 @@ packages:
     resolution: {integrity: sha512-cWUGImR3ztSJpb2z+Vka/IS6rFEAvQ6AHlcH92btu+iAjcPpc46YlI23iujvfBpZySJALJmxdji+CNVG2ybWMg==}
     dev: false
 
-  /@prisma/query-engine-wasm@0.0.5:
-    resolution: {integrity: sha512-qKFnFnb/vENyilUnCWBjxQjzKS5PsIuuCBaQ0KJ8RLxxMK1gokNCSeaNuQh4qXuvgPflYCMgIzrfFHZ3b7kOQQ==}
+  /@prisma/query-engine-wasm@0.0.16:
+    resolution: {integrity: sha512-IKupvjeH8OA9QNAesxRYv84BMyi3PgQ56RNGxUMR+xE8PC0gfHYx9x+7vgrsyHoKqqR0mqIlNvooG3XXM7Qvew==}
     dev: true
 
   /@prisma/studio-common@0.495.0:

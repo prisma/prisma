@@ -5,9 +5,9 @@ import { ProviderFlavors, Providers } from '../providers'
 type RelationMode = 'prisma' | 'foreignKeys'
 
 type Target = {
-  provider: Providers
-  providerFlavor?: ProviderFlavors
-  relationMode: RelationMode
+  provider: `${Providers}`
+  providerFlavor?: `${ProviderFlavors}`
+  relationMode: `${RelationMode}`
 }
 
 type ConditionalErrorSnapshotErrors = O.AtLeast<Record<ProviderFlavors | Providers, string>> | string

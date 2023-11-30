@@ -13,9 +13,9 @@ export type NamedTestSuiteConfig = {
   parametersString: string
   matrixOptions: Record<string, string> & {
     provider: Providers
-    providerFlavor?: ProviderFlavors
-    relationMode?: RelationModes
-    engineType?: 'binary' | 'library' | 'wasm'
+    providerFlavor?: `${ProviderFlavors}`
+    relationMode?: `${RelationModes}`
+    engineType?: `${ClientEngineType}`
   }
 }
 

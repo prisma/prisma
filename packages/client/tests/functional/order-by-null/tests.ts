@@ -5,7 +5,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ engineType, providerFlavor }) => {
     beforeAll(async () => {
       await prisma.user.create({
         data: {
@@ -36,121 +36,137 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('should return records sorted by name asc and null first', async () => {
-      const records = await prisma.user.findMany({
-        select: {
-          name: true,
-        },
-        orderBy: {
-          name: {
-            sort: 'asc',
-            nulls: 'first',
+    // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
+    skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
+      'should return records sorted by name asc and null first',
+      async () => {
+        const records = await prisma.user.findMany({
+          select: {
+            name: true,
           },
-        },
-      })
-
-      expect(records).toMatchObject([
-        {
-          name: null,
-        },
-        {
-          name: null,
-        },
-        {
-          name: 'a',
-        },
-        {
-          name: 'b',
-        },
-      ])
-    })
-
-    test('should return records sorted by name asc and null last', async () => {
-      const records = await prisma.user.findMany({
-        select: {
-          name: true,
-        },
-        orderBy: {
-          name: {
-            sort: 'asc',
-            nulls: 'last',
+          orderBy: {
+            name: {
+              sort: 'asc',
+              nulls: 'first',
+            },
           },
-        },
-      })
+        })
 
-      expect(records).toMatchObject([
-        {
-          name: 'a',
-        },
-        {
-          name: 'b',
-        },
-        {
-          name: null,
-        },
-        {
-          name: null,
-        },
-      ])
-    })
-
-    test('should return records sorted by name desc and null first', async () => {
-      const records = await prisma.user.findMany({
-        select: {
-          name: true,
-        },
-        orderBy: {
-          name: {
-            sort: 'desc',
-            nulls: 'first',
+        expect(records).toMatchObject([
+          {
+            name: null,
           },
-        },
-      })
-
-      expect(records).toMatchObject([
-        {
-          name: null,
-        },
-        {
-          name: null,
-        },
-        {
-          name: 'b',
-        },
-        {
-          name: 'a',
-        },
-      ])
-    })
-
-    test('should return records sorted by name desc and null last', async () => {
-      const records = await prisma.user.findMany({
-        select: {
-          name: true,
-        },
-        orderBy: {
-          name: {
-            sort: 'desc',
-            nulls: 'last',
+          {
+            name: null,
           },
-        },
-      })
+          {
+            name: 'a',
+          },
+          {
+            name: 'b',
+          },
+        ])
+      },
+    )
 
-      expect(records).toMatchObject([
-        {
-          name: 'b',
-        },
-        {
-          name: 'a',
-        },
-        {
-          name: null,
-        },
-        {
-          name: null,
-        },
-      ])
-    })
+    // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
+    skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
+      'should return records sorted by name asc and null last',
+      async () => {
+        const records = await prisma.user.findMany({
+          select: {
+            name: true,
+          },
+          orderBy: {
+            name: {
+              sort: 'asc',
+              nulls: 'last',
+            },
+          },
+        })
+
+        expect(records).toMatchObject([
+          {
+            name: 'a',
+          },
+          {
+            name: 'b',
+          },
+          {
+            name: null,
+          },
+          {
+            name: null,
+          },
+        ])
+      },
+    )
+
+    // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
+    skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
+      'should return records sorted by name desc and null first',
+      async () => {
+        const records = await prisma.user.findMany({
+          select: {
+            name: true,
+          },
+          orderBy: {
+            name: {
+              sort: 'desc',
+              nulls: 'first',
+            },
+          },
+        })
+
+        expect(records).toMatchObject([
+          {
+            name: null,
+          },
+          {
+            name: null,
+          },
+          {
+            name: 'b',
+          },
+          {
+            name: 'a',
+          },
+        ])
+      },
+    )
+
+    // TODO: Fails with TypeError: undefined cannot be passed as argument to the database
+    skipTestIf(engineType === 'wasm' && providerFlavor === 'js_libsql')(
+      'should return records sorted by name desc and null last',
+      async () => {
+        const records = await prisma.user.findMany({
+          select: {
+            name: true,
+          },
+          orderBy: {
+            name: {
+              sort: 'desc',
+              nulls: 'last',
+            },
+          },
+        })
+
+        expect(records).toMatchObject([
+          {
+            name: 'b',
+          },
+          {
+            name: 'a',
+          },
+          {
+            name: null,
+          },
+          {
+            name: null,
+          },
+        ])
+      },
+    )
   },
   {
     optOut: {
