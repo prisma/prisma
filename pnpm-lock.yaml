@@ -371,8 +371,8 @@ importers:
         specifier: 5.1.3
         version: 5.1.3
       open:
-        specifier: 7.4.2
-        version: 7.4.2
+        specifier: 9.1.0
+        version: 9.1.0
       pkg-up:
         specifier: 3.1.0
         version: 3.1.0
@@ -1191,8 +1191,8 @@ importers:
         specifier: 5.1.3
         version: 5.1.3
       open:
-        specifier: 7.4.2
-        version: 7.4.2
+        specifier: 9.1.0
+        version: 9.1.0
       p-map:
         specifier: 4.0.0
         version: 4.0.0
@@ -5110,6 +5110,11 @@ packages:
       platform: 1.3.6
     dev: true
 
+  /big-integer@1.6.52:
+    resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
+    engines: {node: '>=0.6'}
+    dev: true
+
   /bin-links@4.0.3:
     resolution: {integrity: sha512-obsRaULtJurnfox/MDwgq6Yo9kzbv1CPTk/1/s7Z/61Lezc8IKkFCOXNeVLXz0456WRzBQmSsDWlai2tIhBsfA==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
@@ -5207,6 +5212,13 @@ packages:
       wrap-ansi: 7.0.0
     dev: true
 
+  /bplist-parser@0.2.0:
+    resolution: {integrity: sha512-z0M+byMThzQmD9NILRniCUXYsYpjwnlO8N5uCFaCqIOpqRsJCrQL9NK3JsD67CN5a08nF5oIL2bD6loTdHOuKw==}
+    engines: {node: '>= 5.10.0'}
+    dependencies:
+      big-integer: 1.6.52
+    dev: true
+
   /brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
     dependencies:
@@ -5284,6 +5296,13 @@ packages:
     resolution: {integrity: sha512-qwVpFEHNfhYJIzNRBvd2C1kyo6jz3ZSMPyyuR47OPdiKWlbYnZNyDWuyR175qDnAJLiCo5fBBqPb3RiXgWlkOQ==}
     dependencies:
       semver: 7.5.4
+    dev: true
+
+  /bundle-name@3.0.0:
+    resolution: {integrity: sha512-PKA4BeSvBpQKQ8iPOGCSiell+N8P+Tf1DlwqmYhpe2gAhKPHn8EYOxVT+ShuGmhg8lN8XiSlS80yiExKXrURlw==}
+    engines: {node: '>=12'}
+    dependencies:
+      run-applescript: 5.0.0
     dev: true
 
   /bytes-iec@3.1.1:
@@ -6110,6 +6129,24 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /default-browser-id@3.0.0:
+    resolution: {integrity: sha512-OZ1y3y0SqSICtE8DE4S8YOE9UZOJ8wO16fKWVP5J1Qz42kV9jcnMVFrEE/noXb/ss3Q4pZIH79kxofzyNNtUNA==}
+    engines: {node: '>=12'}
+    dependencies:
+      bplist-parser: 0.2.0
+      untildify: 4.0.0
+    dev: true
+
+  /default-browser@4.0.0:
+    resolution: {integrity: sha512-wX5pXO1+BrhMkSbROFsyxUm0i/cJEScyNhA4PPxc41ICuv05ZZB/MX28s8aZx6xjmatvebIapF6hLEKEcpneUA==}
+    engines: {node: '>=14.16'}
+    dependencies:
+      bundle-name: 3.0.0
+      default-browser-id: 3.0.0
+      execa: 7.2.0
+      titleize: 3.0.0
+    dev: true
+
   /default-uid@1.0.0:
     resolution: {integrity: sha512-KqOPKqX9VLrCfdKK/zMll+xb9kZOP4QyguB6jyN4pKaPoedk1bMFIfyTCFhVdrHb3GU7aJvKjd8myKxFRRDwCg==}
     engines: {node: '>=0.10.0'}
@@ -6142,6 +6179,11 @@ packages:
   /define-lazy-prop@2.0.0:
     resolution: {integrity: sha512-Ds09qNh8yw3khSjiJjiUInaGX9xlqZDY7JVryGxdxV7NPeuqQfplOpQ66yJFZut3jLa5zOwkXw1g9EI2uKh4Og==}
     engines: {node: '>=8'}
+    dev: true
+
+  /define-lazy-prop@3.0.0:
+    resolution: {integrity: sha512-N+MeXYoqr3pOgn8xfyRPREN7gHakLYjhsHhWGT3fWAiL4IkAt0iDw14QiiEm2bE30c5XX5q0FtAA3CK5f9/BUg==}
+    engines: {node: '>=12'}
     dev: true
 
   /define-properties@1.2.1:
@@ -8277,6 +8319,12 @@ packages:
     hasBin: true
     dev: true
 
+  /is-docker@3.0.0:
+    resolution: {integrity: sha512-eljcgEDlEns/7AXFosB5K/2nCM4P7FQPkGc/DWLy5rmFEWvZayGrik1d9/QIY5nJ4f9YsVvBkA6kJpHn9rISdQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    hasBin: true
+    dev: true
+
   /is-extglob@2.1.1:
     resolution: {integrity: sha512-SbKbANkN603Vi4jEZv49LeVJMn4yGwsbzZworEoyEiutsN3nJYdbO36zfhGJ6QEDpOZIFkDtnq5JRxmvl3jsoQ==}
     engines: {node: '>=0.10.0'}
@@ -8321,6 +8369,14 @@ packages:
     engines: {node: '>=0.10.0'}
     dependencies:
       is-extglob: 2.1.1
+    dev: true
+
+  /is-inside-container@1.0.0:
+    resolution: {integrity: sha512-KIYLCCJghfHZxqjYBE7rEy0OBuTd5xCHS7tHVgvCLkx7StIoaxwNW3hCALgEUjFfeRk+MG/Qxmp/vtETEF3tRA==}
+    engines: {node: '>=14.16'}
+    hasBin: true
+    dependencies:
+      is-docker: 3.0.0
     dev: true
 
   /is-installed-globally@0.4.0:
@@ -10870,20 +10926,22 @@ packages:
       mimic-fn: 4.0.0
     dev: true
 
-  /open@7.4.2:
-    resolution: {integrity: sha512-MVHddDVweXZF3awtlAS+6pgKLlm/JgxZ90+/NBurBoQctVOOB/zDdVjcyPzQ+0laDGbsWgrRkflI65sQeOgT9Q==}
-    engines: {node: '>=8'}
-    dependencies:
-      is-docker: 2.2.1
-      is-wsl: 2.2.0
-    dev: true
-
   /open@8.4.0:
     resolution: {integrity: sha512-XgFPPM+B28FtCCgSb9I+s9szOC1vZRSwgWsRUA5ylIxRTgKozqjOCrVOqGsYABPYK5qnfqClxZTFBa8PKt2v6Q==}
     engines: {node: '>=12'}
     dependencies:
       define-lazy-prop: 2.0.0
       is-docker: 2.2.1
+      is-wsl: 2.2.0
+    dev: true
+
+  /open@9.1.0:
+    resolution: {integrity: sha512-OS+QTnw1/4vrf+9hh1jc1jnYjzSG4ttTBB8UxOwAnInG3Uo4ssetzC1ihqaIHjLJnA5GGlRl6QlZXOTQhRBUvg==}
+    engines: {node: '>=14.16'}
+    dependencies:
+      default-browser: 4.0.0
+      define-lazy-prop: 3.0.0
+      is-inside-container: 1.0.0
       is-wsl: 2.2.0
     dev: true
 
@@ -12141,6 +12199,13 @@ packages:
       sudo-block: 1.2.0
     dev: true
 
+  /run-applescript@5.0.0:
+    resolution: {integrity: sha512-XcT5rBksx1QdIhlFOCtgZkB99ZEouFZ1E2Kc2LHqNW13U3/74YGdkQRmThTwxy4QIyookibDKYZOPqX//6BlAg==}
+    engines: {node: '>=12'}
+    dependencies:
+      execa: 5.1.1
+    dev: true
+
   /run-async@2.4.1:
     resolution: {integrity: sha512-tvVnVv01b8c1RrA6Ep7JkStj85Guv/YrMcwqYQnwjsAS2cTmmPGBBjAjpCW7RrSodNSoE2/qg9O4bceNvUuDgQ==}
     engines: {node: '>=0.12.0'}
@@ -13127,6 +13192,11 @@ packages:
   /titleize@2.1.0:
     resolution: {integrity: sha512-m+apkYlfiQTKLW+sI4vqUkwMEzfgEUEYSqljx1voUE3Wz/z1ZsxyzSxvH2X8uKVrOp7QkByWt0rA6+gvhCKy6g==}
     engines: {node: '>=6'}
+    dev: true
+
+  /titleize@3.0.0:
+    resolution: {integrity: sha512-KxVu8EYHDPBdUYdKZdKtU2aj2XfEx9AfjXxE/Aj0vT06w2icA09Vus1rh6eSu1y01akYg6BjIK/hxyLJINoMLQ==}
+    engines: {node: '>=12'}
     dev: true
 
   /tmp@0.0.29:
