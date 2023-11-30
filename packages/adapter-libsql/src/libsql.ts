@@ -26,7 +26,7 @@ type TransactionClient = LibSqlTransactionRaw
 const LOCK_TAG = Symbol()
 
 class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly flavour = 'sqlite';
+  readonly provider = 'sqlite';
 
   [LOCK_TAG] = new Mutex()
 

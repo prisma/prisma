@@ -3,14 +3,9 @@ import { DriverAdapter } from '@prisma/driver-adapter-utils'
 import { Providers as Provider } from '../../_utils/providers'
 
 /**
- * Driver adapter flavour (SQL dialect).
- */
-type Flavour = DriverAdapter['flavour']
-
-/**
  * Get driver adapter flavour from provider in schema.
  */
-export function flavourFromProvider(provider: Provider): Flavour {
+export function getDriverAdaptersProvider(provider: Provider): DriverAdapter['adapter'] {
   switch (provider) {
     case Provider.POSTGRESQL:
     case Provider.COCKROACHDB:
@@ -20,7 +15,7 @@ export function flavourFromProvider(provider: Provider): Flavour {
     case Provider.SQLITE:
       return 'sqlite'
     default:
-      throw new Error(`no driver adapter flavour for ${provider} yet`)
+      throw new Error(`no driver adapter support for ${provider} yet`)
   }
 }
 

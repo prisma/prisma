@@ -20,7 +20,7 @@ type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly flavour = 'postgres'
+  readonly provider = 'postgres'
 
   constructor(protected readonly client: ClientT) {}
 

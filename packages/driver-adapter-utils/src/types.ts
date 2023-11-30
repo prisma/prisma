@@ -67,7 +67,7 @@ export type Error =
     }
 
 export interface Queryable {
-  readonly flavour: 'mysql' | 'postgres' | 'sqlite'
+  readonly provider: 'mysql' | 'postgres' | 'sqlite'
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
