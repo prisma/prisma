@@ -15,19 +15,16 @@ export const platformParameters = {
     // TODO Remove this from global once we have a way for parents to strip out flags upon parsing.
     '--early-access-feature': Boolean,
     '--token': String,
-    '-t': '--token',
   },
   workspace: {
     '--early-access-feature': Boolean,
     '--token': String,
-    '-t': '--token',
     '--workspace': String,
     '-w': '--workspace',
   },
   project: {
     '--early-access-feature': Boolean,
     '--token': String,
-    '-t': '--token',
     '--workspace': String,
     '-w': '--workspace',
     '--project': String,
