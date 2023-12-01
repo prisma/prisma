@@ -167,8 +167,4 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
   startTransaction(): Promise<Result<Transaction>> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
   }
-
-  async close() {
-    return ok(undefined)
-  }
 }

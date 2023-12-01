@@ -177,8 +177,4 @@ const adapter = new PrismaPlanetScale(client)
         })
     })
   }
-
-  async close() {
-    return ok(undefined)
-  }
 }

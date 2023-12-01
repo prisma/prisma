@@ -139,8 +139,4 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
     const connection = await this.client.connect()
     return ok(new PgTransaction(connection, options))
   }
-
-  async close() {
-    return ok(undefined)
-  }
 }
