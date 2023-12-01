@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
-import { Commands, getCommandWithExecutor, isError, unknownCommand } from '@prisma/internals'
+import { Commands, getCommandWithExecutor, HelpError, isError } from '@prisma/internals'
 import fs from 'fs-extra'
-import { green } from 'kleur/colors'
+import { bold, green, red } from 'kleur/colors'
 import fetch, { Headers } from 'node-fetch'
 import path from 'path'
 import XdgAppPaths from 'xdg-app-paths'
@@ -13,17 +13,14 @@ const debug = Debug('prisma:cli:platform')
 export const platformParameters = {
   global: {
     // TODO Remove this from global once we have a way for parents to strip out flags upon parsing.
-    '--early-access': Boolean,
     '--token': String,
   },
   workspace: {
-    '--early-access': Boolean,
     '--token': String,
     '--workspace': String,
     '-w': '--workspace',
   },
   project: {
-    '--early-access': Boolean,
     '--token': String,
     '--workspace': String,
     '-w': '--workspace',
@@ -123,12 +120,14 @@ export const platformRequestOrThrow = async (params: {
 }
 
 export const dispatchToSubCommand = async (commands: Commands, argv: string[]) => {
-  const next = argv[0]
-  if (!next) return ''
-  if (next.startsWith('-')) return ''
-  const commandName = next
+  const commandName = argv[0]
+  // Placeholder for now
+  const helpPlaceholder = 'Coming soon: help output for this command.'
+  if (!commandName) return helpPlaceholder
   const command = commands[commandName]
-  if (!command) return unknownCommand('', commandName)
+  if (!command) {
+    throw new HelpError(`\n${bold(red(`!`))} Unknown command or parameter "${commandName}"\n${helpPlaceholder}`)
+  }
   const result = await command.parse(argv.slice(1))
   return result
 }
