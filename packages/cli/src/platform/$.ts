@@ -21,9 +21,7 @@ export class $ implements Command {
     // It makes it possible to run, for example:
     // prisma platform --early-access login
     // prisma platform login --early-access
-    const argvWithoutEarlyAccess = (argv = argv.filter(function (it) {
-      return it !== '--early-access'
-    }))
+    const argvWithoutEarlyAccess = (argv = argv.filter((it) => it !== '--early-access'))
 
     const result = await dispatchToSubCommand(this.commands, argvWithoutEarlyAccess)
     // TODO: Consider removing JSON.stringify as it breaks if sub-command parse returns JSON.stringify
