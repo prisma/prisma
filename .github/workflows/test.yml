@@ -40,6 +40,9 @@ on:
       - 'sandbox/**'
   workflow_dispatch:
 
+env:
+  TEST_REUSE_DATABASE: true
+
 jobs:
   detect_jobs_to_run:
     name: Detect jobs to run
