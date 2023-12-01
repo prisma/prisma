@@ -23,7 +23,7 @@ export class CLI implements Command {
       '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--preview-feature': Boolean,
-      '--early-access-feature': Boolean,
+      '--early-access': Boolean,
       '--telemetry-information': String,
     })
 
@@ -70,8 +70,8 @@ export class CLI implements Command {
         argsForCmd = [...args._.slice(1), `--experimental=${args['--experimental']}`]
       } else if (args['--preview-feature']) {
         argsForCmd = [...args._.slice(1), `--preview-feature=${args['--preview-feature']}`]
-      } else if (args['--early-access-feature']) {
-        argsForCmd = [...args._.slice(1), `--early-access-feature=${args['--early-access-feature']}`]
+      } else if (args['--early-access']) {
+        argsForCmd = [...args._.slice(1), `--early-access=${args['--early-access']}`]
       } else {
         argsForCmd = args._.slice(1)
       }
@@ -128,7 +128,7 @@ export class CLI implements Command {
 
       Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
       ${dim('$')} prisma migrate dev
-  
+
       Pull the schema from an existing database, updating the Prisma schema
       ${dim('$')} prisma db pull
 

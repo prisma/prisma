@@ -13,17 +13,17 @@ const debug = Debug('prisma:cli:platform')
 export const platformParameters = {
   global: {
     // TODO Remove this from global once we have a way for parents to strip out flags upon parsing.
-    '--early-access-feature': Boolean,
+    '--early-access': Boolean,
     '--token': String,
   },
   workspace: {
-    '--early-access-feature': Boolean,
+    '--early-access': Boolean,
     '--token': String,
     '--workspace': String,
     '-w': '--workspace',
   },
   project: {
-    '--early-access-feature': Boolean,
+    '--early-access': Boolean,
     '--token': String,
     '--workspace': String,
     '-w': '--workspace',
