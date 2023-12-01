@@ -53,7 +53,7 @@ export class DebugInfo implements Command {
 
     // Loads the `.env` file if it exists
     // and prints a line to stdout to inform the users
-    loadEnvFile(undefined, true)
+    loadEnvFile(args['--schema'], true)
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
