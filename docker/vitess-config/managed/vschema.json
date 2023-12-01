@@ -1,0 +1,4 @@
+{
+  "sharded": false,
+  "foreignKeyMode": "managed"
+}
