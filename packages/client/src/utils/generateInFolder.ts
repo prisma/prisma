@@ -98,11 +98,11 @@ export async function generateInFolder({
     throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
   }
   const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
-  const queryEngineBinaryPath = path.join(
-    enginesPath,
-    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-  )
+  const queryEngineLibraryPath =
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(platform, 'fs'))
+  const queryEngineBinaryPath =
+    process.env.PRISMA_QUERY_ENGINE_BINARY ??
+    path.join(enginesPath, `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`)
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
