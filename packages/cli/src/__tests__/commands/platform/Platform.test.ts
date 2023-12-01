@@ -14,6 +14,6 @@ describe('--early-access flag', () => {
     const result = await $.new({}).parse(['--early-access'])
     const resultIsError = isError(result)
     expect(resultIsError).toBeFalsy()
-    expect(result).toBe('""')
+    expect(result).toBe('"Coming soon: help output for this command."')
   })
 })
