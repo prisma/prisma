@@ -254,7 +254,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     default:
       if (fieldTypeId >= 10000) {
         // Postgres Custom Types
-        return ColumnTypeEnum.Enum
+        return ColumnTypeEnum.Text
       }
       throw new UnsupportedNativeDataType(fieldTypeId)
   }
