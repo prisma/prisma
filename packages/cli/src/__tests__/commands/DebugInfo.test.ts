@@ -55,19 +55,16 @@ const envVars = {
 }
 
 describe('debug', () => {
-  beforeEach(() => {
-    process.env = { ...originalEnv, ...envVars }
-  })
-  afterAll(() => {
+  afterEach(() => {
     process.env = { ...originalEnv }
   })
 
   it('should succeed when env vars are NOT set (undefined)', async () => {
     ctx.fixture('example-project/prisma')
 
-    // Make sure all env vars are set to undefined
-    const envVarsSetToUndefined = Object.fromEntries(Object.keys(envVars).map((key) => [key, undefined]))
-    Object.assign(process.env, envVarsSetToUndefined)
+    // Make sure all env vars are undefined
+    Object.keys(envVars).map((key) => delete process.env[key])
+
     // To make sure the terminal is always detected
     // as non interactive, locally and in CI
     process.env.TERM = 'dumb'
@@ -248,6 +245,9 @@ describe('debug', () => {
 
   it('should succeed when env vars are set', async () => {
     ctx.fixture('example-project/prisma')
+
+    Object.assign(process.env, envVars)
+
     const result = await DebugInfo.new().parse([])
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
@@ -320,6 +320,98 @@ describe('debug', () => {
 
       For Prisma Studio
       - BROWSER: \`something\`
+
+      -- Terminal is interactive? --
+      false
+
+      -- CI detected? --
+      true
+
+    `)
+  })
+
+  it('should read the .env file if it exists', async () => {
+    ctx.fixture('dotenv-debug-cmd')
+
+    // To make sure the terminal is always detected
+    // as non interactive, locally and in CI
+    process.env.TERM = 'dumb'
+
+    const result = await DebugInfo.new().parse([])
+
+    expect(result).not.toContain('this_is_private')
+    expect(result).toContain('from_env_file')
+
+    expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
+      -- Prisma schema --
+      Path: REDACTED_PATH
+
+      -- Local cache directory for engines files --
+      Path: REDACTED_PATH
+
+      -- Environment variables --
+      When not set, the line is dimmed and no value is displayed.
+      When set, the line is bold and the value is inside the \`\` backticks.
+
+      For general debugging
+      - CI: \`true\`
+      - DEBUG: \`prisma*\`
+      - NODE_ENV: \`test\`
+      - RUST_LOG: \`from_env_file\`
+      - RUST_BACKTRACE: \`from_env_file\`
+      - NO_COLOR: \`from_env_file\`
+      - TERM: \`dumb\`
+      - NODE_TLS_REJECT_UNAUTHORIZED: \`from_env_file\`
+      - NO_PROXY: \`from_env_file\`
+      - http_proxy: \`from_env_file\`
+      - HTTP_PROXY: \`from_env_file\`
+      - https_proxy: \`from_env_file\`
+      - HTTPS_PROXY: \`from_env_file\`
+
+      For more information about Prisma environment variables:
+      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+
+      For hiding messages
+      - PRISMA_DISABLE_WARNINGS: \`from_env_file\`
+      - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS: \`from_env_file\`
+      - PRISMA_HIDE_UPDATE_MESSAGE: \`true\`
+
+      For downloading engines
+      - PRISMA_ENGINES_MIRROR: \`from_env_file\`
+      - PRISMA_BINARIES_MIRROR (deprecated): \`from_env_file\`
+      - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`from_env_file\`
+      - BINARY_DOWNLOAD_VERSION: \`from_env_file\`
+
+      For configuring the Query Engine Type
+      - PRISMA_CLI_QUERY_ENGINE_TYPE: \`from_env_file\`
+      - PRISMA_CLIENT_ENGINE_TYPE: \`from_env_file\`
+
+      For custom engines
+      - PRISMA_QUERY_ENGINE_BINARY: \`from_env_file\`
+      - PRISMA_QUERY_ENGINE_LIBRARY: \`from_env_file\`
+      - PRISMA_SCHEMA_ENGINE_BINARY: \`from_env_file\`
+      - PRISMA_MIGRATION_ENGINE_BINARY: \`from_env_file\`
+
+      For the "postinstall" npm hook
+      - PRISMA_GENERATE_SKIP_AUTOINSTALL: \`from_env_file\`
+      - PRISMA_SKIP_POSTINSTALL_GENERATE: \`from_env_file\`
+      - PRISMA_GENERATE_IN_POSTINSTALL: \`from_env_file\`
+
+      For "prisma generate"
+      - PRISMA_GENERATE_DATAPROXY: \`from_env_file\`
+      - PRISMA_GENERATE_NO_ENGINE: \`from_env_file\`
+
+      For Prisma Client
+      - PRISMA_SHOW_ALL_TRACES: \`from_env_file\`
+      - PRISMA_CLIENT_NO_RETRY (Binary engine only): \`from_env_file\`}
+
+      For Prisma Migrate
+      - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`from_env_file\`
+      - PRISMA_MIGRATE_SKIP_GENERATE: \`from_env_file\`
+      - PRISMA_MIGRATE_SKIP_SEED: \`from_env_file\`
+
+      For Prisma Studio
+      - BROWSER: \`from_env_file\`
 
       -- Terminal is interactive? --
       false

@@ -1,5 +1,15 @@
 import type { Command } from '@prisma/internals'
-import { arg, format, getSchemaPath, HelpError, isCi, isError, isInteractive, link } from '@prisma/internals'
+import {
+  arg,
+  format,
+  getSchemaPath,
+  HelpError,
+  isCi,
+  isError,
+  isInteractive,
+  link,
+  loadEnvFile,
+} from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 import { getRootCacheDir } from '../../fetch-engine/src/utils'
@@ -40,6 +50,10 @@ export class DebugInfo implements Command {
     if (args['--help']) {
       return this.help()
     }
+
+    // Loads the `.env` file if it exists
+    // and prints a line to stdout to inform the users
+    loadEnvFile(undefined, true)
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
