@@ -384,8 +384,8 @@ describe('debug', () => {
       - BINARY_DOWNLOAD_VERSION: \`from_env_file\`
 
       For configuring the Query Engine Type
-      - PRISMA_CLI_QUERY_ENGINE_TYPE: \`from_env_file\`
-      - PRISMA_CLIENT_ENGINE_TYPE: \`from_env_file\`
+      - PRISMA_CLI_QUERY_ENGINE_TYPE:
+      - PRISMA_CLIENT_ENGINE_TYPE:
 
       For custom engines
       - PRISMA_QUERY_ENGINE_BINARY: \`from_env_file\`
