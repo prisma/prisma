@@ -432,6 +432,12 @@ You will need to have installed the Rust toolchain and a few extra dependencies.
 
 2. Run `pnpm install` again to propagate the new engines.
 
+### On CI
+
+For open pull request, can also add `/engine-branch branchName` command into PR body and re-run
+the pipeline. Engine from corresponding branch will be checked out and built before running any tests
+on CI.
+
 ## CI - Continuous Integration
 
 By creating a Pull Request the following pipelines will be triggered

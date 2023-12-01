@@ -9,17 +9,21 @@ import packageJson from '../../../package.json'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary
+const runLibraryTest =
+  getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary && !process.env.PRISMA_QUERY_ENGINE_LIBRARY
+
+const runBinaryTest =
+  getCliQueryEngineBinaryType() === BinaryType.QueryEngineBinary && !process.env.PRISMA_QUERY_ENGINE_BINARY
 
 describe('version', () => {
   // Node-API Tests
 
-  testIf(useNodeAPI)('basic version (Node-API)', async () => {
+  testIf(runLibraryTest)('basic version (Node-API)', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  testIf(useNodeAPI)(
+  testIf(runLibraryTest)(
     'version with custom binaries (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
@@ -57,7 +61,7 @@ describe('version', () => {
 
   // Binary Tests
 
-  testIf(!useNodeAPI)(
+  testIf(runBinaryTest)(
     'basic version',
     async () => {
       const data = await ctx.cli('--version')
@@ -66,7 +70,7 @@ describe('version', () => {
     10_000,
   )
 
-  testIf(!useNodeAPI)(
+  testIf(runBinaryTest)(
     'version with custom binaries',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
