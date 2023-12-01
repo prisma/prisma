@@ -92,6 +92,10 @@ export const getPlatformTokenOrThrow = async <$Args extends Record<string, unkno
 export const platformConsoleUrl = 'https://console.prisma.io'
 const platformAPIBaseURL = 'https://console.prisma.io/'
 
+export const platformPrislyLinks = {
+  login: 'https://pris.ly/platform-cli-login',
+}
+
 /**
  *
  * @remarks
