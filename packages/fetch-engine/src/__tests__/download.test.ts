@@ -27,7 +27,13 @@ const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/
 jest.setTimeout(300_000)
 jest.retryTimes(3)
 
-describe('download', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const usesCustomEngines =
+  process.env.PRISMA_QUERY_ENGINE_LIBRARY ||
+  process.env.PRISMA_QUERY_ENGINE_BINARY ||
+  process.env.PRISMA_SCHEMA_ENGINE_BINARY
+
+describeIf(!usesCustomEngines)('download', () => {
   const baseDirAll = path.posix.join(dirname, 'all')
   const baseDirCorruption = path.posix.join(dirname, 'corruption')
   const baseDirChecksum = path.posix.join(dirname, 'checksum')
