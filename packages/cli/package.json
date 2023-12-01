@@ -88,7 +88,7 @@
     "@types/node-fetch": "2.6.9",
     "@types/rimraf": "3.0.2",
     "async-listen": "^3.0.1",
-    "checkpoint-client": "1.1.27",
+    "checkpoint-client": "1.1.33",
     "debug": "4.3.4",
     "dotenv": "16.0.3",
     "esbuild": "0.19.8",
