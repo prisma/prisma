@@ -6,7 +6,7 @@ import { underline } from 'kleur/colors'
 import open from 'open'
 
 import { getInstalledPrismaClientVersion } from '../utils/getClientVersion'
-import { platformConsoleUrl, platformPrislyLinks, writeAuthConfig } from '../utils/platform'
+import { platformConsoleUrl, writeAuthConfig } from '../utils/platform'
 
 interface AuthResult {
   token: string
@@ -41,7 +41,6 @@ export class Login implements Command {
             server.close()
             res.setHeader('connection', 'close')
             const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
-            console.log('searchParams', searchParams)
             const token = searchParams.get('token') ?? ''
             const error = searchParams.get('error')
             const location = new URL(`${platformConsoleUrl}/auth/cli`)
@@ -99,7 +98,7 @@ const generateAuthSigninUrl = async (params: { connection: string; redirectTo: s
     ...params,
   }
   const stateEncoded = Buffer.from(JSON.stringify(state), `utf-8`).toString(`base64`)
-  const url = new URL(platformPrislyLinks.login)
+  const url = new URL(`${platformConsoleUrl}/auth/cli`)
   url.searchParams.set('state', stateEncoded)
   return url
 }
