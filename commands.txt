@@ -1,0 +1,26 @@
+mysql -h 127.0.0.1 -P 33807 -u root -p
+
+SHOW DATABASES;
+
+CREATE DATABASE foo;
+
+USE foo;
+
+SHOW TABLES;
+
+CREATE TABLE Persons (
+    PersonID int NOT NULL,
+    FirstName varchar(50) NOT NULL,
+    LastName varchar(50) NOT NULL,
+    PRIMARY KEY (PersonID)
+);
+
+CREATE TABLE Orders (
+    OrderID int NOT NULL,
+    OrderNumber int NOT NULL,
+    PersonID int,
+    PRIMARY KEY (OrderID),
+    FOREIGN KEY (PersonID) REFERENCES Persons(PersonID)
+);
+
+SHOW VSCHEMA KEYSPACES;
