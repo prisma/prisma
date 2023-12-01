@@ -51,9 +51,7 @@ export class DebugInfo implements Command {
       return this.help()
     }
 
-    // Loads the `.env` file if it exists
-    // and prints a line to stdout to inform the users
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]

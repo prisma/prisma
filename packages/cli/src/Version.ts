@@ -63,9 +63,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    // Loads the `.env` file if it exists
-    // and prints a line to stdout to inform the users
-    loadEnvFile(undefined, true)
+    loadEnvFile({ printMessage: true })
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
