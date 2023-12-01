@@ -5,7 +5,7 @@ import { Providers as Provider } from '../../_utils/providers'
 /**
  * Get driver adapter flavour from provider in schema.
  */
-export function getDriverAdaptersProvider(provider: Provider): DriverAdapter['adapter'] {
+export function getDriverAdaptersProvider(provider: Provider): DriverAdapter['provider'] {
   switch (provider) {
     case Provider.POSTGRESQL:
     case Provider.COCKROACHDB:
