@@ -96,7 +96,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.7.0-26.ff1752c3aea19d4b702fcbe2b8d347961b363084",
+    "@prisma/engines-version": "5.7.0-29.integration-sql-nested-transactions2-e943433a36b16524e1d88f0f0b93c3d8d4ddd4c8",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",

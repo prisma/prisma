@@ -81,7 +81,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.7.0-26.ff1752c3aea19d4b702fcbe2b8d347961b363084",
+    "@prisma/prisma-schema-wasm": "5.7.0-29.integration-sql-nested-transactions2-e943433a36b16524e1d88f0f0b93c3d8d4ddd4c8",
     "arg": "5.0.2",
     "prompts": "2.4.2"
   },
