@@ -71,7 +71,7 @@ jobs:
 
       - name: Extract Engine Commit hash from version
         id: extract-engine-commit-hash
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const hash = context.payload.inputs.version.split('.').pop()
@@ -162,7 +162,7 @@ jobs:
       #
       - name: Extract patch branch name from version
         id: extract-patch-branch-name
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const parts = context.payload.inputs.version.split('.')

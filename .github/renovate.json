@@ -18,6 +18,7 @@
     "redis",
     "@types/redis"
   ],
+  "ignorePaths": ["sandbox/**"],
   "constraints": {
     "pnpm": "8"
   },

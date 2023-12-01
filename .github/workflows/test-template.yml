@@ -34,6 +34,10 @@ on:
         description: pnpm package manager version
         type: string
         default: '8'
+      engineHash:
+        description: Customly-built engine hash to use
+        type: string
+        required: false
     secrets:
       BUILDPULSE_ACCESS_KEY_ID:
         required: false
@@ -76,6 +80,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
       # https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
@@ -102,7 +107,7 @@ jobs:
   # CLIENT (functional and legacy tests without types test)
   #
   client:
-    name: Client func/legacy-notypes
+    name: Client func&legacy-notypes
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
@@ -155,11 +160,12 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
       # Run the functional test suite
-      - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
@@ -227,6 +233,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
@@ -275,6 +282,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        engine-type: ['library', 'wasm']
         flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
@@ -305,9 +313,10 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional --flavor ${{ matrix.flavor }} --shard ${{ matrix.shard }} --runInBand
+      - run: pnpm run test:functional --flavor ${{ matrix.flavor }} --shard ${{ matrix.shard }} --engine-type ${{ matrix.engine-type }} --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -375,12 +384,13 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test:memory
         working-directory: packages/client
 
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         if: ${{ failure() && github.event_name == 'pull_request' }}
         id: upload-report
         env:
@@ -471,6 +481,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
@@ -522,6 +533,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       # shouldn't take more than 15 minutes
@@ -578,6 +590,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
@@ -612,6 +625,7 @@ jobs:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
+          engine-hash: ${{ inputs.engineHash }}
 
       - run: pnpm tsc -p tsconfig.utils.typecheck.json
 
@@ -665,6 +679,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -727,6 +742,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -789,6 +805,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -851,6 +868,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -886,6 +904,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
@@ -937,6 +956,16 @@ jobs:
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}
+
+      - run: pnpm run test
+        name: 'adapter-planetscale'
+        working-directory: packages/adapter-planetscale
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/adapter-planetscale/src/__tests__/coverage/clover.xml
+          flags: adapter-planetscale,${{ matrix.os }},library,binary
+          name: adapter-planetscale-${{ matrix.os }}
 
       - run: pnpm run test
         name: 'instrumentation'
@@ -1000,11 +1029,12 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
           pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
 
       - name: Test packages/client
-        run: pnpm run test:functional:code --silent --shard ${{matrix.shard}}
+        run: pnpm run test:functional:code --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
         working-directory: packages/client
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
@@ -1075,6 +1105,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 

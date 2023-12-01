@@ -317,7 +317,15 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   if (getClientEngineType(generator) === ClientEngineType.Wasm) {
     const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
     const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
-    await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
+    // some bundlers (eg. webpack) need this file to exist, even if it's empty
+    // this is because they analyze `query-engine.wasm` for references to other
+    // files. It does not matter for us, because we bundle query_engine_bg.js.
+    const dummyQueryEngineBgTargetPath = path.join(finalOutputDir, 'query_engine_bg.js')
+    const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
+
+    const copyOrSymlink = testMode ? fs.symlink : fs.copyFile
+    await copyOrSymlink(queryEngineWasmFilePath, queryEngineWasmTargetPath)
+    await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')

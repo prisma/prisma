@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
-import type planetScale from '@planetscale/database'
+// default import does not work correctly for JS values inside,
+// i.e. client
+import * as planetScale from '@planetscale/database'
 import type {
   DriverAdapter,
   Query,
@@ -27,7 +29,7 @@ class RollbackError extends Error {
   }
 }
 
-class PlanetScaleQueryable<ClientT extends planetScale.Connection | planetScale.Transaction> implements Queryable {
+class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
   readonly flavour = 'mysql'
   constructor(protected client: ClientT) {}
 
@@ -109,8 +111,6 @@ function parseErrorMessage(message: string) {
 }
 
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
-  finished = false
-
   constructor(
     tx: planetScale.Transaction,
     readonly options: TransactionOptions,
@@ -123,7 +123,6 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
-    this.finished = true
     this.txDeferred.resolve()
     return Promise.resolve(ok(await this.txResultPromise))
   }
@@ -131,21 +130,22 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
-    this.finished = true
     this.txDeferred.reject(new RollbackError())
     return Promise.resolve(ok(await this.txResultPromise))
   }
-
-  dispose(): Result<void> {
-    if (!this.finished) {
-      this.rollback().catch(console.error)
-    }
-    return ok(undefined)
-  }
 }
 
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Connection> implements DriverAdapter {
-  constructor(client: planetScale.Connection) {
+export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
+  constructor(client: planetScale.Client) {
+    // this used to be a check for constructor name at same point (more reliable when having multiple copies
+    // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
+    if (!(client instanceof planetScale.Client)) {
+      throw new TypeError(`PrismaPlanetScale must be initialized with an instance of Client:
+import { Client } from '@planetscale/database'
+const client = new Client({ url })
+const adapter = new PrismaPlanetScale(client)
+`)
+    }
     super(client)
   }
 

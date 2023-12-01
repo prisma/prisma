@@ -8,10 +8,10 @@ import { LibraryLoader } from './types/Library'
 
 declare const WebAssembly: any // TODO not defined in Node types?
 
+let loadedWasmInstance: any
 export const wasmLibraryLoader: LibraryLoader = {
   async loadLibrary(config) {
     const { generator, clientVersion, adapter } = config
-    const wasmMod = await config.getQueryEngineWasmModule?.()
 
     if (generator?.previewFeatures.includes('driverAdapters') === undefined) {
       throw new PrismaClientInitializationError(
@@ -27,16 +27,23 @@ export const wasmLibraryLoader: LibraryLoader = {
       )
     }
 
-    if (wasmMod === undefined || wasmMod === null) {
-      throw new PrismaClientInitializationError(
-        'The loaded wasm module was unexpectedly `undefined` or `null` once loaded',
-        clientVersion,
-      )
-    }
+    // we only create the instance once for efficiency and also because wasm
+    // bindgen keeps an internal cache of its instance already, when the wasm
+    // engine is loaded more than once it crashes with `unwrap_throw failed`.
+    if (loadedWasmInstance === undefined) {
+      const wasmMod = await config.getQueryEngineWasmModule?.()
 
-    // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
-    const instance = new WebAssembly.Instance(wasmMod, { './query_engine_bg.js': wasmBindgenRuntime })
-    wasmBindgenRuntime.__wbg_set_wasm(instance.exports)
+      if (wasmMod === undefined || wasmMod === null) {
+        throw new PrismaClientInitializationError(
+          'The loaded wasm module was unexpectedly `undefined` or `null` once loaded',
+          clientVersion,
+        )
+      }
+
+      // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
+      loadedWasmInstance = new WebAssembly.Instance(wasmMod, { './query_engine_bg.js': wasmBindgenRuntime }).exports
+      wasmBindgenRuntime.__wbg_set_wasm(loadedWasmInstance)
+    }
 
     return {
       debugPanic() {
@@ -48,7 +55,6 @@ export const wasmLibraryLoader: LibraryLoader = {
       version() {
         return { commit: 'unknown', version: 'unknown' } // not used
       },
-      // after taking a look at the wasm-bindgen output, it seems like we should be able to produce API-compliant engines
       QueryEngine: wasmBindgenRuntime.QueryEngine,
     }
   },

@@ -27,6 +27,7 @@ import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
+import { Platform } from './platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -82,6 +83,30 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
+      platform: Platform.$.new({
+        login: Platform.Login.new(),
+        logout: Platform.Logout.new(),
+        workspace: Platform.Workspace.$.new({
+          show: Platform.Workspace.Show.new(),
+        }),
+        auth: Platform.Auth.$.new({
+          show: Platform.Auth.Show.new(),
+        }),
+        project: Platform.Project.$.new({
+          create: Platform.Project.Create.new(),
+          delete: Platform.Project.Delete.new(),
+          show: Platform.Project.Show.new(),
+        }),
+        accelerate: Platform.Accelerate.$.new({
+          enable: Platform.Accelerate.Enable.new(),
+          disable: Platform.Accelerate.Disable.new(),
+        }),
+        apikey: Platform.APIKey.$.new({
+          create: Platform.APIKey.Create.new(),
+          delete: Platform.APIKey.Delete.new(),
+          show: Platform.APIKey.Show.new(),
+        }),
+      }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
@@ -109,19 +134,7 @@ async function main(): Promise<number> {
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
     },
-    [
-      'version',
-      'init',
-      'migrate',
-      'db',
-      'introspect',
-      'studio',
-      'generate',
-      'validate',
-      'format',
-      'doctor',
-      'telemetry',
-    ],
+    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
   // Execute the command

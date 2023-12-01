@@ -15,10 +15,7 @@
   "homepage": "https://www.prisma.io",
   "bugs": "https://github.com/prisma/prisma/issues",
   "dependencies": {
-    "@prisma/debug": "workspace:*",
-    "@types/cross-spawn": "6.0.4",
-    "cross-spawn": "7.0.3",
-    "kleur": "4.1.5"
+    "@prisma/debug": "workspace:*"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -28,15 +25,18 @@
   },
   "devDependencies": {
     "@swc-node/register": "1.6.8",
-    "@swc/core": "1.3.95",
+    "@swc/core": "1.3.96",
     "@swc/jest": "0.2.29",
-    "@types/jest": "29.5.7",
-    "@types/node": "18.18.6",
-    "esbuild": "0.19.5",
+    "@types/jest": "29.5.10",
+    "@types/node": "18.18.13",
+    "esbuild": "0.19.8",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "ts-node": "10.9.1",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "@types/cross-spawn": "6.0.6",
+    "cross-spawn": "7.0.3",
+    "kleur": "4.1.5"
   },
   "files": [
     "README.md",

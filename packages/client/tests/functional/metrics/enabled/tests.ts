@@ -269,7 +269,11 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_idle',
               labels: {},
-              value: expect.any(Number),
+              // This can sometimes be reported as 0, 1 or 2,
+              // as metrics are reported asynchronously.
+              // Note: We want to investigate why these different values are reported in our test setup
+              // https://github.com/prisma/team-orm/issues/587
+              value: expect.toBeOneOf([0, 1, 2]),
               description: 'The number of pool connections that are not busy running a query',
             },
             {
@@ -359,7 +363,11 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_idle',
               labels: {},
-              value: expect.any(Number),
+              // This can sometimes be reported as 0, 1 or 2,
+              // as metrics are reported asynchronously.
+              // Note: We want to investigate why these different values are reported in our test setup
+              // https://github.com/prisma/team-orm/issues/587
+              value: expect.toBeOneOf([0, 1, 2]),
               description: 'The number of pool connections that are not busy running a query',
             },
             {
@@ -584,6 +592,10 @@ testMatrix.setupTestSuite(
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: 'Metrics are not supported with Data Proxy yet',
+    },
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Metrics are not supported with WASM engine yet',
     },
   },
 )

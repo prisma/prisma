@@ -14,7 +14,7 @@
 export function assertAlways(condition: unknown, message: string): asserts condition {
   if (!condition) {
     throw new Error(
-      `${message}. This should never happen. If you see this error, please, open an issue at https://github.com/prisma/prisma/issues/new?assignees=&labels=kind%2Fbug&projects=&template=bug_report.yml`,
+      `${message}. This should never happen. If you see this error, please, open an issue at https://pris.ly/prisma-prisma-bug-report`,
     )
   }
 }

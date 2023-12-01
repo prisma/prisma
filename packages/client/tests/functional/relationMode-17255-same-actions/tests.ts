@@ -37,15 +37,12 @@ async function createXItems({ count }) {
 }
 
 testMatrix.setupTestSuite(
-  (suiteConfig) => {
+  ({ provider, providerFlavor, relationMode, onUpdate, onDelete }) => {
     const conditionalError = ConditionalError.new()
-      .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('provider', provider)
+      .with('providerFlavor', providerFlavor)
       // @ts-ignore
-      .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
-
-    const onUpdate = suiteConfig.onUpdate
-    const onDelete = suiteConfig.onDelete
+      .with('relationMode', relationMode || 'foreignKeys')
 
     describe('not-original', () => {
       beforeEach(async () => {
