@@ -81,7 +81,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a",
+    "@prisma/prisma-schema-wasm": "5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a",
     "arg": "5.0.2",
     "prompts": "2.4.2"
   },

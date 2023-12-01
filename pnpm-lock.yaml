@@ -467,8 +467,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
-        version: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
+        specifier: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
+        version: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -726,8 +726,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
-        version: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
+        specifier: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
+        version: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -763,8 +763,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
-        version: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
+        specifier: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
+        version: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,8 +1088,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
-        version: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
+        specifier: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
+        version: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1245,8 +1245,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
-        version: 5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a
+        specifier: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
+        version: 5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3166,8 +3166,8 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@prisma/engines-version@5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a:
-    resolution: {integrity: sha512-sNFo8MJTbcbr0+LMBQHg4jxzSduuLykuqukWe3TH1yVhpfnfbLdFQ5N3IFDnjYWyaolRVxKEd0jz9A9lqb/Bhg==}
+  /@prisma/engines-version@5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a:
+    resolution: {integrity: sha512-2wEVOqNGC9MdD8c0+HiY5sqgu2W4kUE7o3/6VTditHreGMXzGQ5/FsO2Hmhd3qm84GZQwsSAp5Siq2X1BQrDLA==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3175,8 +3175,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a:
-    resolution: {integrity: sha512-cWUGImR3ztSJpb2z+Vka/IS6rFEAvQ6AHlcH92btu+iAjcPpc46YlI23iujvfBpZySJALJmxdji+CNVG2ybWMg==}
+  /@prisma/prisma-schema-wasm@5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a:
+    resolution: {integrity: sha512-NC9xbCEEWyMq5fvMAi53t9hAvgU6BrvT0J8cV3u4T3hQD+QdRaGDgx3gonU5c8isbk7E/XG4gGqAavzYlEpsTQ==}
     dev: false
 
   /@prisma/query-engine-wasm@0.0.16:

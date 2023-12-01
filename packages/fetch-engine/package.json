@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.7.0-21.f2e5886144b9dcd9774a6799317e94d76904001a",
+    "@prisma/engines-version": "5.7.0-25.dependabot-cargo-openssl-0-10-60-9a053826a18b859f8ab4403a00edeca5623f442a",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
