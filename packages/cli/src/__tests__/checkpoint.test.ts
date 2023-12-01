@@ -115,3 +115,20 @@ it('should read data from Prisma schema', async () => {
     }
   `)
 })
+
+it('should redact a Platform token command', () => {
+  expect(redactCommandArray(['platform', '--token="foo"'])).toMatchInlineSnapshot(`
+    [
+      platform,
+      --token=[redacted],
+    ]
+  `)
+})
+it('should redact a Platform token alias command', () => {
+  expect(redactCommandArray(['platform', '-t="foo"'])).toMatchInlineSnapshot(`
+    [
+      platform,
+      -t=[redacted],
+    ]
+  `)
+})
