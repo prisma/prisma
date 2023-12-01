@@ -92,11 +92,6 @@ export interface DriverAdapter extends Queryable {
    * Starts new transation.
    */
   startTransaction(): Promise<Result<Transaction>>
-
-  /**
-   * Closes the connection to the database, if any.
-   */
-  close?: () => Promise<Result<void>>
 }
 
 export type TransactionOptions = {
