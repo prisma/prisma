@@ -320,8 +320,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       checkpoint-client:
-        specifier: 1.1.27
-        version: 1.1.27
+        specifier: 1.1.33
+        version: 1.1.33
       debug:
         specifier: 4.3.4
         version: 4.3.4
@@ -1125,8 +1125,8 @@ importers:
         specifier: 6.0.1
         version: 6.0.1
       checkpoint-client:
-        specifier: 1.1.27
-        version: 1.1.27
+        specifier: 1.1.33
+        version: 1.1.33
       cli-truncate:
         specifier: 2.1.0
         version: 2.1.0
@@ -5527,6 +5527,19 @@ packages:
       ms: 2.1.3
       node-fetch: 2.6.12
       uuid: 9.0.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /checkpoint-client@1.1.33:
+    resolution: {integrity: sha512-kiG9G/2K2lDkwd5q7TrzxN4IVqBSdwItLWXw6H+7+2N5jopjHRjD434OWvg/anuRvAnRlr5tflOuwbetsHQoZQ==}
+    dependencies:
+      ci-info: 4.0.0
+      env-paths: 2.2.1
+      make-dir: 4.0.0
+      ms: 2.1.3
+      node-fetch: 2.7.0
+      uuid: 9.0.1
     transitivePeerDependencies:
       - encoding
     dev: true
@@ -13719,6 +13732,11 @@ packages:
 
   /uuid@9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+    hasBin: true
+    dev: true
+
+  /uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
     dev: true
 
