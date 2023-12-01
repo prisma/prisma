@@ -1,11 +1,12 @@
 import { Command, isError } from '@prisma/internals'
 import listen from 'async-listen'
+import * as checkpoint from 'checkpoint-client'
 import http from 'http'
 import { underline } from 'kleur/colors'
 import open from 'open'
 
 import { getInstalledPrismaClientVersion } from '../utils/getClientVersion'
-import { platformConsoleUrl, writeAuthConfig } from '../utils/platform'
+import { platformConsoleUrl, platformPrislyLinks, writeAuthConfig } from '../utils/platform'
 
 interface AuthResult {
   token: string
@@ -40,6 +41,7 @@ export class Login implements Command {
             server.close()
             res.setHeader('connection', 'close')
             const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
+            console.log('searchParams', searchParams)
             const token = searchParams.get('token') ?? ''
             const error = searchParams.get('error')
             const location = new URL(`${platformConsoleUrl}/auth/cli`)
@@ -52,8 +54,14 @@ export class Login implements Command {
               // TODO: Consider getting the user via Console API instead of passing it via query params
               const user = parseUser(searchParams.get('user') ?? '')
               if (user) {
+                searchParams.delete('token')
+                searchParams.delete('user')
                 location.pathname += '/success'
-                location.searchParams.set('email', user.email)
+                const nextSearchParams = new URLSearchParams({
+                  ...Object.fromEntries(searchParams.entries()),
+                  email: user.email,
+                })
+                location.search = nextSearchParams.toString()
                 resolve({ token, user })
               } else {
                 location.pathname += '/error'
@@ -85,10 +93,15 @@ export class Login implements Command {
 
 const generateAuthSigninUrl = async (params: { connection: string; redirectTo: string }) => {
   const prismaClientVersion = await getInstalledPrismaClientVersion().catch(() => null)
-  const state = { client: `prisma@${prismaClientVersion}`, ...params }
+  const state = {
+    client: `prisma@${prismaClientVersion}`,
+    signature: await checkpoint.getSignature(),
+    ...params,
+  }
   const stateEncoded = Buffer.from(JSON.stringify(state), `utf-8`).toString(`base64`)
-  const queryParams = new URLSearchParams({ state: stateEncoded })
-  return new URL(`${platformConsoleUrl}/auth/cli?${queryParams.toString()}`)
+  const url = new URL(platformPrislyLinks.login)
+  url.searchParams.set('state', stateEncoded)
+  return url
 }
 
 const isConsoleUser = (maybeUser: unknown): maybeUser is AuthResult['user'] => {
