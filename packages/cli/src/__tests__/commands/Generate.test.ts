@@ -67,6 +67,7 @@ describe('using cli', () => {
         Try Prisma Accelerate for Connection Pooling and Caching.
         https://pris.ly/cli/accelerate
         ****************
+
       `)
     }
 
@@ -451,7 +452,7 @@ describe('--schema from project directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                          `)
+      `)
     } else {
       expect(result).toMatchInlineSnapshot(`
 
@@ -476,7 +477,7 @@ describe('--schema from project directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                                `)
+      `)
     }
   })
 
@@ -517,7 +518,7 @@ describe('--schema from project directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                          `)
+      `)
     } else {
       expect(output).toMatchInlineSnapshot(`
 
@@ -542,7 +543,7 @@ describe('--schema from project directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                                `)
+      `)
     }
   })
 
@@ -584,7 +585,7 @@ describe('--schema from parent directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                          `)
+      `)
     } else {
       expect(result).toMatchInlineSnapshot(`
 
@@ -609,7 +610,7 @@ describe('--schema from parent directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                                `)
+      `)
     }
   })
 
@@ -652,7 +653,7 @@ describe('--schema from parent directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                          `)
+      `)
     } else {
       expect(result).toMatchInlineSnapshot(`
 
@@ -677,7 +678,7 @@ describe('--schema from parent directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                                `)
+      `)
     }
   })
 
@@ -723,7 +724,7 @@ describe('--schema from parent directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                          `)
+      `)
     } else {
       expect(result).toMatchInlineSnapshot(`
 
@@ -750,7 +751,7 @@ describe('--schema from parent directory', () => {
         https://pris.ly/cli/accelerate
         ****************
 
-                                                `)
+      `)
     }
   })
 
