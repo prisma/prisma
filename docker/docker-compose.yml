@@ -93,6 +93,25 @@ services:
       timeout: 2s
       retries: 20
 
+  vitess-fk:
+    image: vitess/vttestserver:mysql80@sha256:1381e4cbbd390e5ac0edc1e67236fe49bd69cefd68f3e9b865c8883f57986587
+    restart: unless-stopped
+    ports:
+      - 33808:33807
+    environment:
+      PORT: '33804' # unused in testing, but required by vttestserver
+      KEYSPACES: 'unsharded' # unused in testing, but required by vttestserver
+      NUM_SHARDS: '1' # unused in testing, but required by vttestserver
+      MYSQL_BIND_HOST: '0.0.0.0'
+      FOREIGN_KEY_MODE: 'managed'
+      MYSQL_MAX_CONNECTIONS: 100000
+      TABLET_REFRESH_INTERVAL: '1s'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P33807']
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
   mysql:
     image: mysql:8.0
     command: --lower_case_table_names=1

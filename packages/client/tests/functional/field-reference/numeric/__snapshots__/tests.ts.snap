@@ -96,6 +96,18 @@ Invalid \`prisma.product.findMany()\` invocation in
 Input error. Expected a referenced scalar field of type BigInt but found Product.wrongType of type Int.
 `;
 
+exports[`field-reference.numeric (provider=mysql, fieldType=BigInt, vitess_fk) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation in
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
+
+  XX 
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany(
+Input error. Expected a referenced scalar field of type BigInt but found Product.wrongType of type Int.
+`;
+
 exports[`field-reference.numeric (provider=mysql, fieldType=Float) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
@@ -120,6 +132,18 @@ Invalid \`prisma.product.findMany()\` invocation in
 Input error. Expected a referenced scalar field of type Float but found Product.wrongType of type Int.
 `;
 
+exports[`field-reference.numeric (provider=mysql, fieldType=Float, vitess_fk) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation in
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
+
+  XX 
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany(
+Input error. Expected a referenced scalar field of type Float but found Product.wrongType of type Int.
+`;
+
 exports[`field-reference.numeric (provider=mysql, fieldType=Int) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
@@ -133,6 +157,18 @@ Input error. Expected a referenced scalar field of type Int but found Product.wr
 `;
 
 exports[`field-reference.numeric (provider=mysql, fieldType=Int, js_planetscale) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation in
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
+
+  XX 
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany(
+Input error. Expected a referenced scalar field of type Int but found Product.wrongType of type Float.
+`;
+
+exports[`field-reference.numeric (provider=mysql, fieldType=Int, vitess_fk) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
