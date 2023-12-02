@@ -110,7 +110,9 @@ function setupTestSuiteMatrix(
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
+          let prisma = globalThis['newPrismaClient']({ ...newDriverAdapter() })
+          await prisma.$executeRaw`SET foreign_key_checks = 0;`
+          globalThis['prisma'] = prisma
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']

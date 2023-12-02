@@ -20,7 +20,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
     createdAt DateTime @default(now())
     published Boolean @default(false)
     organizationId ${foreignKeyForProvider(provider)} @unique
-    organization Organization @relation(fields: [organizationId], references: [id])
+    organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   }
 
   model Organization {
