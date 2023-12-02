@@ -18,8 +18,8 @@ const executeOneQuery = async () => {
 }
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
-    const usesDriverAdapter = providerFlavor !== undefined
+  ({ provider }, _suiteMeta, { driverAdapter }) => {
+    const usesDriverAdapter = driverAdapter
     describe('empty', () => {
       test('$metrics.prometheus() does not crash before client is connected', async () => {
         await expect(prisma.$metrics.prometheus()).resolves.not.toThrow()
