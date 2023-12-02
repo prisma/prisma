@@ -110,9 +110,13 @@ function setupTestSuiteMatrix(
         }
 
         if (!options?.skipDefaultClientInstance) {
-          let prisma = globalThis['newPrismaClient']({ ...newDriverAdapter() })
+          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
+        }
+
+        // we need to disable foreign key checks for vitess_fk before the tests run
+        if (suiteConfig.matrixOptions.providerFlavor === 'vitess_fk') {
+          const prisma = globalThis['newPrismaClient']({ ...newDriverAdapter() })
           await prisma.$executeRaw`SET foreign_key_checks = 0;`
-          globalThis['prisma'] = prisma
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
