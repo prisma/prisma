@@ -93,17 +93,20 @@ services:
       timeout: 2s
       retries: 20
 
+  # Vitess (~Planetscale)
+  # https://vitess.io/docs/18.0/get-started/vttestserver-docker-image/
+  # mysql -h localhost -P 33807 --protocol=TCP -u root -p
   vitess-fk:
-    image: vitess/vttestserver:mysql80@sha256:1381e4cbbd390e5ac0edc1e67236fe49bd69cefd68f3e9b865c8883f57986587
+    image: janprisma/vttestserver:mysql80@sha256:bc3978c2ec58f0ded93280f79f00d99741a60e728a14989b473b75fb6d8282b8
     restart: unless-stopped
     ports:
       - 33808:33807
     environment:
-      PORT: '33804' # unused in testing, but required by vttestserver
+      PORT: '33804' # defines that accessible port will be 33807 (33804 + 3)
       KEYSPACES: 'unsharded' # unused in testing, but required by vttestserver
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
       MYSQL_BIND_HOST: '0.0.0.0'
-      FOREIGN_KEY_MODE: 'managed'
+      # FOREIGN_KEY_MODE: 'disallow'
       MYSQL_MAX_CONNECTIONS: 100000
       TABLET_REFRESH_INTERVAL: '1s'
     healthcheck:
@@ -111,6 +114,9 @@ services:
       interval: 5s
       timeout: 2s
       retries: 20
+    volumes:
+      - ./vitess-config:/vt/schema
+
 
   mysql:
     image: mysql:8.0
