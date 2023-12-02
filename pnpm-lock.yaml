@@ -467,8 +467,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
+        version: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -491,8 +491,8 @@ importers:
         specifier: 0.9.4
         version: 0.9.4
       '@prisma/query-engine-wasm':
-        specifier: 0.0.16
-        version: 0.0.16
+        specifier: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
+        version: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -726,8 +726,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
+        version: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -763,8 +763,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
+        version: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,8 +1088,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
+        version: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1245,8 +1245,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
+        version: 5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3166,8 +3166,8 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@prisma/engines-version@5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377:
-    resolution: {integrity: sha512-zFdXHLSraK90qxcu/5gKA5X5ocr88OO36K0m008pBUU/KQfJ4183/uldXlTxRCdulfdvXSAWGcFk47c8W4JHJg==}
+  /@prisma/engines-version@5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107:
+    resolution: {integrity: sha512-G4nmW3+iAvLVwBEHsb1OSXIIPIOfn5Q7vHZ0lR+BXP7jQ+9OHjtpVmAyKEnVl7b3j4AlQnelg1sNHhm1biCJTQ==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3175,12 +3175,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377:
-    resolution: {integrity: sha512-NLdL3W9RCG9TyrpdMFVjxRwckvcutY2z2u+qlwEpD+McioBSlm23xpSxFEUQLWsvDUoHufQT+Xqdd786TTVW9A==}
+  /@prisma/prisma-schema-wasm@5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107:
+    resolution: {integrity: sha512-HEvPAyhniW1E7EM4ZV4yaCLEt3qHOfNZDX61LQQcHPvEirunEGNDGAo0dAxLUam7974BSQaz9FhHvU5C90xjnw==}
     dev: false
 
-  /@prisma/query-engine-wasm@0.0.16:
-    resolution: {integrity: sha512-IKupvjeH8OA9QNAesxRYv84BMyi3PgQ56RNGxUMR+xE8PC0gfHYx9x+7vgrsyHoKqqR0mqIlNvooG3XXM7Qvew==}
+  /@prisma/query-engine-wasm@5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107:
+    resolution: {integrity: sha512-rI7+Y4/XdVZeOfutaWy8GeTy/mQMsmahTD9wl/MbexHU86AY5rLjpkdTRbO6QSqdAQWqYnQthJiXCJ+V6ID2Nw==}
     dev: true
 
   /@prisma/studio-common@0.495.0:
