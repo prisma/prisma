@@ -17,7 +17,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     posts Post[]
     profile Profile?
     referralId String @unique
-    payment Payment? @relation(fields: [paymentId], references: [id])
+    payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Cascade)
     paymentId String @unique
   }
 
