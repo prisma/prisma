@@ -544,6 +544,8 @@ describe('migrate diff', () => {
       ])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        SET foreign_key_checks = 0;
+
         -- CreateTable
         CREATE TABLE \`Blog\` (
             \`id\` INTEGER NOT NULL,
