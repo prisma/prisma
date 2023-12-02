@@ -28,7 +28,7 @@ export default testMatrix.setupSchema(({ provider }) => {
 
     model Property {
       id      ${id}
-      house   House  @relation(fields: [houseId], references: [id])
+      house   House  @relation(fields: [houseId], references: [id], onDelete: Cascade)
       users   User[]
       houseId String
     }
