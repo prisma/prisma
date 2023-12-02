@@ -263,6 +263,9 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
+
+** INSERT AD HERE **
+
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
