@@ -264,8 +264,11 @@ ${dim('```')}
 
 See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
 
-** INSERT AD HERE **
-
+****************
+Deploying your app to Serverless or Edge Functions?
+Try Prisma Accelerate for Connection Pooling and Caching.
+${link('https://pris.ly/cli/accelerate')}
+****************
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 

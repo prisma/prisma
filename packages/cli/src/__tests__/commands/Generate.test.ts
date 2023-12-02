@@ -36,7 +36,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
       `)
     } else {
@@ -58,8 +62,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
-
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
       `)
     }
 
@@ -101,7 +108,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
       `)
     } else {
@@ -123,7 +134,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
       `)
     }
@@ -156,7 +171,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
 
@@ -180,7 +199,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
 
@@ -215,7 +238,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
       `)
     } else {
@@ -237,7 +264,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
       `)
     }
@@ -270,7 +301,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
       `)
     } else {
@@ -292,7 +327,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
       `)
     }
@@ -325,7 +364,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
 
@@ -349,7 +392,11 @@ describe('using cli', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
 
@@ -398,7 +445,11 @@ describe('--schema from project directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                           `)
     } else {
@@ -419,7 +470,11 @@ describe('--schema from project directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                                 `)
     }
@@ -456,7 +511,11 @@ describe('--schema from project directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                           `)
     } else {
@@ -477,7 +536,11 @@ describe('--schema from project directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                                 `)
     }
@@ -515,7 +578,11 @@ describe('--schema from parent directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                           `)
     } else {
@@ -536,7 +603,11 @@ describe('--schema from parent directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                                 `)
     }
@@ -575,7 +646,11 @@ describe('--schema from parent directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                           `)
     } else {
@@ -596,7 +671,11 @@ describe('--schema from parent directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                                 `)
     }
@@ -638,7 +717,11 @@ describe('--schema from parent directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                           `)
     } else {
@@ -661,7 +744,11 @@ describe('--schema from parent directory', () => {
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
         
-        ** INSERT AD HERE **
+        ****************
+        Deploying your app to Serverless or Edge Functions?
+        Try Prisma Accelerate for Connection Pooling and Caching.
+        https://pris.ly/cli/accelerate
+        ****************
 
                                                 `)
     }
