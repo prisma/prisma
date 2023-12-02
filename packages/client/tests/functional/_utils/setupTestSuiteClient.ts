@@ -49,10 +49,6 @@ export async function setupTestSuiteClient({
   process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
   process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
 
-  if (skipDb !== true) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
-  }
-
   if (clientMeta.dataProxy === true) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl
   } else {
@@ -87,7 +83,22 @@ export async function setupTestSuiteClient({
     edge: 'node_modules/@prisma/client/edge',
   }
 
-  return require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
+  const loaded = require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
+
+  if (skipDb !== true) {
+    // we need to disable foreign key checks for vitess_fk before the tests run
+    if (suiteConfig.matrixOptions.providerFlavor === 'vitess_fk') {
+      const prisma = new loaded.PrismaClient()
+      await prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 0;`)
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
+      await prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 1;`)
+      await prisma.$disconnect().catch(() => {})
+    } else {
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
+    }
+  }
+
+  return loaded
 }
 
 /**
