@@ -35,6 +35,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
       `)
     } else {
@@ -55,6 +57,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
       `)
     }
@@ -96,6 +100,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
       `)
     } else {
@@ -116,6 +122,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
       `)
     }
@@ -147,6 +155,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
 
@@ -169,6 +179,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
 
@@ -202,6 +214,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
       `)
     } else {
@@ -222,6 +236,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
       `)
     }
@@ -253,6 +269,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
       `)
     } else {
@@ -273,6 +291,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
       `)
     }
@@ -304,6 +324,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
 
@@ -326,6 +348,8 @@ describe('using cli', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
 
@@ -373,6 +397,8 @@ describe('--schema from project directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                           `)
     } else {
@@ -392,6 +418,8 @@ describe('--schema from project directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                                 `)
     }
@@ -427,6 +455,8 @@ describe('--schema from project directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                           `)
     } else {
@@ -446,6 +476,8 @@ describe('--schema from project directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                                 `)
     }
@@ -482,6 +514,8 @@ describe('--schema from parent directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                           `)
     } else {
@@ -501,6 +535,8 @@ describe('--schema from parent directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                                 `)
     }
@@ -538,6 +574,8 @@ describe('--schema from parent directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                           `)
     } else {
@@ -557,6 +595,8 @@ describe('--schema from parent directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                                 `)
     }
@@ -597,6 +637,8 @@ describe('--schema from parent directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                           `)
     } else {
@@ -618,6 +660,8 @@ describe('--schema from parent directory', () => {
         \`\`\`
 
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        
+        ** INSERT AD HERE **
 
                                                 `)
     }
