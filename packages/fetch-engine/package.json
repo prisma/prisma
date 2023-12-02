@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377",
+    "@prisma/engines-version": "5.7.0-30.janpio-foreign-key-check-0-on-soft-reset-660136bed9126a34fe4173cded12598138a91107",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
