@@ -93,11 +93,10 @@ services:
       timeout: 2s
       retries: 20
 
-  # Vitess (~Planetscale)
-  # https://vitess.io/docs/18.0/get-started/vttestserver-docker-image/
-  # mysql -h localhost -P 33807 --protocol=TCP -u root -p
+  # Planetscale
+  # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-fk:
-    image: janprisma/vttestserver:mysql80@sha256:bc3978c2ec58f0ded93280f79f00d99741a60e728a14989b473b75fb6d8282b8
+    image: vitess/vttestserver:mysql80@sha256:1381e4cbbd390e5ac0edc1e67236fe49bd69cefd68f3e9b865c8883f57986587
     restart: unless-stopped
     ports:
       - 33808:33807
