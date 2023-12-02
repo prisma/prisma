@@ -86,13 +86,9 @@ export async function setupTestSuiteClient({
   const loaded = require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
 
   if (skipDb !== true) {
-    // we need to disable foreign key checks for vitess_fk before the tests run
+    // we need to disable foreign key checks for vitess_fk to reset the db before the tests run
     if (suiteConfig.matrixOptions.providerFlavor === 'vitess_fk') {
-      const prisma = new loaded.PrismaClient()
-      await prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 0;`)
-      await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
-      await prisma.$executeRawUnsafe(`SET FOREIGN_KEY_CHECKS = 1;`)
-      await prisma.$disconnect().catch(() => {})
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], () => `SET foreign_key_checks = 0;`)
     } else {
       await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
     }
