@@ -103,7 +103,7 @@ services:
       - 33808:33807
     environment:
       PORT: '33804' # defines that accessible port will be 33807 (33804 + 3)
-      KEYSPACES: 'unsharded' # unused in testing, but required by vttestserver
+      KEYSPACES: 'test-0000-00000000' # unused in testing, but required by vttestserver
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
       MYSQL_BIND_HOST: '0.0.0.0'
       # FOREIGN_KEY_MODE: 'disallow'
@@ -115,7 +115,7 @@ services:
       timeout: 2s
       retries: 20
     volumes:
-      - ./vitess-config:/vt/schema
+      - ./vitess-config:/vt/schema/test-0000-00000000
 
   mysql:
     image: mysql:8.0
