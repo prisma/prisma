@@ -1,4 +1,4 @@
 {
   "sharded": false,
-  "foreignKeyMode": "managed"
+  "foreignKeyMode": "unmanaged"
 }
