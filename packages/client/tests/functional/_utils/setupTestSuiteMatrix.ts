@@ -156,7 +156,7 @@ function setupTestSuiteMatrix(
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
-          await dropTestSuiteDatabase(suiteMeta, suiteConfig).catch(() => {})
+          await dropTestSuiteDatabase(suiteMeta, suiteConfig)
         }
         process.env = originalEnv
         delete globalThis['datasourceInfo']
