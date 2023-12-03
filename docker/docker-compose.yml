@@ -95,7 +95,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    command: --lower_case_table_names=1
+    # command: ...
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
@@ -112,7 +112,7 @@ services:
 
   mysql_isolated:
     image: mysql:8.0
-    command: --lower_case_table_names=1
+    # command: ...
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
