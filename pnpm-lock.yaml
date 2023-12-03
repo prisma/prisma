@@ -491,8 +491,8 @@ importers:
         specifier: 0.9.4
         version: 0.9.4
       '@prisma/query-engine-wasm':
-        specifier: 5.7.0-31.integration-vitess-constraint-fix-b59e2443af85d17d95da072b996be11f60481986
-        version: 5.7.0-31.integration-vitess-constraint-fix-b59e2443af85d17d95da072b996be11f60481986
+        specifier: 0.0.16
+        version: 0.0.16
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -3179,8 +3179,8 @@ packages:
     resolution: {integrity: sha512-fst+JFaDuuJQwK/FDNHjbemUY0VRGpukbfrEX1IwWvTHNgChnpNIGVA59pNKcZ5R8G+GK0SP93wESIbCddjlEw==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.7.0-31.integration-vitess-constraint-fix-b59e2443af85d17d95da072b996be11f60481986:
-    resolution: {integrity: sha512-CQNO/D7vI6DDH12m/f+j8NTp0WW/n6fAwKsCTrN89V+V69RLmf97Stq/c+RpA9vHG740G5PUIMn4xepdEvFSWw==}
+  /@prisma/query-engine-wasm@0.0.16:
+    resolution: {integrity: sha512-IKupvjeH8OA9QNAesxRYv84BMyi3PgQ56RNGxUMR+xE8PC0gfHYx9x+7vgrsyHoKqqR0mqIlNvooG3XXM7Qvew==}
     dev: true
 
   /@prisma/studio-common@0.495.0:
