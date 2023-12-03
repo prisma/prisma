@@ -3179,8 +3179,8 @@ packages:
     resolution: {integrity: sha512-aawJyNDad7bJ1+cg2MnjkjAVLoXaqqnI1KApBhqah8zWScyJD9cvYX2UWdtx7o8oRFa1ASyfoywXHDZV/JvyHw==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a:
-    resolution: {integrity: sha512-TqeDVU6lP89wFHZpoS+35mfx5RTo98AaD7p30vEjPKFD2igCPfKLYxtNIgA1TotMJ4INRe8rvogY+R0+Z7xeyw==}
+  /@prisma/query-engine-wasm@0.0.16:
+    resolution: {integrity: sha512-IKupvjeH8OA9QNAesxRYv84BMyi3PgQ56RNGxUMR+xE8PC0gfHYx9x+7vgrsyHoKqqR0mqIlNvooG3XXM7Qvew==}
     dev: true
 
   /@prisma/studio-common@0.495.0:
