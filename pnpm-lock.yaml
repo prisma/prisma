@@ -467,8 +467,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
+        version: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -726,8 +726,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
+        version: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -763,8 +763,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
+        version: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,8 +1088,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
+        version: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1245,8 +1245,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
-        version: 5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377
+        specifier: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
+        version: 5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3166,8 +3166,8 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@prisma/engines-version@5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377:
-    resolution: {integrity: sha512-zFdXHLSraK90qxcu/5gKA5X5ocr88OO36K0m008pBUU/KQfJ4183/uldXlTxRCdulfdvXSAWGcFk47c8W4JHJg==}
+  /@prisma/engines-version@5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a:
+    resolution: {integrity: sha512-AY0k8447G7YzCefUwcvIpJlp054O/yBv15hCslN1KbFEAkxJ0seTVORlMAsZmHWimW3UdVHWeEnLGDd2cXCm0g==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3175,8 +3175,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377:
-    resolution: {integrity: sha512-NLdL3W9RCG9TyrpdMFVjxRwckvcutY2z2u+qlwEpD+McioBSlm23xpSxFEUQLWsvDUoHufQT+Xqdd786TTVW9A==}
+  /@prisma/prisma-schema-wasm@5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a:
+    resolution: {integrity: sha512-aawJyNDad7bJ1+cg2MnjkjAVLoXaqqnI1KApBhqah8zWScyJD9cvYX2UWdtx7o8oRFa1ASyfoywXHDZV/JvyHw==}
     dev: false
 
   /@prisma/query-engine-wasm@0.0.16:

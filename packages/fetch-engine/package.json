@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.7.0-27.f0e6ac4eb5258a937f0d50a926d8330162b30377",
+    "@prisma/engines-version": "5.7.0-32.integration-vitess-constraint-fix-0be9fdc431b1508a63c50577d2a593f9a213e89a",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
