@@ -6,7 +6,7 @@ import fetch, { Headers } from 'node-fetch'
 import path from 'path'
 import XdgAppPaths from 'xdg-app-paths'
 
-import { version as PRISMA_CLI_VERSION } from '../../package.json'
+import { name as PRISMA_CLI_NAME, version as PRISMA_CLI_VERSION } from '../../package.json'
 
 const debug = Debug('prisma:cli:platform')
 
@@ -109,7 +109,7 @@ export const platformRequestOrThrow = async (params: {
     Authorization: `Bearer ${token}`,
     // For how to format it
     // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
-    'User-Agent': `prisma/${PRISMA_CLI_VERSION}`,
+    'User-Agent': `${PRISMA_CLI_NAME}/${PRISMA_CLI_VERSION}`,
   })
   const response = await fetch(url, {
     method: payload ? 'POST' : 'GET',

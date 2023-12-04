@@ -6,7 +6,7 @@ import http from 'http'
 import { underline } from 'kleur/colors'
 import open from 'open'
 
-import { version as PRISMA_CLI_VERSION } from '../../package.json'
+import { name as PRISMA_CLI_NAME, version as PRISMA_CLI_VERSION } from '../../package.json'
 import { platformConsoleUrl, writeAuthConfig } from '../utils/platform'
 
 interface AuthResult {
@@ -100,7 +100,7 @@ const generateAuthSigninUrl = async (params: { connection: string; redirectTo: s
   })
 
   const state = {
-    client: `prisma@${PRISMA_CLI_VERSION}`,
+    client: `${PRISMA_CLI_NAME}@${PRISMA_CLI_VERSION}`,
     // will be `null` if it throws during retrieval
     // will be a UUIDv4 when successful
     signature: cliSignature,
