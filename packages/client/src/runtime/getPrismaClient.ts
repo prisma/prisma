@@ -526,14 +526,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
       const activeProvider = this._activeProvider
-      const activeProviderFlavour = this._engineConfig.adapter?.flavour
+      const driverAdapterProvider = this._engineConfig.adapter?.provider
 
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -626,14 +626,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
       const activeProvider = this._activeProvider
-      const activeProviderFlavour = this._engineConfig.adapter?.flavour
+      const driverAdapterProvider = this._engineConfig.adapter?.provider
 
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,

@@ -30,7 +30,7 @@ class RollbackError extends Error {
 }
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
-  readonly flavour = 'mysql'
+  readonly provider = 'mysql'
   constructor(protected client: ClientT) {}
 
   /**
@@ -176,9 +176,5 @@ const adapter = new PrismaPlanetScale(client)
           return undefined
         })
     })
-  }
-
-  async close() {
-    return ok(undefined)
   }
 }
