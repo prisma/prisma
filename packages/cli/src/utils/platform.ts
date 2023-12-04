@@ -53,7 +53,7 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
   environmentVariable?: string,
 ): Error | Exclude<$Args[$Names[number]], undefined> => {
   const value = getOptionalParameter(args, names, environmentVariable)
-  if (value === undefined) return new Error(`Missing value for ${names.join(' or ')} parameter`)
+  if (value === undefined) return new Error(`Missing ${names.join(' or ')} parameter`)
   return value
 }
 
@@ -94,12 +94,12 @@ const platformAPIBaseURL = 'https://console.prisma.io/'
  *    It could be interesting to set a default timeout because it's not part of fetch spec, see:
  *    npmjs.com/package/node-fetch#request-cancellation-with-abortsignal
  */
-export const platformRequestOrThrow = async (params: {
+export const platformRequestOrThrow = async <$Data extends object = object>(params: {
   route: string
   token: string
   path: string
   payload?: object
-}): Promise<object> => {
+}): Promise<$Data> => {
   const { path, payload, token, route } = params
   const apiPath = `${path.replace(/^\//, '')}?_data=routes/${route}`
   const url = new URL(apiPath, platformAPIBaseURL)
@@ -117,6 +117,11 @@ export const platformRequestOrThrow = async (params: {
     body: payload ? JSON.stringify(payload) : undefined,
   })
   const text = await response.text()
+
+  if (response.status >= 400) {
+    throw new Error(text)
+  }
+
   const json = JSON.parse(text || '""')
   return json
 }
@@ -189,6 +194,8 @@ ${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
   const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('')
   return (error?: string) => (error ? new HelpError(`\n${bold(red(`!`))} ${error}\n${help}`) : help)
 }
+
+export const successMessage = (message: string) => `${green('Success!')} ${message}`
 
 /**
  *

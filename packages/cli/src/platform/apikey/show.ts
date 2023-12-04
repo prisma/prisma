@@ -25,10 +25,14 @@ export class Show implements Command {
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
-    return platformRequestOrThrow({
+    const payload = await platformRequestOrThrow<{
+      serviceKeys: { createdAt: string; displayName: string; id: string }[]
+    }>({
       token,
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
-    }) as Promise<any>
+    })
+    console.table(payload.serviceKeys, ['id', 'displayName', 'createdAt'])
+    return ''
   }
 }

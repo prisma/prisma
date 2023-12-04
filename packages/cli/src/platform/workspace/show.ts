@@ -14,10 +14,27 @@ export class Show implements Command {
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
 
-    return platformRequestOrThrow({
+    const payload = await platformRequestOrThrow<{
+      actor: any
+      organizations: {
+        id: string
+        displayName: string
+        createdAt: string
+      }[]
+    }>({
       token,
       path: `/settings/workspaces`,
       route: '_app._user.settings.workspaces',
-    }) as Promise<any>
+    })
+
+    console.table(
+      payload.organizations.map((workspace) => ({
+        id: workspace.id,
+        name: workspace.displayName,
+        createdAt: workspace.createdAt,
+      })),
+      ['id', 'name', 'createdAt'],
+    )
+    return ''
   }
 }

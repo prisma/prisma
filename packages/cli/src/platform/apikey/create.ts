@@ -6,6 +6,7 @@ import {
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
+  successMessage,
 } from '../../utils/platform'
 
 export class Create implements Command {
@@ -27,13 +28,28 @@ export class Create implements Command {
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
     const displayName = getOptionalParameter(args, ['--display-name', '-d'])
-    return platformRequestOrThrow({
+    const payload = await platformRequestOrThrow<{
+      data: {
+        serviceKey: {
+          id: string
+          createdAt: string
+          displayName: string
+          valueHint: string
+          tenantAPIKey: string
+        }
+      }
+      error: null | { message: string }
+    }>({
       token,
       path: `/${workspace}/${project}/settings/api-keys/create`,
       route: '_app.$organizationId_.$projectId.settings.api-keys.create',
       payload: {
         displayName,
       },
-    }) as Promise<any>
+    })
+    if (payload.error?.message) {
+      throw new Error(payload.error.message)
+    }
+    return successMessage(`New API Key created: ${payload.data.serviceKey.tenantAPIKey}`)
   }
 }
