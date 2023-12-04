@@ -1,3 +1,4 @@
+import { getTestSuitePreviewFeatures, getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient, Tag } from './node_modules/@prisma/client'
@@ -5,14 +6,21 @@ import type { PrismaClient, Tag } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
+  (suiteConfig, suiteMeta) => {
     function generatedIds(n: number) {
       // ["1","2",...,"n"]
       const ids = Array.from({ length: n }, (_, i) => i + 1)
       return ids
     }
 
-    describe('issues #8832 / #9326 success cases', () => {
+    const { provider, providerFlavor } = suiteConfig
+
+    const usingRelationJoins = getTestSuitePreviewFeatures(getTestSuiteSchema(suiteMeta, suiteConfig)).includes(
+      'relationJoins',
+    )
+
+    // Chunking is not supported with joins, so the tests for success cases need to be skipped
+    describeIf(!usingRelationJoins)('issues #8832 / #9326 success cases', () => {
       async function createTags(n: number): Promise<number[]> {
         const ids = generatedIds(n)
         const data = ids.map((id) => ({ id }))
@@ -185,7 +193,9 @@ testMatrix.setupTestSuite(
           } catch (error) {
             const e = error as Error
 
-            if (['postgresql', 'cockroachdb'].includes(provider)) {
+            if (usingRelationJoins) {
+              expect(e.message).toContain('Joined queries cannot be split into multiple queries')
+            } else if (['postgresql', 'cockroachdb'].includes(provider)) {
               expect(e.message).toContain('Assertion violation on the database')
               expect(e.message).toContain('too many bind variables in prepared statement')
               expect(e.message).toContain(`expected maximum of 32767, received 65534`)
@@ -206,7 +216,9 @@ testMatrix.setupTestSuite(
           } catch (error) {
             const e = error as Error
 
-            if (['postgresql', 'cockroachdb'].includes(provider)) {
+            if (usingRelationJoins) {
+              expect(e.message).toContain('Joined queries cannot be split into multiple queries')
+            } else if (['postgresql', 'cockroachdb'].includes(provider)) {
               expect(e.message).toContain('Assertion violation on the database')
               expect(e.message).toContain('too many bind variables in prepared statement')
               expect(e.message).toContain(`expected maximum of 32767, received 65535`)
@@ -220,7 +232,16 @@ testMatrix.setupTestSuite(
       describeIf(providerFlavor !== undefined)('With Driver Adapters only', () => {
         test('Selecting 32768 ids at once in two inclusive disjunct filters works', async () => {
           const ids = generatedIds(32768)
-          await selectWith2InFilters(ids)
+
+          try {
+            await selectWith2InFilters(ids)
+          } catch (error) {
+            if (usingRelationJoins) {
+              expect((error as Error).message).toContain('Joined queries cannot be split into multiple queries')
+            } else {
+              throw error
+            }
+          }
         })
 
         // See: https://github.com/prisma/prisma/issues/21803.
@@ -234,7 +255,9 @@ testMatrix.setupTestSuite(
           } catch (error) {
             const e = error as Error
 
-            if (['postgresql', 'cockroachdb'].includes(provider)) {
+            if (usingRelationJoins) {
+              expect(e.message).toContain('Joined queries cannot be split into multiple queries')
+            } else if (['postgresql', 'cockroachdb'].includes(provider)) {
               // Note: this sometimes fails with "bind message has 5 parameter formats but 0 parameters" on Neon
               expect(e.message).toContain('bind message has 32767 parameter formats but 0 parameters')
             }
