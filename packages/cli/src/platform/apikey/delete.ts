@@ -41,7 +41,6 @@ export class Delete implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    console.info(successMessage(`API Key ${payload.data.displayName} deleted.`))
-    return ''
+    return successMessage(`API Key ${payload.data.displayName} deleted.`)
   }
 }

@@ -50,7 +50,6 @@ export class Create implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    console.info(successMessage(`New API Key created: ${payload.data.serviceKey.tenantAPIKey}`))
-    return ''
+    return successMessage(`New API Key created: ${payload.data.serviceKey.tenantAPIKey}`)
   }
 }

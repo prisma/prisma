@@ -36,11 +36,8 @@ export class Disable implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    console.info(
-      successMessage(
-        `Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
-      ),
+    return successMessage(
+      `Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
     )
-    return ''
   }
 }

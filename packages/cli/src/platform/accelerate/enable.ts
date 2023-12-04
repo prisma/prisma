@@ -64,18 +64,13 @@ export class Enable implements Command {
       if (payload.error?.message) {
         throw new Error(payload.error.message)
       }
-      console.info(
-        successMessage(
-          `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantAPIKey}`,
-        ),
+      return successMessage(
+        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantAPIKey}`,
       )
     } else {
-      console.info(
-        successMessage(
-          `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.`,
-        ),
+      return successMessage(
+        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.`,
       )
     }
-    return ''
   }
 }
