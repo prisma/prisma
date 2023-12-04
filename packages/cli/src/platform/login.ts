@@ -27,15 +27,15 @@ export class Login implements Command {
   }
 
   public async parse() {
-    console.log('Authenticating to Prisma Platform CLI via browser')
+    console.info('Authenticating to Prisma Platform CLI via browser')
 
     const server = http.createServer()
     // When passing 0 as a port to listen, the OS will assign a random available port
     const authRedirectUrl = await listen(server, 0, '127.0.0.1')
     const authSigninUrl = await generateAuthSigninUrl({ connection: `github`, redirectTo: authRedirectUrl.href })
 
-    console.log('Visit the following URL in your browser to authenticate:')
-    console.log(underline(authSigninUrl.href))
+    console.info('Visit the following URL in your browser to authenticate:')
+    console.info(underline(authSigninUrl.href))
 
     try {
       const [authResult] = await Promise.all([
@@ -84,8 +84,8 @@ export class Login implements Command {
       const result = await writeAuthConfig({ token: authResult.token })
       if (isError(result)) throw result
 
-      console.log('Authenticated successfully as:')
-      console.log(JSON.stringify(authResult.user, null, 4))
+      console.info('Authenticated successfully as:')
+      console.info(JSON.stringify(authResult.user, null, 4))
       return ''
     } catch (error) {
       throw new Error(`Authentication failed: ${isError(error) ? error.message : ''}`)
