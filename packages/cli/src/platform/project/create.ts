@@ -48,7 +48,6 @@ export class Create implements Command {
     })
     if (payload.error) throw new Error(`${payload.error.name}: ${payload.error.message}`)
 
-    console.info(successMessage(`Project ${payload.data.displayName} - ${payload.data.id} created.`))
-    return ''
+    return successMessage(`Project ${payload.data.displayName} - ${payload.data.id} created.`)
   }
 }
