@@ -84,7 +84,7 @@ jobs:
           alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@jkomyno'
 
       - name: Run benchmarks for Codspeed
-        uses: CodSpeedHQ/action@v1
+        uses: CodSpeedHQ/action@v2
         with:
           run: pnpm run bench-stdout-only
           token: ${{ secrets.CODSPEED_TOKEN }}
