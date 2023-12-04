@@ -2,6 +2,7 @@ import { enginesVersion } from '@prisma/engines'
 import {
   arg,
   Command,
+  drawBox,
   format,
   Generator,
   getCommandWithExecutor,
@@ -248,6 +249,17 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
+        const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
+Try Prisma Accelerate for connection pooling and caching.
+${link('https://pris.ly/cli/accelerate')}`
+
+        const boxedTryAccelerateMessage = drawBox({
+          height: tryAccelerateMessage.split('\n').length,
+          width: 0, // calculated automatically
+          str: tryAccelerateMessage,
+          horizontalPadding: 2,
+        })
+
         hint = `
 Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
@@ -263,6 +275,8 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
+
+${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
