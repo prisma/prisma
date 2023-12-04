@@ -121,6 +121,57 @@ describe('using cli', () => {
     }
   })
 
+  it('should use CommonJS notation in the code snippet for a JS project', async () => {
+    ctx.fixture('example-project-js')
+    const data = await ctx.cli('generate')
+
+    if (typeof data.signal === 'number' && data.signal !== 0) {
+      throw new Error(data.stderr + data.stdout)
+    }
+
+    if (getClientEngineType() === 'binary') {
+      expect(data.stdout).toMatchInlineSnapshot(`
+        Prisma schema loaded from prisma/schema.prisma
+
+        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        const { PrismaClient } = require('./generated/client')
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        const { PrismaClient } = require('./generated/client/edge')
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+      `)
+    } else {
+      expect(data.stdout).toMatchInlineSnapshot(`
+        Prisma schema loaded from prisma/schema.prisma
+
+        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        const { PrismaClient } = require('./generated/client')
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        const { PrismaClient } = require('./generated/client/edge')
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+      `)
+    }
+  })
+
   it('should warn when `url` is hardcoded', async () => {
     ctx.fixture('hardcoded-url')
     const data = await ctx.cli('generate')
@@ -137,12 +188,12 @@ describe('using cli', () => {
 
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
-        import { PrismaClient } from './generated/client'
+        const { PrismaClient } = require('./generated/client')
         const prisma = new PrismaClient()
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        import { PrismaClient } from './generated/client/edge'
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -159,12 +210,12 @@ describe('using cli', () => {
 
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
-        import { PrismaClient } from './generated/client'
+        const { PrismaClient } = require('./generated/client')
         const prisma = new PrismaClient()
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        import { PrismaClient } from './generated/client/edge'
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -192,12 +243,12 @@ describe('using cli', () => {
 
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
-        import { PrismaClient } from './generated/client'
+        const { PrismaClient } = require('./generated/client')
         const prisma = new PrismaClient()
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        import { PrismaClient } from './generated/client/edge'
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -212,12 +263,12 @@ describe('using cli', () => {
 
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
-        import { PrismaClient } from './generated/client'
+        const { PrismaClient } = require('./generated/client')
         const prisma = new PrismaClient()
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        import { PrismaClient } from './generated/client/edge'
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -243,12 +294,12 @@ describe('using cli', () => {
 
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
-        import { PrismaClient } from './generated/client'
+        const { PrismaClient } = require('./generated/client')
         const prisma = new PrismaClient()
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        import { PrismaClient } from './generated/client/edge'
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -263,12 +314,12 @@ describe('using cli', () => {
 
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
-        import { PrismaClient } from './generated/client'
+        const { PrismaClient } = require('./generated/client')
         const prisma = new PrismaClient()
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        import { PrismaClient } from './generated/client/edge'
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -294,12 +345,12 @@ describe('using cli', () => {
 
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
-        import { PrismaClient } from './generated/client'
+        const { PrismaClient } = require('./generated/client')
         const prisma = new PrismaClient()
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        import { PrismaClient } from './generated/client/edge'
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -316,12 +367,12 @@ describe('using cli', () => {
 
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
-        import { PrismaClient } from './generated/client'
+        const { PrismaClient } = require('./generated/client')
         const prisma = new PrismaClient()
         \`\`\`
         or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
         \`\`\`
-        import { PrismaClient } from './generated/client/edge'
+        const { PrismaClient } = require('./generated/client/edge')
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -605,7 +656,7 @@ describe('--schema from parent directory', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
-        
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
