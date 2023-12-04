@@ -36,9 +36,10 @@ export type Db = {
 
 export type ClientRuntime = 'node' | 'edge'
 
-export type TestCliMeta = {
+export type CliMeta = {
   dataProxy: boolean
   runtime: 'node' | 'edge'
+  previewFeatures: string[]
   engineType: 'binary' | 'library' | 'wasm' | undefined
 }
 
