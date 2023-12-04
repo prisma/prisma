@@ -264,7 +264,7 @@ export function getTestSuiteCliMeta(): CliMeta {
   return {
     dataProxy,
     runtime: edge ? 'edge' : 'node',
-    previewFeatures: previewFeatures.split(','),
+    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
     engineType: engineType ?? ClientEngineType.Library,
   }
 }
