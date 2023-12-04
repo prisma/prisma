@@ -26,7 +26,7 @@ type TransactionClient = LibSqlTransactionRaw
 const LOCK_TAG = Symbol()
 
 class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly flavour = 'sqlite';
+  readonly provider = 'sqlite';
 
   [LOCK_TAG] = new Mutex()
 
@@ -148,11 +148,5 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAd
       release()
       throw e
     }
-  }
-
-  async close(): Promise<Result<void>> {
-    await this[LOCK_TAG].acquire()
-    this.client.close()
-    return ok(undefined)
   }
 }
