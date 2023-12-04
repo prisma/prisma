@@ -1,4 +1,5 @@
 import { arg, Command, isError } from '@prisma/internals'
+import { log } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -27,13 +28,16 @@ export class Delete implements Command {
     const apikey = getRequiredParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
 
-    return platformRequestOrThrow({
+    const payload = await platformRequestOrThrow<{ data: { id: string; displayName: string } }>({
       token,
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
       payload: {
         id: apikey,
       },
-    }) as Promise<any>
+    })
+    // green "success" text
+    log(`Success! API Key ${payload.data.displayName} deleted.`)
+    return ''
   }
 }
