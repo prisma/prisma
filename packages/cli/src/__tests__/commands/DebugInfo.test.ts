@@ -359,8 +359,8 @@ describe('debug', () => {
       When set, the line is bold and the value is inside the \`\` backticks.
 
       For general debugging
-      - CI: \`true\`
-      - DEBUG:
+      - CI: \`from_env_file\`
+      - DEBUG: \`from_env_file\`
       - NODE_ENV: \`from_env_file\`
       - RUST_LOG: \`from_env_file\`
       - RUST_BACKTRACE: \`from_env_file\`
@@ -388,8 +388,8 @@ describe('debug', () => {
       - BINARY_DOWNLOAD_VERSION: \`from_env_file\`
 
       For configuring the Query Engine Type
-      - PRISMA_CLI_QUERY_ENGINE_TYPE:
-      - PRISMA_CLIENT_ENGINE_TYPE:
+      - PRISMA_CLI_QUERY_ENGINE_TYPE: \`from_env_file\`
+      - PRISMA_CLIENT_ENGINE_TYPE: \`from_env_file\`
 
       For custom engines
       - PRISMA_QUERY_ENGINE_BINARY: \`from_env_file\`
