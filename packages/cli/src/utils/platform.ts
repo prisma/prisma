@@ -118,7 +118,7 @@ export const platformRequestOrThrow = async <$Data extends object = object>(para
   })
   const text = await response.text()
 
-  if (response.status > 400) {
+  if (response.status >= 400) {
     throw new Error(text)
   }
 
