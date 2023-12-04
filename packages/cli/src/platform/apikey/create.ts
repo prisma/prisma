@@ -1,4 +1,5 @@
 import { arg, Command, isError } from '@prisma/internals'
+import { log } from 'console'
 
 import {
   getOptionalParameter,
@@ -27,13 +28,26 @@ export class Create implements Command {
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
     const displayName = getOptionalParameter(args, ['--display-name', '-d'])
-    return platformRequestOrThrow({
+    const payload = await platformRequestOrThrow<{
+      data: {
+        serviceKey: {
+          id: string
+          createdAt: string
+          displayName: string
+          valueHint: string
+          tenantAPIKey: string
+        }
+      }
+    }>({
       token,
       path: `/${workspace}/${project}/settings/api-keys/create`,
       route: '_app.$organizationId_.$projectId.settings.api-keys.create',
       payload: {
         displayName,
       },
-    }) as Promise<any>
+    })
+    // todo green success
+    log(`Success! New API Key created: ${payload.data.serviceKey.tenantAPIKey}`)
+    return ''
   }
 }
