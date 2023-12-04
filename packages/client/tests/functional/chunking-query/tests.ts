@@ -1,4 +1,3 @@
-import { getTestSuitePreviewFeatures, getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient, Tag } from './node_modules/@prisma/client'
@@ -6,18 +5,14 @@ import type { PrismaClient, Tag } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  ({ provider, providerFlavor }, _suiteMeta, _clientMeta, cliMeta) => {
     function generatedIds(n: number) {
       // ["1","2",...,"n"]
       const ids = Array.from({ length: n }, (_, i) => i + 1)
       return ids
     }
 
-    const { provider, providerFlavor } = suiteConfig
-
-    const usingRelationJoins = getTestSuitePreviewFeatures(getTestSuiteSchema(suiteMeta, suiteConfig)).includes(
-      'relationJoins',
-    )
+    const usingRelationJoins = cliMeta.previewFeatures.includes('relationJoins')
 
     // Chunking is not supported with joins, so the tests for success cases need to be skipped
     describeIf(!usingRelationJoins)('issues #8832 / #9326 success cases', () => {

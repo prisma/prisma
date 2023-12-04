@@ -2,7 +2,6 @@
 import { faker } from '@faker-js/faker'
 import { expectTypeOf } from 'expect-type'
 
-import { getTestSuitePreviewFeatures, getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { House, Post, PrismaClient, Property } from './node_modules/@prisma/client'
@@ -12,10 +11,8 @@ const title = faker.lorem.sentence()
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
-  const usingRelationJoins = getTestSuitePreviewFeatures(getTestSuiteSchema(suiteMeta, suiteConfig)).includes(
-    'relationJoins',
-  )
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta, cliMeta) => {
+  const usingRelationJoins = cliMeta.previewFeatures.includes('relationJoins')
 
   // TODO: broken when using relation joins with driver adapters
   // because of https://github.com/prisma/team-orm/issues/683

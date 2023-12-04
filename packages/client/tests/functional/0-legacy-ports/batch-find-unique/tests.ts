@@ -1,6 +1,5 @@
 import { copycat } from '@snaplet/copycat'
 
-import { getTestSuitePreviewFeatures, getTestSuiteSchema } from '../../_utils/getTestSuiteInfo'
 import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
@@ -10,7 +9,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
   beforeAll(async () => {
     prisma = newPrismaClient({
       log: [
@@ -77,7 +76,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       }
     })
 
-    if (getTestSuitePreviewFeatures(getTestSuiteSchema(suiteMeta, suiteConfig)).includes('relationJoins')) {
+    if (cliMeta.previewFeatures.includes('relationJoins')) {
       expect(executedBatchQuery).toMatchInlineSnapshot(
         `SELECT "t1"."id", "t1"."email", "t1"."age", "t1"."name" FROM "public"."User" AS "t1" WHERE "t1"."email" IN ($1,$2,$3,$4)`,
       )
