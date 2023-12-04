@@ -116,6 +116,7 @@ jobs:
       - name: Find past custom engine comment
         uses: peter-evans/find-comment@v2
         id: findEngineComment
+        if: ${{ github.event_name == 'pull_request' }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: '<!-- custom-engine -->'
