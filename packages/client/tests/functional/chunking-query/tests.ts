@@ -211,12 +211,14 @@ testMatrix.setupTestSuite(
           } catch (error) {
             const e = error as Error
 
-            if (usingRelationJoins) {
-              expect(e.message).toContain('Joined queries cannot be split into multiple queries')
-            } else if (['postgresql', 'cockroachdb'].includes(provider)) {
-              expect(e.message).toContain('Assertion violation on the database')
-              expect(e.message).toContain('too many bind variables in prepared statement')
-              expect(e.message).toContain(`expected maximum of 32767, received 65535`)
+            if (['postgresql', 'cockroachdb'].includes(provider)) {
+              if (usingRelationJoins) {
+                expect(e.message).toContain('Joined queries cannot be split into multiple queries')
+              } else {
+                expect(e.message).toContain('Assertion violation on the database')
+                expect(e.message).toContain('too many bind variables in prepared statement')
+                expect(e.message).toContain(`expected maximum of 32767, received 65535`)
+              }
             } else {
               expect(e.message).toContain('Prepared statement contains too many placeholders')
             }
