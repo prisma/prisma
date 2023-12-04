@@ -173,6 +173,8 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   // the top of schema file forces them to have different hash and fixes this.
   schema = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}\n${schema}`
 
+  previewFeatures.push('relationJoins')
+
   // in some cases we may add more preview features automatically to the schema
   // when we are running tests for driver adapters, auto add the preview feature
   if (isDriverAdapterProviderFlavor(matrixOptions.providerFlavor)) previewFeatures.push('driverAdapters')
