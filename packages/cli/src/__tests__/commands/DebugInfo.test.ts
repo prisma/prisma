@@ -360,8 +360,8 @@ describe('debug', () => {
 
       For general debugging
       - CI: \`true\`
-      - DEBUG: \`prisma*\`
-      - NODE_ENV: \`test\`
+      - DEBUG:
+      - NODE_ENV: \`from_env_file\`
       - RUST_LOG: \`from_env_file\`
       - RUST_BACKTRACE: \`from_env_file\`
       - NO_COLOR: \`from_env_file\`
@@ -379,7 +379,7 @@ describe('debug', () => {
       For hiding messages
       - PRISMA_DISABLE_WARNINGS: \`from_env_file\`
       - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS: \`from_env_file\`
-      - PRISMA_HIDE_UPDATE_MESSAGE: \`true\`
+      - PRISMA_HIDE_UPDATE_MESSAGE: \`from_env_file\`
 
       For downloading engines
       - PRISMA_ENGINES_MIRROR: \`from_env_file\`
