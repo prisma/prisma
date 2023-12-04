@@ -1,4 +1,5 @@
 import { arg, Command, isError } from '@prisma/internals'
+import { log } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -28,7 +29,10 @@ export class Enable implements Command {
     if (isError(project)) return project
     const apikey = getRequiredParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
-    const accelerate = await platformRequestOrThrow({
+    await platformRequestOrThrow<{
+      accelerate: { data: {}; error: null }
+      apikey: { data: { serviceKey: { id: string; createdAt: string } } }
+    }>({
       token,
       path: `/${workspace}/${project}/accelerate/setup`,
       route: '_app.$organizationId_.$projectId.accelerate.setup',
@@ -37,9 +41,18 @@ export class Enable implements Command {
         connectionString: url,
       },
     })
-    let apikeyResult: null | object = null
     if (apikey) {
-      apikeyResult = await platformRequestOrThrow({
+      const payload = await platformRequestOrThrow<{
+        data: {
+          serviceKey: {
+            id: string
+            createdAt: string
+            displayName: string
+            valueHint: string
+            tenantAPIKey: string
+          }
+        }
+      }>({
         token,
         path: `/${workspace}/${project}/settings/api-keys/create`,
         route: '_app.$organizationId_.$projectId.settings.api-keys.create',
@@ -47,10 +60,14 @@ export class Enable implements Command {
           displayName: 'todo',
         },
       })
+      log(
+        `Success! Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantAPIKey}`,
+      )
+    } else {
+      log(
+        `Success! Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.`,
+      )
     }
-    return {
-      accelerate,
-      apikey: apikeyResult,
-    } as any // todo
+    return ''
   }
 }
