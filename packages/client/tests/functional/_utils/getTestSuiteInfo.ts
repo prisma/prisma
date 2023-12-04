@@ -177,8 +177,6 @@ export function getTestSuiteSchema(
   // the top of schema file forces them to have different hash and fixes this.
   schema = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}\n${schema}`
 
-  previewFeatures.push('relationJoins')
-
   // in some cases we may add more preview features automatically to the schema
   previewFeatures.push(...cliMeta.previewFeatures)
   const previewFeaturesStr = `previewFeatures = ${JSON.stringify(previewFeatures)}`
