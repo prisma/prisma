@@ -24,7 +24,7 @@ export class $ implements Command {
     const argvWithoutEarlyAccess = (argv = argv.filter((it) => it !== '--early-access'))
 
     const result = await dispatchToSubCommand(this.commands, argvWithoutEarlyAccess)
-    // TODO: Consider removing JSON.stringify as it breaks if sub-command parse returns JSON.stringify
-    return JSON.stringify(result)
+
+    return result
   }
 }
