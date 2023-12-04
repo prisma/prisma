@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { log } from 'console'
 
 import {
   getOptionalParameter,
@@ -49,7 +48,7 @@ export class Create implements Command {
     })
     if (payload.error) throw new Error(`${payload.error.name}: ${payload.error.message}`)
 
-    log(successMessage(`Project ${payload.data.displayName} - ${payload.data.id} created.`))
+    console.info(successMessage(`Project ${payload.data.displayName} - ${payload.data.id} created.`))
     return ''
   }
 }

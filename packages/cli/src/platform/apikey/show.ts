@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { table } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -33,7 +32,7 @@ export class Show implements Command {
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
     })
-    table(payload.serviceKeys, ['id', 'displayName', 'createdAt'])
+    console.table(payload.serviceKeys, ['id', 'displayName', 'createdAt'])
     return ''
   }
 }

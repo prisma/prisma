@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { log } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -42,7 +41,7 @@ export class Delete implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    log(successMessage(`API Key ${payload.data.displayName} deleted.`))
+    console.info(successMessage(`API Key ${payload.data.displayName} deleted.`))
     return ''
   }
 }

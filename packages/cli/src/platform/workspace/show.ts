@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { table } from 'console'
 
 import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
@@ -28,7 +27,7 @@ export class Show implements Command {
       route: '_app._user.settings.workspaces',
     })
 
-    table(
+    console.table(
       payload.organizations.map((workspace) => ({
         id: workspace.id,
         name: workspace.displayName,

@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { log } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -53,7 +52,7 @@ export class Delete implements Command {
     })
     if (payload.error) throw new Error(`${payload.error.name}: ${payload.error.message}`)
 
-    log(successMessage(`Project ${payload.data.displayName} - ${payload.data.id} deleted.`))
+    console.info(successMessage(`Project ${payload.data.displayName} - ${payload.data.id} deleted.`))
     return ``
   }
 }

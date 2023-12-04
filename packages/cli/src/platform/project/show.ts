@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { table } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -31,7 +30,7 @@ export class Show implements Command {
       route: '_app.$organizationId.overview',
     })
 
-    table(payload.organization.projects, ['id', 'createdAt', 'displayName'])
+    console.table(payload.organization.projects, ['id', 'createdAt', 'displayName'])
 
     return ''
   }

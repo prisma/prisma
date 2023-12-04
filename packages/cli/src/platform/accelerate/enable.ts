@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { log } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -65,13 +64,13 @@ export class Enable implements Command {
       if (payload.error?.message) {
         throw new Error(payload.error.message)
       }
-      log(
+      console.info(
         successMessage(
           `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantAPIKey}`,
         ),
       )
     } else {
-      log(
+      console.info(
         successMessage(
           `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.`,
         ),

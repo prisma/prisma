@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { log } from 'console'
 
 import {
   getOptionalParameter,
@@ -51,7 +50,7 @@ export class Create implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    log(successMessage(`New API Key created: ${payload.data.serviceKey.tenantAPIKey}`))
+    console.info(successMessage(`New API Key created: ${payload.data.serviceKey.tenantAPIKey}`))
     return ''
   }
 }

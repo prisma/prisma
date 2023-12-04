@@ -1,5 +1,4 @@
 import { arg, Command, isError } from '@prisma/internals'
-import { log } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -37,7 +36,7 @@ export class Disable implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    log(
+    console.info(
       successMessage(
         `Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
       ),
