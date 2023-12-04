@@ -94,12 +94,12 @@ const platformAPIBaseURL = 'https://console.prisma.io/'
  *    It could be interesting to set a default timeout because it's not part of fetch spec, see:
  *    npmjs.com/package/node-fetch#request-cancellation-with-abortsignal
  */
-export const platformRequestOrThrow = async (params: {
+export const platformRequestOrThrow = async <$Data extends object = object>(params: {
   route: string
   token: string
   path: string
   payload?: object
-}): Promise<object> => {
+}): Promise<$Data> => {
   const { path, payload, token, route } = params
   const apiPath = `${path.replace(/^\//, '')}?_data=routes/${route}`
   const url = new URL(apiPath, platformAPIBaseURL)
