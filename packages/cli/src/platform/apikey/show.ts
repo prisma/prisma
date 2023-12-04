@@ -1,4 +1,5 @@
 import { arg, Command, isError } from '@prisma/internals'
+import { table } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -25,10 +26,14 @@ export class Show implements Command {
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
-    return platformRequestOrThrow({
+    const data = await platformRequestOrThrow<{
+      serviceKeys: { createdAt: string; displayName: string; id: string }[]
+    }>({
       token,
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
-    }) as Promise<any>
+    })
+    table(data.serviceKeys, ['id', 'displayName', 'createdAt'])
+    return ''
   }
 }
