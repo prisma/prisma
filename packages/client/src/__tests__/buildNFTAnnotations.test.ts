@@ -118,6 +118,8 @@ describe('special cases', () => {
   it('replaces platforms with ["rhel-openssl-1.0.x"] on Netlify', () => {
     process.env.NETLIFY = 'true'
 
+    const isNode20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+    const binaryTarget = isNode20OrUp ? 'rhel-openssl-3.0.x' : 'rhel-openssl-1.0.x'
     const annotations = buildNFTAnnotations(
       false,
       ClientEngineType.Library,
@@ -137,6 +139,6 @@ describe('special cases', () => {
       path.join(process.cwd(), "out/schema.prisma")
     `)
 
-    expect(annotations).toContain('rhel-openssl-1.0.x')
+    expect(annotations).toContain(binaryTarget)
   })
 })

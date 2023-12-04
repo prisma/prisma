@@ -33,10 +33,17 @@ export async function getBinaryPathsByVersion({
     }
 
     if (process.env.NETLIFY && !neededVersion.binaryTargets.find((object) => object.value === 'rhel-openssl-1.0.x')) {
-      neededVersion.binaryTargets.push({
-        fromEnvVar: null,
-        value: 'rhel-openssl-1.0.x',
-      })
+      if (parseInt(process.versions.node.split('.')[0]) >= 20) {
+        neededVersion.binaryTargets.push({
+          fromEnvVar: null,
+          value: 'rhel-openssl-3.0.x',
+        })
+      } else {
+        neededVersion.binaryTargets.push({
+          fromEnvVar: null,
+          value: 'rhel-openssl-1.0.x',
+        })
+      }
     }
 
     // download

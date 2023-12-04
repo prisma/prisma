@@ -31,7 +31,11 @@ export function buildNFTAnnotations(
   }
 
   if (process.env.NETLIFY) {
-    platforms = ['rhel-openssl-1.0.x']
+    if (parseInt(process.versions.node.split('.')[0]) >= 20) {
+      platforms = ['rhel-openssl-3.0.x']
+    } else {
+      platforms = ['rhel-openssl-1.0.x']
+    }
   }
 
   const engineAnnotations = map(platforms, (platform) => {
