@@ -126,6 +126,13 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[]) =
   if (!commandName) return new HelpError(`Unknown command.`)
   const command = commands[commandName]
   if (!command) return new HelpError(`Unknown command or parameter "${commandName}"`)
+
+  // Temporary text until it's added properly in each sub command
+  const hasHelpFlag = Boolean(argv.find((it) => ['-h', '--help'].includes(it)))
+  if (hasHelpFlag) {
+    return 'Coming soon: help output for this command.'
+  }
+
   const result = await command.parse(argv.slice(1))
   return result
 }
