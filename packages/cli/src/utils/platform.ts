@@ -142,26 +142,30 @@ interface HelpContent {
 
 export const createHelp = (content: HelpContent) => {
   const { command, subcommand, subcommands, options, examples, additionalContent } = content
-  const command_ = command ? `prisma platform ${command} ${subcommand}` : `prisma platform`
+  const command_ = subcommand
+    ? `prisma platform ${command} ${subcommand}`
+    : command && subcommands
+    ? `prisma platform ${command} [command]`
+    : `prisma platform [command]`
 
   const usage = format(`
 ${bold('Usage')}
 
-  ${dim('$')} ${command_} [command] [options]
+  ${dim('$')} ${command_} [options]
 `)
 
   // prettier-ignore
   const commands = subcommands && format(`
 ${bold('Commands')}
 
-${subcommands.map(([option, description]) => `${option.padStart(15)}  -  ${description}`).join('\n')}
+${subcommands.map(([option, description]) => `${option.padStart(15)}   ${description}`).join('\n')}
   `)
 
   // prettier-ignore
   const options_ = options && format(`
 ${bold('Options')}
 
-${options.map(([option, alias, description]) => `  ${option.padStart(15)} ${alias && alias+','}  -  ${description}`).join('\n')}
+${options.map(([option, alias, description]) => `  ${option.padStart(15)} ${alias && alias+','}   ${description}`).join('\n')}
   `)
 
   // prettier-ignore

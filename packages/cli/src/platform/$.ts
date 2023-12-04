@@ -11,8 +11,6 @@ export class $ implements Command {
   private constructor(private readonly commands: Commands) {}
 
   public help = createHelp({
-    command: `project`,
-    subcommand: `create`,
     subcommands: [
       ['login', 'Logs into your Prisma Data Platform account or creates a new one with GitHub authentication.'],
       ['logout', 'Logs out of your Prisma Data Platform account.'],
