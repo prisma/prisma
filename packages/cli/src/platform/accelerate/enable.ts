@@ -50,7 +50,7 @@ export class Enable implements Command {
             createdAt: string
             displayName: string
             valueHint: string
-            tenantAPIKey: string
+            tenantApiKeyId: string
           }
         }
         error: null | { message: string }
@@ -66,7 +66,7 @@ export class Enable implements Command {
         throw new Error(payload.error.message)
       }
       return successMessage(
-        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantAPIKey}`,
+        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantApiKeyId}`,
       )
     } else {
       return successMessage(
