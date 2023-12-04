@@ -52,6 +52,7 @@ export class Enable implements Command {
             tenantAPIKey: string
           }
         }
+        error: null | { message: string }
       }>({
         token,
         path: `/${workspace}/${project}/settings/api-keys/create`,
@@ -60,6 +61,9 @@ export class Enable implements Command {
           displayName: 'todo',
         },
       })
+      if (payload.error?.message) {
+        throw new Error(payload.error.message)
+      }
       log(
         `Success! Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantAPIKey}`,
       )

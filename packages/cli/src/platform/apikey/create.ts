@@ -38,6 +38,7 @@ export class Create implements Command {
           tenantAPIKey: string
         }
       }
+      error: null | { message: string }
     }>({
       token,
       path: `/${workspace}/${project}/settings/api-keys/create`,
@@ -46,6 +47,9 @@ export class Create implements Command {
         displayName,
       },
     })
+    if (payload.error?.message) {
+      throw new Error(payload.error.message)
+    }
     // todo green success
     log(`Success! New API Key created: ${payload.data.serviceKey.tenantAPIKey}`)
     return ''

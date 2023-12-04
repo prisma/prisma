@@ -27,8 +27,10 @@ export class Delete implements Command {
     if (isError(project)) return project
     const apikey = getRequiredParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
-
-    const payload = await platformRequestOrThrow<{ data: { id: string; displayName: string } }>({
+    const payload = await platformRequestOrThrow<{
+      data: { id: string; displayName: string }
+      error: null | { message: string }
+    }>({
       token,
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
@@ -36,6 +38,9 @@ export class Delete implements Command {
         id: apikey,
       },
     })
+    if (payload.error?.message) {
+      throw new Error(payload.error.message)
+    }
     // green "success" text
     log(`Success! API Key ${payload.data.displayName} deleted.`)
     return ''
