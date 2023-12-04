@@ -134,6 +134,8 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[]) =
   return result
 }
 
+export const successMessage = (message: string) => `${green('Success!')} ${message}`
+
 /**
  *
  * Authentication related utils
