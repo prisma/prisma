@@ -109,8 +109,10 @@ export const platformRequestOrThrow = async (params: {
   const headers = new Headers({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
-    // will be `prisma@null` if we can't find it
-    'user-agent': `prisma@${prismaClientVersion}`,
+    // For how to format it
+    // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
+    // will be `prisma/null` if we can't find it
+    'User-Agent': `prisma/${prismaClientVersion}`,
   })
   const response = await fetch(url, {
     method: payload ? 'POST' : 'GET',
