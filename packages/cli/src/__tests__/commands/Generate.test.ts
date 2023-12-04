@@ -37,8 +37,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -63,8 +63,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -110,8 +110,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -136,8 +136,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -173,8 +173,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -201,8 +201,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -240,8 +240,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -266,8 +266,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -303,8 +303,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -329,8 +329,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -366,8 +366,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -394,8 +394,8 @@ describe('using cli', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -447,8 +447,8 @@ describe('--schema from project directory', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -472,8 +472,8 @@ describe('--schema from project directory', () => {
                 See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                 ┌─────────────────────────────────────────────────────────────┐
-                │  Deploying your app to Serverless or Edge Functions?        │
-                │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+                │  Deploying your app to serverless or edge functions?        │
+                │  Try Prisma Accelerate for connection pooling and caching.  │
                 │  https://pris.ly/cli/accelerate                             │
                 └─────────────────────────────────────────────────────────────┘
 
@@ -513,8 +513,8 @@ describe('--schema from project directory', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -538,8 +538,8 @@ describe('--schema from project directory', () => {
                 See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                 ┌─────────────────────────────────────────────────────────────┐
-                │  Deploying your app to Serverless or Edge Functions?        │
-                │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+                │  Deploying your app to serverless or edge functions?        │
+                │  Try Prisma Accelerate for connection pooling and caching.  │
                 │  https://pris.ly/cli/accelerate                             │
                 └─────────────────────────────────────────────────────────────┘
 
@@ -580,8 +580,8 @@ describe('--schema from parent directory', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -605,8 +605,8 @@ describe('--schema from parent directory', () => {
                 See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                 ┌─────────────────────────────────────────────────────────────┐
-                │  Deploying your app to Serverless or Edge Functions?        │
-                │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+                │  Deploying your app to serverless or edge functions?        │
+                │  Try Prisma Accelerate for connection pooling and caching.  │
                 │  https://pris.ly/cli/accelerate                             │
                 └─────────────────────────────────────────────────────────────┘
 
@@ -648,8 +648,8 @@ describe('--schema from parent directory', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -673,8 +673,8 @@ describe('--schema from parent directory', () => {
                 See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                 ┌─────────────────────────────────────────────────────────────┐
-                │  Deploying your app to Serverless or Edge Functions?        │
-                │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+                │  Deploying your app to serverless or edge functions?        │
+                │  Try Prisma Accelerate for connection pooling and caching.  │
                 │  https://pris.ly/cli/accelerate                             │
                 └─────────────────────────────────────────────────────────────┘
 
@@ -719,8 +719,8 @@ describe('--schema from parent directory', () => {
         See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to Serverless or Edge Functions?        │
-        │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+        │  Deploying your app to serverless or edge functions?        │
+        │  Try Prisma Accelerate for connection pooling and caching.  │
         │  https://pris.ly/cli/accelerate                             │
         └─────────────────────────────────────────────────────────────┘
 
@@ -746,8 +746,8 @@ describe('--schema from parent directory', () => {
                 See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                 ┌─────────────────────────────────────────────────────────────┐
-                │  Deploying your app to Serverless or Edge Functions?        │
-                │  Try Prisma Accelerate for Connection Pooling and Caching.  │
+                │  Deploying your app to serverless or edge functions?        │
+                │  Try Prisma Accelerate for connection pooling and caching.  │
                 │  https://pris.ly/cli/accelerate                             │
                 └─────────────────────────────────────────────────────────────┘
 
