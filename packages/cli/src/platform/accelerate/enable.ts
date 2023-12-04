@@ -1,6 +1,7 @@
 import { arg, Command, isError } from '@prisma/internals'
 
 import {
+  getOptionalParameter,
   getPlatformTokenOrThrow,
   getRequiredParameter,
   platformParameters,
@@ -27,7 +28,7 @@ export class Enable implements Command {
     if (isError(project)) return project
     const url = getRequiredParameter(args, ['--url'])
     if (isError(project)) return project
-    const apikey = getRequiredParameter(args, ['--apikey'])
+    const apikey = getOptionalParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
     await platformRequestOrThrow<{
       accelerate: { data: {}; error: null }
