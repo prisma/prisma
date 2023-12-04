@@ -12,7 +12,7 @@ export class Logout implements Command {
     const authJson = await readAuthConfig()
     if (isError(authJson)) throw authJson
     if (!authJson.token) {
-      return `You are not currently logged in. Run ${green('`prisma platform login --early-access`')} to log in.`
+      return `You are not currently logged in. Run ${green(getCommandWithExecutor('prisma platform login --early-access'))} to log in.`
     }
     await deleteAuthConfig()
     // TODO: Add oauth logout

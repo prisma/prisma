@@ -31,7 +31,7 @@ export class Login implements Command {
     if (isError(authConfig)) throw authConfig
     if (authConfig.token)
       return `Already authenticated. Run ${green(
-        '`prisma platform auth show --early-access`',
+        getCommandWithExecutor('prisma platform auth show --early-access'),
       )} to see the current user.`
 
     console.info('Authenticating to Prisma Platform CLI via browser')
@@ -91,7 +91,7 @@ export class Login implements Command {
       const result = await writeAuthConfig({ token: authResult.token })
       if (isError(result)) throw result
 
-      return successMessage(`Authentication complete for ${authResult.user.email}`)
+      return successMessage(`Authentication successful for ${authResult.user.email}`)
     } catch (error) {
       throw new Error(`Authentication failed: ${isError(error) ? error.message : ''}`)
     }
