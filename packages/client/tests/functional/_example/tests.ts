@@ -48,7 +48,16 @@ testMatrix.setupTestSuite(
     })
 
     test('getTestSuiteSchema', () => {
-      const schemaString = getTestSuiteSchema(suiteMeta, suiteConfig)
+      const schemaString = getTestSuiteSchema(
+        {
+          dataProxy: false,
+          engineType: 'library',
+          runtime: 'node',
+          previewFeatures: [],
+        },
+        suiteMeta,
+        suiteConfig,
+      )
 
       expect(schemaString).toContain('generator')
       expect(schemaString).toContain('datasource')

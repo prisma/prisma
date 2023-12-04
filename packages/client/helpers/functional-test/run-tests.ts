@@ -105,6 +105,9 @@ const args = arg(
     '--flavor': [String],
     // Forces any given test to be run with `engineType=` binary, library, or wasm
     '--engine-type': String,
+    // Forces any given test to be run with a specific set of preview features, comma-separated
+    '--preview-features': String,
+
     //
     // Jest params
     //
@@ -128,6 +131,10 @@ async function main(): Promise<number | void> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       jestCli = jestCli.withArgs([cliArg, args[cliArg]])
     }
+  }
+
+  if (args['--preview-features']) {
+    jestCli = jestCli.withEnv({ TEST_PREVIEW_FEATURES: args['--preview-features'] })
   }
 
   if (args['--provider']) {

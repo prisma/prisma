@@ -14,7 +14,7 @@ import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
-import { ClientMeta, MatrixOptions } from './types'
+import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
@@ -51,14 +51,19 @@ export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestCallbackSuiteMeta, clientMeta: ClientMeta) => void,
+  tests: (
+    suiteConfig: Record<string, string>,
+    suiteMeta: TestCallbackSuiteMeta,
+    clientMeta: ClientMeta,
+    cliMeta: CliMeta,
+  ) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteCliMeta = getTestSuiteCliMeta()
+  const cliMeta = getTestSuiteCliMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, suiteCliMeta, options)
+  const testPlan = getTestSuitePlan(cliMeta, suiteMeta, suiteConfigs, options)
 
   if (originalEnv.TEST_GENERATE_ONLY === 'true') {
     options = options ?? {}
@@ -87,6 +92,7 @@ function setupTestSuiteMatrix(
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
         globalThis['loaded'] = await setupTestSuiteClient({
+          cliMeta,
           suiteMeta,
           suiteConfig,
           datasourceInfo,
@@ -173,7 +179,7 @@ function setupTestSuiteMatrix(
         test('generate only', () => {})
       }
 
-      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta)
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, cliMeta)
     })
   }
 }
