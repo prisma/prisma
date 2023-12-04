@@ -55,6 +55,10 @@ const envVars = {
 }
 
 describe('debug', () => {
+  // make sure the env is empty before each test
+  beforeEach(() => {
+    process.env = {}
+  })
   // clean up env vars after each individual test
   afterEach(() => {
     process.env = { ...originalEnv }
