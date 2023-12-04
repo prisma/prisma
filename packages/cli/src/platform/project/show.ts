@@ -1,4 +1,5 @@
 import { arg, Command, isError } from '@prisma/internals'
+import { table } from 'console'
 
 import {
   getPlatformTokenOrThrow,
@@ -6,6 +7,17 @@ import {
   platformParameters,
   platformRequestOrThrow,
 } from '../../utils/platform'
+
+type Organization = {
+  id: string
+  createdAt: string
+  displayName: string
+  projects: {
+    id: string
+    createdAt: string
+    displayName: string
+  }[]
+}
 
 export class Show implements Command {
   public static new(): Show {
@@ -21,10 +33,15 @@ export class Show implements Command {
 
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
-    return platformRequestOrThrow({
+
+    const data = await platformRequestOrThrow<{ organization: Organization }>({
       token,
       path: `/${workspace}/overview`,
       route: '_app.$organizationId.overview',
-    }) as Promise<any>
+    })
+
+    table(data.organization.projects, ['id', 'createdAt', 'displayName'])
+
+    return ''
   }
 }
