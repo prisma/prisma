@@ -24,7 +24,7 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
  * Base class for http client, ws client and ws transaction
  */
 abstract class NeonQueryable implements Queryable {
-  readonly flavour = 'postgres'
+  readonly provider = 'postgres'
 
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
     const tag = '[js::query_raw]'
@@ -166,9 +166,5 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
 
   startTransaction(): Promise<Result<Transaction>> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
-  }
-
-  async close() {
-    return ok(undefined)
   }
 }
