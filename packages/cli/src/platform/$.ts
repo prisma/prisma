@@ -46,9 +46,7 @@ export class $ implements Command {
     }
 
     const result = await dispatchToSubCommand(this.commands, argvWithoutEarlyAccess)
-    if (result instanceof Error && result.name === 'HelpError') return this.help(result.message)
 
-    // TODO: Consider removing JSON.stringify as it breaks if sub-command parse returns JSON.stringify
-    return typeof result === 'string' ? result : JSON.stringify(result)
+    return result
   }
 }

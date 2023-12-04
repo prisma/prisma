@@ -1,10 +1,12 @@
 import { arg, Command, isError } from '@prisma/internals'
 
 import {
+  getOptionalParameter,
   getPlatformTokenOrThrow,
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
+  successMessage,
 } from '../../utils/platform'
 
 export class Enable implements Command {
@@ -25,10 +27,13 @@ export class Enable implements Command {
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
     const url = getRequiredParameter(args, ['--url'])
-    if (isError(project)) return project
-    const apikey = getRequiredParameter(args, ['--apikey'])
+    if (isError(url)) return url
+    const apikey = getOptionalParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
-    const accelerate = await platformRequestOrThrow({
+    await platformRequestOrThrow<{
+      accelerate: { data: {}; error: null }
+      apikey: { data: { serviceKey: { id: string; createdAt: string } } }
+    }>({
       token,
       path: `/${workspace}/${project}/accelerate/setup`,
       route: '_app.$organizationId_.$projectId.accelerate.setup',
@@ -37,9 +42,19 @@ export class Enable implements Command {
         connectionString: url,
       },
     })
-    let apikeyResult: null | object = null
     if (apikey) {
-      apikeyResult = await platformRequestOrThrow({
+      const payload = await platformRequestOrThrow<{
+        data: {
+          serviceKey: {
+            id: string
+            createdAt: string
+            displayName: string
+            valueHint: string
+            tenantApiKeyId: string
+          }
+        }
+        error: null | { message: string }
+      }>({
         token,
         path: `/${workspace}/${project}/settings/api-keys/create`,
         route: '_app.$organizationId_.$projectId.settings.api-keys.create',
@@ -47,10 +62,16 @@ export class Enable implements Command {
           displayName: 'todo',
         },
       })
+      if (payload.error?.message) {
+        throw new Error(payload.error.message)
+      }
+      return successMessage(
+        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantApiKeyId}`,
+      )
+    } else {
+      return successMessage(
+        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.`,
+      )
     }
-    return {
-      accelerate,
-      apikey: apikeyResult,
-    } as any // todo
   }
 }

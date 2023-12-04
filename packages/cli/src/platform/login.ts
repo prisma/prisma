@@ -1,13 +1,13 @@
 import Debug from '@prisma/debug'
-import { Command, isError } from '@prisma/internals'
+import { Command, getCommandWithExecutor, isError } from '@prisma/internals'
 import listen from 'async-listen'
 import * as checkpoint from 'checkpoint-client'
 import http from 'http'
-import { underline } from 'kleur/colors'
+import { green, underline } from 'kleur/colors'
 import open from 'open'
 
 import { name as PRISMA_CLI_NAME, version as PRISMA_CLI_VERSION } from '../../package.json'
-import { platformConsoleUrl, writeAuthConfig } from '../utils/platform'
+import { platformConsoleUrl, readAuthConfig, successMessage, writeAuthConfig } from '../utils/platform'
 
 interface AuthResult {
   token: string
@@ -27,6 +27,13 @@ export class Login implements Command {
   }
 
   public async parse() {
+    const authConfig = await readAuthConfig()
+    if (isError(authConfig)) throw authConfig
+    if (authConfig.token)
+      return `Already authenticated. Run ${green(
+        getCommandWithExecutor('prisma platform auth show --early-access'),
+      )} to see the current user.`
+
     console.info('Authenticating to Prisma Platform CLI via browser')
 
     const server = http.createServer()
@@ -84,9 +91,7 @@ export class Login implements Command {
       const result = await writeAuthConfig({ token: authResult.token })
       if (isError(result)) throw result
 
-      console.info('Authenticated successfully as:')
-      console.info(JSON.stringify(authResult.user, null, 4))
-      return ''
+      return successMessage(`Authentication successful for ${authResult.user.email}`)
     } catch (error) {
       throw new Error(`Authentication failed: ${isError(error) ? error.message : ''}`)
     }
