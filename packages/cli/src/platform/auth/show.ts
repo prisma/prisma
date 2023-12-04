@@ -1,4 +1,5 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { arg, Command, formatTable, isError } from '@prisma/internals'
+import { green } from 'kleur/colors'
 
 import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
@@ -13,10 +14,20 @@ export class Show implements Command {
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-    return platformRequestOrThrow({
+    const payload = await platformRequestOrThrow<{
+      user: { id: string; handle: string; email: string; displayName: string }
+    }>({
       token,
       path: `/settings/account`,
       route: '_app._user.settings.account',
-    }) as Promise<any>
+    })
+    console.log(`Currently authenticated as ${green(payload.user.email)}`)
+    console.log('')
+    return formatTable([
+      ['id', payload.user.id],
+      ['handle', payload.user.handle],
+      ['email', payload.user.email],
+      ['displayName', payload.user.displayName],
+    ])
   }
 }
