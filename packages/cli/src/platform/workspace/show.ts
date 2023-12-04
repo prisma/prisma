@@ -15,7 +15,7 @@ export class Show implements Command {
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
 
-    const data = await platformRequestOrThrow<{
+    const payload = await platformRequestOrThrow<{
       actor: any
       organizations: {
         id: string
@@ -27,8 +27,9 @@ export class Show implements Command {
       path: `/settings/workspaces`,
       route: '_app._user.settings.workspaces',
     })
+
     table(
-      data.organizations.map((workspace) => ({
+      payload.organizations.map((workspace) => ({
         id: workspace.id,
         name: workspace.displayName,
         createdAt: workspace.createdAt,
