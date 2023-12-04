@@ -132,7 +132,7 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[], h
 }
 
 interface HelpContent {
-  command: string
+  command?: string
   subcommand?: string
   subcommands?: string[][]
   options?: string[][]
@@ -142,11 +142,12 @@ interface HelpContent {
 
 export const createHelp = (content: HelpContent) => {
   const { command, subcommand, subcommands, options, examples, additionalContent } = content
+  const command_ = command ? `prisma platform ${command} ${subcommand}` : `prisma platform`
 
   const usage = format(`
 ${bold('Usage')}
 
-  ${dim('$')} prisma platform ${command} ${subcommand || '[command]'} [options]
+  ${dim('$')} ${command_} [command] [options]
 `)
 
   // prettier-ignore
@@ -160,7 +161,7 @@ ${subcommands.map(([option, description]) => `${option.padStart(15)}  -  ${descr
   const options_ = options && format(`
 ${bold('Options')}
 
-${options.map(([option, alias, description]) => `${option.padStart(15)} ${alias && alias+','}  -  ${description}`).join('\n')}
+${options.map(([option, alias, description]) => `  ${option.padStart(15)} ${alias && alias+','}  -  ${description}`).join('\n')}
   `)
 
   // prettier-ignore
@@ -175,7 +176,7 @@ ${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
   ${additionalContent.join('\n')}
   `)
 
-  const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('\n')
+  const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('')
   return (error?: string) => (error ? new HelpError(`\n${bold(red(`!`))} ${error}\n${help}`) : help)
 }
 
