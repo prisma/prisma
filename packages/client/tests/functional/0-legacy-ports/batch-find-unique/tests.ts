@@ -1,5 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
+import { getTestSuitePreviewFeatures, getTestSuiteSchema } from '../../_utils/getTestSuiteInfo'
 import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
@@ -9,7 +10,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
   beforeAll(async () => {
     prisma = newPrismaClient({
       log: [
@@ -76,7 +77,15 @@ testMatrix.setupTestSuite(() => {
       }
     })
 
-    expect(executedBatchQuery).toMatchSnapshot()
+    if (getTestSuitePreviewFeatures(getTestSuiteSchema(suiteMeta, suiteConfig)).includes('relationJoins')) {
+      expect(executedBatchQuery).toMatchInlineSnapshot(
+        `SELECT "t1"."id", "t1"."email", "t1"."age", "t1"."name" FROM "public"."User" AS "t1" WHERE "t1"."email" IN ($1,$2,$3,$4)`,
+      )
+    } else {
+      expect(executedBatchQuery).toMatchInlineSnapshot(
+        `SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5`,
+      )
+    }
 
     expect(results).toMatchInlineSnapshot(`
       [
