@@ -7,6 +7,7 @@ import {
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
+  successMessage,
 } from '../../utils/platform'
 
 export class Create implements Command {
@@ -50,8 +51,7 @@ export class Create implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    // todo green success
-    log(`Success! New API Key created: ${payload.data.serviceKey.tenantAPIKey}`)
+    log(successMessage(`New API Key created: ${payload.data.serviceKey.tenantAPIKey}`))
     return ''
   }
 }

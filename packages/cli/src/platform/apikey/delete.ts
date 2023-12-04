@@ -6,6 +6,7 @@ import {
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
+  successMessage,
 } from '../../utils/platform'
 
 export class Delete implements Command {
@@ -41,8 +42,7 @@ export class Delete implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    // green "success" text
-    log(`Success! API Key ${payload.data.displayName} deleted.`)
+    log(successMessage(`API Key ${payload.data.displayName} deleted.`))
     return ''
   }
 }

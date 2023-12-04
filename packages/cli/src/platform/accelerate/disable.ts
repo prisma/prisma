@@ -6,6 +6,7 @@ import {
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
+  successMessage,
 } from '../../utils/platform'
 
 export class Disable implements Command {
@@ -36,9 +37,10 @@ export class Disable implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    // green "success" text
     log(
-      `Success! Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
+      successMessage(
+        `Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
+      ),
     )
     return ''
   }

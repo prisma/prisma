@@ -6,6 +6,7 @@ import {
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
+  successMessage,
 } from '../../utils/platform'
 
 export class Enable implements Command {
@@ -65,11 +66,15 @@ export class Enable implements Command {
         throw new Error(payload.error.message)
       }
       log(
-        `Success! Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantAPIKey}`,
+        successMessage(
+          `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantAPIKey}`,
+        ),
       )
     } else {
       log(
-        `Success! Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.`,
+        successMessage(
+          `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.`,
+        ),
       )
     }
     return ''
