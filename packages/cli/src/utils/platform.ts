@@ -53,7 +53,7 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
   environmentVariable?: string,
 ): Error | Exclude<$Args[$Names[number]], undefined> => {
   const value = getOptionalParameter(args, names, environmentVariable)
-  if (value === undefined) return new Error(`Missing value for ${names.join(' or ')} parameter`)
+  if (value === undefined) return new Error(`Missing ${names.join(' or ')} parameter`)
   return value
 }
 
