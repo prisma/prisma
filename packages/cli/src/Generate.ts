@@ -2,6 +2,7 @@ import { enginesVersion } from '@prisma/engines'
 import {
   arg,
   Command,
+  drawBox,
   format,
   Generator,
   getCommandWithExecutor,
@@ -28,6 +29,7 @@ import resolvePkg from 'resolve-pkg'
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
+import { isModuleNamespaceObject } from 'util/types'
 
 const pkg = eval(`require('../package.json')`)
 
@@ -248,6 +250,17 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
+        const tryAccelerateMessage = `Deploying your app to Serverless or Edge Functions?
+Try Prisma Accelerate for Connection Pooling and Caching.
+${link('https://pris.ly/cli/accelerate')}`
+
+        const boxedTryAccelerateMessage = drawBox({
+          height: tryAccelerateMessage.split('\n').length,
+          width: 0, // calculated automatically
+          str: tryAccelerateMessage,
+          horizontalPadding: 2,
+        })
+
         hint = `
 Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
@@ -264,11 +277,7 @@ ${dim('```')}
 
 See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
 
-****************
-Deploying your app to Serverless or Edge Functions?
-Try Prisma Accelerate for Connection Pooling and Caching.
-${link('https://pris.ly/cli/accelerate')}
-****************
+${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
