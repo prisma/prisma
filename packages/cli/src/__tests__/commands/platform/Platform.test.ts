@@ -10,10 +10,57 @@ describe('--early-access flag', () => {
       Please provide the --early-access flag to use this command.
     `)
   })
-  it('should work with it', async () => {
-    const result = await $.new({}).parse(['--early-access'])
+
+  it('should output help if no subcommand or parameter is passed', async () => {
+    const commandInstance = $.new({})
+    const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+    const result = await commandInstance.parse(['--early-access'])
     const resultIsError = isError(result)
     expect(resultIsError).toBeFalsy()
-    expect(result).toBe('"Coming soon: help output for this command."')
+    expect(spy).toHaveBeenCalledTimes(1)
+    spy.mockRestore()
+  })
+
+  it('should output help if -h is passed', async () => {
+    const commandInstance = $.new({})
+    const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+    const result = await commandInstance.parse(['--early-access', '-h'])
+    const resultIsError = isError(result)
+    expect(resultIsError).toBeFalsy()
+    expect(spy).toHaveBeenCalledTimes(1)
+    spy.mockRestore()
+  })
+
+  it('should output the help', async () => {
+    const commandInstance = $.new({})
+    const result = await commandInstance.parse(['--early-access'])
+    expect(result).toMatchInlineSnapshot(`
+
+      Usage
+
+        $ prisma platform [command] [options]
+
+      Commands
+
+                login   Logs into your Prisma Data Platform account or creates a new one with GitHub authentication
+               logout   Logs out of your Prisma Data Platform account
+            workspace   Manage workspaces
+              project   Manage projects
+               apikey   Manage API keys
+           accelerate   Manage Accelerate feature
+
+      Options
+
+         --early-access    Enable early access features
+                --token    Specify a token to use for authentication
+
+      Examples
+
+        $ prisma platform login
+        $ prisma platform project create --workspace=<id>
+
+      For detailed command descriptions and options, use \`prisma platform [command] --help\`
+
+    `)
   })
 })

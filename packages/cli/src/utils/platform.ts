@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
-import { Commands, getCommandWithExecutor, HelpError, isError } from '@prisma/internals'
+import { Commands, format, getCommandWithExecutor, HelpError, isError } from '@prisma/internals'
 import fs from 'fs-extra'
-import { bold, green, red } from 'kleur/colors'
+import { bold, dim, green, red } from 'kleur/colors'
 import fetch, { Headers } from 'node-fetch'
 import path from 'path'
 import XdgAppPaths from 'xdg-app-paths'
@@ -123,15 +123,71 @@ export const platformRequestOrThrow = async (params: {
 
 export const dispatchToSubCommand = async (commands: Commands, argv: string[]) => {
   const commandName = argv[0]
-  // Placeholder for now
-  const helpPlaceholder = 'Coming soon: help output for this command.'
-  if (!commandName) return helpPlaceholder
+  if (!commandName) return new HelpError(`Unknown command.`)
   const command = commands[commandName]
-  if (!command) {
-    throw new HelpError(`\n${bold(red(`!`))} Unknown command or parameter "${commandName}"\n${helpPlaceholder}`)
+  if (!command) return new HelpError(`Unknown command or parameter "${commandName}"`)
+
+  // Temporary text until it's added properly in each sub command
+  const hasHelpFlag = Boolean(argv.find((it) => ['-h', '--help'].includes(it)))
+  if (hasHelpFlag) {
+    return 'Coming soon: help output for this command.'
   }
+
   const result = await command.parse(argv.slice(1))
   return result
+}
+
+interface HelpContent {
+  command?: string
+  subcommand?: string
+  subcommands?: string[][]
+  options?: string[][]
+  examples?: string[]
+  additionalContent?: string[]
+}
+
+export const createHelp = (content: HelpContent) => {
+  const { command, subcommand, subcommands, options, examples, additionalContent } = content
+  const command_ = subcommand
+    ? `prisma platform ${command} ${subcommand}`
+    : command && subcommands
+    ? `prisma platform ${command} [command]`
+    : `prisma platform [command]`
+
+  const usage = format(`
+${bold('Usage')}
+
+  ${dim('$')} ${command_} [options]
+`)
+
+  // prettier-ignore
+  const commands = subcommands && format(`
+${bold('Commands')}
+
+${subcommands.map(([option, description]) => `${option.padStart(15)}   ${description}`).join('\n')}
+  `)
+
+  // prettier-ignore
+  const options_ = options && format(`
+${bold('Options')}
+
+${options.map(([option, alias, description]) => `  ${option.padStart(15)} ${alias && alias+','}   ${description}`).join('\n')}
+  `)
+
+  // prettier-ignore
+  const examples_ = examples && format(`
+${bold('Examples')}
+
+${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
+  `)
+
+  // prettier-ignore
+  const additionalContent_ = additionalContent && format(`
+  ${additionalContent.join('\n')}
+  `)
+
+  const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('')
+  return (error?: string) => (error ? new HelpError(`\n${bold(red(`!`))} ${error}\n${help}`) : help)
 }
 
 /**
