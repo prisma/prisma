@@ -109,6 +109,7 @@ export const platformRequestOrThrow = async (params: {
   const headers = new Headers({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
+    // will be `prisma@null` if we can't find it
     'user-agent': `prisma@${prismaClientVersion}`,
   })
   const response = await fetch(url, {

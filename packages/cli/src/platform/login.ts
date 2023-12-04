@@ -94,17 +94,14 @@ export class Login implements Command {
 }
 
 const generateAuthSigninUrl = async (params: { connection: string; redirectTo: string }) => {
-  const prismaClientVersion = await getInstalledPrismaClientVersion().catch((e) => {
-    debug(`await getInstalledPrismaClientVersion() failed silently with ${e}`)
-    return null
-  })
+  const prismaClientVersion = await getInstalledPrismaClientVersion()
   const cliSignature = await checkpoint.getSignature().catch((e) => {
     debug(`await checkpoint.getSignature() failed silently with ${e}`)
     return null
   })
 
   const state = {
-    // will be `prisma@null` if it's not found or if it throws during retrieval
+    // will be `prisma@null` if we can't find it
     client: `prisma@${prismaClientVersion}`,
     // will be `null` if it throws during retrieval
     // will be a UUIDv4 when successful
