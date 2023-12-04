@@ -21,8 +21,7 @@ export class Show implements Command {
       path: `/settings/account`,
       route: '_app._user.settings.account',
     })
-    console.log(`Currently authenticated as ${green(payload.user.email)}`)
-    console.log('')
+    console.info(`Currently authenticated as ${green(payload.user.email)}\n`)
     return formatTable([
       ['id', payload.user.id],
       ['handle', payload.user.handle],
