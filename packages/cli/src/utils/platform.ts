@@ -117,6 +117,11 @@ export const platformRequestOrThrow = async <$Data extends object = object>(para
     body: payload ? JSON.stringify(payload) : undefined,
   })
   const text = await response.text()
+
+  if (response.status > 400) {
+    throw new Error(text)
+  }
+
   const json = JSON.parse(text || '""')
   return json
 }
