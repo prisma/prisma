@@ -177,7 +177,6 @@ ${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
 
   const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('\n')
   return (error?: string) => (error ? new HelpError(`\n${bold(red(`!`))} ${error}\n${help}`) : help)
-  // return help
 }
 
 /**

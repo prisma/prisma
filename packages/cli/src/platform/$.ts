@@ -10,24 +10,6 @@ export class $ implements Command {
 
   private constructor(private readonly commands: Commands) {}
 
-  // private static help = generateHelp({
-  //   command: 'platform',
-  //   subcommands: [
-  //     ['login', 'Logs into your Prisma Data Platform account or creates a new one with GitHub authentication.'],
-  //     ['logout', 'Logs out of your Prisma Data Platform account.'],
-  //     ['workspace', 'Manage workspaces.'],
-  //     ['project', 'Manage projects.'],
-  //     ['apikey', 'Manage API keys.'],
-  //     ['accelerate', 'Manage Accelerate feature.'],
-  //   ],
-  //   options: [
-  //     ['--early-access', '', 'Enable early access features.'],
-  //     ['--token', '', 'Specify a token to use for authentication.'],
-  //   ],
-  //   examples: ['prisma platform login', 'prisma platform project create --workspace=<id>'],
-  //   additionalContent: ['For detailed command descriptions and options, use `prisma platform [command] --help`'],
-  // })
-
   public help = createHelp({
     command: 'platform',
     subcommands: [
@@ -70,11 +52,4 @@ export class $ implements Command {
     // TODO: Consider removing JSON.stringify as it breaks if sub-command parse returns JSON.stringify
     return typeof result === 'string' ? result : JSON.stringify(result)
   }
-
-  // public help(error?: string): string | HelpError {
-  //   if (error) {
-  //     return new HelpError(`\n${bold(red(`!`))} ${error}\n${$.help}`)
-  //   }
-  //   return $.help
-  // }
 }
