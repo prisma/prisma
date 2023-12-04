@@ -6,7 +6,7 @@ import http from 'http'
 import { underline } from 'kleur/colors'
 import open from 'open'
 
-import { getInstalledPrismaClientVersion } from '../utils/getClientVersion'
+import { version as PRISMA_CLI_VERSION } from '../../package.json'
 import { platformConsoleUrl, writeAuthConfig } from '../utils/platform'
 
 interface AuthResult {
@@ -94,15 +94,13 @@ export class Login implements Command {
 }
 
 const generateAuthSigninUrl = async (params: { connection: string; redirectTo: string }) => {
-  const prismaClientVersion = await getInstalledPrismaClientVersion()
   const cliSignature = await checkpoint.getSignature().catch((e) => {
     debug(`await checkpoint.getSignature() failed silently with ${e}`)
     return null
   })
 
   const state = {
-    // will be `prisma@null` if we can't find it
-    client: `prisma@${prismaClientVersion}`,
+    client: `prisma@${PRISMA_CLI_VERSION}`,
     // will be `null` if it throws during retrieval
     // will be a UUIDv4 when successful
     signature: cliSignature,
