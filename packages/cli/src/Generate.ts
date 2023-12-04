@@ -29,7 +29,6 @@ import resolvePkg from 'resolve-pkg'
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
-import { isModuleNamespaceObject } from 'util/types'
 
 const pkg = eval(`require('../package.json')`)
 
