@@ -121,12 +121,9 @@ export const platformRequestOrThrow = async (params: {
   return json
 }
 
-export const dispatchToSubCommand = async (commands: Commands, argv: string[], help?: (error?: string) => string) => {
+export const dispatchToSubCommand = async (commands: Commands, argv: string[]) => {
   const commandName = argv[0]
-  if (['-h', '--help'].includes(commandName)) return help?.() ?? ''
-
   if (!commandName) return new HelpError(`Unknown command.`)
-
   const command = commands[commandName]
   if (!command) return new HelpError(`Unknown command or parameter "${commandName}"`)
   const result = await command.parse(argv.slice(1))
