@@ -27,7 +27,7 @@ export class Enable implements Command {
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
     const url = getRequiredParameter(args, ['--url'])
-    if (isError(project)) return project
+    if (isError(url)) return url
     const apikey = getOptionalParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
     await platformRequestOrThrow<{
