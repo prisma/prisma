@@ -67,7 +67,7 @@ export type Error =
     }
 
 export interface Queryable {
-  readonly flavour: 'mysql' | 'postgres' | 'sqlite'
+  readonly provider: 'mysql' | 'postgres' | 'sqlite'
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
@@ -92,11 +92,6 @@ export interface DriverAdapter extends Queryable {
    * Starts new transation.
    */
   startTransaction(): Promise<Result<Transaction>>
-
-  /**
-   * Closes the connection to the database, if any.
-   */
-  close: () => Promise<Result<void>>
 }
 
 export type TransactionOptions = {

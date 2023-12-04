@@ -14,7 +14,7 @@ export async function smokeTest(adapter: DriverAdapter) {
   await prisma.$connect()
   console.log('[nodejs] connected')
 
-  const test = new SmokeTest(prisma, adapter.flavour)
+  const test = new SmokeTest(prisma, adapter.provider)
 
   await test.testJSON()
   await test.testTypeTest2()
@@ -41,7 +41,7 @@ export async function smokeTest(adapter: DriverAdapter) {
 }
 
 class SmokeTest {
-  constructor(private readonly prisma: PrismaClient, readonly flavour: DriverAdapter['flavour']) {}
+  constructor(private readonly prisma: PrismaClient, readonly provider: DriverAdapter['provider']) {}
 
   async testJSON() {
     const json = JSON.stringify({
@@ -168,7 +168,7 @@ class SmokeTest {
   }
 
   private async testFindManyTypeTestMySQL() {
-    if (this.flavour !== 'mysql') {
+    if (this.provider !== 'mysql') {
       return
     }
 

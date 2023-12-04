@@ -20,7 +20,7 @@ type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly flavour = 'postgres'
+  readonly provider = 'postgres'
 
   constructor(protected readonly client: ClientT) {}
 
@@ -138,9 +138,5 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
 
     const connection = await this.client.connect()
     return ok(new PgTransaction(connection, options))
-  }
-
-  async close() {
-    return ok(undefined)
   }
 }
