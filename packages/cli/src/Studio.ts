@@ -19,7 +19,7 @@ import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
 
-const debug = Debug('prisma:studio')
+const debug = Debug('prisma:cli:studio')
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 

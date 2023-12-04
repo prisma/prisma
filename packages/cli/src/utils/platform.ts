@@ -101,7 +101,9 @@ export const platformRequestOrThrow = async (params: {
   payload?: object
 }): Promise<object> => {
   const { path, payload, token, route } = params
-  const url = new URL(`${platformAPIBaseURL}${path.replace(/^\//, '')}?_data=routes/${route}`)
+  const apiPath = `${path.replace(/^\//, '')}?_data=routes/${route}`
+  const url = new URL(apiPath, platformAPIBaseURL)
+
   // TODO error handling, when this fails, do not fail the request
   const prismaClientVersion = await getInstalledPrismaClientVersion()
   const headers = new Headers({

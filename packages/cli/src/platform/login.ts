@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import { Command, isError } from '@prisma/internals'
 import listen from 'async-listen'
 import * as checkpoint from 'checkpoint-client'
@@ -17,6 +18,8 @@ interface AuthResult {
     email: string
   }
 }
+
+const debug = Debug('prisma:cli:platform:login')
 
 export class Login implements Command {
   public static new(): Login {
@@ -43,7 +46,7 @@ export class Login implements Command {
             const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
             const token = searchParams.get('token') ?? ''
             const error = searchParams.get('error')
-            const location = new URL(`${platformConsoleUrl}/auth/cli`)
+            const location = new URL('/auth/cli', platformConsoleUrl)
 
             if (error) {
               location.pathname += '/error'
@@ -91,14 +94,25 @@ export class Login implements Command {
 }
 
 const generateAuthSigninUrl = async (params: { connection: string; redirectTo: string }) => {
-  const prismaClientVersion = await getInstalledPrismaClientVersion().catch(() => null)
+  const prismaClientVersion = await getInstalledPrismaClientVersion().catch((e) => {
+    debug(`await getInstalledPrismaClientVersion() failed silently with ${e}`)
+    return null
+  })
+  const cliSignature = await checkpoint.getSignature().catch((e) => {
+    debug(`await checkpoint.getSignature() failed silently with ${e}`)
+    return null
+  })
+
   const state = {
+    // will be `prisma@null` if it's not found or if it throws during retrieval
     client: `prisma@${prismaClientVersion}`,
-    signature: await checkpoint.getSignature(),
+    // will be `null` if it throws during retrieval
+    // will be a UUIDv4 when successful
+    signature: cliSignature,
     ...params,
   }
   const stateEncoded = Buffer.from(JSON.stringify(state), `utf-8`).toString(`base64`)
-  const url = new URL(`${platformConsoleUrl}/auth/cli`)
+  const url = new URL('/auth/cli', platformConsoleUrl)
   url.searchParams.set('state', stateEncoded)
   return url
 }
@@ -118,7 +132,8 @@ const parseUser = (stringifiedUser: string) => {
   try {
     const maybeUser = JSON.parse(Buffer.from(stringifiedUser, `base64`).toString(`utf-8`))
     return isConsoleUser(maybeUser) ? maybeUser : null
-  } catch (error) {
+  } catch (e) {
+    debug(`parseUser() failed silently with ${e}`)
     return null
   }
 }
