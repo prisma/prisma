@@ -8,17 +8,6 @@ import {
   platformRequestOrThrow,
 } from '../../utils/platform'
 
-type Organization = {
-  id: string
-  createdAt: string
-  displayName: string
-  projects: {
-    id: string
-    createdAt: string
-    displayName: string
-  }[]
-}
-
 export class Show implements Command {
   public static new(): Show {
     return new Show()
@@ -34,13 +23,15 @@ export class Show implements Command {
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
 
-    const data = await platformRequestOrThrow<{ organization: Organization }>({
+    const payload = await platformRequestOrThrow<{
+      organization: { projects: { id: string; createdAt: string; displayName: string }[] }
+    }>({
       token,
       path: `/${workspace}/overview`,
       route: '_app.$organizationId.overview',
     })
 
-    table(data.organization.projects, ['id', 'createdAt', 'displayName'])
+    table(payload.organization.projects, ['id', 'createdAt', 'displayName'])
 
     return ''
   }
