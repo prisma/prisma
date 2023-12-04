@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { Command, isError } from '@prisma/internals'
+import { Command, getCommandWithExecutor, isError } from '@prisma/internals'
 import listen from 'async-listen'
 import * as checkpoint from 'checkpoint-client'
 import http from 'http'
