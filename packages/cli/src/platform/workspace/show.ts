@@ -1,4 +1,5 @@
 import { arg, Command, isError } from '@prisma/internals'
+import { table } from 'console'
 
 import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
@@ -26,12 +27,13 @@ export class Show implements Command {
       path: `/settings/workspaces`,
       route: '_app._user.settings.workspaces',
     })
-    console.table(
+    table(
       data.organizations.map((workspace) => ({
-        ID: workspace.id,
-        NAME: workspace.displayName,
-        ['CREATED AT']: workspace.createdAt,
+        id: workspace.id,
+        name: workspace.displayName,
+        createdAt: workspace.createdAt,
       })),
+      ['id', 'name', 'createdAt'],
     )
     return ''
   }
