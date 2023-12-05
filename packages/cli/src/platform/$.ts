@@ -12,8 +12,7 @@ export class $ implements Command {
 
   public help = createHelp({
     subcommands: [
-      ['login', 'Logs into your Prisma Data Platform account or creates a new one with GitHub authentication'],
-      ['logout', 'Logs out of your Prisma Data Platform account'],
+      ['auth', 'Manage authentication with your Prisma Data Platform account'],
       ['workspace', 'Manage workspaces'],
       ['project', 'Manage projects'],
       ['apikey', 'Manage API keys'],
@@ -23,7 +22,7 @@ export class $ implements Command {
       ['--early-access', '', 'Enable early access features'],
       ['--token', '', 'Specify a token to use for authentication'],
     ],
-    examples: ['prisma platform auth login', 'prisma platform project create --workspace=<id>'],
+    examples: ['prisma platform auth login', 'prisma platform project create --workspace <id>'],
     additionalContent: [
       'For detailed command descriptions and options, use `prisma platform [command] --help`',
       `For additional help visit ${link('https://pris.ly/cli/platform-docs')}`,
