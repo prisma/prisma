@@ -1,6 +1,6 @@
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
-import { ClientEngineType, pathToPosix } from '@prisma/internals'
+import { ClientEngineType, parseAWSNodejsRuntimeEnvVarVersion, pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 import { map } from '../../../../../helpers/blaze/map'
@@ -30,8 +30,24 @@ export function buildNFTAnnotations(
     return ''
   }
 
+  // Add annotation for Netlify for a specific binaryTarget (depending on Node version and special env var)
   if (process.env.NETLIFY) {
-    platforms = ['rhel-openssl-1.0.x']
+    const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+
+    // Netlify reads and changes the runtime version based on this env var
+    // https://docs.netlify.com/configure-builds/environment-variables/#netlify-configuration-variables
+    const awsRuntimeVersion = parseAWSNodejsRuntimeEnvVarVersion()
+    const isRuntimeEnvVar20OrUp = awsRuntimeVersion && awsRuntimeVersion >= 20
+    const isRuntimeEnvVar18OrDown = awsRuntimeVersion && awsRuntimeVersion <= 18
+
+    // Only set to 3.0.x if
+    // - current Node.js version is 20+ or env var is 20+
+    // - env var must not be 18-
+    if ((isNodeMajor20OrUp || isRuntimeEnvVar20OrUp) && !isRuntimeEnvVar18OrDown) {
+      platforms = ['rhel-openssl-3.0.x']
+    } else {
+      platforms = ['rhel-openssl-1.0.x']
+    }
   }
 
   const engineAnnotations = map(platforms, (platform) => {
