@@ -12,9 +12,7 @@ export class $ implements Command {
 
   public help = createHelp({
     subcommands: [
-      ['auth login', 'Logs into your Prisma Data Platform account or creates a new one with GitHub authentication'],
-      ['auth logout', 'Logs out of your Prisma Data Platform account'],
-      ['auth show', 'Displays information about the currently authenticated user'],
+      ['auth', 'Manage authentication with your Prisma Data Platform account'],
       ['workspace', 'Manage workspaces'],
       ['project', 'Manage projects'],
       ['apikey', 'Manage API keys'],
