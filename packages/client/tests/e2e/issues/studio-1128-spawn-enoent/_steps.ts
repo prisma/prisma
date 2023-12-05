@@ -14,7 +14,7 @@ void executeSteps({
 
     const timer = setTimeout(() => {
       throw new Error('"prisma studio" didn\'t request to open the browser')
-    }, 300_000)
+    }, 30_000)
 
     for await (const output of studio.stderr) {
       // Exit as soon as xdg-open subprocess in studio either spawns or reports failure to spawn
