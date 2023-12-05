@@ -27,8 +27,8 @@ export class Create implements Command {
   public async parse(argv: string[]) {
     const args = arg(argv, {
       ...platformParameters.workspace,
-      '--display-name': String,
-      '-d': '--display-name',
+      '--name': String,
+      '-n': '--name',
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
@@ -36,7 +36,7 @@ export class Create implements Command {
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
 
-    const displayName = getOptionalParameter(args, ['--display-name', '-d'])
+    const displayName = getOptionalParameter(args, ['--name', '-n'])
 
     const payload = await platformRequestOrThrow<Payload>({
       token,
