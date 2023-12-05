@@ -1,8 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool as pgPool } from 'pg'
 
-console.debug('process.env.TEST_ENV_VAR 1', process.env.TEST_ENV_VAR)
-
 beforeEach(() => {
   delete process.env.TEST_ENV_VAR
 })
