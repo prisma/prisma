@@ -30,6 +30,7 @@ export function buildNFTAnnotations(
     return ''
   }
 
+  // Add annotation for Netlify for a specific binaryTarget (depending on Node version)
   if (process.env.NETLIFY) {
     if (parseInt(process.versions.node.split('.')[0]) >= 20) {
       platforms = ['rhel-openssl-3.0.x']
