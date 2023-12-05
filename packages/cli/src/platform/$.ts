@@ -27,7 +27,7 @@ export class $ implements Command {
     examples: ['prisma platform login', 'prisma platform project create --workspace=<id>'],
     additionalContent: [
       'For detailed command descriptions and options, use `prisma platform [command] --help`',
-      `For additional help or feedback, visit ${underline('https://pris.ly/todo')}`,
+      `For additional help or feedback, visit ${underline('https://pris.ly/platform-cli-docs')}`,
     ],
   })
 
