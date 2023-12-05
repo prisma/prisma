@@ -23,7 +23,7 @@ export class $ implements Command {
       ['--early-access', '', 'Enable early access features'],
       ['--token', '', 'Specify a token to use for authentication'],
     ],
-    examples: ['prisma platform login', 'prisma platform project create --workspace=<id>'],
+    examples: ['prisma platform auth login', 'prisma platform project create --workspace=<id>'],
     additionalContent: ['For detailed command descriptions and options, use `prisma platform [command] --help`'],
   })
 
@@ -37,7 +37,7 @@ export class $ implements Command {
     //
     // It makes it possible to run, for example:
     // prisma platform --early-access login
-    // prisma platform login --early-access
+    // prisma platform auth login --early-access
     const argvWithoutEarlyAccess = (argv = argv.filter((it) => it !== '--early-access'))
 
     // display help for help flag or no subcommand

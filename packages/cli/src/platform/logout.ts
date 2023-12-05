@@ -13,7 +13,7 @@ export class Logout implements Command {
     if (isError(authJson)) throw authJson
     if (!authJson.token) {
       return `You are not currently logged in. Run ${green(
-        getCommandWithExecutor('prisma platform login --early-access'),
+        getCommandWithExecutor('prisma platform auth login --early-access'),
       )} to log in.`
     }
     await deleteAuthConfig()

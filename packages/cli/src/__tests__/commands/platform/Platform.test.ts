@@ -56,7 +56,7 @@ describe('--early-access flag', () => {
 
       Examples
 
-        $ prisma platform login
+        $ prisma platform auth login
         $ prisma platform project create --workspace=<id>
 
       For detailed command descriptions and options, use \`prisma platform [command] --help\`
