@@ -21,10 +21,17 @@ export class Show implements Command {
 
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
-    return platformRequestOrThrow({
+
+    const payload = await platformRequestOrThrow<{
+      organization: { projects: { id: string; createdAt: string; displayName: string }[] }
+    }>({
       token,
       path: `/${workspace}/overview`,
       route: '_app.$organizationId.overview',
-    }) as Promise<any>
+    })
+
+    console.table(payload.organization.projects, ['id', 'createdAt', 'displayName'])
+
+    return ''
   }
 }

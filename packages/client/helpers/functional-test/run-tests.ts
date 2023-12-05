@@ -105,7 +105,7 @@ const args = arg(
     '--flavor': [String],
     // Forces any given test to be run with `engineType=` binary, library, or wasm
     '--engine-type': String,
-    // Forces any given test to be run with a specific set of preview features, comma-separated
+    // Forces any given test to be run with an *added* set of preview features, comma-separated
     '--preview-features': String,
 
     //

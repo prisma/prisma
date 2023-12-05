@@ -5,6 +5,7 @@ import {
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
+  successMessage,
 } from '../../utils/platform'
 
 export class Delete implements Command {
@@ -26,14 +27,20 @@ export class Delete implements Command {
     if (isError(project)) return project
     const apikey = getRequiredParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
-
-    return platformRequestOrThrow({
+    const payload = await platformRequestOrThrow<{
+      data: { id: string; displayName: string }
+      error: null | { message: string }
+    }>({
       token,
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
       payload: {
         id: apikey,
       },
-    }) as Promise<any>
+    })
+    if (payload.error?.message) {
+      throw new Error(payload.error.message)
+    }
+    return successMessage(`API Key ${payload.data.displayName} deleted.`)
   }
 }
