@@ -1,6 +1,7 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { arg, Command, isError, link } from '@prisma/internals'
 
 import {
+  generateConnectionString,
   getOptionalParameter,
   getPlatformTokenOrThrow,
   getRequiredParameter,
@@ -19,6 +20,7 @@ export class Enable implements Command {
       ...platformParameters.project,
       '--url': String,
       '--apikey': Boolean,
+      '--region': String,
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
@@ -30,6 +32,10 @@ export class Enable implements Command {
     if (isError(url)) return url
     const apikey = getOptionalParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
+    // region won't be used in this first iteration
+    const _region = getOptionalParameter(args, ['--region'])
+    if (isError(_region)) return _region
+
     const accelerateSetupPayload = await platformRequestOrThrow<{
       data: {}
       error: { message: string } | null
@@ -61,11 +67,17 @@ export class Enable implements Command {
         throw new Error(payload.error.message)
       }
       return successMessage(
-        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.tenantAPIKey}`,
+        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests:\n\n${generateConnectionString(
+          payload.data.tenantAPIKey,
+        )}\n\nFor more information, check out the Getting started guide here: ${link(
+          'https://pris.ly/d/accelerate-getting-started',
+        )}`,
       )
     } else {
       return successMessage(
-        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.`,
+        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n\nFor more information, check out the Getting started guide here: ${link(
+          'https://pris.ly/d/accelerate-getting-started',
+        )}`,
       )
     }
   }

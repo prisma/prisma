@@ -15,8 +15,6 @@ export class Show implements Command {
   public async parse(argv: string[]) {
     const args = arg(argv, {
       ...platformParameters.project,
-      '--display-name': String,
-      '-d': '--display-name',
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
