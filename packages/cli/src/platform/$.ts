@@ -24,7 +24,7 @@ export class $ implements Command {
       ['--early-access', '', 'Enable early access features'],
       ['--token', '', 'Specify a token to use for authentication'],
     ],
-    examples: ['prisma platform login', 'prisma platform project create --workspace=<id>'],
+    examples: ['prisma platform auth login', 'prisma platform project create --workspace=<id>'],
     additionalContent: [
       'For detailed command descriptions and options, use `prisma platform [command] --help`',
       `For additional help visit ${underline('https://pris.ly/cli/platform-docs')}`,
