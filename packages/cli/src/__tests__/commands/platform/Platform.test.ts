@@ -42,8 +42,7 @@ describe('--early-access flag', () => {
 
       Commands
 
-                login   Logs into your Prisma Data Platform account or creates a new one with GitHub authentication
-               logout   Logs out of your Prisma Data Platform account
+                 auth   Manage authentication with your Prisma Data Platform account
             workspace   Manage workspaces
               project   Manage projects
                apikey   Manage API keys
@@ -57,7 +56,7 @@ describe('--early-access flag', () => {
       Examples
 
         $ prisma platform auth login
-        $ prisma platform project create --workspace=<id>
+        $ prisma platform project create --workspace <id>
 
       For detailed command descriptions and options, use \`prisma platform [command] --help\`
       For additional help visit https://pris.ly/cli/platform-docs
