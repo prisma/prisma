@@ -55,9 +55,7 @@ export class Enable implements Command {
         token,
         path: `/${workspace}/${project}/settings/api-keys/create`,
         route: '_app.$organizationId_.$projectId.settings.api-keys.create',
-        payload: {
-          displayName: 'todo',
-        },
+        payload: {},
       })
       if (payload.error?.message) {
         throw new Error(payload.error.message)
