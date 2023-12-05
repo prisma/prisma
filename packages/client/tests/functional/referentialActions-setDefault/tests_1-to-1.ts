@@ -95,6 +95,7 @@ testMatrix.setupTestSuite(
                 foreignKeys: {
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                   [ProviderFlavors.VITESS_FK]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [ProviderFlavors.VITESS_NONFK]: 'Foreign key constraint failed on the field: `(not available)`',
                 },
               }),
             )
@@ -162,6 +163,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
                 [ProviderFlavors.VITESS_FK]: 'Foreign key constraint failed on the field: `(not available)`',
+                [ProviderFlavors.VITESS_NONFK]: 'Foreign key constraint failed on the field: `(not available)`',
               },
             }),
           )
@@ -182,6 +184,7 @@ testMatrix.setupTestSuite(
                 foreignKeys: {
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                   [ProviderFlavors.VITESS_FK]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [ProviderFlavors.VITESS_NONFK]: 'Foreign key constraint failed on the field: `(not available)`',
                 },
               }),
             )
@@ -244,6 +247,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
                 [ProviderFlavors.VITESS_FK]: 'Foreign key constraint failed on the field: `(not available)`',
+                [ProviderFlavors.VITESS_NONFK]: 'Foreign key constraint failed on the field: `(not available)`',
               },
             }),
           )

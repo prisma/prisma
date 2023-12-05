@@ -90,6 +90,7 @@ testMatrix.setupTestSuite(
                   [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
                   [ProviderFlavors.JS_PLANETSCALE]: 'Foreign key constraint failed on the field: `aliceId',
                   [ProviderFlavors.VITESS_FK]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [ProviderFlavors.VITESS_NONFK]: 'Foreign key constraint failed on the field: `(not available)`',
                 },
                 prisma: errors[onDelete],
               }),

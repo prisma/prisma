@@ -157,12 +157,12 @@ async function main(): Promise<number | void> {
       }
     }
 
-    if (providerFlavors.includes(ProviderFlavors.VITESS_FK)) {
+    if (providerFlavors.includes(ProviderFlavors.VITESS_FK) || providerFlavors.includes(ProviderFlavors.VITESS_NONFK)) {
       jestCli = jestCli.withArgs(['--runInBand'])
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
 
       if (providerFlavors.length !== 1) {
-        throw new Error('Only one flavor can be used at a time when using --flavor=vitess_fk')
+        throw new Error('Only one flavor can be used at a time when using --flavor=vitess_fk or --flavor=vitess_nonfk')
       }
     }
 
