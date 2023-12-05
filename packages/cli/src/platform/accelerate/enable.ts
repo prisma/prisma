@@ -20,6 +20,7 @@ export class Enable implements Command {
       ...platformParameters.project,
       '--url': String,
       '--apikey': Boolean,
+      '--region': String,
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
@@ -31,6 +32,10 @@ export class Enable implements Command {
     if (isError(url)) return url
     const apikey = getOptionalParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
+    // region won't be used in this first iteration
+    const _region = getOptionalParameter(args, ['--region'])
+    if (isError(_region)) return _region
+
     const accelerateSetupPayload = await platformRequestOrThrow<{
       data: {}
       error: { message: string } | null
