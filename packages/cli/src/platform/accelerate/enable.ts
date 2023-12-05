@@ -1,4 +1,4 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { arg, Command, isError, link } from '@prisma/internals'
 
 import {
   generateConnectionString,
@@ -67,13 +67,17 @@ export class Enable implements Command {
         throw new Error(payload.error.message)
       }
       return successMessage(
-        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: \n${generateConnectionString(
+        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests:\n\n${generateConnectionString(
           payload.data.tenantAPIKey,
-        )}\nFor more information, check out the Getting Started guide here: https://pris.ly/d/accelerate-getting-started`,
+        )}\n\nFor more information, check out the Getting started guide here: ${link(
+          'https://pris.ly/d/accelerate-getting-started',
+        )}`,
       )
     } else {
       return successMessage(
-        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\nFor more information, check out the Getting Started guide here: https://pris.ly/d/accelerate-getting-started`,
+        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n\nFor more information, check out the Getting started guide here: ${link(
+          'https://pris.ly/d/accelerate-getting-started',
+        )}`,
       )
     }
   }
