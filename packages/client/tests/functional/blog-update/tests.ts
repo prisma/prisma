@@ -174,7 +174,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta, cliMeta) => {
     clientMeta.driverAdapter &&
     cliMeta.previewFeatures.includes('relationJoins')
 
-  testIf(!shouldSkip)(
+  skipTestIf(shouldSkip)(
     'should create a user with posts and a profile and update itself and nested connections setting fields to null',
     async () => {
       const someDate = new Date('2020-01-01T00:00:00.348Z')
