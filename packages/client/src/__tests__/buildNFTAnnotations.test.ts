@@ -110,7 +110,7 @@ describe('dataproxy', () => {
   })
 })
 
-describe('special cases', () => {
+describe('special cases for Netlify', () => {
   /**
    * The build image (Debian) is different from the runtime image (RHEL) on Netlify,
    * so the build-time targets are replaced with what will actually be required at run time.
@@ -140,5 +140,57 @@ describe('special cases', () => {
     `)
 
     expect(annotations).toContain(binaryTarget)
+  })
+
+  it('replaces `platforms` with `["rhel-openssl-1.0.x"]` when AWS_LAMBDA_JS_RUNTIME is set to nodejs18.x', () => {
+    process.env.NETLIFY = 'true'
+    process.env.AWS_LAMBDA_JS_RUNTIME = 'nodejs18.x'
+
+    const annotations = buildNFTAnnotations(
+      false,
+      ClientEngineType.Library,
+      ['debian-openssl-1.1.x', 'darwin', 'windows'],
+      'out',
+    )
+
+    delete process.env.NETLIFY
+
+    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
+
+      // file annotations for bundling tools to include these files
+      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      // file annotations for bundling tools to include these files
+      path.join(__dirname, "schema.prisma");
+      path.join(process.cwd(), "out/schema.prisma")
+    `)
+
+    expect(annotations).toContain('rhel-openssl-1.0.x')
+  })
+
+  it('replaces `platforms` with `["rhel-openssl-3.0.x"]` when AWS_LAMBDA_JS_RUNTIME is set to nodejs20.x', () => {
+    process.env.NETLIFY = 'true'
+    process.env.AWS_LAMBDA_JS_RUNTIME = 'nodejs20.x'
+
+    const annotations = buildNFTAnnotations(
+      false,
+      ClientEngineType.Library,
+      ['debian-openssl-1.1.x', 'darwin', 'windows'],
+      'out',
+    )
+
+    delete process.env.NETLIFY
+
+    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
+
+      // file annotations for bundling tools to include these files
+      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      // file annotations for bundling tools to include these files
+      path.join(__dirname, "schema.prisma");
+      path.join(process.cwd(), "out/schema.prisma")
+    `)
+
+    expect(annotations).toContain('rhel-openssl-3.0.x')
   })
 })

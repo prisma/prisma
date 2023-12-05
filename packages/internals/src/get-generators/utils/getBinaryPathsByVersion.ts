@@ -7,28 +7,10 @@ import { ensureDir } from 'fs-extra'
 import path from 'path'
 
 import { mapKeys } from '../../utils/mapKeys'
+import { parseAWSNodejsRuntimeEnvVarVersion } from '../../utils/parseAWSNodejsRuntimeEnvVarVersion'
 import type { GetBinaryPathsByVersionInput } from '../getGenerators'
 import { binaryTypeToEngineType } from '../utils/binaryTypeToEngineType'
 import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
-
-function parseAWSNodejsRuntimeEnvVarVersion() {
-  const runtimeEnvVar = process.env.AWS_LAMBDA_JS_RUNTIME
-  if (!runtimeEnvVar || runtimeEnvVar === '') return null
-
-  try {
-    const runtimeRegex = /^nodejs(\d+).x$/
-    const match = runtimeRegex.exec(runtimeEnvVar)
-    if (match) {
-      return parseInt(match[1])
-    }
-  } catch (e) {
-    console.error(
-      `We could not parse the AWS_LAMBDA_JS_RUNTIME env var with the following value: ${runtimeEnvVar}. This was silently ignored.`,
-    )
-  }
-
-  return null
-}
 
 export async function getBinaryPathsByVersion({
   neededVersions,
@@ -58,6 +40,7 @@ export async function getBinaryPathsByVersion({
       // https://docs.netlify.com/configure-builds/environment-variables/#netlify-configuration-variables
       const awsRuntimeVersion = parseAWSNodejsRuntimeEnvVarVersion()
       const isRuntimeEnvVar20OrUp = awsRuntimeVersion && awsRuntimeVersion >= 20
+      const isRuntimeEnvVar18OrDown = awsRuntimeVersion && awsRuntimeVersion <= 18
 
       const isRhelBinaryTarget1xInNeededVersions = neededVersion.binaryTargets.find(
         (object) => object.value === 'rhel-openssl-1.0.x',
@@ -65,7 +48,16 @@ export async function getBinaryPathsByVersion({
       const isRhelBinaryTarget3xInNeededVersions = neededVersion.binaryTargets.find(
         (object) => object.value === 'rhel-openssl-3.0.x',
       )
-      if ((isNodeMajor20OrUp || isRuntimeEnvVar20OrUp) && !isRhelBinaryTarget3xInNeededVersions) {
+
+      // Only add 3.0.x if
+      // - it's not already added
+      // - current Node.js version is 20+ or env var is 20+
+      // - env var must not be 18-
+      if (
+        !isRhelBinaryTarget3xInNeededVersions &&
+        (isNodeMajor20OrUp || isRuntimeEnvVar20OrUp) &&
+        !isRuntimeEnvVar18OrDown
+      ) {
         neededVersion.binaryTargets.push({
           fromEnvVar: null,
           value: 'rhel-openssl-3.0.x',
