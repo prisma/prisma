@@ -41,7 +41,7 @@ export class $ implements Command {
     //
     // It makes it possible to run, for example:
     // prisma platform --early-access login
-    // prisma platform login --early-access
+    // prisma platform auth login --early-access
     const argvWithoutEarlyAccess = (argv = argv.filter((it) => it !== '--early-access'))
 
     // display help for help flag or no subcommand
