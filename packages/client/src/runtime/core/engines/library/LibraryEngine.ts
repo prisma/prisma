@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
+import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
-import { EngineSpanEvent } from '@prisma/internals'
-import fs from 'fs'
+import { assertAlways, ClientEngineType, EngineSpanEvent, getClientEngineType } from '@prisma/internals'
 import { bold, green, red, yellow } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -12,7 +12,6 @@ import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknow
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type {
   BatchQueryEngineResult,
-  DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
   RequestBatchOptions,
@@ -35,9 +34,11 @@ import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
-import { DefaultLibraryLoader } from './DefaultLibraryLoader'
+import { defaultLibraryLoader } from './DefaultLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
+import { wasmLibraryLoader } from './WasmLibraryLoader'
 
+const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
 const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
@@ -68,7 +69,7 @@ export class LibraryEngine extends Engine<undefined> {
   private logEmitter: EventEmitter
   libQueryEnginePath?: string
   platform?: Platform
-  datasourceOverrides: Record<string, string>
+  datasourceOverrides?: Record<string, string>
   datamodel: string
   logQueries: boolean
   logLevel: QueryEngineLogLevel
@@ -80,40 +81,41 @@ export class LibraryEngine extends Engine<undefined> {
     version: string
   }
 
-  constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
+  constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
     super()
 
-    try {
-      // we try to handle the case where the datamodel is not found
-      this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
-    } catch (e) {
-      if ((e.stack as string).match(/\/\.next|\/next@|\/next\//)) {
-        throw new PrismaClientInitializationError(
-          `Your schema.prisma could not be found, and we detected that you are using Next.js.
-Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextjs`,
-          config.clientVersion!,
-        )
-      } else if (config.isBundled === true) {
-        throw new PrismaClientInitializationError(
-          `Prisma Client could not find its \`schema.prisma\`. This is likely caused by a bundling step, which leads to \`schema.prisma\` not being copied near the resulting bundle. We would appreciate if you could take the time to share some information with us.
-Please help us by answering a few questions: https://pris.ly/bundler-investigation-error`,
-          config.clientVersion!,
-        )
-      }
+    const engineType = getClientEngineType(config.generator!)
 
-      throw e
+    if (TARGET_BUILD_TYPE === 'library') {
+      // for "library" builds, we can use both the wasm and native engines
+      if (engineType === ClientEngineType.Wasm) {
+        this.libraryLoader = libraryLoader ?? wasmLibraryLoader
+      } else {
+        this.libraryLoader = libraryLoader ?? defaultLibraryLoader
+      }
+    } else {
+      // any other build using LibraryEngine, only wasm engine can be used
+      this.libraryLoader = libraryLoader ?? wasmLibraryLoader
     }
 
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
-    this.libraryLoader = loader
     this.logEmitter = config.logEmitter
-    this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
+    this.datamodel = atob(config.inlineSchema)
+
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
     }
+
+    // compute the datasource override for library engine
+    const dsOverrideName = Object.keys(config.overrideDatasources)[0]
+    const dsOverrideUrl = config.overrideDatasources[dsOverrideName]?.url
+    if (dsOverrideName !== undefined && dsOverrideUrl !== undefined) {
+      this.datasourceOverrides = { [dsOverrideName]: dsOverrideUrl }
+    }
+
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
     this.checkForTooManyEngines()
@@ -166,11 +168,15 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
-    if (response.error_code) {
-      throw new PrismaClientKnownRequestError(response.message as string, {
+    if (isUserFacingError(response)) {
+      const externalError = this.getExternalAdapterError(response)
+      if (externalError) {
+        throw externalError.error
+      }
+      throw new PrismaClientKnownRequestError(response.message, {
         code: response.error_code as string,
         clientVersion: this.config.clientVersion as string,
-        meta: response.meta as Record<string, unknown>,
+        meta: response.meta,
       })
     }
 
@@ -183,25 +189,35 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
       return this.libraryInstantiationPromise
     }
 
-    assertNodeAPISupported()
+    if (TARGET_BUILD_TYPE === 'library') {
+      assertNodeAPISupported()
+    }
+
     this.platform = await this.getPlatform()
+
     await this.loadEngine()
+
     this.version()
   }
 
   private async getPlatform() {
-    if (this.platform) return this.platform
-    const platform = await getPlatform()
-    if (!knownPlatforms.includes(platform)) {
-      throw new PrismaClientInitializationError(
-        `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${green(
-          knownPlatforms.join(', '),
-        )} or a path to the query engine library.
+    if (TARGET_BUILD_TYPE === 'library') {
+      if (this.platform) return this.platform
+      const platform = await getPlatform()
+      if (!knownPlatforms.includes(platform)) {
+        throw new PrismaClientInitializationError(
+          `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${green(
+            knownPlatforms.join(', '),
+          )} or a path to the query engine library.
 You may have to run ${green('prisma generate')} for your changes to take effect.`,
-        this.config.clientVersion!,
-      )
+          this.config.clientVersion!,
+        )
+      }
+
+      return platform
     }
-    return platform
+
+    return undefined
   }
 
   private parseEngineResponse<T>(response?: string): T {
@@ -220,33 +236,31 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  private convertDatasources(datasources: DatasourceOverwrite[]): Record<string, string> {
-    const obj = Object.create(null)
-    for (const { name, url } of datasources) {
-      obj[name] = url
-    }
-    return obj
-  }
-
   private async loadEngine(): Promise<void> {
     if (!this.engine) {
       if (!this.QueryEngineConstructor) {
-        this.library = await this.libraryLoader.loadLibrary()
+        this.library = await this.libraryLoader.loadLibrary(this.config)
         this.QueryEngineConstructor = this.library.QueryEngine
       }
       try {
         // Using strong reference to `this` inside of log callback will prevent
-        // this instance from being GCed while native engine is alive. At the same time,
-        // `this.engine` field will prevent native instance from being GCed. Using weak ref helps
-        // to avoid this cycle
+        // this instance from being GCed while native engine is alive. At the
+        // same time, `this.engine` field will prevent native instance from
+        // being GCed. Using weak ref helps to avoid this cycle
         const weakThis = new WeakRef(this)
+        const { adapter } = this.config
+
+        if (adapter) {
+          debug('Using driver adapter: %O', adapter)
+        }
+
         this.engine = new this.QueryEngineConstructor(
           {
             datamodel: this.datamodel,
             env: process.env,
             logQueries: this.config.logQueries ?? false,
             ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverrides,
+            datasourceOverrides: this.datasourceOverrides ?? {},
             logLevel: this.logLevel,
             configDir: this.config.cwd,
             engineProtocol: 'json',
@@ -254,6 +268,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           (log) => {
             weakThis.deref()?.logger(log)
           },
+          adapter,
         )
         engineInstanceCount++
       } catch (_e) {
@@ -537,7 +552,20 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       )
     }
 
-    return prismaGraphQLToJSError(error, this.config.clientVersion!)
+    const externalError = this.getExternalAdapterError(error.user_facing_error)
+
+    return externalError ? externalError.error : prismaGraphQLToJSError(error, this.config.clientVersion!)
+  }
+
+  private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {
+    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
+      const id = error.meta?.id
+      assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
+      const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
+      assertAlways(errorRecord, `External error with reported id was not registered`)
+      return errorRecord
+    }
+    return undefined
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
@@ -550,4 +578,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
     return this.parseEngineResponse(responseString)
   }
+}
+
+function isUserFacingError(e: unknown): e is RequestError['user_facing_error'] {
+  return typeof e === 'object' && e !== null && e['error_code'] !== undefined
 }

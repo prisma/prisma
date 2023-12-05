@@ -8,5 +8,4 @@ cli
 prisma
 schema-inferrer-bin
 test
-sandbox
 pnpm-lock.yaml

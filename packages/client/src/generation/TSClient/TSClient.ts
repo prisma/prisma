@@ -1,13 +1,14 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
+import crypto from 'crypto'
+import { readFile } from 'fs/promises'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
@@ -15,13 +16,11 @@ import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
+import { buildGetQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
-import { buildInlineDatasource } from '../utils/buildInlineDatasources'
-import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
-import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { DefaultArgsAliases } from './DefaultArgsAliases'
@@ -41,43 +40,33 @@ export interface TSClientOptions {
   runtimeDir: string
   runtimeName: string
   browser?: boolean
-  datasources: InternalDatasource[]
+  datasources: DataSource[]
   generator?: GeneratorConfig
   platforms?: Platform[] // TODO: consider making it non-nullable
-  sqliteDatasourceOverrides?: DatasourceOverwrite[]
   schemaPath: string
   outputDir: string
   activeProvider: string
-  dataProxy: boolean
   deno?: boolean
   postinstall?: boolean
+  noEngine?: boolean
 }
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
-  protected readonly genericsInfo: GenericArgsInfo = new GenericArgsInfo()
+  protected readonly genericsInfo: GenericArgsInfo
 
   static enabledPreviewFeatures: string[]
 
   constructor(protected readonly options: TSClientOptions) {
     this.dmmf = new DMMFHelper(klona(options.document))
+    this.genericsInfo = new GenericArgsInfo(this.dmmf)
 
     TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
 
   public async toJS(edge = false): Promise<string> {
-    const {
-      platforms,
-      generator,
-      sqliteDatasourceOverrides,
-      outputDir,
-      schemaPath,
-      runtimeDir,
-      runtimeName,
-      datasources,
-      dataProxy,
-      deno,
-    } = this.options
+    const { platforms, generator, outputDir, schemaPath, runtimeDir, runtimeName, datasources, deno, noEngine } =
+      this.options
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -91,18 +80,24 @@ export class TSClient implements Generatable {
       generator.config.engineType = engineType
     }
 
+    const inlineSchema = (await readFile(schemaPath)).toString('base64')
+    const inlineSchemaHash = crypto.createHash('sha256').update(inlineSchema).digest('hex')
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
-      sqliteDatasourceOverrides,
       relativePath: pathToPosix(path.relative(outputDir, path.dirname(schemaPath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      dataProxy: this.options.dataProxy,
       postinstall: this.options.postinstall,
       ciName: ciInfo.name ?? undefined,
+      inlineDatasources: datasources.reduce((acc, ds) => {
+        return (acc[ds.name] = { url: ds.url }), acc
+      }, {} as GetPrismaClientConfig['inlineDatasources']),
+      inlineSchema,
+      inlineSchemaHash,
+      noEngine,
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -131,16 +126,14 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
-
-${await buildInlineSchema(dataProxy, schemaPath)}
-${buildInlineDatasource(dataProxy, datasources)}
+${buildGetQueryEngineWasmModule(edge, engineType)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
+${buildNFTAnnotations(Boolean(edge || noEngine), engineType, platforms, relativeOutdir)}
 `
     return code
   }
@@ -162,7 +155,6 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
       this.options.runtimeName,
       this.options.browser,
       this.options.generator,
-      this.options.sqliteDatasourceOverrides,
       path.dirname(this.options.schemaPath),
     )
 
@@ -269,7 +261,7 @@ ${fieldRefs.join('\n\n')}`
 ${this.dmmf.inputObjectTypes.prisma
   .reduce((acc, inputType) => {
     if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-      const needsGeneric = this.genericsInfo.inputTypeNeedsGenericModelArg(inputType)
+      const needsGeneric = this.genericsInfo.typeNeedsGenericModelArg(inputType)
       const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
       const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
       // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
@@ -280,7 +272,7 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }, this.genericsInfo).toTS())
+      acc.push(new InputType(inputType, this.genericsInfo).overrideName(`${inputType.name}Base`).toTS())
     } else {
       acc.push(new InputType(inputType, this.genericsInfo).toTS())
     }
@@ -296,7 +288,7 @@ ${
 /**
  * Aliases for legacy arg types
  */
-${context.defaultArgsAliases.generateAliases(this.dmmf)}
+${context.defaultArgsAliases.generateAliases()}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany
@@ -339,16 +331,36 @@ ${new Enum(
 ).toJS()}
 
 /**
- * Create the Client
+ * This is a stub Prisma Client that will error at runtime if called.
  */
 class PrismaClient {
   constructor() {
-    throw new Error(
-      \`PrismaClient is unable to be run \${runtimeDescription}.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
-    )
+    return new Proxy(this, {
+      get(target, prop) {
+        const runtime = detectRuntime()
+        const edgeRuntimeName = {
+          'workerd': 'Cloudflare Workers',
+          'deno': 'Deno and Deno Deploy',
+          'netlify': 'Netlify Edge Functions',
+          'edge-light': 'Vercel Edge Functions',
+        }[runtime]
+
+        let message = 'PrismaClient is unable to run in '
+        if (edgeRuntimeName !== undefined) {
+          message += edgeRuntimeName + '. As an alternative, try Accelerate: https://pris.ly/d/accelerate.'
+        } else {
+          message += 'this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
+        }
+        
+        message += \`
+If this is unexpected, please open an issue: https://github.com/prisma/prisma/issues\`
+
+        throw new Error(message)
+      }
+    })
   }
 }
+
 exports.PrismaClient = PrismaClient
 
 Object.assign(exports, Prisma)

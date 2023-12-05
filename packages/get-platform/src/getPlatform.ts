@@ -621,6 +621,7 @@ export async function getArchFromUname(): Promise<string | undefined> {
   return arch?.trim()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function isLibssl1x(libssl: NonNullable<GetOSResult['libssl']> | string): libssl is '1.0.x' | '1.1.x' {
   return libssl.startsWith('1.')
 }

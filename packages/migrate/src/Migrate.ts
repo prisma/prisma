@@ -153,16 +153,15 @@ export class Migrate {
       printDownloadProgress: true,
       version: enginesVersion,
       cliVersion: packageJson.version,
-      dataProxy: false,
     })
 
     for (const generator of generators) {
       logUpdate(`Running generate... - ${generator.getPrettyName()}`)
 
-      const before = Date.now()
+      const before = Math.round(performance.now())
       try {
         await generator.generate()
-        const after = Date.now()
+        const after = Math.round(performance.now())
         message.push(getGeneratorSuccessMessage(generator, after - before))
         generator.stop()
       } catch (e: any) {

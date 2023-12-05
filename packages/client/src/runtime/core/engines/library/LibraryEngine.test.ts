@@ -10,6 +10,14 @@ import { LibraryLoader } from './types/Library'
 
 const dummyQuery = { modelName: 'Foo', action: 'findMany', query: { selection: {} } } as const
 
+beforeAll(() => {
+  ;(globalThis as any).TARGET_BUILD_TYPE = 'library'
+})
+
+afterAll(() => {
+  delete (globalThis as any).TARGET_BUILD_TYPE
+})
+
 function setupMockLibraryEngine() {
   const rustEngineMock = {
     connect: jest.fn().mockResolvedValue(undefined),
@@ -40,6 +48,12 @@ function setupMockLibraryEngine() {
       tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
+      inlineSchema: '',
+      inlineSchemaHash: '',
+      inlineDatasources: {},
+      overrideDatasources: {},
+      clientVersion: '0.0.0',
+      engineVersion: '0000000000000000000000000000000000000000',
     },
     loader,
   )
@@ -110,6 +124,12 @@ test('responds to initialization error with PrismaClientInitializationError', as
       tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
+      inlineSchema: '',
+      inlineSchemaHash: '',
+      inlineDatasources: {},
+      overrideDatasources: {},
+      clientVersion: '0.0.0',
+      engineVersion: '0000000000000000000000000000000000000000',
     },
     loader,
   )

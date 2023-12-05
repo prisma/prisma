@@ -198,9 +198,10 @@ describe('getDMMF', () => {
         await getDMMF({ datamodel: true })
       } catch (e) {
         expect(isRustPanic(e)).toBe(true)
-        expect(serialize(e.message)).toMatchInlineSnapshot(
-          `"RuntimeError: panicked at 'Failed to deserialize GetDmmfParams: invalid type: boolean \`true\`, expected a string at line 1 column 20', prisma-fmt/src/get_dmmf.rs:0:0"`,
-        )
+        expect(serialize(e.message)).toMatchInlineSnapshot(`
+          "RuntimeError: panicked at prisma-fmt/src/get_dmmf.rs:0:0:
+          Failed to deserialize GetDmmfParams: invalid type: boolean \`true\`, expected a string at line 1 column 20"
+        `)
         expect(e.rustStack).toBeTruthy()
       }
     })

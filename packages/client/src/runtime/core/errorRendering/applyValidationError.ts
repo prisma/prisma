@@ -468,8 +468,8 @@ function splitPath(path: string[]): [parentPath: string[], fieldName: string] {
   return [selectionPath, fieldName]
 }
 
-function availableOptionsMessage({ green }: Colors) {
-  return `Available options are listed in ${green('green')}.`
+function availableOptionsMessage({ green, enabled }: Colors) {
+  return `Available options are ` + (enabled ? `listed in ${green('green')}` : `marked with ?`) + '.'
 }
 
 function joinWithPreposition(preposition: 'and' | 'or', items: string[]): string {

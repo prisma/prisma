@@ -1,4 +1,4 @@
-import { Providers } from '../_utils/providers'
+import { ProviderFlavors, Providers } from '../_utils/providers'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
@@ -157,6 +157,11 @@ testMatrix.setupTestSuite(
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                [ProviderFlavors.JS_NEON]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
+                [ProviderFlavors.JS_PG]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
+                [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
               },
             }),
           )
@@ -232,6 +237,11 @@ testMatrix.setupTestSuite(
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                [ProviderFlavors.JS_NEON]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
+                [ProviderFlavors.JS_PG]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
+                [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
               },
             }),
           )
@@ -244,6 +254,10 @@ testMatrix.setupTestSuite(
   {
     optOut: {
       from: ['mongodb'],
+      reason: 'Only testing relational databases using foreign keys.',
+    },
+    skipProviderFlavor: {
+      from: ['js_planetscale'],
       reason: 'Only testing relational databases using foreign keys.',
     },
   },

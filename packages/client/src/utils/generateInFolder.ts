@@ -29,7 +29,6 @@ export interface GenerateInFolderOptions {
   packageSource?: string
   useBuiltRuntime?: boolean
   overrideEngineType?: ClientEngineType
-  overrideDataProxy?: boolean
 }
 
 export async function generateInFolder({
@@ -39,7 +38,6 @@ export async function generateInFolder({
   packageSource,
   useBuiltRuntime,
   overrideEngineType,
-  overrideDataProxy,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
@@ -100,11 +98,11 @@ export async function generateInFolder({
     throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
   }
   const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
-  const queryEngineBinaryPath = path.join(
-    enginesPath,
-    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-  )
+  const queryEngineLibraryPath =
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(platform, 'fs'))
+  const queryEngineBinaryPath =
+    process.env.PRISMA_QUERY_ENGINE_BINARY ??
+    path.join(enginesPath, `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`)
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
@@ -142,7 +140,6 @@ export async function generateInFolder({
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
-    dataProxy: overrideDataProxy ?? !!process.env.TEST_DATA_PROXY,
     overrideEngineType,
   })
 

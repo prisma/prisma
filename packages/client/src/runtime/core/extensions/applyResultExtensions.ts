@@ -7,7 +7,7 @@ import {
   createCompositeProxy,
   removeProperties,
 } from '../compositeProxy'
-import { Selection } from '../types/JsApi'
+import { Selection } from '../types/exported/JsApi'
 import { MergedExtensionsList } from './MergedExtensionsList'
 import { ComputedField } from './resultUtils'
 

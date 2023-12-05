@@ -4,14 +4,13 @@ import { executeSteps } from '../_utils/executeSteps'
 
 void executeSteps({
   setup: async () => {
-    process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
     await $`pnpm install`
     await $`pnpm prisma generate`
   },
   test: async () => {
-    const timeBefore = Date.now()
+    const timeBefore = Math.round(performance.now())
     await $`pnpm exec tsc`
-    const timeAfter = Date.now()
+    const timeAfter = Math.round(performance.now())
 
     const timeDiff = timeAfter - timeBefore
     console.log(`timeDiff: ${timeDiff}`)

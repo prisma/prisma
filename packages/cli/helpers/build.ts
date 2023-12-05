@@ -63,19 +63,20 @@ const cliBuildConfig: BuildOptions = {
   name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
-  external: ['@prisma/engines'],
   plugins: [cliLifecyclePlugin],
   bundle: true,
   emitTypes: false,
+  minify: true,
 }
 
 // we define the config for preinstall
 const preinstallBuildConfig: BuildOptions = {
   name: 'preinstall',
-  entryPoints: ['scripts/preinstall.js'],
+  entryPoints: ['scripts/preinstall.ts'],
   outfile: 'preinstall/index',
   bundle: true,
   emitTypes: false,
+  minify: true,
 }
 
 void build([cliBuildConfig, preinstallBuildConfig])

@@ -27,7 +27,13 @@ const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/
 jest.setTimeout(300_000)
 jest.retryTimes(3)
 
-describe('download', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const usesCustomEngines =
+  process.env.PRISMA_QUERY_ENGINE_LIBRARY ||
+  process.env.PRISMA_QUERY_ENGINE_BINARY ||
+  process.env.PRISMA_SCHEMA_ENGINE_BINARY
+
+describeIf(!usesCustomEngines)('download', () => {
   const baseDirAll = path.posix.join(dirname, 'all')
   const baseDirCorruption = path.posix.join(dirname, 'corruption')
   const baseDirChecksum = path.posix.join(dirname, 'checksum')
@@ -158,7 +164,7 @@ describe('download', () => {
       const queryEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.QueryEngineBinary, platform))
       const schemaEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.SchemaEngineBinary, platform))
 
-      const before0 = Date.now()
+      const before0 = Math.round(performance.now())
       await download({
         binaries: {
           [BinaryType.QueryEngineLibrary]: baseDirAll,
@@ -195,7 +201,7 @@ describe('download', () => {
         version: FIXED_ENGINES_HASH,
       })
 
-      const after0 = Date.now()
+      const after0 = Math.round(performance.now())
       const timeInMsToDownloadAll = after0 - before0
       console.debug(
         `1 - No Cache: first time, download everything.
@@ -437,7 +443,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
       const deletedEngines = await del(path.posix.join(baseDirAll, '/*engine*'))
       expect(deletedEngines.length).toBeGreaterThan(0)
 
-      const before = Date.now()
+      const before = Math.round(performance.now())
       await download({
         binaries: {
           'libquery-engine': baseDirAll,
@@ -474,7 +480,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         version: FIXED_ENGINES_HASH,
       })
 
-      const after = Date.now()
+      const after = Math.round(performance.now())
       const timeInMsToDownloadAllFromCache1 = after - before
       console.debug(
         `2 - With cache1: We deleted the engines locally but not from the cache folder.
@@ -486,7 +492,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
       // 1- We keep all artifacts from previous download
       // 2- We measure how much time it takes to call download
       //
-      const before2 = Date.now()
+      const before2 = Math.round(performance.now())
       await download({
         binaries: {
           'libquery-engine': baseDirAll,
@@ -523,7 +529,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
         version: FIXED_ENGINES_HASH,
       })
 
-      const after2 = Date.now()
+      const after2 = Math.round(performance.now())
       const timeInMsToDownloadAllFromCache2 = after2 - before2
       console.debug(
         `3 - With cache2: Engines were already present
@@ -664,7 +670,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(
-        `Failed to fetch sha256 checksum at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz.sha256. 500 KO`,
+        `Failed to fetch sha256 checksum at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz.sha256 - 500 KO`,
       )
 
       // Because we try to fetch 2 different checksum files
@@ -694,7 +700,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(
-        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz. 500 KO`,
+        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz - 500 KO`,
       )
 
       // Because we try to fetch 2 different checksum files before we even start downloading the binaries

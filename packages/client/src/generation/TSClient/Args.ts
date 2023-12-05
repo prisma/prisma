@@ -1,7 +1,7 @@
 import indent from 'indent-string'
 
 import { DMMF } from '../dmmf-types'
-import { getIncludeName, getModelArgName, getSelectName } from '../utils'
+import { getIncludeName, getLegacyModelArgName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { GenerateContext } from './GenerateContext'
@@ -82,6 +82,9 @@ export class ArgsType implements Generatable {
     }
 
     argsToGenerate.push(...args)
+    if (!action && !this.generatedName) {
+      this.context.defaultArgsAliases.addPossibleAlias(getModelArgName(name), getLegacyModelArgName(name))
+    }
     const generatedName = this.generatedName ?? getModelArgName(name, action)
     this.context.defaultArgsAliases.registerArgName(generatedName)
 
@@ -89,7 +92,7 @@ export class ArgsType implements Generatable {
 /**
  * ${this.getGeneratedComment()}
  */
-export type ${generatedName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+export type ${generatedName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, this.context.genericArgsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
@@ -106,7 +109,7 @@ export class MinimalArgsType implements Generatable {
     protected readonly type: DMMF.OutputType,
     protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
-    protected readonly generatedTypeName = getModelArgName(type.name, action),
+    protected readonly generatedTypeName?: string,
   ) {}
   public toTS(): string {
     const { action, args } = this
@@ -116,12 +119,16 @@ export class MinimalArgsType implements Generatable {
       arg.comment = getArgFieldJSDoc(this.type, action, arg)
     }
 
-    this.context.defaultArgsAliases.registerArgName(this.generatedTypeName)
+    if (!action && !this.generatedTypeName) {
+      this.context.defaultArgsAliases.addPossibleAlias(getModelArgName(name), getLegacyModelArgName(name))
+    }
+    const typeName = this.generatedTypeName ?? getModelArgName(name, action)
+    this.context.defaultArgsAliases.registerArgName(typeName)
     return `
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+export type ${typeName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(
   args
     .map((arg) => {

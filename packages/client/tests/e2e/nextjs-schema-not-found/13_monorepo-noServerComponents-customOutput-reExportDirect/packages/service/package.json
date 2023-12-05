@@ -12,9 +12,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "18.11.18",
-    "@types/react": "18.0.26",
-    "@prisma/nextjs-monorepo-workaround-plugin": "../../../../prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz"
+    "@types/node": "18.18.13",
+    "@types/react": "18.2.39",
+    "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz"
   },
   "dependencies": {
     "db": "workspace:../db",

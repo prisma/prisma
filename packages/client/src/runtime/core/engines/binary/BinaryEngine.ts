@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import type { ConnectorType } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
-import { byline, EngineSpanEvent, TracingHelper } from '@prisma/internals'
+import { byline, ClientEngineType, EngineSpanEvent, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
@@ -19,7 +19,6 @@ import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknow
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type {
   BatchQueryEngineResult,
-  DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
   RequestBatchOptions,
@@ -87,8 +86,11 @@ export class BinaryEngine extends Engine<undefined> {
   private stderrLogs = ''
   private currentRequestPromise?: any
   private platformPromise?: Promise<Platform>
+  // The rule is ignored here, using String didn't work as expected,
+  // see https://github.com/prisma/prisma/pull/20165/commits/8059a14d8f2edbb15d6f7dbeeac74ba4a0a568ec
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   private platform?: Platform | string
-  private datasources?: DatasourceOverwrite[]
+  private datasourceOverrides?: { name: string; url: string }[]
   private startPromise?: Promise<void>
   private versionPromise?: Promise<string>
   private engineStartDeferred?: Deferred
@@ -113,7 +115,6 @@ export class BinaryEngine extends Engine<undefined> {
     this.enableDebugLogs = config.enableDebugLogs ?? false
     this.allowTriggerPanic = config.allowTriggerPanic ?? false
     this.datamodelPath = config.datamodelPath
-    this.datasources = config.datasources
     this.tracingHelper = config.tracingHelper
     this.logEmitter = config.logEmitter
     this.showColors = config.showColors ?? false
@@ -123,6 +124,13 @@ export class BinaryEngine extends Engine<undefined> {
     this.previewFeatures = config.previewFeatures ?? []
     this.activeProvider = config.activeProvider
     this.connection = new Connection()
+
+    // compute the datasource override for binary engine
+    const dsOverrideName = Object.keys(config.overrideDatasources)[0]
+    const dsOverrideUrl = config.overrideDatasources[dsOverrideName]?.url
+    if (dsOverrideName !== undefined && dsOverrideUrl !== undefined) {
+      this.datasourceOverrides = [{ name: dsOverrideName, url: dsOverrideUrl }]
+    }
 
     initHooks()
 
@@ -250,8 +258,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private printDatasources(): string {
-    if (this.datasources) {
-      return JSON.stringify(this.datasources)
+    if (this.datasourceOverrides) {
+      return JSON.stringify(this.datasourceOverrides)
     }
 
     return '[]'
@@ -311,7 +319,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       env.LOG_QUERIES = 'true'
     }
 
-    if (this.datasources) {
+    if (this.datasourceOverrides) {
       env.OVERWRITE_DATASOURCES = this.printDatasources()
     }
 
@@ -359,7 +367,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         debug({ cwd: this.cwd })
 
-        const prismaPath = await resolveEnginePath('binary', this.config)
+        const prismaPath = await resolveEnginePath(ClientEngineType.Binary, this.config)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
@@ -656,7 +664,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async internalVersion() {
-    const enginePath = await resolveEnginePath('binary', this.config)
+    const enginePath = await resolveEnginePath(ClientEngineType.Binary, this.config)
 
     const result = await execa(enginePath, ['--version'])
 

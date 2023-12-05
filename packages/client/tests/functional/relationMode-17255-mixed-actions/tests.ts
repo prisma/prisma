@@ -35,7 +35,7 @@ async function createXItems({ count }) {
 }
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  ({ engineType, providerFlavor }) => {
     describe('original', () => {
       beforeEach(async () => {
         // The order is important here

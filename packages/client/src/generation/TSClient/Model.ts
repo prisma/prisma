@@ -1,4 +1,3 @@
-import { hasOwnProperty } from '@prisma/internals'
 import indent from 'indent-string'
 import { klona } from 'klona'
 
@@ -74,15 +73,18 @@ export class Model implements Generatable {
     }
 
     for (const field of this.type.fields) {
-      if (field.args.length) {
-        if (field.outputType.location === 'outputObjectTypes' && typeof field.outputType.type === 'object') {
-          argsTypes.push(
-            new ArgsType(field.args, field.outputType.type, this.context)
-              .setGeneratedName(getModelFieldArgsName(field, this.model.name))
-              .setComment(`${this.model.name}.${field.name}`),
-          )
-        }
+      if (!field.args.length) {
+        continue
       }
+      const fieldOutput = this.dmmf.resolveOutputObjectType(field.outputType)
+      if (!fieldOutput) {
+        continue
+      }
+      argsTypes.push(
+        new ArgsType(field.args, fieldOutput, this.context)
+          .setGeneratedName(getModelFieldArgsName(field, this.model.name))
+          .setComment(`${this.model.name}.${field.name}`),
+      )
     }
 
     argsTypes.push(new ArgsType([], this.type, this.context))
@@ -113,7 +115,7 @@ export class Model implements Generatable {
     return `
 
 
-export type ${groupByArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+export type ${groupByArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(
   groupByRootField.args
     .map((arg) => {
@@ -125,9 +127,7 @@ ${indent(
         .filter((f) => f.outputType.location === 'outputObjectTypes')
         .map((f) => {
           if (f.outputType.location === 'outputObjectTypes') {
-            return `${f.name}?: ${getAggregateInputType((f.outputType.type as DMMF.OutputType).name)}${
-              f.name === '_count' ? ' | true' : ''
-            }`
+            return `${f.name}?: ${getAggregateInputType(f.outputType.type)}${f.name === '_count' ? ' | true' : ''}`
           }
 
           // to make TS happy, but can't happen, as we filter for outputObjectTypes
@@ -233,7 +233,7 @@ ${
     : ''
 }
 
-export type ${aggregateArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+export type ${aggregateArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(
   aggregateRootField.args
     .map((arg) => {
@@ -248,7 +248,7 @@ ${indent(
         if (f.name === '_count' || f.name === 'count') {
           data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
-          data += `${f.name}?: ${getAggregateInputType((f.outputType.type as DMMF.OutputType).name)}`
+          data += `${f.name}?: ${getAggregateInputType(f.outputType.type)}`
         }
         return data
       }),
@@ -286,7 +286,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTS(): string {
     const { model } = this
-    const isComposite = hasOwnProperty(this.dmmf.typeMap, model.name)
+    const isComposite = this.dmmf.isComposite(model.name)
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
@@ -300,9 +300,9 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
  * Model ${model.name}
  */
 
-${!hasOwnProperty(this.dmmf.typeMap, model.name) ? this.getAggregationTypes() : ''}
+${!isComposite ? this.getAggregationTypes() : ''}
 
-${!hasOwnProperty(this.dmmf.typeMap, model.name) ? this.getGroupByTypes() : ''}
+${!isComposite ? this.getGroupByTypes() : ''}
 
 ${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.type.fields }))}
 ${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.type.fields }), {
@@ -335,7 +335,9 @@ export class ModelDelegate implements Generatable {
    * @returns
    */
   private getNonAggregateActions(availableActions: DMMF.ModelAction[]): DMMF.ModelAction[] {
-    const actions = availableActions.filter((key) => key !== 'aggregate' && key !== 'groupBy' && key !== 'count')
+    const actions = availableActions.filter(
+      (key) => key !== DMMF.ModelAction.aggregate && key !== DMMF.ModelAction.groupBy && key !== DMMF.ModelAction.count,
+    )
 
     return actions
   }
@@ -356,14 +358,14 @@ export class ModelDelegate implements Generatable {
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `type ${countArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
-  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
+    ? `type ${countArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include' | 'distinct' > & {
     select?: ${getCountAggregateInputName(name)} | true
   }
 `
     : ''
 }
-export interface ${name}Delegate<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+export interface ${name}Delegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
 ${indent(`[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`, TAB_SIZE)}
 ${indent(
   nonAggregateActions
@@ -479,26 +481,22 @@ readonly fields: ${getFieldRefsTypeName(name)};
  * Because we want to prevent naming conflicts as mentioned in
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export interface Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+export interface Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: 'PrismaPromise';
 ${indent(
   fields
     .filter((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return (
-        f.outputType.location === 'outputObjectTypes' &&
-        !hasOwnProperty(dmmf.typeMap, fieldTypeName) &&
-        f.name !== '_count'
+        f.outputType.location === 'outputObjectTypes' && !dmmf.isComposite(f.outputType.type) && f.name !== '_count'
       )
     })
     .map((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
 ${f.name}<T extends ${getFieldArgName(f, name)}<ExtArgs> = {}>(args?: Subset<T, ${getFieldArgName(
         f,
         name,
       )}<ExtArgs>>): ${getReturnType({
-        name: fieldTypeName,
+        name: f.outputType.type,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
         hideCondition: false,
         renderPromise: true,

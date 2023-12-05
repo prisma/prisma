@@ -2,8 +2,8 @@ import { mapObjectValues } from '@prisma/internals'
 
 import { Cache } from '../../../generation/Cache'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { Selection } from '../types/JsApi'
-import { Args, ResultArg, ResultArgsFieldCompute } from './$extends'
+import { ExtensionArgs, ResultArg, ResultArgsFieldCompute } from '../types/exported/ExtensionArgs'
+import { Selection } from '../types/exported/JsApi'
 
 export type ComputedField = {
   name: string
@@ -34,7 +34,7 @@ export type ComputedFieldsMap = {
  */
 export function getComputedFields(
   previousComputedFields: ComputedFieldsMap | undefined,
-  extension: Args,
+  extension: ExtensionArgs,
   dmmfModelName: string,
 ) {
   const jsName = dmmfToJSModelName(dmmfModelName)
