@@ -30,13 +30,7 @@ export class Create implements Command {
     const displayName = getOptionalParameter(args, ['--display-name', '-d'])
     const payload = await platformRequestOrThrow<{
       data: {
-        serviceKey: {
-          id: string
-          createdAt: string
-          displayName: string
-          valueHint: string
-          tenantAPIKey: string
-        }
+        tenantAPIKey: string
       }
       error: null | { message: string }
     }>({
@@ -50,6 +44,6 @@ export class Create implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    return successMessage(`New API Key created: ${payload.data.serviceKey.tenantAPIKey}`)
+    return successMessage(`New API Key created: ${payload.data.tenantAPIKey}`)
   }
 }

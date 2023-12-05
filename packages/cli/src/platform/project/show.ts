@@ -30,7 +30,10 @@ export class Show implements Command {
       route: '_app.$organizationId.overview',
     })
 
-    console.table(payload.organization.projects, ['id', 'createdAt', 'displayName'])
+    console.table(
+      payload.organization.projects.map(({ id, displayName, createdAt }) => ({ id, createdAt, name: displayName })),
+      ['id', 'name', 'createdAt'],
+    )
 
     return ''
   }

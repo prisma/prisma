@@ -32,7 +32,10 @@ export class Show implements Command {
       path: `/${workspace}/${project}/settings/api-keys`,
       route: '_app.$organizationId_.$projectId.settings.api-keys',
     })
-    console.table(payload.serviceKeys, ['id', 'displayName', 'createdAt'])
+    console.table(
+      payload.serviceKeys.map(({ id, displayName, createdAt }) => ({ id, createdAt, name: displayName })),
+      ['id', 'name', 'createdAt'],
+    )
     return ''
   }
 }
