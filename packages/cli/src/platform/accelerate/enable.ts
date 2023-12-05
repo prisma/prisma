@@ -69,7 +69,7 @@ export class Enable implements Command {
       return successMessage(
         `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: \n${generateConnectionString(
           payload.data.tenantAPIKey,
-        )}\nFor more information, check out the Getting Started guide here: https://pris.ly/accelerate-getting-started`,
+        )}\nFor more information, check out the Getting Started guide here: https://pris.ly/d/accelerate-getting-started`,
       )
     } else {
       return successMessage(
