@@ -85,7 +85,7 @@ export const getPlatformTokenOrThrow = async <$Args extends Record<string, unkno
  */
 export const platformConsoleUrl = 'https://console.prisma.io'
 const platformAPIBaseURL = 'https://console.prisma.io/'
-
+const accelerateConnectionStringUrl = 'prisma://accelerate.prisma-data.net'
 /**
  *
  * @remarks
@@ -195,7 +195,18 @@ ${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
   return (error?: string) => (error ? new HelpError(`\n${bold(red(`!`))} ${error}\n${help}`) : help)
 }
 
+/**
+ *
+ * Output related utils
+ *
+ */
 export const successMessage = (message: string) => `${green('Success!')} ${message}`
+
+export const generateConnectionString = (apiKey: string) => {
+  const url = new URL(accelerateConnectionStringUrl)
+  url.searchParams.set('api_key', apiKey)
+  return bold(url.href)
+}
 
 /**
  *

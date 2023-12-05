@@ -1,6 +1,7 @@
 import { arg, Command, isError } from '@prisma/internals'
 
 import {
+  generateConnectionString,
   getOptionalParameter,
   getPlatformTokenOrThrow,
   getRequiredParameter,
@@ -61,7 +62,9 @@ export class Enable implements Command {
         throw new Error(payload.error.message)
       }
       return successMessage(
-        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.tenantAPIKey}`,
+        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: \n${generateConnectionString(
+          payload.data.tenantAPIKey,
+        )}`,
       )
     } else {
       return successMessage(
