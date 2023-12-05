@@ -183,7 +183,7 @@ ${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
 
   // prettier-ignore
   const additionalContent_ = additionalContent && format(`
-  ${additionalContent.join('\n')}
+${additionalContent.map(entry => `${entry}`).join('\n')}
   `)
 
   const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('')

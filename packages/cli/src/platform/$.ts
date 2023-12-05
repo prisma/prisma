@@ -1,4 +1,5 @@
 import { Command, Commands } from '@prisma/internals'
+import { underline } from 'kleur/colors'
 
 import { EarlyAccessFlagError } from '../utils/errors'
 import { createHelp, dispatchToSubCommand } from '../utils/platform'
@@ -24,7 +25,10 @@ export class $ implements Command {
       ['--token', '', 'Specify a token to use for authentication'],
     ],
     examples: ['prisma platform login', 'prisma platform project create --workspace=<id>'],
-    additionalContent: ['For detailed command descriptions and options, use `prisma platform [command] --help`'],
+    additionalContent: [
+      'For detailed command descriptions and options, use `prisma platform [command] --help`',
+      `For additional help or feedback, visit [support link or ${underline('https://pris.ly/todo')}`,
+    ],
   })
 
   public async parse(argv: string[]) {
