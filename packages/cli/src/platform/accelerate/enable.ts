@@ -73,7 +73,7 @@ export class Enable implements Command {
       )
     } else {
       return successMessage(
-        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\nFor more information, check out the Getting Started guide here: https://pris.ly/accelerate-getting-started`,
+        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\nFor more information, check out the Getting Started guide here: https://pris.ly/d/accelerate-getting-started`,
       )
     }
   }
