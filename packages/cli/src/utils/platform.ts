@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
-import { Commands, format, getCommandWithExecutor, HelpError, isError } from '@prisma/internals'
+import { Commands, format, getCommandWithExecutor, HelpError, isError, link } from '@prisma/internals'
 import fs from 'fs-extra'
-import { bold, dim, green, red, underline } from 'kleur/colors'
+import { bold, dim, green, red } from 'kleur/colors'
 import fetch, { Headers } from 'node-fetch'
 import path from 'path'
 import XdgAppPaths from 'xdg-app-paths'
@@ -135,7 +135,7 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[]) =
   // Temporary text until it's added properly in each sub command
   const hasHelpFlag = Boolean(argv.find((it) => ['-h', '--help'].includes(it)))
   if (hasHelpFlag) {
-    return `Help output for this command will be available soon. In the meantime, visit ${underline(
+    return `Help output for this command will be available soon. In the meantime, visit ${link(
       'https://pris.ly/cli/platform-docs',
     )} for more information.`
   }

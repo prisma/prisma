@@ -1,5 +1,4 @@
-import { Command, Commands } from '@prisma/internals'
-import { underline } from 'kleur/colors'
+import { Command, Commands, link } from '@prisma/internals'
 
 import { EarlyAccessFlagError } from '../utils/errors'
 import { createHelp, dispatchToSubCommand } from '../utils/platform'
@@ -27,7 +26,7 @@ export class $ implements Command {
     examples: ['prisma platform auth login', 'prisma platform project create --workspace=<id>'],
     additionalContent: [
       'For detailed command descriptions and options, use `prisma platform [command] --help`',
-      `For additional help visit ${underline('https://pris.ly/cli/platform-docs')}`,
+      `For additional help visit ${link('https://pris.ly/cli/platform-docs')}`,
     ],
   })
 
