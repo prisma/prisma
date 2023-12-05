@@ -300,10 +300,18 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
       const fileName = path.basename(filePath)
-      const target =
-        process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
-          ? path.join('/tmp/prisma-engines', fileName)
-          : path.join(finalOutputDir, fileName)
+      let target: string
+
+      // Introduced in https://github.com/prisma/prisma/pull/6527
+      // The engines that are not needed for the runtime deployment on AWS Lambda 
+      // are moved to `/tmp/prisma-engines`
+      // They will be ignored and not included in the final build, reducing its size
+      if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {
+        target = path.join('/tmp/prisma-engines', fileName)
+      } else {
+        target = path.join(finalOutputDir, fileName)
+      }
+
       await overwriteFile(filePath, target)
     }
   }
