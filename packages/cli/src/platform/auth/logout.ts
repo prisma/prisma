@@ -1,7 +1,7 @@
 import { Command, getCommandWithExecutor, isError } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
-import { deleteAuthConfig, readAuthConfig, successMessage } from '../utils/platform'
+import { deleteAuthConfig, readAuthConfig, successMessage } from '../../utils/platform'
 
 export class Logout implements Command {
   public static new(): Logout {
