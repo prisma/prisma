@@ -30,9 +30,9 @@ export class Enable implements Command {
     if (isError(url)) return url
     const apikey = getOptionalParameter(args, ['--apikey'])
     if (isError(apikey)) return apikey
-    await platformRequestOrThrow<{
-      accelerate: { data: {}; error: null }
-      apikey: { data: { serviceKey: { id: string; createdAt: string } } }
+    const accelerateSetupPayload = await platformRequestOrThrow<{
+      data: {}
+      error: { message: string } | null
     }>({
       token,
       path: `/${workspace}/${project}/accelerate/setup`,
@@ -42,16 +42,13 @@ export class Enable implements Command {
         connectionString: url,
       },
     })
+    if (accelerateSetupPayload.error) {
+      throw new Error(accelerateSetupPayload.error.message)
+    }
     if (apikey) {
       const payload = await platformRequestOrThrow<{
         data: {
-          serviceKey: {
-            id: string
-            createdAt: string
-            displayName: string
-            valueHint: string
-            tenantApiKeyId: string
-          }
+          tenantAPIKey: string
         }
         error: null | { message: string }
       }>({
@@ -66,7 +63,7 @@ export class Enable implements Command {
         throw new Error(payload.error.message)
       }
       return successMessage(
-        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.serviceKey.tenantApiKeyId}`,
+        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests: ${payload.data.tenantAPIKey}`,
       )
     } else {
       return successMessage(
