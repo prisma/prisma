@@ -115,11 +115,11 @@ describe('special cases', () => {
    * The build image (Debian) is different from the runtime image (RHEL) on Netlify,
    * so the build-time targets are replaced with what will actually be required at run time.
    */
-  it('replaces platforms with ["rhel-openssl-1.0.x"] on Netlify', () => {
+  it('replaces `platforms` with `["rhel-openssl-1.0.x"]` or `["rhel-openssl-3.0.x"]` depending on the Node.js version', () => {
     process.env.NETLIFY = 'true'
 
-    const isNode20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
-    const binaryTarget = isNode20OrUp ? 'rhel-openssl-3.0.x' : 'rhel-openssl-1.0.x'
+    const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+    const binaryTarget = isNodeMajor20OrUp ? 'rhel-openssl-3.0.x' : 'rhel-openssl-1.0.x'
     const annotations = buildNFTAnnotations(
       false,
       ClientEngineType.Library,

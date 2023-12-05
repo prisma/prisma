@@ -11,6 +11,25 @@ import type { GetBinaryPathsByVersionInput } from '../getGenerators'
 import { binaryTypeToEngineType } from '../utils/binaryTypeToEngineType'
 import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
 
+function parseAWSNodejsRuntimeEnvVarVersion() {
+  const runtimeEnvVar = process.env.AWS_LAMBDA_JS_RUNTIME
+  if (!runtimeEnvVar || runtimeEnvVar === '') return null
+
+  try {
+    const runtimeRegex = /^nodejs(\d+).x$/
+    const match = runtimeRegex.exec(runtimeEnvVar)
+    if (match) {
+      return parseInt(match[1])
+    }
+  } catch (e) {
+    console.error(
+      `We could not parse the AWS_LAMBDA_JS_RUNTIME env var with the following value: ${runtimeEnvVar}. This was silently ignored.`,
+    )
+  }
+
+  return null
+}
+
 export async function getBinaryPathsByVersion({
   neededVersions,
   platform,
@@ -33,13 +52,20 @@ export async function getBinaryPathsByVersion({
     }
 
     if (process.env.NETLIFY) {
+      const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+
+      // Netlify reads and changes the runtime version based on this env var
+      // https://docs.netlify.com/configure-builds/environment-variables/#netlify-configuration-variables
+      const awsRuntimeVersion = parseAWSNodejsRuntimeEnvVarVersion()
+      const isRuntimeEnvVar20OrUp = awsRuntimeVersion && awsRuntimeVersion >= 20
+
       const isRhelBinaryTarget1xInNeededVersions = neededVersion.binaryTargets.find(
         (object) => object.value === 'rhel-openssl-1.0.x',
       )
       const isRhelBinaryTarget3xInNeededVersions = neededVersion.binaryTargets.find(
         (object) => object.value === 'rhel-openssl-3.0.x',
       )
-      if (parseInt(process.versions.node.split('.')[0]) >= 20 && !isRhelBinaryTarget3xInNeededVersions) {
+      if ((isNodeMajor20OrUp || isRuntimeEnvVar20OrUp) && !isRhelBinaryTarget3xInNeededVersions) {
         neededVersion.binaryTargets.push({
           fromEnvVar: null,
           value: 'rhel-openssl-3.0.x',
