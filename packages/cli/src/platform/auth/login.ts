@@ -6,8 +6,8 @@ import http from 'http'
 import { green, underline } from 'kleur/colors'
 import open from 'open'
 
-import { name as PRISMA_CLI_NAME, version as PRISMA_CLI_VERSION } from '../../package.json'
-import { platformConsoleUrl, readAuthConfig, successMessage, writeAuthConfig } from '../utils/platform'
+import { name as PRISMA_CLI_NAME, version as PRISMA_CLI_VERSION } from '../../../package.json'
+import { platformConsoleUrl, readAuthConfig, successMessage, writeAuthConfig } from '../../utils/platform'
 
 interface AuthResult {
   token: string
