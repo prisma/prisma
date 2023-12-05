@@ -84,12 +84,12 @@ async function main(): Promise<number> {
     {
       init: Init.new(),
       platform: Platform.$.new({
-        login: Platform.Login.new(),
-        logout: Platform.Logout.new(),
         workspace: Platform.Workspace.$.new({
           show: Platform.Workspace.Show.new(),
         }),
         auth: Platform.Auth.$.new({
+          login: Platform.Auth.Login.new(),
+          logout: Platform.Auth.Logout.new(),
           show: Platform.Auth.Show.new(),
         }),
         project: Platform.Project.$.new({
