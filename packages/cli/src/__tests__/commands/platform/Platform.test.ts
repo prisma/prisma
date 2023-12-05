@@ -60,6 +60,7 @@ describe('--early-access flag', () => {
         $ prisma platform project create --workspace=<id>
 
       For detailed command descriptions and options, use \`prisma platform [command] --help\`
+      For additional help visit https://pris.ly/cli/platform-docs
 
     `)
   })
