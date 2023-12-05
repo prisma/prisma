@@ -1,9 +1,9 @@
 import Debug from '@prisma/debug'
-import { Command, getCommandWithExecutor, isError } from '@prisma/internals'
+import { Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
 import * as checkpoint from 'checkpoint-client'
 import http from 'http'
-import { green, underline } from 'kleur/colors'
+import { green } from 'kleur/colors'
 import open from 'open'
 
 import { name as PRISMA_CLI_NAME, version as PRISMA_CLI_VERSION } from '../../../package.json'
@@ -42,7 +42,7 @@ export class Login implements Command {
     const authSigninUrl = await generateAuthSigninUrl({ connection: `github`, redirectTo: authRedirectUrl.href })
 
     console.info('Visit the following URL in your browser to authenticate:')
-    console.info(underline(authSigninUrl.href))
+    console.info(link(authSigninUrl.href))
 
     try {
       const [authResult] = await Promise.all([
