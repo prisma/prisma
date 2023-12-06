@@ -212,6 +212,50 @@ Invalid \`prisma.user.create()\` invocation in
 Unique constraint failed on the (not available)
 `;
 
+exports[`interactive-transactions (provider=mysql, vitess_nonfk) batching raw rollback 1`] = `
+
+Invalid \`prisma.$executeRaw()\` invocation:
+
+
+Raw query failed. Code: \`1062\`. Message: \`target: no-foreign-key-testing.-.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000) (CallerID: 2t0pywojt5p3u70lbz3p): Sql: "insert into \`User\`(id, email) values (:v1, :v2)", BindVars: {REDACTED}\`
+`;
+
+exports[`interactive-transactions (provider=mysql, vitess_nonfk) batching rollback 1`] = `
+
+Invalid \`prisma.user.create()\` invocation in
+/client/tests/functional/interactive-transactions/tests.ts:0:0
+
+  XX     email: 'user_1@website.com',
+  XX   },
+  XX }),
+→ XX prisma.user.create(
+Unique constraint failed on the (not available)
+`;
+
+exports[`interactive-transactions (provider=mysql, vitess_nonfk) batching rollback within callback 1`] = `
+
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/interactive-transactions/tests.ts:0:0
+
+  XX   }),
+  XX ])
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the (not available)
+`;
+
+exports[`interactive-transactions (provider=mysql, vitess_nonfk) rollback query 1`] = `
+
+Invalid \`prisma.user.create()\` invocation in
+/client/tests/functional/interactive-transactions/tests.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await prisma.user.create(
+Unique constraint failed on the (not available)
+`;
+
 exports[`interactive-transactions (provider=postgresql) batching raw rollback 1`] = `
 
 Invalid \`prisma.$executeRaw()\` invocation:

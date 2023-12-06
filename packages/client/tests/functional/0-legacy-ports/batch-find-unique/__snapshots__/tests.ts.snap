@@ -10,6 +10,8 @@ exports[`0-legacy-ports.batch-find-unique (provider=mysql, js_planetscale) findU
 
 exports[`0-legacy-ports.batch-find-unique (provider=mysql, vitess_fk) findUnique batching 1`] = `SELECT \`\`.\`User\`.\`id\`, \`\`.\`User\`.\`email\`, \`\`.\`User\`.\`age\`, \`\`.\`User\`.\`name\` FROM \`\`.\`User\` WHERE \`\`.\`User\`.\`email\` IN (?,?,?,?)`;
 
+exports[`0-legacy-ports.batch-find-unique (provider=mysql, vitess_nonfk) findUnique batching 1`] = `SELECT \`no-foreign-key-testing\`.\`User\`.\`id\`, \`no-foreign-key-testing\`.\`User\`.\`email\`, \`no-foreign-key-testing\`.\`User\`.\`age\`, \`no-foreign-key-testing\`.\`User\`.\`name\` FROM \`no-foreign-key-testing\`.\`User\` WHERE \`no-foreign-key-testing\`.\`User\`.\`email\` IN (?,?,?,?)`;
+
 exports[`0-legacy-ports.batch-find-unique (provider=postgresql) findUnique batching 1`] = `SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5`;
 
 exports[`0-legacy-ports.batch-find-unique (provider=postgresql, js_neon) findUnique batching 1`] = `SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5`;

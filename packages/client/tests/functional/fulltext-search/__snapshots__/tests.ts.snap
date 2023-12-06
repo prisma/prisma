@@ -39,6 +39,19 @@ Error occurred during query execution:
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "target: mVUmz-732810-1701479597329.0.primary: vttablet: rpc error: code = InvalidArgument desc = syntax error, unexpected '-' (errno 1064) (sqlstate 42000) (CallerID: userData1): Sql: \\"select \`User\`.id, \`User\`.email, \`User\`.\`name\` from \`User\` where match(\`User\`.\`name\`) against (:v1 in boolean mode)\\", BindVars: {#maxLimit: \\"type:INT64 value:\\\\\\"10001\\\\\\"\\"v1: \\"type:VARBINARY value:\\\\\\"John <--> Smith\\\\\\"\\"}", state: "42000" })), transient: false })
 `;
 
+exports[`fulltext-search (provider=mysql, vitess_nonfk) bad query 1`] = `
+
+Invalid \`.findMany()\` invocation in
+/client/tests/functional/fulltext-search/tests.ts:0:0
+
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(process.platform !== 'win32' && clientMeta.runtime !== 'edge')('bad query', async () => {
+  XX   const result = prisma.user
+→ XX     .findMany(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "target: no-foreign-key-testing.-.primary: vttablet: rpc error: code = InvalidArgument desc = syntax error, unexpected '-' (errno 1064) (sqlstate 42000) (CallerID: 2t0pywojt5p3u70lbz3p): Sql: \\"select \`User\`.id, \`User\`.email, \`User\`.\`name\` from \`User\` where match(\`User\`.\`name\`) against (:v1 in boolean mode)\\", BindVars: {REDACTED}", state: "42000" })), transient: false })
+`;
+
 exports[`fulltext-search (provider=postgresql) bad query 1`] = `
 
 Invalid \`.findMany()\` invocation in

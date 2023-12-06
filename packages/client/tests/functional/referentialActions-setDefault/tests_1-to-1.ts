@@ -263,7 +263,7 @@ testMatrix.setupTestSuite(
       reason: 'Only testing relational databases using foreign keys.',
     },
     skipProviderFlavor: {
-      from: ['js_planetscale'],
+      from: ['js_planetscale', 'vitess_nonfk'],
       reason: 'Only testing relational databases using foreign keys.',
     },
   },
