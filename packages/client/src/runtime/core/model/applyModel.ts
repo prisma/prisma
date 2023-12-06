@@ -52,7 +52,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
     addProperty('$parent', () => client._appliedParent),
   ]
 
-  return createCompositeProxy({}, layers)
+  return createCompositeProxy({}, layers, true)
 }
 
 /**
