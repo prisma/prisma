@@ -16,7 +16,7 @@ export class $ implements Command {
       ['workspace', 'Manage workspaces'],
       ['project', 'Manage projects'],
       ['apikey', 'Manage API keys'],
-      ['accelerate', 'Manage Accelerate feature'],
+      ['accelerate', 'Manage Prisma Accelerate'],
     ],
     options: [
       ['--early-access', '', 'Enable early access features'],

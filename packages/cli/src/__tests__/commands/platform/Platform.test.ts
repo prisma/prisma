@@ -46,7 +46,7 @@ describe('--early-access flag', () => {
             workspace   Manage workspaces
               project   Manage projects
                apikey   Manage API keys
-           accelerate   Manage Accelerate feature
+           accelerate   Manage Prisma Accelerate
 
       Options
 
