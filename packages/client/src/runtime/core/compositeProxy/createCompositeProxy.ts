@@ -129,6 +129,7 @@ export function createCompositeProxy<T extends object>(
     // original target. This is not we want for our usecases: we want console.log to output the result as if
     // the properties actually existed on the target. Using spread operator forces us to produce correct object
     const toLog = { ...this }
+    delete toLog[customInspect]
     return defaultInspect(toLog, options)
   }
 
