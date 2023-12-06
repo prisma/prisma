@@ -1,9 +1,10 @@
+import { ClientEngineType } from '@prisma/internals'
 import { U } from 'ts-toolbelt'
 
 import { TestSuiteMatrix } from './getTestSuiteInfo'
 import { ProviderFlavors, Providers, RelationModes } from './providers'
 import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, MatrixOptions } from './types'
+import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 type MergedMatrixParams<MatrixT extends TestSuiteMatrix> = U.IntersectOf<MatrixT[number][number]>
 
@@ -23,12 +24,13 @@ type DefineMatrixOptions<MatrixT extends TestSuiteMatrix> = {
 type TestsFactoryFn<MatrixT extends TestSuiteMatrix> = (
   suiteConfig: MergedMatrixParams<MatrixT> & {
     provider: Providers
-    providerFlavor?: ProviderFlavors
-    relationMode?: RelationModes
-    engineType?: 'binary' | 'library' | 'wasm'
+    providerFlavor?: `${ProviderFlavors}`
+    relationMode?: `${RelationModes}`
+    engineType?: `${ClientEngineType}`
   },
   suiteMeta: TestCallbackSuiteMeta,
   clientMeta: ClientMeta,
+  cliMeta: CliMeta,
 ) => void
 
 export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {

@@ -63,7 +63,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    loadEnvFile(undefined, true)
+    loadEnvFile({ printMessage: true })
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()

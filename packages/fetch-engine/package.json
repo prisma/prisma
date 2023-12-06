@@ -17,8 +17,8 @@
   "devDependencies": {
     "@swc/core": "1.3.96",
     "@swc/jest": "0.2.29",
-    "@types/jest": "29.5.8",
-    "@types/node": "18.18.9",
+    "@types/jest": "29.5.10",
+    "@types/node": "18.18.13",
     "@types/node-fetch": "2.6.9",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.7.0-14.2c867f452d73681500eb8426a83b37ad1bc1eda7",
+    "@prisma/engines-version": "5.7.0-41.79fb5193cf0a8fdbef536e4b4a159cad677ab1b9",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

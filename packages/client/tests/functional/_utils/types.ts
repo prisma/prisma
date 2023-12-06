@@ -1,3 +1,5 @@
+import { ClientEngineType } from '@prisma/internals'
+
 import { ProviderFlavors, Providers } from './providers'
 
 export type MatrixOptions = {
@@ -5,7 +7,8 @@ export type MatrixOptions = {
     from: `${Providers}`[]
     reason: string
   }
-  skipBinary?: {
+  skipEngine?: {
+    from: `${ClientEngineType}`[]
     reason: string
   }
   skipDefaultClientInstance?: boolean
@@ -33,9 +36,10 @@ export type Db = {
 
 export type ClientRuntime = 'node' | 'edge'
 
-export type TestCliMeta = {
+export type CliMeta = {
   dataProxy: boolean
   runtime: 'node' | 'edge'
+  previewFeatures: string[]
   engineType: 'binary' | 'library' | 'wasm' | undefined
 }
 

@@ -1,10 +1,9 @@
-import { ClientEngineType } from '@prisma/internals'
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { flavorsForProvider, ProviderFlavors, Providers, relationModesForFlavor } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { MatrixOptions, TestCliMeta } from './types'
+import { CliMeta, MatrixOptions } from './types'
 
 export type TestPlanEntry = {
   name: string
@@ -27,9 +26,9 @@ type SuitePlanContext = {
  * @returns [test-suite-title: string, test-suite-config: object]
  */
 export function getTestSuitePlan(
+  testCliMeta: CliMeta,
   suiteMeta: TestSuiteMeta,
   suiteConfigs: NamedTestSuiteConfig[],
-  testCliMeta: TestCliMeta,
   options?: MatrixOptions,
 ): TestPlanEntry[] {
   const context = buildPlanContext()
@@ -89,7 +88,7 @@ function shouldSkipSuiteConfig(
   }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
-  testCliMeta: TestCliMeta,
+  cliMeta: CliMeta,
   options?: MatrixOptions,
 ): boolean {
   const provider = config.matrixOptions.provider
@@ -110,17 +109,17 @@ function shouldSkipSuiteConfig(
   }
 
   // if the test doesn't support the engine type, skip
-  if (options?.skipBinary && engineType === ClientEngineType.Binary) {
+  if (options?.skipEngine?.from.includes(engineType!)) {
     return true
   }
 
   // if the test needs to skip the dataproxy test, skip
-  if (testCliMeta.dataProxy && options?.skipDataProxy?.runtimes.includes(testCliMeta.runtime)) {
+  if (cliMeta.dataProxy && options?.skipDataProxy?.runtimes.includes(cliMeta.runtime)) {
     return true
   }
 
   // if the client doesn't support the provider, skip
-  if (testCliMeta.dataProxy && provider === Providers.SQLITE) {
+  if (cliMeta.dataProxy && provider === Providers.SQLITE) {
     return true
   }
 

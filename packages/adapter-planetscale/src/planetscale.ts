@@ -30,7 +30,7 @@ class RollbackError extends Error {
 }
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
-  readonly flavour = 'mysql'
+  readonly provider = 'mysql'
   constructor(protected client: ClientT) {}
 
   /**
@@ -111,8 +111,6 @@ function parseErrorMessage(message: string) {
 }
 
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
-  finished = false
-
   constructor(
     tx: planetScale.Transaction,
     readonly options: TransactionOptions,
@@ -125,7 +123,6 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
-    this.finished = true
     this.txDeferred.resolve()
     return Promise.resolve(ok(await this.txResultPromise))
   }
@@ -133,16 +130,8 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
-    this.finished = true
     this.txDeferred.reject(new RollbackError())
     return Promise.resolve(ok(await this.txResultPromise))
-  }
-
-  dispose(): Result<void> {
-    if (!this.finished) {
-      this.rollback().catch(console.error)
-    }
-    return ok(undefined)
   }
 }
 
@@ -187,9 +176,5 @@ const adapter = new PrismaPlanetScale(client)
           return undefined
         })
     })
-  }
-
-  async close() {
-    return ok(undefined)
   }
 }

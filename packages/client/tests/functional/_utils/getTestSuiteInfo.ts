@@ -6,16 +6,16 @@ import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, TestCliMeta } from './types'
+import { ClientMeta, CliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
   matrixOptions: Record<string, string> & {
     provider: Providers
-    providerFlavor?: ProviderFlavors
-    relationMode?: RelationModes
-    engineType?: 'binary' | 'library' | 'wasm'
+    providerFlavor?: `${ProviderFlavors}`
+    relationMode?: `${RelationModes}`
+    engineType?: `${ClientEngineType}`
   }
 }
 
@@ -157,7 +157,11 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: NamedTestSuiteConfig['matrixOptions']) {
+export function getTestSuiteSchema(
+  cliMeta: CliMeta,
+  suiteMeta: TestSuiteMeta,
+  matrixOptions: NamedTestSuiteConfig['matrixOptions'],
+) {
   let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
   const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
   const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
@@ -174,9 +178,7 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   schema = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}\n${schema}`
 
   // in some cases we may add more preview features automatically to the schema
-  // when we are running tests for driver adapters, auto add the preview feature
-  if (isDriverAdapterProviderFlavor(matrixOptions.providerFlavor)) previewFeatures.push('driverAdapters')
-
+  previewFeatures.push(...cliMeta.previewFeatures)
   const previewFeaturesStr = `previewFeatures = ${JSON.stringify(previewFeatures)}`
 
   // if there's already a preview features block, replace it with the updated one
@@ -249,10 +251,11 @@ export function getTestSuiteMeta() {
 /**
  * Get `TestCliMeta` from the environment variables created by the test CLI.
  */
-export function getTestSuiteCliMeta(): TestCliMeta {
-  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+export function getTestSuiteCliMeta(): CliMeta {
   const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
-  const engineType = process.env.TEST_ENGINE_TYPE as any
+  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+  const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
+  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType
 
   if (edge && !dataProxy) {
     throw new Error('Edge client requires Data Proxy')
@@ -260,8 +263,9 @@ export function getTestSuiteCliMeta(): TestCliMeta {
 
   return {
     dataProxy,
-    engineType: engineType ?? ClientEngineType.Library,
     runtime: edge ? 'edge' : 'node',
+    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
+    engineType: engineType ?? ClientEngineType.Library,
   }
 }
 

@@ -48,7 +48,16 @@ testMatrix.setupTestSuite(
     })
 
     test('getTestSuiteSchema', () => {
-      const schemaString = getTestSuiteSchema(suiteMeta, suiteConfig)
+      const schemaString = getTestSuiteSchema(
+        {
+          dataProxy: false,
+          engineType: 'library',
+          runtime: 'node',
+          previewFeatures: [],
+        },
+        suiteMeta,
+        suiteConfig,
+      )
 
       expect(schemaString).toContain('generator')
       expect(schemaString).toContain('datasource')
@@ -68,4 +77,10 @@ testMatrix.setupTestSuite(
   //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
   //   },
   // },
+  {
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Tracing preview feature creates a panic in the wasm engine',
+    },
+  },
 )

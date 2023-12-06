@@ -19,7 +19,10 @@ import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
 
-const debug = Debug('prisma:studio')
+// Note that we have a test relying on the namespace
+// Any change to the namespace must be done in the test as well
+// See packages/client/tests/e2e/issues/studio-1128-spawn-enoent/_steps.ts
+const debug = Debug('prisma:cli:studio')
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -92,7 +95,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 

@@ -20,7 +20,7 @@ type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly flavour = 'postgres'
+  readonly provider = 'postgres'
 
   constructor(protected readonly client: ClientT) {}
 
@@ -104,8 +104,6 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
 }
 
 class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
-  finished = false
-
   constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -113,7 +111,6 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
-    this.finished = true
     this.client.release()
     return ok(undefined)
   }
@@ -121,15 +118,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
-    this.finished = true
     this.client.release()
-    return ok(undefined)
-  }
-
-  dispose(): Result<void> {
-    if (!this.finished) {
-      this.client.release()
-    }
     return ok(undefined)
   }
 }
@@ -149,9 +138,5 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
 
     const connection = await this.client.connect()
     return ok(new PgTransaction(connection, options))
-  }
-
-  async close() {
-    return ok(undefined)
   }
 }

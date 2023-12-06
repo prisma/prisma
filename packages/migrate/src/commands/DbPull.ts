@@ -120,12 +120,12 @@ Set composite types introspection depth to 2 levels
       console.info(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
       // Load and print where the .env was loaded (if loaded)
-      loadEnvFile(args['--schema'], true)
+      loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
       printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
     } else {
       // Load .env but don't print
-      loadEnvFile(args['--schema'], false)
+      loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
     }
 
     if (!url && !schemaPath) {

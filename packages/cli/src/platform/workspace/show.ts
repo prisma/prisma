@@ -1,6 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getRequiredParameter, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
 export class Show implements Command {
   public static new(): Show {
@@ -12,12 +12,29 @@ export class Show implements Command {
       ...platformParameters.global,
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
-    return platformRequestOrThrow({
+    const token = await getPlatformTokenOrThrow(args)
+
+    const payload = await platformRequestOrThrow<{
+      actor: any
+      organizations: {
+        id: string
+        displayName: string
+        createdAt: string
+      }[]
+    }>({
       token,
       path: `/settings/workspaces`,
       route: '_app._user.settings.workspaces',
-    }) as Promise<any>
+    })
+
+    console.table(
+      payload.organizations.map((workspace) => ({
+        id: workspace.id,
+        name: workspace.displayName,
+        createdAt: workspace.createdAt,
+      })),
+      ['id', 'name', 'createdAt'],
+    )
+    return ''
   }
 }

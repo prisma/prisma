@@ -11,8 +11,14 @@ const title = faker.lorem.sentence()
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(() => {
-  describe('regular client', () => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta, cliMeta) => {
+  const usingRelationJoins = cliMeta.previewFeatures.includes('relationJoins')
+
+  // TODO: broken when using relation joins with driver adapters
+  // because of https://github.com/prisma/team-orm/issues/683
+  const shouldSkip = clientMeta.driverAdapter && usingRelationJoins
+
+  describeIf(!shouldSkip)('regular client', () => {
     beforeEach(async () => {
       await prisma.user.deleteMany()
       await prisma.user.create({
@@ -317,7 +323,7 @@ testMatrix.setupTestSuite(() => {
     })
   })
 
-  describe('extended client', () => {
+  describeIf(!shouldSkip)('extended client', () => {
     beforeEach(async () => {
       await prisma.$extends({}).user.deleteMany()
       await prisma.$extends({}).user.create({

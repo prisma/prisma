@@ -5,7 +5,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('should read .env file in prisma folder when there is no schema', () => {
   ctx.fixture('dotenv-4-prisma-no-schema')
-  loadEnvFile(undefined, true)
+  loadEnvFile({ printMessage: true })
 
   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
 

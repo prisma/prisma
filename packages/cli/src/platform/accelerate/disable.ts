@@ -1,6 +1,12 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getRequiredParameter, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import {
+  getPlatformTokenOrThrow,
+  getRequiredParameter,
+  platformParameters,
+  platformRequestOrThrow,
+  successMessage,
+} from '../../utils/platform'
 
 export class Disable implements Command {
   public static new(): Disable {
@@ -12,13 +18,13 @@ export class Disable implements Command {
       ...platformParameters.project,
     })
     if (isError(args)) return args
-    const token = getRequiredParameter(args, ['--token', '-t'], 'PRISMA_TOKEN')
-    if (isError(token)) return token
+    const token = await getPlatformTokenOrThrow(args)
+
     const workspace = getRequiredParameter(args, ['--workspace', '-w'])
     if (isError(workspace)) return workspace
     const project = getRequiredParameter(args, ['--project', '-p'])
     if (isError(project)) return project
-    return platformRequestOrThrow({
+    const payload = await platformRequestOrThrow<{ data: {}; error: null | { message: string } }>({
       token,
       path: `/${workspace}/${project}/accelerate/settings`,
       route: '_app.$organizationId_.$projectId.accelerate.settings',
@@ -26,6 +32,12 @@ export class Disable implements Command {
         intent: 'disable',
         projectId: project,
       },
-    }) as Promise<any>
+    })
+    if (payload.error?.message) {
+      throw new Error(payload.error.message)
+    }
+    return successMessage(
+      `Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
+    )
   }
 }

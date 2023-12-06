@@ -26,7 +26,7 @@ type TransactionClient = LibSqlTransactionRaw
 const LOCK_TAG = Symbol()
 
 class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly flavour = 'sqlite';
+  readonly provider = 'sqlite';
 
   [LOCK_TAG] = new Mutex()
 
@@ -93,16 +93,12 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 }
 
 class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction {
-  finished = false
-
   constructor(client: TransactionClient, readonly options: TransactionOptions, readonly unlockParent: () => void) {
     super(client)
   }
 
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
-
-    this.finished = true
 
     try {
       await this.client.commit()
@@ -116,8 +112,6 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
-    this.finished = true
-
     try {
       await this.client.rollback()
     } catch (error) {
@@ -126,14 +120,6 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
       this.unlockParent()
     }
 
-    return ok(undefined)
-  }
-
-  dispose(): Result<void> {
-    if (!this.finished) {
-      this.finished = true
-      this.rollback().catch(console.error)
-    }
     return ok(undefined)
   }
 }
@@ -162,11 +148,5 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAd
       release()
       throw e
     }
-  }
-
-  async close(): Promise<Result<void>> {
-    await this[LOCK_TAG].acquire()
-    this.client.close()
-    return ok(undefined)
   }
 }

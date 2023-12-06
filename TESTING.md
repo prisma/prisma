@@ -432,6 +432,12 @@ You will need to have installed the Rust toolchain and a few extra dependencies.
 
 2. Run `pnpm install` again to propagate the new engines.
 
+### On CI
+
+For open pull request, can also add `/engine-branch branchName` command into PR body and re-run
+the pipeline. Engine from corresponding branch will be checked out and built before running any tests
+on CI.
+
 ## CI - Continuous Integration
 
 By creating a Pull Request the following pipelines will be triggered
@@ -451,8 +457,8 @@ This workflow will directly publish (without running tests) the packages to npm 
 To make a Pull Request which will release a version to the `integration` tag automatically, the name of the branch of the PR would need to start with `integration/`.
 Alternatively, add `/integration` in the Pull Request description:
 
-- If this is added before opening the Pull Request, a release will happen automatically
-- If this is added after the creation of the PR, the `Detect jobs to run` job from the `CI` workflow would need to be re-triggered to get a release.
+- If this is added before opening the Pull Request, a release will happen automatically.
+- If this is added after the creation of the PR, the `Detect jobs to run` job from the `CI` workflow needs to be re-triggered to get a release.
 
 The [GitHub Actions - npm - release to dev/integration](https://github.com/prisma/prisma/blob/main/.github/workflows/release-ci.yml) workflow can also be manually triggered to run on any branch.
 Example:

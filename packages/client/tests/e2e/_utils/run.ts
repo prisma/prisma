@@ -9,7 +9,7 @@ const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
 const args = arg(
   process.argv.slice(2),
   {
-    // see which comman,ds are run and the outputs of the failures
+    // see which commands are run and the outputs of the failures
     '--verbose': Boolean,
     // like run jest in band, useful for debugging and CI
     '--runInBand': Boolean,

@@ -276,7 +276,7 @@ testMatrix.setupTestSuite(({ provider, engineType }, _suiteMeta, clientMeta) => 
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(engineType === ClientEngineType.Library && clientMeta.runtime !== 'edge')('batching rollback', async () => {
+  testIf(engineType !== ClientEngineType.Binary && clientMeta.runtime !== 'edge')('batching rollback', async () => {
     const result = prisma.$transaction([
       prisma.user.create({
         data: {
@@ -335,7 +335,7 @@ testMatrix.setupTestSuite(({ provider, engineType }, _suiteMeta, clientMeta) => 
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(engineType === ClientEngineType.Library && provider !== Providers.MONGODB && clientMeta.runtime !== 'edge')(
+  testIf(engineType !== ClientEngineType.Binary && provider !== Providers.MONGODB && clientMeta.runtime !== 'edge')(
     'batching raw rollback',
     async () => {
       await prisma.user.create({

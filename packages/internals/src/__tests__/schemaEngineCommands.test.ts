@@ -65,17 +65,20 @@ describe('createDatabase', () => {
     await expect(createDatabase('file:./doesnotexist.db', tempy.directory())).resolves.toEqual(true)
   })
 
-  test('sqlite - invalid cwd (file path instead of directory)', async () => {
-    expect.assertions(1)
-    try {
-      await createDatabase('file:./doesnotexist.db', tempy.file())
-    } catch (e) {
-      expect(serialize(e)).toMatchInlineSnapshot(`
+  testIf(!process.env.PRISMA_SCHEMA_ENGINE_BINARY)(
+    'sqlite - invalid cwd (file path instead of directory)',
+    async () => {
+      expect.assertions(1)
+      try {
+        await createDatabase('file:./doesnotexist.db', tempy.file())
+      } catch (e) {
+        expect(serialize(e)).toMatchInlineSnapshot(`
         "Schema engine exited. Error: Command failed with ENOENT: /engines/schema-engine-TEST_PLATFORM cli --datasource <REDACTED> can-connect-to-database
         spawn /engines/schema-engine-TEST_PLATFORM ENOENT"
       `)
-    }
-  })
+      }
+    },
+  )
 
   test('postgresql - create database', async () => {
     const uri = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-createDatabase')
