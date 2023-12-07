@@ -251,7 +251,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case ArrayColumnType.OID_ARRAY:
       return ColumnTypeEnum.Int64Array
     default:
-      if (fieldTypeId >= 10000) {
+      if (fieldTypeId >= 10_000) {
         // Postgres Custom Types
         return ColumnTypeEnum.Text
       }
