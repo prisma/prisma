@@ -468,6 +468,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
+        # The Node.js version here is only used for the GitHub Actions job
+        # The version used by the tests is actually defined in
+        # ./packages/client/tests/e2e/_utils/standard.dockerfile
         node: [20]
 
     steps:
