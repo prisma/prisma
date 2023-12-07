@@ -315,7 +315,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   private getErrorMessageWithLink(title: string) {
     return getErrorMessageWithLink({
-      platform: this.binaryTarget,
+      binaryTarget: this.binaryTarget,
       title,
       version: this.config.clientVersion!,
       engineVersion: this.versionInfo?.commit,

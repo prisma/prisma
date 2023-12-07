@@ -864,7 +864,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
   private getErrorMessageWithLink(title: string) {
     return getErrorMessageWithLink({
-      platform: this.binaryTarget,
+      binaryTarget: this.binaryTarget,
       title,
       version: this.clientVersion!,
       engineVersion: this.lastVersion,
