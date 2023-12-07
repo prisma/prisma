@@ -25,6 +25,7 @@ export type BinaryTarget =
   | 'freebsd11'
   | 'freebsd12'
   | 'freebsd13'
+  | 'freebsd14'
   | 'openbsd'
   | 'netbsd'
   | 'arm'
@@ -55,6 +56,7 @@ export const binaryTargets: BinaryTarget[] = [
   'freebsd11',
   'freebsd12',
   'freebsd13',
+  'freebsd14',
   'openbsd',
   'netbsd',
   'arm',
