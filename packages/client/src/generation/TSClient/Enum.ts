@@ -1,8 +1,8 @@
 import indent from 'indent-string'
 
-import type { DMMF } from '../../runtime/dmmf-types'
-import { objectEnumNames } from '../../runtime/object-enums'
+import { objectEnumNames } from '../../runtime/core/types/exported/ObjectEnums'
 import { strictEnumNames } from '../../runtime/strictEnum'
+import type { DMMF } from '../dmmf-types'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 
@@ -23,7 +23,10 @@ export class Enum implements Generatable {
 ${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
 }`
     const enumBody = this.isStrictEnum() ? `makeStrictEnum(${enumVariants})` : enumVariants
-    return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = ${enumBody};`
+
+    return this.useNamespace
+      ? `exports.Prisma.${type.name} = ${enumBody};`
+      : `exports.${type.name} = exports.$Enums.${type.name} = ${enumBody};`
   }
 
   private getValueJS(value: string): string {

@@ -77,7 +77,7 @@ export namespace DMMF {
     isGenerated?: boolean // does not exist on 'type' but does on 'model'
     isUpdatedAt?: boolean // does not exist on 'type' but does on 'model'
     /**
-     * Describes the data type in the same the way is is defined in the Prisma schema:
+     * Describes the data type in the same the way it is defined in the Prisma schema:
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
@@ -85,11 +85,10 @@ export namespace DMMF {
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
     relationFromFields?: string[]
-    relationToFields?: any[]
+    relationToFields?: string[]
     relationOnDelete?: string
     relationName?: string
     documentation?: string
-    [key: string]: any // safe net for additional new props
   }
 
   export interface FieldDefault {
@@ -133,28 +132,27 @@ export namespace DMMF {
     isList: boolean
   }
 
-  export type ArgType = string | InputType | SchemaEnum
-
-  export interface SchemaArgInputType {
+  export type TypeRef<AllowedLocations extends FieldLocation> = {
     isList: boolean
-    type: ArgType
-    location: FieldLocation
+    type: string
+    location: AllowedLocations
     namespace?: FieldNamespace
   }
+
+  export type InputTypeRef = TypeRef<'scalar' | 'inputObjectTypes' | 'enumTypes' | 'fieldRefTypes'>
 
   export interface SchemaArg {
     name: string
     comment?: string
     isNullable: boolean
     isRequired: boolean
-    inputTypes: SchemaArgInputType[]
+    inputTypes: InputTypeRef[]
     deprecation?: Deprecation
   }
 
   export interface OutputType {
     name: string
     fields: SchemaField[]
-    fieldMap?: Record<string, SchemaField>
   }
 
   export interface SchemaField {
@@ -166,27 +164,7 @@ export namespace DMMF {
     documentation?: string
   }
 
-  export type TypeRefCommon = {
-    isList: boolean
-    namespace?: FieldNamespace
-  }
-
-  export type TypeRefScalar = TypeRefCommon & {
-    location: 'scalar'
-    type: string
-  }
-
-  export type TypeRefOutputObject = TypeRefCommon & {
-    location: 'outputObjectTypes'
-    type: OutputType | string
-  }
-
-  export type TypeRefEnum = TypeRefCommon & {
-    location: 'enumTypes'
-    type: SchemaEnum | string
-  }
-
-  export type OutputTypeRef = TypeRefScalar | TypeRefOutputObject | TypeRefEnum
+  export type OutputTypeRef = TypeRef<'scalar' | 'outputObjectTypes' | 'enumTypes'>
 
   export interface Deprecation {
     sinceVersion: string
@@ -205,7 +183,6 @@ export namespace DMMF {
       source?: string
     }
     fields: SchemaArg[]
-    fieldMap?: Record<string, SchemaArg>
   }
 
   export interface FieldRefType {
@@ -214,7 +191,7 @@ export namespace DMMF {
     fields: SchemaArg[]
   }
 
-  export type FieldRefAllowType = TypeRefScalar | TypeRefEnum
+  export type FieldRefAllowType = TypeRef<'scalar' | 'enumTypes'>
 
   export interface ModelMapping {
     model: string

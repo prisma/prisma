@@ -10,11 +10,10 @@ import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF } from '..'
+import { getConfig, getDMMF, vercelPkgPathRegex } from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
-import { mapPreviewFeatures } from '../utils/mapPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
 import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
@@ -51,9 +50,9 @@ export type GetGeneratorOptions = {
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
-  dataProxy: boolean
   generatorNames?: string[]
   postinstall?: boolean
+  noEngine?: boolean
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -73,9 +72,9 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     overrideGenerators,
     skipDownload,
     binaryPathsOverride,
-    dataProxy,
     generatorNames = [],
     postinstall,
+    noEngine,
   } = options
 
   if (!schemaPath) {
@@ -96,7 +95,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   if (version && !prismaPath) {
     const potentialPath = eval(`require('path').join(__dirname, '..')`)
     // for pkg we need to make an exception
-    if (!potentialPath.startsWith('/snapshot/')) {
+    if (!potentialPath.match(vercelPkgPathRegex)) {
       const downloadParams: DownloadOptions = {
         binaries: {
           [queryEngineBinaryType]: potentialPath,
@@ -127,8 +126,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   printConfigWarnings(config.warnings)
 
-  // TODO: This needs a better abstraction, but we don't have any better right now
-  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = extractPreviewFeatures(config)
 
   const dmmf = await getDMMF({
     datamodel,
@@ -214,8 +212,8 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
-          dataProxy,
           postinstall,
+          noEngine,
         }
 
         // we set the options here a bit later after instantiating the Generator,
@@ -379,19 +377,6 @@ async function validateGenerators(generators: GeneratorConfig[]): Promise<void> 
   const platform = await getPlatform()
 
   for (const generator of generators) {
-    if (parseEnvValue(generator.provider) === 'photonjs') {
-      throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
-  1. Rename ${red('provider = "photonjs"')} to ${green('provider = "prisma-client-js"')} in your ${bold(
-        'schema.prisma',
-      )} file.
-  2. Replace your ${bold('package.json')}'s ${red('@prisma/photon')} dependency to ${green('@prisma/client')}
-  3. Replace ${red("import { Photon } from '@prisma/photon'")} with ${green(
-        "import { PrismaClient } from '@prisma/client'",
-      )} in your code.
-  4. Run ${green('prisma generate')} again.
-      `)
-    }
-
     if (generator.config.platforms) {
       throw new Error(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,

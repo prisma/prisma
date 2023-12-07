@@ -19,15 +19,15 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { bold, green, red, yellow } from 'kleur/colors'
+import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
-import { Dev } from './Dev'
-import { Doctor } from './Doctor'
+import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
+import { Platform } from './platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -56,15 +56,6 @@ process.once('SIGINT', () => {
   process.exit(130)
 })
 
-if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
-  console.log(
-    yellow('deprecated') +
-      `  The ${red('prisma2')} command is deprecated and has been renamed to ${green('prisma')}.\nPlease execute ${bold(
-        green('prisma' + (commandArray.length ? ' ' + commandArray.join(' ') : '')),
-      )} instead.\n`,
-  )
-}
-
 // Parse CLI arguments
 const args = arg(
   commandArray,
@@ -92,6 +83,30 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
+      platform: Platform.$.new({
+        workspace: Platform.Workspace.$.new({
+          show: Platform.Workspace.Show.new(),
+        }),
+        auth: Platform.Auth.$.new({
+          login: Platform.Auth.Login.new(),
+          logout: Platform.Auth.Logout.new(),
+          show: Platform.Auth.Show.new(),
+        }),
+        project: Platform.Project.$.new({
+          create: Platform.Project.Create.new(),
+          delete: Platform.Project.Delete.new(),
+          show: Platform.Project.Show.new(),
+        }),
+        accelerate: Platform.Accelerate.$.new({
+          enable: Platform.Accelerate.Enable.new(),
+          disable: Platform.Accelerate.Disable.new(),
+        }),
+        apikey: Platform.APIKey.$.new({
+          create: Platform.APIKey.Create.new(),
+          delete: Platform.APIKey.Delete.new(),
+          show: Platform.APIKey.Show.new(),
+        }),
+      }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
@@ -116,24 +131,10 @@ async function main(): Promise<number> {
       version: Version.new(),
       validate: Validate.new(),
       format: Format.new(),
-      doctor: Doctor.new(),
       telemetry: Telemetry.new(),
-      // TODO remove Legacy
-      dev: Dev.new(),
+      debug: DebugInfo.new(),
     },
-    [
-      'version',
-      'init',
-      'migrate',
-      'db',
-      'introspect',
-      'studio',
-      'generate',
-      'validate',
-      'format',
-      'doctor',
-      'telemetry',
-    ],
+    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
   // Execute the command
@@ -232,27 +233,27 @@ function handleIndividualError(error: Error): void {
 
 // macOS
 path.join(__dirname, '../../engines/query-engine-darwin')
-path.join(__dirname, '../../engines/migration-engine-darwin')
+path.join(__dirname, '../../engines/schema-engine-darwin')
 // Windows
 path.join(__dirname, '../../engines/query-engine-windows.exe')
-path.join(__dirname, '../../engines/migration-engine-windows.exe')
+path.join(__dirname, '../../engines/schema-engine-windows.exe')
 
 // Debian openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../../engines/migration-engine-debian-openssl-1.0.x')
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-1.0.x')
 // Debian openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../../engines/migration-engine-debian-openssl-1.1.x')
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-1.1.x')
 // Debian openssl-3.0.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-3.0.x')
-path.join(__dirname, '../../engines/migration-engine-debian-openssl-3.0.x')
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-3.0.x')
 
 // Red Hat Enterprise Linux openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../../engines/migration-engine-rhel-openssl-1.0.x')
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-1.0.x')
 // Red Hat Enterprise Linux openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../../engines/migration-engine-rhel-openssl-1.1.x')
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-1.1.x')
 // Red Hat Enterprise Linux openssl-3.0.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-3.0.x')
-path.join(__dirname, '../../engines/migration-engine-rhel-openssl-3.0.x')
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-3.0.x')

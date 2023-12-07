@@ -1,7 +1,6 @@
 import { arg } from '@prisma/internals'
 import fs from 'fs/promises'
 import glob from 'globby'
-import os from 'os'
 import path from 'path'
 import { $, ProcessOutput, sleep } from 'zx'
 
@@ -10,12 +9,14 @@ const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
 const args = arg(
   process.argv.slice(2),
   {
-    // see which comman,ds are run and the outputs of the failures
+    // see which commands are run and the outputs of the failures
     '--verbose': Boolean,
     // like run jest in band, useful for debugging and CI
     '--runInBand': Boolean,
     // do not fully build cli and client packages before packing
     '--skipBuild': Boolean,
+    // do not fully pack cli and client packages before packing
+    '--skipPack': Boolean,
     // a way to cleanup created files that also works on linux
     '--clean': Boolean,
   },
@@ -49,48 +50,46 @@ async function main() {
   }
 
   console.log('🎠 Preparing e2e tests')
-  // we first get all the paths we are going to need to run e2e tests
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))
-  const cliPkgPath = path.join(monorepoRoot, 'packages', 'cli')
-  const wpPluginPkgPath = path.join(monorepoRoot, 'packages', 'nextjs-monorepo-workaround-plugin')
-  const clientPkgPath = path.join(monorepoRoot, 'packages', 'client')
-  const cliPkgJsonPath = path.join(cliPkgPath, 'package.json')
-  const clientPkgJsonPath = path.join(clientPkgPath, 'package.json')
-  const cliPkgJson = require(cliPkgJsonPath)
-  const clientPkgJson = require(clientPkgJsonPath)
 
   // this process will need to modify some package.json, we save copies
-  await $`cd ${tmpDir} && cp ${cliPkgJsonPath} cli.package.json`
-  await $`cd ${tmpDir} && cp ${clientPkgJsonPath} client.package.json`
+  await $`pnpm -r exec cp package.json package.copy.json`
 
   // we provide a function that can revert modified package.json back
   const restoreOriginal = async () => {
-    await $`cd ${tmpDir} && cp cli.package.json ${cliPkgJsonPath}`
-    await $`cd ${tmpDir} && cp client.package.json ${clientPkgJsonPath}`
+    await $`pnpm -r exec cp package.copy.json package.json`
   }
 
   // if process is killed by hand, ensure that package.json is restored
   process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
 
-  // use bundleDependencies to directly include deps like @prisma/engines
-  cliPkgJson.bundleDependencies = Object.keys(cliPkgJson.dependencies)
-  clientPkgJson.bundleDependencies = Object.keys(clientPkgJson.dependencies)
+  // we prepare to replace references to local packages with their tarballs names
+  const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
+  const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma']
+  const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
+  const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
+  const allPkgJson = allPkgJsonPaths.map((p) => require(p))
 
-  // write the modified package.json to overwrite the original package.json
-  await fs.writeFile(cliPkgJsonPath, JSON.stringify(cliPkgJson, null, 2))
-  await fs.writeFile(clientPkgJsonPath, JSON.stringify(clientPkgJson, null, 2))
-
-  try {
-    console.log('📦 Packing package tarballs')
-
-    if (args['--skipBuild'] !== true) {
-      await $`cd ${clientPkgPath} && pnpm build`
-      await $`cd ${cliPkgPath} && pnpm build`
+  // replace references to unbundled local packages with built and packaged tarballs
+  for (let i = 0; i < allPkgJson.length; i++) {
+    for (const key of Object.keys(allPkgJson[i].dependencies ?? {})) {
+      if (localPackageNames.includes(key)) {
+        allPkgJson[i].dependencies[key] = `/tmp/${key.replace('@prisma/', 'prisma-')}-0.0.0.tgz`
+      }
     }
 
-    await $`cd ${clientPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${cliPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${wpPluginPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+    await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
+  }
+
+  try {
+    if (args['--skipBuild'] !== true) {
+      console.log('📦 Packing package tarballs')
+
+      await $`pnpm -r build`
+    }
+
+    if (args['--skipPack'] !== true) {
+      await $`pnpm -r exec pnpm pack --pack-destination /tmp/`
+    }
   } catch (e) {
     console.log(e.message)
     console.log('🛑 Failed to pack one or more of the packages')
@@ -110,6 +109,9 @@ async function main() {
   }
 
   const dockerVolumes = [
+    `/tmp/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`, // hardcoded because folder doesn't match name
+    ...allPackageFolderNames.map((p) => `/tmp/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
+    `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
     `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
     `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,

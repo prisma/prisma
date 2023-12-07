@@ -1,7 +1,6 @@
-import { Providers } from '../_utils/providers'
+import { ProviderFlavors, Providers, RelationModes } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
-import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
@@ -46,9 +45,9 @@ testMatrix.setupTestSuite(
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
-    // @ts-expect-error
+
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
-    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
+    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === RelationModes.PRISMA
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
@@ -147,7 +146,7 @@ testMatrix.setupTestSuite(
                 userId: undefined, // this would actually be a type-error, but we don't have access to types here
               },
             }),
-          ).rejects.toThrow('Argument user for data.user is missing.')
+          ).rejects.toThrow('Argument `user` is missing.')
 
           expect(
             await prisma[profileModel].findMany({
@@ -589,7 +588,7 @@ testMatrix.setupTestSuite(
                         : // DEFAULT / SetNull
                           /*
                       Error occurred during query execution:
-                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
+                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { 
                         code: 1761,
                         message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
                         key 'ProfileOneToOne_userId_key'\",

@@ -44,5 +44,12 @@ describeIf(process.platform === 'linux')('getSSLVersion', () => {
       expect(strategy).toEqual(focusedStrategy)
       expect(libssl).toEqual('1.0.x')
     })
+
+    it('skips libssl.so without version in filename', async () => {
+      ctx.fixture('libssl-specific-path/with-versionless-libssl')
+      const { libssl, strategy } = await getSSLVersion([ctx.tmpDir])
+      expect(strategy).toEqual(focusedStrategy)
+      expect(libssl).toEqual('1.0.x')
+    })
   })
 })

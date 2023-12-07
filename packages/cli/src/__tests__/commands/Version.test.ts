@@ -9,28 +9,31 @@ import packageJson from '../../../package.json'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary
-const version = '39190b250ebc338586e25e6da45e5e783bc8a635'
+const runLibraryTest =
+  getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary && !process.env.PRISMA_QUERY_ENGINE_LIBRARY
+
+const runBinaryTest =
+  getCliQueryEngineBinaryType() === BinaryType.QueryEngineBinary && !process.env.PRISMA_QUERY_ENGINE_BINARY
 
 describe('version', () => {
   // Node-API Tests
 
-  testIf(useNodeAPI)('basic version (Node-API)', async () => {
+  testIf(runLibraryTest)('basic version (Node-API)', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  testIf(useNodeAPI)(
+  testIf(runLibraryTest)(
     'version with custom binaries (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
-          'migration-engine': enginesDir,
+          'schema-engine': enginesDir,
           'libquery-engine': enginesDir,
         },
-        version,
+        version: enginesVersion,
         failSilent: false,
       })
       // This Omits query-engine from the map
@@ -45,7 +48,7 @@ describe('version', () => {
       }
 
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout, version)).toMatchSnapshot()
+      expect(cleanSnapshot(data.stdout, enginesVersion)).toMatchSnapshot()
 
       // cleanup
       for (const engine in envVarMap) {
@@ -58,7 +61,7 @@ describe('version', () => {
 
   // Binary Tests
 
-  testIf(!useNodeAPI)(
+  testIf(runBinaryTest)(
     'basic version',
     async () => {
       const data = await ctx.cli('--version')
@@ -67,17 +70,17 @@ describe('version', () => {
     10_000,
   )
 
-  testIf(!useNodeAPI)(
+  testIf(runBinaryTest)(
     'version with custom binaries',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
-          'migration-engine': enginesDir,
+          'schema-engine': enginesDir,
           'query-engine': enginesDir,
         },
-        version,
+        version: enginesVersion,
         failSilent: false,
       })
 
@@ -90,7 +93,7 @@ describe('version', () => {
       }
 
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout, version)).toMatchSnapshot()
+      expect(cleanSnapshot(data.stdout, enginesVersion)).toMatchSnapshot()
 
       // cleanup
       for (const engine in envVarMap) {
@@ -113,7 +116,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
 
   // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
-  // Currently, the engine version of @prisma/prisma-fmt-wasm isn't necessarily the same as the enginesVersion
+  // Currently, the engine version of @prisma/prisma-schema-wasm isn't necessarily the same as the enginesVersion
   str = str.replace(/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.)([a-z0-9-]+)/g, 'CLI_VERSION.ENGINE_VERSION')
 
   // replace engine version hash
@@ -121,7 +124,10 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   const currentEngineVersion = versionOverride ?? enginesVersion
   str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp('(Operating System\\s+:).*', 'g'), '$1 OS')
+  str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
   str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
 
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')

@@ -416,7 +416,7 @@ async function findLibSSLInLocations(directories: string[]) {
 async function findLibSSL(directory: string) {
   try {
     const dirContents = await fs.readdir(directory)
-    return dirContents.find((value) => value.startsWith('libssl.so') && !value.startsWith('libssl.so.0'))
+    return dirContents.find((value) => value.startsWith('libssl.so.') && !value.startsWith('libssl.so.0'))
   } catch (e) {
     if (e.code === 'ENOENT') {
       return undefined
@@ -481,7 +481,7 @@ export function getPlatformInternal(args: GetOSResult): Platform {
      */
     const additionalMessage = match({ familyDistro })
       .with({ familyDistro: 'debian' }, () => {
-        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with OpenSSL installed."
+        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, add this command to your Dockerfile, or switch to an image that already has OpenSSL installed."
       })
       .otherwise(() => {
         return 'Please manually install OpenSSL and try installing Prisma again.'
@@ -621,6 +621,7 @@ export async function getArchFromUname(): Promise<string | undefined> {
   return arch?.trim()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function isLibssl1x(libssl: NonNullable<GetOSResult['libssl']> | string): libssl is '1.0.x' | '1.1.x' {
   return libssl.startsWith('1.')
 }

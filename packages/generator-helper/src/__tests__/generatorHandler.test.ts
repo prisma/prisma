@@ -49,7 +49,6 @@ const stubOptions: GeneratorOptions = {
   otherGenerators: [],
   schemaPath: '',
   version: 'latest',
-  dataProxy: false,
 }
 
 function getExecutable(name: string): string {
@@ -102,7 +101,7 @@ describe('generatorHandler', () => {
         },
         "prettyName": "This is a pretty name",
         "requiresEngines": [
-          "migration-engine",
+          "schema-engine",
           "query-engine",
         ],
         "requiresGenerators": [

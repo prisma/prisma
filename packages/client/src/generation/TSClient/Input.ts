@@ -1,28 +1,27 @@
 import indent from 'indent-string'
 
-import type { DMMF } from '../../runtime/dmmf-types'
-import { argIsInputType, GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
+import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
+import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 
 export class InputField implements Generatable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
-    protected readonly noEnumerable = false,
     protected readonly genericsInfo: GenericArgsInfo,
     protected readonly source?: string,
   ) {}
   public toTS(): string {
-    const property = buildInputField(this.field, this.noEnumerable, this.genericsInfo, this.source)
+    const property = buildInputField(this.field, this.genericsInfo, this.source)
     return ts.stringify(property)
   }
 }
 
-function buildInputField(field: DMMF.SchemaArg, noEnumerable = false, genericsInfo: GenericArgsInfo, source?: string) {
-  const tsType = buildAllFieldTypes(field.inputTypes, noEnumerable, genericsInfo, source)
+function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, source?: string) {
+  const tsType = buildAllFieldTypes(field.inputTypes, genericsInfo, source)
 
   const tsProperty = ts.property(field.name, tsType)
   if (!field.isRequired) {
@@ -43,36 +42,29 @@ function buildInputField(field: DMMF.SchemaArg, noEnumerable = false, genericsIn
   return tsProperty
 }
 
-function buildSingleFieldType(
-  t: DMMF.SchemaArgInputType,
-  noEnumerable = false, // used for group by, there we need an Array<> for "by"
-  genericsInfo: GenericArgsInfo,
-  source?: string,
-): ts.TypeBuilder {
+function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInfo, source?: string): ts.TypeBuilder {
   let type: ts.NamedType
-  if (typeof t.type === 'string') {
-    if (t.type === 'Null') {
-      return ts.nullType
-    }
-    const scalarType = GraphQLScalarToJSTypeTable[t.type]
-    if (Array.isArray(scalarType)) {
-      const union = ts.unionType(scalarType.map(namedInputType))
-      if (t.isList) {
-        return union.mapVariants((variant) => wrapList(variant, noEnumerable))
-      }
-      return union
-    }
 
-    type = namedInputType(scalarType ?? t.type)
+  const scalarType = GraphQLScalarToJSTypeTable[t.type]
+  if (t.location === 'enumTypes' && t.namespace === 'model') {
+    type = ts.namedType(`$Enums.${t.type}`)
+  } else if (t.type === 'Null') {
+    return ts.nullType
+  } else if (Array.isArray(scalarType)) {
+    const union = ts.unionType(scalarType.map(namedInputType))
+    if (t.isList) {
+      return union.mapVariants((variant) => ts.array(variant))
+    }
+    return union
   } else {
-    type = namedInputType(t.type.name)
+    type = namedInputType(scalarType ?? t.type)
   }
 
   if (type.name.endsWith('Select') || type.name.endsWith('Include')) {
     type.addGenericArgument(ts.namedType('ExtArgs'))
   }
 
-  if (genericsInfo.needsGenericModelArg(t)) {
+  if (genericsInfo.typeRefNeedsGenericModelArg(t)) {
     if (source) {
       type.addGenericArgument(ts.stringLiteral(source))
     } else {
@@ -81,7 +73,7 @@ function buildSingleFieldType(
   }
 
   if (t.isList) {
-    return wrapList(type, noEnumerable)
+    return ts.array(type)
   }
 
   return type
@@ -91,59 +83,30 @@ function namedInputType(typeName: string) {
   return ts.namedType(JSOutputTypeToInputType[typeName] ?? typeName)
 }
 
-function wrapList(type: ts.TypeBuilder, noEnumerable: boolean): ts.TypeBuilder {
-  return noEnumerable ? ts.array(type) : ts.namedType('Enumerable').addGenericArgument(type)
-}
-
 /**
  * Examples:
- * T[], T => Enum<T>
+ * T[], T => T | T[]
  * T, U => XOR<T,U>
- * T[], U => Enum<T> | U
+ * T[], T, U => XOR<T, U> | T[]
+ * T[], U => T[] | U
  * T, U, null => XOR<T,U> | null
  * T, U, V, W, null => XOR<T, XOR<U, XOR<V, W>>> | null
  *
- * 1. Filter out singular T, if list T[] exists
- * 2. Separate XOR and non XOR items (objects and non-objects)
- * 3. Generate them out and `|` them
+ * 1. Separate XOR and non XOR items (objects and non-objects)
+ * 2. Generate them out and `|` them
  */
 function buildAllFieldTypes(
-  inputTypes: DMMF.SchemaArgInputType[],
-  noEnumerable = false,
+  inputTypes: DMMF.InputTypeRef[],
   genericsInfo: GenericArgsInfo,
   source?: string,
 ): ts.TypeBuilder {
-  const pairMap: Record<string, number> = Object.create(null)
+  const inputObjectTypes = inputTypes.filter((t) => t.location === 'inputObjectTypes' && !t.isList)
 
-  const singularPairIndexes = new Set<number>()
+  const otherTypes = inputTypes.filter((t) => t.location !== 'inputObjectTypes' || t.isList)
 
-  for (let i = 0; i < inputTypes.length; i++) {
-    const inputType = inputTypes[i]
-    if (argIsInputType(inputType.type)) {
-      const { name } = inputType.type
-      if (typeof pairMap[name] === 'number') {
-        if (inputType.isList) {
-          singularPairIndexes.add(pairMap[name])
-        } else {
-          singularPairIndexes.add(i)
-        }
-      } else {
-        pairMap[name] = i
-      }
-    }
-  }
+  const tsInputObjectTypes = inputObjectTypes.map((type) => buildSingleFieldType(type, genericsInfo, source))
 
-  const filteredInputTypes = inputTypes.filter((t, i) => !singularPairIndexes.has(i))
-
-  const inputObjectTypes = filteredInputTypes.filter((t) => t.location === 'inputObjectTypes')
-
-  const otherTypes = filteredInputTypes.filter((t) => t.location !== 'inputObjectTypes')
-
-  const tsInputObjectTypes = inputObjectTypes.map((type) =>
-    buildSingleFieldType(type, noEnumerable, genericsInfo, source),
-  )
-
-  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, noEnumerable, genericsInfo, source))
+  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, genericsInfo, source))
 
   if (tsOtherTypes.length === 0) {
     return xorTypes(tsInputObjectTypes)
@@ -161,7 +124,10 @@ function xorTypes(types: ts.TypeBuilder[]) {
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {}
+  private generatedName: string
+  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {
+    this.generatedName = type.name
+  }
 
   public toTS(): string {
     const { type } = this
@@ -173,9 +139,7 @@ export class InputType implements Generatable {
 ${indent(
   fields
     .map((arg) => {
-      // This disables enumerable on JsonFilter path argument
-      const noEnumerable = type.name.includes('Json') && type.name.includes('Filter') && arg.name === 'path'
-      return new InputField(arg, noEnumerable, this.genericsInfo, source).toTS()
+      return new InputField(arg, this.genericsInfo, source).toTS()
     })
     .join('\n'),
   TAB_SIZE,
@@ -185,11 +149,16 @@ ${indent(
 export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
   }
 
+  public overrideName(name: string): this {
+    this.generatedName = name
+    return this
+  }
+
   private getTypeName() {
-    if (this.genericsInfo.inputTypeNeedsGenericModelArg(this.type)) {
-      return `${this.type.name}<$PrismaModel = never>`
+    if (this.genericsInfo.typeNeedsGenericModelArg(this.type)) {
+      return `${this.generatedName}<$PrismaModel = never>`
     }
-    return this.type.name
+    return this.generatedName
   }
 }
 

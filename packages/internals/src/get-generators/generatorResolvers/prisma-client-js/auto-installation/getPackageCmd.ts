@@ -8,7 +8,7 @@ import { Command, detect, getCommand } from '@antfu/ni'
  * @returns
  */
 export async function getPackageCmd(cwd: string, cmd: Command, ...args: string[]) {
-  const agent = await detect({ autoInstall: false, cwd })
+  const agent = await detect({ autoInstall: false, cwd, programmatic: true })
 
   return getCommand(agent ?? 'npm', cmd, args)
 }

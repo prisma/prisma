@@ -1,4 +1,5 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 import { computeMatrix } from '../_utils/relationMode/computeMatrix'
 
 // Run on all databases
@@ -25,16 +26,16 @@ export default defineMatrix(() => [
       // SQLite database error
       // unable to open database file
       //    0: sql_migration_connector::apply_migration::apply_migration
-      //              at migration-engine\connectors\sql-migration-connector\src\apply_migration.rs:10
+      //              at schema-engine\connectors\sql-migration-connector\src\apply_migration.rs:10
       //    1: migration_core::state::SchemaPush
-      //              at migration-engine\core\src\state.rs:433
+      //              at schema-engine\core\src\state.rs:433
       //
       // Probably because the path is too long or has a special character?
       // Didn't have time to figure it out....
       // So it's skipped for now, not ideal but "ok"
       //
       const isCascade = entry.onDelete === 'Cascade' && entry.onUpdate === 'Cascade'
-      const isSQLite = entry.provider === 'sqlite'
+      const isSQLite = entry.provider === Providers.SQLITE
       if (process.platform === 'win32') {
         return isCascade && !isSQLite
       } else {

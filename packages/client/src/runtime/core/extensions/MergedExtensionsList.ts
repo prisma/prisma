@@ -1,7 +1,8 @@
 import { Cache } from '../../../generation/Cache'
 import { lazyProperty } from '../../../generation/lazyProperty'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { Args, BatchQueryOptionsCb, ClientArg, ModelArg, QueryOptionsCb, QueryOptionsPrivate } from './$extends'
+import { ClientArg, ExtensionArgs, ModelArg, QueryOptionsCb } from '../types/exported/ExtensionArgs'
+import { BatchQueryOptionsCb, QueryOptionsPrivate } from '../types/internal/ExtensionsInternalArgs'
 import { ComputedFieldsMap, getComputedFields } from './resultUtils'
 
 class MergedExtensionsListNode {
@@ -29,7 +30,7 @@ class MergedExtensionsListNode {
     return previous.concat(newCb)
   })
 
-  constructor(public extension: Args, public previous?: MergedExtensionsListNode) {}
+  constructor(public extension: ExtensionArgs, public previous?: MergedExtensionsListNode) {}
 
   getAllComputedFields(dmmfModelName: string): ComputedFieldsMap | undefined {
     return this.computedFieldsCache.getOrCreate(dmmfModelName, () => {
@@ -56,13 +57,14 @@ class MergedExtensionsListNode {
     })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   getAllQueryCallbacks(jsModelName: string | '$none', operation: string) {
     return this.queryCallbacksCache.getOrCreate(`${jsModelName}:${operation}`, () => {
       const prevCbs = this.previous?.getAllQueryCallbacks(jsModelName, operation) ?? []
       const newCbs: QueryOptionsCb[] = []
       const query = this.extension.query
 
-      if (!query || !(query[jsModelName] || query.$allModels || query[operation])) {
+      if (!query || !(query[jsModelName] || query['$allModels'] || query[operation] || query['$allOperations'])) {
         return prevCbs
       }
 
@@ -95,6 +97,11 @@ class MergedExtensionsListNode {
         newCbs.push(query[operation] as QueryOptionsCb)
       }
 
+      // when the extension is not bound to a model & is any top-level operation
+      if (query['$allOperations'] !== undefined) {
+        newCbs.push(query['$allOperations'] as QueryOptionsCb)
+      }
+
       return prevCbs.concat(newCbs)
     })
   }
@@ -121,7 +128,7 @@ export class MergedExtensionsList {
     return new MergedExtensionsList()
   }
 
-  static single(extension: Args) {
+  static single(extension: ExtensionArgs) {
     return new MergedExtensionsList(new MergedExtensionsListNode(extension))
   }
 
@@ -129,7 +136,7 @@ export class MergedExtensionsList {
     return this.head === undefined
   }
 
-  append(extension: Args) {
+  append(extension: ExtensionArgs) {
     return new MergedExtensionsList(new MergedExtensionsListNode(extension, this.head))
   }
 

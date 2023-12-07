@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -68,6 +71,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
     const result = xprisma.$transaction(async (tx) => {
       const userA = await tx.user.create({
         data: {
+          id: copycat.uuid(0).replaceAll('-', '').slice(-24),
           email: 'jane@smith.com',
           firstName: 'Jane',
           lastName: 'Smith',
@@ -76,6 +80,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
 
       await tx.user.create({
         data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
           email: 'jane@smith.com',
           firstName: 'Jane',
           lastName: 'Smith',
@@ -150,6 +155,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
     const result = xprisma.$transaction(async (tx) => {
       await tx.user.createAlt({
         data: {
+          id: copycat.uuid(0).replaceAll('-', '').slice(-24),
           email: 'jane@smith.com',
           firstName: 'Jane',
           lastName: 'Smith',
@@ -158,6 +164,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
 
       await tx.user.createAlt({
         data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
           email: 'jane@smith.com',
           firstName: 'Jane',
           lastName: 'Smith',
@@ -211,12 +218,12 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
-  testIf(provider !== 'mongodb')('itx works with extended client + queryRawUnsafe', async () => {
+  testIf(provider !== Providers.MONGODB)('itx works with extended client + queryRawUnsafe', async () => {
     const xprisma = prisma.$extends({})
 
     await expect(
       xprisma.$transaction((tx) => {
-        // @ts-test-if: provider !== 'mongodb'
+        // @ts-test-if: provider !== Providers.MONGODB
         return tx.$queryRawUnsafe('SELECT 1')
       }),
     ).resolves.not.toThrow()
@@ -282,7 +289,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
 
           expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
           expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
-          expectTypeOf(ctx.$transaction).toEqualTypeOf<typeof prisma.$transaction | undefined>()
+          expectTypeOf(ctx.$transaction).toMatchTypeOf<Function | undefined>()
           expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
           expectTypeOf(ctx).not.toHaveProperty('$use')
           expectTypeOf(ctx).not.toHaveProperty('$on')
@@ -316,5 +323,24 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
       tx.testContextMethods(true)
       return Promise.resolve()
     })
+  })
+
+  test('isolation level is properly reflected in extended client', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
+
+      // @ts-test-if: provider !== Providers.MONGODB
+      const data = await xprisma.$transaction(
+        () => {
+          return Promise.resolve(42)
+        },
+        {
+          isolationLevel: 'Serializable',
+        },
+      )
+
+      // @ts-test-if: provider !== Providers.MONGODB
+      expectTypeOf(data).toEqualTypeOf<number>()
+    }
   })
 })

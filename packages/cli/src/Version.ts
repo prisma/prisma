@@ -16,6 +16,7 @@ import {
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
+import os from 'os'
 import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
@@ -62,7 +63,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    loadEnvFile(undefined, true)
+    loadEnvFile({ printMessage: true })
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
@@ -70,17 +71,20 @@ export class Version implements Command {
     const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
 
     const enginesRows = enginesMetaInfo.map((engineMetaInfo) => {
-      return match(engineMetaInfo)
-        .with({ 'query-engine': P.select() }, (currEngineInfo) => {
-          return [
-            `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
-            currEngineInfo,
-          ]
-        })
-        .with({ 'migration-engine': P.select() }, (currEngineInfo) => {
-          return ['Migration Engine', currEngineInfo]
-        })
-        .exhaustive()
+      return (
+        match(engineMetaInfo)
+          .with({ 'query-engine': P.select() }, (currEngineInfo) => {
+            return [
+              `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
+              currEngineInfo,
+            ]
+          })
+          // @ts-ignore TODO @jkomyno, as affects the type of rows
+          .with({ 'schema-engine': P.select() }, (currEngineInfo) => {
+            return ['Schema Engine', currEngineInfo]
+          })
+          .exhaustive()
+      )
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
@@ -88,10 +92,13 @@ export class Version implements Command {
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
-      ['Current platform', platform],
+      ['Computed binaryTarget', platform],
+      ['Operating System', os.platform()],
+      ['Architecture', os.arch()],
+      ['Node.js', process.version],
 
       ...enginesRows,
-      ['Format Wasm', `@prisma/prisma-fmt-wasm ${wasm.prismaFmtVersion}`],
+      ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
@@ -108,11 +115,11 @@ export class Version implements Command {
 
     const schemaPath = await getSchemaPath()
     const featureFlags = await this.getFeatureFlags(schemaPath)
-
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
 
+    // @ts-ignore TODO @jkomyno, as affects the type of rows
     return formatTable(rows, { json: args['--json'] })
   }
 

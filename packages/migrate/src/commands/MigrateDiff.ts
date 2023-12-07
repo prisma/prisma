@@ -8,9 +8,8 @@ import {
   isError,
   link,
   loadEnvFile,
-  logger,
 } from '@prisma/internals'
-import { bold, dim, green, italic, red } from 'kleur/colors'
+import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
 
 import { Migrate } from '../Migrate'
@@ -143,7 +142,6 @@ ${bold('Examples')}
         '--shadow-database-url': String,
         '--script': Boolean,
         '--exit-code': Boolean,
-        '--preview-feature': Boolean,
         '--telemetry-information': String,
       },
       false,
@@ -157,11 +155,6 @@ ${bold('Examples')}
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (args['--preview-feature']) {
-      logger.warn(`"prisma migrate diff" was in Preview and is now Generally Available.
-You can now remove the ${red('--preview-feature')} flag.`)
     }
 
     const numberOfFromParameterProvided =
@@ -197,8 +190,7 @@ You can now remove the ${red('--preview-feature')} flag.`)
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile(args['--from-schema-datasource'], false)
-
+      loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
       from = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--from-schema-datasource']),
@@ -227,8 +219,7 @@ You can now remove the ${red('--preview-feature')} flag.`)
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile(args['--to-schema-datasource'], false)
-
+      loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
       to = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--to-schema-datasource']),

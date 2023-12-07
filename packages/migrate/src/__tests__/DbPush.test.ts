@@ -21,20 +21,6 @@ function removeRocketEmoji(str: string) {
 const originalEnv = { ...process.env }
 
 describe('push', () => {
-  it('--preview-feature flag is not required anymore', async () => {
-    ctx.fixture('empty')
-
-    const result = DbPush.new().parse(['--preview-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Could not find a schema.prisma file that is required for this command.
-            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-          `)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      prisma:warn Prisma "db push" was in Preview and is now Generally Available.
-      You can now remove the --preview-feature flag.
-    `)
-  })
-
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 
@@ -60,16 +46,6 @@ describe('push', () => {
 
 
           `)
-  })
-
-  it('--force flag renamed', async () => {
-    ctx.fixture('reset')
-    const result = DbPush.new().parse(['--force'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `The --force flag was renamed to --accept-data-loss in 2.17.0, use prisma db push --accept-data-loss`,
-    )
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('already in sync', async () => {
@@ -100,9 +76,9 @@ describe('push', () => {
 
       Your database is now in sync with your Prisma schema. Done in XXXms
     `)
-    await expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
-    await expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-    await expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+    expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
+    expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+    expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -125,11 +101,11 @@ describe('push', () => {
 
       Your database is now in sync with your Prisma schema. Done in XXXms
     `)
-    await expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
-    await expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
-    await expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
-    await expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-    await expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+    expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
+    expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
+    expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
+    expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+    expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -224,8 +200,8 @@ describe('push', () => {
 
     const sqliteDbSizeAfter = ctx.fs.inspect('prisma/dev.db')!.size
 
-    expect(sqliteDbSizeBefore).toBeGreaterThan(10000)
-    expect(sqliteDbSizeAfter).toBeGreaterThan(10000)
+    expect(sqliteDbSizeBefore).toBeGreaterThan(10_000)
+    expect(sqliteDbSizeAfter).toBeGreaterThan(10_000)
     expect(sqliteDbSizeAfter).toBeLessThan(sqliteDbSizeBefore)
 
     expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`

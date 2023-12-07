@@ -4,7 +4,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
-import stripAnsi from 'strip-ansi'
 
 import { DbExecute } from '../commands/DbExecute'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
@@ -24,23 +23,6 @@ const originalEnv = { ...process.env }
 
 describe('db execute', () => {
   describe('generic', () => {
-    it('should trigger a warning if --preview-feature is provided', async () => {
-      ctx.fixture('empty')
-      expect.assertions(3)
-
-      try {
-        await DbExecute.new().parse(['--preview-feature', '--file=./doesnotexists.sql', '--schema=1'])
-      } catch (e) {
-        expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(`Provided --file at ./doesnotexists.sql doesn't exist.`)
-      }
-
-      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
-        prisma:warn "prisma db execute" was in Preview and is now Generally Available.
-        You can now remove the --preview-feature flag.
-      `)
-    })
-
     it('should fail if missing --file and --stdin', async () => {
       ctx.fixture('empty')
 
@@ -208,7 +190,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -252,7 +234,7 @@ COMMIT;`,
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
           SQLite database error
-          near "ThisisnotSQL": syntax error
+          near "ThisisnotSQL": syntax error in ThisisnotSQL,itshouldfail at offset 0
 
 
         `)
@@ -408,7 +390,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -417,6 +399,11 @@ COMMIT;`,
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-postgresql')
       expect.assertions(2)
+
+      // In CI, sometimes 5s is not enough
+      if (process.env.CI) {
+        jest.setTimeout(10_000)
+      }
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
@@ -461,10 +448,10 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              db error: ERROR: syntax error at or near "ThisisnotSQLitshouldfail"
+        ERROR: syntax error at or near "ThisisnotSQLitshouldfail"
 
 
-            `)
+      `)
     })
   })
 
@@ -519,7 +506,7 @@ DROP SCHEMA "test-dbexecute";`
       fs.writeFileSync('script.sql', sqlScript)
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
-    }, 10000)
+    }, 10_000)
 
     it('should use env var from .env file', async () => {
       ctx.fixture('schema-only-cockroachdb')
@@ -534,7 +521,7 @@ DROP SCHEMA "test-dbexecute";`
               Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`26257\`.
 
             `)
-    }, 10000)
+    }, 10_000)
 
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-cockroachdb')
@@ -551,7 +538,7 @@ COMMIT;`,
       )
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
-    }, 10000)
+    }, 10_000)
 
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
@@ -622,7 +609,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -657,7 +644,7 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        db error: ERROR: at or near "thisisnotsqlitshouldfail": syntax error
+        ERROR: at or near "thisisnotsqlitshouldfail": syntax error
         DETAIL: source SQL:
         ThisisnotSQLitshouldfail
         ^
@@ -782,7 +769,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -985,7 +972,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }

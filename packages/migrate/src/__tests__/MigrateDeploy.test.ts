@@ -17,22 +17,6 @@ describe('common', () => {
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
   })
-  it('should fail if experimental flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateDeploy.new().parse(['--experimental'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now Generally Available.
-            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
-          `)
-  })
-  it('should fail if early access flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateDeploy.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now Generally Available.
-            Remove the --early-access-feature flag.
-          `)
-  })
 })
 
 describe('sqlite', () => {
@@ -149,11 +133,12 @@ describe('postgresql', () => {
     const result = MigrateDeploy.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-    Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma migrate deploy yet. Please use a direct connection to your database via the datasource 'directUrl' setting.
+      Using an Accelerate URL is not supported for this CLI command prisma migrate deploy yet.
+      Please use a direct connection to your database via the datasource \`directUrl\` setting.
 
-    More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+      More information about this limitation: https://pris.ly/d/accelerate-limitations
 
-  `)
+    `)
   })
 
   it('should work if directUrl is set as an env var', async () => {

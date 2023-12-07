@@ -18,5 +18,20 @@
     "emitDeclarationOnly": true,
     "resolveJsonModule": true
   },
-  "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
+  "exclude": [
+    "**/tests",
+    "**/__tests__",
+    "./sandbox",
+    "./eslint-local-rules",
+    "**/dist",
+    "**/build",
+    "**/fixtures",
+    "**/node_modules",
+    "**/.prisma/client",
+    "./packages/cli/preinstall",
+    "./packages/cli/prisma-client",
+    "./packages/client/runtime",
+    "./packages/client/declaration",
+    "./packages/client/generator-build"
+  ]
 }

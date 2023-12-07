@@ -30,12 +30,7 @@ if (process.argv[1] === __filename) {
       }
     },
     async onGenerate(options) {
-      // CLI versions < 2.20.0 still send a string
-      // CLIs >= 2.20.0 send an `EnvValue`
-      const outputDir =
-        typeof options.generator.output === 'string'
-          ? options.generator.output
-          : parseEnvValue(options.generator.output!)
+      const outputDir = parseEnvValue(options.generator.output!)
 
       return generateClient({
         datamodel: options.datamodel,
@@ -51,8 +46,8 @@ if (process.argv[1] === __filename) {
         clientVersion,
         transpile: true,
         activeProvider: options.datasources[0]?.activeProvider,
-        dataProxy: options.dataProxy,
         postinstall: options.postinstall,
+        noEngine: options.noEngine,
       })
     },
   })

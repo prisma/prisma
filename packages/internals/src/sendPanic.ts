@@ -10,6 +10,7 @@ import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
 
 import { createErrorReport, ErrorKind, makeErrorReportCompleted, uploadZip } from './errorReporting'
+import type { MigrateTypes } from './migrateTypes'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
 import { mapScalarValues, maskSchema } from './utils/maskSchema'
@@ -23,7 +24,7 @@ type SendPanic = {
   enginesVersion: string
 
   // retrieve the database version for the given schema or url, without throwing any error
-  getDatabaseVersionSafe: (schemaOrUrl: string) => Promise<string | undefined>
+  getDatabaseVersionSafe: (args: MigrateTypes.GetDatabaseVersionParams) => Promise<string | undefined>
 }
 export async function sendPanic({
   error,
@@ -32,19 +33,40 @@ export async function sendPanic({
   getDatabaseVersionSafe,
 }: SendPanic): Promise<number> {
   const schema: string | undefined = match(error)
-    .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
+    .with({ schemaPath: P.not(P.nullish) }, (err) => {
       return fs.readFileSync(err.schemaPath, 'utf-8')
     })
-    .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
+    .with({ schema: P.not(P.nullish) }, (err) => err.schema)
     .otherwise(() => undefined)
 
   const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
 
   let dbVersion: string | undefined
-  // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
-  const schemaOrUrl = schema || error.introspectionUrl
-  if (error.area === ErrorArea.LIFT_CLI && schemaOrUrl) {
-    dbVersion = await getDatabaseVersionSafe(schemaOrUrl)
+  if (error.area === ErrorArea.LIFT_CLI) {
+    // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
+    const getDatabaseVersionParams: MigrateTypes.GetDatabaseVersionParams | undefined = match({
+      schema,
+      introspectionUrl: error.introspectionUrl,
+    })
+      .with({ schema: P.not(undefined) }, ({ schema }) => {
+        return {
+          datasource: {
+            tag: 'SchemaString',
+            schema,
+          },
+        } as const
+      })
+      .with({ introspectionUrl: P.not(undefined) }, ({ introspectionUrl }) => {
+        return {
+          datasource: {
+            tag: 'ConnectionString',
+            url: introspectionUrl,
+          },
+        } as const
+      })
+      .otherwise(() => undefined)
+
+    dbVersion = await getDatabaseVersionSafe(getDatabaseVersionParams)
   }
 
   const migrateRequest = error.request

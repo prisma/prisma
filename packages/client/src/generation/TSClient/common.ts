@@ -22,7 +22,6 @@ import {
   PrismaClientInitializationError,
   PrismaClientValidationError,
   NotFoundError,
-  decompressFromBase64,
   getPrismaClient,
   sqltag,
   empty,
@@ -35,6 +34,7 @@ import {
   Extensions,
   defineDmmfProperty,
   Public,
+  detectRuntime,
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -43,6 +43,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
+  detectRuntime,
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
@@ -53,7 +54,6 @@ const {
   PrismaClientInitializationError,
   PrismaClientValidationError,
   NotFoundError,
-  decompressFromBase64,
   getPrismaClient,
   sqltag,
   empty,
@@ -67,6 +67,7 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
+  detectRuntime,
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -74,6 +75,7 @@ const {
 const Prisma = {}
 
 exports.Prisma = Prisma
+exports.$Enums = {}
 
 /**
  * Prisma Client JS version: ${clientVersion}
@@ -124,7 +126,7 @@ Prisma.NullTypes = {
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
     return `() => {
-  throw new Error(\`${fnc} is unable to be run in the browser.
+  throw new Error(\`${fnc} is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}`
   return fnc
@@ -136,6 +138,7 @@ import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
 import $Extensions = runtime.Types.Extensions
+import $Result = runtime.Types.Result
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 `,
@@ -185,12 +188,12 @@ export type MetricHistogramBucket = runtime.MetricHistogramBucket
 /**
 * Extensions
 */
-export type Extension = $Extensions.UserArgs
+export import Extension = $Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
-export type Args<T, F extends $Public.Operation> = $Public.Args<T, F>
-export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
-export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
-export type Exact<T, W> = $Public.Exact<T, W>
+export import Args = $Public.Args
+export import Payload = $Public.Payload
+export import Result = $Public.Result
+export import Exact = $Public.Exact
 
 /**
  * Prisma Client JS version: ${clientVersion}
@@ -250,7 +253,7 @@ export interface InputJsonArray extends ReadonlyArray<InputJsonValue | null> {}
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-by-null-values
  */
-export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
+export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray | { toJSON(): unknown }
 
 /**
  * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
@@ -290,19 +293,6 @@ type SelectAndInclude = {
   select: any
   include: any
 }
-type HasSelect = {
-  select: any
-}
-type HasInclude = {
-  include: any
-}
-type CheckSelect<T, S, U> = T extends SelectAndInclude
-  ? 'Please either choose \`select\` or \`include\`'
-  : T extends HasSelect
-  ? U
-  : T extends HasInclude
-  ? U
-  : S
 
 /**
  * Get the type of the value, that the Promise holds.
@@ -312,7 +302,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
 /**
  * Get the return type of a function which returns a Promise.
  */
-export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+export type PromiseReturnType<T extends (...args: any) => $Utils.JsPromise<any>> = PromiseType<ReturnType<T>>
 
 /**
  * From T, pick a set of properties whose keys are in the union K
@@ -573,9 +563,9 @@ type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
 type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
 /**
- * Like \`Pick\`, but with an array
+ * Like \`Pick\`, but additionally can also accept an array of keys
  */
-type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
+type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma__Pick<T, MaybeTupleToUnion<K>>
 
 /**
  * Exclude all keys with underscores

@@ -1,3 +1,4 @@
+import { Providers, RelationModes } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -8,7 +9,7 @@ declare let prisma: PrismaClient
  * Regression test for issue #8612
  * Optimistic concurrency control (OCC)
  */
-testMatrix.setupTestSuite(({ provider }) => {
+testMatrix.setupTestSuite(({ provider, relationMode }) => {
   beforeEach(async () => {
     await prisma.resource.create({ data: {} })
   })
@@ -17,7 +18,9 @@ testMatrix.setupTestSuite(({ provider }) => {
     await prisma.resource.deleteMany()
   })
 
-  test('updateMany', async () => {
+  // TODO optimistic concurrency control is not working with relationMode=prisma
+  // See https://github.com/prisma/prisma/issues/21867
+  skipTestIf(relationMode === RelationModes.PRISMA)('updateMany', async () => {
     const fn = async () => {
       // we get our concurrent resource at some point in time
       const resource = (await prisma.resource.findFirst())!
@@ -47,7 +50,9 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
   })
 
-  test('update', async () => {
+  // TODO optimistic concurrency control is not working with relationMode=prisma
+  // See https://github.com/prisma/prisma/issues/21867
+  skipTestIf(relationMode === RelationModes.PRISMA)('update', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 
@@ -81,7 +86,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   // issue with mysql: https://github.com/prisma/prisma/issues/15470
-  testIf(provider !== 'mysql')('upsert', async () => {
+  testIf(provider !== Providers.MYSQL)('upsert', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 

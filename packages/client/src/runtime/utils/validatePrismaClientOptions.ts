@@ -1,15 +1,25 @@
-import { isError } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
-import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
-import { PrismaClientConstructorValidationError } from '../query'
+import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
+import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
+import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'errorFormat', 'log', '__internal', 'rejectOnNotFound']
+const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'adapter', 'log', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
-const validators = {
-  datasources: (options: any, datasourceNames: string[]) => {
+/**
+ * Subset of `GetPrismaClientConfig` which is used during validation.
+ * Feel free to allow more properties when necessary but don't forget to add
+ * them in the mock config in `validatePrismaClientOptions.test.ts`.
+ */
+type ClientConfig = Pick<GetPrismaClientConfig, 'datasourceNames' | 'generator'>
+
+const validators: {
+  [K in keyof PrismaClientOptions]-?: (option: PrismaClientOptions[K], config: ClientConfig) => void
+} = {
+  datasources: (options, { datasourceNames }) => {
     if (!options) {
       return
     }
@@ -21,7 +31,8 @@ const validators = {
 
     for (const [key, value] of Object.entries(options)) {
       if (!datasourceNames.includes(key)) {
-        const didYouMean = getDidYouMean(key, datasourceNames) || `Available datasources: ${datasourceNames.join(', ')}`
+        const didYouMean =
+          getDidYouMean(key, datasourceNames) || ` Available datasources: ${datasourceNames.join(', ')}`
         throw new PrismaClientConstructorValidationError(
           `Unknown datasource ${key} provided to PrismaClient constructor.${didYouMean}`,
         )
@@ -50,7 +61,37 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
-  errorFormat: (options: any) => {
+  adapter: (adapter, config) => {
+    if (adapter === null) {
+      return
+    }
+    if (adapter === undefined) {
+      throw new PrismaClientConstructorValidationError(
+        `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
+      )
+    }
+    const previewFeatures = getPreviewFeatures(config)
+    if (!previewFeatures.includes('driverAdapters')) {
+      throw new PrismaClientConstructorValidationError(
+        '"adapter" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.',
+      )
+    }
+
+    if (getClientEngineType() === ClientEngineType.Binary) {
+      throw new PrismaClientConstructorValidationError(
+        `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
+      )
+    }
+  },
+  datasourceUrl: (options) => {
+    if (typeof options !== 'undefined' && typeof options !== 'string') {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${JSON.stringify(options)} for "datasourceUrl" provided to PrismaClient constructor.
+Expected string or undefined.`,
+      )
+    }
+  },
+  errorFormat: (options) => {
     if (!options) {
       return
     }
@@ -66,7 +107,7 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       )
     }
   },
-  log: (options: any) => {
+  log: (options) => {
     if (!options) {
       return
     }
@@ -139,22 +180,9 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     // TODO: Add more validation here
     // but as this is an internal, non user-facing api, it's not urgent
   },
-  rejectOnNotFound: (value) => {
-    if (!value) {
-      return
-    }
-    if (isError(value) || typeof value === 'boolean' || typeof value === 'object' || typeof value === 'function') {
-      return value
-    }
-    throw new PrismaClientConstructorValidationError(
-      `Invalid rejectOnNotFound expected a boolean/Error/{[modelName: Error | boolean]} but received ${JSON.stringify(
-        value,
-      )}`,
-    )
-  },
 }
 
-export function validatePrismaClientOptions(options: PrismaClientOptions, datasourceNames: string[]) {
+export function validatePrismaClientOptions(options: PrismaClientOptions, config: ClientConfig) {
   for (const [key, value] of Object.entries(options)) {
     if (!knownProperties.includes(key)) {
       const didYouMean = getDidYouMean(key, knownProperties)
@@ -162,7 +190,12 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, dataso
         `Unknown property ${key} provided to PrismaClient constructor.${didYouMean}`,
       )
     }
-    validators[key](value, datasourceNames)
+    validators[key](value, config)
+  }
+  if (options.datasourceUrl && options.datasources) {
+    throw new PrismaClientConstructorValidationError(
+      'Can not use "datasourceUrl" and "datasources" options at the same time. Pick one of them',
+    )
   }
 }
 

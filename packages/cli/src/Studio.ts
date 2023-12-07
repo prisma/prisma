@@ -1,14 +1,28 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
-import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import {
+  arg,
+  Command,
+  format,
+  getConfig,
+  getDirectUrl,
+  HelpError,
+  isError,
+  loadEnvFile,
+  resolveUrl,
+} from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
+import fs from 'fs'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
 
-const debug = Debug('prisma:studio')
+// Note that we have a test relying on the namespace
+// Any change to the namespace must be done in the test as well
+// See packages/client/tests/e2e/issues/studio-1128-spawn-enoent/_steps.ts
+const debug = Debug('prisma:cli:studio')
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -77,13 +91,11 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('studio', args, true)
-
     if (args['--help']) {
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
@@ -93,6 +105,10 @@ ${bold('Examples')}
 
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
+    const schema = await fs.promises.readFile(schemaPath, 'utf-8')
+    const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
+
+    process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
       schemaPath,
       hostname,
@@ -102,6 +118,7 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
+        directUrl: resolveUrl(getDirectUrl(config.datasources[0])),
       },
       versions: {
         prisma: packageJson.version,

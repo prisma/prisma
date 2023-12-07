@@ -1,10 +1,10 @@
 import { DMMF } from '@prisma/generator-helper'
 
 import { InternalRequestParams } from '../../getPrismaClient'
-import { PrismaClientValidationError } from '../../query'
 import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
-import { NotFoundError } from '../../utils/rejectOnNotFound'
+import { NotFoundError } from '../errors/NotFoundError'
 import { PrismaClientKnownRequestError } from '../errors/PrismaClientKnownRequestError'
+import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 
 type RequestCallback = (requestParams: InternalRequestParams) => Promise<unknown>
 
@@ -28,15 +28,20 @@ type RequestCallback = (requestParams: InternalRequestParams) => Promise<unknown
 export function adaptErrors(
   action: DMMF.ModelAction,
   dmmfModelName: string,
+  clientVersion: string,
   requestCallback: RequestCallback,
 ): RequestCallback {
   if (action === DMMF.ModelAction.findFirstOrThrow || action === DMMF.ModelAction.findUniqueOrThrow) {
-    return applyOrThrowWrapper(dmmfModelName, requestCallback)
+    return applyOrThrowWrapper(dmmfModelName, clientVersion, requestCallback)
   }
   return requestCallback
 }
 
-function applyOrThrowWrapper(dmmfModelName: string, requestCallback: RequestCallback): RequestCallback {
+function applyOrThrowWrapper(
+  dmmfModelName: string,
+  clientVersion: string,
+  requestCallback: RequestCallback,
+): RequestCallback {
   return async (requestParams) => {
     if ('rejectOnNotFound' in requestParams.args) {
       const message = createErrorMessageWithContext({
@@ -44,11 +49,11 @@ function applyOrThrowWrapper(dmmfModelName: string, requestCallback: RequestCall
         callsite: requestParams.callsite,
         message: "'rejectOnNotFound' option is not supported",
       })
-      throw new PrismaClientValidationError(message)
+      throw new PrismaClientValidationError(message, { clientVersion })
     }
     const result = await requestCallback(requestParams).catch((e) => {
       if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
-        throw new NotFoundError(`No ${dmmfModelName} found`)
+        throw new NotFoundError(`No ${dmmfModelName} found`, clientVersion)
       } else {
         throw e
       }

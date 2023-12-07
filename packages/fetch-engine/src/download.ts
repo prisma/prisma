@@ -3,36 +3,39 @@ import { assertNodeAPISupported, getNodeAPIName, getos, getPlatform, Platform, p
 import execa from 'execa'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
-import { bold, underline, yellow } from 'kleur/colors'
+import { bold, yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
 import path from 'path'
 import tempDir from 'temp-dir'
 import { promisify } from 'util'
 
-import plusxSync from './chmod'
+import { BinaryType } from './BinaryType'
+import { chmodPlusX } from './chmodPlusX'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
+import { allEngineEnvVarsSet, getBinaryEnvVarPath } from './env'
 import { getHash } from './getHash'
 import { getBar } from './log'
 import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 
 const { enginesOverride } = require('../package.json')
 
-const debug = Debug('prisma:download')
+const debug = Debug('prisma:fetch-engine:download')
 const exists = promisify(fs.exists)
 
 const channel = 'master'
-export enum BinaryType {
-  QueryEngineBinary = 'query-engine',
-  QueryEngineLibrary = 'libquery-engine',
-  MigrationEngineBinary = 'migration-engine',
-}
+
+// matches `/snapshot/` or `C:\\snapshot\\` or `C:/snapshot/` for vercel's pkg apps
+export const vercelPkgPathRegex = /^((\w:[\\\/])|\/)snapshot[\/\\]/
+
 export type BinaryDownloadConfiguration = {
   [binary in BinaryType]?: string // that is a path to the binary download location
 }
+
 export type BinaryPaths = {
   [binary in BinaryType]?: { [binaryTarget in Platform]: string } // key: target, value: path
 }
+
 export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
   binaryTargets?: Platform[]
@@ -45,19 +48,13 @@ export interface DownloadOptions {
   skipCacheIntegrityCheck?: boolean
 }
 
-const BINARY_TO_ENV_VAR = {
-  [BinaryType.MigrationEngineBinary]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [BinaryType.QueryEngineBinary]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.QueryEngineLibrary]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-}
-
 type BinaryDownloadJob = {
   binaryName: string
   targetFolder: string
   binaryTarget: Platform
   fileName: string
   targetFilePath: string
-  envVarPath: string | null
+  envVarPath: string | undefined
   skipCacheIntegrityCheck: boolean
 }
 
@@ -73,8 +70,12 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (os.targetDistro && ['nixos'].includes(os.targetDistro)) {
-    console.error(`${yellow('Warning')} Precompiled engine files are not available for ${os.targetDistro}.`)
+  if (os.targetDistro && ['nixos'].includes(os.targetDistro) && !allEngineEnvVarsSet(Object.keys(options.binaries))) {
+    console.error(
+      `${yellow('Warning')} Precompiled engine files are not available for ${
+        os.targetDistro
+      }, please provide the paths via environment variables, see https://pris.ly/d/custom-engines`,
+    )
   } else if (['freebsd11', 'freebsd12', 'freebsd13', 'openbsd', 'netbsd'].includes(platform)) {
     console.error(
       `${yellow(
@@ -95,13 +96,13 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaryTargets: options.binaryTargets ?? [platform],
     version: options.version ?? 'latest',
-    binaries: mapKeys(options.binaries, (key) => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
+    binaries: options.binaries,
   }
 
   // creates a matrix of binaries x binary targets
-  const binaryJobs = Object.entries(opts.binaries).flatMap(([binaryName, targetFolder]: [string, string]) =>
+  const binaryJobs = Object.entries(opts.binaries).flatMap(([binaryName, targetFolder]) =>
     opts.binaryTargets.map((binaryTarget) => {
-      const fileName = getBinaryName(binaryName, binaryTarget)
+      const fileName = getBinaryName(binaryName as BinaryType, binaryTarget)
       const targetFilePath = path.join(targetFolder, fileName)
       return {
         binaryName,
@@ -109,13 +110,14 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         binaryTarget,
         fileName,
         targetFilePath,
-        envVarPath: getBinaryEnvVarPath(binaryName),
+        envVarPath: getBinaryEnvVarPath(binaryName as BinaryType)?.path,
         skipCacheIntegrityCheck: !!opts.skipCacheIntegrityCheck,
       }
     }),
   )
 
   if (process.env.BINARY_DOWNLOAD_VERSION) {
+    debug(`process.env.BINARY_DOWNLOAD_VERSION is set to "${process.env.BINARY_DOWNLOAD_VERSION}"`)
     opts.version = process.env.BINARY_DOWNLOAD_VERSION
   }
 
@@ -149,16 +151,26 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       setProgress = collectiveBar.setProgress
     }
 
-    await Promise.all(
-      binariesToDownload.map((job) =>
-        downloadBinary({
-          ...job,
-          version: opts.version,
-          failSilent: opts.failSilent,
-          progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
-        }),
-      ),
-    )
+    const promises = binariesToDownload.map((job) => {
+      const downloadUrl = getDownloadUrl({
+        channel: 'all_commits',
+        version: opts.version,
+        platform: job.binaryTarget,
+        binaryName: job.binaryName,
+      })
+
+      debug(`${downloadUrl} will be downloaded to ${job.targetFilePath}`)
+
+      return downloadBinary({
+        ...job,
+        downloadUrl,
+        version: opts.version,
+        failSilent: opts.failSilent,
+        progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
+      })
+    })
+
+    await Promise.all(promises)
 
     await cleanupPromise // make sure, that cleanup finished
     if (finishBar) {
@@ -170,7 +182,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const dir = eval('__dirname')
 
   // this is necessary for pkg
-  if (dir.startsWith('/snapshot/')) {
+  if (dir.match(vercelPkgPathRegex)) {
     for (const engineType in binaryPaths) {
       const binaryTargets = binaryPaths[engineType]
       for (const binaryTarget in binaryTargets) {
@@ -288,7 +300,9 @@ async function binaryNeedsToBeDownloaded(
       }
     } else if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
       // If the env var is truthy we do not error if the checksum file is missing
-      debug(`The checksum file: ${sha256FilePath} is missing but this was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.`)
+      debug(
+        `The checksum file: ${sha256FilePath} is missing but this was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.`,
+      )
       return false
     } else {
       return true
@@ -318,6 +332,7 @@ async function binaryNeedsToBeDownloaded(
 
 export async function getVersion(enginePath: string, binaryName: string) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     if (binaryName === BinaryType.QueryEngineLibrary) {
       assertNodeAPISupported()
 
@@ -333,7 +348,7 @@ export async function getVersion(enginePath: string, binaryName: string) {
   return undefined
 }
 
-export function getBinaryName(binaryName: string, platform: Platform): string {
+export function getBinaryName(binaryName: BinaryType, platform: Platform): string {
   if (binaryName === BinaryType.QueryEngineLibrary) {
     return `${getNodeAPIName(platform, 'fs')}`
   }
@@ -375,35 +390,15 @@ async function getCachedBinaryPath({
   return null
 }
 
-export function getBinaryEnvVarPath(binaryName: string): string | null {
-  const envVar = BINARY_TO_ENV_VAR[binaryName]
-  if (envVar && process.env[envVar]) {
-    const envVarPath = path.resolve(process.cwd(), process.env[envVar] as string)
-    if (!fs.existsSync(envVarPath)) {
-      throw new Error(
-        `Env var ${bold(envVar)} is provided but provided path ${underline(process.env[envVar]!)} can't be resolved.`,
-      )
-    }
-    debug(
-      `Using env var ${bold(envVar)} for binary ${bold(binaryName)}, which points to ${underline(
-        process.env[envVar]!,
-      )}`,
-    )
-    return envVarPath
-  }
-
-  return null
-}
-
 type DownloadBinaryOptions = BinaryDownloadJob & {
   version: string
+  downloadUrl: string
   progressCb?: (progress: number) => void
   failSilent?: boolean
 }
 
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
-  const { version, progressCb, targetFilePath, binaryTarget, binaryName } = options
-  const downloadUrl = getDownloadUrl('all_commits', version, binaryTarget, binaryName)
+  const { version, progressCb, targetFilePath, downloadUrl } = options
 
   const targetDir = path.dirname(targetFilePath)
 
@@ -418,7 +413,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     }
   }
 
-  debug(`Downloading ${downloadUrl} to ${targetFilePath}`)
+  debug(`Downloading ${downloadUrl} to ${targetFilePath} ...`)
 
   if (progressCb) {
     progressCb(0)
@@ -429,9 +424,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     progressCb(1)
   }
 
-  if (process.platform !== 'win32') {
-    plusxSync(targetFilePath)
-  }
+  chmodPlusX(targetFilePath)
 
   // Cache result
   await saveFileToCache(options, version, sha256, zippedSha256)
@@ -467,35 +460,12 @@ async function saveFileToCache(
   }
 }
 
-function engineTypeToBinaryType(engineType: string, binaryTarget: string): string {
-  if (BinaryType[engineType]) {
-    return BinaryType[engineType]
-  }
-
-  if (engineType === 'native') {
-    return binaryTarget
-  }
-
-  return engineType
-}
-
-function mapKeys<T extends object, K extends keyof T>(
-  obj: T,
-  mapper: (key: K) => string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-) {
-  return Object.entries(obj).reduce((acc, [key, value]) => {
-    acc[mapper(key as K)] = value
-    return acc
-  }, {} as Record<string, any>)
-}
-
 export async function maybeCopyToTmp(file: string): Promise<string> {
   // in this case, we are in a "pkg" context with a virtual fs
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
   const dir = eval('__dirname')
-  if (dir.startsWith('/snapshot/')) {
+  if (dir.match(vercelPkgPathRegex)) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))

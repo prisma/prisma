@@ -12,7 +12,7 @@ test('removed-preview-flags', async () => {
       },
     },
     skip: 0,
-    take: 10000,
+    take: 10_000,
     _avg: {
       age: true,
     },

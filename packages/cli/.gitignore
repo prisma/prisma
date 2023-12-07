@@ -1,11 +1,7 @@
 node_modules
-migration-engine*
-query-engine*
-libquery*
 yarn-error.log
 dist
 build
-.DS_Store
 runtime
 examples
 **/tmp-*

@@ -1,99 +1,77 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
-import type { DMMFHelper } from '../../runtime/dmmf'
-import { capitalize, lowerCase } from '../../runtime/utils/common'
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { Operation } from '../../runtime/core/types/exported/Result'
+import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
-import { getModelArgName } from '../utils'
+import {
+  capitalize,
+  getAggregateName,
+  getCountAggregateOutputName,
+  getFieldRefsTypeName,
+  getGroupByName,
+  getModelArgName,
+  getPayloadName,
+} from '../utils'
+import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
-import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
 
-function clientExtensionsResultDefinition(this: PrismaClientClass) {
-  const modelNames = Object.keys(this.dmmf.getModelMap())
-
-  const resultGenericParams = (modelName: string) => {
-    return `R_${modelName}_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
-      modelName,
-    )}']>>`
-  }
-
-  const genericParams = [
-    ...modelNames.flatMap(resultGenericParams),
-    `R extends $Extensions.UserArgs['result'] = {}`,
-  ].join(',\n    ')
-
-  const resultParam = (modelName: string) => {
-    return `${lowerCase(modelName)}?: {
-        [K in keyof R_${modelName}_Needs]: {
-          needs: R_${modelName}_Needs[K]
-          compute: (data: $Types.GetResult<${modelName}Payload<ExtArgs>, { select: R_${modelName}_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-        }
-      }`
-  }
-
-  const params = `{
-      $allModels?: $Utils.Record<string, {
-        compute: (data: unknown) => unknown
-      }>
-      ${modelNames.map(resultParam).join('\n      ')}
-    }`
-
-  return {
-    genericParams,
-    params,
-  }
-}
-
-function clientExtensionsModelDefinition(this: PrismaClientClass) {
-  const modelNames = Object.keys(this.dmmf.getModelMap())
-
-  const modelParam = (modelName: string) => {
-    return `${lowerCase(
-      modelName,
-    )}?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.${modelName}Delegate<false, ExtArgs>, ExtArgs['model']['${lowerCase(
-      modelName,
-    )}']> } }`
-  }
-
-  const params = `{
-      $allModels?: {}
-      ${modelNames.map(modelParam).join('\n      ')}
-    }`
-
-  return {
-    genericParams: `M extends $Extensions.UserArgs['model'] = {}`,
-    params,
-  }
-}
-
 function clientTypeMapModelsDefinition(this: PrismaClientClass) {
-  const modelNames = Object.keys(this.dmmf.getModelMap())
+  const modelNames = this.dmmf.datamodel.models.map((m) => m.name)
 
   return `{
-    meta: {
-      modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
-    },
-    model: {${modelNames.reduce((acc, modelName) => {
-      const actions = getModelActions(this.dmmf, modelName)
+  meta: {
+    modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
+    txIsolationLevel: ${
+      this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma') ? 'Prisma.TransactionIsolationLevel' : 'never'
+    }
+  },
+  model: {${modelNames.reduce((acc, modelName) => {
+    const actions = getModelActions(this.dmmf, modelName)
 
-      return `${acc}
-    ${modelName}: {${actions.reduce((acc, action) => {
+    return `${acc}
+    ${modelName}: {
+      payload: ${getPayloadName(modelName)}<ExtArgs>
+      fields: Prisma.${getFieldRefsTypeName(modelName)}
+      operations: {${actions.reduce((acc, action) => {
         return `${acc}
-      ${action}: {
-        args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
-        result: $Utils.OptionalFlat<${modelName}>
-        payload: ${modelName}Payload<ExtArgs>
-      }`
+        ${action}: {
+          args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
+          result: ${clientTypeMapModelsResultDefinition(modelName, action)}
+        }`
       }, '')}
+      }
     }`
-    }, '')}
+  }, '')}
   }
 }`
+}
+
+function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<Operation, `$${string}`>) {
+  if (action === 'count') return `$Utils.Optional<${getCountAggregateOutputName(modelName)}> | number`
+  if (action === 'groupBy') return `$Utils.Optional<${getGroupByName(modelName)}>[]`
+  if (action === 'aggregate') return `$Utils.Optional<${getAggregateName(modelName)}>`
+  if (action === 'findRaw') return `Prisma.JsonObject`
+  if (action === 'aggregateRaw') return `Prisma.JsonObject`
+  if (action === 'deleteMany') return `Prisma.BatchPayload`
+  if (action === 'createMany') return `Prisma.BatchPayload`
+  if (action === 'updateMany') return `Prisma.BatchPayload`
+  if (action === 'findMany') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>[]`
+  if (action === 'findFirst') return `$Utils.PayloadToResult<${getPayloadName(modelName)}> | null`
+  if (action === 'findUnique') return `$Utils.PayloadToResult<${getPayloadName(modelName)}> | null`
+  if (action === 'findFirstOrThrow') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'findUniqueOrThrow') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'create') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'update') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'upsert') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'delete') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+
+  assertNever(action, 'Unknown action: ' + action)
 }
 
 function clientTypeMapOthersDefinition(this: PrismaClientClass) {
@@ -106,22 +84,24 @@ function clientTypeMapOthersDefinition(this: PrismaClientClass) {
   })
 
   const argsResultMap = {
-    $executeRaw: { args: 'Prisma.Sql', result: 'any' },
-    $queryRaw: { args: 'Prisma.Sql', result: 'any' },
+    $executeRaw: { args: '[query: TemplateStringsArray | Prisma.Sql, ...values: any[]]', result: 'any' },
+    $queryRaw: { args: '[query: TemplateStringsArray | Prisma.Sql, ...values: any[]]', result: 'any' },
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
   }
 
   return `{
-  other: {${otherOperationsNames.reduce((acc, action) => {
-    return `${acc}
-    ${action}: {
-      args: ${argsResultMap[action].args},
-      result: ${argsResultMap[action].result}
-      payload: any
-    }`
-  }, '')}
+  other: {
+    payload: any
+    operations: {${otherOperationsNames.reduce((acc, action) => {
+      return `${acc}
+      ${action}: {
+        args: ${argsResultMap[action].args},
+        result: ${argsResultMap[action].result}
+      }`
+    }, '')}
+    }
   }
 }`
 }
@@ -129,132 +109,24 @@ function clientTypeMapOthersDefinition(this: PrismaClientClass) {
 function clientTypeMapDefinition(this: PrismaClientClass) {
   const typeMap = `${clientTypeMapModelsDefinition.bind(this)()} & ${clientTypeMapOthersDefinition.bind(this)()}`
 
-  return `export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = ${typeMap}`
+  return `
+interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs}, $Utils.Record<string, any>> {
+  returns: Prisma.TypeMap<this['params']['extArgs']>
 }
 
-function clientExtensionsQueryDefinition(this: PrismaClientClass) {
-  const modelNames = Object.keys(this.dmmf.getModelMap())
-  const prismaNamespaceDefinitions = clientTypeMapDefinition.bind(this)()
-
-  const queryCbDefinitionModel = (modelName: string, operationName: string) => {
-    const queryArgs = `$Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['args']>`
-    const queryResult = `Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['result']`
-    const inputQueryBase = `model: ${modelName}, operation: ${operationName}, args: ${queryArgs}`
-    const inputQueryCbBase = `query: (args: ${queryArgs}) => Prisma.PrismaPromise<${queryResult}>`
-    const inputQuery = `{ ${inputQueryBase}, ${inputQueryCbBase} }`
-
-    return `(args: ${inputQuery}) => Promise<${queryResult}>`
-  }
-
-  const queryCbDefinitionOther = (operationName: string) => {
-    const queryArgs = `Prisma.TypeMap<ExtArgs>['other'][${operationName}]['args']`
-    const queryResult = `Prisma.TypeMap<ExtArgs>['other'][${operationName}]['result']`
-    const inputQueryBase = `operation: ${operationName}, args: ${queryArgs}`
-    const inputQueryCbBase = `query: (args: ${queryArgs}) => Prisma.PrismaPromise<${queryResult}>`
-    const inputQuery = `{ ${inputQueryBase}, ${inputQueryCbBase} }`
-
-    return `(args: ${inputQuery}) => Promise<${queryResult}>`
-  }
-
-  const allOperationsParam = (modelNames: string[], indent: string) => {
-    const modelName = modelNames.map((mn) => `'${mn}'`).join(' | ')
-
-    return `{
-    ${indent}$allOperations?: ${queryCbDefinitionModel(modelName, `keyof Prisma.TypeMap['model'][${modelName}]`)}
-  ${indent}}`
-  }
-
-  const modelParam = (propName: string, modelNames: string[]) => {
-    const key = modelNames.map((mn) => `'${mn}'`).join(' | ')
-
-    return `${propName}?: {
-        [K in keyof Prisma.TypeMap['model'][${key}]]?: ${queryCbDefinitionModel(key, `K`)}
-      } & ${allOperationsParam(modelNames, '    ')}`
-  }
-
-  const allModelsParam = `{
-      ${modelParam('$allModels', modelNames)}
-    }`
-
-  const concreteModelParams = `{${modelNames.reduce((acc, modelName) => {
-    return `${acc}
-      ${modelParam(lowerCase(modelName), [modelName])}`
-  }, '')}
-    }`
-
-  const concreteOtherParams = `{
-      [K in keyof Prisma.TypeMap['other']]?: ${queryCbDefinitionOther(`K`)}
-    }`
-
-  return {
-    genericParams: `Q extends $Extensions.UserArgs['query'] = {}`,
-    params: `${allModelsParam} & ${concreteModelParams} & ${concreteOtherParams}`,
-    prismaNamespaceDefinitions,
-  }
-}
-
-function clientExtensionsClientDefinition(this: PrismaClientClass) {
-  return {
-    genericParams: `C extends $Extensions.UserArgs['client'] = {}`,
-    params: `{ [K: symbol]: { ctx: $Extensions.GetMaybeITXClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client']> } }`,
-  }
-}
-
-function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends' | 'defineExtension') {
-  const result = clientExtensionsResultDefinition.call(this)
-  const model = clientExtensionsModelDefinition.call(this)
-  const client = clientExtensionsClientDefinition.call(this)
-  const query = clientExtensionsQueryDefinition.call(this)
-  const genericParams = [result.genericParams, model.genericParams, query.genericParams, client.genericParams]
-  const genericVars = genericParams.map((gp) => gp.replace(/ extends .*/g, ','))
-
-  return {
-    signature: `${name === 'defineExtension' ? name : `${name}: { extArgs: ExtArgs } & (`}<
-    ${genericParams.join(',\n    ')},
-    Args extends $Extensions.Args = $Extensions.InternalArgs<R, M, Q, C>, ${
-      name === 'defineExtension'
-        ? `
-    ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs,`
-        : ''
-    }
-  >(extension: ((client: ${
-    name === 'defineExtension' ? 'Prisma.DefaultPrismaClient' : 'this'
-  }) => { $extends: { extArgs: Args } }) | Prisma.ExtensionArgs<
-    ExtArgs,
-    ${genericVars.join('\n    ').slice(0, -1)}
-  >) ${name === 'defineExtension' ? ':' : '=>'} ${
-      name === 'defineExtension'
-        ? '(client: any) => PrismaClient<any, any, any, Args>'
-        : `$Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
-    result: ExtArgs['result'] & $Utils.Record<string, Args['result']['$allModels'] & {}> & Args['result']
-    model: ExtArgs['model'] & $Utils.Record<string, Args['model']['$allModels'] & {}> & Args['model']
-    client: ExtArgs['client'] & Args['client'],
-    query: {}
-  }>, ExtArgs['client'] & Args['client']>`
-    }${name === 'defineExtension' ? '' : ')'};`,
-    prismaNamespaceDefinitions: `${query.prismaNamespaceDefinitions}
-export type ExtensionArgs<
-    ExtArgs extends $Extensions.Args,
-    ${genericParams.join(',\n    ')}
-> = {
-  name?: string,
-  result?: R & ${result.params}
-  model?: M & ${model.params}
-  query?: ${query.params}
-  client?: C & ${client.params}
-}`,
-  }
+export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ${typeMap}`
 }
 
 function clientExtensionsDefinitions(this: PrismaClientClass) {
-  const define = clientExtensionsHookDefinition.bind(this)('defineExtension')
-  const extend = clientExtensionsHookDefinition.bind(this)('$extends')
+  const typeMap = clientTypeMapDefinition.call(this)
+  const define = `export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>`
+  const extend = `  $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>`
 
   return {
     prismaNamespaceDefinitions: `
-export function ${define.signature}
-${extend.prismaNamespaceDefinitions}`,
-    prismaClientDefinitions: `  ${extend.signature}\n`,
+${typeMap}
+${define}`,
+    prismaClientDefinitions: `${extend}`,
   }
 }
 
@@ -305,19 +177,10 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
 
   const returnType = ts.promise(ts.namedType('R'))
 
-  const thisType = ts
-    .namedType('$Extensions.GetClient')
-    .addGenericArgument(ts.thisType)
-    .addGenericArgument(ts.namedType('ExtArgs').subKey('client'))
-
   const callbackType = ts
     .functionType()
     .addParameter(
-      ts.parameter(
-        'prisma',
-
-        ts.omit(thisType, ts.namedType('runtime.ITXClientDenyList')),
-      ),
+      ts.parameter('prisma', ts.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
     )
     .setReturnType(returnType)
 
@@ -443,6 +306,14 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
+function eventRegistrationMethodDeclaration(runtimeName: string) {
+  if (runtimeName === 'binary') {
+    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;`
+  } else {
+    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
+  }
+}
+
 export class PrismaClientClass implements Generatable {
   protected clientExtensionsDefinitions: {
     prismaNamespaceDefinitions: string
@@ -450,11 +321,11 @@ export class PrismaClientClass implements Generatable {
   }
   constructor(
     protected readonly dmmf: DMMFHelper,
-    protected readonly internalDatasources: InternalDatasource[],
+    protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
+    protected readonly runtimeName: string,
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
-    protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
   ) {
     this.clientExtensionsDefinitions = clientExtensionsDefinitions.bind(this)()
@@ -484,27 +355,24 @@ export class PrismaClientClass implements Generatable {
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
-  GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
-    ? T['rejectOnNotFound']
-    : false,
-  ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs
+  ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
+  ${eventRegistrationMethodDeclaration(this.runtimeName)}
 
   /**
    * Connect with the database
    */
-  $connect(): Promise<void>;
+  $connect(): $Utils.JsPromise<void>;
 
   /**
    * Disconnect from the database
    */
-  $disconnect(): Promise<void>;
+  $disconnect(): $Utils.JsPromise<void>;
 
   /**
    * Add a middleware
@@ -529,7 +397,10 @@ ${[
       dmmf.mappings.modelOperations
         .filter((m) => m.findMany)
         .map((m) => {
-          const methodName = lowerCase(m.model)
+          let methodName = lowerCase(m.model)
+          if (methodName === 'constructor') {
+            methodName = '["constructor"]'
+          }
           return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
@@ -539,9 +410,7 @@ ${[
   * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
-get ${methodName}(): $Extensions.GetModel<Prisma.${
-            m.model
-          }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(m.model)}']>;`
+get ${methodName}(): Prisma.${m.model}Delegate<ExtArgs>;`
         })
         .join('\n\n'),
       2,
@@ -549,76 +418,13 @@ get ${methodName}(): $Extensions.GetModel<Prisma.${
 }`
   }
   public toTS(): string {
+    const clientOptions = this.buildClientOptions()
+
     return `${new Datasources(this.internalDatasources).toTS()}
 ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
-export type RejectOnNotFound = boolean | ((error: Error) => Error)
-export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
-export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
-type IsReject<T> = T extends true ? True : T extends (err: Error) => Error ? True : False
-export type HasReject<
-  GlobalRejectSettings extends Prisma.PrismaClientOptions['rejectOnNotFound'],
-  LocalRejectSettings,
-  Action extends PrismaAction,
-  Model extends ModelName
-> = LocalRejectSettings extends RejectOnNotFound
-  ? IsReject<LocalRejectSettings>
-  : GlobalRejectSettings extends RejectPerOperation
-  ? Action extends keyof GlobalRejectSettings
-    ? GlobalRejectSettings[Action] extends RejectOnNotFound
-      ? IsReject<GlobalRejectSettings[Action]>
-      : GlobalRejectSettings[Action] extends RejectPerModel
-      ? Model extends keyof GlobalRejectSettings[Action]
-        ? IsReject<GlobalRejectSettings[Action][Model]>
-        : False
-      : False
-    : False
-  : IsReject<GlobalRejectSettings>
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-
-export interface PrismaClientOptions {
-  /**
-   * Configure findUnique/findFirst to throw an error if the query returns null. 
-   * @deprecated since 4.0.0. Use \`findUniqueOrThrow\`/\`findFirstOrThrow\` methods instead.
-   * @example
-   * \`\`\`
-   * // Reject on both findUnique/findFirst
-   * rejectOnNotFound: true
-   * // Reject only on findFirst with a custom error
-   * rejectOnNotFound: { findFirst: (err) => new Error("Custom Error")}
-   * // Reject on user.findUnique with a custom error
-   * rejectOnNotFound: { findUnique: {User: (err) => new Error("User not found")}}
-   * \`\`\`
-   */
-  rejectOnNotFound?: RejectOnNotFound | RejectPerOperation
-  /**
-   * Overwrites the datasource url from your schema.prisma file
-   */
-  datasources?: Datasources
-
-  /**
-   * @default "colorless"
-   */
-  errorFormat?: ErrorFormat
-
-  /**
-   * @example
-   * \`\`\`
-   * // Defaults to stdout
-   * log: ['query', 'info', 'warn', 'error']
-   * 
-   * // Emit as events
-   * log: [
-   *  { emit: 'stdout', level: 'query' },
-   *  { emit: 'stdout', level: 'info' },
-   *  { emit: 'stdout', level: 'warn' }
-   *  { emit: 'stdout', level: 'error' }
-   * ]
-   * \`\`\`
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
-   */
-  log?: Array<LogLevel | LogDefinition>
-}
+${ts.stringify(ts.moduleExport(clientOptions))}
 
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -650,8 +456,10 @@ export type LogEvent = {
 
 export type PrismaAction =
   | 'findUnique'
+  | 'findUniqueOrThrow'
   | 'findMany'
   | 'findFirst'
+  | 'findFirstOrThrow'
   | 'create'
   | 'createMany'
   | 'update'
@@ -665,6 +473,7 @@ export type PrismaAction =
   | 'count'
   | 'runCommandRaw'
   | 'findRaw'
+  | 'groupBy'
 
 /**
  * These options are being passed into the middleware as "params"
@@ -682,8 +491,8 @@ export type MiddlewareParams = {
  */
 export type Middleware<T = any> = (
   params: MiddlewareParams,
-  next: (params: MiddlewareParams) => Promise<T>,
-) => Promise<T>
+  next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
+) => $Utils.JsPromise<T>
 
 // tested in getLogLevel.test.ts
 export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
@@ -693,5 +502,59 @@ export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | un
  */
 export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
 `
+  }
+
+  private buildClientOptions() {
+    const clientOptions = ts
+      .interfaceDeclaration('PrismaClientOptions')
+      .add(
+        ts
+          .property('datasources', ts.namedType('Datasources'))
+          .optional()
+          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
+      )
+      .add(
+        ts
+          .property('datasourceUrl', ts.stringType)
+          .optional()
+          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
+      )
+      .add(
+        ts
+          .property('errorFormat', ts.namedType('ErrorFormat'))
+          .optional()
+          .setDocComment(ts.docComment('@default "colorless"')),
+      )
+      .add(
+        ts.property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')]))).optional()
+          .setDocComment(ts.docComment`
+             @example
+             \`\`\`
+             // Defaults to stdout
+             log: ['query', 'info', 'warn', 'error']
+            
+             // Emit as events
+             log: [
+               { emit: 'stdout', level: 'query' },
+               { emit: 'stdout', level: 'info' },
+               { emit: 'stdout', level: 'warn' }
+               { emit: 'stdout', level: 'error' }
+             ]
+             \`\`\`
+             Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+          `),
+      )
+
+    if (this.runtimeName === 'library' && this.generator?.previewFeatures.includes('driverAdapters')) {
+      clientOptions.add(
+        ts
+          .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))
+          .optional()
+          .setDocComment(
+            ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
+          ),
+      )
+    }
+    return clientOptions
   }
 }

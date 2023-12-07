@@ -79,7 +79,6 @@ const expectedFindManyCategoryModelIfNoChange = [
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
@@ -183,7 +182,7 @@ testMatrix.setupTestSuite(
               },
             }),
             // Runtime error
-          ).rejects.toThrow('Unknown arg `id` in data.id for type PostManyToManyUpdateInput. Available args:')
+          ).rejects.toThrow('Unknown argument `id`')
 
           expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
             expectedFindManyPostModelIfNoChange,

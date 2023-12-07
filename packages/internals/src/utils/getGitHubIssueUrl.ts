@@ -11,7 +11,7 @@ export function getGitHubIssueUrl({
   title,
   user = 'prisma',
   repo = 'prisma',
-  template = 'bug_report.md',
+  template = 'bug_report.yml',
   body,
 }: {
   title: string

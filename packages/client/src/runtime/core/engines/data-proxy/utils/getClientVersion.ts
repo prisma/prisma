@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { devDependencies } from '@prisma/engines/package.json'
+import { dependencies } from '@prisma/engines/package.json'
 
 import type { EngineConfig } from '../../common/Engine'
 import { NotImplementedYetError } from '../errors/NotImplementedYetError'
@@ -8,13 +8,18 @@ import { request } from './request'
 const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
 const debug = Debug('prisma:client:dataproxyEngine')
 
-async function _getClientVersion(config: EngineConfig) {
-  const engineVersion = devDependencies['@prisma/engines-version']
+async function _getClientVersion(host: string, config: EngineConfig) {
+  const engineVersion = dependencies['@prisma/engines-version']
   const clientVersion = config.clientVersion ?? 'unknown'
 
   // internal override for testing and manual version overrides
   if (process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION) {
     return process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION
+  }
+
+  // for data proxy v2, or accelerate, resolution isn't needed
+  if (host.includes('accelerate') && clientVersion !== '0.0.0' && clientVersion !== 'in-memory') {
+    return clientVersion
   }
 
   const [version, suffix] = clientVersion?.split('-') ?? []
@@ -26,9 +31,11 @@ async function _getClientVersion(config: EngineConfig) {
 
   // if it is an integration or dev version, we resolve its dataproxy
   // for this we infer the data proxy version from the engine version
-  if (suffix !== undefined || clientVersion === '0.0.0') {
-    // when we are running in tests, then we are using the mini proxy
-    if (process.env.TEST_DATA_PROXY !== undefined) return '0.0.0'
+  if (suffix !== undefined || clientVersion === '0.0.0' || clientVersion === 'in-memory') {
+    // if the host is local, then it means we are using the mini-proxy
+    if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
+      return '0.0.0' // when we are running in tests, we use mini proxy
+    }
 
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
@@ -65,7 +72,7 @@ async function _getClientVersion(config: EngineConfig) {
   }
 
   // nothing matched, meaning that the provided version is invalid
-  throw new NotImplementedYetError('Only `major.minor.patch` versions are supported by Prisma Data Proxy.', {
+  throw new NotImplementedYetError('Only `major.minor.patch` versions are supported by Accelerate.', {
     clientVersion,
   })
 }
@@ -75,8 +82,8 @@ async function _getClientVersion(config: EngineConfig) {
  * @param config
  * @returns
  */
-export async function getClientVersion(config: EngineConfig) {
-  const version = await _getClientVersion(config)
+export async function getClientVersion(host: string, config: EngineConfig) {
+  const version = await _getClientVersion(host, config)
 
   debug('version', version)
 

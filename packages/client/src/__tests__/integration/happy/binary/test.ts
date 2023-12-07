@@ -5,7 +5,8 @@ import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('binary', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY_ENGINE_BINARY)('binary', async () => {
   expect.assertions(1)
   await generateTestClient()
 

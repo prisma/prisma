@@ -2,6 +2,7 @@
 /declaration
 /generator-build
 /runtime
+/scripts/default-index.js
 /tests/memory/memory-report.html
 
 *.tsbuildinfo
@@ -13,6 +14,9 @@ junit.xml
 .cache
 prisma-0.0.0.tgz
 prisma-client-0.0.0.tgz
+prisma-debug-0.0.0.tgz
+prisma-engines-0.0.0.tgz
+prisma-generator-helper-0.0.0.tgz
 prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz
 LOGS.txt
 LOGS.*.txt

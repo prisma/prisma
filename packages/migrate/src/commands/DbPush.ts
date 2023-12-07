@@ -9,7 +9,6 @@ import {
   HelpError,
   isError,
   loadEnvFile,
-  logger,
   protocolToConnectorType,
 } from '@prisma/internals'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
@@ -18,7 +17,7 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { DbPushForceFlagRenamedError, DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
+import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 
@@ -60,16 +59,11 @@ ${bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
-        '--preview-feature': Boolean,
         '--accept-data-loss': Boolean,
         '--force-reset': Boolean,
         '--skip-generate': Boolean,
         '--schema': String,
         '--telemetry-information': String,
-        // Deprecated
-        // --force renamed to --accept-data-loss in 2.17.0
-        '--force': Boolean,
-        '-f': '--force',
       },
       false,
     )
@@ -84,16 +78,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    if (args['--preview-feature']) {
-      logger.warn(`Prisma "db push" was in Preview and is now Generally Available.
-You can now remove the ${red('--preview-feature')} flag.`)
-    }
-
-    if (args['--force']) {
-      throw new DbPushForceFlagRenamedError()
-    }
-
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
@@ -149,7 +134,7 @@ You can now remove the ${red('--preview-feature')} flag.`)
       wasDatabaseReset = true
     }
 
-    const before = Date.now()
+    const before = Math.round(performance.now())
     let migration: EngineResults.SchemaPush
     try {
       migration = await migrate.push({
@@ -260,7 +245,7 @@ ${bold(red('All data will be lost.'))}
     if (!wasDatabaseReset && migration.warnings.length === 0 && migration.executedSteps === 0) {
       console.info(`\nThe database is already in sync with the Prisma schema.`)
     } else {
-      const migrationTimeMessage = `Done in ${formatms(Date.now() - before)}`
+      const migrationTimeMessage = `Done in ${formatms(Math.round(performance.now()) - before)}`
       const rocketEmoji = process.platform === 'win32' ? '' : '🚀  '
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'

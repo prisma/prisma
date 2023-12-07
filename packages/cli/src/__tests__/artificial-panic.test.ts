@@ -21,17 +21,17 @@ describe('artificial-panic introspection', () => {
     process.env = { ...OLD_ENV }
   })
 
-  it('migration-engine', async () => {
+  it('schema-engine', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(6)
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
 
     const command = new DbPull()
     try {
       await command.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
-        Error in migration engine.
+        Error in Schema engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
       `)
@@ -69,15 +69,16 @@ describe('artificial-panic formatter', () => {
   it('formatter', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
-    process.env.FORCE_PANIC_PRISMA_FMT = '1'
+    process.env.FORCE_PANIC_PRISMA_SCHEMA = '1'
 
     const command = new Format()
     try {
       await command.parse([])
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath.replace(/\\/g, '/')) // replace due to Windows CI
@@ -105,9 +106,10 @@ describe('artificial-panic get-config', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -147,9 +149,10 @@ describe('artificial-panic validate', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -181,9 +184,10 @@ describe('artificial-panic validate', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -226,9 +230,10 @@ describe('artificial-panic getDMMF', () => {
 }`,
       })
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`

@@ -1,9 +1,11 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import * as miniProxy from '@prisma/mini-proxy'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
 
+import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
 
 const originalEnv = { ...process.env }
@@ -11,6 +13,9 @@ const originalEnv = { ...process.env }
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const STUDIO_TEST_PORT = 5678
+
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 function sendRequest(message: any): Promise<any> {
   return fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
@@ -23,49 +28,93 @@ function sendRequest(message: any): Promise<any> {
 }
 
 let studio: Studio
+// Prisma Studio ignores env vars for overriding engine paths, skipping test for now
+describeIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY_ENGINE_BINARY)(
+  'studio with alternative urls and prisma://',
+  () => {
+    afterEach(() => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
+    })
 
-describe('Studio CLI', () => {
-  beforeEach(() => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.STUDIO_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
-    process.env.STUDIO_DIRECT_URL = 'postgres://localhost:1234'
-  })
+    test('queries work if url is prisma:// and directUrl is set', async () => {
+      process.env.PDP_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
+      process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', `tests-${Date.now()}-studio`)
 
-  afterEach(() => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
-  })
+      ctx.fixture('schema-only-data-proxy-direct-url')
 
-  it('should fail if url is prisma://', async () => {
-    ctx.fixture('schema-only-data-proxy')
+      const studio = Studio.new()
 
-    const result = Studio.new().parse([])
+      await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'])
+      const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'])
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      await expect(result).resolves.not.toThrow()
 
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
+      const res = await sendRequest({
+        requestId: 1,
+        channel: 'prisma',
+        action: 'clientRequest',
+        payload: {
+          data: {
+            modelName: 'SomeUser',
+            operation: 'findMany',
+            args: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      })
 
-      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+      expect(res).toMatchSnapshot()
 
-    `)
-  })
+      studio.instance?.stop()
+    })
 
-  it('should fail if url is prisma:// and directUrl is set', async () => {
-    ctx.fixture('schema-only-data-proxy-direct-url')
+    testIf(process.platform !== 'win32')('queries work if url is prisma:// via the mini-proxy', async () => {
+      process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', `tests-${Date.now()}-studio`)
+      process.env.PDP_URL = miniProxy.generateConnectionString({
+        envVar: 'PDP_URL',
+        databaseUrl: process.env.DATABASE_URL,
+        port: miniProxy.defaultServerConfig.port,
+      })
 
-    const result = Studio.new().parse([])
+      ctx.fixture('schema-only-data-proxy')
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'])
+      delete process.env.DATABASE_URL
 
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
+      const studio = Studio.new()
+      const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'])
 
-      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+      await expect(result).resolves.not.toThrow()
 
-    `)
-  })
-})
+      const res = await sendRequest({
+        requestId: 1,
+        channel: 'prisma',
+        action: 'clientRequest',
+        payload: {
+          data: {
+            modelName: 'SomeUser',
+            operation: 'findMany',
+            args: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      })
+
+      expect(res).toMatchSnapshot()
+
+      studio.instance?.stop()
+
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  },
+)
 
 describe('studio with default schema.prisma filename', () => {
   jest.setTimeout(20_000)
@@ -93,7 +142,7 @@ describe('studio with default schema.prisma filename', () => {
     ])
 
     // Give Studio time to start
-    await new Promise((r) => setTimeout(() => r(null), 2000))
+    await new Promise((r) => setTimeout(() => r(null), 2_000))
   })
 
   afterAll(() => {
@@ -276,7 +325,7 @@ describe('studio with custom schema.prisma filename', () => {
     ])
 
     // Give Studio time to start
-    await new Promise((r) => setTimeout(() => r(null), 2000))
+    await new Promise((r) => setTimeout(() => r(null), 2_000))
   })
 
   afterAll(() => {

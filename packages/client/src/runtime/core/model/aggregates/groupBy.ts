@@ -20,6 +20,8 @@ function desugarUserArgs(args: UserArgs = {}) {
         _args['select'][key] = true
       }
     }
+  } else if (typeof _args['by'] === 'string') {
+    _args['select'][_args['by']] = true
   }
 
   return _args
@@ -49,7 +51,7 @@ export function createUnpacker(args: UserArgs = {}) {
  * @param modelAction a callback action that triggers request execution
  * @returns
  */
-export function groupBy(args: UserArgs | undefined, modelAction: ModelAction) {
+export function groupBy(args: UserArgs, modelAction: ModelAction) {
   return modelAction({
     action: 'groupBy',
     unpacker: createUnpacker(args),

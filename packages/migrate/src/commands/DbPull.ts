@@ -3,7 +3,6 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
-  drawBox,
   format,
   formatms,
   getCommandWithExecutor,
@@ -20,7 +19,7 @@ import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { MigrateEngine } from '../MigrateEngine'
+import { SchemaEngine } from '../SchemaEngine'
 import type { EngineArgs } from '../types'
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
@@ -98,9 +97,6 @@ Set composite types introspection depth to 2 levels
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
-      // deprecated
-      '--experimental-reintrospection': Boolean,
-      '--clean': Boolean,
     })
 
     const spinnerFactory = createSpinner(!args['--print'])
@@ -115,24 +111,6 @@ Set composite types introspection depth to 2 levels
       return this.help()
     }
 
-    if (args['--clean'] || args['--experimental-reintrospection']) {
-      const renamedMessages: string[] = []
-      if (args['--experimental-reintrospection']) {
-        renamedMessages.push(
-          `The ${red(
-            '--experimental-reintrospection',
-          )} flag has been removed and is now the default behavior of ${green('prisma db pull')}.`,
-        )
-      }
-
-      if (args['--clean']) {
-        renamedMessages.push(`The ${red('--clean')} flag has been renamed to ${green('--force')}.`)
-      }
-
-      console.error(`\n${renamedMessages.join('\n')}\n`)
-      process.exit(1)
-    }
-
     const url: string | undefined = args['--url']
     // getSchemaPathAndPrint is not flexible enough for this use case
     let schemaPath = await getSchemaPath(args['--schema'])
@@ -142,12 +120,12 @@ Set composite types introspection depth to 2 levels
       console.info(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
       // Load and print where the .env was loaded (if loaded)
-      loadEnvFile(args['--schema'], true)
+      loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
       printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
     } else {
       // Load .env but don't print
-      loadEnvFile(args['--schema'], false)
+      loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
     }
 
     if (!url && !schemaPath) {
@@ -257,7 +235,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const engine = new MigrateEngine({
+    const engine = new SchemaEngine({
       projectDir: schemaPath ? path.dirname(schemaPath) : process.cwd(),
       schemaPath: schemaPath ?? undefined,
     })
@@ -268,10 +246,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
-    const before = Date.now()
+    const before = Math.round(performance.now())
     let introspectionSchema = ''
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
-    let introspectionSchemaVersion: EngineArgs.IntrospectionSchemaVersion
     try {
       const introspectionResult = await engine.introspect({
         schema,
@@ -283,8 +260,6 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
       debug(`Introspection warnings`, introspectionWarnings)
-      introspectionSchemaVersion = introspectionResult.version
-      debug(`Introspection Schema Version: ${introspectionResult.version}`)
     } catch (e: any) {
       introspectionSpinner.failure()
 
@@ -295,9 +270,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
       if (e.code === 'P4001' && introspectionSchema.trim() === '') {
         /* P4001: The introspected database was empty */
-        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')} ${
-          url ? underline(url) : ''
-        }
+        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')}
 
 ${bold('prisma db pull')} could not create any models in your ${bold(
           'schema.prisma',
@@ -316,9 +289,7 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
-        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')} ${
-          url ? underline(url) : ''
-        }
+        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')}
 
 ${bold('prisma db pull')} could not create any models in your ${bold(
           'schema.prisma',
@@ -359,26 +330,9 @@ Or run this command with the ${green(
 
     const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings)
 
-    const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
-      ? `\n${bold('Upgrading from Prisma 1 to Prisma 2+?')}
-      \nThe database you introspected could belong to a Prisma 1 project.
-
-Please run the following command to upgrade to Prisma 2+:
-${green('npx prisma-upgrade [path-to-prisma-yml] [path-to-schema-prisma]')}
-
-Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
- 
-Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upgrading-to-prisma2')}
-`
-      : ''
-
     if (args['--print']) {
       console.log(introspectionSchema)
-      introspectionSchemaVersion &&
-        console.log(
-          `\n// introspectionSchemaVersion: ${introspectionSchemaVersion}`,
-          prisma1UpgradeMessage.replace(/(\n)/gm, '\n// '),
-        )
+
       if (introspectionWarningsMessage.trim().length > 0) {
         // Replace make it a // comment block
         console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
@@ -402,21 +356,9 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
           ? `${modelsAndTypesMessage} and wrote them`
           : `${modelsAndTypesMessage} and wrote it`
 
-      const prisma1UpgradeMessageBox = prisma1UpgradeMessage
-        ? '\n\n' +
-          drawBox({
-            height: 16,
-            width: 74,
-            str:
-              prisma1UpgradeMessage +
-              '\nOnce you upgraded your database schema to Prisma 2+, \ncontinue with the instructions below.\n',
-            horizontalPadding: 2,
-          })
-        : ''
-
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), schemaPath),
-      )} in ${bold(formatms(Date.now() - before))}${prisma1UpgradeMessageBox}
+      )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
 ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }

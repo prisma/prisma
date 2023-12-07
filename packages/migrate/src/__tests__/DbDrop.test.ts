@@ -42,7 +42,7 @@ describe('drop', () => {
     ctx.fs.remove('prisma/dev.db')
 
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
-    // Migration engine error:
+    // Schema engine error:
     // Failed to delete SQLite database at \`dev.db\`.
     // On Linux/macOS:
     // No such file or directory (os error 2)
