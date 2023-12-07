@@ -668,8 +668,8 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
       undici:
-        specifier: 5.28.1
-        version: 5.28.1
+        specifier: 6.0.1
+        version: 6.0.1
       yeoman-generator:
         specifier: 5.10.0
         version: 5.10.0
@@ -13601,9 +13601,9 @@ packages:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
     dev: true
 
-  /undici@5.28.1:
-    resolution: {integrity: sha512-xcIIvj1LOQH9zAL54iWFkuDEaIVEjLrru7qRpa3GrEEHk6OBhb/LycuUY2m7VCcTuDeLziXCxobQVyKExyGeIA==}
-    engines: {node: '>=14.0'}
+  /undici@6.0.1:
+    resolution: {integrity: sha512-eZFYQLeS9BiXpsU0cuFhCwfeda2MnC48EVmmOz/eCjsTgmyTdaHdVsPSC/kwC2GtW2e0uH0HIPbadf3/bRWSxw==}
+    engines: {node: '>=18.0'}
     dependencies:
       '@fastify/busboy': 2.0.0
     dev: true
