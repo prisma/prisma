@@ -17,7 +17,7 @@ export interface CreateErrorReportInput {
   kind: ErrorKind
   liftRequest?: string
   operatingSystem: string
-  platform: string
+  platform: string // TODO: maybe rename to binaryTarget in https://github.com/prisma/error-handling-backend
   rustStackTrace: string
   schemaFile?: string
   fingerprint?: string

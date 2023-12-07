@@ -9,7 +9,13 @@ import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
 
-import { createErrorReport, ErrorKind, makeErrorReportCompleted, uploadZip } from './errorReporting'
+import {
+  createErrorReport,
+  type CreateErrorReportInput,
+  ErrorKind,
+  makeErrorReportCompleted,
+  uploadZip,
+} from './errorReporting'
 import type { MigrateTypes } from './migrateTypes'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
@@ -80,7 +86,7 @@ export async function sendPanic({
       )
     : undefined
 
-  const params = {
+  const params: CreateErrorReportInput = {
     area: error.area,
     kind: ErrorKind.RUST_PANIC,
     cliVersion,
