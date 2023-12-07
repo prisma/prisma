@@ -25,6 +25,7 @@ export type Platform =
   | 'freebsd11'
   | 'freebsd12'
   | 'freebsd13'
+  | 'freebsd14'
   | 'openbsd'
   | 'netbsd'
   | 'arm'
@@ -55,6 +56,7 @@ export const platforms: Array<Platform> = [
   'freebsd11',
   'freebsd12',
   'freebsd13',
+  'freebsd14',
   'openbsd',
   'netbsd',
   'arm',
