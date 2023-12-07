@@ -28,6 +28,7 @@ import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { checkForbiddenMetrics } from './utils/checkForbiddenMetrics'
+import { dateFromEngineTimestamp, EngineTimestamp } from './utils/EngineTimestamp'
 import { getClientVersion } from './utils/getClientVersion'
 import { Fetch, request } from './utils/request'
 
@@ -52,7 +53,7 @@ type DataProxyLog = {
   span_id: string
   name: string
   level: LogLevel
-  timestamp: [number, number]
+  timestamp: EngineTimestamp
   attributes: Record<string, unknown> & { duration_ms: number; params: string; target: string }
 }
 
@@ -242,7 +243,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             this.logEmitter.emit('query', {
               query: dbQuery,
               // first part is in seconds, second is in nanoseconds, we need to convert both to milliseconds
-              timestamp: new Date(log.timestamp[0] * 1e3 + log.timestamp[1] / 1e6),
+              timestamp: dateFromEngineTimestamp(log.timestamp),
               duration: Number(log.attributes.duration_ms),
               params: log.attributes.params,
               target: log.attributes.target,
