@@ -13,7 +13,7 @@ import type {
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { LogEmitter } from '../common/types/Events'
+import type { LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
