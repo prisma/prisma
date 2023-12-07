@@ -1,24 +1,37 @@
-import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
+import { ClientEngineType } from '@prisma/internals'
+import fs from 'fs'
 import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
+import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
-const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
-const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
+const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm'))
+const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
+const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
+const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
+const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
-const nodeRuntimeBuildConfig: BuildOptions = {
-  name: 'runtime',
-  entryPoints: ['src/runtime/index.ts'],
-  outfile: 'runtime/index',
-  bundle: true,
-  define: {
-    NODE_CLIENT: 'true',
-    // that fixes an issue with lz-string umd builds
-    'define.amd': 'false',
-  },
+function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): BuildOptions {
+  return {
+    name: targetBuildType,
+    entryPoints: ['src/runtime/index.ts'],
+    outfile: `runtime/${targetBuildType}`,
+    bundle: true,
+    minify: true,
+    sourcemap: 'linked',
+    emitTypes: targetBuildType === 'library',
+    define: {
+      NODE_CLIENT: 'true',
+      TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
+      // that fixes an issue with lz-string umd builds
+      'define.amd': 'false',
+    },
+    plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/)],
+  }
 }
 
 // we define the config for browser
@@ -28,19 +41,26 @@ const browserBuildConfig: BuildOptions = {
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
+  minify: true,
+  sourcemap: 'linked',
 }
 
 // we define the config for edge
 const edgeRuntimeBuildConfig: BuildOptions = {
   name: 'edge',
+  target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/edge',
   bundle: true,
   minify: true,
+  sourcemap: 'linked',
   legalComments: 'none',
+  emitTypes: false,
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
+    // tree shake the Library and Binary engines out
+    TARGET_BUILD_TYPE: '"edge"',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
@@ -52,17 +72,29 @@ const edgeRuntimeBuildConfig: BuildOptions = {
         define: 'fn',
         inject: functionPolyfillPath,
       },
-
-      // TODO no tree shaking on wrapper pkgs
-      '@prisma/get-platform': { contents: '' },
-      // removes un-needed code out of `chalk`
-      'supports-color': { contents: '' },
-      // these can not be exported any longer
+      // we shim WeakRef, it does not exist on CF
+      WeakRef: {
+        inject: weakrefPolyfillPath,
+      },
+      // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
-      './utils/find': { contents: '' },
     }),
+    copyFilePlugin([
+      {
+        from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
+        to: path.join(runtimeDir, 'query-engine.wasm'),
+      },
+    ]),
   ],
   logLevel: 'error',
+}
+
+// we define the config for edge in esm format (used by deno)
+const edgeEsmRuntimeBuildConfig: BuildOptions = {
+  ...edgeRuntimeBuildConfig,
+  name: 'edge-esm',
+  outfile: 'runtime/edge-esm',
+  format: 'esm',
 }
 
 // we define the config for generator
@@ -71,64 +103,30 @@ const generatorBuildConfig: BuildOptions = {
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
+  emitTypes: false,
 }
 
-/**
- * Bundle all type definitions by using the API Extractor from RushStack
- * @param filename the source d.ts to bundle
- * @param outfile the output bundled file
- */
-function bundleTypeDefinitions(filename: string, outfile: string) {
-  // we give the config in its raw form instead of a file
-  const extractorConfig = ExtractorConfig.prepare({
-    configObject: {
-      projectFolder: path.join(__dirname, '..'),
-      mainEntryPointFilePath: `${filename}.d.ts`,
-      bundledPackages: [
-        'decimal.js',
-        'sql-template-tag',
-        '@opentelemetry/api',
-        '@prisma/internals',
-        '@prisma/engine-core',
-        '@prisma/generator-helper',
-        '@prisma/debug',
-      ],
-      compiler: {
-        tsconfigFilePath: 'tsconfig.build.json',
-        overrideTsconfig: {
-          compilerOptions: {
-            paths: {}, // bug with api extract + paths
-          },
-        },
-      },
-      dtsRollup: {
-        enabled: true,
-        untrimmedFilePath: `${outfile}.d.ts`,
-      },
-      tsdocMetadata: {
-        enabled: false,
-      },
-    },
-    packageJsonFullPath: path.join(__dirname, '..', 'package.json'),
-    configObjectFullPath: undefined,
-  })
-
-  // here we trigger the "command line" interface equivalent
-  const extractorResult = Extractor.invoke(extractorConfig, {
-    showVerboseMessages: true,
-    localBuild: true,
-  })
-
-  // we exit the process immediately if there were errors
-  if (extractorResult.succeeded === false) {
-    console.error(`API Extractor completed with errors`)
-    process.exit(1)
-  }
+// default-index.js file in scripts
+const defaultIndexConfig: BuildOptions = {
+  name: 'default-index',
+  entryPoints: ['src/scripts/default-index.ts'],
+  outfile: 'scripts/default-index',
+  bundle: true,
+  emitTypes: false,
 }
 
-void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
-  if (process.env.DEV !== 'true') {
-    bundleTypeDefinitions('declaration/runtime/index', 'runtime/index')
-    bundleTypeDefinitions('declaration/runtime/index-browser', 'runtime/index-browser')
-  }
+function writeDtsRexport(fileName: string) {
+  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
+}
+
+void build([
+  generatorBuildConfig,
+  nodeRuntimeBuildConfig(ClientEngineType.Binary),
+  nodeRuntimeBuildConfig(ClientEngineType.Library),
+  browserBuildConfig,
+  edgeRuntimeBuildConfig,
+  edgeEsmRuntimeBuildConfig,
+  defaultIndexConfig,
+]).then(() => {
+  writeDtsRexport('binary.d.ts')
 })

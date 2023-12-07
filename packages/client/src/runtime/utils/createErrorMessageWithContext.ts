@@ -1,7 +1,7 @@
-import chalk from 'chalk'
+import { DMMF } from '@prisma/generator-helper'
 import indentString from 'indent-string'
+import { bold, dim, gray, red, underline } from 'kleur/colors'
 
-import { allClientModelActions } from '../clientActions'
 import { CallSite, LocationInFile } from './CallSite'
 import { SourceFileSlice } from './SourceFileSlice'
 
@@ -24,11 +24,11 @@ type Colors = {
 }
 
 const colorsEnabled: Colors = {
-  red: (str) => chalk.red(str),
-  gray: (str) => chalk.gray(str),
-  dim: (str) => chalk.dim(str),
-  bold: (str) => chalk.bold(str),
-  underline: (str) => chalk.underline(str),
+  red,
+  gray,
+  dim,
+  bold,
+  underline,
   highlightSource: (source) => source.highlight(),
 }
 
@@ -76,8 +76,8 @@ function getTemplateParameters(
 
   const contextFirstLine = Math.max(1, callLocation.lineNumber - 3)
   let source = SourceFileSlice.read(callLocation.fileName)?.slice(contextFirstLine, callLocation.lineNumber)
-  if (source) {
-    const invocationLine = source.lineAt(callLocation.lineNumber)
+  const invocationLine = source?.lineAt(callLocation.lineNumber)
+  if (source && invocationLine) {
     const invocationLineIndent = getIndent(invocationLine)
     const invocationCallCode = findPrismaActionCall(invocationLine)
     if (!invocationCallCode) {
@@ -110,13 +110,18 @@ function getTemplateParameters(
 }
 
 function findPrismaActionCall(str: string): { code: string; openingBraceIndex: number } | null {
-  const allActions = allClientModelActions.join('|')
-  const regexp = new RegExp(String.raw`\S+(${allActions})\(`)
+  const allActions = Object.keys(DMMF.ModelAction).join('|')
+  const regexp = new RegExp(String.raw`\.(${allActions})\(`)
   const match = regexp.exec(str)
   if (match) {
+    const openingBraceIndex = match.index + match[0].length
+    // to get the code we are slicing the string up to a found brace. We start
+    // with first non-space character if space is found in the line before that or
+    // 0 if it is not.
+    const statementStart = str.lastIndexOf(' ', match.index) + 1
     return {
-      code: match[0],
-      openingBraceIndex: match.index + match[0].length,
+      code: str.slice(statementStart, openingBraceIndex),
+      openingBraceIndex,
     }
   }
   return null
@@ -142,8 +147,8 @@ function stringifyErrorMessage(
 
   const introSuffix = location ? ' in' : ':'
   if (isPanic) {
-    lines.push(colors.red(`Oops, an unknown error occured! This is ${colors.bold('on us')}, you did nothing wrong.`))
-    lines.push(colors.red(`It occured in the ${colors.bold(`\`${functionName}\``)} invocation${introSuffix}`))
+    lines.push(colors.red(`Oops, an unknown error occurred! This is ${colors.bold('on us')}, you did nothing wrong.`))
+    lines.push(colors.red(`It occurred in the ${colors.bold(`\`${functionName}\``)} invocation${introSuffix}`))
   } else {
     lines.push(colors.red(`Invalid ${colors.bold(`\`${functionName}\``)} invocation${introSuffix}`))
   }

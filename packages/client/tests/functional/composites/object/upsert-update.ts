@@ -52,11 +52,11 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Goodbye World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 42,
               vote: false,
             },
@@ -92,11 +92,11 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Goodbye World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 42,
               vote: false,
             },
@@ -130,7 +130,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
+        {
           content: null,
           country: France,
           id: Any<String>,
@@ -138,9 +138,9 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Argument set for update.content.set must not be null'),
+          message: expect.stringContaining('Argument `set` must not be null'),
         }),
       )
     }
@@ -165,7 +165,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
+        {
           content: null,
           country: France,
           id: Any<String>,
@@ -173,9 +173,9 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Argument content for update.content must not be null'),
+          message: expect.stringContaining('Argument `content` must not be null'),
         }),
       )
     }
@@ -206,15 +206,15 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Goodbye World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 10,
               vote: false,
             },
-            Object {
+            {
               userId: 11,
               vote: false,
             },
@@ -252,11 +252,11 @@ setupTestSuite(({ contentProperty }) => {
       expect(comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
-          content: Object {
+        {
+          content: {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -296,15 +296,15 @@ setupTestSuite(({ contentProperty }) => {
       expect(comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
-              Object {
+              {
                 userId: 11,
                 vote: true,
               },
@@ -344,11 +344,11 @@ setupTestSuite(({ contentProperty }) => {
       expect(comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: true,
               },
@@ -384,11 +384,11 @@ setupTestSuite(({ contentProperty }) => {
       expect(comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
-          content: Object {
+        {
+          content: {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -428,15 +428,15 @@ setupTestSuite(({ contentProperty }) => {
       expect(comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
-              Object {
+              {
                 userId: 11,
                 vote: true,
               },
@@ -476,11 +476,11 @@ setupTestSuite(({ contentProperty }) => {
       expect(comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: true,
               },
@@ -514,7 +514,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
+        {
           content: null,
           country: France,
           id: Any<String>,
@@ -522,11 +522,9 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining(
-            'Unknown arg `unset` in update.content.unset for type CommentContentUpdateEnvelopeInput',
-          ),
+          message: expect.stringContaining('Unknown argument `unset`'),
         }),
       )
     }
@@ -560,11 +558,11 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -576,11 +574,9 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining(
-            'Unknown arg `upsert` in update.content.upsert for type CommentContentUpdateEnvelopeInput',
-          ),
+          message: expect.stringContaining('Unknown argument `upsert`'),
         }),
       )
     }
@@ -617,15 +613,15 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
-              Object {
+              {
                 userId: 10,
                 vote: true,
               },
@@ -637,11 +633,9 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining(
-            'Unknown arg `upsert` in update.content.upsert for type CommentContentUpdateEnvelopeInput',
-          ),
+          message: expect.stringContaining('Unknown argument `upsert`'),
         }),
       )
     }

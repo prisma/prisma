@@ -1,14 +1,15 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { Providers } from '../../_utils/providers'
 
 const testMatrix = defineMatrix(() => [
   [
     {
-      provider: 'mongodb',
+      provider: Providers.MONGODB,
     },
   ],
 ])
 
-export const setupTestSuite: typeof testMatrix['setupTestSuite'] = (tests, options) => {
+export const setupTestSuite: (typeof testMatrix)['setupTestSuite'] = (tests, options) => {
   testMatrix.setupTestSuite(tests, {
     ...options,
     optOut: {

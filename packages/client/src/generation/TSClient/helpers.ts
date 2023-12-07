@@ -1,13 +1,12 @@
 import pluralize from 'pluralize'
 
-import { ClientModelAction } from '../../runtime/clientActions'
-import { DMMF } from '../../runtime/dmmf-types'
-import { capitalize, lowerCase } from '../../runtime/utils/common'
-import { getAggregateArgsName, getModelArgName, unique } from '../utils'
+import { DMMF } from '../dmmf-types'
+import { getAggregateArgsName, getModelArgName } from '../utils'
+import { capitalize, lowerCase } from '../utils/common'
 import type { JSDocMethodBodyCtx } from './jsdoc'
 import { JSDocs } from './jsdoc'
 
-export function getMethodJSDocBody(action: ClientModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
+export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   const ctx: JSDocMethodBodyCtx = {
     singular: capitalize(mapping.model),
     plural: capitalize(mapping.plural),
@@ -22,40 +21,37 @@ export function getMethodJSDocBody(action: ClientModelAction, mapping: DMMF.Mode
   return jsdoc ? jsdoc : ''
 }
 
-export function getMethodJSDoc(action: ClientModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
+export function getMethodJSDoc(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   return wrapComment(getMethodJSDocBody(action, mapping, model))
 }
-export function getGenericMethod(name: string, actionName: ClientModelAction) {
-  if (actionName === 'count') {
+export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
+  if (actionName === DMMF.ModelAction.count) {
     return ''
   }
-  if (actionName === 'aggregate') {
+  if (actionName === DMMF.ModelAction.aggregate) {
     return `<T extends ${getAggregateArgsName(name)}>`
   }
-  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
     return ''
   }
-  if (actionName === 'findFirst' || actionName === 'findUnique') {
-    return `<T extends ${getModelArgName(
-      name,
-      actionName,
-    )},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
+  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
+    return `<T extends ${getModelArgName(name, actionName)}<ExtArgs>>`
   }
   const modelArgName = getModelArgName(name, actionName)
 
   if (!modelArgName) {
     console.log({ name, actionName })
   }
-  return `<T extends ${modelArgName}>`
+  return `<T extends ${modelArgName}<ExtArgs>>`
 }
-export function getArgs(modelName: string, actionName: ClientModelAction) {
-  if (actionName === 'count') {
-    return `args?: Omit<${getModelArgName(modelName, DMMF.ModelAction.findMany)}, 'select' | 'include'>`
+export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
+  if (actionName === DMMF.ModelAction.count) {
+    return `args?: Omit<${getModelArgName(modelName, DMMF.ModelAction.findMany)}, 'select' | 'include' | 'distinct' >`
   }
-  if (actionName === 'aggregate') {
+  if (actionName === DMMF.ModelAction.aggregate) {
     return `args: Subset<T, ${getAggregateArgsName(modelName)}>`
   }
-  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
     return `args?: ${getModelArgName(modelName, actionName)}`
   }
   return `args${
@@ -63,11 +59,11 @@ export function getArgs(modelName: string, actionName: ClientModelAction) {
     actionName === DMMF.ModelAction.findFirst ||
     actionName === DMMF.ModelAction.deleteMany ||
     actionName === DMMF.ModelAction.createMany ||
-    actionName === 'findFirstOrThrow' ||
-    actionName === 'findUniqueOrThrow'
+    actionName === DMMF.ModelAction.findUniqueOrThrow ||
+    actionName === DMMF.ModelAction.findFirstOrThrow
       ? '?'
       : ''
-  }: SelectSubset<T, ${getModelArgName(modelName, actionName)}>`
+  }: SelectSubset<T, ${getModelArgName(modelName, actionName)}<ExtArgs>>`
 }
 export function wrapComment(str: string): string {
   return `/**\n${str
@@ -77,7 +73,7 @@ export function wrapComment(str: string): string {
 }
 export function getArgFieldJSDoc(
   type?: DMMF.OutputType,
-  action?: ClientModelAction,
+  action?: DMMF.ModelAction,
   field?: DMMF.SchemaArg | string,
 ): string | undefined {
   if (!field || !action || !type) return

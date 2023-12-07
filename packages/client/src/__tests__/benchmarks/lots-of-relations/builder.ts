@@ -4,7 +4,7 @@ const MODELS_COUNT = 100
 const fieldsCount = 5
 
 // can be used to generate schema for this benchmark
-// generated schema needs prisma-fmt pass to be valid
+// generated schema needs `format` pass to be valid
 async function main() {
   const models = Array.from({ length: MODELS_COUNT }).map((v, i) => `Model${i}`)
   const modelsStr = models

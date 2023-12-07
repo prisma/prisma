@@ -1,69 +1,61 @@
-import execa from 'execa'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
+import stripAnsi from 'strip-ansi'
 
-import { BinaryType, formatSchema, resolveBinary } from '../..'
+import { formatSchema } from '../../engine-commands'
 import { fixturesPath } from '../__utils__/fixtures'
 
 if (process.env.CI) {
   jest.setTimeout(20_000)
 }
 
-async function formatSchemaBinary(schema: string): Promise<string> {
-  const MAX_BUFFER = 1_000_000_000
-  const prismaFmtPath = await resolveBinary(BinaryType.prismaFmt)
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-  const options = {
-    env: {
-      RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
-    },
-    maxBuffer: MAX_BUFFER,
-  } as execa.Options
-
-  const formattedSchema = await execa(prismaFmtPath, ['format'], {
-    ...options,
-    input: schema,
-  })
-
-  return formattedSchema.stdout
-}
-
-describe('format wasm vs binary', () => {
+describe('schema wasm', () => {
   describe('diff', () => {
     test('2-spaces', async () => {
       const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces.prisma'), {
         encoding: 'utf8',
       })
-      const formattedByBinary = await formatSchemaBinary(schema)
+      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+        encoding: 'utf8',
+      })
       const formattedByWasm = await formatSchema({ schema })
-      expect(formattedByBinary + '\n').toEqual(formattedByWasm)
+      expect(formattedSchema).toEqual(formattedByWasm)
     })
 
     test('2-spaces-as-tab', async () => {
       const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces-as-tab.prisma'), {
         encoding: 'utf8',
       })
-      const formattedByBinary = await formatSchemaBinary(schema)
+      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+        encoding: 'utf8',
+      })
       const formattedByWasm = await formatSchema({ schema })
-      expect(formattedByBinary + '\n').toEqual(formattedByWasm)
+      expect(formattedSchema).toEqual(formattedByWasm)
     })
 
     test('4-spaces', async () => {
       const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces.prisma'), {
         encoding: 'utf8',
       })
-      const formattedByBinary = await formatSchemaBinary(schema)
+      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+        encoding: 'utf8',
+      })
       const formattedByWasm = await formatSchema({ schema })
-      expect(formattedByBinary + '\n').toEqual(formattedByWasm)
+      expect(formattedSchema).toEqual(formattedByWasm)
     })
 
     test('4-spaces-as-tab', async () => {
       const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces-as-tab.prisma'), {
         encoding: 'utf8',
       })
-      const formattedByBinary = await formatSchemaBinary(schema)
+      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+        encoding: 'utf8',
+      })
       const formattedByWasm = await formatSchema({ schema })
-      expect(formattedByBinary + '\n').toEqual(formattedByWasm)
+      expect(formattedSchema).toEqual(formattedByWasm)
     })
   })
 })
@@ -87,8 +79,8 @@ describe('format custom options', () => {
     const formatted = await formatSchema({ schema }, { tabSize: 2 })
     expect(formatted).toMatchInlineSnapshot(`
       "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:dev.db\\"
+        provider = "sqlite"
+        url      = "file:dev.db"
       }
 
       model User {
@@ -105,8 +97,8 @@ describe('format custom options', () => {
     const formatted = await formatSchema({ schema }, { tabSize: 4 })
     expect(formatted).toMatchInlineSnapshot(`
       "datasource db {
-          provider = \\"sqlite\\"
-          url      = \\"file:dev.db\\"
+          provider = "sqlite"
+          url      = "file:dev.db"
       }
 
       model User {
@@ -181,5 +173,114 @@ describe('format', () => {
     })
 
     expect(formatted).toMatchSnapshot()
+  })
+
+  test('valid schema with 1 preview feature flag warning', async () => {
+    const schema = /* prisma */ `
+      generator client {
+        provider = "prisma-client-js"
+        previewFeatures = ["cockroachdb"]
+      }
+
+      datasource db {
+        provider = "cockroachdb"
+        url = env("TEST_POSTGRES_URI")
+      }
+
+      model SomeUser {
+        id   Int    @id
+      }
+    `
+    const formattedSchema = await formatSchema({ schema })
+    expect(formattedSchema).toMatchSnapshot()
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+      "
+      Prisma schema warning:
+      - Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature."
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  test('valid schema with 3 preview feature flag warnings', async () => {
+    const schema = /* prisma */ `
+      generator client {
+        provider = "prisma-client-js"
+        previewFeatures = ["cockroachdb", "mongoDb", "microsoftSqlServer"]
+      }
+
+      datasource db {
+        provider = "cockroachdb"
+        url = env("TEST_POSTGRES_URI")
+      }
+
+      model SomeUser {
+        id   Int    @id
+      }
+    `
+    const formattedSchema = await formatSchema({ schema })
+    expect(formattedSchema).toMatchSnapshot()
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+      "
+      Prisma schema warnings:
+      - Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.
+      - Preview feature "mongoDb" is deprecated. The functionality can be used without specifying it as a preview feature.
+      - Preview feature "microsoftSqlServer" is deprecated. The functionality can be used without specifying it as a preview feature."
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  test('invalid schema', async () => {
+    const schema = /* prisma */ `
+      generator client {
+        provider        = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "cockroachdb"
+        url      = env("TEST_POSTGRES_URI")
+      }
+
+      model SomeUser {
+        id      Int      @id
+        profile Profile?
+      }
+
+      model Profile {
+        id     Int      @id
+        user   SomeUser @relation(fields: [userId], references: [id], onUpdate: SetNull)
+        userId Int      @unique
+      }
+    `
+    const formattedSchema = await formatSchema({ schema })
+    expect(formattedSchema).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "cockroachdb"
+        url      = env("TEST_POSTGRES_URI")
+      }
+
+      model SomeUser {
+        id      Int      @id
+        profile Profile?
+      }
+
+      model Profile {
+        id     Int      @id
+        user   SomeUser @relation(fields: [userId], references: [id], onUpdate: SetNull)
+        userId Int      @unique
+      }
+      "
+    `)
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

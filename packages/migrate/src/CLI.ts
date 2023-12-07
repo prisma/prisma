@@ -1,7 +1,6 @@
-import chalk from 'chalk'
-
-import type { Command, Commands } from '../../internals/src'
-import { arg, format, HelpError, isError, logger, unknownCommand } from '../../internals/src'
+import type { Command, Commands } from '@prisma/internals'
+import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
+import { bold, red } from 'kleur/colors'
 
 /**
  * Convenient Migrate CLI command, not public facing
@@ -21,7 +20,7 @@ export class CLI implements Command {
       '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--preview-feature': Boolean,
-      '--early-access-feature': Boolean,
+      '--early-access': Boolean,
       '--telemetry-information': String,
     })
 
@@ -43,8 +42,8 @@ export class CLI implements Command {
         argsForCmd = [...args._.slice(1), `--experimental=${args['--experimental']}`]
       } else if (args['--preview-feature']) {
         argsForCmd = [...args._.slice(1), `--preview-feature=${args['--preview-feature']}`]
-      } else if (args['--early-access-feature']) {
-        argsForCmd = [...args._.slice(1), `--early-access-feature=${args['--early-access-feature']}`]
+      } else if (args['--early-access']) {
+        argsForCmd = [...args._.slice(1), `--early-access=${args['--early-access']}`]
       } else {
         argsForCmd = args._.slice(1)
       }
@@ -57,7 +56,7 @@ export class CLI implements Command {
 
   public help(error?: string) {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${CLI.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${CLI.help}`)
     }
     return CLI.help
   }

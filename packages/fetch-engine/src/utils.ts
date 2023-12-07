@@ -2,13 +2,13 @@ import Debug from '@prisma/debug'
 import { getNodeAPIName, Platform } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import os from 'os'
 import path from 'path'
 
-import { BinaryType } from './download'
+import { BinaryType } from './BinaryType'
 
-const debug = Debug('prisma:cache-dir')
+const debug = Debug('prisma:fetch-engine:cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {
   if (os.platform() === 'win32') {
@@ -23,7 +23,7 @@ export async function getRootCacheDir(): Promise<string | null> {
   // if this is lambda, nope
   if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
     try {
-      await makeDir(`/tmp/prisma-download`)
+      await ensureDir(`/tmp/prisma-download`)
       return `/tmp/prisma-download`
     } catch (e) {
       return null
@@ -40,7 +40,7 @@ export async function getCacheDir(channel: string, version: string, platform: st
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
   try {
     if (!fs.existsSync(cacheDir)) {
-      await makeDir(cacheDir)
+      await ensureDir(cacheDir)
     }
   } catch (e) {
     debug('The following error is being caught and just there for debugging:')
@@ -50,20 +50,31 @@ export async function getCacheDir(channel: string, version: string, platform: st
   return cacheDir
 }
 
-export function getDownloadUrl(
-  channel: string,
-  version: string,
-  platform: Platform,
-  binaryName: string,
+export function getDownloadUrl({
+  channel,
+  version,
+  platform,
+  binaryName,
   extension = '.gz',
-): string {
+}: {
+  channel: string
+  version: string
+  platform: Platform
+  binaryName: string
+  extension?: string
+}): string {
   const baseUrl =
     process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
     process.env.PRISMA_ENGINES_MIRROR ||
     'https://binaries.prisma.sh'
+
   const finalExtension =
-    platform === 'windows' && BinaryType.libqueryEngine !== binaryName ? `.exe${extension}` : extension
-  if (binaryName === BinaryType.libqueryEngine) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+  if (binaryName === BinaryType.QueryEngineLibrary) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     binaryName = getNodeAPIName(platform, 'url')
   }
 
@@ -75,7 +86,12 @@ export async function overwriteFile(sourcePath: string, targetPath: string) {
   // macOS Gatekeeper can sometimes complain
   // about incorrect binary signature and kill node process
   // https://openradar.appspot.com/FB8914243
+
+  // TODO: this is a temporary revert of https://github.com/prisma/prisma/pull/21439
+  // To debug https://github.com/prisma/prisma/pull/21448
+  // if (os.platform() === 'darwin') {
   await removeFileIfExists(targetPath)
+  // }
   await fs.promises.copyFile(sourcePath, targetPath)
 }
 

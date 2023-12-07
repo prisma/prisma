@@ -32,6 +32,7 @@ const stubOptions: GeneratorOptions = {
         model: [],
         prisma: [],
       },
+      fieldRefTypes: {},
     },
   },
   generator: {
@@ -59,7 +60,9 @@ function getExecutable(name: string): string {
 }
 
 describe('generatorHandler', () => {
-  // TODO: Windows: this test fails with timeout.
+  // TODO: Windows: this test fails with ENOENT on CI because it can't file the .cmd file:
+  //   spawn D:\\a\\prisma\\prisma\\packages\\generator-helper\\src\\__tests__\\exiting-executable.cmd ENOENT
+  // This does not happen on Windows locally.
   testIf(process.platform !== 'win32')('exiting', async () => {
     const generator = new GeneratorProcess(getExecutable('exiting-executable'))
     await generator.init()
@@ -71,36 +74,37 @@ describe('generatorHandler', () => {
     }
   })
 
-  // TODO: Windows: this test fails with ENOENT even though the .cmd file is there and can be run manually.
-  testIf(process.platform !== 'win32')('parsing error', async () => {
-    // It fails often and randomly on GitHub Actions with
-    // Received promise resolved instead of rejected
-    // Resolved to value: undefined
-    // So we retry it with the hope that it a retry would help
-    jest.retryTimes(3)
-    
-    const generator = new GeneratorProcess(getExecutable('invalid-executable'))
-    await expect(() => generator.init()).rejects.toThrow('Cannot find module')
-  })
+  // TODO: Windows: this test fails with ENOENT on CI because it can't file the .cmd file:
+  //   spawn D:\\a\\prisma\\prisma\\packages\\generator-helper\\src\\__tests__\\invalid-executable.cmd ENOENT
+  // This does not happen on Windows locally.
+  testIf(process.platform !== 'win32')(
+    'parsing error',
+    async () => {
+      const generator = new GeneratorProcess(getExecutable('invalid-executable'))
+      await generator.init()
+      await expect(() => generator.getManifest(stubOptions.generator)).rejects.toThrow('Cannot find module')
+    },
+    10_000,
+  )
 
   test('minimal-executable', async () => {
     const generator = new GeneratorProcess(getExecutable('minimal-executable'))
     await generator.init()
     const manifest = await generator.getManifest(stubOptions.generator)
     expect(manifest).toMatchInlineSnapshot(`
-      Object {
+      {
         "defaultOutput": "default-output",
-        "denylists": Object {
-          "models": Array [
+        "denylists": {
+          "models": [
             "SomeForbiddenModel",
           ],
         },
-        "prettyName": "This is a pretty pretty name",
-        "requiresEngines": Array [
-          "introspection-engine",
+        "prettyName": "This is a pretty name",
+        "requiresEngines": [
+          "schema-engine",
           "query-engine",
         ],
-        "requiresGenerators": Array [
+        "requiresGenerators": [
           "prisma-client-js",
         ],
       }
@@ -118,8 +122,16 @@ describe('generatorHandler', () => {
     generator.stop()
   })
 
-  test('non existent executable', async () => {
-    const generator = new GeneratorProcess(getExecutable('random path that doesnt exist'))
-    await expect(() => generator.init()).rejects.toThrow()
+  test('failing-after-1s-executable', async () => {
+    const generator = new GeneratorProcess(getExecutable('failing-after-1s-executable'))
+    await generator.init()
+    await expect(generator.getManifest(stubOptions.generator)).rejects.toThrow('test')
+    generator.stop()
+  })
+
+  test('nonexistent executable', async () => {
+    const generator = new GeneratorProcess(getExecutable('this-executable-does-not-exist'))
+    await generator.init()
+    await expect(generator.getManifest(stubOptions.generator)).rejects.toThrow()
   })
 })

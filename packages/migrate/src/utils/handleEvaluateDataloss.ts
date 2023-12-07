@@ -1,14 +1,14 @@
 import { getCommandWithExecutor } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, red } from 'kleur/colors'
 
 import type { MigrationFeedback } from '../types'
 
 export function handleUnexecutableSteps(unexecutableSteps: MigrationFeedback[], createOnly = false) {
   if (unexecutableSteps && unexecutableSteps.length > 0) {
     const messages: string[] = []
-    messages.push(`${chalk.bold.red('\n⚠️ We found changes that cannot be executed:\n')}`)
+    messages.push(`${bold(red('\n⚠️ We found changes that cannot be executed:\n'))}`)
     for (const item of unexecutableSteps) {
-      messages.push(`${chalk(`  • Step ${item.stepIndex} ${item.message}`)}`)
+      messages.push(`${`  • Step ${item.stepIndex} ${item.message}`}`)
     }
     console.info() // empty line
 

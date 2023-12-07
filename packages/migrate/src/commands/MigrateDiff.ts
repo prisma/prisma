@@ -8,9 +8,8 @@ import {
   isError,
   link,
   loadEnvFile,
-  logger,
 } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
 
 import { Migrate } from '../Migrate'
@@ -19,34 +18,34 @@ import type { EngineArgs, EngineResults } from '../types'
 const debug = Debug('prisma:migrate:diff')
 
 const helpOptions = format(
-  `${chalk.bold('Usage')}
+  `${bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate diff [options]
+  ${dim('$')} prisma migrate diff [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help               Display this help message
 
-${chalk.italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
+${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
   --from-url               A datasource URL
   --to-url
 
   --from-empty             Flag to assume from or to is an empty datamodel
   --to-empty
 
-  --from-schema-datamodel  Path to a Prisma schema file, uses the ${chalk.italic('datamodel')} for the diff
+  --from-schema-datamodel  Path to a Prisma schema file, uses the ${italic('datamodel')} for the diff
   --to-schema-datamodel
 
-  --from-schema-datasource Path to a Prisma schema file, uses the ${chalk.italic('datasource url')} for the diff
+  --from-schema-datasource Path to a Prisma schema file, uses the ${italic('datasource url')} for the diff
   --to-schema-datasource
 
   --from-migrations        Path to the Prisma Migrate migrations directory
   --to-migrations
 
-${chalk.italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
+${italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
   --shadow-database-url    URL for the shadow database
 
-${chalk.bold('Flags')}
+${bold('Flags')}
 
   --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
   --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.`,
@@ -59,13 +58,13 @@ export class MigrateDiff implements Command {
 
   private static help = format(`
 ${
-  process.platform === 'win32' ? '' : chalk.bold('🔍 ')
+  process.platform === 'win32' ? '' : '🔍 '
 }Compares the database schema from two arbitrary sources, and outputs the differences either as a human-readable summary (by default) or an executable script.
 
-${chalk.green(`prisma migrate diff`)} is a read-only command that does not write to your datasource(s).
-${chalk.green(`prisma db execute`)} can be used to execute its ${chalk.green(`--script`)} output.
+${green(`prisma migrate diff`)} is a read-only command that does not write to your datasource(s).
+${green(`prisma db execute`)} can be used to execute its ${green(`--script`)} output.
 
-The command takes a source ${chalk.green(`--from-...`)} and a destination ${chalk.green(`--to-...`)}.
+The command takes a source ${green(`--from-...`)} and a destination ${green(`--to-...`)}.
 The source and destination must use the same provider,
 e.g. a diff using 2 different providers like PostgreSQL and SQLite is not supported.
 
@@ -76,17 +75,17 @@ The default output is a human readable diff, it can be rendered as SQL using \`-
 See the documentation for more information ${link('https://pris.ly/d/migrate-diff')}
 
 ${helpOptions}
-${chalk.bold('Examples')}
+${bold('Examples')}
  
   From database to database as summary
     e.g. compare two live databases
-  ${chalk.dim('$')} prisma migrate diff \\
+  ${dim('$')} prisma migrate diff \\
     --from-url "$DATABASE_URL" \\
     --to-url "postgresql://login:password@localhost:5432/db2"
   
   From a live database to a Prisma datamodel
     e.g. roll forward after a migration failed in the middle
-  ${chalk.dim('$')} prisma migrate diff \\
+  ${dim('$')} prisma migrate diff \\
     --shadow-database-url "$SHADOW_DB" \\
     --from-url "$PROD_DB" \\
     --to-schema-datamodel=next_datamodel.prisma \\
@@ -94,7 +93,7 @@ ${chalk.bold('Examples')}
   
   From a live database to a datamodel 
     e.g. roll backward after a migration failed in the middle
-  ${chalk.dim('$')} prisma migrate diff \\
+  ${dim('$')} prisma migrate diff \\
     --shadow-database-url "$SHADOW_DB" \\
     --from-url "$PROD_DB" \\
     --to-schema-datamodel=previous_datamodel.prisma \\
@@ -102,20 +101,20 @@ ${chalk.bold('Examples')}
   
   From a Prisma Migrate \`migrations\` directory to another database
     e.g. generate a migration for a hotfix already applied on production
-  ${chalk.dim('$')} prisma migrate diff \\
+  ${dim('$')} prisma migrate diff \\
     --shadow-database-url "$SHADOW_DB" \\
     --from-migrations ./migrations \\
     --to-url "$PROD_DB" \\
     --script
 
   Execute the --script output with \`prisma db execute\` using bash pipe \`|\`
-  ${chalk.dim('$')} prisma migrate diff \\
+  ${dim('$')} prisma migrate diff \\
     --from-[...] \\
     --to-[...] \\
     --script | prisma db execute --stdin --url="$DATABASE_URL"
 
   Detect if both sources are in sync, it will exit with exit code 2 if changes are detected
-  ${chalk.dim('$')} prisma migrate diff \\
+  ${dim('$')} prisma migrate diff \\
     --exit-code \\
     --from-[...] \\
     --to-[...]
@@ -143,7 +142,6 @@ ${chalk.bold('Examples')}
         '--shadow-database-url': String,
         '--script': Boolean,
         '--exit-code': Boolean,
-        '--preview-feature': Boolean,
         '--telemetry-information': String,
       },
       false,
@@ -157,11 +155,6 @@ ${chalk.bold('Examples')}
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (args['--preview-feature']) {
-      logger.warn(`"prisma migrate diff" was in Preview and is now Generally Available.
-You can now remove the ${chalk.red('--preview-feature')} flag.`)
     }
 
     const numberOfFromParameterProvided =
@@ -197,8 +190,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile(args['--from-schema-datasource'], false)
-
+      loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
       from = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--from-schema-datasource']),
@@ -227,8 +219,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile(args['--to-schema-datasource'], false)
-
+      loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
       to = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--to-schema-datasource']),

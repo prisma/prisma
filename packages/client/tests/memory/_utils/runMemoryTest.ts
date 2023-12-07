@@ -1,7 +1,7 @@
-import chalk from 'chalk'
 import childProcess from 'child_process'
 import { once } from 'events'
 import fs from 'fs/promises'
+import { bold, green, red, white } from 'kleur/colors'
 import { linearRegression } from 'simple-statistics'
 
 import { buildMemoryTest } from './buildMemoryTest'
@@ -37,7 +37,7 @@ export type TestResult = {
  * @param testDir
  */
 export async function runMemoryTest(testDir: MemoryTestDir): Promise<TestResult> {
-  console.log(`Running test ${chalk.bold(testDir.testName)}`)
+  console.log(`Running test ${bold(testDir.testName)}`)
   await fs.rm(testDir.generatedDir, { recursive: true, force: true })
   await buildMemoryTest(testDir)
   await setupMemoryTestDatabase(testDir)
@@ -49,14 +49,14 @@ export async function runMemoryTest(testDir: MemoryTestDir): Promise<TestResult>
     const { hasLeak, growthRate } = detectPossibleMemoryLeak(heapUsageOverTime)
 
     if (hasLeak) {
-      console.log(chalk.bold.red('Looks like test is leaking memory'))
+      console.log(bold(red('Looks like test is leaking memory')))
       console.log('')
-      console.log(`Leak rate: ${chalk.red(growthRate)} bytes / iteration`)
+      console.log(`Leak rate: ${red(growthRate)} bytes / iteration`)
 
       process.exitCode = 1
     } else {
-      console.log(chalk.whiteBright('No memory leak detected'))
-      console.log(`Memory growth rate: ${chalk.green(growthRate)} bytes / iteration, which is below threshold`)
+      console.log(white('No memory leak detected'))
+      console.log(`Memory growth rate: ${green(growthRate)} bytes / iteration, which is below threshold`)
     }
     console.log('')
     return { testDir, hasLeak, heapUsageOverTime }

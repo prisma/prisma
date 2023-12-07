@@ -1,5 +1,4 @@
-import { PrismaClientInitializationError } from '@prisma/engine-core'
-
+import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -8,7 +7,7 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/10229
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  () => {
     test('should assert that the error has the correct errorCode', async () => {
       expect.assertions(2)
 
@@ -32,6 +31,14 @@ testMatrix.setupTestSuite(
         mongodb: times out and dont throw
         sqlserver: returns undefined
       `,
+    },
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
+    },
+    skipProviderFlavor: {
+      from: ['js_neon', 'js_pg', 'js_planetscale'],
+      reason: "driver adapters don't get their url from the schema, so it does not fail",
     },
   },
 )

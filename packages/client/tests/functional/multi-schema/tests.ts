@@ -9,117 +9,119 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   () => {
     const email = faker.internet.email()
-    const title = faker.name.jobTitle()
+    const title = faker.person.jobTitle()
 
     const newEmail = faker.internet.email()
-    const newTitle = faker.name.jobTitle()
+    const newTitle = faker.person.jobTitle()
 
-    test('create', async () => {
-      const created = await prisma.user.create({
-        data: {
-          email,
-          posts: {
-            create: [{ title }],
-          },
-        },
-        select: {
-          email: true,
-          posts: true,
-        },
-      })
-
-      expect(created).toMatchObject({
-        email,
-        posts: [{ title }],
-      })
-    })
-
-    test('read', async () => {
-      const [read] = await prisma.user.findMany({
-        where: {
-          email,
-          posts: {
-            some: {
-              title,
+    describe('multischema', () => {
+      test('create', async () => {
+        const created = await prisma.user.create({
+          data: {
+            email,
+            posts: {
+              create: [{ title }],
             },
           },
-        },
-        select: {
-          email: true,
-          posts: true,
-        },
-      })
+          select: {
+            email: true,
+            posts: true,
+          },
+        })
 
-      expect(read).toMatchObject({
-        email,
-        posts: [{ title }],
-      })
-    })
-
-    test('update', async () => {
-      await prisma.post.updateMany({
-        where: {
-          title,
-        },
-        data: { title: newTitle },
-      })
-
-      await prisma.user.updateMany({
-        where: {
+        expect(created).toMatchObject({
           email,
-        },
-        data: { email: newEmail },
+          posts: [{ title }],
+        })
       })
 
-      const [read] = await prisma.user.findMany({
-        where: {
-          email: newEmail,
-          posts: {
-            some: {
-              title: newTitle,
+      test('read', async () => {
+        const [read] = await prisma.user.findMany({
+          where: {
+            email,
+            posts: {
+              some: {
+                title,
+              },
             },
           },
-        },
-        select: {
-          email: true,
-          posts: true,
-        },
+          select: {
+            email: true,
+            posts: true,
+          },
+        })
+
+        expect(read).toMatchObject({
+          email,
+          posts: [{ title }],
+        })
       })
 
-      expect(read).toMatchObject({
-        email: newEmail,
-        posts: [{ title: newTitle }],
-      })
-    })
+      test('update', async () => {
+        await prisma.post.updateMany({
+          where: {
+            title,
+          },
+          data: { title: newTitle },
+        })
 
-    test('delete', async () => {
-      await prisma.post.deleteMany({
-        where: {
-          title: newTitle,
-        },
-      })
+        await prisma.user.updateMany({
+          where: {
+            email,
+          },
+          data: { email: newEmail },
+        })
 
-      await prisma.user.deleteMany({
-        where: {
+        const [read] = await prisma.user.findMany({
+          where: {
+            email: newEmail,
+            posts: {
+              some: {
+                title: newTitle,
+              },
+            },
+          },
+          select: {
+            email: true,
+            posts: true,
+          },
+        })
+
+        expect(read).toMatchObject({
           email: newEmail,
-        },
+          posts: [{ title: newTitle }],
+        })
       })
 
-      expect(
-        await prisma.post.findMany({
+      test('delete', async () => {
+        await prisma.post.deleteMany({
           where: {
             title: newTitle,
           },
-        }),
-      ).toHaveLength(0)
+        })
 
-      expect(
-        await prisma.user.findMany({
+        await prisma.user.deleteMany({
           where: {
             email: newEmail,
           },
-        }),
-      ).toHaveLength(0)
+        })
+
+        expect(
+          await prisma.post.findMany({
+            where: {
+              title: newTitle,
+            },
+          }),
+        ).toHaveLength(0)
+
+        expect(
+          await prisma.user.findMany({
+            where: {
+              email: newEmail,
+            },
+          }),
+        ).toHaveLength(0)
+      })
     })
   },
   {

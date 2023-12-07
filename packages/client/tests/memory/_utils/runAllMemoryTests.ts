@@ -1,9 +1,9 @@
-import chalk from 'chalk'
 import { existsSync } from 'fs'
 import fs from 'fs/promises'
+import { bold, white } from 'kleur/colors'
 import path from 'path'
 
-import { setupQueryEngine } from '../../commonUtils/setupQueryEngine'
+import { setupQueryEngine } from '../../_utils/setupQueryEngine'
 import { generateMemoryUsageReport } from './generateMemoryUsageReport'
 import { MemoryTestDir } from './MemoryTestDir'
 import { runMemoryTest, TestResult } from './runMemoryTest'
@@ -29,8 +29,8 @@ export async function runAllMemoryTests(filter?: string) {
     return !filter || fileName.includes(filter)
   })
 
-  if (allTests.length === 0) {
-    console.error(`Error: no tests matching ${chalk.bold(filter)} found`)
+  if (filter && allTests.length === 0) {
+    console.error(`Error: no tests matching ${bold(filter)} found`)
     process.exitCode = 1
     return
   }
@@ -46,5 +46,5 @@ export async function runAllMemoryTests(filter?: string) {
   const reportPath = path.resolve(__dirname, '..', 'memory-report.html')
   await generateMemoryUsageReport(reportPath, results)
 
-  console.log(`See report at: ${chalk.white.bold(reportPath)}`)
+  console.log(`See report at: ${white(bold(reportPath))}`)
 }

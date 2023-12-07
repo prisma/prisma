@@ -10,13 +10,11 @@ import {
   link,
   loadEnvFile,
 } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
-import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
+import { ensureCanConnectToDatabase, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 
@@ -30,22 +28,22 @@ export class MigrateStatus implements Command {
   private static help = format(`
 Check the status of your database migrations
 
-  ${chalk.bold('Usage')}
+  ${bold('Usage')}
 
-    ${chalk.dim('$')} prisma migrate status [options]
+    ${dim('$')} prisma migrate status [options]
     
-  ${chalk.bold('Options')}
+  ${bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
-  ${chalk.bold('Examples')}
+  ${bold('Examples')}
 
   Check the status of your database migrations
-  ${chalk.dim('$')} prisma migrate status
+  ${dim('$')} prisma migrate status
 
   Specify a schema
-  ${chalk.dim('$')} prisma migrate status --schema=./schema.prisma
+  ${dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -54,8 +52,6 @@ Check the status of your database migrations
       {
         '--help': Boolean,
         '-h': '--help',
-        '--experimental': Boolean,
-        '--early-access-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -72,21 +68,11 @@ Check the status of your database migrations
       return this.help()
     }
 
-    if (args['--experimental']) {
-      throw new ExperimentalFlagWithMigrateError()
-    }
-
-    if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithMigrateError()
-    }
-
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    await printDatasource(schemaPath)
-
-    throwUpgradeErrorIfOldMigrate(schemaPath)
+    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 
     const migrate = new Migrate(schemaPath)
 
@@ -130,8 +116,8 @@ Check the status of your database migrations
         `Following migration${unappliedMigrations.length > 1 ? 's' : ''} have not yet been applied:
 ${unappliedMigrations.join('\n')}
 
-To apply migrations in development run ${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate dev`))}.
-To apply migrations in production run ${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate deploy`))}.`,
+To apply migrations in development run ${bold(green(getCommandWithExecutor(`prisma migrate dev`)))}.
+To apply migrations in production run ${bold(green(getCommandWithExecutor(`prisma migrate deploy`)))}.`,
       )
       // Exit 1 to signal that the status is not in sync
       process.exit(1)
@@ -173,7 +159,7 @@ ${link('https://pris.ly/d/migrate-baseline')}`)
         console.error(`The current database is not managed by Prisma Migrate.
 
 If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "${migrationId}":
-${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate resolve --applied "${migrationId}"`))}
+${bold(green(getCommandWithExecutor(`prisma migrate resolve --applied "${migrationId}"`)))}
 
 Read more about how to baseline an existing production database:
 https://pris.ly/d/migrate-baseline`)
@@ -191,18 +177,18 @@ https://pris.ly/d/migrate-baseline`)
         `Following migration${failedMigrations.length > 1 ? 's' : ''} have failed:
 ${failedMigrations.join('\n')}
 
-During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${chalk.bold.greenBright(
-          getCommandWithExecutor(`prisma migrate dev`),
+During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${bold(
+          green(getCommandWithExecutor(`prisma migrate dev`)),
         )}.\n`,
       )
 
       console.error(`The failed migration(s) can be marked as rolled back or applied:
       
 - If you rolled back the migration(s) manually:
-${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate resolve --rolled-back "${failedMigrations[0]}"`))}
+${bold(green(getCommandWithExecutor(`prisma migrate resolve --rolled-back "${failedMigrations[0]}"`)))}
 
 - If you fixed the database manually (hotfix):
-${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate resolve --applied "${failedMigrations[0]}"`))}
+${bold(green(getCommandWithExecutor(`prisma migrate resolve --applied "${failedMigrations[0]}"`)))}
 
 Read more about how to resolve migration issues in a production database:
 ${link('https://pris.ly/d/migrate-resolve')}`)
@@ -223,7 +209,7 @@ ${link('https://pris.ly/d/migrate-resolve')}`)
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateStatus.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateStatus.help}`)
     }
     return MigrateStatus.help
   }

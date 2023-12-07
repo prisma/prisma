@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -9,7 +10,7 @@ declare let prisma: PrismaClient
 const email = faker.internet.email()
 const title = faker.lorem.sentence()
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
     const { id: groupId } = await prisma.group.create({
       data: { title },
@@ -109,7 +110,12 @@ testMatrix.setupTestSuite(() => {
     })
   })
 
-  test('nested relation', async () => {
+  // TODO: fails in 60% of cases with Mini-Proxy and MongoDB due to different
+  // order of users in the result. Doesn't happen with the real Data Proxy or
+  // with other databases. Investigate why it happens and check if it still
+  // reproducible after Mini-Proxy starts using the Query Engine server instead
+  // of the Query Engine CLI.
+  testIf(!clientMeta.dataProxy || suiteConfig.provider !== Providers.MONGODB)('nested relation', async () => {
     const group = await prisma.group.findFirst({
       where: { title },
       select: {

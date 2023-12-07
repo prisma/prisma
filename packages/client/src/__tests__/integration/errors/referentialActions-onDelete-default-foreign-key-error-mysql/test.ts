@@ -5,14 +5,12 @@ import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
-const baseUri = process.env.TEST_MYSQL_URI
 
 describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
   beforeAll(async () => {
-    process.env.TEST_MYSQL_URI += '-referentialActions-onDelete-default'
-    await tearDownMysql(process.env.TEST_MYSQL_URI!)
+    process.env.DATABASE_URL = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-referentialActions-onDelete-default')
+    await tearDownMysql(process.env.DATABASE_URL)
     await migrateDb({
-      connectionString: process.env.TEST_MYSQL_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -25,7 +23,6 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
     await prisma.profile.deleteMany()
     await prisma.user.deleteMany()
     await prisma.$disconnect()
-    process.env.TEST_MYSQL_URI = baseUri
   })
 
   test('delete 1 user, should error', async () => {
@@ -37,7 +34,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like pinguins' },
+          create: { bio: 'I like penguins' },
         },
       },
     })
@@ -58,10 +55,10 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
         Invalid \`prisma.user.delete()\` invocation in
         /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-mysql/test.ts:0:0
 
-          47 expect(await prisma.post.findMany()).toHaveLength(1)
-          48 
-          49 try {
-        → 50   await prisma.user.delete(
+          44 expect(await prisma.post.findMany()).toHaveLength(1)
+          45 
+          46 try {
+        → 47   await prisma.user.delete(
         Foreign key constraint failed on the field: \`authorId\`
       `)
       expect(await prisma.user.findMany()).toHaveLength(1)

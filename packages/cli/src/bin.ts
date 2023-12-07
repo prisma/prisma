@@ -10,6 +10,7 @@ import {
   DbPush,
   // DbDrop,
   DbSeed,
+  getDatabaseVersionSafe,
   MigrateCommand,
   MigrateDeploy,
   MigrateDev,
@@ -18,15 +19,15 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import chalk from 'chalk'
+import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
-import { Dev } from './Dev'
-import { Doctor } from './Doctor'
+import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
+import { Platform } from './platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -50,28 +51,10 @@ const commandArray = process.argv.slice(2)
 
 process.removeAllListeners('warning')
 
-const debug = Debug('prisma:cli')
-process.on('uncaughtException', (e) => {
-  debug(e)
-})
-process.on('unhandledRejection', (e) => {
-  debug(e)
-})
 // Listen to Ctr + C and exit
 process.once('SIGINT', () => {
   process.exit(130)
 })
-
-if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
-  console.log(
-    chalk.yellow('deprecated') +
-      `  The ${chalk.redBright('prisma2')} command is deprecated and has been renamed to ${chalk.greenBright(
-        'prisma',
-      )}.\nPlease execute ${chalk.bold.greenBright(
-        'prisma' + (commandArray.length ? ' ' + commandArray.join(' ') : ''),
-      )} instead.\n`,
-  )
-}
 
 // Parse CLI arguments
 const args = arg(
@@ -87,11 +70,6 @@ const args = arg(
 // Redact the command options and make it a string
 const redactedCommandAsString = redactCommandArray([...commandArray]).join(' ')
 
-// because chalk ...
-if (process.env.NO_COLOR) {
-  chalk.level = 0
-}
-
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
 /**
@@ -105,6 +83,30 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
+      platform: Platform.$.new({
+        workspace: Platform.Workspace.$.new({
+          show: Platform.Workspace.Show.new(),
+        }),
+        auth: Platform.Auth.$.new({
+          login: Platform.Auth.Login.new(),
+          logout: Platform.Auth.Logout.new(),
+          show: Platform.Auth.Show.new(),
+        }),
+        project: Platform.Project.$.new({
+          create: Platform.Project.Create.new(),
+          delete: Platform.Project.Delete.new(),
+          show: Platform.Project.Show.new(),
+        }),
+        accelerate: Platform.Accelerate.$.new({
+          enable: Platform.Accelerate.Enable.new(),
+          disable: Platform.Accelerate.Disable.new(),
+        }),
+        apikey: Platform.APIKey.$.new({
+          create: Platform.APIKey.Create.new(),
+          delete: Platform.APIKey.Delete.new(),
+          show: Platform.APIKey.Show.new(),
+        }),
+      }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
@@ -129,24 +131,10 @@ async function main(): Promise<number> {
       version: Version.new(),
       validate: Validate.new(),
       format: Format.new(),
-      doctor: Doctor.new(),
       telemetry: Telemetry.new(),
-      // TODO remove Legacy
-      dev: Dev.new(),
+      debug: DebugInfo.new(),
     },
-    [
-      'version',
-      'init',
-      'migrate',
-      'db',
-      'introspect',
-      'studio',
-      'generate',
-      'validate',
-      'format',
-      'doctor',
-      'telemetry',
-    ],
+    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
   // Execute the command
@@ -210,12 +198,18 @@ if (eval('require.main === module')) {
 
 function handleIndividualError(error: Error): void {
   if (isRustPanic(error)) {
-    handlePanic(error, packageJson.version, enginesVersion, redactedCommandAsString)
+    handlePanic({
+      error,
+      cliVersion: packageJson.version,
+      enginesVersion,
+      command: redactedCommandAsString,
+      getDatabaseVersionSafe,
+    })
       .catch((e) => {
         if (Debug.enabled('prisma')) {
-          console.error(chalk.redBright.bold('Error: ') + e.stack)
+          console.error(bold(red('Error: ')) + e.stack)
         } else {
-          console.error(chalk.redBright.bold('Error: ') + e.message)
+          console.error(bold(red('Error: ')) + e.message)
         }
       })
       .finally(() => {
@@ -223,9 +217,9 @@ function handleIndividualError(error: Error): void {
       })
   } else {
     if (Debug.enabled('prisma')) {
-      console.error(chalk.redBright.bold('Error: ') + error.stack)
+      console.error(bold(red('Error: ')) + error.stack)
     } else {
-      console.error(chalk.redBright.bold('Error: ') + error.message)
+      console.error(bold(red('Error: ')) + error.message)
     }
     process.exit(1)
   }
@@ -239,43 +233,27 @@ function handleIndividualError(error: Error): void {
 
 // macOS
 path.join(__dirname, '../../engines/query-engine-darwin')
-path.join(__dirname, '../../engines/introspection-engine-darwin')
-path.join(__dirname, '../../engines/migration-engine-darwin')
-path.join(__dirname, '../../engines/prisma-fmt-darwin')
+path.join(__dirname, '../../engines/schema-engine-darwin')
 // Windows
 path.join(__dirname, '../../engines/query-engine-windows.exe')
-path.join(__dirname, '../../engines/introspection-engine-windows.exe')
-path.join(__dirname, '../../engines/migration-engine-windows.exe')
-path.join(__dirname, '../../engines/prisma-fmt-windows.exe')
+path.join(__dirname, '../../engines/schema-engine-windows.exe')
 
 // Debian openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../../engines/migration-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.0.x')
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-1.0.x')
 // Debian openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../../engines/migration-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.1.x')
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-1.1.x')
 // Debian openssl-3.0.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-3.0.x')
-path.join(__dirname, '../../engines/introspection-engine-debian-openssl-3.0.x')
-path.join(__dirname, '../../engines/migration-engine-debian-openssl-3.0.x')
-path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-3.0.x')
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-3.0.x')
 
 // Red Hat Enterprise Linux openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../../engines/migration-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.0.x')
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-1.0.x')
 // Red Hat Enterprise Linux openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../../engines/migration-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.1.x')
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-1.1.x')
 // Red Hat Enterprise Linux openssl-3.0.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-3.0.x')
-path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-3.0.x')
-path.join(__dirname, '../../engines/migration-engine-rhel-openssl-3.0.x')
-path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-3.0.x')
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-3.0.x')

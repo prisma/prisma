@@ -18,7 +18,8 @@ export function trimNewLine(str: string): string {
 }
 
 export function trimBlocksFromSchema(str: string, blocks = ['model', 'enum', 'datasource', 'generator']): string {
-  const lines = str.split('\n')
+  const lines = str.split(/\r\n|\r|\n/g)
+
   if (lines.length <= 2) {
     return str
   }
@@ -27,12 +28,13 @@ export function trimBlocksFromSchema(str: string, blocks = ['model', 'enum', 'da
   let currentStart = -1
 
   lines.forEach((line, index) => {
-    const trimmed = line.trim()
-    if (blocks.some((b) => line.startsWith(b)) && line.endsWith('{')) {
+    const lineTrimmed = line.trim()
+
+    if (blocks.some((b) => lineTrimmed.startsWith(b)) && lineTrimmed.endsWith('{')) {
       blockOpen = true
       currentStart = index
     }
-    if (trimmed.endsWith('}') && currentStart > -1 && blockOpen) {
+    if (lineTrimmed.endsWith('}') && currentStart > -1 && blockOpen) {
       modelPositions.push({
         start: currentStart,
         end: index,

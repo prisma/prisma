@@ -1,9 +1,6 @@
 import fs from 'fs'
 import Module from 'module'
 import pkgUp from 'pkg-up'
-import { promisify } from 'util'
-
-const readFileAsync = promisify(fs.readFile)
 
 /**
  * Try reading the installed Prisma Client version
@@ -23,7 +20,7 @@ async function getPrismaClientVersionFromNodeModules(cwd: string = process.cwd()
       return null
     }
 
-    const pkgJsonString = await readFileAsync(pkgJsonPath, 'utf-8')
+    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
     const pkgJson = JSON.parse(pkgJsonString)
 
     if (!pkgJson.version) {
@@ -47,7 +44,7 @@ async function getPrismaClientVersionFromLocalPackageJson(cwd: string = process.
       return null
     }
 
-    const pkgJsonString = await readFileAsync(pkgJsonPath, 'utf-8')
+    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
     const pkgJson = JSON.parse(pkgJsonString)
     const clientVersion = pkgJson.dependencies?.['@prisma/client'] ?? pkgJson.devDependencies?.['@prisma/client']
 

@@ -3,10 +3,11 @@ import type { BinaryDownloadConfiguration, DownloadOptions } from '@prisma/fetch
 import { download } from '@prisma/fetch-engine'
 import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import path from 'path'
 
 import { mapKeys } from '../../utils/mapKeys'
+import { parseAWSNodejsRuntimeEnvVarVersion } from '../../utils/parseAWSNodejsRuntimeEnvVarVersion'
 import type { GetBinaryPathsByVersionInput } from '../getGenerators'
 import { binaryTypeToEngineType } from '../utils/binaryTypeToEngineType'
 import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
@@ -32,11 +33,41 @@ export async function getBinaryPathsByVersion({
       neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
     }
 
-    if (process.env.NETLIFY && !neededVersion.binaryTargets.find((object) => object.value === 'rhel-openssl-1.0.x')) {
-      neededVersion.binaryTargets.push({
-        fromEnvVar: null,
-        value: 'rhel-openssl-1.0.x',
-      })
+    if (process.env.NETLIFY) {
+      const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+
+      // Netlify reads and changes the runtime version based on this env var
+      // https://docs.netlify.com/configure-builds/environment-variables/#netlify-configuration-variables
+      const awsRuntimeVersion = parseAWSNodejsRuntimeEnvVarVersion()
+      const isRuntimeEnvVar20OrUp = awsRuntimeVersion && awsRuntimeVersion >= 20
+      const isRuntimeEnvVar18OrDown = awsRuntimeVersion && awsRuntimeVersion <= 18
+
+      const isRhelBinaryTarget1xInNeededVersions = neededVersion.binaryTargets.find(
+        (object) => object.value === 'rhel-openssl-1.0.x',
+      )
+      const isRhelBinaryTarget3xInNeededVersions = neededVersion.binaryTargets.find(
+        (object) => object.value === 'rhel-openssl-3.0.x',
+      )
+
+      // Only add 3.0.x if
+      // - it's not already added
+      // - current Node.js version is 20+ or env var is 20+
+      // - env var must not be 18-
+      if (
+        !isRhelBinaryTarget3xInNeededVersions &&
+        (isNodeMajor20OrUp || isRuntimeEnvVar20OrUp) &&
+        !isRuntimeEnvVar18OrDown
+      ) {
+        neededVersion.binaryTargets.push({
+          fromEnvVar: null,
+          value: 'rhel-openssl-3.0.x',
+        })
+      } else if (!isRhelBinaryTarget1xInNeededVersions) {
+        neededVersion.binaryTargets.push({
+          fromEnvVar: null,
+          value: 'rhel-openssl-1.0.x',
+        })
+      }
     }
 
     // download
@@ -44,7 +75,7 @@ export async function getBinaryPathsByVersion({
 
     if (version !== currentVersion) {
       binaryTargetBaseDir = path.join(binaryTargetBaseDir, `./engines/${currentVersion}/`)
-      await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
+      await ensureDir(binaryTargetBaseDir).catch((e) => console.error(e))
     }
 
     const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {

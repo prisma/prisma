@@ -81,7 +81,7 @@ export class SourceFileSlice {
    * @param lineNumber
    * @returns
    */
-  lineAt(lineNumber: number): string {
+  lineAt(lineNumber: number): string | undefined {
     return this.lines[lineNumber - this.firstLineNumber]
   }
 

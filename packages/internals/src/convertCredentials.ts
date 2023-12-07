@@ -8,9 +8,7 @@ import type { DatabaseCredentials } from './types'
 // only used for internal tests
 export function credentialsToUri(credentials: DatabaseCredentials): string {
   const type = databaseTypeToProtocol(credentials.type)
-  if (credentials.type === 'mongodb') {
-    return credentials.uri!
-  } else if (credentials.type === 'sqlite') {
+  if (credentials.type === 'sqlite') {
     // if `file:../parent-dev.db` return as it is
     return credentials.uri!
   }
@@ -41,6 +39,8 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     if (credentials.socket) {
       url.searchParams.set('socket', credentials.socket)
     }
+  } else if (credentials.type === 'mongodb') {
+    url.pathname = '/' + credentials.database
   }
 
   if (credentials.ssl) {
@@ -91,14 +91,6 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
 
   const type = protocolToConnectorType(uri.protocol)
 
-  // if mongodb no extra parsing
-  if (type === 'mongodb') {
-    return {
-      type,
-      uri: connectionString, // todo: set authsource as database if not provided explicitly
-    }
-  }
-
   // needed, as the URL implementation adds empty strings
   const exists = (str): boolean => str && str.length > 0
 
@@ -113,8 +105,6 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
   }
 
   let database: string | undefined = undefined
-  // For Postgres only?
-  let defaultSchema: string | undefined = undefined
 
   if (type === 'sqlite' && uri.pathname) {
     // weird conditionals here
@@ -138,11 +128,6 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
     }
   }
 
-  if (type === 'postgresql' && !schema) {
-    // default to public schema
-    defaultSchema = 'public'
-  }
-
   return {
     type,
     host: exists(uri.hostname) ? uri.hostname : undefined,
@@ -150,7 +135,7 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
     port: exists(uri.port) ? Number(uri.port) : undefined,
     password: exists(uri.password) ? uri.password : undefined,
     database,
-    schema: schema || defaultSchema,
+    schema: schema || undefined,
     uri: connectionString,
     ssl: Boolean(uri.searchParams.get('sslmode')),
     socket: socket || undefined,

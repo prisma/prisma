@@ -1,5 +1,6 @@
 import { watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
+import { BuildContext } from 'esbuild'
 import glob from 'globby'
 import path from 'path'
 
@@ -13,20 +14,21 @@ import { transduce } from '../blaze/transduce'
 import { depCheckPlugin } from './plugins/depCheckPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
+import { resolvePathsPlugin } from './plugins/resolvePathsPlugin'
 import { tscPlugin } from './plugins/tscPlugin'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
   name?: string
+  emitTypes?: boolean
   outbase?: never // we don't support this
 }
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
-  keepNames: true,
+  target: 'ES2020',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
-  incremental: process.env.WATCH === 'true',
   metafile: true,
 } as const
 
@@ -37,7 +39,6 @@ const DEFAULT_BUILD_OPTIONS = {
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
-  target: 'es2018',
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.ts', '.js', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
@@ -48,7 +49,14 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
-  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin, onErrorPlugin],
+  plugins: [
+    ...(options.plugins ?? []),
+    resolvePathsPlugin,
+    fixImportsPlugin,
+    tscPlugin(options.emitTypes),
+    onErrorPlugin,
+  ],
+  external: [...(options.external ?? []), ...getProjectExternals(options)],
 })
 
 /**
@@ -105,7 +113,13 @@ function addDefaultOutDir(options: BuildOptions) {
  * Execute esbuild with all the configurations we pass
  */
 async function executeEsBuild(options: BuildOptions) {
-  return [options, await esbuild.build(omit(options, ['name']))] as const
+  if (process.env.WATCH === 'true') {
+    const context = await esbuild.context(omit(options, ['name', 'emitTypes']) as any)
+
+    watch(context, options)
+  }
+
+  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']) as any)] as const
 }
 
 /**
@@ -122,7 +136,8 @@ async function dependencyCheck(options: BuildOptions) {
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({
     entryPoints: glob.sync('**/*.{j,t}s', {
-      ignore: ['./src/__tests__/**/*'],
+      // We don't check dependencies in ecosystem tests because tests are isolated from the build.
+      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*', './dist/**/*'],
       gitignore: true,
     }),
     logLevel: 'silent', // there will be errors
@@ -147,7 +162,7 @@ export async function build(options: BuildOptions[]) {
 
   return transduce.async(
     createBuildOptions(options),
-    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild, watch(options)),
+    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild),
   )
 }
 
@@ -155,59 +170,37 @@ export async function build(options: BuildOptions[]) {
  * Executes the build and rebuilds what is necessary
  * @param builds
  */
-const watch =
-  (allOptions: BuildOptions[]) =>
-  ([options, result]: readonly [BuildOptions, esbuild.BuildResult | esbuild.BuildIncremental]) => {
-    if (process.env.WATCH !== 'true') return result
+const watch = (context: BuildContext, options: BuildOptions) => {
+  if (process.env.WATCH !== 'true') return context
 
-    // common chokidar options for the watchers
-    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*'] }
+  // common chokidar options for the watchers
+  const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*', './package.json'] }
 
-    // prepare the incremental builds watcher
-    const watched = getWatchedFiles(result)
-    const changeWatcher = createWatcher(watched, config)
+  // prepare the incremental builds watcher
+  const changeWatcher = createWatcher(['./src/**/*'], config)
 
-    // watcher for restarting a full rebuild
-    const restartWatcher = createWatcher(['./src/**/*'], config)
+  // triggers quick rebuild on file change
+  const fastRebuild = debounce(async () => {
+    const timeBefore = Date.now()
 
-    // triggers quick rebuild on file change
-    const fastRebuild = debounce(async () => {
-      const timeBefore = Date.now()
+    // we handle possible rebuild exceptions
+    const rebuildResult = await handle.async(() => {
+      return context.rebuild()
+    })
 
-      // we handle possible rebuild exceptions
-      const rebuildResult = await handle.async(() => {
-        return result?.rebuild?.()
-      })
+    if (rebuildResult instanceof Error) {
+      console.error(rebuildResult.message)
+    }
 
-      if (rebuildResult instanceof Error) {
-        console.error(rebuildResult.message)
-      }
+    console.log(`${Date.now() - timeBefore}ms [${options.name ?? ''}]`)
+  }, 10)
 
-      console.log(`${Date.now() - timeBefore}ms [${options.name ?? ''}]`)
-    }, 10)
+  changeWatcher.on('change', fastRebuild)
 
-    // triggers a full rebuild on added file
-    const fullRebuild = debounce(async () => {
-      void changeWatcher.close() // stop all
-
-      // only one watcher will do this task
-      if (watchLock === false) {
-        watchLock = true
-        await build(allOptions)
-      }
-    }, 10)
-
-    changeWatcher.on('change', fastRebuild)
-    restartWatcher.once('add', fullRebuild)
-    restartWatcher.once('unlink', fullRebuild)
-
-    return undefined
-  }
+  return undefined
+}
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-// so that only one watcher restarts a full build
-let watchLock = false
 
 // get a default directory if needed (no outfile)
 function getOutDir(options: BuildOptions) {
@@ -230,7 +223,18 @@ function getOutFile(options: BuildOptions) {
   return undefined
 }
 
-// gets the files to be watched from esbuild
-function getWatchedFiles(build: esbuild.BuildIncremental | esbuild.BuildResult | undefined) {
-  return Object.keys(build?.metafile?.inputs ?? {})
+// get the current project externals this helps to mark dependencies as external
+// by having convention in the package.json (dev = bundled, non-dev = external)
+function getProjectExternals(options: BuildOptions) {
+  const pkg = require(`${process.cwd()}/package.json`)
+  const peerDeps = Object.keys(pkg.peerDependencies ?? {})
+  const regDeps = Object.keys(pkg.dependencies ?? {})
+
+  // when bundling, only the devDeps will be bundled
+  if (!process.env.IGNORE_EXTERNALS && options.bundle === true) {
+    return [...new Set([...peerDeps, ...regDeps])]
+  }
+
+  // otherwise, all the dependencies will be bundled
+  return []
 }

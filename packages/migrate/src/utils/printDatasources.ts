@@ -6,6 +6,7 @@ export type ConnectorType =
   | 'mongodb'
   | 'sqlite'
   | 'postgresql'
+  | 'postgres'
   | 'sqlserver'
   | 'jdbc:sqlserver'
   | 'cockroachdb'
@@ -21,7 +22,7 @@ export type Datasource =
   | string
   | {
       url: string
-      [key: string]: any | undefined
+      [key: string]: any
     }
 
 export interface InternalDatasource {

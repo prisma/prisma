@@ -1,4 +1,5 @@
 import { fs, vol } from 'memfs'
+import { performance } from 'perf_hooks'
 
 import { CallSite } from './CallSite'
 import { createErrorMessageWithContext } from './createErrorMessageWithContext'
@@ -47,8 +48,8 @@ test('basic panic', () => {
     }),
   ).toMatchInlineSnapshot(`
 
-                                    Oops, an unknown error occured! This is on us, you did nothing wrong.
-                                    It occured in the \`prisma.model.findFirst()\` invocation:
+                                    Oops, an unknown error occurred! This is on us, you did nothing wrong.
+                                    It occurred in the \`prisma.model.findFirst()\` invocation:
 
 
                                     What a terrible failure!
@@ -99,8 +100,8 @@ test('panic with matching source file', () => {
     }),
   ).toMatchInlineSnapshot(`
 
-                Oops, an unknown error occured! This is on us, you did nothing wrong.
-                It occured in the \`prisma.model.findFirst()\` invocation in
+                Oops, an unknown error occurred! This is on us, you did nothing wrong.
+                It occurred in the \`prisma.model.findFirst()\` invocation in
                 /project/some-file.js:1:1
 
                 → 1 prisma.model.findFirst({})
@@ -123,6 +124,23 @@ test('with matching source file, but without matching call at the line', () => {
 
                                     What a terrible failure!
                   `)
+})
+
+test('with matching source file, but non-existing line number', () => {
+  mockFile('/project/some-file.js', 'someCode()')
+  expect(
+    createErrorMessageWithContext({
+      originalMethod: 'model.findFirst',
+      callsite: mockCallsite('/project/some-file.js', 10, 1),
+      message: 'What a terrible failure!',
+    }),
+  ).toMatchInlineSnapshot(`
+
+    Invalid \`prisma.model.findFirst()\` invocation:
+
+
+    What a terrible failure!
+  `)
 })
 
 test('with matching source line, but without {', () => {
@@ -406,4 +424,23 @@ test('with windows lines endings', () => {
     → 4 prisma.model.findFirst(
     What a terrible failure!
   `)
+})
+
+test('does not uses polynominal regex', () => {
+  // from https://devina.io/redos-checker
+  const example = 'tfindFirs'.repeat(18258) + 's'
+
+  mockFile('/project/some-file.js', example)
+
+  // sync timeouts don't work in jest (https://github.com/facebook/jest/issues/6947), so we have to improvise
+  const start = performance.now()
+
+  createErrorMessageWithContext({
+    originalMethod: 'model.findFirst',
+    callsite: mockCallsite('/project/some-file.js', 1, 1),
+    message: 'What a terrible failure!',
+  })
+  const timeTook = performance.now() - start
+
+  expect(timeTook).toBeLessThan(100)
 })

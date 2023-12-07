@@ -1,9 +1,4 @@
 datasource my_db {
   provider = "sqlite"
-  url      = "file:dev.db"
-}
-
-model Blog {
-  id        Int @id
-  viewCount Int
+  url      = env("DATABASE_URL")
 }

@@ -3,8 +3,8 @@ import type { DMMF } from '@prisma/generator-helper'
 import type { Client } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
 import { deepSet } from '../../utils/deep-set'
-import type { applyModel, ModelAction } from './applyModel'
-import type { UserArgs } from './UserArgs'
+import type { UserArgs } from '../request/UserArgs'
+import type { ModelAction } from './applyModel'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
 /**
@@ -50,11 +50,7 @@ function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
  * // }
  * ```
  */
-function getNextUserArgs(
-  callArgs: UserArgs | undefined,
-  prevArgs: UserArgs | undefined,
-  nextDataPath: string[],
-): UserArgs {
+function getNextUserArgs(callArgs: UserArgs, prevArgs: UserArgs, nextDataPath: string[]): UserArgs {
   if (prevArgs === undefined) return callArgs ?? {}
 
   return deepSet(prevArgs, nextDataPath, callArgs || true)
@@ -86,7 +82,7 @@ export function applyFluent(
   prevUserArgs?: UserArgs,
 ) {
   // we retrieve the model that is described from the DMMF
-  const dmmfModel = client._baseDmmf.modelMap[dmmfModelName]
+  const dmmfModel = client._runtimeDataModel.models[dmmfModelName]
 
   // map[field.name] === field, basically for quick access
   const dmmfModelFieldMap = dmmfModel.fields.reduce(
@@ -126,7 +122,7 @@ export function applyFluent(
 
 // the only accessible fields are relations to be chained on
 function getOwnKeys(client: Client, dmmfModelName: string) {
-  return client._baseDmmf.modelMap[dmmfModelName].fields
+  return client._runtimeDataModel.models[dmmfModelName].fields
     .filter((field) => field.kind === 'object') // relations
     .map((field) => field.name)
 }

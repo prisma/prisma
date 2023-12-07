@@ -5,14 +5,15 @@ import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
-const baseUri = process.env.TEST_POSTGRES_URI
 
 describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', () => {
   beforeAll(async () => {
-    process.env.TEST_POSTGRES_URI += 'referentialActions-onDelete-default'
-    await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+    process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace(
+      'tests',
+      'tests-referentialActions-onDelete-default',
+    )
+    await tearDownPostgres(process.env.DATABASE_URL)
     await migrateDb({
-      connectionString: process.env.TEST_POSTGRES_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -25,7 +26,6 @@ describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', ()
     await prisma.profile.deleteMany()
     await prisma.user.deleteMany()
     await prisma.$disconnect()
-    process.env.TEST_POSTGRES_URI = baseUri
   })
 
   test('delete 1 user, should error', async () => {
@@ -37,7 +37,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', ()
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like pinguins' },
+          create: { bio: 'I like penguins' },
         },
       },
     })

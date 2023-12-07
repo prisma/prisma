@@ -1,5 +1,17 @@
 {
-  "extends": "./tsconfig.build.bundle.json",
-  "include": ["**/*", ".eslintrc.js"],
-  "exclude": ["**/dist", "**/build", "**/node_modules"]
+  "extends": "./tsconfig.utils.typecheck.json",
+  "include": ["./**/*", ".eslintrc.js"],
+  // same list as in tsconfig.regular.json, minus extra test exclusion and sandbox
+  "exclude": [
+    "**/dist",
+    "**/build",
+    "**/fixtures",
+    "**/node_modules",
+    "**/.prisma/client",
+    "./packages/cli/preinstall",
+    "./packages/cli/prisma-client",
+    "./packages/client/runtime",
+    "./packages/client/declaration",
+    "./packages/client/generator-build"
+  ]
 }

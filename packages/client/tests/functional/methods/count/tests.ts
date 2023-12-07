@@ -4,7 +4,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: 'user-1@email.com', age: 111, name: 'some-name-1' } })
     await prisma.user.create({ data: { email: 'user-2@email.com', age: 222, name: 'some-name-2' } })
@@ -15,6 +15,14 @@ testMatrix.setupTestSuite(() => {
     const value = await prisma.user.count()
 
     expect(value).toMatchInlineSnapshot(`3`)
+  })
+
+  test('take', async () => {
+    const value = await prisma.user.count({
+      take: 2,
+    })
+
+    expect(value).toMatchInlineSnapshot(`2`)
   })
 
   test('where', async () => {
@@ -52,13 +60,13 @@ testMatrix.setupTestSuite(() => {
     })
 
     expect(value).toMatchInlineSnapshot(`
-          Object {
-            _all: 1,
-            age: 1,
-            email: 1,
-            name: 1,
-          }
-        `)
+      {
+        _all: 1,
+        age: 1,
+        email: 1,
+        name: 1,
+      }
+    `)
   })
 
   test('select all true', async () => {
@@ -89,52 +97,52 @@ testMatrix.setupTestSuite(() => {
     })
 
     expect(value).toMatchInlineSnapshot(`
-          Object {
-            _all: 3,
-            age: 3,
-            email: 3,
-            name: 3,
-          }
-        `)
+      {
+        _all: 3,
+        age: 3,
+        email: 3,
+        name: 3,
+      }
+    `)
   })
 
-  test('bad prop', async () => {
-    try {
-      await prisma.user.count({
-        select: {
-          _all: true,
-          email: true,
-          age: true,
-          name: true,
-          // @ts-expect-error
-          posts: true,
-        },
-      })
-    } catch (err) {
-      expect(err.message).toMatchInlineSnapshot(`
+  testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
+    const err = prisma.user.count({
+      select: {
+        _all: true,
+        email: true,
+        age: true,
+        name: true,
+        // @ts-expect-error
+        posts: true,
+      },
+    })
 
-        Invalid \`prisma.user.count()\` invocation:
+    await expect(err).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-        {
-          select: {
-            _count: {
-              select: {
-        ?       _all?: true,
-        ?       email?: true,
-        ?       age?: true,
-        ?       name?: true,
-                posts: true,
-                ~~~~~
-        ?       id?: true
-              }
-            }
-          }
-        }
+      Invalid \`prisma.user.count()\` invocation in
+      /client/tests/functional/methods/count/tests.ts:0:0
 
+        XX })
+        XX 
+        XX testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
+      → XX   const err = prisma.user.count({
+                select: {
+                  _count: {
+                    select: {
+                      _all: true,
+                      email: true,
+                      age: true,
+                      name: true,
+                      posts: true,
+                      ~~~~~
+              ?       id?: true
+                    }
+                  }
+                }
+              })
 
-        Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
-
-      `)
-    }
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?.
+    `)
   })
 })

@@ -1,8 +1,10 @@
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
-import { ErrorArea, RustPanic } from '../panic'
-import { prismaFmt } from '../wasm'
+import { logger } from '..'
+import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
+import { prismaSchemaWasm } from '../wasm'
+import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
 type FormatSchemaParams = { schema: string; schemaPath?: never } | { schema?: never; schemaPath: string }
 
@@ -26,10 +28,10 @@ export async function formatSchema(
     throw new Error(`Parameter schema or schemaPath must be passed.`)
   }
 
-  if (process.env.FORCE_PANIC_PRISMA_FMT) {
+  if (process.env.FORCE_PANIC_PRISMA_SCHEMA) {
     handleFormatPanic(
       () => {
-        prismaFmt.debug_panic()
+        prismaSchemaWasm.debug_panic()
       },
       { schemaPath, schema } as FormatSchemaParams,
     )
@@ -60,13 +62,30 @@ export async function formatSchema(
     },
   } as DocumentFormattingParams
 
-  const formattedSchema = handleFormatPanic(
+  /**
+   * Note:
+   * - Given an invalid schema, `formatWasm` returns a formatted schema regardless (when it doesn't panic).
+   * - Given an invalid schema, `lintSchema` returns a list of warnings/errors regardless (when it doesn't panic).
+   *   Warnings must be filtered out from the other diagnostics.
+   * - Validation errors aren't checked/shown here.
+   *   They appear when calling `getDmmf` on the formatted schema in Format.ts.
+   *   If we called `getConfig` instead, we wouldn't have any validation check.
+   */
+  const { formattedSchema, lintDiagnostics } = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
-      return formatWasm(schemaContent, documentFormattingParams)
+      const formattedSchema = formatWasm(schemaContent, documentFormattingParams)
+      const lintDiagnostics = lintSchema({ schema: formattedSchema })
+      return { formattedSchema, lintDiagnostics }
     },
     { schemaPath, schema } as FormatSchemaParams,
   )
+
+  const lintWarnings = getLintWarningsAsText(lintDiagnostics)
+  if (lintWarnings && logger.should.warn()) {
+    // Output warnings to stderr
+    console.warn(lintWarnings)
+  }
 
   return Promise.resolve(formattedSchema)
 }
@@ -75,15 +94,18 @@ function handleFormatPanic<T>(tryCb: () => T, { schemaPath, schema }: FormatSche
   try {
     return tryCb()
   } catch (e: unknown) {
-    const wasmError = e as Error
-    throw new RustPanic(
-      /* message */ wasmError.message,
-      /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
-      /* request */ '@prisma/prisma-fmt-wasm format',
+    const { message, stack } = getWasmError(e as WasmPanic)
+
+    const panic = new RustPanic(
+      /* message */ message,
+      /* rustStack */ stack,
+      /* request */ '@prisma/prisma-schema-wasm format',
       ErrorArea.FMT_CLI,
       schemaPath,
       schema,
     )
+
+    throw panic
   }
 }
 
@@ -107,12 +129,11 @@ type DocumentFormattingParams = {
     // and be compatible with the LSP spec.
     // The Wasm formatter may fail silently on unmarshaling errors (a `warn!` macro is used in the Rust code, but that's not propagated to Wasm land).
     tabSize: number
-
     insertSpaces: boolean
   }
 }
 
 function formatWasm(schema: string, documentFormattingParams: DocumentFormattingParams): string {
-  const formattedSchema = prismaFmt.format(schema, JSON.stringify(documentFormattingParams))
+  const formattedSchema = prismaSchemaWasm.format(schema, JSON.stringify(documentFormattingParams))
   return formattedSchema
 }

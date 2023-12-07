@@ -20,5 +20,5 @@ test('findMany filter by rfc3339 date string', async () => {
     },
   })
 
-  expect(user).toMatchInlineSnapshot(`Array []`)
+  expect(user).toMatchInlineSnapshot(`[]`)
 })

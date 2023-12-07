@@ -1,14 +1,23 @@
+import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
 
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
+import {
+  getTestSuiteClientMeta,
+  getTestSuiteCliMeta,
+  getTestSuiteConfigs,
+  getTestSuiteFolderPath,
+  getTestSuiteMeta,
+} from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { setupTestSuiteClient } from './setupTestSuiteClient'
-import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
-import { MatrixOptions } from './types'
+import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
+import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
+import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
+export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
 
 /**
  * How does this work from a high level? What steps?
@@ -42,13 +51,26 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta) => void,
+  tests: (
+    suiteConfig: Record<string, string>,
+    suiteMeta: TestCallbackSuiteMeta,
+    clientMeta: ClientMeta,
+    cliMeta: CliMeta,
+  ) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
+  const cliMeta = getTestSuiteCliMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs)
+  const testPlan = getTestSuitePlan(cliMeta, suiteMeta, suiteConfigs, options)
+
+  if (originalEnv.TEST_GENERATE_ONLY === 'true') {
+    options = options ?? {}
+    options.skipDefaultClientInstance = true
+    options.skipDb = true
+  }
+
   checkMissingProviders({
     suiteConfigs,
     suiteMeta,
@@ -56,29 +78,53 @@ function setupTestSuiteMatrix(
   })
 
   for (const { name, suiteConfig, skip } of testPlan) {
+    const clientMeta = getTestSuiteClientMeta(suiteConfig.matrixOptions)
+    const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
 
     describeFn(name, () => {
       const clients = [] as any[]
+
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-        process.env = { ...setupTestSuiteDbURI(suiteConfig.matrixOptions), ...originalEnv }
+        const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
+
+        globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
         globalThis['loaded'] = await setupTestSuiteClient({
+          cliMeta,
           suiteMeta,
           suiteConfig,
+          datasourceInfo,
+          clientMeta,
           skipDb: options?.skipDb,
+          alterStatementCallback: options?.alterStatementCallback,
         })
 
-        globalThis['newPrismaClient'] = (...args) => {
-          const client = new global['loaded']['PrismaClient'](...args)
+        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+
+        globalThis['newPrismaClient'] = (args: any) => {
+          const client = new globalThis['loaded']['PrismaClient']({
+            // each Prisma Client instance uses its own instance of
+            // the driver adapter, and the driver adapter is only first instantiated
+            // when creating the first Prisma Client instance.
+            ...newDriverAdapter(),
+            ...args,
+          })
           clients.push(client)
           return client
         }
+
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']()
+          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
         }
+
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
+
+        globalThis['db'] = {
+          setupDb: () => setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback),
+          dropDb: () => dropTestSuiteDatabase(suiteMeta, suiteConfig).catch(() => {}),
+        }
       })
 
       // for better type dx, copy a client into the test suite root node_modules
@@ -104,17 +150,36 @@ function setupTestSuiteMatrix(
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
+
+          if (clientMeta.dataProxy) {
+            await stopMiniProxyQueryEngine(client, globalThis['datasourceInfo'])
+          }
         }
         clients.length = 0
-        !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig))
+        // CI=false: Only drop the db if not skipped, and if the db does not need to be reused.
+        // CI=true always skip to save time
+        if (options?.skipDb !== true && process.env.TEST_REUSE_DATABASE !== 'true' && process.env.CI !== 'true') {
+          const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
+          process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
+          process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
+          await dropTestSuiteDatabase(suiteMeta, suiteConfig)
+        }
         process.env = originalEnv
+        delete globalThis['datasourceInfo']
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']
-      })
+      }, 180_000)
 
-      tests(suiteConfig.matrixOptions, suiteMeta)
+      if (originalEnv.TEST_GENERATE_ONLY === 'true') {
+        // because we have our own custom `test` global call defined that reacts
+        // to this env var already, we import the original jest `test` and call
+        // it because we need to run at least one test to generate the client
+        test('generate only', () => {})
+      }
+
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, cliMeta)
     })
   }
 }

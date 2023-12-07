@@ -1,4 +1,4 @@
-# Enable/Disable PR comments 
+# Enable/Disable PR comments
 comment: false
 
 # About `carryforward: true`
@@ -17,10 +17,6 @@ flags:
     carryforward: true
     paths:
       - packages/debug/
-  engine-core:
-    carryforward: true
-    paths:
-      - packages/engine-core/
   generator-helper:
     carryforward: true
     paths:

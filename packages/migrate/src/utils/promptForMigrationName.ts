@@ -2,12 +2,12 @@ import { isCi, isInteractive } from '@prisma/internals'
 import slugify from '@sindresorhus/slugify'
 import { prompt } from 'prompts'
 
-type getMigratioNameOutput = {
+type getMigrationNameOutput = {
   name?: string
   userCancelled?: string
 }
 
-export async function getMigrationName(name?: string): Promise<getMigratioNameOutput> {
+export async function getMigrationName(name?: string): Promise<getMigrationNameOutput> {
   // Truncate if longer
   const maxMigrationNameLength = 200
 
@@ -24,10 +24,17 @@ export async function getMigrationName(name?: string): Promise<getMigratioNameOu
     }
   }
 
+  const messageForPrompt = `Enter a name for the new migration:`
+  // For testing purposes we log the message
+  // An alternative would be to find a way to capture the prompt message from jest tests
+  // (attempted without success)
+  if (Boolean((prompt as any)._injected?.length) === true) {
+    console.info(messageForPrompt)
+  }
   const response = await prompt({
     type: 'text',
     name: 'name',
-    message: `Enter a name for the new migration:`,
+    message: messageForPrompt,
   })
 
   if (!('name' in response)) {

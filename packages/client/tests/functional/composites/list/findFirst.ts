@@ -35,12 +35,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -67,9 +67,9 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(`
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
           },
         ],
@@ -90,12 +90,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },

@@ -8,7 +8,6 @@ import {
   getConfig,
   getDMMF,
   getPackedPackage,
-  mapPreviewFeatures,
 } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
@@ -29,6 +28,7 @@ export interface GenerateInFolderOptions {
   transpile?: boolean
   packageSource?: string
   useBuiltRuntime?: boolean
+  overrideEngineType?: ClientEngineType
 }
 
 export async function generateInFolder({
@@ -37,6 +37,7 @@ export async function generateInFolder({
   transpile = true,
   packageSource,
   useBuiltRuntime,
+  overrideEngineType,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
@@ -50,14 +51,9 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = extractPreviewFeatures(config)
   const clientGenerator = config.generators[0]
-  const clientEngineType = getClientEngineType(clientGenerator)
-
-  const dmmf = await getDMMF({
-    datamodel,
-    previewFeatures,
-  })
+  const clientEngineType = overrideEngineType ?? getClientEngineType(clientGenerator)
 
   const outputDir = transpile
     ? path.join(projectDir, 'node_modules/@prisma/client')
@@ -102,11 +98,11 @@ export async function generateInFolder({
     throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
   }
   const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
-  const queryEngineBinaryPath = path.join(
-    enginesPath,
-    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-  )
+  const queryEngineLibraryPath =
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(platform, 'fs'))
+  const queryEngineBinaryPath =
+    process.env.PRISMA_QUERY_ENGINE_BINARY ??
+    path.join(enginesPath, `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`)
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
@@ -123,6 +119,12 @@ export async function generateInFolder({
           },
         }
 
+  // TODO: use engine.getDmmf()
+  const dmmf = await getDMMF({
+    datamodel,
+    previewFeatures,
+  })
+
   await generateClient({
     binaryPaths,
     datamodel,
@@ -138,8 +140,9 @@ export async function generateInFolder({
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
-    dataProxy: !!process.env.DATA_PROXY,
+    overrideEngineType,
   })
+
   const time = performance.now() - before
   debug(`Done generating client in ${time}`)
 

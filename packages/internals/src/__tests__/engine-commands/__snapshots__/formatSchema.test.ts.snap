@@ -4,13 +4,13 @@ exports[`format nothing 1`] = `"Parameter schema or schemaPath must be passed."`
 
 exports[`format valid blog schema 1`] = `
 "datasource db {
-  provider = \\"sqlite\\"
-  url      = \\"file:dev.db\\"
+  provider = "sqlite"
+  url      = "file:dev.db"
 }
 
 generator client {
-  provider      = \\"prisma-client-js\\"
-  binaryTargets = [\\"native\\"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 model User {
@@ -47,12 +47,12 @@ model Like {
 
 exports[`format valid blog schemaPath 1`] = `
 "datasource db {
-  provider = \\"sqlite\\"
-  url      = \\"file:dev.db\\"
+  provider = "sqlite"
+  url      = "file:dev.db"
 }
 
 generator client {
-  provider = \\"prisma-client-js\\"
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -83,6 +83,40 @@ model Like {
   post   Post   @relation(fields: [postId], references: [id])
 
   @@unique([userId, postId])
+}
+"
+`;
+
+exports[`format valid schema with 1 preview feature flag warning 1`] = `
+"generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["cockroachdb"]
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("TEST_POSTGRES_URI")
+}
+
+model SomeUser {
+  id Int @id
+}
+"
+`;
+
+exports[`format valid schema with 3 preview feature flag warnings 1`] = `
+"generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["cockroachdb", "mongoDb", "microsoftSqlServer"]
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("TEST_POSTGRES_URI")
+}
+
+model SomeUser {
+  id Int @id
 }
 "
 `;

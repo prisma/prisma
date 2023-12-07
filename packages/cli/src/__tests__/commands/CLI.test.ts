@@ -1,17 +1,5 @@
-import { handlePanic, jestConsoleContext, jestContext } from '@prisma/internals'
-import {
-  DbCommand,
-  DbPull,
-  DbPush,
-  // DbDrop,
-  DbSeed,
-  MigrateCommand,
-  MigrateDeploy,
-  MigrateDev,
-  MigrateReset,
-  MigrateResolve,
-  MigrateStatus,
-} from '@prisma/migrate'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { DbPull } from '@prisma/migrate'
 
 import { CLI } from '../../CLI'
 
@@ -43,23 +31,9 @@ const cliInstance = CLI.new(
     // version: Version.new(),
     // validate: Validate.new(),
     // format: Format.new(),
-    // doctor: Doctor.new(),
     // telemetry: Telemetry.new(),
   },
-  [
-    'version',
-    'init',
-    'migrate',
-    'db',
-    'introspect',
-    'dev',
-    'studio',
-    'generate',
-    'validate',
-    'format',
-    'doctor',
-    'telemetry',
-  ],
+  ['version', 'init', 'migrate', 'db', 'introspect', 'dev', 'studio', 'generate', 'validate', 'format', 'telemetry'],
 )
 
 it('no params should return help', async () => {
@@ -87,7 +61,7 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrowError()
+  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrow()
 })
 
 it('introspect should include deprecation warning', async () => {

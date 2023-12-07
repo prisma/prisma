@@ -20,9 +20,10 @@ export function serializeDatasources(datasources: DatasourceOverwrite[]): string
     .join('\n')
 }
 
+// only used in one test
 export function datasourceToDatasourceOverwrite(datasource: DataSource): DatasourceOverwrite {
   return {
     name: datasource.name,
-    url: datasource.url.fromEnvVar ? `env("${datasource.url.fromEnvVar}")` : datasource.url.value,
+    url: datasource.url.fromEnvVar ? `env("${datasource.url.fromEnvVar}")` : datasource.url.value!,
   }
 }

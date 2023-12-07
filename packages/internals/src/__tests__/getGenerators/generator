@@ -14,8 +14,8 @@ generatorHandler({
     return {
       defaultOutput: 'default-output',
       denylist: ['SomeForbiddenType'],
-      prettyName: 'This is a pretty pretty name',
-      requiresEngines: ['queryEngine', 'migrationEngine'],
+      prettyName: 'This is a pretty name',
+      requiresEngines: ['queryEngine', 'schemaEngine'],
     }
   },
 })

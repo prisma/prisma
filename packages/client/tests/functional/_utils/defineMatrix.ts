@@ -1,31 +1,55 @@
+import { ClientEngineType } from '@prisma/internals'
 import { U } from 'ts-toolbelt'
 
 import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { setupTestSuiteMatrix, TestSuiteMeta } from './setupTestSuiteMatrix'
-import { MatrixOptions } from './types'
+import { ProviderFlavors, Providers, RelationModes } from './providers'
+import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 type MergedMatrixParams<MatrixT extends TestSuiteMatrix> = U.IntersectOf<MatrixT[number][number]>
 
 type SchemaCallback<MatrixT extends TestSuiteMatrix> = (suiteConfig: MergedMatrixParams<MatrixT>) => string
 
+type DefineMatrixOptions<MatrixT extends TestSuiteMatrix> = {
+  /** Allows to exclude certain matrix dimensions from tests */
+  exclude?: (config: MergedMatrixParams<MatrixT>) => boolean
+}
+
+/**
+ * Tests factory function. Receives all matrix parameters, used for this suite as a moment
+ * and generic suite metadata as an arguments.
+ *
+ * @param setupDatabase Manually setup the database of a test. Can only be called if `skipDb` is true.
+ */
+type TestsFactoryFn<MatrixT extends TestSuiteMatrix> = (
+  suiteConfig: MergedMatrixParams<MatrixT> & {
+    provider: Providers
+    providerFlavor?: `${ProviderFlavors}`
+    relationMode?: `${RelationModes}`
+    engineType?: `${ClientEngineType}`
+  },
+  suiteMeta: TestCallbackSuiteMeta,
+  clientMeta: ClientMeta,
+  cliMeta: CliMeta,
+) => void
+
 export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
   matrix: () => MatrixT
+
+  matrixOptions?: DefineMatrixOptions<MatrixT>
   /**
    * Function for defining test suite. Must be used in your `tests.ts` file.
    *
    * @param tests tests factory function. Receives all matrix parameters, used for this suite as a moment
    * and generic suite metadata as an arguments
    */
-  setupTestSuite(
-    tests: (suiteConfig: MergedMatrixParams<MatrixT>, suiteMeta: TestSuiteMeta) => void,
-    options?: MatrixOptions,
-  ): void
+  setupTestSuite(tests: TestsFactoryFn<MatrixT>, options?: MatrixOptions): void
 
   /**
    * Function for defining test schema. Must be used in your `prisma/_schema.ts`. Return value
    * of this function should be used as a default export of that module.
    *
-   * @param schemaCallback schema factory function. Receives all matrix paramters, used for the
+   * @param schemaCallback schema factory function. Receives all matrix parameters, used for the
    * specific test suite at the moment.
    */
   setupSchema(schemaCallback: SchemaCallback<MatrixT>): SchemaCallback<MatrixT>
@@ -39,9 +63,13 @@ export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
  * @param matrix matrix factory function
  * @returns helper for defining the suite and the prisma schema
  */
-export function defineMatrix<MatrixT extends TestSuiteMatrix>(matrix: () => MatrixT): MatrixTestHelper<MatrixT> {
+export function defineMatrix<MatrixT extends TestSuiteMatrix>(
+  matrix: () => MatrixT,
+  options?: DefineMatrixOptions<MatrixT>,
+): MatrixTestHelper<MatrixT> {
   return {
     matrix,
+    matrixOptions: options,
     setupTestSuite: setupTestSuiteMatrix as MatrixTestHelper<MatrixT>['setupTestSuite'],
     setupSchema(schemaCallback) {
       return schemaCallback

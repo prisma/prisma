@@ -1,4 +1,5 @@
+export * from './BinaryType'
 export * from './download'
-export { getAllUrls, getLatestTag, urlExists } from './getLatestTag'
+export * from './env'
 export { getProxyAgent } from './getProxyAgent'
 export { getCacheDir, overwriteFile } from './utils'

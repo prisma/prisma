@@ -2,8 +2,6 @@ function noop<T = undefined>(v: T) {
   return () => v as T
 }
 
-const tickPromise = Promise.resolve()
-
 function getProcess() {
   return process
 }
@@ -47,16 +45,7 @@ export const process: NodeJS.Process = {
   cwd: () => '/',
   debugPort: 0,
   disconnect: noop(undefined),
-  domain: {
-    ...{
-      run: noop(undefined),
-      add: noop(undefined),
-      remove: noop(undefined),
-      bind: noop(undefined),
-      intercept: noop(undefined),
-    },
-    ...getProcess(),
-  } as any,
+  constrainedMemory: () => undefined,
   emit: noop(getProcess() as any),
   emitWarning: noop(undefined),
   env: {},
@@ -92,15 +81,11 @@ export const process: NodeJS.Process = {
     heapTotal: 0,
     heapUsed: 0,
     rss: 0,
-  }),
+  }) as any,
   nextTick: (fn: Function, ...args: unknown[]) => {
-    tickPromise
-      .then(() => fn(...args))
-      .catch((e) => {
-        setTimeout(() => {
-          throw e
-        }, 0)
-      })
+    setTimeout(() => {
+      fn(...args)
+    }, 0)
   },
   off: noop(getProcess()),
   on: noop(getProcess()),
@@ -141,6 +126,9 @@ export const process: NodeJS.Process = {
   setgid: noop(undefined),
   setgroups: noop(undefined),
   setuid: noop(undefined),
+  // See https://nodejs.org/api/process.html#processsourcemapsenabled
+  // Added in: v20.7.0
+  sourceMapsEnabled: false,
   stderr: {
     fd: 2,
   } as any,

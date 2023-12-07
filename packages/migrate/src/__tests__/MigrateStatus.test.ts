@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateStatus } from '../commands/MigrateStatus'
 
@@ -11,22 +11,6 @@ describe('common', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Could not find a schema.prisma file that is required for this command.
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-          `)
-  })
-  it('should fail if experimental flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateStatus.new().parse(['--experimental'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now Generally Available.
-            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
-          `)
-  })
-  it('should fail if early access flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now Generally Available.
-            Remove the --early-access-feature flag.
           `)
   })
 })
@@ -82,28 +66,28 @@ describe('sqlite', () => {
     mockExit.mockRestore()
   })
 
-  it('baseline-sqlite', async () => {
+  it('should error when database needs to be baselined', async () => {
     ctx.fixture('baseline-sqlite')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
       throw new Error('process.exit: ' + number)
     })
 
-    const result = MigrateStatus.new().parse([])
+    const result = MigrateStatus.new().parse(['--schema=./prisma/using-file-as-url.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-      1 migration found in prisma/migrations
+      Prisma schema loaded from prisma/using-file-as-url.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+      No migration found in prisma/migrations
 
-      Following migration have not yet been applied:
-      20201231000000_
-
-      To apply migrations in development run prisma migrate dev.
-      To apply migrations in production run prisma migrate deploy.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      The current database is not managed by Prisma Migrate.
+              
+      Read more about how to baseline an existing production database:
+      https://pris.ly/d/migrate-baseline
+    `)
     expect(mockExit).toHaveBeenCalledWith(1)
     mockExit.mockRestore()
   })
@@ -200,24 +184,6 @@ describe('sqlite', () => {
     `)
     expect(mockExit).toHaveBeenCalledWith(1)
     mockExit.mockRestore()
-  })
-
-  it('old-migrate', async () => {
-    ctx.fixture('old-migrate')
-    const result = MigrateStatus.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
-
-            Read more about how to upgrade to the new version of Migrate:
-            https://pris.ly/d/migrate-upgrade
-          `)
-
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-    `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
   it('reset', async () => {

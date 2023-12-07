@@ -11,7 +11,7 @@ declare let Prisma: typeof PrismaNamespace
 const existingEmail = faker.internet.email()
 const nonExistingEmail = faker.internet.email()
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: existingEmail, posts: { create: { title: 'How to exist?' } } } })
   })
@@ -24,16 +24,14 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
 
   test('throws if record was not found', async () => {
     const record = prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } })
-    await expect(record).rejects.toThrowError(new Prisma.NotFoundError('No User found'))
+    await expect(record).rejects.toMatchObject(new Prisma.NotFoundError('No User found', '0.0.0'))
   })
 
-  // TODO: it actually does not work this way, but neither does `rejectOnNotFound`.
-  // unclear, if intentional
-  test.skip('works with transactions', async () => {
+  testIf(clientMeta.runtime !== 'edge')('works with transactions', async () => {
     const newEmail = faker.internet.email()
     const result = prisma.$transaction([
       prisma.user.create({ data: { email: newEmail } }),
-      prisma.user.findUnique({ where: { email: nonExistingEmail }, rejectOnNotFound: true }),
+      prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } }),
     ])
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
@@ -42,7 +40,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(record).toBeNull()
   })
 
-  test('works with interactive transactions', async () => {
+  testIf(clientMeta.runtime !== 'edge')('works with interactive transactions', async () => {
     const newEmail = faker.internet.email()
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({ data: { email: newEmail } })
@@ -65,25 +63,5 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await expect(record).rejects.toMatchObject({
       message: expect.stringContaining('Invalid `prisma.user.findUniqueOrThrow()` invocation'),
     })
-  })
-
-  test('does not accept rejectOnNotFound option', async () => {
-    const record = prisma.user.findUniqueOrThrow({
-      where: { email: existingEmail },
-      // @ts-expect-error passing not supported option on purpose
-      rejectOnNotFound: false,
-    })
-
-    await expect(record).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-      Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
-      /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
-
-        XX })
-        XX 
-        XX test('does not accept rejectOnNotFound option', async () => {
-      → XX   const record = prisma.user.findUniqueOrThrow(
-      'rejectOnNotFound' option is not supported
-    `)
   })
 })

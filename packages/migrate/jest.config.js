@@ -9,14 +9,13 @@ module.exports = {
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
-  snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
+  snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
   coveragePathIgnorePatterns: [
     'bin.ts',
     'setupMysql.ts',
     'setupPostgres.ts',
-    'test-MigrateEngineCommands.ts',
+    'test-SchemaEngineCommands.ts',
     'test-handlePanic.ts',
-    'test-interactivelyCreateDatabase.ts',
   ],
   // to get rid of "jest-haste-map: Haste module naming collision: package name"
   modulePathIgnorePatterns: ['<rootDir>/src/__tests__/fixtures/'],

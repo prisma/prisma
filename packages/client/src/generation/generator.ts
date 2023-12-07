@@ -5,7 +5,6 @@ import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/in
 
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { generateClient } from './generateClient'
-import { getDMMF } from './getDMMF'
 import { dmmfToTypes } from './utils/types/dmmfToTypes'
 
 const debug = Debug('prisma:client:generator')
@@ -31,12 +30,7 @@ if (process.argv[1] === __filename) {
       }
     },
     async onGenerate(options) {
-      // CLI versions < 2.20.0 still send a string
-      // CLIs >= 2.20.0 send an `EnvValue`
-      const outputDir =
-        typeof options.generator.output === 'string'
-          ? options.generator.output
-          : parseEnvValue(options.generator.output!)
+      const outputDir = parseEnvValue(options.generator.output!)
 
       return generateClient({
         datamodel: options.datamodel,
@@ -45,16 +39,18 @@ if (process.argv[1] === __filename) {
         datasources: options.datasources,
         outputDir,
         copyRuntime: Boolean(options.generator.config.copyRuntime),
+        copyRuntimeSourceMaps: Boolean(process.env.PRISMA_COPY_RUNTIME_SOURCEMAPS),
         dmmf: options.dmmf,
         generator: options.generator,
         engineVersion: options.version,
         clientVersion,
         transpile: true,
         activeProvider: options.datasources[0]?.activeProvider,
-        dataProxy: options.dataProxy,
+        postinstall: options.postinstall,
+        noEngine: options.noEngine,
       })
     },
   })
 }
 
-export { dmmfToTypes, externalToInternalDmmf, getDMMF }
+export { dmmfToTypes, externalToInternalDmmf }

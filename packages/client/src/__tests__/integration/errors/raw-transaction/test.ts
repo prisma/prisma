@@ -15,9 +15,9 @@ test('raw-transaction: queryRaw', async () => {
   let result = await prisma.$transaction([prisma.$queryRaw`SELECT 1`])
 
   expect(result).toMatchInlineSnapshot(`
-    Array [
-      Array [
-        Object {
+    [
+      [
+        {
           1: 1n,
         },
       ],
@@ -28,7 +28,7 @@ test('raw-transaction: queryRaw', async () => {
   result = await prisma.$transaction([executePromise])
 
   expect(result).toMatchInlineSnapshot(`
-    Array [
+    [
       0,
     ]
   `)

@@ -17,7 +17,7 @@ model migrate {
 
 `;
 
-exports[`introspection: create bigint data: warnings 1`] = `Array []`;
+exports[`introspection: create bigint data: warnings 1`] = `null`;
 
 exports[`introspection: create with data: datamodel 1`] = `
 generator client {
@@ -37,7 +37,7 @@ model teams {
 
 `;
 
-exports[`introspection: create with data: warnings 1`] = `Array []`;
+exports[`introspection: create with data: warnings 1`] = `null`;
 
 exports[`introspection: create with empty data and SQL default: datamodel 1`] = `
 generator client {
@@ -57,7 +57,7 @@ model teams {
 
 `;
 
-exports[`introspection: create with empty data and SQL default: warnings 1`] = `Array []`;
+exports[`introspection: create with empty data and SQL default: warnings 1`] = `null`;
 
 exports[`introspection: delete where composite PK: datamodel 1`] = `
 generator client {
@@ -81,7 +81,7 @@ model variables {
 
 `;
 
-exports[`introspection: delete where composite PK: warnings 1`] = `Array []`;
+exports[`introspection: delete where composite PK: warnings 1`] = `null`;
 
 exports[`introspection: delete where composite unique: datamodel 1`] = `
 generator client {
@@ -104,7 +104,7 @@ model users {
 
 `;
 
-exports[`introspection: delete where composite unique: warnings 1`] = `Array []`;
+exports[`introspection: delete where composite unique: warnings 1`] = `null`;
 
 exports[`introspection: findMany - email text: datamodel 1`] = `
 generator client {
@@ -124,7 +124,7 @@ model users {
 
 `;
 
-exports[`introspection: findMany - email text: warnings 1`] = `Array []`;
+exports[`introspection: findMany - email text: warnings 1`] = `null`;
 
 exports[`introspection: findMany - email varchar(50) not null unique: datamodel 1`] = `
 generator client {
@@ -144,7 +144,7 @@ model users {
 
 `;
 
-exports[`introspection: findMany - email varchar(50) not null unique: warnings 1`] = `Array []`;
+exports[`introspection: findMany - email varchar(50) not null unique: warnings 1`] = `null`;
 
 exports[`introspection: findMany orderBy asc: datamodel 1`] = `
 generator client {
@@ -165,7 +165,7 @@ model posts {
 
 `;
 
-exports[`introspection: findMany orderBy asc: warnings 1`] = `Array []`;
+exports[`introspection: findMany orderBy asc: warnings 1`] = `null`;
 
 exports[`introspection: findMany orderBy desc: datamodel 1`] = `
 generator client {
@@ -186,7 +186,7 @@ model posts {
 
 `;
 
-exports[`introspection: findMany orderBy desc: warnings 1`] = `Array []`;
+exports[`introspection: findMany orderBy desc: warnings 1`] = `null`;
 
 exports[`introspection: findMany where OR[contains, contains] : datamodel 1`] = `
 generator client {
@@ -207,7 +207,7 @@ model posts {
 
 `;
 
-exports[`introspection: findMany where OR[contains, contains] : warnings 1`] = `Array []`;
+exports[`introspection: findMany where OR[contains, contains] : warnings 1`] = `null`;
 
 exports[`introspection: findMany where contains and boolean: datamodel 1`] = `
 generator client {
@@ -228,7 +228,7 @@ model posts {
 
 `;
 
-exports[`introspection: findMany where contains and boolean: warnings 1`] = `Array []`;
+exports[`introspection: findMany where contains and boolean: warnings 1`] = `null`;
 
 exports[`introspection: findMany where contains: datamodel 1`] = `
 generator client {
@@ -249,7 +249,7 @@ model crons {
 
 `;
 
-exports[`introspection: findMany where contains: warnings 1`] = `Array []`;
+exports[`introspection: findMany where contains: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime exact: datamodel 1`] = `
 generator client {
@@ -269,7 +269,7 @@ model events {
 
 `;
 
-exports[`introspection: findMany where datetime exact: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime exact: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime gt than now: datamodel 1`] = `
 generator client {
@@ -290,7 +290,7 @@ model posts {
 
 `;
 
-exports[`introspection: findMany where datetime gt than now: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime gt than now: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime gt: datamodel 1`] = `
 generator client {
@@ -310,7 +310,7 @@ model events {
 
 `;
 
-exports[`introspection: findMany where datetime gt: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime gt: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime gte than now: datamodel 1`] = `
 generator client {
@@ -331,7 +331,7 @@ model posts {
 
 `;
 
-exports[`introspection: findMany where datetime gte than now: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime gte than now: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime gte: datamodel 1`] = `
 generator client {
@@ -351,7 +351,7 @@ model events {
 
 `;
 
-exports[`introspection: findMany where datetime gte: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime gte: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime lt than now: datamodel 1`] = `
 generator client {
@@ -372,7 +372,7 @@ model posts {
 
 `;
 
-exports[`introspection: findMany where datetime lt than now: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lt than now: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime lt: datamodel 1`] = `
 generator client {
@@ -392,7 +392,7 @@ model events {
 
 `;
 
-exports[`introspection: findMany where datetime lt: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lt: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime lte - check instanceof Date: datamodel 1`] = `
 generator client {
@@ -413,7 +413,7 @@ model posts {
 
 `;
 
-exports[`introspection: findMany where datetime lte - check instanceof Date: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lte - check instanceof Date: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime lte: datamodel 1`] = `
 generator client {
@@ -433,7 +433,7 @@ model events {
 
 `;
 
-exports[`introspection: findMany where datetime lte: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lte: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime not: datamodel 1`] = `
 generator client {
@@ -453,7 +453,7 @@ model events {
 
 `;
 
-exports[`introspection: findMany where datetime not: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime not: warnings 1`] = `null`;
 
 exports[`introspection: findMany where decimal: datamodel 1`] = `
 generator client {
@@ -473,7 +473,7 @@ model exercises {
 
 `;
 
-exports[`introspection: findMany where decimal: warnings 1`] = `Array []`;
+exports[`introspection: findMany where decimal: warnings 1`] = `null`;
 
 exports[`introspection: findMany where empty in[]: datamodel 1`] = `
 generator client {
@@ -494,7 +494,7 @@ model teams {
 
 `;
 
-exports[`introspection: findMany where empty in[]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where empty in[]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where empty notIn[]: datamodel 1`] = `
 generator client {
@@ -515,7 +515,7 @@ model teams {
 
 `;
 
-exports[`introspection: findMany where empty notIn[]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where empty notIn[]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where endsWith: datamodel 1`] = `
 generator client {
@@ -536,7 +536,7 @@ model crons {
 
 `;
 
-exports[`introspection: findMany where endsWith: warnings 1`] = `Array []`;
+exports[`introspection: findMany where endsWith: warnings 1`] = `null`;
 
 exports[`introspection: findMany where id empty in[] and token in[]: datamodel 1`] = `
 generator client {
@@ -557,7 +557,7 @@ model teams {
 
 `;
 
-exports[`introspection: findMany where id empty in[] and token in[]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where id empty in[] and token in[]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where in[integer]: datamodel 1`] = `
 generator client {
@@ -578,7 +578,7 @@ model teams {
 
 `;
 
-exports[`introspection: findMany where in[integer]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where in[integer]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where in[string]: datamodel 1`] = `
 generator client {
@@ -599,7 +599,7 @@ model crons {
 
 `;
 
-exports[`introspection: findMany where in[string]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where in[string]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where notIn[]: datamodel 1`] = `
 generator client {
@@ -620,7 +620,7 @@ model teams {
 
 `;
 
-exports[`introspection: findMany where notIn[]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where notIn[]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where null: datamodel 1`] = `
 generator client {
@@ -640,7 +640,7 @@ model events {
 
 `;
 
-exports[`introspection: findMany where null: warnings 1`] = `Array []`;
+exports[`introspection: findMany where null: warnings 1`] = `null`;
 
 exports[`introspection: findMany where startsWith: datamodel 1`] = `
 generator client {
@@ -661,7 +661,7 @@ model crons {
 
 `;
 
-exports[`introspection: findMany where startsWith: warnings 1`] = `Array []`;
+exports[`introspection: findMany where startsWith: warnings 1`] = `null`;
 
 exports[`introspection: findMany where unique: datamodel 1`] = `
 generator client {
@@ -681,7 +681,7 @@ model users {
 
 `;
 
-exports[`introspection: findMany where unique: warnings 1`] = `Array []`;
+exports[`introspection: findMany where unique: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where PK with include: datamodel 1`] = `
 generator client {
@@ -709,7 +709,7 @@ model users {
 
 `;
 
-exports[`introspection: findUnique where PK with include: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where PK with include: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where PK with select: datamodel 1`] = `
 generator client {
@@ -730,7 +730,7 @@ model teams {
 
 `;
 
-exports[`introspection: findUnique where PK with select: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where PK with select: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where PK: datamodel 1`] = `
 generator client {
@@ -750,7 +750,7 @@ model teams {
 
 `;
 
-exports[`introspection: findUnique where PK: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where PK: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where composite PK with foreign key: datamodel 1`] = `
 generator client {
@@ -780,7 +780,7 @@ model b {
 
 `;
 
-exports[`introspection: findUnique where composite PK with foreign key: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where composite PK with foreign key: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where composite PK: datamodel 1`] = `
 generator client {
@@ -804,7 +804,7 @@ model variables {
 
 `;
 
-exports[`introspection: findUnique where composite PK: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where composite PK: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where composite unique: datamodel 1`] = `
 generator client {
@@ -827,7 +827,7 @@ model users {
 
 `;
 
-exports[`introspection: findUnique where composite unique: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where composite unique: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where decimal - default value: datamodel 1`] = `
 generator client {
@@ -847,7 +847,7 @@ model exercises {
 
 `;
 
-exports[`introspection: findUnique where decimal - default value: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where decimal - default value: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where decimal: datamodel 1`] = `
 generator client {
@@ -867,7 +867,7 @@ model exercises {
 
 `;
 
-exports[`introspection: findUnique where decimal: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where decimal: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where unique composite (PK is a composite): datamodel 1`] = `
 generator client {
@@ -892,7 +892,7 @@ model variables {
 
 `;
 
-exports[`introspection: findUnique where unique composite (PK is a composite): warnings 1`] = `Array []`;
+exports[`introspection: findUnique where unique composite (PK is a composite): warnings 1`] = `null`;
 
 exports[`introspection: findUnique where unique composite: datamodel 1`] = `
 generator client {
@@ -917,7 +917,7 @@ model variables {
 
 `;
 
-exports[`introspection: findUnique where unique composite: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where unique composite: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where unique with foreign key and unpack: datamodel 1`] = `
 generator client {
@@ -945,7 +945,7 @@ model users {
 
 `;
 
-exports[`introspection: findUnique where unique with foreign key and unpack: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where unique with foreign key and unpack: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where unique: datamodel 1`] = `
 generator client {
@@ -965,7 +965,7 @@ model users {
 
 `;
 
-exports[`introspection: findUnique where unique: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where unique: warnings 1`] = `null`;
 
 exports[`introspection: update where composite PK: datamodel 1`] = `
 generator client {
@@ -989,7 +989,7 @@ model variables {
 
 `;
 
-exports[`introspection: update where composite PK: warnings 1`] = `Array []`;
+exports[`introspection: update where composite PK: warnings 1`] = `null`;
 
 exports[`introspection: update where composite unique: datamodel 1`] = `
 generator client {
@@ -1012,7 +1012,7 @@ model users {
 
 `;
 
-exports[`introspection: update where composite unique: warnings 1`] = `Array []`;
+exports[`introspection: update where composite unique: warnings 1`] = `null`;
 
 exports[`introspection: update where integer data: datamodel 1`] = `
 generator client {
@@ -1032,7 +1032,7 @@ model teams {
 
 `;
 
-exports[`introspection: update where integer data: warnings 1`] = `Array []`;
+exports[`introspection: update where integer data: warnings 1`] = `null`;
 
 exports[`introspection: update where with boolean data and select: datamodel 1`] = `
 generator client {
@@ -1053,7 +1053,7 @@ model teams {
 
 `;
 
-exports[`introspection: update where with boolean data and select: warnings 1`] = `Array []`;
+exports[`introspection: update where with boolean data and select: warnings 1`] = `null`;
 
 exports[`introspection: update where with boolean data: datamodel 1`] = `
 generator client {
@@ -1074,7 +1074,7 @@ model teams {
 
 `;
 
-exports[`introspection: update where with boolean data: warnings 1`] = `Array []`;
+exports[`introspection: update where with boolean data: warnings 1`] = `null`;
 
 exports[`introspection: update where with numeric data: datamodel 1`] = `
 generator client {
@@ -1094,7 +1094,7 @@ model teams {
 
 `;
 
-exports[`introspection: update where with numeric data: warnings 1`] = `Array []`;
+exports[`introspection: update where with numeric data: warnings 1`] = `null`;
 
 exports[`introspection: update where with string data: datamodel 1`] = `
 generator client {
@@ -1114,7 +1114,7 @@ model teams {
 
 `;
 
-exports[`introspection: update where with string data: warnings 1`] = `Array []`;
+exports[`introspection: update where with string data: warnings 1`] = `null`;
 
 exports[`introspection: updateMany where null - check findMany: datamodel 1`] = `
 generator client {
@@ -1134,7 +1134,7 @@ model teams {
 
 `;
 
-exports[`introspection: updateMany where null - check findMany: warnings 1`] = `Array []`;
+exports[`introspection: updateMany where null - check findMany: warnings 1`] = `null`;
 
 exports[`introspection: updateMany where with string data - check findMany: datamodel 1`] = `
 generator client {
@@ -1154,7 +1154,7 @@ model teams {
 
 `;
 
-exports[`introspection: updateMany where with string data - check findMany: warnings 1`] = `Array []`;
+exports[`introspection: updateMany where with string data - check findMany: warnings 1`] = `null`;
 
 exports[`introspection: updateMany where with string data - check returned count: datamodel 1`] = `
 generator client {
@@ -1174,7 +1174,7 @@ model teams {
 
 `;
 
-exports[`introspection: updateMany where with string data - check returned count: warnings 1`] = `Array []`;
+exports[`introspection: updateMany where with string data - check returned count: warnings 1`] = `null`;
 
 exports[`introspection: upsert (create): datamodel 1`] = `
 generator client {
@@ -1195,7 +1195,7 @@ model posts {
 
 `;
 
-exports[`introspection: upsert (create): warnings 1`] = `Array []`;
+exports[`introspection: upsert (create): warnings 1`] = `null`;
 
 exports[`introspection: upsert (update): datamodel 1`] = `
 generator client {
@@ -1216,7 +1216,7 @@ model posts {
 
 `;
 
-exports[`introspection: upsert (update): warnings 1`] = `Array []`;
+exports[`introspection: upsert (update): warnings 1`] = `null`;
 
 exports[`introspection: upsert where composite PK - create: datamodel 1`] = `
 generator client {
@@ -1240,7 +1240,7 @@ model variables {
 
 `;
 
-exports[`introspection: upsert where composite PK - create: warnings 1`] = `Array []`;
+exports[`introspection: upsert where composite PK - create: warnings 1`] = `null`;
 
 exports[`introspection: upsert where composite PK - update: datamodel 1`] = `
 generator client {
@@ -1264,4 +1264,4 @@ model variables {
 
 `;
 
-exports[`introspection: upsert where composite PK - update: warnings 1`] = `Array []`;
+exports[`introspection: upsert where composite PK - update: warnings 1`] = `null`;

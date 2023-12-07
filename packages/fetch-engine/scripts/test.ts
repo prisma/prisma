@@ -5,7 +5,7 @@ import { download } from '../src'
 void download({
   binaries: {
     'query-engine': path.join(__dirname, '../test'),
-    'migration-engine': path.join(__dirname, '../test'),
+    'schema-engine': path.join(__dirname, '../test'),
   },
   binaryTargets: [
     'darwin',
@@ -17,6 +17,7 @@ void download({
     'rhel-openssl-1.1.x',
     'rhel-openssl-3.0.x',
     'linux-musl',
+    'linux-musl-openssl-3.0.x',
   ],
   showProgress: true,
 })
