@@ -20,7 +20,7 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
-import { LogEmitter, LogEventType } from '../common/types/Events'
+import type { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineResult } from '../common/types/QueryEngine'
