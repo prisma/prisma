@@ -1,14 +1,15 @@
+import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever, ClientEngineType, getClientEngineType, Platform, setClassName } from '@prisma/internals'
 import paths from 'env-paths'
-import fs from 'fs'
+import { existsSync } from 'fs'
+import fs from 'fs/promises'
 import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
-import { promisify } from 'util'
 
 import { name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
@@ -16,9 +17,8 @@ import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import type { Dictionary } from './utils/common'
 
-const exists = promisify(fs.exists)
-
 const GENERATED_PACKAGE_NAME = '.prisma/client'
+const debug = Debug('prisma:client:generateClient')
 
 type OutputDeclaration = {
   content: string
@@ -52,6 +52,7 @@ export interface GenerateClientOptions {
   activeProvider: string
   postinstall?: boolean
   overrideEngineType?: ClientEngineType
+  noEngine?: boolean
 }
 
 export interface BuildClientResult {
@@ -74,6 +75,7 @@ export async function buildClient({
   activeProvider,
   postinstall,
   overrideEngineType,
+  noEngine,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
@@ -93,6 +95,7 @@ export async function buildClient({
     projectRoot: projectRoot!,
     activeProvider,
     postinstall,
+    noEngine,
   }
 
   // we create a regular client that is fit for Node.js
@@ -167,7 +170,7 @@ async function getDefaultOutdir(outputDir: string): Promise<string> {
     // INIT_CWD is the dir, in which "npm install" has been invoked. That can e.g. be in ./src
     // If we're in ./ - there'll also be a package.json, so we can directly go for it
     // otherwise, we'll go up in the filesystem and look for the first package.json
-    if (fs.existsSync(path.join(process.env.INIT_CWD, 'package.json'))) {
+    if (existsSync(path.join(process.env.INIT_CWD, 'package.json'))) {
       return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
     }
     const packagePath = await pkgUp({ cwd: process.env.INIT_CWD })
@@ -197,6 +200,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     postinstall,
     overrideEngineType,
+    noEngine,
   } = options
 
   const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
@@ -218,6 +222,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     postinstall,
     overrideEngineType,
+    noEngine,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -236,6 +241,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
+  if (noEngine === true) {
+    await deleteOutputDir(finalOutputDir)
+  }
+
   await ensureDir(finalOutputDir)
   await ensureDir(path.join(outputDir, 'runtime'))
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
@@ -250,13 +259,13 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       const filePath = path.join(finalOutputDir, fileName)
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
-      if (await exists(filePath)) {
-        await fs.promises.unlink(filePath)
+      if (existsSync(filePath)) {
+        await fs.unlink(filePath)
       }
-      await fs.promises.writeFile(filePath, file)
+      await fs.writeFile(filePath, file)
     }),
   )
-  const runtimeSourceDir = testMode
+  const runtimeSourceDir: string = testMode
     ? eval(`require('path').join(__dirname, '../../runtime')`)
     : eval(`require('path').join(__dirname, '../runtime')`)
 
@@ -284,48 +293,70 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (transpile === true) {
-    // TODO after removal of dataProxy, do if --no-engine
+  if (transpile === true && noEngine !== true && getClientEngineType(generator) !== ClientEngineType.Wasm) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
 
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
       const fileName = path.basename(filePath)
-      const target =
-        process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
-          ? path.join('/tmp/prisma-engines', fileName)
-          : path.join(finalOutputDir, fileName)
+      let target: string
+
+      // Introduced in https://github.com/prisma/prisma/pull/6527
+      // The engines that are not needed for the runtime deployment on AWS Lambda 
+      // are moved to `/tmp/prisma-engines`
+      // They will be ignored and not included in the final build, reducing its size
+      if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {
+        target = path.join('/tmp/prisma-engines', fileName)
+      } else {
+        target = path.join(finalOutputDir, fileName)
+      }
+
       await overwriteFile(filePath, target)
     }
   }
 
   const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
-    await fs.promises.copyFile(schemaPath, schemaTargetPath)
+    await fs.copyFile(schemaPath, schemaTargetPath)
+  }
+
+  // copy the necessary engine files needed for the wasm/driver-adapter engine
+  if (getClientEngineType(generator) === ClientEngineType.Wasm) {
+    const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
+    const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
+    // some bundlers (eg. webpack) need this file to exist, even if it's empty
+    // this is because they analyze `query-engine.wasm` for references to other
+    // files. It does not matter for us, because we bundle query_engine_bg.js.
+    const dummyQueryEngineBgTargetPath = path.join(finalOutputDir, 'query_engine_bg.js')
+    const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
+
+    const copyOrSymlink = testMode ? fs.symlink : fs.copyFile
+    await copyOrSymlink(queryEngineWasmFilePath, queryEngineWasmTargetPath)
+    await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
-  if (!fs.existsSync(proxyIndexJsPath)) {
-    await fs.promises.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
+  if (!existsSync(proxyIndexJsPath)) {
+    await fs.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
   }
 
-  if (!fs.existsSync(proxyIndexDTSPath)) {
-    await fs.promises.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
+  if (!existsSync(proxyIndexDTSPath)) {
+    await fs.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
-  if (!fs.existsSync(proxyIndexBrowserJsPath)) {
-    await fs.promises.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
+  if (!existsSync(proxyIndexBrowserJsPath)) {
+    await fs.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 
   try {
     // we tell our vscode extension to reload the types by modifying this file
     const prismaCache = paths('prisma').cache
     const signalsPath = path.join(prismaCache, 'last-generate')
-    await fs.promises.mkdir(prismaCache, { recursive: true })
-    await fs.promises.writeFile(signalsPath, Date.now().toString())
+    await fs.mkdir(prismaCache, { recursive: true })
+    await fs.writeFile(signalsPath, Date.now().toString())
   } catch {}
 }
 
@@ -449,7 +480,7 @@ async function getGenerationDirs({
 async function verifyOutputDirectory(directory: string, datamodel: string, schemaPath: string) {
   let content: string
   try {
-    content = await fs.promises.readFile(path.join(directory, 'package.json'), 'utf8')
+    content = await fs.readFile(path.join(directory, 'package.json'), 'utf8')
   } catch (e) {
     if (e.code === 'ENOENT') {
       // no package.json exists, we are good
@@ -504,7 +535,13 @@ function getNodeRuntimeName(engineType: ClientEngineType): string {
   if (engineType === ClientEngineType.Binary) {
     return 'binary'
   }
+
   if (engineType === ClientEngineType.Library) {
+    return 'library'
+  }
+
+  // the wasm engine fully depends on the library engine
+  if (engineType === ClientEngineType.Wasm) {
     return 'library'
   }
 
@@ -539,5 +576,23 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
   }
 
-  await Promise.all(files.map((file) => fs.promises.copyFile(path.join(from, file), path.join(to, file))))
+  await Promise.all(files.map((file) => fs.copyFile(path.join(from, file), path.join(to, file))))
+}
+
+/**
+ * Attempts to delete the output directory.
+ * @param finalOutputDir
+ */
+async function deleteOutputDir(finalOutputDir: string) {
+  try {
+    debug(`attempting to delete ${finalOutputDir} recursively`)
+    // we want to make sure that if we delete, we delete the right directory
+    if (require(`${finalOutputDir}/package.json`).name === GENERATED_PACKAGE_NAME) {
+      await fs.rmdir(finalOutputDir, { recursive: true }).catch(() => {
+        debug(`failed to delete ${finalOutputDir} recursively`)
+      })
+    }
+  } catch {
+    debug(`failed to delete ${finalOutputDir} recursively, not found`)
+  }
 }

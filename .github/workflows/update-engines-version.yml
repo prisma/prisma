@@ -27,13 +27,13 @@ jobs:
         run: |
           echo $THE_INPUT
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v2.4.0
         with:
           version: 8
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           cache: 'pnpm'
           node-version: '16'
@@ -71,7 +71,7 @@ jobs:
 
       - name: Extract Engine Commit hash from version
         id: extract-engine-commit-hash
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const hash = context.payload.inputs.version.split('.').pop()
@@ -162,7 +162,7 @@ jobs:
       #
       - name: Extract patch branch name from version
         id: extract-patch-branch-name
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const parts = context.payload.inputs.version.split('.')
@@ -203,7 +203,7 @@ jobs:
 
       - name: Slack Notification on Failure
         if: ${{ failure() }}
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@v2.2.1
         env:
           SLACK_TITLE: 'Update Engines Version failed :x:'
           SLACK_COLOR: '#FF0000'

@@ -29,13 +29,10 @@ type Args = O.Optional<O.Update<typeof checkedArgs, any, string>>
  * @returns
  */
 export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
-Using the Data Proxy (connection URL starting with protocol ${green(
-  'prisma://',
-)}) is not supported for this CLI command ${green(
-  `prisma ${command}`,
-)} yet. Please use a direct connection to your database via the datasource 'directUrl' setting.
+Using an Accelerate URL is not supported for this CLI command ${green(`prisma ${command}`)} yet.
+Please use a direct connection to your database via the datasource \`directUrl\` setting.
 
-More information about Data Proxy: ${link('https://pris.ly/d/data-proxy-cli')}
+More information about this limitation: ${link('https://pris.ly/d/accelerate-limitations')}
 `
 
 /**
@@ -59,7 +56,7 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
 
     // for all the args that represent a schema path (including implicit, default path) ensure data proxy isn't used
     if (argName.includes('schema')) {
-      loadEnvFile(argValue, false)
+      loadEnvFile({ schemaPath: argValue, printMessage: false })
 
       const datamodel = await fs.promises.readFile(argValue, 'utf-8')
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })

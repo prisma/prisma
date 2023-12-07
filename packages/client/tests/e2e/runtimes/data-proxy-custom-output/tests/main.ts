@@ -27,7 +27,7 @@ Invalid \`prisma.user.create()\` invocation in
   15 })
   16 
 → 17 await prisma.user.create(
-No valid API key found in the datasource URL"
+Error validating datasource \`db\`: the URL must contain a valid API key"
 `)
   }
 })
@@ -51,7 +51,7 @@ test('assert edge data proxy runtime can be used', async () => {
 Invalid \`prisma.user.create()\` invocation:
 
 
-No valid API key found in the datasource URL"
+Error validating datasource \`db\`: the URL must contain a valid API key"
 `)
   }
 })

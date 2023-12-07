@@ -1,8 +1,9 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
+import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
-import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
 import fs from 'fs'
@@ -18,7 +19,9 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
+import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
+import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -26,7 +29,6 @@ import {
   unApplyModelsAndClientExtensions,
 } from './core/model/applyModelsAndClientExtensions'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
-import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import {
   checkAlter,
   rawQueryArgsMapper,
@@ -43,9 +45,10 @@ import { UserArgs } from './core/request/UserArgs'
 import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { JsInputValue } from './core/types/JsApi'
+import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
+import { JsInputValue } from './core/types/exported/JsApi'
+import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
 import { getLogLevel } from './getLogLevel'
-import { itxClientDenyList } from './itxClientDenyList'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
@@ -60,7 +63,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_ENGINE_TYPE: 'binary' | 'library' | 'edge'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge'
 }
 
 // used by esbuild for tree-shaking
@@ -73,7 +76,16 @@ export type Datasource = {
 }
 export type Datasources = { [name in string]: Datasource }
 
-export interface PrismaClientOptions {
+export type PrismaClientOptions = {
+  /**
+   * Overwrites the primary datasource url from your schema.prisma file
+   */
+  datasourceUrl?: string
+  /**
+   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
+   */
+  adapter?: DriverAdapter
+
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
@@ -222,7 +234,7 @@ export type GetPrismaClientConfig = {
    * Allows platforms to declare global variables as env (Workers).
    * @remarks only used for the purpose of data proxy
    */
-  injectableEdgeEnv?: LoadedEnv
+  injectableEdgeEnv?: () => LoadedEnv
 
   /**
    * The contents of the datasource url saved in a string.
@@ -260,6 +272,20 @@ export type GetPrismaClientConfig = {
    * in the current working directory. This usually means it has been bundled.
    */
   isBundled?: boolean
+
+  /**
+   * A boolean that is `true` when the client was generated with --no-engine. At
+   * runtime, this means the client will be bound to be using the Data Proxy.
+   */
+  noEngine?: boolean
+
+  /**
+   * Loads the raw wasm module for the wasm query engine. This configuration is
+   * generated specifically for each type of client, eg. Node.js client and Edge
+   * clients will have different implementations.
+   * @remarks this is a callback on purpose, we only load the wasm if needed.
+   */
+  getQueryEngineWasmModule?: () => Promise<unknown>
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -300,8 +326,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       checkPlatformCaching(config)
 
       if (optionsArg) {
-        validatePrismaClientOptions(optionsArg, config.datasourceNames)
+        validatePrismaClientOptions(optionsArg, config)
       }
+
+      const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
 
       const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
@@ -313,7 +341,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       })
 
       this._extensions = MergedExtensionsList.empty()
-      this._previewFeatures = config.generator?.previewFeatures ?? []
+      this._previewFeatures = getPreviewFeatures(config)
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._tracingHelper = getTracingHelper(this._previewFeatures)
@@ -324,7 +352,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
       }
 
-      const loadedEnv = NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+      const loadedEnv = // for node we load the env from files, for edge only via env injections
+        (NODE_CLIENT && !adapter && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -378,25 +407,26 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          // we attempt to load env with fs -> attempt edge env -> default
-          env: loadedEnv?.parsed ?? config.injectableEdgeEnv?.parsed ?? {},
+          env: loadedEnv?.parsed ?? {},
           flags: [],
+          getQueryEngineWasmModule: config.getQueryEngineWasmModule,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: options.datasources ?? {},
+          overrideDatasources: getDatasourceOverrides(options, config.datasourceNames),
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
+          adapter,
         }
 
         debug('clientVersion', config.clientVersion)
 
-        this._engine = getEngineInstance(this._engineConfig)
+        this._engine = getEngineInstance(config, this._engineConfig)
         this._requestHandler = new RequestHandler(this, logEmitter)
 
         if (options.log) {
@@ -478,10 +508,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         e.clientVersion = this._clientVersion
         throw e
       } finally {
-        // Debug module keeps a list of last 100 logs regardless of environment variables.
-        // This can cause a memory leak. It's especially bad in jest environment where keeping an
-        // error in this list will prevent jest sandbox from being GCed. Clearing logs on disconnect
-        // helps to avoid that
+        // Debug module keeps a list of last 100 logs regardless of environment
+        // variables. This can cause a memory leak. It's especially bad in jest
+        // environment where keeping an error in this list prevents jest sandbox
+        // from being GCed. Clearing logs on disconnect helps to avoid that
         clearLogs()
       }
     }
@@ -495,12 +525,15 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
+      const activeProvider = this._activeProvider
+      const driverAdapterProvider = this._engineConfig.adapter?.provider
+
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -592,12 +625,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
+      const activeProvider = this._activeProvider
+      const driverAdapterProvider = this._engineConfig.adapter?.provider
+
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,

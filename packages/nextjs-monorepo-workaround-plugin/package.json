@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "description": "Ensures that your Prisma files are copied",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/nextjs-monorepo-workaround-plugin"
+  },
   "scripts": {
     "test": "echo \"Tests are in prisma/packages/client/tests/e2e\""
   },
@@ -21,13 +26,8 @@
   "author": "Pierre-Antoine Mills",
   "license": "Apache-2.0",
   "homepage": "https://www.prisma.io",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/nextjs-monorepo-workaround-plugin"
-  },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "webpack": "5.88.2"
+    "webpack": "5.89.0"
   }
 }

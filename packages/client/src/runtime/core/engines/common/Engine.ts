@@ -1,3 +1,4 @@
+import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
@@ -110,6 +111,13 @@ export interface EngineConfig {
   logEmitter: EventEmitter
 
   /**
+   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`.
+   * If set, this is only used in the library engine, and all queries would be performed through it,
+   * rather than Prisma's Rust drivers.
+   */
+  adapter?: ErrorCapturingDriverAdapter
+
+  /**
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
@@ -139,6 +147,14 @@ export interface EngineConfig {
    * in the current working directory. This usually means it has been bundled.
    */
   isBundled?: boolean
+
+  /**
+   * Loads the raw wasm module for the wasm query engine. This configuration is
+   * generated specifically for each type of client, eg. Node.js client and Edge
+   * clients will have different implementations.
+   * @remarks this is a callback on purpose, we only load the wasm if needed.
+   */
+  getQueryEngineWasmModule?: () => Promise<unknown>
 }
 
 export type GetConfigResult = {

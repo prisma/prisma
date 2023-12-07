@@ -38,7 +38,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const previewFeatures = extractPreviewFeatures(config)
   const platform = await getPlatform()
   const clientEngineType = getClientEngineType(generator!)
-  ;(global as any).TARGET_ENGINE_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
+  ;(global as any).TARGET_BUILD_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
@@ -60,7 +60,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
     inlineDatasources: { db: { url: config.datasources[0].url } },
-    inlineSchema: '',
+    inlineSchema: btoa(datamodel),
     inlineSchemaHash: '',
   }
 

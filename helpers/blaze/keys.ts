@@ -9,7 +9,7 @@ import type { A } from 'ts-toolbelt'
  * @returns
  */
 function keys<T>(thing: T) {
-  return Object.keys(thing) as `${Exclude<A.Keys<T>, symbol>}`[]
+  return Object.keys(thing as any) as `${Exclude<A.Keys<T>, symbol>}`[]
 }
 
 export { keys }

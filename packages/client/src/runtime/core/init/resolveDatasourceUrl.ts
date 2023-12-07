@@ -1,3 +1,5 @@
+import { detectRuntime } from 'detect-runtime'
+
 import { Datasources, GetPrismaClientConfig } from '../../getPrismaClient'
 import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
@@ -29,6 +31,16 @@ export function resolveDatasourceUrl({
 
   // env var is set for use but url is undefined
   if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
+    if (TARGET_BUILD_TYPE === 'edge' && detectRuntime() === 'workerd') {
+      throw new PrismaClientInitializationError(
+        `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.
+
+In Cloudflare module Workers, environment variables are available only in the Worker's \`env\` parameter of \`fetch\`.
+To solve this, provide the connection string directly: https://pris.ly/d/cloudflare-datasource-url`,
+        clientVersion,
+      )
+    }
+
     // error matches as much as possible the usual engine error
     throw new PrismaClientInitializationError(
       `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.`,

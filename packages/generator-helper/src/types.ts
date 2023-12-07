@@ -94,6 +94,7 @@ export type GeneratorOptions = {
   version: string // version hash
   binaryPaths?: BinaryPaths
   postinstall?: boolean
+  noEngine?: boolean
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'

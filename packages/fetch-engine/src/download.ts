@@ -332,6 +332,7 @@ async function binaryNeedsToBeDownloaded(
 
 export async function getVersion(enginePath: string, binaryName: string) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     if (binaryName === BinaryType.QueryEngineLibrary) {
       assertNodeAPISupported()
 

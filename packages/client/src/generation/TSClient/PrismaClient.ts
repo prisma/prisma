@@ -2,7 +2,7 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
-import { Operation } from '../../runtime/core/types/Result'
+import { Operation } from '../../runtime/core/types/exported/Result'
 import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import {
@@ -22,7 +22,7 @@ import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(this: PrismaClientClass) {
-  const modelNames = Object.keys(this.dmmf.modelMap)
+  const modelNames = this.dmmf.datamodel.models.map((m) => m.name)
 
   return `{
   meta: {
@@ -110,11 +110,11 @@ function clientTypeMapDefinition(this: PrismaClientClass) {
   const typeMap = `${clientTypeMapModelsDefinition.bind(this)()} & ${clientTypeMapOthersDefinition.bind(this)()}`
 
   return `
-interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.Args}, $Utils.Record<string, any>> {
+interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs}, $Utils.Record<string, any>> {
   returns: Prisma.TypeMap<this['params']['extArgs']>
 }
 
-export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = ${typeMap}`
+export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ${typeMap}`
 }
 
 function clientExtensionsDefinitions(this: PrismaClientClass) {
@@ -355,7 +355,7 @@ export class PrismaClientClass implements Generatable {
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
-  ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs
+  ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
@@ -418,40 +418,13 @@ get ${methodName}(): Prisma.${m.model}Delegate<ExtArgs>;`
 }`
   }
   public toTS(): string {
+    const clientOptions = this.buildClientOptions()
+
     return `${new Datasources(this.internalDatasources).toTS()}
 ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-
-export interface PrismaClientOptions {
-  /**
-   * Overwrites the datasource url from your schema.prisma file
-   */
-  datasources?: Datasources
-
-  /**
-   * @default "colorless"
-   */
-  errorFormat?: ErrorFormat
-
-  /**
-   * @example
-   * \`\`\`
-   * // Defaults to stdout
-   * log: ['query', 'info', 'warn', 'error']
-   * 
-   * // Emit as events
-   * log: [
-   *  { emit: 'stdout', level: 'query' },
-   *  { emit: 'stdout', level: 'info' },
-   *  { emit: 'stdout', level: 'warn' }
-   *  { emit: 'stdout', level: 'error' }
-   * ]
-   * \`\`\`
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
-   */
-  log?: Array<LogLevel | LogDefinition>
-}
+${ts.stringify(ts.moduleExport(clientOptions))}
 
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -529,5 +502,59 @@ export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | un
  */
 export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
 `
+  }
+
+  private buildClientOptions() {
+    const clientOptions = ts
+      .interfaceDeclaration('PrismaClientOptions')
+      .add(
+        ts
+          .property('datasources', ts.namedType('Datasources'))
+          .optional()
+          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
+      )
+      .add(
+        ts
+          .property('datasourceUrl', ts.stringType)
+          .optional()
+          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
+      )
+      .add(
+        ts
+          .property('errorFormat', ts.namedType('ErrorFormat'))
+          .optional()
+          .setDocComment(ts.docComment('@default "colorless"')),
+      )
+      .add(
+        ts.property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')]))).optional()
+          .setDocComment(ts.docComment`
+             @example
+             \`\`\`
+             // Defaults to stdout
+             log: ['query', 'info', 'warn', 'error']
+            
+             // Emit as events
+             log: [
+               { emit: 'stdout', level: 'query' },
+               { emit: 'stdout', level: 'info' },
+               { emit: 'stdout', level: 'warn' }
+               { emit: 'stdout', level: 'error' }
+             ]
+             \`\`\`
+             Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+          `),
+      )
+
+    if (this.runtimeName === 'library' && this.generator?.previewFeatures.includes('driverAdapters')) {
+      clientOptions.add(
+        ts
+          .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))
+          .optional()
+          .setDocComment(
+            ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
+          ),
+      )
+    }
+    return clientOptions
   }
 }

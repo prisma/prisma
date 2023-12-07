@@ -1,0 +1,33 @@
+{
+  "private": true,
+  "name": "tracing",
+  "description": "Prisma development playground",
+  "main": "index.ts",
+  "scripts": {
+    "dbpush": "prisma db push --skip-generate",
+    "generate": "prisma generate",
+    "test": "ts-node index.ts",
+    "debug": "node -r ts-node/register --inspect-brk index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "../../packages/client",
+    "@prisma/instrumentation": "../../packages/instrumentation"
+  },
+  "devDependencies": {
+    "@opentelemetry/api": "1.7.0",
+    "@opentelemetry/context-async-hooks": "1.18.1",
+    "@opentelemetry/core": "1.18.1",
+    "@opentelemetry/exporter-trace-otlp-http": "0.45.1",
+    "@opentelemetry/instrumentation": "0.45.1",
+    "@opentelemetry/resources": "1.18.1",
+    "@opentelemetry/sdk-trace-base": "1.18.1",
+    "@opentelemetry/semantic-conventions": "1.18.1",
+    "@types/node": "18.18.9",
+    "prisma": "../../packages/cli",
+    "ts-node": "10.9.1",
+    "typescript": "5.2.2"
+  }
+}

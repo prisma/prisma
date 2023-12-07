@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
@@ -9,7 +10,7 @@ declare let prisma: PrismaClient
 
 const email = faker.internet.email()
 
-testMatrix.setupTestSuite((_0, _1, clientMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   beforeEach(async () => {
     await prisma.post.deleteMany()
     await prisma.user.deleteMany()
@@ -45,6 +46,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     const result = xprisma.$transaction([
       xprisma.user.create({
         data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
           email: 'jane@smith.com',
           firstName: 'Jane',
           lastName: 'Smith',
@@ -52,6 +54,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
       }),
       xprisma.user.create({
         data: {
+          id: copycat.uuid(2).replaceAll('-', '').slice(-24),
           email: 'jane@smith.com',
           firstName: 'Jane',
           lastName: 'Smith',
@@ -66,7 +69,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     expect(users).toHaveLength(0)
   })
 
-  test('extended client in tx works via normal call', async () => {
+  testIf(clientMeta.runtime !== 'edge')('extended client in tx works via normal call', async () => {
     const xprisma = prisma.$extends({
       result: {
         user: {
@@ -122,6 +125,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     const result = xprisma.$transaction([
       xprisma.user.createAlt({
         data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
           email: 'jane@smith.com',
           firstName: 'Jane',
           lastName: 'Smith',
@@ -129,6 +133,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
       }),
       xprisma.user.createAlt({
         data: {
+          id: copycat.uuid(2).replaceAll('-', '').slice(-24),
           email: 'jane@smith.com',
           firstName: 'Jane',
           lastName: 'Smith',
@@ -182,11 +187,11 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
-  test('isolation level is properly reflected in extended client', () => {
+  testIf(clientMeta.runtime !== 'edge')('isolation level is properly reflected in extended client', () => {
     ;async () => {
       const xprisma = prisma.$extends({})
 
-      // @ts-test-if: provider !== 'mongodb'
+      // @ts-test-if: provider !== Providers.MONGODB
       const data = await xprisma.$transaction([xprisma.user.findFirst({ select: { id: true } })], {
         isolationLevel: 'Serializable',
       })

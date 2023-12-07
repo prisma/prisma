@@ -1,4 +1,3 @@
-import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 
 export interface Dictionary<T> {
@@ -20,17 +19,15 @@ export const needNamespace = {
   Decimal: 'Decimal',
 }
 
-export function needsNamespace(fieldType: DMMF.SchemaField['outputType']['type'], dmmf: DMMFHelper): boolean {
-  if (typeof fieldType === 'string') {
-    if (dmmf.datamodelEnumMap[fieldType]) {
-      return false
-    }
-    if (GraphQLScalarToJSTypeTable[fieldType]) {
-      return Boolean(needNamespace[fieldType])
-    }
+export function needsNamespace(field: DMMF.Field): boolean {
+  if (field.kind === 'object') {
+    return true
   }
 
-  return true
+  if (field.kind === 'scalar') {
+    return field.type === 'Json' || field.type === 'Decimal'
+  }
+  return false
 }
 
 export const GraphQLScalarToJSTypeTable = {
@@ -59,14 +56,6 @@ export const JSTypeToGraphQLType = {
   symbol: 'Symbol',
 }
 
-export function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
-  if (typeof arg === 'string') {
-    return false
-  }
-
-  return true
-}
-
 export function capitalize(str: string): string {
   return str[0].toUpperCase() + str.slice(1)
 }
@@ -77,8 +66,4 @@ export function capitalize(str: string): string {
  */
 export function lowerCase(name: string): string {
   return name.substring(0, 1).toLowerCase() + name.substring(1)
-}
-
-export function isSchemaEnum(type: any): type is DMMF.SchemaEnum {
-  return typeof type === 'object' && type !== null && typeof type.name === 'string' && Array.isArray(type.values)
 }

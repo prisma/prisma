@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -114,7 +115,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
   // with other databases. Investigate why it happens and check if it still
   // reproducible after Mini-Proxy starts using the Query Engine server instead
   // of the Query Engine CLI.
-  testIf(!clientMeta.dataProxy || suiteConfig.provider !== 'mongodb')('nested relation', async () => {
+  testIf(!clientMeta.dataProxy || suiteConfig.provider !== Providers.MONGODB)('nested relation', async () => {
     const group = await prisma.group.findFirst({
       where: { title },
       select: {

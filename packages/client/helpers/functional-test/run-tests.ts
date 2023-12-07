@@ -4,23 +4,86 @@ import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
-import { Providers } from '../../tests/functional/_utils/providers'
+import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
 
 const allProviders = new Set(Object.values(Providers))
+const allProviderFlavors = new Set(Object.values(ProviderFlavors))
+
+// See https://jestjs.io/docs/cli
+// Not all Jest params are defined below
+// If one is missing and you want to use it, you can add it
+const jestArgs = {
+  // Whether to use the cache. Defaults to true. Disable the cache using --no-cache.
+  '--cache': Boolean,
+  '--no-cache': Boolean,
+  // Passes the same flag to Jest to only run tests related to changed files
+  '--changedFilesWithAncestor': Boolean,
+  // Passes the same flag to Jest to only run tests related to changed files
+  '--changedSince': String,
+  // Passes the same flag to Jest to only run tests related to changed files
+  '--onlyChanged': Boolean,
+  // Run all tests affected by file changes in the last commit made. Behaves similarly to --onlyChanged.
+  '--lastCommit': Boolean,
+  // Deletes the Jest cache directory and then exits without running tests.
+  '--clearCache': Boolean,
+  // Print debugging info about your Jest config.
+  '--debug': Boolean,
+  // Print the remaining open handles preventing Jest from exiting, implies `--runInBand`.
+  '--detectOpenHandles': Boolean,
+  // Use this flag to show full diffs and errors instead of a patch.
+  '--expand': Boolean,
+  '-e': '--expand',
+  // Lists all test files that Jest will run given the arguments, and exits.
+  '--listTests': Boolean,
+  // Lists all test files that Jest will run given the arguments, and exits.
+  '--logHeapUsage': Boolean,
+  // Logs the heap usage after every test. Useful to debug memory leaks. Use together with --runInBand and --expose-gc in node.
+  // Prevents Jest from executing more than the specified amount of tests at the same time. Only affects tests that use test.concurrent.
+  '--maxConcurrency': Number,
+  // Specifies the maximum number of workers the worker-pool will spawn for running tests.
+  '--maxWorkers': Number || String,
+  '-w': '--maxWorkers',
+  // Disables stack trace in test results output.
+  '--noStackTrace': Boolean,
+  // Activates notifications for test results.
+  '--notify': Boolean,
+  // Passes the same flag to Jest to shard tests between multiple machines
+  '--shard': String,
+  // Passes the same flag to Jest to silence the output
+  '--silent': Boolean,
+  // Tell Jest to run tests sequentially
+  '--runInBand': Boolean,
+  // Print your Jest config and then exits.
+  '--showConfig': Boolean,
+  // Run only tests with a name that matches the regex.
+  '--testNamePattern': String,
+  '-t': '--testNamePattern',
+  // Divert all output to stderr.
+  '--useStderr': Boolean,
+  // Display individual test results with the test suite hierarchy.
+  '--verbose': Boolean,
+  // Watch files for changes and rerun tests related to changed files. If you want to re-run all tests when a file has changed, use the --watchAll option instead.
+  '--watch': Boolean,
+  // Watch files for changes and rerun all tests when something changes. If you want to re-run only the tests that depend on the changed files, use the --watch option.
+  '--watchAll': Boolean,
+  // Whether to use worker threads for parallelization. Child processes are used by default.
+  '--workerThreads': Boolean,
+}
 
 const args = arg(
   process.argv.slice(2),
   {
     // Update snapshots
-    '-u': Boolean,
+    '--updateSnapshot': Boolean,
+    '-u': '--updateSnapshot',
     // Only run the tests, don't typecheck
     '--no-types': Boolean,
     // Only typecheck, don't run the code tests
     '--types-only': Boolean,
     // Generates all the clients to run the type tests
     '--generate-only': Boolean,
-    // Restrict the list of providers
+    // Restrict the list of providers (does not run --flavor by default)
     '--provider': [String],
     '-p': '--provider',
     // Generate Data Proxy client and run tests using Mini-Proxy
@@ -38,37 +101,75 @@ const args = arg(
     // Also the typescript tests fail and it might not be easily fixable
     // This flag is used for this purpose
     '--relation-mode-tests-only': Boolean,
+    // Run tests for specific provider flavors (and excludes regular provider tests)
+    '--flavor': [String],
+    // Forces any given test to be run with `engineType=` binary, library, or wasm
+    '--engine-type': String,
+    // Forces any given test to be run with an *added* set of preview features, comma-separated
+    '--preview-features': String,
+
     //
-    // Jest flags
+    // Jest params
     //
-    // Passes the same flag to Jest to only run tests related to changed files
-    '--onlyChanged': Boolean,
-    // Passes the same flag to Jest to only run tests related to changed files
-    '--changedSince': String,
-    // Passes the same flag to Jest to only run tests related to changed files
-    '--changedFilesWithAncestor': Boolean,
-    // Passes the same flag to Jest to shard tests between multiple machines
-    '--shard': String,
-    // Passes the same flag to Jest to silence the output
-    '--silent': Boolean,
+    ...jestArgs,
   },
-  true,
+  false,
   true,
 )
 
 async function main(): Promise<number | void> {
-  let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
-  const jestArgs = ['--testPathIgnorePatterns', 'typescript']
+
+  const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
+  let jestCli = jestCliBase
+  // Pass all the Jest params to Jest CLI
+  for (const cliArg of Object.keys(args)) {
+    // If it's a boolean, we only need to pass the flag
+    if (typeof jestArgs[cliArg] === 'function' && jestArgs[cliArg].name === 'Boolean') {
+      jestCli = jestCli.withArgs([cliArg])
+    } else if (jestArgs[cliArg]) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      jestCli = jestCli.withArgs([cliArg, args[cliArg]])
+    }
+  }
+
+  if (args['--preview-features']) {
+    jestCli = jestCli.withEnv({ TEST_PREVIEW_FEATURES: args['--preview-features'] })
+  }
 
   if (args['--provider']) {
     const providers = args['--provider'] as Providers[]
     const unknownProviders = providers.filter((provider) => !allProviders.has(provider))
     if (unknownProviders.length > 0) {
-      console.error(`Unknown providers: ${unknownProviders.join(', ')}`)
-      process.exit(1)
+      throw new Error(`Unknown providers: ${unknownProviders.join(', ')}`)
     }
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
+  }
+
+  if (args['--flavor']) {
+    const providerFlavors = args['--flavor'] as ProviderFlavors[]
+    const unknownFlavors = providerFlavors.filter((flavor) => !allProviderFlavors.has(flavor))
+
+    if (unknownFlavors.length > 0) {
+      throw new Error(`Unknown flavors: ${unknownFlavors.join(', ')}`)
+    }
+
+    if (providerFlavors.some(isDriverAdapterProviderFlavor)) {
+      jestCli = jestCli.withArgs(['--runInBand'])
+      jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
+      jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
+
+      if (args['--data-proxy'] || args['--engine-type'] === 'binary') {
+        throw new Error('Driver adapters are not compatible with --data-proxy or --engine-type=binary')
+      }
+    }
+
+    jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_FLAVORS: providerFlavors.join(',') })
+  }
+
+  if (args['--engine-type']) {
+    jestCli = jestCli.withEnv({ TEST_ENGINE_TYPE: args['--engine-type'] })
+    jestCli = jestCli.withEnv({ PRISMA_CLIENT_ENGINE_TYPE: '' })
   }
 
   if (args['--data-proxy']) {
@@ -110,44 +211,32 @@ async function main(): Promise<number | void> {
   // See flag description above.
   // If the flag is not provided we want to ignore `relationMode` tests
   if (args['--relation-mode-tests-only']) {
-    jestArgs.push('--runInBand')
+    jestCli = jestCli.withArgs(['--runInBand'])
+    jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
   } else {
-    jestArgs.push('--testPathIgnorePatterns', 'relationMode-in-separate-gh-action')
+    jestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'relationMode-in-separate-gh-action'])
   }
 
-  if (args['--onlyChanged']) {
-    jestArgs.push('--onlyChanged')
+  if (process.env.PRISMA_CLIENT_ENGINE_TYPE && !args['--engine-type']) {
+    throw new Error('Functional tests expect --engine-type to be explicitly set, not via env var')
   }
-  if (args['--changedSince']) {
-    jestArgs.push('--changedSince', args['--changedSince'])
-  }
-  if (args['--shard']) {
-    jestArgs.push('--shard', args['--shard'])
-  }
-  if (args['--silent']) {
-    jestArgs.push('--silent')
-  }
-  const codeTestCli = jestCli.withArgs(jestArgs)
 
   try {
-    if (args['-u']) {
-      const snapshotUpdate = codeTestCli.withArgs(['-u']).withArgs(args['_'])
+    if (args['--updateSnapshot']) {
+      const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
       if (!args['--types-only']) {
-        codeTestCli
-          .withArgs(['--', args['_']])
-          .withEnv({
-            TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false',
-          })
+        jestCli
+          .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
+          .withEnv({ TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false' })
           .run()
       }
 
       if (!args['--no-types']) {
         // Disable JUnit output for typescript tests
-        process.env.JEST_JUNIT_DISABLE = 'true'
-        jestCli.withArgs(['--', 'typescript']).run()
+        jestCliBase.withArgs(['--', 'typescript']).withEnv({ JEST_JUNIT_DISABLE: 'true' }).run()
       }
     }
   } catch (error) {

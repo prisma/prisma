@@ -1,17 +1,18 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { Providers } from '../../_utils/providers'
 
 export default defineMatrix(() => [
   [
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
       url: 'postgresql://invalid:invalid@invalid.org:123/invalid',
     },
     {
-      provider: 'mysql',
+      provider: Providers.MYSQL,
       url: 'mysql://invalid:invalid@invalid:3307/invalid',
     },
     {
-      provider: 'cockroachdb',
+      provider: Providers.COCKROACHDB,
       url: 'postgresql://invalid:invalid@invalid.org:123/invalid',
     },
   ],
