@@ -70,11 +70,11 @@ const edgeRuntimeBuildConfig: BuildOptions = {
       eval: { define: 'undefined' },
       Function: {
         define: 'fn',
-        inject: functionPolyfillPath,
+        globals: functionPolyfillPath,
       },
       // we shim WeakRef, it does not exist on CF
       WeakRef: {
-        inject: weakrefPolyfillPath,
+        globals: weakrefPolyfillPath,
       },
       // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
