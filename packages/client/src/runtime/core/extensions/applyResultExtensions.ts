@@ -59,7 +59,7 @@ export function applyResultExtensions({ result, modelName, select, extensions }:
   }
 
   if (computedPropertiesLayers.length > 0 || maskingLayers.length > 0) {
-    return createCompositeProxy(result, [...computedPropertiesLayers, ...maskingLayers], true)
+    return createCompositeProxy(result, [...computedPropertiesLayers, ...maskingLayers])
   }
   return result
 }

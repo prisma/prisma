@@ -41,11 +41,7 @@ const customInspect = Symbol.for('nodejs.util.inspect.custom')
  * @param layers
  * @returns
  */
-export function createCompositeProxy<T extends object>(
-  target: T,
-  layers: CompositeProxyLayer[],
-  disableInspect?: boolean,
-): T {
+export function createCompositeProxy<T extends object>(target: T, layers: CompositeProxyLayer[]): T {
   const keysToLayerMap = mapKeysToLayers(layers)
   const overwrittenKeys = new Set<string | symbol>()
 
@@ -108,6 +104,14 @@ export function createCompositeProxy<T extends object>(
             ...layer?.getPropertyDescriptor(prop),
           }
         }
+
+        if (prop === '$parent') {
+          return {
+            ...defaultPropertyDescriptor,
+            enumerable: false,
+          }
+        }
+
         return defaultPropertyDescriptor
       }
 
@@ -121,10 +125,6 @@ export function createCompositeProxy<T extends object>(
   })
 
   proxy[customInspect] = function (depth: number, options: InspectOptions, defaultInspect: typeof inspect = inspect) {
-    if (disableInspect) {
-      options.customInspect = false
-    }
-
     // Default node.js console.log and util.inspect deliberately avoid triggering any proxy traps and log
     // original target. This is not we want for our usecases: we want console.log to output the result as if
     // the properties actually existed on the target. Using spread operator forces us to produce correct object
