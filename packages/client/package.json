@@ -71,7 +71,9 @@
     "index.d.ts",
     "index-browser.js",
     "extension.js",
-    "extension.d.ts"
+    "extension.d.ts",
+    "adapter.js",
+    "adapter.d.ts"
   ],
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "2.3.1",

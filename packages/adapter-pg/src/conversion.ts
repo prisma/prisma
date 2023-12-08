@@ -1,4 +1,4 @@
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/client/adapter'
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 

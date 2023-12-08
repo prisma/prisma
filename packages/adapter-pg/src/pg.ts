@@ -8,8 +8,8 @@ import type {
   ResultSet,
   Transaction,
   TransactionOptions,
-} from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+} from '@prisma/client/adapter'
+import { Debug, err, initialize, ok } from '@prisma/client/adapter'
 import type pg from 'pg'
 
 import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
@@ -125,6 +125,8 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
   constructor(client: pg.Pool) {
+    initialize()
+
     super(client)
   }
 

@@ -1,5 +1,5 @@
 import { cast as defaultCast } from '@planetscale/database'
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/client/adapter'
 
 // See: https://github.com/planetscale/vitess-types/blob/06235e372d2050b4c0fff49972df8111e696c564/src/vitess/query/v16/query.proto#L108-L218
 export type PlanetScaleColumnType =

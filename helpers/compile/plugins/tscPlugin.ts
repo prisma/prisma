@@ -61,6 +61,8 @@ function bundleTypeDefinitions(filename: string, outfile: string, externals: str
   }
 }
 
+let tscHasNotYetRun = true // optimizes not running tsc unnecessarily
+
 /**
  * Triggers the TypeScript compiler and the type bundler.
  */
@@ -73,12 +75,13 @@ export const tscPlugin: (emitTypes?: boolean) => esbuild.Plugin = (emitTypes?: b
 
     build.onStart(async () => {
       // we only call tsc if not in watch mode or in dev mode (they skip types)
-      if (process.env.WATCH !== 'true' && process.env.DEV !== 'true') {
+      if (tscHasNotYetRun && process.env.WATCH !== 'true' && process.env.DEV !== 'true') {
         // --paths null basically prevents typescript from using paths from the
         // tsconfig.json that is passed from the esbuild config. We need to do
         // this because TS would include types from the paths into this build.
         // but our paths, in our specific case only represent separate packages.
         await run(`tsc --project ${options.tsconfig} --paths null`)
+        tscHasNotYetRun = false
       }
 
       // we bundle types if we also bundle the entry point and it is a ts file

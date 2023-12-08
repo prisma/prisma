@@ -9,8 +9,8 @@ import type {
   ResultSet,
   Transaction,
   TransactionOptions,
-} from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+} from '@prisma/client/adapter'
+import { Debug, err, initialize, ok } from '@prisma/client/adapter'
 
 import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
 
@@ -125,6 +125,8 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
   private isRunning = true
 
   constructor(pool: neon.Pool) {
+    initialize()
+
     super(pool)
   }
 

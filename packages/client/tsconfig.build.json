@@ -3,5 +3,5 @@
   "compilerOptions": {
     "outDir": "declaration"
   },
-  "include": ["src/runtime"]
+  "include": ["src/runtime", "src/scripts"]
 }

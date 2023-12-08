@@ -31,7 +31,7 @@ export const wasmLibraryLoader: LibraryLoader = {
     // bindgen keeps an internal cache of its instance already, when the wasm
     // engine is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
-      const wasmMod = await config.getQueryEngineWasmModule?.()
+      const wasmMod = await globalThis[Symbol.for('prisma:client:engine:wasm:loaded')]()
 
       if (wasmMod === undefined || wasmMod === null) {
         throw new PrismaClientInitializationError(

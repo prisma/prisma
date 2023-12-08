@@ -303,7 +303,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       let target: string
 
       // Introduced in https://github.com/prisma/prisma/pull/6527
-      // The engines that are not needed for the runtime deployment on AWS Lambda 
+      // The engines that are not needed for the runtime deployment on AWS Lambda
       // are moved to `/tmp/prisma-engines`
       // They will be ignored and not included in the final build, reducing its size
       if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {
@@ -319,21 +319,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
     await fs.copyFile(schemaPath, schemaTargetPath)
-  }
-
-  // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (getClientEngineType(generator) === ClientEngineType.Wasm) {
-    const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
-    const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
-    // some bundlers (eg. webpack) need this file to exist, even if it's empty
-    // this is because they analyze `query-engine.wasm` for references to other
-    // files. It does not matter for us, because we bundle query_engine_bg.js.
-    const dummyQueryEngineBgTargetPath = path.join(finalOutputDir, 'query_engine_bg.js')
-    const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
-
-    const copyOrSymlink = testMode ? fs.symlink : fs.copyFile
-    await copyOrSymlink(queryEngineWasmFilePath, queryEngineWasmTargetPath)
-    await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')

@@ -10,8 +10,8 @@ import type {
   ResultSet,
   Transaction,
   TransactionOptions,
-} from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+} from '@prisma/client/adapter'
+import { Debug, err, initialize, ok } from '@prisma/client/adapter'
 
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
@@ -137,6 +137,8 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
 
 export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
   constructor(client: planetScale.Client) {
+    initialize()
+
     // this used to be a check for constructor name at same point (more reliable when having multiple copies
     // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
     if (!(client instanceof planetScale.Client)) {

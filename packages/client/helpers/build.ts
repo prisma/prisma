@@ -115,6 +115,16 @@ const defaultIndexConfig: BuildOptions = {
   emitTypes: false,
 }
 
+// adapter-index.js file in scripts
+const adapterIndexConfig: BuildOptions = {
+  name: 'default-index',
+  entryPoints: ['src/scripts/adapter-index.ts'],
+  outfile: 'scripts/adapter-index',
+  bundle: true,
+  emitTypes: true,
+  external: ['../runtime/query-engine.wasm'],
+}
+
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -127,6 +137,7 @@ void build([
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
   defaultIndexConfig,
+  adapterIndexConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
 })

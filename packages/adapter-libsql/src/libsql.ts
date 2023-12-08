@@ -12,8 +12,8 @@ import type {
   ResultSet,
   Transaction,
   TransactionOptions,
-} from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+} from '@prisma/client/adapter'
+import { Debug, err, initialize, ok } from '@prisma/client/adapter'
 import { Mutex } from 'async-mutex'
 
 import { getColumnTypes, mapRow } from './conversion'
@@ -126,6 +126,8 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
 
 export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAdapter {
   constructor(client: StdClient) {
+    initialize()
+
     super(client)
   }
 

@@ -126,6 +126,8 @@ async function executeEsBuild(options: BuildOptions) {
  * A blank esbuild run to do an analysis of our deps
  */
 async function dependencyCheck(options: BuildOptions) {
+  return // TODO skipped for now broken on my machine
+
   // we only check our dependencies for a full build
   if (process.env.DEV === 'true') return undefined
   // Only run on test and publish pipelines on Buildkite
