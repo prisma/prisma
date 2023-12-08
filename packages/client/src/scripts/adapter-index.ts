@@ -6,8 +6,8 @@ export function initialize() {
   const sym = Symbol.for('prisma:client:engine:wasm:loaded')
 
   if (detectRuntime() === 'edge-light') {
-    globalThis[sym] ??= async () => (await import(`../runtime/query-engine.wasm${'?module'}`)).default
+    globalThis[sym] ??= async () => (await import(`../runtime/query-engine.wasm${'?module'}` as string)).default
   } else {
-    globalThis[sym] ??= async () => (await import(`../runtime/query-engine.wasm`)).default
+    globalThis[sym] ??= async () => (await import(`../runtime/query-engine.wasm` as string)).default
   }
 }
