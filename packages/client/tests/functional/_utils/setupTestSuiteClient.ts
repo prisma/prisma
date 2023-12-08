@@ -114,7 +114,7 @@ export function setupTestSuiteClientDriverAdapter({
 
   if (providerFlavor === ProviderFlavors.JS_PG) {
     const { Pool } = require('pg') as typeof import('pg')
-    const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
+    const { PrismaPg } = require('../../../../adapter-pg') as typeof import('../../../../adapter-pg')
 
     const pool = new Pool({
       connectionString: datasourceInfo.databaseUrl,
@@ -125,7 +125,7 @@ export function setupTestSuiteClientDriverAdapter({
 
   if (providerFlavor === ProviderFlavors.JS_NEON) {
     const { neonConfig, Pool } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
-    const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
+    const { PrismaNeon } = require('../../../../adapter-neon') as typeof import('../../../../adapter-neon')
 
     neonConfig.wsProxy = () => `127.0.0.1:5488/v1`
     neonConfig.webSocketConstructor = WebSocket
@@ -141,7 +141,8 @@ export function setupTestSuiteClientDriverAdapter({
 
   if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
     const { Client } = require('@planetscale/database') as typeof import('@planetscale/database')
-    const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
+    const { PrismaPlanetScale } =
+      require('../../../../adapter-planetscale') as typeof import('../../../../adapter-planetscale')
 
     const client = new Client({
       url: 'http://root:root@127.0.0.1:8085',
@@ -153,7 +154,7 @@ export function setupTestSuiteClientDriverAdapter({
 
   if (providerFlavor === ProviderFlavors.JS_LIBSQL) {
     const { createClient } = require('@libsql/client') as typeof import('@libsql/client')
-    const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
+    const { PrismaLibSQL } = require('../../../../adapter-libsql') as typeof import('../../../../adapter-libsql')
 
     const client = createClient({
       url: datasourceInfo.databaseUrl,
