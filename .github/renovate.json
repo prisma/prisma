@@ -186,6 +186,11 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
+      "groupName": "e2e ts-version tests",
+      "ignoreDeps": ["typescript"],
+      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
+    },
+    {
       "groupName": "Weekly vitess docker image version update",
       "matchPackageNames": ["vitess/vttestserver"],
       "schedule": ["before 7am on Wednesday"]
