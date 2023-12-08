@@ -8,8 +8,8 @@
     "simple-ext": "./simple-ext/simple-ext-0.0.0.tgz"
   },
   "devDependencies": {
-    "@types/jest": "29.5.1",
-    "@types/node": "16.18.11",
+    "@types/jest": "29.5.10",
+    "@types/node": "16.18.65",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   }
 }

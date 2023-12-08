@@ -13,7 +13,7 @@ import {
 import { ProviderFlavors } from './providers'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { AlterStatementCallback, ClientMeta, ClientRuntime } from './types'
+import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
 
 /**
  * Does the necessary setup to get a test suite client ready to run.
@@ -22,6 +22,7 @@ import { AlterStatementCallback, ClientMeta, ClientRuntime } from './types'
  * @returns loaded client module
  */
 export async function setupTestSuiteClient({
+  cliMeta,
   suiteMeta,
   suiteConfig,
   datasourceInfo,
@@ -29,6 +30,7 @@ export async function setupTestSuiteClient({
   skipDb,
   alterStatementCallback,
 }: {
+  cliMeta: CliMeta
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
@@ -37,7 +39,7 @@ export async function setupTestSuiteClient({
   alterStatementCallback?: AlterStatementCallback
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
-  const schema = getTestSuiteSchema(suiteMeta, suiteConfig.matrixOptions)
+  const schema = getTestSuiteSchema(cliMeta, suiteMeta, suiteConfig.matrixOptions)
   const previewFeatures = getTestSuitePreviewFeatures(schema)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
@@ -138,15 +140,15 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-    const { connect } = require('@planetscale/database') as typeof import('@planetscale/database')
+    const { Client } = require('@planetscale/database') as typeof import('@planetscale/database')
     const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
 
-    const connection = connect({
+    const client = new Client({
       url: 'http://root:root@127.0.0.1:8085',
       fetch, // TODO remove when Node 16 is deprecated
     })
 
-    return { adapter: new PrismaPlanetScale(connection) }
+    return { adapter: new PrismaPlanetScale(client) }
   }
 
   if (providerFlavor === ProviderFlavors.JS_LIBSQL) {

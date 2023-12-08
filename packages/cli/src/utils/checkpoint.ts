@@ -151,6 +151,8 @@ export const SENSITIVE_CLI_OPTIONS = [
   '--name',
   '--applied',
   '--rolled-back',
+  // 4. Platform CLI
+  '--token',
 ]
 /*
  * removes potentially sensitive information from the command array (argv strings)

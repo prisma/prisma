@@ -1,5 +1,15 @@
 import type { Command } from '@prisma/internals'
-import { arg, format, getSchemaPath, HelpError, isCi, isError, isInteractive } from '@prisma/internals'
+import {
+  arg,
+  format,
+  getSchemaPath,
+  HelpError,
+  isCi,
+  isError,
+  isInteractive,
+  link,
+  loadEnvFile,
+} from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 import { getRootCacheDir } from '../../fetch-engine/src/utils'
@@ -41,22 +51,25 @@ export class DebugInfo implements Command {
       return this.help()
     }
 
-    const formatEnvValue = (name: string) => {
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+
+    const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
+      const line = `- ${name}${text ? ` ${text}` : ''}`
 
       if (value === undefined) {
-        return dim(`- ${name}:`)
+        return dim(line + ':')
       }
-      return bold(`- ${name}: \`${value}\``)
+      return bold(line + `: \`${value}\``)
     }
 
     let schemaPath
     try {
-      schemaPath = await getSchemaPath(args['--schema'])
+      schemaPath = link(await getSchemaPath(args['--schema']))
     } catch (e) {
       schemaPath = e.message
     }
-    const rootCacheDir = await getRootCacheDir()
+    const rootCacheDir = link(await getRootCacheDir())
 
     return `${underline('-- Prisma schema --')}
 Path: ${schemaPath}
@@ -84,7 +97,7 @@ ${formatEnvValue('https_proxy')}
 ${formatEnvValue('HTTPS_PROXY')}
 
 For more information about Prisma environment variables:
-See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+See ${link('https://www.prisma.io/docs/reference/api-reference/environment-variables-reference')}
 
 For hiding messages
 ${formatEnvValue('PRISMA_DISABLE_WARNINGS')}
@@ -93,7 +106,7 @@ ${formatEnvValue('PRISMA_HIDE_UPDATE_MESSAGE')}
 
 For downloading engines
 ${formatEnvValue('PRISMA_ENGINES_MIRROR')}
-${formatEnvValue('PRISMA_BINARIES_MIRROR')} ${dim('- (deprecated)')}
+${formatEnvValue('PRISMA_BINARIES_MIRROR', '(deprecated)')}
 ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
 ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
 
@@ -118,7 +131,7 @@ ${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
 
 For Prisma Client
 ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
-${formatEnvValue('PRISMA_CLIENT_NO_RETRY')} ${dim('- (Binary engine only)')}
+${formatEnvValue('PRISMA_CLIENT_NO_RETRY', '(Binary engine only)')}}
 
 For Prisma Migrate
 ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}
@@ -132,7 +145,7 @@ ${underline('-- Terminal is interactive? --')}
 ${isInteractive()}
 
 ${underline('-- CI detected? --')}
-${isCi() ? 'Yes' : 'No'}
+${isCi()}
 `
   }
 

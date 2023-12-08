@@ -1,29 +1,14 @@
-# @prisma/adapter-neon
+# Prisma driver adapter for Neon serverless driver
 
-Prisma driver adapter for [Neon Serverless Driver](https://github.com/neondatabase/serverless).
+Prisma driver adapter for [Neon Serverless Driver](https://github.com/neondatabase/serverless). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) and our [docs](https://www.prisma.io/docs/guides/database/neon#how-to-use-neons-serverless-driver-with-prisma-preview) for more details.
 
-See https://github.com/prisma/prisma/releases/tag/5.4.0 and https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV for details.
+> **Note:**: Support for Neon's serverless driver is available from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.2) and later.
 
-The following usage tutorial is valid for Prisma 5.4.2 and later versions.
+The [Neon serverless driver](https://github.com/neondatabase/serverless) is a low-latency Postgres driver for JavaScript and TypeScript that allows you to query data from serverless and edge environments.
 
-## How to install
+## Getting started
 
-After [creating your database on Neon](https://neon.tech/docs/get-started-with-neon/setting-up-a-project), you'll need to install the `@prisma/adapter-neon` driver adapter, Neon’s serverless database driver `@neondatabase/serverless`, and `ws` to set up a WebSocket connection for use by Neon.
-
-```sh
-npm install @prisma/adapter-neon
-npm install @neondatabase/serverless
-npm install ws
-```
-
-Make sure your [Neon database connection string](https://neon.tech/docs/connect/connect-from-any-app) is copied over to your `.env` file. The connection string will start with `postgres://`.
-
-```env
-# .env
-DATABASE_URL="postgres://..."
-```
-
-Make sure you also include the `driverAdapters` Preview feature in your `schema.prisma`.
+To get started, enable the `driverAdapters` Preview feature in your Prisma schema:
 
 ```prisma
 // schema.prisma
@@ -38,18 +23,29 @@ datasource db {
 }
 ```
 
-Now run `npx prisma generate` to re-generate Prisma Client.
+> **Note**: Make sure your connection string exists in your `.env` file. Refer to [Neon's docs](https://neon.tech/docs/connect/connect-from-any-app) to learn how to retrieve your database's connection string.
+>
+> ```bash
+> DATABASE_URL="postgres://user:password@server.us-east-2.aws.neon.tech/neondb"
+> ```
 
-## How to use
+Generate Prisma Client:
 
-In TypeScript, you will need to:
+```sh
+npx prisma generate
+```
 
-1. Import packages
-2. Set up the Neon serverless database driver
-3. Instantiate the Prisma Neon adapter with the Neon serverless database driver
-4. Pass the driver adapter to the Prisma Client instance
+Install the Prisma adapter for Neon's serverless driver, Neon's serverless driver and `ws` packages:
 
-```typescript
+```sh
+npm install @prisma/adapter-neon
+npm install @neondatabase/serverless
+npm install ws
+```
+
+Update your Prisma Client instance to use the Neon serverless driver using a WebSocket connection:
+
+```ts
 // Import needed packages
 import { Pool, neonConfig } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
@@ -68,4 +64,10 @@ const prisma = new PrismaClient({ adapter })
 // Use Prisma Client as normal
 ```
 
-Now your code has built-in benefits of the Neon serverless driver, such as WebSocket connections and [message pipelining](https://neon.tech/blog/quicker-serverless-postgres), while Prisma covers connection creation and destruction, error handling, and type safety. If you have any feedback about our Neon Serverless Driver support, please leave a comment on our [dedicated GitHub issue](https://github.com/prisma/prisma/discussions/21346) and we'll use it as we continue development.
+You can now use Prisma Client as you normally would with full type-safety. Your Prisma Client instance now uses Neon's serverless driver to connect to your database. This comes with benefits such as WebSocket connections and [message pipelining](https://neon.tech/blog/quicker-serverless-postgres).
+
+## Feedback
+
+We encourage you to create an issue if you find something missing or run into a bug.
+
+If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/21346).

@@ -12,9 +12,9 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 
-import { Providers } from '../_utils/providers'
+import { Providers, RelationModes } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -85,8 +85,11 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider }, suiteMeta, clientMeta) => {
+  ({ provider, providerFlavor, relationMode, engineType }, _suiteMeta, clientMeta) => {
     const isMongoDb = provider === Providers.MONGODB
+
+    const usesSyntheticTxQueries =
+      providerFlavor !== undefined && ['js_libsql', 'js_planetscale'].includes(providerFlavor)
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -104,7 +107,13 @@ testMatrix.setupTestSuite(
       })
     }
 
-    function dbQuery(statement: string, hasDriverAdapterResultSpan = true): Tree {
+    enum AdapterQueryChildSpans {
+      ArgsAndResult,
+      ArgsOnly,
+      None,
+    }
+
+    function dbQuery(statement: string, driverAdapterChildSpans = AdapterQueryChildSpans.ArgsAndResult): Tree {
       const span = {
         name: 'prisma:engine:db_query',
         attributes: {
@@ -112,23 +121,21 @@ testMatrix.setupTestSuite(
         },
       }
 
-      // extra children spans for driver adapters
-      if (clientMeta.driverAdapter) {
+      // extra children spans for driver adapters, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
+      if (clientMeta.driverAdapter && driverAdapterChildSpans !== AdapterQueryChildSpans.None) {
         const children = [] as Tree[]
 
-        // args span always exists for any query
         children.push({
           name: 'js:query:args',
         })
 
         // result span only exists for returning queries
-        if (hasDriverAdapterResultSpan === true) {
+        if (driverAdapterChildSpans !== AdapterQueryChildSpans.ArgsOnly) {
           children.push({
             name: 'js:query:result',
           })
         }
 
-        // sql span always exists for any query
         children.push({
           name: 'js:query:sql',
           attributes: {
@@ -140,6 +147,22 @@ testMatrix.setupTestSuite(
       }
 
       return span
+    }
+
+    function txBegin() {
+      if (usesSyntheticTxQueries) {
+        return dbQuery('-- Implicit "BEGIN" query via underlying driver', AdapterQueryChildSpans.None)
+      } else {
+        return dbQuery(expect.stringContaining('BEGIN'), AdapterQueryChildSpans.ArgsOnly)
+      }
+    }
+
+    function txCommit() {
+      if (usesSyntheticTxQueries) {
+        return dbQuery('-- Implicit "COMMIT" query via underlying driver', AdapterQueryChildSpans.None)
+      } else {
+        return dbQuery('COMMIT', AdapterQueryChildSpans.ArgsOnly)
+      }
     }
 
     function operation(model: string | undefined, method: string, children: Tree[]) {
@@ -174,7 +197,7 @@ testMatrix.setupTestSuite(
     }
 
     function engineSerializeFinalResponse() {
-      if (clientMeta.dataProxy || getClientEngineType() === ClientEngineType.Binary) {
+      if (clientMeta.dataProxy || engineType === ClientEngineType.Binary) {
         return []
       }
       return [{ name: 'prisma:engine:response_json_serialization' }]
@@ -207,13 +230,13 @@ testMatrix.setupTestSuite(
       }
       const dbQueries: Tree[] = []
       if (tx) {
-        dbQueries.push(dbQuery(expect.stringContaining('BEGIN'), false))
+        dbQueries.push(txBegin())
       }
 
       dbQueries.push(dbQuery(expect.stringContaining('INSERT')), dbQuery(expect.stringContaining('SELECT')))
 
       if (tx) {
-        dbQueries.push(dbQuery('COMMIT', false))
+        dbQueries.push(txCommit())
       }
       return dbQueries
     }
@@ -265,30 +288,30 @@ testMatrix.setupTestSuite(
 
         sharedEmail = newEmail
 
-        let dbQueries: Tree[]
+        let expectedDbQueries: Tree[]
 
         if (isMongoDb) {
-          dbQueries = [
+          expectedDbQueries = [
             dbQuery(expect.stringContaining('db.User.findMany(*)')),
             dbQuery(expect.stringContaining('db.User.updateMany(*)')),
             dbQuery(expect.stringContaining('db.User.findOne(*)')),
           ]
         } else if (['postgresql', 'cockroachdb'].includes(provider)) {
-          dbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
+          expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
         } else {
-          dbQueries = [
-            dbQuery(expect.stringContaining('BEGIN'), false),
+          expectedDbQueries = [
+            txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
-            dbQuery(expect.stringContaining('UPDATE')),
+            dbQuery(expect.stringContaining('UPDATE'), AdapterQueryChildSpans.ArgsOnly),
             dbQuery(expect.stringContaining('SELECT')),
-            dbQuery('COMMIT', false),
+            txCommit(),
           ]
         }
 
         await waitForSpanTree(
           operation('User', 'update', [
             clientSerialize(),
-            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
+            engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -300,26 +323,26 @@ testMatrix.setupTestSuite(
           },
         })
 
-        let dbQueries: Tree[]
+        let expectedDbQueries: Tree[]
 
         if (isMongoDb) {
-          dbQueries = [
+          expectedDbQueries = [
             dbQuery(expect.stringContaining('db.User.findOne(*)')),
             dbQuery(expect.stringContaining('db.User.findMany(*)')),
             dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
           ]
         } else {
-          dbQueries = [
-            dbQuery(expect.stringContaining('BEGIN'), false),
+          expectedDbQueries = [
+            txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
-            dbQuery(expect.stringContaining('DELETE'), false),
-            dbQuery('COMMIT', false),
+            dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
+            txCommit(),
           ]
         }
         await waitForSpanTree(
           operation('User', 'delete', [
             clientSerialize(),
-            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
+            engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -336,21 +359,28 @@ testMatrix.setupTestSuite(
 
         await prisma.user.deleteMany()
 
-        let dbQueries: Tree[]
+        let expectedDbQueries: Tree[]
 
         if (isMongoDb) {
-          dbQueries = [
+          expectedDbQueries = [
             dbQuery(expect.stringContaining('db.User.findMany(*)')),
             dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
           ]
+        } else if (relationMode === RelationModes.PRISMA) {
+          expectedDbQueries = [
+            txBegin(),
+            dbQuery(expect.stringContaining('SELECT')),
+            dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
+            txCommit(),
+          ]
         } else {
-          dbQueries = [dbQuery(expect.stringContaining('DELETE'), false)]
+          expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly)]
         }
 
         await waitForSpanTree(
           operation('User', 'deleteMany', [
             clientSerialize(),
-            engine([engineConnection(), ...dbQueries, ...engineSerialize()]),
+            engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -373,17 +403,12 @@ testMatrix.setupTestSuite(
           }),
         ])
 
-        let dbQueries: Tree[]
+        let expectedDbQueries: Tree[]
 
         if (isMongoDb) {
-          dbQueries = [...createDbQueries(false), findManyDbQuery()]
+          expectedDbQueries = [...createDbQueries(false), findManyDbQuery()]
         } else {
-          dbQueries = [
-            dbQuery(expect.stringContaining('BEGIN'), false),
-            ...createDbQueries(false),
-            findManyDbQuery(),
-            dbQuery('COMMIT', false),
-          ]
+          expectedDbQueries = [txBegin(), ...createDbQueries(false), findManyDbQuery(), txCommit()]
         }
 
         await waitForSpanTree({
@@ -396,7 +421,7 @@ testMatrix.setupTestSuite(
             operation('User', 'findMany', [clientSerialize()]),
             engine([
               engineConnection(),
-              ...dbQueries,
+              ...expectedDbQueries,
               ...engineSerializeFinalResponse(),
               engineSerializeQueryResult(),
               engineSerializeQueryResult(),
@@ -424,7 +449,7 @@ testMatrix.setupTestSuite(
         let txQueries: Tree[] = []
 
         if (provider !== Providers.MONGODB) {
-          txQueries = [dbQuery(expect.stringContaining('BEGIN'), false), dbQuery('COMMIT', false)]
+          txQueries = [txBegin(), txCommit()]
         }
 
         // skipping on data proxy because the functionality is broken
@@ -470,7 +495,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation(undefined, 'queryRaw', [
             clientSerialize(),
-            engine([engineConnection(), dbQuery('SELECT 1 + 1;', true), ...engineSerialize()]),
+            engine([engineConnection(), dbQuery('SELECT 1 + 1;'), ...engineSerialize()]),
           ]),
         )
       })
@@ -487,7 +512,11 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation(undefined, 'executeRaw', [
             clientSerialize(),
-            engine([engineConnection(), dbQuery('SELECT 1 + 1;', false), ...engineSerialize()]),
+            engine([
+              engineConnection(),
+              dbQuery('SELECT 1 + 1;', AdapterQueryChildSpans.ArgsOnly),
+              ...engineSerialize(),
+            ]),
           ]),
         )
       })
@@ -610,10 +639,9 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skipProviderFlavor: {
-      from: ['js_libsql', 'js_planetscale'],
-      reason:
-        'The spans are not consistent, or not in a way that makes sense compared to the other driver adapters. Needs investigation.',
+    skipEngine: {
+      from: ['wasm'],
+      reason: 'Tracing is not supported for wasm engine, many spans are missing',
     },
   },
 )

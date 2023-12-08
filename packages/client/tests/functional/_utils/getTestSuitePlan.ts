@@ -1,10 +1,9 @@
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { klona } from 'klona'
 
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { flavorsForProvider, ProviderFlavors, Providers, relationModesForFlavor } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { MatrixOptions, TestCliMeta } from './types'
+import { CliMeta, MatrixOptions } from './types'
 
 export type TestPlanEntry = {
   name: string
@@ -27,22 +26,24 @@ type SuitePlanContext = {
  * @returns [test-suite-title: string, test-suite-config: object]
  */
 export function getTestSuitePlan(
+  testCliMeta: CliMeta,
   suiteMeta: TestSuiteMeta,
   suiteConfigs: NamedTestSuiteConfig[],
-  testCliMeta: TestCliMeta,
   options?: MatrixOptions,
 ): TestPlanEntry[] {
   const context = buildPlanContext()
-
-  const shouldSkipAll = shouldSkipTestSuite(testCliMeta, options)
 
   const expandedSuiteConfigs = suiteConfigs.flatMap((config) => {
     return getExpandedTestSuitePlanWithProviderFlavors(config)
   })
 
+  expandedSuiteConfigs.forEach((config) => {
+    config.matrixOptions.engineType ??= testCliMeta.engineType
+  })
+
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipAll || shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
+    skip: shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
     suiteConfig: namedConfig,
   }))
 }
@@ -77,16 +78,6 @@ function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuite
   return [suiteConfig, ...suiteConfigExpansions]
 }
 
-function shouldSkipTestSuite(clientMeta: TestCliMeta, options?: MatrixOptions): boolean {
-  if (options?.skipBinary && getClientEngineType() === ClientEngineType.Binary) {
-    return true
-  }
-  if (options?.skipDataProxy && clientMeta.dataProxy) {
-    return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
-  }
-  return false
-}
-
 function shouldSkipSuiteConfig(
   {
     updateSnapshots,
@@ -97,12 +88,13 @@ function shouldSkipSuiteConfig(
   }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
-  testCliMeta: TestCliMeta,
+  cliMeta: CliMeta,
   options?: MatrixOptions,
 ): boolean {
   const provider = config.matrixOptions.provider
   const flavor = config.matrixOptions.providerFlavor
   const relationMode = config.matrixOptions.relationMode
+  const engineType = config.matrixOptions.engineType
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
@@ -116,8 +108,18 @@ function shouldSkipSuiteConfig(
     return true
   }
 
+  // if the test doesn't support the engine type, skip
+  if (options?.skipEngine?.from.includes(engineType!)) {
+    return true
+  }
+
+  // if the test needs to skip the dataproxy test, skip
+  if (cliMeta.dataProxy && options?.skipDataProxy?.runtimes.includes(cliMeta.runtime)) {
+    return true
+  }
+
   // if the client doesn't support the provider, skip
-  if (testCliMeta.dataProxy && provider === Providers.SQLITE) {
+  if (cliMeta.dataProxy && provider === Providers.SQLITE) {
     return true
   }
 
@@ -147,7 +149,12 @@ function shouldSkipSuiteConfig(
   }
 
   // if there is a relation mode set and the flavor doesn't support it, skip
-  if (flavor !== undefined && relationMode !== undefined && relationMode !== relationModesForFlavor[flavor]) {
+  if (
+    flavor !== undefined &&
+    relationMode !== undefined &&
+    relationModesForFlavor[flavor] !== undefined &&
+    relationMode !== relationModesForFlavor[flavor]
+  ) {
     return true
   }
 

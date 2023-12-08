@@ -1,3 +1,4 @@
+import { ClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { matrix } from '../../../../../helpers/blaze/matrix'
@@ -5,15 +6,16 @@ import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, TestCliMeta } from './types'
+import { ClientMeta, CliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
   matrixOptions: Record<string, string> & {
     provider: Providers
-    providerFlavor?: ProviderFlavors
-    relationMode?: RelationModes
+    providerFlavor?: `${ProviderFlavors}`
+    relationMode?: `${RelationModes}`
+    engineType?: `${ClientEngineType}`
   }
 }
 
@@ -23,7 +25,7 @@ const allProvidersRegexUnion = Object.values(Providers).join('|')
 const schemaPreviewFeaturesRegex = /previewFeatures\s*=\s*(.*)/
 const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-js"/
 const schemaProviderRegex = new RegExp(`provider\\s*=\\s*"(?:${allProvidersRegexUnion})"`, 'g')
-const schemaPrismaRelationModeRegex = /relationMode\s*=\s*".*"/
+const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
 
 /**
  * Get the generated test suite name, used for the folder name.
@@ -155,13 +157,19 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: NamedTestSuiteConfig['matrixOptions']) {
+export function getTestSuiteSchema(
+  cliMeta: CliMeta,
+  suiteMeta: TestSuiteMeta,
+  matrixOptions: NamedTestSuiteConfig['matrixOptions'],
+) {
   let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
   const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
   const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
-  const prismaRelationModeMatch = schema.match(schemaPrismaRelationModeRegex)
+  const prismaRelationModeMatch = schema.match(schemaRelationModeRegex)
   const providerMatch = schema.match(schemaProviderRegex)
   const previewFeatures = getTestSuitePreviewFeatures(schema)
+
+  const { engineType, relationMode } = matrixOptions
 
   // By default, mini-proxy distinguishes different engine instances using
   // inline schema hash. In case 2 tests are running in parallel with identical
@@ -170,9 +178,7 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
   schema = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}\n${schema}`
 
   // in some cases we may add more preview features automatically to the schema
-  // when we are running tests for driver adapters, auto add the preview feature
-  if (isDriverAdapterProviderFlavor(matrixOptions.providerFlavor)) previewFeatures.push('driverAdapters')
-
+  previewFeatures.push(...cliMeta.previewFeatures)
   const previewFeaturesStr = `previewFeatures = ${JSON.stringify(previewFeatures)}`
 
   // if there's already a preview features block, replace it with the updated one
@@ -182,15 +188,22 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Name
 
   // if there's no preview features, append them to the default generator block
   if (previewFeatureMatch === null && defaultGeneratorMatch !== null) {
-    schema = schema.replace(defaultGeneratorMatch[0], `${defaultGeneratorMatch[0]}\n${previewFeaturesStr}`)
+    const replacement = `${defaultGeneratorMatch[0]}\n${previewFeaturesStr}`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
+  }
+
+  // if an engine type is specified, append it to the default generator block
+  if (engineType !== undefined && defaultGeneratorMatch !== null) {
+    const replacement = `${defaultGeneratorMatch[0]}\nengineType = "${engineType}"`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
   }
 
   // for PlanetScale and Vitess, we need to add `relationMode = "prisma"` to the schema
   if (matrixOptions.relationMode && providerMatch !== null) {
-    const relationModeStr = `relationMode = "${matrixOptions.relationMode}"`
+    const replacement = `${providerMatch![0]}\nrelationMode = "${relationMode}"`
 
     if (prismaRelationModeMatch === null) {
-      schema = schema.replace(providerMatch[0], `${providerMatch![0]}\n${relationModeStr}`)
+      schema = schema.replace(providerMatch[0], replacement)
     }
   }
 
@@ -238,9 +251,11 @@ export function getTestSuiteMeta() {
 /**
  * Get `TestCliMeta` from the environment variables created by the test CLI.
  */
-export function getTestSuiteCliMeta(): TestCliMeta {
-  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+export function getTestSuiteCliMeta(): CliMeta {
   const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
+  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+  const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
+  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType
 
   if (edge && !dataProxy) {
     throw new Error('Edge client requires Data Proxy')
@@ -249,6 +264,8 @@ export function getTestSuiteCliMeta(): TestCliMeta {
   return {
     dataProxy,
     runtime: edge ? 'edge' : 'node',
+    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
+    engineType: engineType ?? ClientEngineType.Library,
   }
 }
 

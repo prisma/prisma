@@ -32,16 +32,17 @@ More Information: https://pris.ly/d/execute-raw
 type RawQueryArgsMapperInput = {
   clientMethod: string
   activeProvider: string
-  activeProviderFlavour?: ErrorCapturingDriverAdapter['flavour']
+  driverAdapterProvider?: ErrorCapturingDriverAdapter['provider']
 }
 
 export const rawQueryArgsMapper =
-  ({ clientMethod, activeProvider, activeProviderFlavour }: RawQueryArgsMapperInput) =>
+  ({ clientMethod, activeProvider, driverAdapterProvider }: RawQueryArgsMapperInput) =>
   (args: RawQueryArgs) => {
-    if (activeProviderFlavour !== undefined) {
+    // TODO: remove this block, probably not needed anymore
+    if (driverAdapterProvider !== undefined) {
       // When using the driver adapter, we need to use the flavour of the adapter,
       // in order to avoid enumerating all the possible `@prisma/*` provider names.
-      activeProvider = activeProviderFlavour
+      activeProvider = driverAdapterProvider
     }
 
     // TODO Clean up types

@@ -5,6 +5,18 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
@@ -26,6 +38,6 @@
     "debug": "4.3.4"
   },
   "devDependencies": {
-    "@types/debug": "4.1.10"
+    "@types/debug": "4.1.12"
   }
 }

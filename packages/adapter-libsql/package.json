@@ -5,6 +5,18 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
@@ -27,7 +39,7 @@
     "async-mutex": "0.4.0"
   },
   "devDependencies": {
-    "@libsql/client": "0.3.5"
+    "@libsql/client": "0.3.6"
   },
   "peerDependencies": {
     "@libsql/client": "^0.3.5"

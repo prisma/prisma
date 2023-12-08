@@ -2,8 +2,8 @@ import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
-import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
 import fs from 'fs'
@@ -63,7 +63,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_ENGINE_TYPE: 'binary' | 'library' | 'edge'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge'
 }
 
 // used by esbuild for tree-shaking
@@ -278,6 +278,14 @@ export type GetPrismaClientConfig = {
    * runtime, this means the client will be bound to be using the Data Proxy.
    */
   noEngine?: boolean
+
+  /**
+   * Loads the raw wasm module for the wasm query engine. This configuration is
+   * generated specifically for each type of client, eg. Node.js client and Edge
+   * clients will have different implementations.
+   * @remarks this is a callback on purpose, we only load the wasm if needed.
+   */
+  getQueryEngineWasmModule?: () => Promise<unknown>
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -322,6 +330,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
+
       const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
         //
@@ -400,6 +409,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             ),
           env: loadedEnv?.parsed ?? {},
           flags: [],
+          getQueryEngineWasmModule: config.getQueryEngineWasmModule,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
@@ -516,14 +526,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
       const activeProvider = this._activeProvider
-      const activeProviderFlavour = this._engineConfig.adapter?.flavour
+      const driverAdapterProvider = this._engineConfig.adapter?.provider
 
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -616,14 +626,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
       const activeProvider = this._activeProvider
-      const activeProviderFlavour = this._engineConfig.adapter?.flavour
+      const driverAdapterProvider = this._engineConfig.adapter?.provider
 
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,

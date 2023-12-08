@@ -1,29 +1,14 @@
-# @prisma/adapter-planetscale
+# Prisma driver adapter for PlanetScale serverless driver
 
-Prisma driver adapter for [PlanetScale Serverless Driver](https://github.com/planetscale/database-js).
+Prisma driver adapter for [PlanetScale Serverless Driver](https://github.com/planetscale/database-js). Refer to the [announcement blog post](https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV) and our [docs](https://www.prisma.io/docs/guides/database/planetscale#how-to-use-the-planetscale-serverless-driver-with-prisma-preview) for more details.
 
-See https://github.com/prisma/prisma/releases/tag/5.4.0 and https://www.prisma.io/blog/serverless-database-drivers-KML1ehXORxZV for details.
+> **Note:**: Support for PlanetScale's serverless driver is available from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.2) and later.
 
-The following usage tutorial is valid for Prisma 5.4.2 and later versions.
+PlanetScale's serverless driver provides a way of communicating with your PlanetScale database over HTTP which can improve [connection reliability and performance](https://planetscale.com/blog/faster-mysql-with-http3)
 
-## How to install
+## Getting started
 
-After [getting started with PlanetScale](https://neon.tech/docs/get-started-with-neon/setting-up-a-project), you can use the PlanetScale serverless driver to connect to your database. You will need to install the `@prisma/adapter-planetscale` driver adapter, the `@planetscale/database` serverless driver, and `undici` to provide a `fetch` function to the PlanetScale driver.
-
-```sh
-npm install @prisma/adapter-planetscale
-npm install @planetscale/database
-npm install undici
-```
-
-Make sure your [PlanetScale database connection string](https://planetscale.com/docs/concepts/connection-strings) is copied over to your `.env` file. The connection string will start with `mysql://`.
-
-```env
-# .env
-DATABASE_URL="mysql://..."
-```
-
-You can now reference this environment variable in your `schema.prisma` datasource. Make sure you also include the `driverAdapters` Preview feature.
+To get started, enable the `driverAdapters` Preview feature in your Prisma schema:
 
 ```prisma
 // schema.prisma
@@ -39,20 +24,33 @@ datasource db {
 }
 ```
 
-Now run `npx prisma generate` to re-generate Prisma Client.
+> **Note**: Ensure you update the host value in your connection string to `aws.connect.psdb.cloud`. You can learn more about this [here](https://planetscale.com/docs/tutorials/planetscale-serverless-driver#add-and-use-the-planetscale-serverless-driver-for-javascript-to-your-project).
+>
+> ```bash
+> DATABASE_URL="mysql://user:password@aws.connect.psdb.cloud/database_name?sslaccept=strict"
+> ```
 
-## How to use
+Generate Prisma Client:
 
-In TypeScript, you will need to:
+```sh
+npx prisma generate
+```
 
-1. Import packages
-2. Set up the PlanetScale serverless database driver
-3. Instantiate the Prisma PlanetScale adapter with the PlanetScale serverless database driver
-4. Pass the driver adapter to the Prisma Client instance
+Install the Prisma adapter for PlanetScale, PlanetScale serverless driver and `undici` packages:
 
-```typescript
+```sh
+npm install @prisma/adapter-planetscale
+npm install @planetscale/database
+npm install undici
+```
+
+> **Note**: When using a Node.js version below 18, you must provide a custom fetch function implementation. We recommend the `undici` package on which Node's built-in fetch is based. Node.js versions 18 and later include a built-in global `fetch` function, so you don't have to install an extra package.
+
+Update your Prisma Client instance to use the PlanetsScale serverless driver:
+
+```ts
 // Import needed packages
-import { connect } from '@planetscale/database'
+import { Client } from '@planetscale/database'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { PrismaClient } from '@prisma/client'
 import { fetch as undiciFetch } from 'undici'
@@ -61,11 +59,17 @@ import { fetch as undiciFetch } from 'undici'
 const connectionString = `${process.env.DATABASE_URL}`
 
 // Init prisma client
-const connection = connect({ url: connectionString, fetch: undiciFetch })
-const adapter = new PrismaPlanetScale(connection)
+const client = new Client({ url: connectionString, fetch: undiciFetch })
+const adapter = new PrismaPlanetScale(client)
 const prisma = new PrismaClient({ adapter })
 
 // Use Prisma Client as normal
 ```
 
-Your Prisma Client instance now uses PlanetScale's [`database-js`](https://github.com/planetscale/database-js), which can improve [`connection reliability and performance`](https://planetscale.com/blog/faster-mysql-with-http3). It uses HTTP requests instead of Prisma’s connection pool, but Prisma will continue to handle error handling and type safety. If you have any feedback about our PlanetScale Serverless Driver support, please leave a comment on our [dedicated GitHub issue](https://github.com/prisma/prisma/discussions/21347) and we'll use it as we continue development.
+You can now use Prisma Client as you normally would with full type-safety. Your Prisma Client instance now uses PlanetScale's serverless driver to connect to your database.
+
+## Feedback
+
+We encourage you to create an issue if you find something missing or run into a bug.
+
+If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/21347).

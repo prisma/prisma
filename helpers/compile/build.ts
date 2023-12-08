@@ -14,6 +14,7 @@ import { transduce } from '../blaze/transduce'
 import { depCheckPlugin } from './plugins/depCheckPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
+import { resolvePathsPlugin } from './plugins/resolvePathsPlugin'
 import { tscPlugin } from './plugins/tscPlugin'
 
 export type BuildResult = esbuild.BuildResult
@@ -48,7 +49,14 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
-  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
+  plugins: [
+    ...(options.plugins ?? []),
+    resolvePathsPlugin,
+    fixImportsPlugin,
+    tscPlugin(options.emitTypes),
+    onErrorPlugin,
+  ],
+  external: [...(options.external ?? []), ...getProjectExternals(options)],
 })
 
 /**
@@ -213,4 +221,20 @@ function getOutFile(options: BuildOptions) {
   }
 
   return undefined
+}
+
+// get the current project externals this helps to mark dependencies as external
+// by having convention in the package.json (dev = bundled, non-dev = external)
+function getProjectExternals(options: BuildOptions) {
+  const pkg = require(`${process.cwd()}/package.json`)
+  const peerDeps = Object.keys(pkg.peerDependencies ?? {})
+  const regDeps = Object.keys(pkg.dependencies ?? {})
+
+  // when bundling, only the devDeps will be bundled
+  if (!process.env.IGNORE_EXTERNALS && options.bundle === true) {
+    return [...new Set([...peerDeps, ...regDeps])]
+  }
+
+  // otherwise, all the dependencies will be bundled
+  return []
 }

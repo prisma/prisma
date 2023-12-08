@@ -2,7 +2,7 @@
 
 Welcome! You've arrived at our Contributing page and are now one step away from joining our quest to make databases easy. We're thankful for all your contributions, whether it's helping us find issues in our code, highlighting features we're missing, or contributing to the codebase. If you've found your way here, you'll soon be ready to join in the fun of building features and fixing bugs directly with us - and we're thrilled to have you on board!
 
-To get you started on a good foot, we've created an easy overview of the most important things to get you started contributing code to Prisma below as well as a [Code of Conduct](https://github.com/prisma/prisma/blob/master/CODE_OF_CONDUCT.md) for contributing to the development of Prisma.
+To get you started on a good foot, we've created an easy overview of the most important things to get you started contributing code to Prisma below as well as a [Code of Conduct](https://github.com/prisma/prisma/blob/main/CODE_OF_CONDUCT.md) for contributing to the development of Prisma.
 
 We also encourage you to join our sprawling [community](https://www.prisma.io/community) online, where you can discuss ideas, ask questions and get inspiration for what to build next.
 
@@ -23,7 +23,7 @@ Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Eng
 Copy paste these commands to install the global dependencies:
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 nvm install 18
 npm install --global pnpm@8 ts-node
 ```
@@ -45,17 +45,17 @@ pnpm -r run dev
 
 In the root directory:
 
-- `pnpm run setup` will install and build all the packages
-- `pnpm -r run build` (-r for recursive) will build all the packages
-- `pnpm -r run dev` (-r for recursive) will build all the packages, without running `tsc`
-- `pnpm run watch` will continuously build any packages that have been modified, without running `tsc` (Fastest)
+- `pnpm run setup` will install and build all the packages.
+- `pnpm -r run build` (-r for recursive) will build all the packages.
+- `pnpm -r run dev` (-r for recursive) will build all the packages, without running `tsc`.
+- `pnpm run watch` will continuously build any packages that have been modified, without running `tsc` (Fastest).
 
 In a package directory, like `packages/client`:
 
-- `pnpm run build` will build the package
-- `pnpm run dev` will build the package without running `tsc` (Fastest)
+- `pnpm run build` will build the package.
+- `pnpm run dev` will build the package without running `tsc` (Fastest).
 
-> 💡 Our builder is built on top of esbuild
+> 💡 Our builder is built on top of `esbuild`
 
 ## Prisma Client
 
@@ -68,7 +68,7 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 Set up a local project that will be linked to the local packages.
 
 ```sh
-cd reproductions
+cd sandbox
 # Copy a template from the reproduction folder
 cp -r basic-sqlite my-repro && cd my-repro
 # Install dependencies
@@ -90,14 +90,14 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
 
 > 💡 This works best when compiling with `pnpm run watch` in the background.
 
-> 💡 In any successful setup `pnpx prisma -v` should return version `0.0.0`.
+> 💡 In any successful setup `pnpm prisma -v` should return version `0.0.0`.
 
 <details>
   <summary><b>Alternatives</b></summary>
   
   #### Detailed steps for a locally-linked dev folder
   ```sh
-  cd reproductions
+  cd sandbox
   mkdir my-repro
   cd my-repro
   pnpm init
@@ -106,14 +106,14 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
   pnpm add -D typescript ts-node
   pnpm add -D @types/node
   touch index.ts
-  pnpx tsc --init
-  pnpx prisma init
+  pnpm tsc --init
+  pnpm prisma init
   # > Manually populate the schema.prisma
   # > Manually add 👇 to the generator block
   #   output = "../node_modules/.prisma/client"
   # > Manually populate the index.ts
-  pnpx prisma db push --skip-generate
-  pnpx prisma generate && pnpx ts-node index.ts # Try it out
+  pnpm prisma db push --skip-generate
+  pnpm prisma generate && pnpm ts-node index.ts # Try it out
   ```
 
 #### Developing and working in the fixture folder
@@ -190,35 +190,92 @@ Tests fixtures are located in [`./packages/migrate/src/__tests__/fixtures`](./pa
 
 ## Prisma CLI
 
+For the list of commands and parameters, you can check out the [documentation](https://www.prisma.io/docs/reference/api-reference/command-reference).
+
+We also maintain a [completion spec](https://github.com/withfig/autocomplete/blob/master/src/prisma.ts).
+It is consumed by the following tools: [Warp terminal (macOS only)](https://www.warp.dev/), [Fig terminal (macOS only)](https://fig.io/), [inshellisense (all OS)](https://github.com/microsoft/inshellisense)
+
+The CLI entrypoint is the [`bin.ts`](./packages/cli/src/bin.ts) file.
+
+This is a list of the top level commands:
+
+- [(no command)](./packages/cli/src/CLI.ts)
+- [`db`](./packages/migrate/src/commands/DbCommand.ts) -> it's a namespace
+- [`debug`](./packages/cli/src/DebugInfo.ts)
+- [`format`](./packages/cli/src/Format.ts)
+- [`generate`](./packages/cli/src/Generate.ts)
+- [`init`](./packages/cli/src/Init.ts)
+- [`introspect`](./packages/migrate/src/commands/DbPull.ts) (deprecated and renamed to `db pull`)
+- [`migrate`](./packages/migrate/src/commands/MigrateCommand.ts) -> it's a namespace
+- [`studio`](./packages/cli/src/Studio.ts)
+- [`telemetry`](./packages/cli/src/Telemetry.ts) (internal only)
+- [`validate`](./packages/cli/src/Validate.ts)
+- [`version`](./packages/cli/src/Version.ts)
+
+Some top level commands are namespaces, they do not execute an action without a subcommand (e.g. `db`, `migrate`).
+Each command, namespaces included, and subcommand provides help output via `-h`/`--help` flags.
+
+Note that the Prisma CLI bundles all its dependencies. If you happen to make changes to dependencies in the monorepo (e.g. `@prisma/internals`), you must run at the root level, `pnpm -r run dev` or `pnpm run watch` to make the changes available to the CLI.
+
 ### First contribution
 
 Create a reproduction folder for developing, trying a new feature, or a fix.
 
-#### Setting up a locally-linked development folder
+#### Open a Pull Request
+
+When opening a PR these are the expectations before it can be merged:
+
+- There is a description explaining the changes, optimally linking the tracking issue that will be closed when merged.
+  - If you are a Prismanaut, you can add `/integration` in the description to get a version released to npm to the `integration` tag, see [TESTING.md](./TESTING.md) for more details.
+- Tests are written and cover the changes.
+- `Lint` & `CLI commands` & `All pkgs (win+mac)` GitHub Actions workflows should be successful.
+- The reported bundle size of `packages/cli/build/index.js` in the `size-limit report 📦` comment in the PR needs stays below ~6MB. (The comment will be posted by the [bundle-size GitHub Action workflow](https://github.com/prisma/prisma/actions/workflows/bundle-size.yml) automatically.
+  - Later once a dev version is published, the unpacked size of the CLI stays below ~16MB on [npm](https://www.npmjs.com/package/prisma).
+- There is a tracking issue or/and an open PR to update the [documentation](https://www.prisma.io/docs), especially the [Prisma CLI reference](https://www.prisma.io/docs/reference/api-reference/command-reference).
+
+#### Setting up a locally-linked development directory
 
 Set up a local project that will be linked to the local packages.
 
-```sh
-cd reproductions && pnpm install
-# Copy a template from the reproduction folder
-cp -r basic-sqlite my-repro && cd my-repro
-# Do some code changes, compile, then try it out
-pnpx prisma generate
-```
-
 > 💡 This works best when compiling with `pnpm run watch` in the background.
 
-> 💡 In any successful setup `pnpx prisma -v` should return version `0.0.0`.
+```sh
+cd sandbox
+
+# Copy a template from the sandbox directory
+cp -r basic-sqlite my-project
+cd my-project
+
+pnpm install
+
+pnpm prisma -v
+# 💡 In any successful setup `pnpm prisma -v` should return
+# prisma                  : 0.0.0
+# @prisma/client          : 0.0.0
+# ...
+
+pnpm prisma generate
+```
 
 <details>
   <summary><b>Alternatives</b></summary>
 
 ```sh
 cd packages/cli
-../src/bin.ts generate # Try it out
+./src/bin.ts -v # should return the version `prisma: 0.0.0` in the output
+./src/bin.ts generate # for `prisma generate`
 ```
 
 </details>
+
+### Tests
+
+For an overview, adding, running tests & guidelines see [TESTING.md](./TESTING.md).
+
+Tests are located under [`./packages/cli/src/__tests__/`](./packages/cli/src/__tests__/)
+
+- Commands are tested in [`./packages/cli/src/__tests__/commands/`](./packages/cli/src/__tests__/commands/)
+- Fixtures are in [`./packages/cli/src/__tests__/fixtures/`](./packages/cli/src/__tests__/fixtures/)
 
 ## Conventions
 
@@ -251,11 +308,16 @@ List of types:
 - test: Adding missing or correcting existing tests
 - chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
 
-List of directories in the monorepo
+List of directories in the monorepo:
 
+- adapter-libsql
+- adapter-neon
+- adapter-pg
+- adapter-planetscale
 - cli
 - client
 - debug
+- driver-adapter-utils
 - engines
 - fetch-engine
 - generator-helper
@@ -264,6 +326,7 @@ List of directories in the monorepo
 - integration-tests
 - internals
 - migrate
+- nextjs-monorepo-workaround-plugin
 
 ## Legal
 

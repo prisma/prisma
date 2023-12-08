@@ -39,6 +39,10 @@ export type Error =
       id: number
     }
   | {
+      kind: 'UnsupportedNativeDataType'
+      type: string
+    }
+  | {
       kind: 'Postgres'
       code: string
       severity: string
@@ -63,7 +67,7 @@ export type Error =
     }
 
 export interface Queryable {
-  readonly flavour: 'mysql' | 'postgres' | 'sqlite'
+  readonly provider: 'mysql' | 'postgres' | 'sqlite'
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
@@ -88,11 +92,6 @@ export interface DriverAdapter extends Queryable {
    * Starts new transation.
    */
   startTransaction(): Promise<Result<Transaction>>
-
-  /**
-   * Closes the connection to the database, if any.
-   */
-  close: () => Promise<Result<void>>
 }
 
 export type TransactionOptions = {
@@ -112,13 +111,6 @@ export interface Transaction extends Queryable {
    * Rolls back the transaction.
    */
   rollback(): Promise<Result<void>>
-  /**
-   * Discards and closes the transaction which may or may not have been committed or rolled back.
-   * This operation must be synchronous. If the implementation requires calling creating new
-   * asynchronous tasks on the event loop, the driver is responsible for handling the errors
-   * appropriately to ensure they don't crash the application.
-   */
-  dispose(): Result<void>
 }
 
 export interface ErrorCapturingDriverAdapter extends DriverAdapter {
