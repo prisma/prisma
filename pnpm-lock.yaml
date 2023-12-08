@@ -444,18 +444,6 @@ importers:
       '@planetscale/database':
         specifier: 1.11.0
         version: 1.11.0
-      '@prisma/adapter-libsql':
-        specifier: workspace:*
-        version: link:../adapter-libsql
-      '@prisma/adapter-neon':
-        specifier: workspace:*
-        version: link:../adapter-neon
-      '@prisma/adapter-pg':
-        specifier: workspace:*
-        version: link:../adapter-pg
-      '@prisma/adapter-planetscale':
-        specifier: workspace:*
-        version: link:../adapter-planetscale
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
