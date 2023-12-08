@@ -52,7 +52,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/edge',
   bundle: true,
-  minify: true,
+  // minify: true,
   sourcemap: 'linked',
   legalComments: 'none',
   emitTypes: false,
@@ -123,6 +123,7 @@ const adapterIndexConfig: BuildOptions = {
   bundle: true,
   emitTypes: true,
   external: ['../runtime/query-engine.wasm'],
+  plugins: [fillPlugin({})],
 }
 
 function writeDtsRexport(fileName: string) {

@@ -163,7 +163,7 @@ const fillPlugin = (
       // string_decoder: { path: load('string_decoder') },
       // sys: { path: load('util') },
       // timers: { path: load('timers-browserify') },
-      tty: { path: load('tty-browserify') },
+      tty: { path: path.join(__dirname, 'fillers', 'tty.ts') },
       // url: { path: load('url') },
       util: { path: load('util') },
       // vm: { path: load('vm-browserify') },
