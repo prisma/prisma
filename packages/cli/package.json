@@ -87,7 +87,7 @@
     "@types/node": "18.18.13",
     "@types/node-fetch": "2.6.9",
     "@types/rimraf": "3.0.2",
-    "async-listen": "^3.0.1",
+    "async-listen": "3.0.1",
     "checkpoint-client": "1.1.33",
     "debug": "4.3.4",
     "dotenv": "16.0.3",
@@ -112,7 +112,7 @@
     "strip-ansi": "6.0.1",
     "ts-pattern": "5.0.5",
     "typescript": "5.2.2",
-    "xdg-app-paths": "^8.3.0",
+    "xdg-app-paths": "8.3.0",
     "zx": "7.2.3"
   },
   "scripts": {
