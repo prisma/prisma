@@ -17,12 +17,12 @@ testMatrix.setupTestSuite(
       const readRecords = await prisma.model.findMany({
         where: {
           slug: {
-            equals: 'someslug',
+            equals: 'sOMeSluG',
           },
         },
       })
 
-      const readRecordsRaw = await prisma.$queryRaw`SELECT * FROM "Model" WHERE "slug" = 'someslug'`
+      const readRecordsRaw = await prisma.$queryRaw`SELECT * FROM "Model" WHERE "slug" = 'SomesluG'`
 
       expect(readRecords).toEqual([writtenRecord])
       expect(readRecordsRaw).toEqual([writtenRecord])
