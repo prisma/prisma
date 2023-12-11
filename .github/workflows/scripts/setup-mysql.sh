@@ -7,7 +7,7 @@ if [ "$RUNNER_OS" = "Windows" ]; then
 fi
 
 if [ "$RUNNER_OS" = "macOS" ]; then
-    rm -f /usr/local/bin/2to3-3.12
+    brew update
     brew install mysql
     brew services run mysql
 fi
