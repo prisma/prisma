@@ -7,7 +7,8 @@ if [ "$RUNNER_OS" = "Windows" ]; then
 fi
 
 if [ "$RUNNER_OS" = "macOS" ]; then
-    brew install --force mysql
+    brew link --overwrite python@3.12
+    brew install mysql
     brew services run mysql
 fi
 
