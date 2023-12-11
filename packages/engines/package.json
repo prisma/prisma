@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.8.0-3.e7a7287553221aeb1464273f38b06bf2a55789d3",
+    "@prisma/engines-version": "5.8.0-5.integration-wasm-decrease-size-1-3mb-939e3788636bc4a04bb8b74ac6e605825d6836b7",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
