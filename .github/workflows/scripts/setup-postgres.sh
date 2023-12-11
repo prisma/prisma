@@ -12,7 +12,7 @@ fi
 if [ "$RUNNER_OS" = "macOS" ]; then
     export PGDATA="$RUNNER_TEMP/pgdata"
     export PGUSER="$USER"
-    brew install postgresql@14
+    brew install --force postgresql@14
 fi
 
 pg_ctl init

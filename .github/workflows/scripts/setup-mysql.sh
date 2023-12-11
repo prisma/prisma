@@ -7,7 +7,7 @@ if [ "$RUNNER_OS" = "Windows" ]; then
 fi
 
 if [ "$RUNNER_OS" = "macOS" ]; then
-    brew install mysql
+    brew install --force mysql
     brew services run mysql
 fi
 
