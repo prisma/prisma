@@ -12,7 +12,7 @@ fi
 if [ "$RUNNER_OS" = "macOS" ]; then
     export PGDATA="$RUNNER_TEMP/pgdata"
     export PGUSER="$USER"
-    m -f /usr/local/bin/2to3-3.12
+    rm -f /usr/local/bin/2to3-3.12
     brew install postgresql@14
 fi
 
