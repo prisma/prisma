@@ -11,7 +11,7 @@ import { map } from '../../../../../helpers/blaze/map'
  * Build bundler-like annotations so that Vercel automatically uploads the
  * prisma schema as well as the query engine binaries to the deployments.
  * @param engineType the client engine in use
- * @param binaryTargets the targeted platforms
+ * @param binaryTargets the targeted binaryTargets
  * @param relativeOutdir outdir relative to root
  * @returns
  */
