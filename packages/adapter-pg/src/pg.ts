@@ -125,7 +125,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 }
 
 export type PrismaPgOptions = {
-  schemaName?: string
+  schema?: string
 }
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
@@ -135,7 +135,7 @@ export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
 
   getConnectionInfo(): Result<ConnectionInfo> {
     return ok({
-      schemaName: this.options?.schemaName,
+      schemaName: this.options?.schema,
     })
   }
 

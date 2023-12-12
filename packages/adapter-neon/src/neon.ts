@@ -123,7 +123,7 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
 }
 
 export type PrismaNeonOptions = {
-  schemaName?: string
+  schema?: string
 }
 
 export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdapter {
@@ -135,7 +135,7 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
 
   getConnectionInfo(): Result<ConnectionInfo> {
     return ok({
-      schemaName: this.options?.schemaName,
+      schemaName: this.options?.schema,
     })
   }
 
