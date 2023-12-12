@@ -2,6 +2,7 @@
 import type neon from '@neondatabase/serverless'
 import type {
   ColumnType,
+  ConnectionInfo,
   DriverAdapter,
   Query,
   Queryable,
@@ -121,11 +122,21 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   }
 }
 
+export type PrismaNeonOptions = {
+  schema?: string
+}
+
 export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdapter {
   private isRunning = true
 
-  constructor(pool: neon.Pool) {
+  constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
     super(pool)
+  }
+
+  getConnectionInfo(): Result<ConnectionInfo> {
+    return ok({
+      schemaName: this.options?.schema,
+    })
   }
 
   async startTransaction(): Promise<Result<Transaction>> {
