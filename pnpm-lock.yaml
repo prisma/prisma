@@ -467,8 +467,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
-        version: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
+        specifier: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
+        version: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -491,8 +491,8 @@ importers:
         specifier: 0.9.4
         version: 0.9.4
       '@prisma/query-engine-wasm':
-        specifier: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
-        version: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
+        specifier: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
+        version: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -726,8 +726,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
-        version: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
+        specifier: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
+        version: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -763,8 +763,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
-        version: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
+        specifier: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
+        version: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,8 +1088,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
-        version: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
+        specifier: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
+        version: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1245,8 +1245,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
-        version: 5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6
+        specifier: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
+        version: 5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3166,8 +3166,8 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@prisma/engines-version@5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6:
-    resolution: {integrity: sha512-eeoDOkjZsykpC40UpGr+Obsl4uwEGTRxEzLzXq6q8mlceA7uKfVH3sCNl8BRJxt2dhjFay2+l8eVCDXlQ0QXrA==}
+  /@prisma/engines-version@5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a:
+    resolution: {integrity: sha512-9+uRga7zE5vy6M3kJUbN79e8B4v5qoI2I2q233caWuNrln8zBNi8F0R760DS2+xu/CXGh5mteUzgiu5zGwGFNA==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3175,12 +3175,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6:
-    resolution: {integrity: sha512-Tz1/NDP2Uu0TxVSqoGWPRencNbNrVeexeE0GCsUGgTP2kO49ncJUhs+hsm7b+TjOaRNDfbQHgozdUuCiAt3r0w==}
+  /@prisma/prisma-schema-wasm@5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a:
+    resolution: {integrity: sha512-Wpy1mhCbrwEgHZQ7OX65xCID4dd7GEUlQly+9QApQWV0DDZrHg1DRNnA00sIcJrRt87hZ4qMzQfmva7kxZLf2Q==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.8.0-6.d7ba6c06cd314cc6a2b9d51b5283da1894fe24c6:
-    resolution: {integrity: sha512-CXL8Oaa2HX9kFuwGgURJK3lv8n0jUVl8ByrfRd5GIk+MC27URYv3sq/GG8WH527eIYET59wmSxoxOzwI2NdYqg==}
+  /@prisma/query-engine-wasm@5.8.0-8.integration-mongodb-2-8-0-f60e13569866f407fae88c54f36658b3fe1ab26a:
+    resolution: {integrity: sha512-eNQCg/4yUn6+GaAjTWnWpAQWWXD4NmhHGsKZvzmypOvLRXysilNWDhGs34bwzh8r2SEWu/S4g/Yz3A0Tc4Ry3Q==}
     dev: true
 
   /@prisma/studio-common@0.495.0:
