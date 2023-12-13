@@ -5,9 +5,9 @@ import os from 'os'
 import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
+import { BinaryTarget } from './binaryTargets'
 import { link } from './link'
 import { warn } from './logger'
-import { Platform } from './platforms'
 
 const exec = promisify(cp.exec)
 
@@ -428,12 +428,12 @@ async function findLibSSL(directory: string) {
 /**
  * Get the binary target for the current platform, e.g. `linux-musl-arm64-openssl-3.0.x` for Linux Alpine on arm64.
  */
-export async function getPlatform(): Promise<Platform> {
+export async function getBinaryTargetForCurrentPlatform(): Promise<BinaryTarget> {
   const { binaryTarget } = await getPlatformInfoMemoized()
   return binaryTarget
 }
 
-export type PlatformInfo = GetOSResult & { binaryTarget: Platform }
+export type PlatformInfo = GetOSResult & { binaryTarget: BinaryTarget }
 
 function isPlatformInfoDefined(args: Partial<PlatformInfo>): args is PlatformInfo {
   return args.binaryTarget !== undefined
@@ -455,7 +455,7 @@ export async function getPlatformInfoMemoized(): Promise<PlatformInfo & { memoiz
   }
 
   const args = await getos()
-  const binaryTarget = getPlatformInternal(args)
+  const binaryTarget = getBinaryTargetForCurrentPlatformInternal(args)
   memoizedPlatformWithInfo = { ...args, binaryTarget }
   return { ...(memoizedPlatformWithInfo as PlatformInfo), memoized: false }
 }
@@ -463,7 +463,7 @@ export async function getPlatformInfoMemoized(): Promise<PlatformInfo & { memoiz
 /**
  * This function is only exported for testing purposes.
  */
-export function getPlatformInternal(args: GetOSResult): Platform {
+export function getBinaryTargetForCurrentPlatformInternal(args: GetOSResult): BinaryTarget {
   const { platform, arch, archFromUname, libssl, targetDistro, familyDistro, originalDistro } = args
 
   if (platform === 'linux' && !['x64', 'arm64'].includes(arch)) {
@@ -518,7 +518,7 @@ Please report your experience by creating an issue at ${link(
   }
 
   if (platform === 'freebsd') {
-    return targetDistro as Platform
+    return targetDistro as BinaryTarget
   }
 
   if (platform === 'openbsd') {
@@ -536,12 +536,12 @@ Please report your experience by creating an issue at ${link(
   if (platform === 'linux' && arch === 'arm64') {
     // 64 bit ARM (musl or glibc)
     const baseName = targetDistro === 'musl' ? 'linux-musl-arm64' : 'linux-arm64'
-    return `${baseName}-openssl-${libssl || defaultLibssl}` as Platform
+    return `${baseName}-openssl-${libssl || defaultLibssl}` as BinaryTarget
   }
 
   if (platform === 'linux' && arch === 'arm') {
     // 32 bit ARM
-    return `linux-arm-openssl-${libssl || defaultLibssl}` as Platform
+    return `linux-arm-openssl-${libssl || defaultLibssl}` as BinaryTarget
   }
 
   if (platform === 'linux' && targetDistro === 'musl') {
@@ -561,7 +561,7 @@ Please report your experience by creating an issue at ${link(
 
   // when the platform is linux
   if (platform === 'linux' && targetDistro && libssl) {
-    return `${targetDistro}-openssl-${libssl}` as Platform
+    return `${targetDistro}-openssl-${libssl}` as BinaryTarget
   }
 
   if (platform !== 'linux') {
@@ -575,7 +575,7 @@ Please report your experience by creating an issue at ${link(
 
   // if just the targetDistro is known, fallback to latest OpenSSL 1.1
   if (targetDistro) {
-    return `${targetDistro}-openssl-${defaultLibssl}` as Platform
+    return `${targetDistro}-openssl-${defaultLibssl}` as BinaryTarget
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort

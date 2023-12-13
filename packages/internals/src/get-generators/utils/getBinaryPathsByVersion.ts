@@ -2,7 +2,7 @@ import { enginesVersion } from '@prisma/engines'
 import type { BinaryDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
 import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
 
@@ -14,7 +14,7 @@ import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
 
 export async function getBinaryPathsByVersion({
   neededVersions,
-  platform,
+  binaryTarget,
   version,
   printDownloadProgress,
   skipDownload,
@@ -30,7 +30,7 @@ export async function getBinaryPathsByVersion({
     const neededVersion = neededVersions[currentVersion]
 
     if (neededVersion.binaryTargets.length === 0) {
-      neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
+      neededVersion.binaryTargets = [{ fromEnvVar: null, value: binaryTarget }]
     }
 
     if (process.env.NETLIFY) {
@@ -87,14 +87,14 @@ export async function getBinaryPathsByVersion({
     }, Object.create(null))
 
     if (Object.values(binariesConfig).length > 0) {
-      // Convert BinaryTargetsEnvValue[] to Platform[]
-      const platforms: Platform[] = neededVersion.binaryTargets.map(
-        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value as Platform,
+      // Convert BinaryTargetsEnvValue[] to BinaryTarget[]
+      const binaryTargets: BinaryTarget[] = neededVersion.binaryTargets.map(
+        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value as BinaryTarget,
       )
 
       const downloadParams: DownloadOptions = {
         binaries: binariesConfig,
-        binaryTargets: platforms,
+        binaryTargets: binaryTargets,
         showProgress: typeof printDownloadProgress === 'boolean' ? printDownloadProgress : true,
         version: currentVersion && currentVersion !== 'latest' ? currentVersion : enginesVersion,
         skipDownload,
@@ -112,7 +112,7 @@ export async function getBinaryPathsByVersion({
         for (const engine of enginesCoveredByOverride) {
           const enginePath = binaryPathsOverride[engine]!
           binaryPathsByVersion[currentVersion][engine] = {
-            [platform]: enginePath,
+            [binaryTarget]: enginePath,
           }
         }
       }

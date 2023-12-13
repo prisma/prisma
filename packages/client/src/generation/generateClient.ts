@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { assertNever, ClientEngineType, getClientEngineType, Platform, setClassName } from '@prisma/internals'
+import { assertNever, BinaryTarget, ClientEngineType, getClientEngineType, setClassName } from '@prisma/internals'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
 import fs from 'fs/promises'
@@ -84,10 +84,10 @@ export async function buildClient({
     document,
     datasources,
     generator,
-    platforms:
+    binaryTargets:
       clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as Platform[])
-        : (Object.keys(binaryPaths.queryEngine ?? {}) as Platform[]),
+        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
+        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[]),
     schemaPath,
     outputDir,
     clientVersion,

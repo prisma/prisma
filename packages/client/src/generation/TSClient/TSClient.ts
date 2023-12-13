@@ -1,5 +1,5 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import crypto from 'crypto'
@@ -42,7 +42,7 @@ export interface TSClientOptions {
   browser?: boolean
   datasources: DataSource[]
   generator?: GeneratorConfig
-  platforms?: Platform[] // TODO: consider making it non-nullable
+  binaryTargets?: BinaryTarget[] // TODO: consider making it non-nullable
   schemaPath: string
   outputDir: string
   activeProvider: string
@@ -65,7 +65,7 @@ export class TSClient implements Generatable {
   }
 
   public async toJS(edge = false): Promise<string> {
-    const { platforms, generator, outputDir, schemaPath, runtimeDir, runtimeName, datasources, deno, noEngine } =
+    const { binaryTargets, generator, outputDir, schemaPath, runtimeDir, runtimeName, datasources, deno, noEngine } =
       this.options
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
@@ -133,7 +133,7 @@ ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(Boolean(edge || noEngine), engineType, platforms, relativeOutdir)}
+${buildNFTAnnotations(Boolean(edge || noEngine), engineType, binaryTargets, relativeOutdir)}
 `
     return code
   }

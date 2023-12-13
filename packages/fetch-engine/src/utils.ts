@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getNodeAPIName, Platform } from '@prisma/get-platform'
+import { BinaryTarget, getNodeAPIName } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
@@ -32,12 +32,12 @@ export async function getRootCacheDir(): Promise<string | null> {
   return path.join(os.homedir(), '.cache/prisma')
 }
 
-export async function getCacheDir(channel: string, version: string, platform: string): Promise<string | null> {
+export async function getCacheDir(channel: string, version: string, binaryTarget: string): Promise<string | null> {
   const rootCacheDir = await getRootCacheDir()
   if (!rootCacheDir) {
     return null
   }
-  const cacheDir = path.join(rootCacheDir, channel, version, platform)
+  const cacheDir = path.join(rootCacheDir, channel, version, binaryTarget)
   try {
     if (!fs.existsSync(cacheDir)) {
       await ensureDir(cacheDir)
@@ -53,13 +53,13 @@ export async function getCacheDir(channel: string, version: string, platform: st
 export function getDownloadUrl({
   channel,
   version,
-  platform,
+  binaryTarget,
   binaryName,
   extension = '.gz',
 }: {
   channel: string
   version: string
-  platform: Platform
+  binaryTarget: BinaryTarget
   binaryName: string
   extension?: string
 }): string {
@@ -70,15 +70,15 @@ export function getDownloadUrl({
 
   const finalExtension =
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
+    binaryTarget === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
   if (binaryName === BinaryType.QueryEngineLibrary) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    binaryName = getNodeAPIName(platform, 'url')
+    binaryName = getNodeAPIName(binaryTarget, 'url')
   }
 
-  return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${finalExtension}`
+  return `${baseUrl}/${channel}/${version}/${binaryTarget}/${binaryName}${finalExtension}`
 }
 
 export async function overwriteFile(sourcePath: string, targetPath: string) {
