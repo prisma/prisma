@@ -60,6 +60,10 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
+    skipProviderFlavor: {
+      from: ['js_libsql', 'js_planetscale', 'js_pg', 'js_neon', 'js_libsql'],
+      reason: 'Datasource override do not work with driver adapters',
+    },
     skipDataProxy: {
       runtimes: ['edge'],
       reason: 'Smoke test fails since original env var are embedded into client',
