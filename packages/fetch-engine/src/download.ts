@@ -1,5 +1,11 @@
 import Debug from '@prisma/debug'
-import { assertNodeAPISupported, getNodeAPIName, getos, getPlatform, Platform, platforms } from '@prisma/get-platform'
+import {
+  assertNodeAPISupported,
+  BinaryTarget,
+  binaryTargets,
+  getNodeAPIName,
+  getPlatformInfo,
+} from '@prisma/get-platform'
 import execa from 'execa'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
@@ -33,12 +39,12 @@ export type BinaryDownloadConfiguration = {
 }
 
 export type BinaryPaths = {
-  [binary in BinaryType]?: { [binaryTarget in Platform]: string } // key: target, value: path
+  [binary in BinaryType]?: { [binaryTarget in BinaryTarget]: string } // key: target, value: path
 }
 
 export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
-  binaryTargets?: Platform[]
+  binaryTargets?: BinaryTarget[]
   showProgress?: boolean
   progressCb?: (progress: number) => void
   version?: string
@@ -51,7 +57,7 @@ export interface DownloadOptions {
 type BinaryDownloadJob = {
   binaryName: string
   targetFolder: string
-  binaryTarget: Platform
+  binaryTarget: BinaryTarget
   fileName: string
   targetFilePath: string
   envVarPath: string | undefined
@@ -67,8 +73,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   // get platform
-  const platform = await getPlatform()
-  const os = await getos()
+  const { binaryTarget, ...os } = await getPlatformInfo()
 
   if (os.targetDistro && ['nixos'].includes(os.targetDistro) && !allEngineEnvVarsSet(Object.keys(options.binaries))) {
     console.error(
@@ -76,11 +81,11 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         os.targetDistro
       }, please provide the paths via environment variables, see https://pris.ly/d/custom-engines`,
     )
-  } else if (['freebsd11', 'freebsd12', 'freebsd13', 'openbsd', 'netbsd'].includes(platform)) {
+  } else if (['freebsd11', 'freebsd12', 'freebsd13', 'openbsd', 'netbsd'].includes(binaryTarget)) {
     console.error(
       `${yellow(
         'Warning',
-      )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
+      )} Precompiled engine files are not available for ${binaryTarget}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
   } else if (BinaryType.QueryEngineLibrary in options.binaries) {
     assertNodeAPISupported()
@@ -94,7 +99,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   // merge options
   const opts = {
     ...options,
-    binaryTargets: options.binaryTargets ?? [platform],
+    binaryTargets: options.binaryTargets ?? [binaryTarget],
     version: options.version ?? 'latest',
     binaries: options.binaries,
   }
@@ -127,8 +132,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   // filter out files, which don't yet exist or have to be created
   const binariesToDownload = await pFilter(binaryJobs, async (job) => {
-    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, opts.version)
-    const isSupported = platforms.includes(job.binaryTarget as Platform)
+    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, binaryTarget, opts.version)
+    const isSupported = binaryTargets.includes(job.binaryTarget as BinaryTarget)
     const shouldDownload =
       isSupported &&
       !job.envVarPath && // this is for custom binaries
@@ -155,7 +160,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       const downloadUrl = getDownloadUrl({
         channel: 'all_commits',
         version: opts.version,
-        platform: job.binaryTarget,
+        binaryTarget: job.binaryTarget,
         binaryName: job.binaryName,
       })
 
@@ -348,12 +353,12 @@ export async function getVersion(enginePath: string, binaryName: string) {
   return undefined
 }
 
-export function getBinaryName(binaryName: BinaryType, platform: Platform): string {
+export function getBinaryName(binaryName: BinaryType, binaryTarget: BinaryTarget): string {
   if (binaryName === BinaryType.QueryEngineLibrary) {
-    return `${getNodeAPIName(platform, 'fs')}`
+    return `${getNodeAPIName(binaryTarget, 'fs')}`
   }
-  const extension = platform === 'windows' ? '.exe' : ''
-  return `${binaryName}-${platform}${extension}`
+  const extension = binaryTarget === 'windows' ? '.exe' : ''
+  return `${binaryName}-${binaryTarget}${extension}`
 }
 
 type GetCachedBinaryOptions = BinaryDownloadJob & {

@@ -1,4 +1,4 @@
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import isWindows from 'is-windows'
 import isWSL from 'is-wsl'
 import newGitHubIssueUrl from 'new-github-issue-url'
@@ -67,11 +67,11 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
     .otherwise(() => Promise.resolve(true))
 
   if (shouldCreateNewIssue) {
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
     const url = getGitHubIssueUrl({
       title: options.title ?? '',
-      body: issueTemplate(platform, options),
+      body: issueTemplate(binaryTarget, options),
     })
 
     /**

@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { getNodeAPIName, getPlatform, Platform } from '@prisma/get-platform'
+import { BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { chmodPlusX, ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
@@ -46,7 +46,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
   if (enginePath !== undefined) return (config.prismaPath = enginePath)
 
   // if we don't find it, then we will throw helpful error messages
-  const binaryTarget = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const generatorBinaryTargets = config.generator?.binaryTargets ?? []
   const hasNativeBinaryTarget = generatorBinaryTargets.some((bt) => bt.native)
   const hasMissingBinaryTarget = !generatorBinaryTargets.some((bt) => bt.value === binaryTarget)
@@ -84,7 +84,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
  * @returns
  */
 async function findEnginePath(engineType: ClientEngineType, config: EngineConfig) {
-  const binaryTarget = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const searchedLocations: string[] = []
 
   const dirname = eval('__dirname') as string
@@ -121,7 +121,7 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
  * @param binaryTarget
  * @returns
  */
-export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: Platform) {
+export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: BinaryTarget) {
   if (engineType === ClientEngineType.Library) {
     return getNodeAPIName(binaryTarget, 'fs')
   } else {
