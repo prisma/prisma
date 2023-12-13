@@ -33,8 +33,8 @@ importers:
         specifier: 0.0.39
         version: 0.0.39
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 20.10.0
         version: 20.10.0
@@ -305,8 +305,8 @@ importers:
         specifier: 9.0.13
         version: 9.0.13
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -515,8 +515,8 @@ importers:
         specifier: 9.0.13
         version: 9.0.13
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/js-levenshtein':
         specifier: 1.1.3
         version: 1.1.3
@@ -686,8 +686,8 @@ importers:
         specifier: 4.1.12
         version: 4.1.12
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -742,8 +742,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.96)
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -776,8 +776,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.96)
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -864,8 +864,8 @@ importers:
         specifier: 6.0.6
         version: 6.0.6
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -907,8 +907,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.96)
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -971,8 +971,8 @@ importers:
         specifier: 1.3.96
         version: 1.3.96
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -1007,8 +1007,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.96)
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/mssql':
         specifier: 9.1.4
         version: 9.1.4
@@ -1110,8 +1110,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.2.204)
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -1270,8 +1270,8 @@ importers:
         specifier: 0.2.29
         version: 0.2.29(@swc/core@1.3.96)
       '@types/jest':
-        specifier: 29.5.10
-        version: 29.5.10
+        specifier: 29.5.11
+        version: 29.5.11
       '@types/node':
         specifier: 18.18.13
         version: 18.18.13
@@ -3953,8 +3953,8 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest@29.5.10:
-    resolution: {integrity: sha512-tE4yxKEphEyxj9s4inideLHktW/x6DwesIwWZ9NN1FKf9zbJYsnhBoA9vrHA/IuIOKwPa5PcFBNV4lpMIOEzyQ==}
+  /@types/jest@29.5.11:
+    resolution: {integrity: sha512-S2mHmYIVe13vrm6q4kN6fLYYAka15ALQki/vgDC3mIukEOx8WJlv0kQPM+d4w8Gp6u0uSdKND04IlTXBv0rwnQ==}
     dependencies:
       expect: 29.7.0
       pretty-format: 29.7.0
