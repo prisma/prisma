@@ -158,7 +158,7 @@ services:
       retries: 20
 
   mongodb_migrate:
-    image: mongo:4
+    image: mongo:6
     restart: unless-stopped
     environment:
       MONGO_INITDB_DATABASE: tests-migrate
@@ -166,7 +166,7 @@ services:
       - '27017:27017'
     healthcheck:
       # Use "mongo" instead of "mongosh" before v5.0
-      test: ['CMD', 'mongo', 'admin', '--port', '27017', '--eval', "db.adminCommand('ping').ok"]
+      test: ['CMD', 'mongosh', 'admin', '--port', '27017', '--eval', "db.adminCommand('ping').ok"]
       interval: 5s
       timeout: 2s
       retries: 20
@@ -182,18 +182,18 @@ services:
     build:
       context: ./mongodb_replica
       args:
-        MONGO_VERSION: 4
+        MONGO_VERSION: 6
     environment:
       MONGO_REPLICA_HOST: 127.0.0.1
       MONGO_REPLICA_PORT: 27018
       # Use "mongo" instead of "mongosh" before v5.0
-      MONGO_COMMAND: 'mongo'
+      MONGO_COMMAND: 'mongosh'
     ports:
       - '27018:27018'
     restart: unless-stopped
     healthcheck:
       # Use "mongo" instead of "mongosh" before v5.0
-      test: ['CMD', 'mongo', 'admin', '--port', '27018', '--eval', "db.adminCommand('ping').ok"]
+      test: ['CMD', 'mongosh', 'admin', '--port', '27018', '--eval', "db.adminCommand('ping').ok"]
       interval: 5s
       timeout: 2s
       retries: 20
