@@ -36,6 +36,8 @@ jobs:
       # required for publishing to npm with --provenance
       # see https://docs.npmjs.com/generating-provenance-statements
       id-token: write
+    outputs:
+      prismaVersion: ${{ steps.publish.outputs.prismaVersion }}
     steps:
       - name: Print input
         env:
