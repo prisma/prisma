@@ -37,7 +37,7 @@ jobs:
           fi
 
           echo "Requested custom engine from branch: $BRANCH_NAME"
-          echo "branchName=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "branchName=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build
@@ -57,7 +57,7 @@ jobs:
       - name: Get current engine hash
         id: engine-hash
         shell: bash
-        run: echo "engineHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        run: echo "engineHash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v3
         name: Artifacts cache
