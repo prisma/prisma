@@ -1,4 +1,4 @@
-name: npm - create dist tag
+name: npm - manage dist tag
 
 on:
   workflow_dispatch:
