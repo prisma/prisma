@@ -56,13 +56,13 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
  * const conditionalError = ConditionalError
  *   .new()
  *   .with('provider', Providers.MYSQL)
- *   .with('driverAdapter', ProviderFlavors.VITESS_8)
+ *   .with('driverAdapter', AdapterProviders.VITESS_8)
  *   .with('relationMode', 'prisma')
  *
  * conditionalError.snapshot({
  *   foreignKeys: 'TODO add error with relationMode=foreignKeys',
  *   prisma: {
- *     [ProviderFlavors.VITESS_8]: 'TODO add error for provider=mysql and driverAdapter=vitess-8',
+ *     [AdapterProviders.VITESS_8]: 'TODO add error for provider=mysql and driverAdapter=vitess-8',
  *   }
  * })
  */
