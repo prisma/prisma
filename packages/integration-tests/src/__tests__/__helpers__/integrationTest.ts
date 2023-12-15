@@ -5,6 +5,7 @@ import path from 'path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
 
+import { SchemaEngine } from '../../../../cli/src/migrate/SchemaEngine'
 import { getTestClient } from '../../../../client/src/utils/getTestClient'
 
 process.setMaxListeners(200)
