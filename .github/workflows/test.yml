@@ -59,11 +59,13 @@ jobs:
 
       - name: Debug Pull Request Event
         if: ${{ github.event_name == 'pull_request' }}
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           echo "Pull Request: ${{ github.event.pull_request.number }}"
           echo "Pull Request Author: ${{ github.event.pull_request.user.login }}"
           echo "Pull Request Author Association: ${{ github.event.pull_request.author_association }}"
-          echo "Pull Request Body contains /integration: ${{ contains(github.event.pull_request.body, '/integration') }}"
+          echo "Pull Request Body contains /integration: ${{ contains(env.PR_BODY, '/integration') }}"
 
       - name: Find "ci test all" comment
         uses: peter-evans/find-comment@v2
@@ -76,12 +78,14 @@ jobs:
         name: Decide on which engine types to run the next workflow
         run: |
           if [ -z "${{ steps.findTestAllComment.outputs.comment-id }}" ]; then
-            echo 'queryEngine=["library"]' >> $GITHUB_OUTPUT
+            echo 'queryEngine=["library"]' >> "$GITHUB_OUTPUT"
           else
-            echo 'queryEngine=["library","binary"]' >> $GITHUB_OUTPUT
+            echo 'queryEngine=["library","binary"]' >> "$GITHUB_OUTPUT"
           fi
 
       - name: Trigger npm release workflow for integration release
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         # See https://docs.github.com/en/graphql/reference/enums
         # https://michaelheap.com/github-actions-check-permission/
         # Check if
@@ -89,7 +93,7 @@ jobs:
         # - the PR author has permissions to trigger the workflow (must be part of the org or a collaborator)
         if: |
           github.event_name == 'pull_request' &&
-          contains(github.event.pull_request.body, '/integration') && 
+          contains(env.PR_BODY, '/integration') && 
           (
             github.event.pull_request.author_association == 'OWNER' ||
             github.event.pull_request.author_association == 'MEMBER' ||
