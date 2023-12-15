@@ -23,7 +23,7 @@ export async function main() {
     process.env.NODE_EXTRA_CA_CERTS = miniProxy.defaultCertificatesConfig.caCert
   }
 
-  execa.sync('jest', ['--silent', ...process.argv.slice(2)], {
+  execa.sync('jest', ['--silent', '--run-in-band', ...process.argv.slice(2)], {
     preferLocal: true,
     stdio: 'inherit',
     env: process.env,

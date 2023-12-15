@@ -2,7 +2,7 @@ import path from 'path'
 
 import { DbPull } from '../../migrate/commands/DbPull'
 
-describe.skip('introspection panic', () => {
+describe('introspection panic', () => {
   let originalCwd: string
 
   beforeAll(() => {
