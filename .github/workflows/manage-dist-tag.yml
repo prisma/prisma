@@ -1,4 +1,4 @@
-name: npm - create dist tag
+name: npm - manage dist tag
 run-name: npm - run `npm dist-tag ${{ github.event.inputs.tagAction }} ${{ github.event.inputs.targetPackage }} ${{ github.event.inputs.tagName }}`
 
 on:
