@@ -1089,21 +1089,6 @@ jobs:
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
-      - name: Test packages/migrate
-        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-') }}
-        run: pnpm run test --testTimeout=40000
-        working-directory: packages/migrate
-        env:
-          JEST_JUNIT_SUITE_NAME: 'migrate'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-') }}
-        with:
-          files: ./packages/migrate/src/__tests__/coverage/clover.xml
-          flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
-
       - name: Test packages/cli
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-') }}
         run: pnpm run test --testTimeout=40000
