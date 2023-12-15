@@ -17,7 +17,6 @@ on:
       targetVersion:
         description: 'Only needed when you needed to create a new tag.'
         type: string
-        required: true
         default: '---'
 
 jobs:
