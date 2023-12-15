@@ -284,8 +284,8 @@ importers:
         specifier: workspace:*
         version: link:../migrate
       '@prisma/mini-proxy':
-        specifier: 0.9.4
-        version: 0.9.4
+        specifier: 0.9.5
+        version: 0.9.5
       '@prisma/studio':
         specifier: 0.497.0
         version: 0.497.0
@@ -488,8 +488,8 @@ importers:
         specifier: workspace:*
         version: link:../migrate
       '@prisma/mini-proxy':
-        specifier: 0.9.4
-        version: 0.9.4
+        specifier: 0.9.5
+        version: 0.9.5
       '@prisma/query-engine-wasm':
         specifier: 5.8.0-16.dc5bde32ed8434159f53f3985c872265df62672f
         version: 5.8.0-16.dc5bde32ed8434159f53f3985c872265df62672f
@@ -3169,8 +3169,8 @@ packages:
   /@prisma/engines-version@5.8.0-16.dc5bde32ed8434159f53f3985c872265df62672f:
     resolution: {integrity: sha512-NtGVAhdaVIeu1aK1xD49JyyD4G8ZTo65z4sTOPZFSL4/1AMD12V6VzUJFMAmHL9m+FljGvvdMKgQqDlA5zAhgw==}
 
-  /@prisma/mini-proxy@0.9.4:
-    resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
+  /@prisma/mini-proxy@0.9.5:
+    resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
     engines: {node: '>=16'}
     hasBin: true
     dev: true
