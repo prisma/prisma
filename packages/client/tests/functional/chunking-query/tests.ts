@@ -5,7 +5,7 @@ import type { PrismaClient, Tag } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }, _suiteMeta, _clientMeta, cliMeta) => {
+  ({ provider, driverAdapter }, _suiteMeta, _clientMeta, cliMeta) => {
     function generatedIds(n: number) {
       // ["1","2",...,"n"]
       const ids = Array.from({ length: n }, (_, i) => i + 1)
@@ -173,7 +173,7 @@ testMatrix.setupTestSuite(
         })
       }
 
-      describeIf(providerFlavor === undefined)('With Rust drivers only', () => {
+      describeIf(driverAdapter === undefined)('With Rust drivers only', () => {
         // See: https://github.com/prisma/prisma/issues/21802.
         test('Selecting 32767 ids at once in two inclusive disjunct filters results in error: "too many bind variables", but not with mysql', async () => {
           const ids = generatedIds(32767)
@@ -226,7 +226,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      describeIf(providerFlavor !== undefined)('With Driver Adapters only', () => {
+      describeIf(driverAdapter !== undefined)('With Driver Adapters only', () => {
         test('Selecting 32768 ids at once in two inclusive disjunct filters works', async () => {
           const ids = generatedIds(32768)
 
@@ -269,7 +269,7 @@ testMatrix.setupTestSuite(
       reason:
         'not relevant for this test. Sqlite is excluded due to it lacking `createMany` (see: https://github.com/prisma/prisma/issues/10710).',
     },
-    skipProviderFlavor: {
+    skipDriverAdapter: {
       from: ['js_planetscale', 'js_neon'],
 
       // `rpc error: code = Aborted desc = Row count exceeded 10000 (CallerID: userData1)", state: "70100"`

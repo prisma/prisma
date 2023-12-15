@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
@@ -37,10 +37,10 @@ async function createXItems({ count }) {
 }
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor, relationMode, onUpdate, onDelete }) => {
+  ({ provider, driverAdapter, relationMode, onUpdate, onDelete }) => {
     const conditionalError = ConditionalError.new()
       .with('provider', provider)
-      .with('providerFlavor', providerFlavor)
+      .with('driverAdapter', driverAdapter)
       // @ts-ignore
       .with('relationMode', relationMode || 'foreignKeys')
 
@@ -85,10 +85,10 @@ testMatrix.setupTestSuite(
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `aliceId`',
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                  [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
-                  [ProviderFlavors.JS_PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
-                  [ProviderFlavors.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
-                  [ProviderFlavors.JS_PLANETSCALE]: 'Foreign key constraint failed on the field: `aliceId',
+                  [AdapterProviders.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
+                  [AdapterProviders.JS_PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
+                  [AdapterProviders.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [AdapterProviders.JS_PLANETSCALE]: 'Foreign key constraint failed on the field: `aliceId',
                 },
                 prisma: errors[onDelete],
               }),

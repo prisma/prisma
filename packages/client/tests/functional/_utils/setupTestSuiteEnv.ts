@@ -11,7 +11,7 @@ import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
-import { ProviderFlavors, Providers } from './providers'
+import { AdapterProviders, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta } from './types'
 
@@ -128,8 +128,8 @@ export async function setupTestSuiteDatabase(
     await DbPush.new().parse(dbPushParams)
 
     if (
-      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8 ||
-      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE
+      suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
+      suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_PLANETSCALE
     ) {
       // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
       await new Promise((r) => setTimeout(r, 1_000))
@@ -218,14 +218,14 @@ export function setupTestSuiteDbURI(
   suiteConfig: NamedTestSuiteConfig['matrixOptions'],
   clientMeta: ClientMeta,
 ): DatasourceInfo {
-  const { provider, providerFlavor } = suiteConfig
+  const { provider, driverAdapter } = suiteConfig
 
   const envVarName = `DATABASE_URI_${provider}`
   const directEnvVarName = `DIRECT_${envVarName}`
 
-  let databaseUrl = match(providerFlavor)
+  let databaseUrl = match(driverAdapter)
     .with(undefined, () => getDbUrl(provider))
-    .otherwise(() => getDbUrlFromFlavor(providerFlavor, provider))
+    .otherwise(() => getDbUrlFromFlavor(driverAdapter, provider))
 
   if (process.env.TEST_REUSE_DATABASE === 'true') {
     // we reuse and clean the same db when running in single-threaded mode
@@ -277,21 +277,21 @@ function getDbUrl(provider: Providers): string {
 }
 
 /**
- * Returns configured database URL for specified provider flavor, falling back to
- * `getDbUrl(provider)` if no flavor-specific URL is configured.
- * @param providerFlavor provider variant, e.g. `vitess` for `mysql`
+ * Returns configured database URL for specified provider, Driver Adapter, or provider variant (e.g., Vitess 8 is a known variant of the "mysql" provider),
+ * falling back to `getDbUrl(provider)` if no specific URL is configured.
+ * @param driverAdapter provider variant, e.g. `vitess` for `mysql`
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
-function getDbUrlFromFlavor(providerFlavor: `${ProviderFlavors}` | undefined, provider: Providers): string {
+function getDbUrlFromFlavor(driverAdapterOrFlavour: `${AdapterProviders}` | undefined, provider: Providers): string {
   return (
-    match(providerFlavor)
-      .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+    match(driverAdapterOrFlavour)
+      .with(AdapterProviders.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
       // Note: we're using Postgres 10 for Postgres (Rust driver, `pg` driver adapter),
       // and Postgres 16 for Neon due to https://github.com/prisma/team-orm/issues/511.
-      .with(ProviderFlavors.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
-      .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
-      .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
-      .with(ProviderFlavors.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
+      .with(AdapterProviders.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+      .with(AdapterProviders.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
+      .with(AdapterProviders.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+      .with(AdapterProviders.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
       .otherwise(() => getDbUrl(provider))
   )
 }

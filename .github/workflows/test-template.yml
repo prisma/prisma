@@ -284,7 +284,7 @@ jobs:
       fail-fast: false
       matrix:
         engine-type: ['library', 'wasm']
-        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale']
+        adapter: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
         previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
@@ -322,7 +322,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional --flavor ${{ matrix.flavor }} --shard ${{ matrix.shard }} --engine-type ${{ matrix.engine-type }} --preview-features ${{ matrix.previewFeatures }} --runInBand
+      - run: pnpm run test:functional --adapter ${{ matrix.adapter }} --shard ${{ matrix.shard }} --engine-type ${{ matrix.engine-type }} --preview-features ${{ matrix.previewFeatures }} --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
