@@ -34,7 +34,7 @@ export type DistroInfo = {
    * The target distro is the Linux distro associated with the Prisma Engines.
    * E.g., on Arch Linux, Debian, and Ubuntu, the target distro is `debian`. On Linux Alpine, the target distro is `musl`.
    */
-  targetDistro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13'
+  targetDistro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13' | 'freebsd14'
 }
 type GetOsResultLinux = {
   platform: 'linux'
