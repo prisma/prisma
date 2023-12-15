@@ -1,5 +1,4 @@
 name: npm - create dist tag
-run-name: npm - run `npm dist-tag ${{ github.event.inputs.tagAction }} ${{ github.event.inputs.targetPackage }} ${{ github.event.inputs.tagName }}`
 
 on:
   workflow_dispatch:
@@ -15,10 +14,11 @@ on:
         description: 'What is the name of the dist tag to be managed?'
         type: string
         required: true
-      targetPackage:
-        description: '"add" needs <package>@<version>, "rm" needs <package> only'
+      targetVersion:
+        description: 'Only needed when you needed to create a new tag.'
         type: string
         required: true
+        default: '---'
 
 jobs:
   manage_tag:
@@ -27,6 +27,9 @@ jobs:
     steps:
       - name: Print input
         env:
+          VERSION: ${{ contains(github.event.inputs.version, '---') && '' || join(['@', github.event.inputs.version], '') }}
+          ACTION: ${{ github.event.inputs.tagAction }}
+          TAG_NAME: ${{ github.event.inputs.tagName }}
           THE_INPUT: '${{ toJson(github.event.inputs) }}'
         run: |
           echo $THE_INPUT
@@ -36,7 +39,14 @@ jobs:
       - name: Create or delete tag on npm
         id: manage
         run: |
-          npm dist-tag ${{ github.event.inputs.tagAction }} ${{ github.event.inputs.targetPackage }} ${{ github.event.inputs.tagName }}
+          echo "The following commands will be executed, for example:"
+          echo "npm dist-tag '${{ env.ACTION }}' '@prisma/client${{ env.VERSION }}' '${{ env.TAG_NAME }}'"
+          sleep 10
+          npm dist-tag "${{ env.ACTION }}" "@prisma/client${{ env.VERSION }}" "${{ env.TAG_NAME }}"
+          npm dist-tag "${{ env.ACTION }}" "@prisma/adapter-libsql${{ env.VERSION }}" "${{ env.TAG_NAME }}"
+          npm dist-tag "${{ env.ACTION }}" "@prisma/adapter-neon${{ env.VERSION }}" "${{ env.TAG_NAME }}"
+          npm dist-tag "${{ env.ACTION }}" "@prisma/adapter-pg${{ env.VERSION }}" "${{ env.TAG_NAME }}"
+          npm dist-tag "${{ env.ACTION }}" "prisma${{ env.VERSION }}" "${{ env.TAG_NAME }}"
         env:
           # Secrets
           # Note: must use personal access token
