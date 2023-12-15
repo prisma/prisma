@@ -38,6 +38,10 @@ on:
         description: Customly-built engine hash to use
         type: string
         required: false
+      previewFeatures:
+        description: List of preview features to run tests with as csv list
+        type: string
+        default: ''
     secrets:
       BUILDPULSE_ACCESS_KEY_ID:
         required: false
