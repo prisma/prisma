@@ -27,16 +27,13 @@ jobs:
     steps:
       - name: Print input
         env:
-          VERSION: ${{ contains(github.event.inputs.version, '---') && '' || join(['@', github.event.inputs.version], '') }}
-          ACTION: ${{ github.event.inputs.tagAction }}
-          TAG_NAME: ${{ github.event.inputs.tagName }}
           THE_INPUT: '${{ toJson(github.event.inputs) }}'
         run: |
           echo $THE_INPUT
 
       - uses: actions/checkout@v4
 
-      - name: Create or delete tag on npm
+      - name: Create or delete npm tag
         id: manage
         run: |
           echo "The following commands will be executed, for example:"
@@ -52,3 +49,7 @@ jobs:
           # Note: must use personal access token
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Used by the script
+          VERSION: ${{ contains(github.event.inputs.version, '---') && '' || join(['@', github.event.inputs.version], '') }}
+          ACTION: ${{ github.event.inputs.tagAction }}
+          TAG_NAME: ${{ github.event.inputs.tagName }}
