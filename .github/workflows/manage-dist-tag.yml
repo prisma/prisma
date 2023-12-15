@@ -50,6 +50,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Used by the script
-          VERSION: ${{ contains(github.event.inputs.version, '---') && '' || join('@{0}', github.event.inputs.version) }}
+          VERSION: ${{ contains(github.event.inputs.targetVersion, '---') && '' || join('@{0}', github.event.inputs.targetVersion) }}
           ACTION: ${{ github.event.inputs.tagAction }}
           TAG_NAME: ${{ github.event.inputs.tagName }}
