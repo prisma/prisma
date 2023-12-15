@@ -60,7 +60,7 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 20
           pnpm-version: 8
           skip-tsc: false
 
