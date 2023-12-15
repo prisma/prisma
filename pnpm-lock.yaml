@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      $internals:
+        specifier: ./packages/internals
+        version: link:packages/internals
       '@microsoft/api-extractor':
         specifier: 7.38.3
         version: 7.38.3(@types/node@20.10.0)
