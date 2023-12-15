@@ -78,7 +78,7 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 20
           pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
