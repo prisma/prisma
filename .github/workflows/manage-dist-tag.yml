@@ -16,7 +16,7 @@ on:
         type: string
         required: true
       targetVersion:
-        description: 'Version to act on (Only needed with `add` in format of semver version, otherwise `---`).'
+        description: 'Version to act on (Only needed with `add` in format of semver version to tag, otherwise empty).'
         type: string
         required: false
 
