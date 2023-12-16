@@ -1,4 +1,5 @@
 name: npm - manage dist tag
+run-name: npm - manage dist tag / ${{ github.event.inputs.tagAction}} ${{ github.event.inputs.tagName}} (on ${{ github.event.inputs.targetVersion}})
 
 on:
   workflow_dispatch:
@@ -53,6 +54,6 @@ jobs:
           # Note: must use personal access token
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Used by the script
-          VERSION: ${{ github.event.inputs.targetVersion == '' && '' || format('@{0}', github.event.inputs.targetVersion) }}
+          VERSION: ${{ github.event.inputs.targetVersion && format('@{0}', github.event.inputs.targetVersion) || '' }}
           ACTION: ${{ github.event.inputs.tagAction }}
           TAG_NAME: ${{ github.event.inputs.tagName }}
