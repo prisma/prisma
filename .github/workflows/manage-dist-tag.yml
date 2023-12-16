@@ -37,6 +37,8 @@ jobs:
         if: ${{ github.event.inputs.tagAction == 'add' }}
         run: |
           npm show "prisma${{ env.VERSION }}" version
+       env:
+          VERSION: ${{ github.event.inputs.targetVersion && format('@{0}', github.event.inputs.targetVersion) || '' }}
 
       - name: Create or delete npm tag
         run: |
