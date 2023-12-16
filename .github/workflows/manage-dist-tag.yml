@@ -4,18 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       tagAction:
-        description: 'What do you want to do with the tag?'
+        description: 'What action do you want to do with the tag?'
         type: choice
         options:
           - 'add'
           - 'rm'
         required: true
       tagName:
-        description: 'What is the name of the dist tag to be managed?'
+        description: 'What is the name of the dist tag to be managed (created/updated or deleted)?'
         type: string
         required: true
       targetVersion:
-        description: 'Only needed when you needed to create a new tag.'
+        description: 'Version to act on (Only needed with `add` in format of semver version, otherwise `---`).'
         type: string
         default: '---'
 
