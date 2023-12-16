@@ -17,7 +17,7 @@ on:
       targetVersion:
         description: 'Version to act on (Only needed with `add` in format of semver version, otherwise `---`).'
         type: string
-        default: '---'
+        required: false
 
 jobs:
   manage_tag:
@@ -32,8 +32,12 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Check if version is valid
+        if: ${{ github.event.inputs.tagAction == 'add' }}
+        run: |
+          npm show "prisma${{ env.VERSION }}" version
+
       - name: Create or delete npm tag
-        id: manage
         run: |
           echo "The following commands will be executed, for example:"
           echo "npm dist-tag '${{ env.ACTION }}' '@prisma/client${{ env.VERSION }}' '${{ env.TAG_NAME }}'"
@@ -49,6 +53,6 @@ jobs:
           # Note: must use personal access token
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Used by the script
-          VERSION: ${{ contains(github.event.inputs.targetVersion, '---') && '' || format('@{0}', github.event.inputs.targetVersion) }}
+          VERSION: ${{ github.event.inputs.targetVersion == '' && '' || format('@{0}', github.event.inputs.targetVersion) }}
           ACTION: ${{ github.event.inputs.tagAction }}
           TAG_NAME: ${{ github.event.inputs.tagName }}
