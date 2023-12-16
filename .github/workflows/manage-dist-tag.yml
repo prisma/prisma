@@ -46,7 +46,6 @@ jobs:
         env:
           # Secrets
           # Note: must use personal access token
-          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Used by the script
           VERSION: ${{ contains(github.event.inputs.targetVersion, '---') && '' || format('@{0}', github.event.inputs.targetVersion) }}
