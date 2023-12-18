@@ -55,6 +55,7 @@ jobs:
         with:
           format: 'json'
       - id: detect
+        if: ${{ always() }}
         run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
 
       - name: Debug Pull Request Event
