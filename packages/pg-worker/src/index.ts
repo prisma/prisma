@@ -1,3 +1,5 @@
+import * as pg from 'pg'
+
 export * from 'pg'
-export * as default from 'pg'
+export default pg
 export { Pool } from 'pg'
