@@ -216,13 +216,9 @@ const fillPlugin = (
       __dirname: { define: '"/"' },
       __filename: { define: '"index.js"' },
 
-      // not needed
-      // global: {
-      //   define: '{}',
-      // },
-      // globalThis: {
-      //   define: '{}',
-      // },
+      global: {
+        define: 'globalThis',
+      },
 
       // overrides
       ...fillerOverrides,

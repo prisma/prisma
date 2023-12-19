@@ -1,0 +1,3 @@
+# @prisma/pg-worker
+
+INTERNAL

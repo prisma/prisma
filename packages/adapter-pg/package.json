@@ -40,9 +40,9 @@
   },
   "devDependencies": {
     "@types/pg": "8.10.9",
-    "pg": "8.11.3"
+    "@prisma/pg-worker": "workspace:*"
   },
   "peerDependencies": {
-    "pg": "^8.11.3"
+    "@prisma/pg-worker": "workspace:*"
   }
 }

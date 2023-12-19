@@ -11,7 +11,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
-import type pg from 'pg'
+import type pg from '@prisma/pg-worker'
 
 import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
 
