@@ -11,6 +11,6 @@
     "@types/node": "16.18.65",
     "esbuild": "0.19.9",
     "prisma": "/tmp/prisma-0.0.0.tgz",
-    "wrangler": "3.5.1"
+    "wrangler": "3.22.2"
   }
 }
