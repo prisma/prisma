@@ -12,7 +12,6 @@ jobs:
     with:
       reason: daily-test
       jobTimeout: 70
-      ubuntuRunner: ubuntu-latest
     secrets: inherit
   failure:
     needs:
