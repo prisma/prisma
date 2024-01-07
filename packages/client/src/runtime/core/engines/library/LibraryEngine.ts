@@ -148,9 +148,9 @@ export class LibraryEngine extends Engine<undefined> {
     let result: string | undefined
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-        isolation_level: arg?.isolationLevel,
+        max_wait: arg?.maxWait ?? this.config.transactionOptions.maxWait,
+        timeout: arg?.timeout ?? this.config.transactionOptions.timeout,
+        isolation_level: arg?.isolationLevel ?? this.config.transactionOptions.isolationLevel,
       })
 
       result = await this.engine?.startTransaction(jsonOptions, headerStr)

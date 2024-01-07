@@ -14,6 +14,7 @@ import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
+import type * as Transaction from './core/engines/common/types/Transaction'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
@@ -96,6 +97,13 @@ export type PrismaClientOptions = {
    * @default "colorless"
    */
   errorFormat?: ErrorFormat
+
+  /**
+   * The default values for Transaction options
+   * maxWait ?= 2000
+   * timeout ?= 5000
+   */
+  transactionOptions?: Transaction.Options
 
   /**
    * @example
@@ -418,6 +426,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
           logEmitter,
+          transactionOptions: {
+            maxWait: options.transactionOptions?.maxWait ?? 2000,
+            timeout: options.transactionOptions?.timeout ?? 5000,
+            isolationLevel: options.transactionOptions?.isolationLevel,
+          },
           isBundled: config.isBundled,
           adapter,
         }

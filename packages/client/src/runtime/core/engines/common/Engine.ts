@@ -107,6 +107,7 @@ export interface EngineConfig {
   engineEndpoint?: string
   activeProvider?: string
   logEmitter: LogEmitter
+  transactionOptions: Transaction.Options
 
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`.

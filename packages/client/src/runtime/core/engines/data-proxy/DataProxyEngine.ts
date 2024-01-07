@@ -422,9 +422,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       callback: async ({ logHttpCall }) => {
         if (action === 'start') {
           const body = JSON.stringify({
-            max_wait: arg?.maxWait ?? 2000, // default
-            timeout: arg?.timeout ?? 5000, // default
-            isolation_level: arg?.isolationLevel,
+            max_wait: arg?.maxWait ?? this.config.transactionOptions.maxWait,
+            timeout: arg?.timeout ?? this.config.transactionOptions.timeout,
+            isolation_level: arg?.isolationLevel ?? this.config.transactionOptions.isolationLevel,
           })
 
           const url = await this.url('transaction/start')
