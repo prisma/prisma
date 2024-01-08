@@ -467,8 +467,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
-        version: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
+        specifier: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
+        version: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -491,8 +491,8 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/query-engine-wasm':
-        specifier: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
-        version: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
+        specifier: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
+        version: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -726,8 +726,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
-        version: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
+        specifier: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
+        version: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -763,8 +763,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
-        version: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
+        specifier: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
+        version: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,8 +1088,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
-        version: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
+        specifier: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
+        version: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1245,8 +1245,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
-        version: 5.8.0-35.98ee70609b272493d461f616accbf44531c21a89
+        specifier: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
+        version: 5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3175,8 +3175,8 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@prisma/engines-version@5.8.0-35.98ee70609b272493d461f616accbf44531c21a89:
-    resolution: {integrity: sha512-eR3bC2AZSImLviChyZOcQ8zIN0JgvQJFMT+LrzaPRDiZDIMwoFcO/OlMkpaOM9C7O8gtO6260fH6nMmJfDWUOw==}
+  /@prisma/engines-version@5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180:
+    resolution: {integrity: sha512-slw0j/yDA1kglRODKlX1JRrx1dVsgOPQkGMBfPdfdIXaVViHbWR357xOwWfWqTETQXLLiE46ojWa0M4pnPpX5Q==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3184,12 +3184,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.8.0-35.98ee70609b272493d461f616accbf44531c21a89:
-    resolution: {integrity: sha512-NEicVOYgPUkXwCL5rA1TrtfpTt8KRAYcis6Z9+bvpmWQtd0LqS9OIbiLsNYRHnK3wXwigrIv53RIhqepOJHvSQ==}
+  /@prisma/prisma-schema-wasm@5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180:
+    resolution: {integrity: sha512-cYbOfOrIOacovSNVVI6Rk4agi/7q7KeJhy88KMEbjeyBv+y8rxc9YyQ5lhx9eTphTspQ92CyH0TNZ8jAOI2gDg==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.8.0-35.98ee70609b272493d461f616accbf44531c21a89:
-    resolution: {integrity: sha512-aiHx/HKdpWtLM15jxFZ8+vKZEWGixVY6TV54yhlkUVs+18yNfOdZGI+Pt8BMmfWemDvUqjN1nbWS/fOIAFh+gQ==}
+  /@prisma/query-engine-wasm@5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180:
+    resolution: {integrity: sha512-HPcfD7YZB7ZSEx18YMI5Oxc86PO/jZwdDK72TnV48Njxg4fNwl8D3Ci6EVrHd579ZDO6t5T+NGRHfrpOYQqJug==}
     dev: true
 
   /@prisma/studio-common@0.497.0:

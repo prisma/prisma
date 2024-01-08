@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.8.0-35.98ee70609b272493d461f616accbf44531c21a89",
+    "@prisma/engines-version": "5.8.0-36.feat-qe-implement-relationloadstrategy-api-d2f09986b7514e6bda7b9fa6b000aec0c4cd8180",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
