@@ -1,7 +1,7 @@
 import { foreignKeyForProvider, idForProvider } from '../../_utils/idForProvider'
-import matrix from '../_matrix'
+import testMatrix from '../_matrix'
 
-export default matrix.setupSchema(({ provider }) => {
+export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"
