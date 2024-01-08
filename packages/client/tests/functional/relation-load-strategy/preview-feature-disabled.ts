@@ -487,6 +487,41 @@ testMatrix.setupTestSuite(
             Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
         `)
       })
+
+      test('count', async () => {
+        await expect(
+          prisma.user.count({
+            // @ts-expect-error
+            relationLoadStrategy: 'query',
+          }),
+        ).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+            Invalid \`prisma.user.count()\` invocation in
+            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+              XX 
+              XX test('count', async () => {
+              XX   await expect(
+            → XX     prisma.user.count({
+                        select: {
+                          _count: {
+                            select: {
+                              _all: true
+                            }
+                          }
+                        },
+                        relationLoadStrategy: "query",
+                        ~~~~~~~~~~~~~~~~~~~~
+                      ? where?: UserWhereInput,
+                      ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                      ? cursor?: UserWhereUniqueInput,
+                      ? take?: Int,
+                      ? skip?: Int
+                      })
+
+            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+        `)
+      })
     })
   },
   {
