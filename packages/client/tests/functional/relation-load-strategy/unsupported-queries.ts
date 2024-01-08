@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
           Invalid \`prisma.user.findMany()\` invocation in
-          /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+          /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
             XX describeIf(relationJoinsEnabled)('relationLoadStrategy in unsupported positions', () => {
             XX   test('nested subquery in findMany using include', async () => {
@@ -70,7 +70,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
           Invalid \`prisma.user.findMany()\` invocation in
-          /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+          /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
             XX 
             XX test('nested subquery in findMany using select', async () => {
@@ -110,7 +110,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
           Invalid \`prisma.user.aggregate()\` invocation in
-          /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+          /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
             XX 
             XX test('aggregate', async () => {
@@ -146,7 +146,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
           Invalid \`prisma.user.groupBy()\` invocation in
-          /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+          /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
             XX 
             XX test('groupBy', async () => {
@@ -180,7 +180,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.createMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
               XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
               XX   await expect(
@@ -213,7 +213,7 @@ testMatrix.setupTestSuite(
           ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
               Invalid \`prisma.user.createMany()\` invocation in
-              /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+              /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
                 XX async () => {
                 XX   await expect(
@@ -245,7 +245,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
           Invalid \`prisma.user.updateMany()\` invocation in
-          /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+          /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
             XX 
             XX test('updateMany', async () => {
@@ -272,7 +272,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
           Invalid \`prisma.user.deleteMany()\` invocation in
-          /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+          /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
             XX 
             XX test('deleteMany', async () => {
@@ -296,7 +296,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
           Invalid \`prisma.user.count()\` invocation in
-          /client/tests/functional/relation-load-strategy/unsupported.ts:0:0
+          /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
             XX 
             XX test('count', async () => {
