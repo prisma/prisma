@@ -13,7 +13,7 @@ let prisma: PrismaClient
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     beforeEach(() => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -319,18 +319,34 @@ testMatrix.setupTestSuite(
         })
       })
 
-      await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
+      if (cliMeta.previewFeatures.includes('relationJoins')) {
+        await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-        Invalid \`prisma.user.findUnique()\` invocation:
+          Invalid \`prisma.user.findUnique()\` invocation:
 
-        {
-          badInput: true,
-          ~~~~~~~~
-        ? where?: UserWhereUniqueInput
-        }
+          {
+            badInput: true,
+            ~~~~~~~~
+          ? where?: UserWhereUniqueInput,
+          ? relationLoadStrategy?: RelationLoadStrategy
+          }
 
-        Unknown argument \`badInput\`. Available options are marked with ?.
-      `)
+          Unknown argument \`badInput\`. Available options are marked with ?.
+        `)
+      } else {
+        await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+          Invalid \`prisma.user.findUnique()\` invocation:
+
+          {
+            badInput: true,
+            ~~~~~~~~
+          ? where?: UserWhereUniqueInput
+          }
+
+          Unknown argument \`badInput\`. Available options are marked with ?.
+        `)
+      }
     })
 
     testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
