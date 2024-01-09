@@ -35,10 +35,14 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
     }
 
     function expectLateralJoinToBeUsedIfRequested() {
+      const pattern = expect.arrayContaining([
+        expect.objectContaining({ query: expect.stringMatching('LEFT JOIN LATERAL') }),
+      ])
+
       if (relationLoadStrategy === 'join') {
-        expect(logs).toContain(expect.stringMatching('LEFT JOIN LATERAL'))
+        expect(logs).toEqual(pattern)
       } else {
-        expect(logs).not.toContain(expect.stringMatching('LEFT JOIN LATERAL'))
+        expect(logs).not.toEqual(pattern)
       }
     }
 
