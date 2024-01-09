@@ -31,7 +31,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
 
     async function expectQueryCountAtLeast(count: Record<RelationLoadStrategy, number>) {
       await waitFor(() => {
-        expect(logs.length).toBeGreaterThanOrEqual(count[relationLoadStrategy])
+        expect(logs.length).toBeGreaterThanOrEqual(count[suiteConfig.strategy])
       })
     }
 
@@ -40,7 +40,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         expect.objectContaining({ query: expect.stringMatching('LEFT JOIN LATERAL') }),
       ])
 
-      if (relationLoadStrategy === 'join') {
+      if (suiteConfig.strategy === 'join') {
         expect(logs).toEqual(pattern)
       } else {
         expect(logs).not.toEqual(pattern)
