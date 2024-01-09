@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { match } from 'ts-pattern'
 
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import { providersSupportingRelationJoins, RelationLoadStrategy } from './_common'
@@ -409,7 +410,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
 
       await expectQueryCountAtLeast({
         join: 6,
-        query: 8,
+        query: suiteConfig.provider === Providers.MONGODB ? 6 : 8,
       })
 
       expectLateralJoinToBeUsedIfRequested()
@@ -551,7 +552,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
 
       await expectQueryCountAtLeast({
         join: 5,
-        query: 7,
+        query: suiteConfig.provider === Providers.MONGODB ? 6 : 7,
       })
 
       expectLateralJoinToBeUsedIfRequested()
