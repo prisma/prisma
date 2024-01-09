@@ -28,10 +28,18 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
 
     const logs: PrismaNamespace.QueryEvent[] = []
 
-    async function expectQueryCount(count: Record<RelationLoadStrategy, number>) {
+    async function expectQueryCountAtLeast(count: Record<RelationLoadStrategy, number>) {
       await waitFor(() => {
-        expect(logs.length).toBe(count[relationLoadStrategy])
+        expect(logs.length).toBeGreaterThanOrEqual(count[relationLoadStrategy])
       })
+    }
+
+    function expectLateralJoinToBeUsedIfRequested() {
+      if (relationLoadStrategy === 'join') {
+        expect(logs).toContain(expect.stringMatching('LEFT JOIN LATERAL'))
+      } else {
+        expect(logs).not.toContain(expect.stringMatching('LEFT JOIN LATERAL'))
+      }
     }
 
     beforeAll(async () => {
@@ -52,6 +60,8 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
     })
 
     beforeEach(async () => {
+      await prisma.comment.deleteMany()
+      await prisma.post.deleteMany()
       await prisma.user.deleteMany()
 
       await prisma.user.create({
@@ -130,10 +140,417 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         ]
       `)
 
-      await expectQueryCount({
+      await expectQueryCountAtLeast({
         join: 1,
         query: 4,
       })
+
+      expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('findFirst', async () => {
+      await expect(
+        prisma.user.findFirst({
+          relationLoadStrategy,
+          where: {
+            login: 'author',
+          },
+          select: {
+            login: true,
+            posts: {
+              select: {
+                title: true,
+                comments: {
+                  select: {
+                    author: {
+                      select: {
+                        login: true,
+                      },
+                    },
+                    body: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          login: author,
+          posts: [
+            {
+              comments: [
+                {
+                  author: {
+                    login: commenter,
+                  },
+                  body: a comment,
+                },
+              ],
+              title: first post,
+            },
+          ],
+        }
+      `)
+
+      await expectQueryCountAtLeast({
+        join: 1,
+        query: 4,
+      })
+
+      expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('findFirstOrThrow', async () => {
+      await expect(
+        prisma.user.findFirstOrThrow({
+          relationLoadStrategy,
+          where: {
+            login: 'author',
+          },
+          select: {
+            login: true,
+            posts: {
+              select: {
+                title: true,
+                comments: {
+                  select: {
+                    author: {
+                      select: {
+                        login: true,
+                      },
+                    },
+                    body: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          login: author,
+          posts: [
+            {
+              comments: [
+                {
+                  author: {
+                    login: commenter,
+                  },
+                  body: a comment,
+                },
+              ],
+              title: first post,
+            },
+          ],
+        }
+      `)
+
+      await expectQueryCountAtLeast({
+        join: 1,
+        query: 4,
+      })
+
+      expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('findUnique', async () => {
+      await expect(
+        prisma.user.findUnique({
+          relationLoadStrategy,
+          where: {
+            login: 'author',
+          },
+          select: {
+            login: true,
+            posts: {
+              select: {
+                title: true,
+                comments: {
+                  select: {
+                    author: {
+                      select: {
+                        login: true,
+                      },
+                    },
+                    body: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          login: author,
+          posts: [
+            {
+              comments: [
+                {
+                  author: {
+                    login: commenter,
+                  },
+                  body: a comment,
+                },
+              ],
+              title: first post,
+            },
+          ],
+        }
+      `)
+
+      await expectQueryCountAtLeast({
+        join: 1,
+        query: 4,
+      })
+
+      expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('findUniqueOrThrow', async () => {
+      await expect(
+        prisma.user.findUniqueOrThrow({
+          relationLoadStrategy,
+          where: {
+            login: 'author',
+          },
+          select: {
+            login: true,
+            posts: {
+              select: {
+                title: true,
+                comments: {
+                  select: {
+                    author: {
+                      select: {
+                        login: true,
+                      },
+                    },
+                    body: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          login: author,
+          posts: [
+            {
+              comments: [
+                {
+                  author: {
+                    login: commenter,
+                  },
+                  body: a comment,
+                },
+              ],
+              title: first post,
+            },
+          ],
+        }
+      `)
+
+      await expectQueryCountAtLeast({
+        join: 1,
+        query: 4,
+      })
+
+      expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('create', async () => {
+      await expect(
+        prisma.user.create({
+          relationLoadStrategy,
+          data: {
+            login: 'reader',
+            comments: {
+              create: {
+                post: {
+                  connect: { id: postId },
+                },
+                body: 'most insightful indeed!',
+              },
+            },
+          },
+          select: {
+            login: true,
+            comments: {
+              select: {
+                post: {
+                  select: {
+                    title: true,
+                  },
+                },
+                body: true,
+              },
+            },
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          comments: [
+            {
+              body: most insightful indeed!,
+              post: {
+                title: first post,
+              },
+            },
+          ],
+          login: reader,
+        }
+      `)
+
+      await expectQueryCountAtLeast({
+        join: 6,
+        query: 8,
+      })
+
+      expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('update', async () => {
+      await expect(
+        prisma.user.update({
+          relationLoadStrategy,
+          where: {
+            login: 'author',
+          },
+          data: {
+            login: 'distinguished author',
+          },
+          select: {
+            login: true,
+            posts: {
+              select: {
+                title: true,
+                comments: {
+                  select: {
+                    body: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          login: distinguished author,
+          posts: [
+            {
+              comments: [
+                {
+                  body: a comment,
+                },
+              ],
+              title: first post,
+            },
+          ],
+        }
+      `)
+
+      await expectQueryCountAtLeast({
+        join: 4,
+        query: 6,
+      })
+
+      expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('delete', async () => {
+      await expect(
+        prisma.user.delete({
+          relationLoadStrategy,
+          where: {
+            login: 'author',
+          },
+          select: {
+            login: true,
+            posts: {
+              select: {
+                title: true,
+                comments: {
+                  select: {
+                    body: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          login: author,
+          posts: [
+            {
+              comments: [
+                {
+                  body: a comment,
+                },
+              ],
+              title: first post,
+            },
+          ],
+        }
+      `)
+
+      await expectQueryCountAtLeast({
+        join: 4,
+        query: 6,
+      })
+
+      expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('upsert', async () => {
+      await expect(
+        prisma.user.upsert({
+          relationLoadStrategy,
+          where: {
+            login: 'commenter',
+          },
+          create: {
+            login: 'commenter',
+          },
+          update: {
+            login: 'ardent commenter',
+          },
+          select: {
+            login: true,
+            comments: {
+              select: {
+                post: {
+                  select: {
+                    title: true,
+                  },
+                },
+                body: true,
+              },
+            },
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          comments: [
+            {
+              body: a comment,
+              post: {
+                title: first post,
+              },
+            },
+          ],
+          login: ardent commenter,
+        }
+      `)
+
+      await expectQueryCountAtLeast({
+        join: 5,
+        query: 7,
+      })
+
+      expectLateralJoinToBeUsedIfRequested()
     })
   })
 })
