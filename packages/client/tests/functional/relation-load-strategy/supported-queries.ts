@@ -35,15 +35,23 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
       })
     }
 
-    function expectLateralJoinToBeUsedIfRequested() {
-      const pattern = expect.arrayContaining([
-        expect.objectContaining({ query: expect.stringMatching('LEFT JOIN LATERAL') }),
-      ])
+    const lateralJoinLogsMatcher = expect.arrayContaining([
+      expect.objectContaining({ query: expect.stringMatching('LEFT JOIN LATERAL') }),
+    ])
 
+    function expectLateralJoinToBeUsed() {
+      expect(logs).toEqual(lateralJoinLogsMatcher)
+    }
+
+    function expectLateralJoinNotToBeUsed() {
+      expect(logs).not.toEqual(lateralJoinLogsMatcher)
+    }
+
+    function expectLateralJoinToBeUsedIfRequested() {
       if (suiteConfig.strategy === 'join') {
-        expect(logs).toEqual(pattern)
+        expectLateralJoinToBeUsed()
       } else {
-        expect(logs).not.toEqual(pattern)
+        expectLateralJoinNotToBeUsed()
       }
     }
 
@@ -556,6 +564,41 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
       })
 
       expectLateralJoinToBeUsedIfRequested()
+    })
+
+    test('create with no relation selection', async () => {
+      await expect(
+        prisma.user.create({
+          // Doesn't influence the generated queries in this case as we only select scalars.
+          relationLoadStrategy,
+          data: {
+            login: 'reader',
+            comments: {
+              create: {
+                post: {
+                  connect: { id: postId },
+                },
+                body: 'most insightful indeed!',
+              },
+            },
+          },
+          select: {
+            login: true,
+          },
+        }),
+      ).resolves.toMatchInlineSnapshot(`
+        {
+          login: reader,
+        }
+      `)
+
+      // Query count is equal in this test since no relations are loaded.
+      await expectQueryCountAtLeast({
+        join: 6,
+        query: suiteConfig.provider === Providers.MONGODB ? 4 : 6,
+      })
+
+      expectLateralJoinNotToBeUsed()
     })
   })
 })
