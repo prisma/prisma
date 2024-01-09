@@ -2612,7 +2612,7 @@ export namespace Prisma {
   type PostGetPayload<S extends boolean | null | undefined | PostDefaultArgs> = $Result.GetResult<Prisma.$PostPayload, S>
 
   type PostCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<PostFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<PostFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: PostCountAggregateInputType | true
     }
 
@@ -3665,7 +3665,7 @@ export namespace Prisma {
   type UserGetPayload<S extends boolean | null | undefined | UserDefaultArgs> = $Result.GetResult<Prisma.$UserPayload, S>
 
   type UserCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<UserFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<UserFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: UserCountAggregateInputType | true
     }
 
@@ -4737,7 +4737,7 @@ export namespace Prisma {
   type MGetPayload<S extends boolean | null | undefined | MDefaultArgs> = $Result.GetResult<Prisma.$MPayload, S>
 
   type MCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<MFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<MFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: MCountAggregateInputType | true
     }
 
@@ -5808,7 +5808,7 @@ export namespace Prisma {
   type NGetPayload<S extends boolean | null | undefined | NDefaultArgs> = $Result.GetResult<Prisma.$NPayload, S>
 
   type NCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<NFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<NFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: NCountAggregateInputType | true
     }
 
@@ -6879,7 +6879,7 @@ export namespace Prisma {
   type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalDefaultArgs> = $Result.GetResult<Prisma.$OneOptionalPayload, S>
 
   type OneOptionalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<OneOptionalFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<OneOptionalFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OneOptionalCountAggregateInputType | true
     }
 
@@ -7962,7 +7962,7 @@ export namespace Prisma {
   type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredDefaultArgs> = $Result.GetResult<Prisma.$ManyRequiredPayload, S>
 
   type ManyRequiredCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<ManyRequiredFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<ManyRequiredFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ManyRequiredCountAggregateInputType | true
     }
 
@@ -9041,7 +9041,7 @@ export namespace Prisma {
   type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1DefaultArgs> = $Result.GetResult<Prisma.$OptionalSide1Payload, S>
 
   type OptionalSide1CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<OptionalSide1FindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<OptionalSide1FindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OptionalSide1CountAggregateInputType | true
     }
 
@@ -10106,7 +10106,7 @@ export namespace Prisma {
   type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2DefaultArgs> = $Result.GetResult<Prisma.$OptionalSide2Payload, S>
 
   type OptionalSide2CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<OptionalSide2FindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<OptionalSide2FindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OptionalSide2CountAggregateInputType | true
     }
 
@@ -11141,7 +11141,7 @@ export namespace Prisma {
   type AGetPayload<S extends boolean | null | undefined | ADefaultArgs> = $Result.GetResult<Prisma.$APayload, S>
 
   type ACountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<AFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<AFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ACountAggregateInputType | true
     }
 
@@ -12061,7 +12061,7 @@ export namespace Prisma {
   type BGetPayload<S extends boolean | null | undefined | BDefaultArgs> = $Result.GetResult<Prisma.$BPayload, S>
 
   type BCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<BFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<BFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: BCountAggregateInputType | true
     }
 
@@ -12951,7 +12951,7 @@ export namespace Prisma {
   type CGetPayload<S extends boolean | null | undefined | CDefaultArgs> = $Result.GetResult<Prisma.$CPayload, S>
 
   type CCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<CFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<CFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: CCountAggregateInputType | true
     }
 
@@ -13865,7 +13865,7 @@ export namespace Prisma {
   type DGetPayload<S extends boolean | null | undefined | DDefaultArgs> = $Result.GetResult<Prisma.$DPayload, S>
 
   type DCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<DFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<DFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: DCountAggregateInputType | true
     }
 
@@ -14727,7 +14727,7 @@ export namespace Prisma {
   type EGetPayload<S extends boolean | null | undefined | EDefaultArgs> = $Result.GetResult<Prisma.$EPayload, S>
 
   type ECountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<EFindManyArgs, 'select' | 'include' | 'distinct' > & {
+    Omit<EFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ECountAggregateInputType | true
     }
 
