@@ -252,9 +252,12 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case ArrayColumnType.OID_ARRAY:
       return ColumnTypeEnum.Int64Array
     default:
-      if (fieldTypeId >= 10000) {
-        // Postgres Custom Types
-        return ColumnTypeEnum.Enum
+      // Postgres custom types (types that come from extensions and user's enums).
+      // We don't use `ColumnTypeEnum.Enum` for enums here and defer the decision to
+      // the serializer in QE because it has access to the query schema, while on
+      // this level we would have to query the catalog to introspect the type.
+      if (fieldTypeId >= 10_000) {
+        return ColumnTypeEnum.Text
       }
       throw new UnsupportedNativeDataType(fieldTypeId)
   }

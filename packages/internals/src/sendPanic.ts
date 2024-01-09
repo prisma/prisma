@@ -1,4 +1,4 @@
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
 import * as checkpoint from 'checkpoint-client'
 import fs from 'fs'
@@ -9,7 +9,13 @@ import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
 
-import { createErrorReport, ErrorKind, makeErrorReportCompleted, uploadZip } from './errorReporting'
+import {
+  createErrorReport,
+  type CreateErrorReportInput,
+  ErrorKind,
+  makeErrorReportCompleted,
+  uploadZip,
+} from './errorReporting'
 import type { MigrateTypes } from './migrateTypes'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
@@ -80,7 +86,7 @@ export async function sendPanic({
       )
     : undefined
 
-  const params = {
+  const params: CreateErrorReportInput = {
     area: error.area,
     kind: ErrorKind.RUST_PANIC,
     cliVersion,
@@ -89,7 +95,7 @@ export async function sendPanic({
     jsStackTrace: stripAnsi(error.stack || error.message),
     rustStackTrace: error.rustStack,
     operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
-    platform: await getPlatform(),
+    platform: await getBinaryTargetForCurrentPlatform(),
     liftRequest: migrateRequest,
     schemaFile: maskedSchema,
     fingerprint: await checkpoint.getSignature(),

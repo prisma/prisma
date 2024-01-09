@@ -143,8 +143,11 @@ export function setupTestSuiteClientDriverAdapter({
     const { Client } = require('@planetscale/database') as typeof import('@planetscale/database')
     const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
 
+    const url = new URL('http://root:root@127.0.0.1:8085')
+    url.pathname = new URL(datasourceInfo.databaseUrl).pathname
+
     const client = new Client({
-      url: 'http://root:root@127.0.0.1:8085',
+      url: url.toString(),
       fetch, // TODO remove when Node 16 is deprecated
     })
 

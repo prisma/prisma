@@ -12,7 +12,8 @@ import { RawValue, Sql } from 'sql-template-tag'
 
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
+import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
@@ -174,16 +175,6 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition
-  ? T['emit'] extends 'event'
-    ? T['level']
-    : never
-  : never
-export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
-  | GetLogType<T[0]>
-  | GetLogType<T[1]>
-  | GetLogType<T[2]>
-
 export type QueryEvent = {
   timestamp: Date
   query: string
@@ -198,6 +189,13 @@ export type LogEvent = {
   target: string
 }
 /* End Types for Logging */
+
+type ExtendedEventType = LogLevel | 'beforeExit'
+type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
+  ? () => Promise<void>
+  : [E] extends [LogLevel]
+  ? (event: EngineEvent<E>) => void
+  : never
 
 /**
  * Config that is stored into the generated client. When the generated client is
@@ -338,7 +336,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         // enabled error logging, this would be executed, and a trace for the error would be logged
         // in debug mode, which is like going in the opposite direction than what the user wanted by
         // not enabling error logging in the first place.
-      })
+      }) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = getPreviewFeatures(config)
@@ -419,7 +417,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
-          logEmitter: logEmitter,
+          logEmitter,
           isBundled: config.isBundled,
           adapter,
         }
@@ -434,7 +432,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
             if (level) {
               this.$on(level, (event) => {
-                logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
+                logger.log(`${logger.tags[level] ?? ''}`, (event as LogEvent).message || (event as QueryEvent).query)
               })
             }
           }
@@ -463,29 +461,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._middlewares.use(middleware)
     }
 
-    $on(eventType: EngineEventType, callback: (event: any) => void) {
+    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>) {
       if (eventType === 'beforeExit') {
-        this._engine.on('beforeExit', callback)
-      } else {
-        this._engine.on(eventType, (event) => {
-          const fields = event.fields
-          if (eventType === 'query') {
-            return callback({
-              timestamp: event.timestamp,
-              query: fields?.query ?? event.query,
-              params: fields?.params ?? event.params,
-              duration: fields?.duration_ms ?? event.duration,
-              target: event.target,
-            })
-          } else {
-            // warn, info, or error events
-            return callback({
-              timestamp: event.timestamp,
-              message: fields?.message ?? event.message,
-              target: event.target,
-            })
-          }
-        })
+        this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)
+      } else if (eventType) {
+        this._engineConfig.logEmitter.on(eventType, callback as EventCallback<LogLevel>)
       }
     }
 

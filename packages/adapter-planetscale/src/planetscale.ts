@@ -3,6 +3,7 @@
 // i.e. client
 import * as planetScale from '@planetscale/database'
 import type {
+  ConnectionInfo,
   DriverAdapter,
   Query,
   Queryable,
@@ -147,6 +148,14 @@ const adapter = new PrismaPlanetScale(client)
 `)
     }
     super(client)
+  }
+
+  getConnectionInfo(): Result<ConnectionInfo> {
+    const url = this.client.connection()['url'] as string
+    const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
+    return ok({
+      schemaName: dbName,
+    })
   }
 
   async startTransaction() {

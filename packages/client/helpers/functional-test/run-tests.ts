@@ -1,4 +1,4 @@
-import { arg, BinaryType, getPlatform } from '@prisma/internals'
+import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
@@ -259,8 +259,8 @@ async function getBinaryForMiniProxy(): Promise<string> {
   }
 
   const paths = await setupQueryEngine()
-  const platform = await getPlatform()
-  const qePath = paths[BinaryType.QueryEngineBinary]?.[platform]
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
+  const qePath = paths[BinaryType.QueryEngineBinary]?.[binaryTarget]
 
   if (!qePath) {
     throw new Error('Query Engine binary missing')

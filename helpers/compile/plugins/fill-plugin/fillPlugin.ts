@@ -8,10 +8,10 @@ type LoadCache = { [K in string]: string }
 
 type Fillers = {
   [k in string]: {
+    imports?: string
+    globals?: string
     contents?: string
-    path?: string
     define?: string
-    inject?: string
   }
 }
 
@@ -77,8 +77,8 @@ function setInjectionsAndDefinitions(fillers: Fillers, options: esbuild.BuildOpt
       options.define[fillerName] = filler.define
     }
 
-    if (filler.inject) {
-      options.inject.push(filler.inject)
+    if (filler.globals) {
+      options.inject.push(filler.globals)
     }
   }
 }
@@ -97,8 +97,8 @@ function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs): esbuild.OnRes
   const item = fillers[path]
 
   // if a path is provided, we just replace it
-  if (item.path !== undefined) {
-    return { path: item.path }
+  if (item.imports !== undefined) {
+    return { path: item.imports }
   }
 
   // if not, we defer action to the loaders cb
@@ -147,25 +147,25 @@ const fillPlugin = (
     const fillers: Fillers = {
       // enabled
       // assert: { path: load('assert-browserify') },
-      buffer: { path: load('buffer') },
+      buffer: { imports: load('buffer') },
       // constants: { path: load('constants-browserify') },
       // crypto: { path: load('crypto-browserify') },
       // domain: { path: load('domain-browser') },
-      events: { path: load('eventemitter3') },
+      events: { imports: load('eventemitter3') },
       // http: { path: load('stream-http') },
       // https: { path: load('https-browserify') },
       // inherits: { path: load('inherits') },
       // os: { path: load('os-browserify') },
-      path: { path: load('path-browserify') },
+      path: { imports: load('path-browserify') },
       // punycode: { path: load('punycode') },
       // querystring: { path: load('querystring-es3') },
       // stream: { path: load('readable-stream') },
       // string_decoder: { path: load('string_decoder') },
       // sys: { path: load('util') },
       // timers: { path: load('timers-browserify') },
-      tty: { path: load('tty-browserify') },
+      tty: { imports: load('tty-browserify') },
       // url: { path: load('url') },
-      util: { path: load('util') },
+      util: { imports: load('util') },
       // vm: { path: load('vm-browserify') },
       // zlib: { path: load('browserify-zlib') },
 
@@ -193,22 +193,25 @@ const fillPlugin = (
       cluster: { contents: '' },
       dns: { contents: '' },
       dgram: { contents: '' },
-      fs: { path: path.join(__dirname, 'fillers', 'fs.ts') },
+      fs: { imports: path.join(__dirname, 'fillers', 'fs.ts') },
       http2: { contents: '' },
       module: { contents: '' },
       net: { contents: '' },
-      perf_hooks: { path: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
+      perf_hooks: { imports: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
       readline: { contents: '' },
       repl: { contents: '' },
       tls: { contents: '' },
 
       // globals
       Buffer: {
-        inject: path.join(__dirname, 'fillers', 'buffer.ts'),
+        globals: path.join(__dirname, 'fillers', 'buffer.ts'),
       },
       process: {
-        inject: path.join(__dirname, 'fillers', 'process.ts'),
-        path: path.join(__dirname, 'fillers', 'process.ts'),
+        globals: path.join(__dirname, 'fillers', 'process.ts'),
+        imports: path.join(__dirname, 'fillers', 'process.ts'),
+      },
+      performance: {
+        globals: path.join(__dirname, 'fillers', 'perf_hooks.ts'),
       },
       __dirname: { define: '"/"' },
       __filename: { define: '"index.js"' },

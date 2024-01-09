@@ -1,6 +1,6 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { getPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
@@ -172,10 +172,10 @@ describe('getGenerators', () => {
     `)
 
     const generator = omit(generators[0].options!.generator, ['output'])
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
     expect(generator.binaryTargets).toHaveLength(1)
-    expect(generator.binaryTargets[0].value).toEqual(platform)
+    expect(generator.binaryTargets[0].value).toEqual(binaryTarget)
     expect(generator.binaryTargets[0].fromEnvVar).toEqual(null)
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
@@ -263,10 +263,10 @@ describe('getGenerators', () => {
     `)
 
     const generator = omit(generators[0].options!.generator, ['output'])
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
     expect(generator.binaryTargets).toHaveLength(1)
-    expect(generator.binaryTargets[0].value).toEqual(platform)
+    expect(generator.binaryTargets[0].value).toEqual(binaryTarget)
     expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
@@ -354,10 +354,10 @@ describe('getGenerators', () => {
     `)
 
     const generator = omit(generators[0].options!.generator, ['output'])
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
     expect(generator.binaryTargets).toHaveLength(1)
-    expect(generator.binaryTargets[0].value).toEqual(platform)
+    expect(generator.binaryTargets[0].value).toEqual(binaryTarget)
     expect(generator.binaryTargets[0].fromEnvVar).toEqual(null)
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
@@ -602,12 +602,12 @@ describe('getGenerators', () => {
 
     const options = generators.map((g) => g.options?.binaryPaths)
 
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
     // we override queryEngine, so its paths should be equal to the one of the generator
-    expect(options[0]?.queryEngine?.[platform]).toBe(queryEnginePath)
+    expect(options[0]?.queryEngine?.[binaryTarget]).toBe(queryEnginePath)
     // we did not override the schemaEngine, so their paths should not be equal
-    expect(options[0]?.schemaEngine?.[platform]).not.toBe(schemaEngine)
+    expect(options[0]?.schemaEngine?.[binaryTarget]).not.toBe(schemaEngine)
 
     generators.forEach((g) => g.stop())
   })

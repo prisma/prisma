@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 import type {
   ColumnType,
+  ConnectionInfo,
   DriverAdapter,
   Query,
   Queryable,
@@ -123,9 +124,19 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
+export type PrismaPgOptions = {
+  schema?: string
+}
+
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
-  constructor(client: pg.Pool) {
+  constructor(client: pg.Pool, private options?: PrismaPgOptions) {
     super(client)
+  }
+
+  getConnectionInfo(): Result<ConnectionInfo> {
+    return ok({
+      schemaName: this.options?.schema,
+    })
   }
 
   async startTransaction(): Promise<Result<Transaction>> {

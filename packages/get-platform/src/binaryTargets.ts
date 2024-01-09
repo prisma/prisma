@@ -1,4 +1,4 @@
-export type Platform =
+export type BinaryTarget =
   | 'native'
   | 'darwin'
   | 'darwin-arm64'
@@ -25,11 +25,12 @@ export type Platform =
   | 'freebsd11'
   | 'freebsd12'
   | 'freebsd13'
+  | 'freebsd14'
   | 'openbsd'
   | 'netbsd'
   | 'arm'
 
-export const platforms: Array<Platform> = [
+export const binaryTargets: BinaryTarget[] = [
   'darwin',
   'darwin-arm64',
   'debian-openssl-1.0.x',
@@ -55,6 +56,7 @@ export const platforms: Array<Platform> = [
   'freebsd11',
   'freebsd12',
   'freebsd13',
+  'freebsd14',
   'openbsd',
   'netbsd',
   'arm',

@@ -1,6 +1,6 @@
 import { enginesVersion } from '@prisma/engines'
 import { download, getCacheDir } from '@prisma/fetch-engine'
-import { getPlatform } from '@prisma/internals'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import execa from 'execa'
 import { existsSync } from 'fs'
@@ -37,9 +37,9 @@ export async function main() {
  * @returns an object to kill the process
  */
 export async function startMiniProxy() {
-  const platform = await getPlatform()
-  const cacheDir = (await getCacheDir('master', enginesVersion, platform))!
-  const qePath = `${cacheDir}/query-engine${platform === 'windows' ? '.exe' : ''}`
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
+  const cacheDir = (await getCacheDir('master', enginesVersion, binaryTarget))!
+  const qePath = `${cacheDir}/query-engine${binaryTarget === 'windows' ? '.exe' : ''}`
 
   if (existsSync(qePath) === false) {
     await download({
