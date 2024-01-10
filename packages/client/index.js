@@ -1,3 +1,3 @@
 module.exports = {
-  ...require('.prisma/client/index'),
+  ...require('.prisma/client'),
 }

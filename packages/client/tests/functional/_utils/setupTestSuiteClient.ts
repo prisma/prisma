@@ -80,7 +80,6 @@ export async function setupTestSuiteClient({
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
       edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
     },
-    projectRoot: suiteFolderPath,
     noEngine: clientMeta.dataProxy,
   })
 

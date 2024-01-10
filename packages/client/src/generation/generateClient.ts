@@ -15,6 +15,7 @@ import { name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
+import { TSClientOptions } from './TSClient/TSClient'
 import type { Dictionary } from './utils/common'
 
 const GENERATED_PACKAGE_NAME = '.prisma/client'
@@ -34,7 +35,6 @@ export class DenylistError extends Error {
 setClassName(DenylistError, 'DenylistError')
 
 export interface GenerateClientOptions {
-  projectRoot?: string
   datamodel: string
   schemaPath: string
   transpile?: boolean
@@ -71,7 +71,6 @@ export async function buildClient({
   datasources,
   engineVersion,
   clientVersion,
-  projectRoot,
   activeProvider,
   postinstall,
   overrideEngineType,
@@ -80,7 +79,7 @@ export async function buildClient({
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
   const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
-  const tsClientOptions = {
+  const tsClientOptions: Omit<TSClientOptions, 'runtimeDir' | 'runtimeName'> = {
     document,
     datasources,
     generator,
@@ -92,7 +91,6 @@ export async function buildClient({
     outputDir,
     clientVersion,
     engineVersion,
-    projectRoot: projectRoot!,
     activeProvider,
     postinstall,
     noEngine,
@@ -110,28 +108,97 @@ export async function buildClient({
     ...tsClientOptions,
     runtimeName: 'edge',
     runtimeDir: runtimeDirs.edge,
+    edge: true,
+    reuseTypes: true,
   })
+
+  const pkgJson = {
+    name: GENERATED_PACKAGE_NAME,
+    main: 'index.js',
+    types: 'index.d.ts',
+    browser: 'index-browser.js',
+    sideEffects: false,
+  }
+
+  // we enable the new dx (optional /edge) for driver adapters
+  if (generator?.previewFeatures.includes('driverAdapters')) {
+    pkgJson['exports'] = {
+      './package.json': './package.json',
+      '.': {
+        require: {
+          types: './default.d.ts',
+          node: './default.js',
+          'edge-light': './edge.js',
+          workerd: './edge.js',
+          worker: './edge.js',
+          browser: './index-browser.js',
+        },
+        import: {
+          types: './default.d.ts',
+          node: './default.js',
+          'edge-light': './edge.js',
+          workerd: './edge.js',
+          worker: './edge.js',
+          browser: './index-browser.js',
+        },
+        default: './default.js',
+      },
+      './edge': {
+        types: './edge.d.ts',
+        require: './edge.js',
+        import: './edge.js',
+        default: './edge.js',
+      },
+      './extension': {
+        types: './extension.d.ts',
+        require: './extension.js',
+        import: './extension.js',
+        default: './extension.js',
+      },
+      './index-browser': {
+        types: './default.d.ts',
+        require: './index-browser.js',
+        import: './index-browser.js',
+        default: './index-browser.js',
+      },
+      './index': {
+        types: './default.d.ts',
+        require: './default.js',
+        import: './default.js',
+        default: './default.js',
+      },
+      './*': './*',
+    }
+  }
 
   const fileMap = {} // we will store the generated contents here
 
   // we generate the default client that is meant to work on Node
-  fileMap['index.js'] = await JS(nodeTsClient, false)
+  fileMap['index.js'] = await JS(nodeTsClient)
   fileMap['index.d.ts'] = await TS(nodeTsClient)
   fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
-  fileMap['package.json'] = JSON.stringify(
-    {
-      name: GENERATED_PACKAGE_NAME,
-      main: 'index.js',
-      types: 'index.d.ts',
-      browser: 'index-browser.js',
-      sideEffects: false,
-    },
-    null,
-    2,
-  )
+  fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
+  fileMap['edge.js'] = await JS(edgeTsClient)
+  fileMap['edge.d.ts'] = await TS(edgeTsClient)
 
-  fileMap['edge.js'] = await JS(edgeTsClient, true)
-  fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
+  if (generator?.previewFeatures.includes('driverAdapters')) {
+    // we create a regular client that that warns on /index usage
+    const nodeWarnTsClient = new TSClient({
+      ...tsClientOptions,
+      runtimeName: getNodeRuntimeName(clientEngineType),
+      runtimeDir: runtimeDirs.node,
+      reuseTypes: true,
+      indexWarning: true,
+    })
+
+    if (generator.isCustomOutput === true) {
+      fileMap['index.js'] = await JS(nodeWarnTsClient)
+      fileMap['index.d.ts'] = await TS(nodeWarnTsClient)
+    }
+
+    fileMap['default.js'] = await JS(nodeTsClient)
+    fileMap['default.d.ts'] = await TS(nodeTsClient)
+  }
 
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
     // we create a client that is fit for edge runtimes
@@ -140,9 +207,10 @@ export async function buildClient({
       runtimeName: 'library.d.ts',
       runtimeDir: '../' + runtimeDirs.edge,
       deno: true,
+      edge: true,
     })
 
-    fileMap['deno/edge.js'] = await JS(denoEdgeTsClient, true)
+    fileMap['deno/edge.js'] = await JS(denoEdgeTsClient)
     fileMap['deno/index.d.ts'] = await TS(denoEdgeTsClient)
     fileMap['deno/edge.ts'] = `
 import './polyfill.js'
@@ -204,7 +272,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   } = options
 
   const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
-  const { runtimeDirs, finalOutputDir, projectRoot } = await getGenerationDirs(options)
+  const { runtimeDirs, finalOutputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
@@ -218,7 +286,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     binaryPaths,
     clientVersion,
     engineVersion,
-    projectRoot,
     activeProvider,
     postinstall,
     overrideEngineType,
@@ -303,7 +370,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       let target: string
 
       // Introduced in https://github.com/prisma/prisma/pull/6527
-      // The engines that are not needed for the runtime deployment on AWS Lambda 
+      // The engines that are not needed for the runtime deployment on AWS Lambda
       // are moved to `/tmp/prisma-engines`
       // They will be ignored and not included in the final build, reducing its size
       if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {

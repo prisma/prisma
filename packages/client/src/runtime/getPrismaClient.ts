@@ -23,6 +23,7 @@ import { checkPlatformCaching } from './core/init/checkPlatformCaching'
 import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
+import { warnCustomClientImport } from './core/init/warnCustomClientImport'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -278,6 +279,13 @@ export type GetPrismaClientConfig = {
   noEngine?: boolean
 
   /**
+   * When `true`, the Client will display a warning on its first instantiation,
+   * letting the user know that their client setup is not optimal and that they
+   * should make their custom generated client a dependency of their project.
+   */
+  indexWarning?: boolean
+
+  /**
    * Loads the raw wasm module for the wasm query engine. This configuration is
    * generated specifically for each type of client, eg. Node.js client and Edge
    * clients will have different implementations.
@@ -322,6 +330,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     constructor(optionsArg?: PrismaClientOptions) {
       checkPlatformCaching(config)
+      warnCustomClientImport(config)
 
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config)

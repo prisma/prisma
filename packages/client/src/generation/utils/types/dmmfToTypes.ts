@@ -9,7 +9,6 @@ export function dmmfToTypes(document: DMMF.Document) {
   return new TSClient({
     document: document,
     datasources: [],
-    projectRoot: '',
     clientVersion: '',
     engineVersion: '',
     runtimeDir: '',
@@ -17,5 +16,7 @@ export function dmmfToTypes(document: DMMF.Document) {
     schemaPath: '',
     outputDir: '',
     activeProvider: '',
+    binaryTargets: [],
+    generator: undefined,
   }).toTS()
 }

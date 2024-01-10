@@ -26,47 +26,81 @@ import { Count } from './Count'
 import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
-import type { Generatable } from './Generatable'
+import { type Generatable } from './Generatable'
 import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
 export interface TSClientOptions {
-  projectRoot: string
   clientVersion: string
   engineVersion: string
   document: DMMF.Document
   runtimeDir: string
   runtimeName: string
-  browser?: boolean
   datasources: DataSource[]
-  generator?: GeneratorConfig
-  binaryTargets?: BinaryTarget[] // TODO: consider making it non-nullable
+  generator: GeneratorConfig | undefined
+  binaryTargets: BinaryTarget[]
   schemaPath: string
   outputDir: string
   activeProvider: string
+  /** When generating the browser client */
+  browser?: boolean
+  /** When generating via the Deno CLI */
   deno?: boolean
+  /** when --postinstall is passed via CLI */
   postinstall?: boolean
+  /** When --no-engine is passed via CLI */
   noEngine?: boolean
+  /** When we are generating an /edge client */
+  edge?: boolean
+  /** When types don't need to be regenerated */
+  reuseTypes?: boolean
+  /** When user is not optimally importing client */
+  indexWarning?: boolean
 }
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo
+  protected readonly options: Required<TSClientOptions>
 
   static enabledPreviewFeatures: string[]
 
-  constructor(protected readonly options: TSClientOptions) {
+  constructor(options: TSClientOptions) {
+    // apply convenience defaults
+    this.options = {
+      edge: false,
+      deno: false,
+      postinstall: false,
+      noEngine: false,
+      browser: false,
+      reuseTypes: false,
+      indexWarning: false,
+      ...options,
+    }
+
     this.dmmf = new DMMFHelper(klona(options.document))
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
 
     TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
 
-  public async toJS(edge = false): Promise<string> {
-    const { binaryTargets, generator, outputDir, schemaPath, runtimeDir, runtimeName, datasources, deno, noEngine } =
-      this.options
+  public async toJS(): Promise<string> {
+    const {
+      edge,
+      binaryTargets,
+      generator,
+      outputDir,
+      schemaPath,
+      runtimeDir,
+      runtimeName,
+      datasources,
+      deno,
+      noEngine,
+      indexWarning,
+    } = this.options
+
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -97,6 +131,7 @@ export class TSClient implements Generatable {
       }, {} as GetPrismaClientConfig['inlineDatasources']),
       inlineSchema,
       inlineSchemaHash,
+      indexWarning,
       noEngine,
     }
 
@@ -133,13 +168,28 @@ ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(Boolean(edge || noEngine), engineType, binaryTargets, relativeOutdir)}
+${buildNFTAnnotations(edge || noEngine, engineType, binaryTargets, relativeOutdir)}
 `
     return code
   }
-  public toTS(edge = false): string {
-    // edge exports the same ts definitions as the index
-    if (edge === true) return `export * from './index'`
+  public toTS(): string {
+    const { reuseTypes, indexWarning } = this.options
+
+    if (reuseTypes === true && indexWarning === true && TSClient.enabledPreviewFeatures.includes('driverAdapters')) {
+      return `export * from './default'
+import { PrismaClient as OriginalPrismaClient } from './default'
+/** @deprecated TODO: add your custom client to your package.json */
+export class PrismaClient extends OriginalPrismaClient {}`
+    }
+
+    // in some cases, we just re-export the existing types
+    if (reuseTypes === true && TSClient.enabledPreviewFeatures.includes('driverAdapters')) {
+      return `export * from './default'`
+    }
+
+    if (reuseTypes === true && TSClient.enabledPreviewFeatures.includes('driverAdapters') === false) {
+      return `export * from './index'`
+    }
 
     const context: GenerateContext = {
       dmmf: this.dmmf,

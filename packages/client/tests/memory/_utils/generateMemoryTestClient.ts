@@ -34,6 +34,5 @@ export async function generateMemoryTestClient(testDir: MemoryTestDir) {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
       edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'edge'].join('/'),
     },
-    projectRoot: testDir.basePath,
   })
 }
