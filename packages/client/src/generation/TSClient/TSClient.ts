@@ -177,9 +177,12 @@ ${buildNFTAnnotations(edge || noEngine, engineType, binaryTargets, relativeOutdi
 
     if (reuseTypes === true && indexWarning === true && TSClient.enabledPreviewFeatures.includes('driverAdapters')) {
       return `export * from './default'
-import { PrismaClient as OriginalPrismaClient } from './default'
-/** @deprecated TODO: add your custom client to your package.json */
-export class PrismaClient extends OriginalPrismaClient {}`
+import { PrismaClient as $PrismaClient, Prisma } from './default'
+/** @deprecated TODO: add your custom client to your package.json if you have tsconfig set \`moduleResolution\` to 'node16', 'nodenext', or 'bundler' */
+export class PrismaClient<T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions> extends $PrismaClient<T> {
+  /** @deprecated TODO: add your custom client to your package.json if you have tsconfig set \`moduleResolution\` to 'node16', 'nodenext', or 'bundler' */
+  constructor(optionsArg?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
+}`
     }
 
     // in some cases, we just re-export the existing types
