@@ -8,13 +8,12 @@ import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type {
   BatchQueryEngineResult,
   EngineConfig,
-  EngineEventType,
   InteractiveTransactionOptions,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { EventEmitter } from '../common/types/Events'
+import type { LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
@@ -28,6 +27,8 @@ import { NotImplementedYetError } from './errors/NotImplementedYetError'
 import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
+import { checkForbiddenMetrics } from './utils/checkForbiddenMetrics'
+import { dateFromEngineTimestamp, EngineTimestamp } from './utils/EngineTimestamp'
 import { getClientVersion } from './utils/getClientVersion'
 import { Fetch, request } from './utils/request'
 
@@ -52,7 +53,7 @@ type DataProxyLog = {
   span_id: string
   name: string
   level: LogLevel
-  timestamp: [number, number]
+  timestamp: EngineTimestamp
   attributes: Record<string, unknown> & { duration_ms: number; params: string; target: string }
 }
 
@@ -65,6 +66,7 @@ type DataProxyHeaders = {
   Authorization: string
   'X-capture-telemetry'?: string
   traceparent?: string
+  'Prisma-Engine-Hash': string
 }
 
 type HeaderBuilderOptions = {
@@ -77,27 +79,32 @@ class DataProxyHeaderBuilder {
   readonly tracingHelper: TracingHelper
   readonly logLevel: EngineConfig['logLevel']
   readonly logQueries: boolean | undefined
+  readonly engineHash: string
 
   constructor({
     apiKey,
     tracingHelper,
     logLevel,
     logQueries,
+    engineHash,
   }: {
     apiKey: string
     tracingHelper: TracingHelper
     logLevel: EngineConfig['logLevel']
     logQueries: boolean | undefined
+    engineHash: string
   }) {
     this.apiKey = apiKey
     this.tracingHelper = tracingHelper
     this.logLevel = logLevel
     this.logQueries = logQueries
+    this.engineHash = engineHash
   }
 
   build({ traceparent, interactiveTransaction }: HeaderBuilderOptions = {}): DataProxyHeaders {
     const headers: DataProxyHeaders = {
       Authorization: `Bearer ${this.apiKey}`,
+      'Prisma-Engine-Hash': this.engineHash,
     }
 
     if (this.tracingHelper.isEnabled()) {
@@ -140,10 +147,11 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   readonly inlineSchemaHash: string
   private inlineDatasources: GetPrismaClientConfig['inlineDatasources']
   private config: EngineConfig
-  private logEmitter: EventEmitter
+  private logEmitter: LogEmitter
   private env: { [k in string]?: string }
 
   private clientVersion: string
+  private engineHash: string
   private tracingHelper: TracingHelper
   private remoteClientVersion!: string
   private host!: string
@@ -153,12 +161,15 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   constructor(config: EngineConfig) {
     super()
 
+    checkForbiddenMetrics(config)
+
     this.config = config
     this.env = { ...this.config.env, ...process.env }
-    this.inlineSchema = config.inlineSchema ?? ''
-    this.inlineDatasources = config.inlineDatasources ?? {}
-    this.inlineSchemaHash = config.inlineSchemaHash ?? ''
-    this.clientVersion = config.clientVersion ?? 'unknown'
+    this.inlineSchema = config.inlineSchema
+    this.inlineDatasources = config.inlineDatasources
+    this.inlineSchemaHash = config.inlineSchemaHash
+    this.clientVersion = config.clientVersion
+    this.engineHash = config.engineVersion
     this.logEmitter = config.logEmitter
     this.tracingHelper = this.config.tracingHelper
   }
@@ -167,9 +178,10 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     return this.headerBuilder.apiKey
   }
 
+  // The version is the engine hash
+  // that we expect to have on the remote QE
   version() {
-    // QE is remote, we don't need to know the exact commit SHA
-    return 'unknown'
+    return this.engineHash
   }
 
   /**
@@ -192,6 +204,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
         tracingHelper: this.tracingHelper,
         logLevel: this.config.logLevel,
         logQueries: this.config.logQueries,
+        engineHash: this.engineHash,
       })
 
       this.remoteClientVersion = await getClientVersion(host, this.config)
@@ -229,8 +242,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
             this.logEmitter.emit('query', {
               query: dbQuery,
-              timestamp: log.timestamp,
-              duration: log.attributes.duration_ms,
+              // first part is in seconds, second is in nanoseconds, we need to convert both to milliseconds
+              timestamp: dateFromEngineTimestamp(log.timestamp),
+              duration: Number(log.attributes.duration_ms),
               params: log.attributes.params,
               target: log.attributes.target,
             })
@@ -244,18 +258,14 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     }
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
-    if (event === 'beforeExit') {
-      throw new Error('"beforeExit" hook is not applicable to the remote query engine')
-    } else {
-      this.logEmitter.on(event, listener)
-    }
+  override onBeforeExit() {
+    throw new Error('"beforeExit" hook is not applicable to the remote query engine')
   }
 
-  private async url(s: string) {
+  private async url(action: string) {
     await this.start()
 
-    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
+    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${action}`
   }
 
   private async uploadSchema() {
@@ -276,14 +286,20 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
         debug('schema response status', response.status)
       }
 
-      const err = await responseToError(response, this.clientVersion)
+      const error = await responseToError(response, this.clientVersion)
 
-      if (err) {
-        this.logEmitter.emit('warn', { message: `Error while uploading schema: ${err.message}` })
-        throw err
+      if (error) {
+        this.logEmitter.emit('warn', {
+          message: `Error while uploading schema: ${error.message}`,
+          timestamp: new Date(),
+          target: '',
+        })
+        throw error
       } else {
         this.logEmitter.emit('info', {
           message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
+          timestamp: new Date(),
+          target: '',
         })
       }
     })
@@ -360,26 +376,26 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
           debug('graphql response status', response.status)
         }
 
-        const e = await responseToError(response, this.clientVersion)
-        await this.handleError(e)
+        await this.handleError(await responseToError(response, this.clientVersion))
 
-        const data = await response.json()
-        const extensions = data.extensions as DataProxyExtensions | undefined
+        const json = await response.json()
+
+        const extensions = json.extensions as DataProxyExtensions | undefined
         if (extensions) {
           this.propagateResponseExtensions(extensions)
         }
 
         // TODO: headers contain `x-elapsed` and it needs to be returned
 
-        if (data.errors) {
-          if (data.errors.length === 1) {
-            throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+        if (json.errors) {
+          if (json.errors.length === 1) {
+            throw prismaGraphQLToJSError(json.errors[0], this.config.clientVersion!)
           } else {
-            throw new PrismaClientUnknownRequestError(data.errors, { clientVersion: this.config.clientVersion! })
+            throw new PrismaClientUnknownRequestError(json.errors, { clientVersion: this.config.clientVersion! })
           }
         }
 
-        return data
+        return json
       },
     })
   }
@@ -422,8 +438,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             clientVersion: this.clientVersion,
           })
 
-          const err = await responseToError(response, this.clientVersion)
-          await this.handleError(err)
+          await this.handleError(await responseToError(response, this.clientVersion))
 
           const json = await response.json()
 
@@ -447,14 +462,14 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             clientVersion: this.clientVersion,
           })
 
+          await this.handleError(await responseToError(response, this.clientVersion))
+
           const json = await response.json()
+
           const extensions = json.extensions as DataProxyExtensions | undefined
           if (extensions) {
             this.propagateResponseExtensions(extensions)
           }
-
-          const err = await responseToError(response, this.clientVersion)
-          await this.handleError(err)
 
           return undefined
         }
@@ -463,6 +478,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   private extractHostAndApiKey() {
+    const errorInfo = { clientVersion: this.clientVersion }
+    const dsName = Object.keys(this.inlineDatasources)[0]
     const serviceURL = resolveDatasourceUrl({
       inlineDatasources: this.inlineDatasources,
       overrideDatasources: this.config.overrideDatasources,
@@ -474,18 +491,27 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     try {
       url = new URL(serviceURL)
     } catch {
-      throw new InvalidDatasourceError('Could not parse URL of the datasource', {
-        clientVersion: this.clientVersion,
-      })
+      throw new InvalidDatasourceError(
+        `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\``,
+        errorInfo,
+      )
     }
 
-    const { host, searchParams } = url
+    const { protocol, host, searchParams } = url
+
+    if (protocol !== 'prisma:') {
+      throw new InvalidDatasourceError(
+        `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\``,
+        errorInfo,
+      )
+    }
 
     const apiKey = searchParams.get('api_key')
     if (apiKey === null || apiKey.length < 1) {
-      throw new InvalidDatasourceError('No valid API key found in the datasource URL', {
-        clientVersion: this.clientVersion,
-      })
+      throw new InvalidDatasourceError(
+        `Error validating datasource \`${dsName}\`: the URL must contain a valid API key`,
+        errorInfo,
+      )
     }
 
     return [host, apiKey]
@@ -494,7 +520,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
   metrics(): Promise<Metrics> | Promise<string> {
-    throw new NotImplementedYetError('Metrics are not yet supported for Data Proxy', {
+    throw new NotImplementedYetError('Metrics are not yet supported for Accelerate', {
       clientVersion: this.clientVersion,
     })
   }
@@ -507,6 +533,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       const logHttpCall = (url: string) => {
         this.logEmitter.emit('info', {
           message: `Calling ${url} (n=${attempt})`,
+          timestamp: new Date(),
+          target: '',
         })
       }
 
@@ -525,9 +553,17 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
         this.logEmitter.emit('warn', {
           message: `Attempt ${attempt + 1}/${MAX_RETRIES} failed for ${args.actionGerund}: ${e.message ?? '(unknown)'}`,
+          timestamp: new Date(),
+          target: '',
         })
+
         const delay = await backOff(attempt)
-        this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
+
+        this.logEmitter.emit('warn', {
+          message: `Retrying after ${delay}ms`,
+          timestamp: new Date(),
+          target: '',
+        })
       }
     }
   }

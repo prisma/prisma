@@ -75,9 +75,10 @@ describe('artificial-panic formatter', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath.replace(/\\/g, '/')) // replace due to Windows CI
@@ -105,9 +106,10 @@ describe('artificial-panic get-config', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -147,9 +149,10 @@ describe('artificial-panic validate', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -181,9 +184,10 @@ describe('artificial-panic validate', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -226,9 +230,10 @@ describe('artificial-panic getDMMF', () => {
 }`,
       })
     } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(
-        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
-      )
+      expect(serialize(e.message)).toMatchInlineSnapshot(`
+        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`

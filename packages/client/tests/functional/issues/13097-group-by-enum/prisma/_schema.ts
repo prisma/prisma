@@ -1,4 +1,5 @@
 import { idForProvider } from '../../../_utils/idForProvider'
+import { Providers } from '../../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -19,7 +20,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     model Resource {
       id        ${idForProvider(provider)}
       enumValue Enum?
-      ${provider !== 'mysql' ? `enumArray Enum[]` : ''}
+      ${provider !== Providers.MYSQL ? `enumArray Enum[]` : ''}
     }
   `
 })

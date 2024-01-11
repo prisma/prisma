@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import {
   ClientEngineType,
   extractPreviewFeatures,
@@ -79,7 +79,7 @@ export async function generateInFolder({
     }
   }
 
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
   let runtimeDirs
   if (useLocalRuntime) {
@@ -98,24 +98,24 @@ export async function generateInFolder({
     throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
   }
   const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
-  const queryEngineBinaryPath = path.join(
-    enginesPath,
-    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-  )
+  const queryEngineLibraryPath =
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(binaryTarget, 'fs'))
+  const queryEngineBinaryPath =
+    process.env.PRISMA_QUERY_ENGINE_BINARY ??
+    path.join(enginesPath, `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`)
 
-  await ensureTestClientQueryEngine(clientEngineType, platform)
+  await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
 
   const binaryPaths =
     clientEngineType === ClientEngineType.Library
       ? {
           libqueryEngine: {
-            [platform]: queryEngineLibraryPath,
+            [binaryTarget]: queryEngineLibraryPath,
           },
         }
       : {
           queryEngine: {
-            [platform]: queryEngineBinaryPath,
+            [binaryTarget]: queryEngineBinaryPath,
           },
         }
 

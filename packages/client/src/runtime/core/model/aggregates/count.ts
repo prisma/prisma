@@ -39,7 +39,7 @@ export function createUnpacker(args: UserArgs = {}) {
  * @param modelAction a callback action that triggers request execution
  * @returns
  */
-export function count(args: UserArgs | undefined, modelAction: ModelAction) {
+export function count(args: UserArgs, modelAction: ModelAction) {
   return modelAction({
     action: 'count',
     unpacker: createUnpacker(args),

@@ -1,5 +1,5 @@
 import { enginesVersion } from '@prisma/engines-version'
-import { getPlatform, Platform } from '@prisma/get-platform'
+import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import del from 'del'
 import fs from 'fs'
 import type { Response } from 'node-fetch'
@@ -27,18 +27,24 @@ const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/
 jest.setTimeout(300_000)
 jest.retryTimes(3)
 
-describe('download', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const usesCustomEngines =
+  process.env.PRISMA_QUERY_ENGINE_LIBRARY ||
+  process.env.PRISMA_QUERY_ENGINE_BINARY ||
+  process.env.PRISMA_SCHEMA_ENGINE_BINARY
+
+describeIf(!usesCustomEngines)('download', () => {
   const baseDirAll = path.posix.join(dirname, 'all')
   const baseDirCorruption = path.posix.join(dirname, 'corruption')
   const baseDirChecksum = path.posix.join(dirname, 'checksum')
   const baseDirBinaryTarget = path.posix.join(dirname, 'binaryTarget')
-  let platform: Platform
+  let binaryTarget: BinaryTarget
 
   beforeEach(async () => {
     mockFetch.mockReset().mockImplementation(actualFetch)
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
-    platform = await getPlatform()
+    binaryTarget = await getBinaryTargetForCurrentPlatform()
   })
 
   describe('all engines', () => {
@@ -50,9 +56,9 @@ describe('download', () => {
     })
 
     test('download all current engines', async () => {
-      const platform = await getPlatform()
-      const queryEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.QueryEngineBinary, platform))
-      const schemaEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.SchemaEngineBinary, platform))
+      const binaryTarget = await getBinaryTargetForCurrentPlatform()
+      const queryEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.QueryEngineBinary, binaryTarget))
+      const schemaEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.SchemaEngineBinary, binaryTarget))
 
       await download({
         binaries: {
@@ -155,8 +161,8 @@ describe('download', () => {
     })
 
     test('download all engines & cache them', async () => {
-      const queryEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.QueryEngineBinary, platform))
-      const schemaEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.SchemaEngineBinary, platform))
+      const queryEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.QueryEngineBinary, binaryTarget))
+      const schemaEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.SchemaEngineBinary, binaryTarget))
 
       const before0 = Math.round(performance.now())
       await download({
@@ -540,7 +546,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     test('auto heal corrupt engine binary', async () => {
-      const targetPath = path.join(baseDirCorruption, getBinaryName('query-engine', platform))
+      const targetPath = path.join(baseDirCorruption, getBinaryName('query-engine', binaryTarget))
       if (fs.existsSync(targetPath)) {
         try {
           fs.unlinkSync(targetPath)
@@ -664,7 +670,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(
-        `Failed to fetch sha256 checksum at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz.sha256. 500 KO`,
+        `Failed to fetch sha256 checksum at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz.sha256 - 500 KO`,
       )
 
       // Because we try to fetch 2 different checksum files
@@ -694,7 +700,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(
-        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz. 500 KO`,
+        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz - 500 KO`,
       )
 
       // Because we try to fetch 2 different checksum files before we even start downloading the binaries
@@ -716,7 +722,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaries: {
             [BinaryType.QueryEngineLibrary]: baseDirChecksum,
           },
-          binaryTargets: [platform],
+          binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(`network timeout at:`)
@@ -742,7 +748,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaries: {
             [BinaryType.QueryEngineLibrary]: baseDirChecksum,
           },
-          binaryTargets: [platform],
+          binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(`network timeout at:`)
@@ -770,19 +776,19 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     test('if checksum downloads and matches, does not throw', async () => {
-      const queryEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.QueryEngineLibrary, platform))
+      const queryEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.QueryEngineLibrary, binaryTarget))
 
       await expect(
         download({
           binaries: {
             [BinaryType.QueryEngineLibrary]: baseDirChecksum,
           },
-          binaryTargets: [platform],
+          binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
       ).resolves.toStrictEqual({
         'libquery-engine': {
-          [platform]: queryEnginePath,
+          [binaryTarget]: queryEnginePath,
         },
       })
 
@@ -813,7 +819,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaries: {
             [BinaryType.QueryEngineLibrary]: baseDirChecksum,
           },
-          binaryTargets: [platform],
+          binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(/^sha256 checksum of .+ \(zipped\) should be .+ but is .+$/)
@@ -834,19 +840,19 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         return actualFetch(url, opts)
       })
 
-      const queryEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.QueryEngineLibrary, platform))
+      const queryEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.QueryEngineLibrary, binaryTarget))
 
       await expect(
         download({
           binaries: {
             [BinaryType.QueryEngineLibrary]: baseDirChecksum,
           },
-          binaryTargets: [platform],
+          binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
       ).resolves.toStrictEqual({
         'libquery-engine': {
-          [platform]: queryEnginePath,
+          [binaryTarget]: queryEnginePath,
         },
       })
 

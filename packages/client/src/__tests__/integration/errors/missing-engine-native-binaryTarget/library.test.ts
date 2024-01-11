@@ -1,11 +1,13 @@
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('missing-engine-native-binaryTarget: library', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
+testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine-native-binaryTarget: library', async () => {
   if (getClientEngineType() !== ClientEngineType.Library) {
     return
   }
@@ -15,11 +17,11 @@ test('missing-engine-native-binaryTarget: library', async () => {
 
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const binaryPath =
     getClientEngineType() === ClientEngineType.Library
-      ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(platform, 'fs'))
-      : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
+      ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(binaryTarget, 'fs'))
+      : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${binaryTarget}`)
   fs.unlinkSync(binaryPath)
   const prisma = new PrismaClient({
     log: [
@@ -37,10 +39,10 @@ test('missing-engine-native-binaryTarget: library', async () => {
     Invalid \`prisma.user.findMany()\` invocation in
     /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/library.test.ts:0:0
 
-      31 })
-      32 
-      33 await expect(async () => {
-    → 34   await prisma.user.findMany(
+      33 })
+      34 
+      35 await expect(async () => {
+    → 36   await prisma.user.findMany(
     Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
     This is likely caused by tooling that has not copied "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" to the deployment folder.

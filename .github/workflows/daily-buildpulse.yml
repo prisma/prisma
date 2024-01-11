@@ -12,5 +12,4 @@ jobs:
     with:
       reason: buildpulse
       jobTimeout: 70
-      ubuntuRunner: ubuntu-latest
     secrets: inherit

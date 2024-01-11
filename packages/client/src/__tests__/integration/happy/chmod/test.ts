@@ -1,4 +1,4 @@
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
@@ -10,9 +10,9 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 // Tests that no error is being thrown when the binary is manually set to chmod 644 because Client fixes that itself
 testIf(process.platform !== 'win32')('chmod', async () => {
   await generateTestClient()
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   if (getClientEngineType() !== ClientEngineType.Library) {
-    const binaryPath = path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
+    const binaryPath = path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${binaryTarget}`)
     fs.chmodSync(binaryPath, '644')
   }
   const { PrismaClient } = require('./node_modules/@prisma/client')

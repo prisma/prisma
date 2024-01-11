@@ -25,7 +25,7 @@ const prisma = new PrismaClient({
         },
       ],
       skip: 0,
-      take: 10000,
+      take: 10_000,
     }),
   )
 
@@ -46,7 +46,7 @@ const prisma = new PrismaClient({
         },
       },
       skip: 0,
-      take: 10000,
+      take: 10_000,
     }),
   )
 
@@ -72,7 +72,7 @@ const prisma = new PrismaClient({
           gt: -1,
         },
       },
-      take: 10000,
+      take: 10_000,
     }),
   )
 
@@ -88,7 +88,7 @@ const prisma = new PrismaClient({
           gt: -1,
         },
       },
-      take: 10000,
+      take: 10_000,
     }),
   )
 

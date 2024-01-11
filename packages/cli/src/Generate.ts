@@ -2,9 +2,11 @@ import { enginesVersion } from '@prisma/engines'
 import {
   arg,
   Command,
+  drawBox,
   format,
   Generator,
   getCommandWithExecutor,
+  getConfig,
   getGenerators,
   getGeneratorSuccessMessage,
   HelpError,
@@ -24,6 +26,7 @@ import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
+import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
 
@@ -50,6 +53,7 @@ ${bold('Options')}
       --schema   Custom path to your Prisma schema
        --watch   Watch the Prisma schema and rerun after a change
    --generator   Generator to use (may be provided multiple times)
+   --no-engine   Generate a client for use with Accelerate only
 
 ${bold('Examples')}
 
@@ -96,8 +100,9 @@ ${bold('Examples')}
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
-      '--data-proxy': Boolean, // remove in Prisma 6
-      '--accelerate': Boolean, // remove in Prisma 6
+      '--data-proxy': Boolean,
+      '--accelerate': Boolean,
+      '--no-engine': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -119,10 +124,14 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
+
     if (!schemaPath) return ''
+
+    const datamodel = await fs.promises.readFile(schemaPath, 'utf-8')
+    const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
     let hasJsClient
@@ -136,6 +145,13 @@ ${bold('Examples')}
         cliVersion: pkg.version,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
+        noEngine:
+          Boolean(args['--no-engine']) ||
+          Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
+          Boolean(args['--accelerate']) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
       })
 
       if (!generators || generators.length === 0) {
@@ -233,13 +249,25 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        hint = `Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
+        const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
+Try Prisma Accelerate for connection pooling and caching.
+${link('https://pris.ly/cli/accelerate')}`
+
+        const boxedTryAccelerateMessage = drawBox({
+          height: tryAccelerateMessage.split('\n').length,
+          width: 0, // calculated automatically
+          str: tryAccelerateMessage,
+          horizontalPadding: 2,
+        })
+
+        hint = `
+Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
 ${dim('```')}
-or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/data-proxy')})
+or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/accelerate')})
 ${dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
@@ -247,7 +275,9 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
-${breakingChangesStr}${versionsWarning}`
+
+${boxedTryAccelerateMessage}
+${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')

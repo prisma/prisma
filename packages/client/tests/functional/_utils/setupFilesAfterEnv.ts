@@ -1,7 +1,11 @@
+// add all jest-extended matchers
+// see https://jest-extended.jestcommunity.dev/docs/matchers/
+import * as matchers from 'jest-extended'
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
 import stripAnsi from 'strip-ansi'
 
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
+expect.extend(matchers)
 
 expect.extend({
   toMatchPrismaErrorSnapshot(received: unknown) {
@@ -73,6 +77,7 @@ globalThis.beforeEach = process.env.TEST_GENERATE_ONLY === 'true' ? () => {} : b
 globalThis.afterEach = process.env.TEST_GENERATE_ONLY === 'true' ? () => {} : afterEach
 globalThis.test = process.env.TEST_GENERATE_ONLY === 'true' ? skip : test
 globalThis.testIf = (condition: boolean) => (condition && process.env.TEST_GENERATE_ONLY !== 'true' ? test : skip)
+globalThis.skipTestIf = (condition: boolean) => (condition || process.env.TEST_GENERATE_ONLY === 'true' ? skip : test)
 globalThis.describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 globalThis.testRepeat = testRepeat
 

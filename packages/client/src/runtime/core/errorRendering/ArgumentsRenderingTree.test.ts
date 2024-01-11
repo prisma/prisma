@@ -1,8 +1,8 @@
 import Decimal from 'decimal.js'
 
 import { Writer } from '../../../generation/ts-builders/Writer'
-import { objectEnumValues } from '../../object-enums'
 import { FieldRefImpl } from '../model/FieldRef'
+import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { ArgumentsRenderingTree, buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { inactiveColors } from './base'
 import { ObjectValue } from './ObjectValue'
@@ -405,6 +405,25 @@ test('error in empty array', () => {
       where: {
         id: []
             ~~
+      }
+    }
+  `)
+})
+
+test('error in array element', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { id: ['hello'] },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'id', '0'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        id: [
+          "hello"
+          ~~~~~~~
+        ]
       }
     }
   `)

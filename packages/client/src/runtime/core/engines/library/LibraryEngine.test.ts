@@ -10,6 +10,14 @@ import { LibraryLoader } from './types/Library'
 
 const dummyQuery = { modelName: 'Foo', action: 'findMany', query: { selection: {} } } as const
 
+beforeAll(() => {
+  ;(globalThis as any).TARGET_BUILD_TYPE = 'library'
+})
+
+afterAll(() => {
+  delete (globalThis as any).TARGET_BUILD_TYPE
+})
+
 function setupMockLibraryEngine() {
   const rustEngineMock = {
     connect: jest.fn().mockResolvedValue(undefined),

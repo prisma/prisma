@@ -12,7 +12,7 @@ export async function executeSteps(steps: {
 
     while (steps.keep === true) {
       await new Promise((res) => {
-        setTimeout(res, 10000)
+        setTimeout(res, 10_000)
       })
     }
   }
