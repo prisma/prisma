@@ -9,6 +9,7 @@ import {
   getConfig,
   getGenerators,
   getGeneratorSuccessMessage,
+  getPackageCmd,
   HelpError,
   highlightTS,
   isError,
@@ -20,7 +21,7 @@ import {
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import fs from 'fs'
-import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
+import { blue, bold, dim, green, grey, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
 import os from 'os'
 import path from 'path'
@@ -278,6 +279,54 @@ See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-cl
 
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+        if (generator?.previewFeatures.includes('driverAdapters')) {
+          if (generator?.isCustomOutput && isDeno) {
+            hint = `
+${bold('Start using Prisma Client')}
+${dim('```')}
+${highlightTS(`\
+import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
+const prisma = new PrismaClient()`)}
+${dim('```')}
+
+More information: https://pris.ly/d/client`
+          } else if (generator?.isCustomOutput && !isDeno) {
+            hint = `
+Prisma Client has been generated to a custom path:
+
+${bold('1. Make it a dependency of your project')}
+${dim('```')}
+${grey(`# adapt this relative path if needed`)}
+${bold(blue(await getPackageCmd(cwd, 'add', `db@${importPath}`)))}
+${dim('```')}
+
+More information: https://pris.ly/d/custom-output
+
+${bold('2. Start using Prisma Client')}
+${dim('```')}
+${highlightTS(`\
+import { PrismaClient } from 'db'
+const prisma = new PrismaClient()`)}
+${dim('```')}
+
+More information: https://pris.ly/d/client`
+          } else {
+            hint = `
+${bold('Start using Prisma Client')}
+${dim('```')}
+${highlightTS(`\
+import { PrismaClient } from ${importPath}
+const prisma = new PrismaClient()`)}
+${dim('```')}
+
+More information: https://pris.ly/d/client`
+          }
+
+          hint = `${hint}
+
+${boxedTryAccelerateMessage}
+${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+        }
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
