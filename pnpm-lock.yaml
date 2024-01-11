@@ -215,8 +215,8 @@ importers:
         version: 3.0.2
     devDependencies:
       '@neondatabase/serverless':
-        specifier: 0.6.0
-        version: 0.6.0
+        specifier: 0.7.2
+        version: 0.7.2
 
   packages/adapter-pg:
     dependencies:
@@ -422,8 +422,8 @@ importers:
         specifier: 0.3.6
         version: 0.3.6
       '@neondatabase/serverless':
-        specifier: 0.6.0
-        version: 0.6.0
+        specifier: 0.7.2
+        version: 0.7.2
       '@opentelemetry/api':
         specifier: 1.7.0
         version: 1.7.0
@@ -2709,8 +2709,8 @@ packages:
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
     dev: true
 
-  /@neondatabase/serverless@0.6.0:
-    resolution: {integrity: sha512-qXxBRYN0m2v8kVQBfMxbzNGn2xFAhTXFibzQlE++NfJ56Shz3m7+MyBBtXDlEH+3Wfa6lToDXf1MElocY4sJ3w==}
+  /@neondatabase/serverless@0.7.2:
+    resolution: {integrity: sha512-wU3WA2uTyNO7wjPs3Mg0G01jztAxUxzd9/mskMmtPwPTjf7JKWi9AW5/puOGXLxmZ9PVgRFeBVRVYq5nBPhsCg==}
     dependencies:
       '@types/pg': 8.6.6
     dev: true
