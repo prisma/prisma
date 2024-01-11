@@ -26,7 +26,7 @@
     "@types/prompts": "2.4.9",
     "@types/sqlite3": "3.1.11",
     "arg": "5.0.2",
-    "esbuild": "0.19.9",
+    "esbuild": "0.19.10",
     "execa": "5.1.1",
     "fp-ts": "2.16.1",
     "fs-jetpack": "5.1.0",
@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.8.0-16.dc5bde32ed8434159f53f3985c872265df62672f",
+    "@prisma/engines-version": "5.8.0-37.0a83d8541752d7582de2ebc1ece46519ce72a848",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
