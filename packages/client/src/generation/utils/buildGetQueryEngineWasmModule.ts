@@ -1,11 +1,9 @@
-import { ClientEngineType } from '@prisma/internals'
-
 /**
  * Builds the necessary glue code to load the query engine wasm module.
  * @returns
  */
-export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientEngineType) {
-  if (engineType !== ClientEngineType.Wasm) {
+export function buildGetQueryEngineWasmModule(wasm: boolean) {
+  if (wasm === false) {
     return `config.getQueryEngineWasmModule = undefined`
   }
 
@@ -13,7 +11,7 @@ export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientE
   // so we use a dynamic import which is compatible with both cjs and esm
   // additionally we need to append ?module to the import path for vercel
   // this is incompatible with cloudflare, so we hide it in a template
-  if (edge === true) {
+  if (wasm === true) {
     return `config.getQueryEngineWasmModule = async () => {
       if (detectRuntime() === 'edge-light') {
         return (await import(\`./query-engine.wasm\${'?module'}\`)).default

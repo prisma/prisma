@@ -58,6 +58,8 @@ export interface TSClientOptions {
   reuseTypes?: boolean
   /** When user is not optimally importing client */
   indexWarning?: boolean
+  /** When we are generating a /wasm client */
+  wasm?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -71,6 +73,7 @@ export class TSClient implements Generatable {
     // apply convenience defaults
     this.options = {
       edge: false,
+      wasm: false,
       deno: false,
       postinstall: false,
       noEngine: false,
@@ -89,6 +92,7 @@ export class TSClient implements Generatable {
   public async toJS(): Promise<string> {
     const {
       edge,
+      wasm,
       binaryTargets,
       generator,
       outputDir,
@@ -161,7 +165,7 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
-${buildGetQueryEngineWasmModule(edge, engineType)}
+${buildGetQueryEngineWasmModule(wasm)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}

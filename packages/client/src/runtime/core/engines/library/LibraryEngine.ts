@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, ClientEngineType, EngineSpanEvent, getClientEngineType } from '@prisma/internals'
+import { assertAlways, EngineSpanEvent } from '@prisma/internals'
 import { bold, green, red, yellow } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -78,18 +78,12 @@ export class LibraryEngine extends Engine<undefined> {
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
     super()
 
-    const engineType = getClientEngineType(config.generator!)
-
     if (TARGET_BUILD_TYPE === 'library') {
-      // for "library" builds, we can use both the wasm and native engines
-      if (engineType === ClientEngineType.Wasm) {
-        this.libraryLoader = libraryLoader ?? wasmLibraryLoader
-      } else {
-        this.libraryLoader = libraryLoader ?? defaultLibraryLoader
-      }
-    } else {
-      // any other build using LibraryEngine, only wasm engine can be used
+      this.libraryLoader = libraryLoader ?? defaultLibraryLoader
+    } else if (TARGET_BUILD_TYPE === 'wasm') {
       this.libraryLoader = libraryLoader ?? wasmLibraryLoader
+    } else {
+      throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
     }
 
     this.config = config

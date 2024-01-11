@@ -79,6 +79,44 @@ const edgeRuntimeBuildConfig: BuildOptions = {
       // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
     }),
+  ],
+  logLevel: 'error',
+}
+
+// we define the config for wasm
+const wasmRuntimeBuildConfig: BuildOptions = {
+  name: 'wasm',
+  target: 'ES2018',
+  entryPoints: ['src/runtime/index.ts'],
+  outfile: 'runtime/wasm',
+  bundle: true,
+  minify: true,
+  sourcemap: 'linked',
+  legalComments: 'none',
+  emitTypes: false,
+  define: {
+    // that helps us to tree-shake unused things out
+    NODE_CLIENT: 'false',
+    // tree shake the Library and Binary engines out
+    TARGET_BUILD_TYPE: '"wasm"',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
+  },
+  plugins: [
+    fillPlugin({
+      // we remove eval and Function for vercel
+      eval: { define: 'undefined' },
+      Function: {
+        define: 'fn',
+        globals: functionPolyfillPath,
+      },
+      // we shim WeakRef, it does not exist on CF
+      WeakRef: {
+        globals: weakrefPolyfillPath,
+      },
+      // these can not be exported anymore
+      './warnEnvConflicts': { contents: '' },
+    }),
     copyFilePlugin([
       {
         from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
@@ -126,6 +164,7 @@ void build([
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
+  wasmRuntimeBuildConfig,
   defaultIndexConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
