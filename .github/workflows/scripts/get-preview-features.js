@@ -7,9 +7,9 @@ const { getPreviewFeatures } = require('$internals')
 async function main() {
   /** @type string[] */
   let previewFeatures
-  const featureSet = JSON.parse(process.env.PREVIEW_FEATURE_SET ?? 'none')
-  const included = JSON.parse(process.env.INCLUDED_PREVIEW_FEATURES ?? '[]')
-  const excluded = JSON.parse(process.env.EXCLUDED_PREVIEW_FEATURES ?? '[]')
+  const featureSet = process.env.PREVIEW_FEATURE_SET ?? 'none'
+  const included = (process.env.INCLUDED_PREVIEW_FEATURES ?? '').split(',')
+  const excluded = (process.env.EXCLUDED_PREVIEW_FEATURES ?? '').split(',')
 
   previewFeatures = featureSet === 'all' ? getPreviewFeatures() : included
   previewFeatures = previewFeatures.filter((pf) => !excluded.includes(pf))

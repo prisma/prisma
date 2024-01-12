@@ -147,7 +147,7 @@ jobs:
         run: ./.github/workflows/scripts/get-preview-features.js
         env:
           PREVIEW_FEATURE_SET: ${{ matrix.previewFeatureSet }}
-          EXCLUDED_PREVIEW_FEATURES: '["driverAdapters"]'
+          EXCLUDED_PREVIEW_FEATURES: 'driverAdapters'
 
       # Run the functional test suite
       - run: pnpm run test:functional --preview-features ${{ steps.gpf.outputs.previewFeatures }} --shard ${{ matrix.shard }} --silent
@@ -222,7 +222,7 @@ jobs:
         run: ./.github/workflows/scripts/get-preview-features.js
         env:
           PREVIEW_FEATURE_SET: ${{ matrix.previewFeatureSet }}
-          EXCLUDED_PREVIEW_FEATURES: '["driverAdapters"]'
+          EXCLUDED_PREVIEW_FEATURES: driverAdapters
 
       - run: pnpm run test:functional --data-proxy --preview-features ${{ steps.gpf.outputs.previewFeatures }} --shard ${{ matrix.shard }} --silent
         working-directory: packages/client
@@ -299,8 +299,8 @@ jobs:
         run: ./.github/workflows/scripts/get-preview-features.js
         env:
           PREVIEW_FEATURE_SET: ${{ matrix.previewFeatureSet }}
-          INCLUDED_PREVIEW_FEATURES: ${{ '["driverAdapters"]' }}
-          EXCLUDED_PREVIEW_FEATURES: ${{ matrix.engine-type == 'wasm' && '["relationJoins"]' || '[]' }}
+          INCLUDED_PREVIEW_FEATURES: driverAdapters
+          EXCLUDED_PREVIEW_FEATURES: ${{ matrix.engine-type == 'wasm' && 'relationJoins' || '' }}
 
       - run: pnpm run test:functional --adapter ${{ matrix.adapter }} --engine-type ${{ matrix.engine-type }} --preview-features ${{ steps.gpf.outputs.previewFeatures }} --shard ${{ matrix.shard }} --runInBand --silent
         working-directory: packages/client
