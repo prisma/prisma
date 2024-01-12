@@ -222,7 +222,7 @@ jobs:
         run: ./.github/workflows/scripts/get-preview-features.js
         env:
           PREVIEW_FEATURE_SET: ${{ matrix.previewFeatureSet }}
-          EXCLUDED_PREVIEW_FEATURES: driverAdapters
+          EXCLUDED_PREVIEW_FEATURES: driverAdapters,metrics
 
       - run: pnpm run test:functional --data-proxy --preview-features '${{ steps.gpf.outputs.previewFeatures }}' --shard ${{ matrix.shard }} --silent
         working-directory: packages/client
