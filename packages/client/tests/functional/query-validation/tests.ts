@@ -6,6 +6,8 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
+    const fullTextSearchEnabled = cliMeta.previewFeatures.includes('fullTextSearch')
+
     test('include and select are used at the same time', async () => {
       // @ts-expect-error
       const result = prisma.user.findMany({
@@ -158,7 +160,7 @@ testMatrix.setupTestSuite(
         notAnArgument: 123,
       })
 
-      if (cliMeta.previewFeatures.includes('relationJoins') && cliMeta.previewFeatures.includes('fullTextSearch')) {
+      if (cliMeta.previewFeatures.includes('relationJoins')) {
         await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
               Invalid \`prisma.user.findMany()\` invocation in
@@ -171,7 +173,9 @@ testMatrix.setupTestSuite(
                         notAnArgument: 123,
                         ~~~~~~~~~~~~~
                       ? where?: UserWhereInput,
-                      ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
+                      ? orderBy?: UserOrderByWithRelation${
+                        fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'
+                      }[] | UserOrderByWithRelation${fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'},
                       ? cursor?: UserWhereUniqueInput,
                       ? take?: Int,
                       ? skip?: Int,
@@ -194,7 +198,9 @@ testMatrix.setupTestSuite(
                         notAnArgument: 123,
                         ~~~~~~~~~~~~~
                       ? where?: UserWhereInput,
-                      ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                      ? orderBy?: UserOrderByWithRelation${
+                        fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'
+                      }[] | UserOrderByWithRelation${fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'},
                       ? cursor?: UserWhereUniqueInput,
                       ? take?: Int,
                       ? skip?: Int,
