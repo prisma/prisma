@@ -10,7 +10,7 @@ async function main() {
 
   if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `previewFeatures=${previewFeatures}\n`)
-    console.debug('previewFeatures added to GITHUB_OUTPUT')
+    console.debug(`${previewFeatures} added to GITHUB_OUTPUT`)
   }
 }
 
