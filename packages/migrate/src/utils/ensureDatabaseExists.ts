@@ -233,7 +233,6 @@ export function prettifyProvider(provider: ConnectorType): PrettyProvider {
     case 'cockroachdb':
       return `CockroachDB`
     case 'sqlserver':
-    case 'jdbc:sqlserver':
       return `SQL Server`
     case 'mongodb':
       return `MongoDB`
