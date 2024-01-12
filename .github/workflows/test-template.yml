@@ -150,7 +150,7 @@ jobs:
           EXCLUDED_PREVIEW_FEATURES: 'driverAdapters'
 
       # Run the functional test suite
-      - run: pnpm run test:functional --engine-type ${{ matrix.queryEngine }} --preview-features ${{ steps.gpf.outputs.previewFeatures }} --shard ${{ matrix.shard }} --silent
+      - run: pnpm run test:functional --engine-type ${{ matrix.queryEngine }} --preview-features '${{ steps.gpf.outputs.previewFeatures }}' --shard ${{ matrix.shard }} --silent
         if: |
           contains(inputs.jobsToRun, '-all-') || 
           contains(inputs.jobsToRun, '-client-')
@@ -224,14 +224,14 @@ jobs:
           PREVIEW_FEATURE_SET: ${{ matrix.previewFeatureSet }}
           EXCLUDED_PREVIEW_FEATURES: driverAdapters
 
-      - run: pnpm run test:functional --data-proxy --preview-features ${{ steps.gpf.outputs.previewFeatures }} --shard ${{ matrix.shard }} --silent
+      - run: pnpm run test:functional --data-proxy --preview-features '${{ steps.gpf.outputs.previewFeatures }}' --shard ${{ matrix.shard }} --silent
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - run: pnpm run test:functional --data-proxy --edge-client --preview-features ${{ steps.gpf.outputs.previewFeatures }} --shard ${{ matrix.shard }} --silent
+      - run: pnpm run test:functional --data-proxy --edge-client --preview-features '${{ steps.gpf.outputs.previewFeatures }}' --shard ${{ matrix.shard }} --silent
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
@@ -302,7 +302,7 @@ jobs:
           INCLUDED_PREVIEW_FEATURES: driverAdapters
           EXCLUDED_PREVIEW_FEATURES: ${{ matrix.engine-type == 'wasm' && 'relationJoins' || '' }}
 
-      - run: pnpm run test:functional --adapter ${{ matrix.adapter }} --engine-type ${{ matrix.engine-type }} --preview-features ${{ steps.gpf.outputs.previewFeatures }} --shard ${{ matrix.shard }} --runInBand --silent
+      - run: pnpm run test:functional --adapter ${{ matrix.adapter }} --engine-type ${{ matrix.engine-type }} --preview-features '${{ steps.gpf.outputs.previewFeatures }}' --shard ${{ matrix.shard }} --runInBand --silent
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
