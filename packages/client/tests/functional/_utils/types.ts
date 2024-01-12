@@ -1,6 +1,6 @@
 import { ClientEngineType } from '@prisma/internals'
 
-import { ProviderFlavors, Providers } from './providers'
+import { AdapterProviders, Providers } from './providers'
 
 export type MatrixOptions = {
   optOut?: {
@@ -16,8 +16,8 @@ export type MatrixOptions = {
     runtimes: ClientRuntime[]
     reason: string
   }
-  skipProviderFlavor?: {
-    from: `${ProviderFlavors}`[]
+  skipDriverAdapter?: {
+    from: `${AdapterProviders}`[]
     reason: string
   }
   skipDb?: boolean

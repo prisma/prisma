@@ -10,7 +10,7 @@ declare let Prisma: typeof $.Prisma
 
 // ported from: blog
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
+  ({ provider, driverAdapter }) => {
     beforeAll(async () => {
       await prisma.user.create({
         data: {
@@ -59,8 +59,8 @@ testMatrix.setupTestSuite(
         js_planetscale: [{ ':vtg1 /* INT64 */': BigInt('1') }],
       }
 
-      if (providerFlavor && resultsByDriverAdapter[providerFlavor]) {
-        expect(result).toStrictEqual(resultsByDriverAdapter[providerFlavor])
+      if (driverAdapter && resultsByDriverAdapter[driverAdapter]) {
+        expect(result).toStrictEqual(resultsByDriverAdapter[driverAdapter])
       } else {
         expect(result).toStrictEqual(results[provider])
       }
@@ -115,8 +115,8 @@ testMatrix.setupTestSuite(
         js_planetscale: [{ ':vtg1 /* INT64 */': BigInt('1') }],
       }
 
-      if (providerFlavor && resultsByDriverAdapter[providerFlavor]) {
-        expect(result).toStrictEqual(resultsByDriverAdapter[providerFlavor])
+      if (driverAdapter && resultsByDriverAdapter[driverAdapter]) {
+        expect(result).toStrictEqual(resultsByDriverAdapter[driverAdapter])
       } else {
         expect(result).toStrictEqual(results[provider])
       }
