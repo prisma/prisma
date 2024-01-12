@@ -22,28 +22,6 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.findMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX 
-              XX describeIf(relationJoinsDisabled)('relationLoadStrategy with no relationJoins preview feature', () => {
-              XX   test('findMany', async () => {
-            → XX     const query = prisma.user.findMany({
-                       relationLoadStrategy: "query",
-                       ~~~~~~~~~~~~~~~~~~~~
-                     ? where?: UserWhereInput,
-                     ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
-                     ? cursor?: UserWhereUniqueInput,
-                     ? take?: Int,
-                     ? skip?: Int,
-                     ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
-                     })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
                         Invalid \`prisma.user.findMany()\` invocation in
                         /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
 
@@ -54,7 +32,7 @@ testMatrix.setupTestSuite(
                                    relationLoadStrategy: "query",
                                    ~~~~~~~~~~~~~~~~~~~~
                                  ? where?: UserWhereInput,
-                                 ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                 ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
                                  ? cursor?: UserWhereUniqueInput,
                                  ? take?: Int,
                                  ? skip?: Int,
@@ -63,6 +41,28 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.findMany()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX 
+                                      XX describeIf(relationJoinsDisabled)('relationLoadStrategy with no relationJoins preview feature', () => {
+                                      XX   test('findMany', async () => {
+                                    → XX     const query = prisma.user.findMany({
+                                               relationLoadStrategy: "query",
+                                               ~~~~~~~~~~~~~~~~~~~~
+                                             ? where?: UserWhereInput,
+                                             ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                             ? cursor?: UserWhereUniqueInput,
+                                             ? take?: Int,
+                                             ? skip?: Int,
+                                             ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+                                             })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -78,30 +78,6 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.findFirst()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('findFirst', async () => {
-            → XX   const query = prisma.user.findFirst({
-                     relationLoadStrategy: "query",
-                     ~~~~~~~~~~~~~~~~~~~~
-                     where: {
-                       login: "user"
-                     },
-                   ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
-                   ? cursor?: UserWhereUniqueInput,
-                   ? take?: Int,
-                   ? skip?: Int,
-                   ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
-                   })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
                         Invalid \`prisma.user.findFirst()\` invocation in
                         /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
 
@@ -114,7 +90,7 @@ testMatrix.setupTestSuite(
                                  where: {
                                    login: "user"
                                  },
-                               ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                               ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
                                ? cursor?: UserWhereUniqueInput,
                                ? take?: Int,
                                ? skip?: Int,
@@ -123,6 +99,30 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.findFirst()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('findFirst', async () => {
+                                    → XX   const query = prisma.user.findFirst({
+                                             relationLoadStrategy: "query",
+                                             ~~~~~~~~~~~~~~~~~~~~
+                                             where: {
+                                               login: "user"
+                                             },
+                                           ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                           ? cursor?: UserWhereUniqueInput,
+                                           ? take?: Int,
+                                           ? skip?: Int,
+                                           ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+                                           })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -145,44 +145,44 @@ testMatrix.setupTestSuite(
               XX 
               XX test('findFirstOrThrow', async () => {
             → XX   const query = prisma.user.findFirstOrThrow({
-                     relationLoadStrategy: "query",
-                     ~~~~~~~~~~~~~~~~~~~~
-                     where: {
-                       login: "user"
-                     },
-                   ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
-                   ? cursor?: UserWhereUniqueInput,
-                   ? take?: Int,
-                   ? skip?: Int,
-                   ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
-                   })
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      where: {
+                        login: "user"
+                      },
+                    ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
+                    ? cursor?: UserWhereUniqueInput,
+                    ? take?: Int,
+                    ? skip?: Int,
+                    ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+                    })
 
             Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
           `)
         } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-                        Invalid \`prisma.user.findFirstOrThrow()\` invocation in
-                        /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+                                    Invalid \`prisma.user.findFirstOrThrow()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
 
-                          XX })
-                          XX 
-                          XX test('findFirstOrThrow', async () => {
-                        → XX   const query = prisma.user.findFirstOrThrow({
-                                 relationLoadStrategy: "query",
-                                 ~~~~~~~~~~~~~~~~~~~~
-                                 where: {
-                                   login: "user"
-                                 },
-                               ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                               ? cursor?: UserWhereUniqueInput,
-                               ? take?: Int,
-                               ? skip?: Int,
-                               ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
-                               })
+                                      XX })
+                                      XX 
+                                      XX test('findFirstOrThrow', async () => {
+                                    → XX   const query = prisma.user.findFirstOrThrow({
+                                             relationLoadStrategy: "query",
+                                             ~~~~~~~~~~~~~~~~~~~~
+                                             where: {
+                                               login: "user"
+                                             },
+                                           ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                           ? cursor?: UserWhereUniqueInput,
+                                           ? take?: Int,
+                                           ? skip?: Int,
+                                           ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+                                           })
 
-                        Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-                    `)
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -198,25 +198,6 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.findUnique()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('findUnique', async () => {
-            → XX   const query = prisma.user.findUnique({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      where: {
-                        login: "user"
-                      }
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
                         Invalid \`prisma.user.findUnique()\` invocation in
                         /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
 
@@ -224,15 +205,34 @@ testMatrix.setupTestSuite(
                           XX 
                           XX test('findUnique', async () => {
                         → XX   const query = prisma.user.findUnique({
-                                 relationLoadStrategy: "query",
-                                 ~~~~~~~~~~~~~~~~~~~~
-                                 where: {
-                                   login: "user"
-                                 }
-                               })
+                                  relationLoadStrategy: "query",
+                                  ~~~~~~~~~~~~~~~~~~~~
+                                  where: {
+                                    login: "user"
+                                  }
+                                })
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.findUnique()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('findUnique', async () => {
+                                    → XX   const query = prisma.user.findUnique({
+                                             relationLoadStrategy: "query",
+                                             ~~~~~~~~~~~~~~~~~~~~
+                                             where: {
+                                               login: "user"
+                                             }
+                                           })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -248,25 +248,6 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('findUniqueOrThrow', async () => {
-            → XX   const query = prisma.user.findUniqueOrThrow({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      where: {
-                        login: "user"
-                      }
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
                         Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
                         /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
 
@@ -274,15 +255,34 @@ testMatrix.setupTestSuite(
                           XX 
                           XX test('findUniqueOrThrow', async () => {
                         → XX   const query = prisma.user.findUniqueOrThrow({
-                                 relationLoadStrategy: "query",
-                                 ~~~~~~~~~~~~~~~~~~~~
-                                 where: {
-                                   login: "user"
-                                 }
-                               })
+                                  relationLoadStrategy: "query",
+                                  ~~~~~~~~~~~~~~~~~~~~
+                                  where: {
+                                    login: "user"
+                                  }
+                                })
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('findUniqueOrThrow', async () => {
+                                    → XX   const query = prisma.user.findUniqueOrThrow({
+                                             relationLoadStrategy: "query",
+                                             ~~~~~~~~~~~~~~~~~~~~
+                                             where: {
+                                               login: "user"
+                                             }
+                                           })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -298,25 +298,6 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.create()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('create', async () => {
-            → XX   const query = prisma.user.create({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      data: {
-                        login: "user"
-                      }
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
                         Invalid \`prisma.user.create()\` invocation in
                         /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
 
@@ -324,15 +305,34 @@ testMatrix.setupTestSuite(
                           XX 
                           XX test('create', async () => {
                         → XX   const query = prisma.user.create({
-                                 relationLoadStrategy: "query",
-                                 ~~~~~~~~~~~~~~~~~~~~
-                                 data: {
-                                   login: "user"
-                                 }
-                               })
+                                  relationLoadStrategy: "query",
+                                  ~~~~~~~~~~~~~~~~~~~~
+                                  data: {
+                                    login: "user"
+                                  }
+                                })
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.create()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('create', async () => {
+                                    → XX   const query = prisma.user.create({
+                                             relationLoadStrategy: "query",
+                                             ~~~~~~~~~~~~~~~~~~~~
+                                             data: {
+                                               login: "user"
+                                             }
+                                           })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -349,28 +349,6 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.update()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('update', async () => {
-            → XX   const query = prisma.user.update({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      where: {
-                        login: "user"
-                      },
-                      data: {
-                        login: "new-user"
-                      }
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.update()\` invocation in
@@ -392,6 +370,28 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.update()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('update', async () => {
+                                    → XX   const query = prisma.user.update({
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                              where: {
+                                                login: "user"
+                                              },
+                                              data: {
+                                                login: "new-user"
+                                              }
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -405,25 +405,6 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.delete()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('delete', async () => {
-            → XX   const query = prisma.user.delete({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      where: {
-                        login: "user"
-                      }
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.delete()\` invocation in
@@ -442,6 +423,25 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.delete()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('delete', async () => {
+                                    → XX   const query = prisma.user.delete({
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                              where: {
+                                                login: "user"
+                                              }
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -461,31 +461,6 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.upsert()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('upsert', async () => {
-            → XX   const query = prisma.user.upsert({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      where: {
-                        login: "user"
-                      },
-                      create: {
-                        login: "user"
-                      },
-                      update: {
-                        login: "new-user"
-                      }
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.upsert()\` invocation in
@@ -510,6 +485,31 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.upsert()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('upsert', async () => {
+                                    → XX   const query = prisma.user.upsert({
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                              where: {
+                                                login: "user"
+                                              },
+                                              create: {
+                                                login: "user"
+                                              },
+                                              update: {
+                                                login: "new-user"
+                                              }
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -523,34 +523,6 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.aggregate()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('aggregate', async () => {
-            → XX   const query = prisma.user.aggregate({
-                      select: {
-                        _count: {
-                          select: {
-                            _all: true
-                          }
-                        }
-                      },
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                    ? where?: UserWhereInput,
-                    ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
-                    ? cursor?: UserWhereUniqueInput,
-                    ? take?: Int,
-                    ? skip?: Int
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.aggregate()\` invocation in
@@ -570,7 +542,7 @@ testMatrix.setupTestSuite(
                                   relationLoadStrategy: "query",
                                   ~~~~~~~~~~~~~~~~~~~~
                                 ? where?: UserWhereInput,
-                                ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
                                 ? cursor?: UserWhereUniqueInput,
                                 ? take?: Int,
                                 ? skip?: Int
@@ -578,6 +550,34 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.aggregate()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('aggregate', async () => {
+                                    → XX   const query = prisma.user.aggregate({
+                                              select: {
+                                                _count: {
+                                                  select: {
+                                                    _all: true
+                                                  }
+                                                }
+                                              },
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                            ? where?: UserWhereInput,
+                                            ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                            ? cursor?: UserWhereUniqueInput,
+                                            ? take?: Int,
+                                            ? skip?: Int
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -589,31 +589,6 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.groupBy()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('groupBy', async () => {
-            → XX   const query = prisma.user.groupBy({
-                      select: {
-                        id: true
-                      },
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      by: "id",
-                    ? where?: UserWhereInput,
-                    ? orderBy?: UserOrderByWithAggregationInput[] | UserOrderByWithAggregationInput,
-                    ? having?: UserScalarWhereWithAggregatesInput,
-                    ? take?: Int,
-                    ? skip?: Int
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.groupBy()\` invocation in
@@ -638,6 +613,31 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.groupBy()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('groupBy', async () => {
+                                    → XX   const query = prisma.user.groupBy({
+                                              select: {
+                                                id: true
+                                              },
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                              by: "id",
+                                            ? where?: UserWhereInput,
+                                            ? orderBy?: UserOrderByWithAggregationInput[] | UserOrderByWithAggregationInput,
+                                            ? having?: UserScalarWhereWithAggregatesInput,
+                                            ? take?: Int,
+                                            ? skip?: Int
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -651,28 +651,6 @@ testMatrix.setupTestSuite(
           })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.createMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
-              XX   const query =
-              XX     // @ts-test-if: provider !== 'sqlite'
-            → XX     prisma.user.createMany({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        data: [
-                          {
-                            login: "user"
-                          }
-                        ],
-                      ? skipDuplicates?: Boolean
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.createMany()\` invocation in
@@ -694,6 +672,28 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.createMany()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
+                                      XX   const query =
+                                      XX     // @ts-test-if: provider !== 'sqlite'
+                                    → XX     prisma.user.createMany({
+                                                relationLoadStrategy: "query",
+                                                ~~~~~~~~~~~~~~~~~~~~
+                                                data: [
+                                                  {
+                                                    login: "user"
+                                                  }
+                                                ],
+                                              ? skipDuplicates?: Boolean
+                                              })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -727,26 +727,6 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.updateMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX )
-              XX 
-              XX test('updateMany', async () => {
-            → XX   const query = prisma.user.updateMany({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      data: {
-                        login: "user"
-                      },
-                    ? where?: UserWhereInput
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
                         Invalid \`prisma.user.updateMany()\` invocation in
                         /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
 
@@ -764,6 +744,26 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.updateMany()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX )
+                                      XX 
+                                      XX test('updateMany', async () => {
+                                    → XX   const query = prisma.user.updateMany({
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                              data: {
+                                                login: "user"
+                                              },
+                                            ? where?: UserWhereInput
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -774,23 +774,6 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.deleteMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('deleteMany', async () => {
-            → XX   const query = prisma.user.deleteMany({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                    ? where?: UserWhereInput
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.deleteMany()\` invocation in
@@ -807,6 +790,23 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.deleteMany()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('deleteMany', async () => {
+                                    → XX   const query = prisma.user.deleteMany({
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                            ? where?: UserWhereInput
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -817,34 +817,6 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.count()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
-
-              XX })
-              XX 
-              XX test('count', async () => {
-            → XX   const query = prisma.user.count({
-                      select: {
-                        _count: {
-                          select: {
-                            _all: true
-                          }
-                        }
-                      },
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                    ? where?: UserWhereInput,
-                    ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
-                    ? cursor?: UserWhereUniqueInput,
-                    ? take?: Int,
-                    ? skip?: Int
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.count()\` invocation in
@@ -864,7 +836,7 @@ testMatrix.setupTestSuite(
                                   relationLoadStrategy: "query",
                                   ~~~~~~~~~~~~~~~~~~~~
                                 ? where?: UserWhereInput,
-                                ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
                                 ? cursor?: UserWhereUniqueInput,
                                 ? take?: Int,
                                 ? skip?: Int
@@ -872,6 +844,34 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.count()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+
+                                      XX })
+                                      XX 
+                                      XX test('count', async () => {
+                                    → XX   const query = prisma.user.count({
+                                              select: {
+                                                _count: {
+                                                  select: {
+                                                    _all: true
+                                                  }
+                                                }
+                                              },
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                            ? where?: UserWhereInput,
+                                            ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                            ? cursor?: UserWhereUniqueInput,
+                                            ? take?: Int,
+                                            ? skip?: Int
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
     })
