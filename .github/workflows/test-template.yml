@@ -269,13 +269,6 @@ jobs:
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
 
-      - name: Get Preview Features
-        id: get-preview-features
-        run: ./.github/workflows/scripts/get-preview-features.js
-        env:
-          EXCLUSIVE_PREVIEW_FEATURES: ${{ matrix.allPreviewFeatures && '[]' || '["driverAdapters"]' }}
-          EXCLUDED_PREVIEW_FEATURES: ${{ matrix.engine-type == 'wasm' && '["relationJoins"]' || '[]' }}
-
       - name: Install & build
         uses: ./.github/actions/setup
         with:
@@ -283,6 +276,13 @@ jobs:
           pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
+
+      - name: Get Preview Features
+        id: get-preview-features
+        run: ./.github/workflows/scripts/get-preview-features.js
+        env:
+          EXCLUSIVE_PREVIEW_FEATURES: ${{ matrix.allPreviewFeatures && '[]' || '["driverAdapters"]' }}
+          EXCLUDED_PREVIEW_FEATURES: ${{ matrix.engine-type == 'wasm' && '["relationJoins"]' || '[]' }}
 
       - run: pnpm run test:functional --adapter ${{ matrix.adapter }} --shard ${{ matrix.shard }} --engine-type ${{ matrix.engine-type }} --preview-features ${{ steps.get-preview-features.outputs.previewFeatures }} --runInBand
         working-directory: packages/client
