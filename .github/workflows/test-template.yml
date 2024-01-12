@@ -144,7 +144,7 @@ jobs:
 
       - name: Get Preview Features
         id: gpf
-        run: ./.github/workflows/scripts/gpf.js
+        run: ./.github/workflows/scripts/get-preview-features.js
         env:
           PREVIEW_FEATURE_SET: ${{ matrix.previewFeatureSet }}
           EXCLUDED_PREVIEW_FEATURES: '["driverAdapters"]'
@@ -219,7 +219,7 @@ jobs:
 
       - name: Get Preview Features
         id: gpf
-        run: ./.github/workflows/scripts/gpf.js
+        run: ./.github/workflows/scripts/get-preview-features.js
         env:
           PREVIEW_FEATURE_SET: ${{ matrix.previewFeatureSet }}
           EXCLUDED_PREVIEW_FEATURES: '["driverAdapters"]'
@@ -296,7 +296,7 @@ jobs:
 
       - name: Get Preview Features
         id: gpf
-        run: ./.github/workflows/scripts/gpf.js
+        run: ./.github/workflows/scripts/get-preview-features.js
         env:
           PREVIEW_FEATURE_SET: ${{ matrix.previewFeatureSet }}
           INCLUDED_PREVIEW_FEATURES: ${{ '["driverAdapters"]' }}
