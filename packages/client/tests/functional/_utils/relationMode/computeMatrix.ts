@@ -1,11 +1,11 @@
-import { ProviderFlavors, Providers, RelationModes } from '../providers'
+import { AdapterProviders, Providers, RelationModes } from '../providers'
 
 type ComputeMatrix = {
   relationMode: 'prisma' | 'foreignKeys' | ''
 }
 
 export function computeMatrix({ relationMode }: ComputeMatrix) {
-  const providerFlavors = [
+  const driverAdapters = [
     Providers.POSTGRESQL,
     Providers.COCKROACHDB,
     Providers.SQLSERVER,
@@ -45,8 +45,8 @@ export function computeMatrix({ relationMode }: ComputeMatrix) {
       [Providers.SQLSERVER]: ['Restrict'],
 
       // skip all actions for Vitess & relationMode="foreignKeys" as Foreign Keys are not supported by that provider
-      [ProviderFlavors.VITESS_8]: referentialActionsBase,
-      [ProviderFlavors.JS_PLANETSCALE]: referentialActionsBase,
+      [AdapterProviders.VITESS_8]: referentialActionsBase,
+      [AdapterProviders.JS_PLANETSCALE]: referentialActionsBase,
     },
     prisma: {
       [Providers.SQLSERVER]: ['Restrict'],
@@ -55,16 +55,16 @@ export function computeMatrix({ relationMode }: ComputeMatrix) {
     },
   }
 
-  const providersMatrix = providerFlavors.map((provider) => ({
+  const providersMatrix = driverAdapters.map((provider) => ({
     provider,
-    providerFlavor: undefined as ProviderFlavors | undefined,
+    driverAdapter: undefined as AdapterProviders | undefined,
     id: 'String @id',
     relationMode,
   }))
 
   providersMatrix.push({
     provider: Providers.MYSQL,
-    providerFlavor: ProviderFlavors.VITESS_8,
+    driverAdapter: AdapterProviders.VITESS_8,
     id: 'String @id',
     relationMode,
   })
@@ -72,7 +72,7 @@ export function computeMatrix({ relationMode }: ComputeMatrix) {
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {
     const denyList =
       referentialActionsDenylistByProviderFlavor[relationMode || 'foreignKeys'][
-        entry.providerFlavor ?? entry.provider
+        entry.driverAdapter ?? entry.provider
       ] || []
     const referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
