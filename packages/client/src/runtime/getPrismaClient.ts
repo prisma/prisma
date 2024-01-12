@@ -127,6 +127,8 @@ export type PrismaClientOptions = {
       endpoint?: string
       allowTriggerPanic?: boolean
     }
+    /** This can be used for testing purposes */
+    configOverride?: Partial<GetPrismaClientConfig>
   }
 }
 
@@ -329,6 +331,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _createPrismaPromise = createPrismaPromiseFactory()
 
     constructor(optionsArg?: PrismaClientOptions) {
+      config = { ...config, ...optionsArg?.__internal?.configOverride }
+
       checkPlatformCaching(config)
       warnCustomClientImport(config)
 

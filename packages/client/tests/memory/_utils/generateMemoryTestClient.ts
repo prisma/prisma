@@ -29,10 +29,6 @@ export async function generateMemoryTestClient(testDir: MemoryTestDir) {
     transpile: false,
     testMode: true,
     activeProvider: config.datasources[0].activeProvider,
-    // Change \\ to / for windows support
-    runtimeDirs: {
-      node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
-      edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'edge'].join('/'),
-    },
+    runtimeDir: path.join(__dirname, '..', '..', '..', 'runtime'),
   })
 }

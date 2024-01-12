@@ -81,22 +81,17 @@ export async function generateInFolder({
 
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
-  let runtimeDirs
+  let runtimeDir: string | undefined
   if (useLocalRuntime) {
     if (useBuiltRuntime) {
-      runtimeDirs = {
-        node: path.relative(outputDir, path.join(__dirname, '../../runtime')),
-        edge: path.relative(outputDir, path.join(__dirname, '../../runtime/edge')),
-      }
+      runtimeDir = path.relative(outputDir, path.join(__dirname, '..', '..', 'runtime'))
     } else {
-      runtimeDirs = {
-        node: path.relative(outputDir, path.join(__dirname, '../runtime')),
-        edge: path.relative(outputDir, path.join(__dirname, '../runtime/edge')),
-      }
+      runtimeDir = path.relative(outputDir, path.join(__dirname, '..', 'runtime'))
     }
   } else if (useBuiltRuntime) {
     throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
   }
+
   const enginesPath = getEnginesPath()
   const queryEngineLibraryPath =
     process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(binaryTarget, 'fs'))
@@ -131,7 +126,7 @@ export async function generateInFolder({
     dmmf,
     ...config,
     outputDir,
-    runtimeDirs,
+    runtimeDir,
     transpile,
     testMode: true,
     schemaPath,

@@ -34,19 +34,19 @@ export type Db = {
   dropDb: () => Promise<void>
 }
 
-export type ClientRuntime = 'node' | 'edge'
+export type ClientRuntime = 'node' | 'edge' | 'wasm'
 
 export type CliMeta = {
   dataProxy: boolean
-  runtime: 'node' | 'edge'
+  runtime: ClientRuntime
   previewFeatures: string[]
-  engineType: 'binary' | 'library' | 'wasm' | undefined
+  engineType: ClientEngineType | undefined
 }
 
 export type ClientMeta = {
   driverAdapter: boolean
   dataProxy: boolean
-  runtime: 'node' | 'edge'
+  runtime: ClientRuntime
 }
 
 export type AlterStatementCallback = (provider: Providers) => string

@@ -1,8 +1,10 @@
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
+import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
 
 import { generateClient } from '../../../src/generation/generateClient'
+import { PrismaClientOptions } from '../../../src/runtime/getPrismaClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
@@ -14,6 +16,8 @@ import { ProviderFlavors } from './providers'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
+
+const runtimeDir = path.join(__dirname, '..', '..', '..', 'runtime')
 
 /**
  * Does the necessary setup to get a test suite client ready to run.
@@ -76,16 +80,14 @@ export async function setupTestSuiteClient({
     testMode: true,
     activeProvider: suiteConfig.matrixOptions.provider,
     // Change \\ to / for windows support
-    runtimeDirs: {
-      node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
-      edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
-    },
+    runtimeDir,
     noEngine: clientMeta.dataProxy,
   })
 
   const clientPathForRuntime: Record<ClientRuntime, string> = {
     node: 'node_modules/@prisma/client',
     edge: 'node_modules/@prisma/client/edge',
+    wasm: 'node_modules/@prisma/client/wasm',
   }
 
   return require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
@@ -104,11 +106,25 @@ export function setupTestSuiteClientDriverAdapter({
   clientMeta: ClientMeta
 }) {
   const providerFlavor = suiteConfig.matrixOptions.providerFlavor
+  const __internal: PrismaClientOptions['__internal'] = {}
 
   if (clientMeta.driverAdapter !== true) return {}
 
   if (providerFlavor === undefined) {
     throw new Error(`Missing provider flavor`)
+  }
+
+  if (clientMeta.runtime === 'wasm') {
+    __internal.configOverride = {
+      // wasm engine can only be loaded on edge runtimes, so here we force it
+      // this enables our wasm client runtime to be fully tested within jest
+      async getQueryEngineWasmModule() {
+        const queryEngineWasmFilePath = path.join(runtimeDir, 'query_engine.wasm')
+        const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
+
+        return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+      },
+    }
   }
 
   if (providerFlavor === ProviderFlavors.JS_PG) {
@@ -119,7 +135,7 @@ export function setupTestSuiteClientDriverAdapter({
       connectionString: datasourceInfo.databaseUrl,
     })
 
-    return { adapter: new PrismaPg(pool) }
+    return { adapter: new PrismaPg(pool), __internal }
   }
 
   if (providerFlavor === ProviderFlavors.JS_NEON) {
@@ -135,7 +151,7 @@ export function setupTestSuiteClientDriverAdapter({
       connectionString: datasourceInfo.databaseUrl,
     })
 
-    return { adapter: new PrismaNeon(pool) }
+    return { adapter: new PrismaNeon(pool), __internal }
   }
 
   if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
@@ -150,7 +166,7 @@ export function setupTestSuiteClientDriverAdapter({
       fetch, // TODO remove when Node 16 is deprecated
     })
 
-    return { adapter: new PrismaPlanetScale(client) }
+    return { adapter: new PrismaPlanetScale(client), __internal }
   }
 
   if (providerFlavor === ProviderFlavors.JS_LIBSQL) {
@@ -162,7 +178,7 @@ export function setupTestSuiteClientDriverAdapter({
       intMode: 'bigint',
     })
 
-    return { adapter: new PrismaLibSQL(client) }
+    return { adapter: new PrismaLibSQL(client), __internal }
   }
 
   throw new Error(`Unsupported provider flavor ${providerFlavor}`)

@@ -406,8 +406,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     const dummyQueryEngineBgTargetPath = path.join(finalOutputDir, 'query_engine_bg.js')
     const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
 
-    const copyOrSymlink = testMode ? fs.symlink : fs.copyFile
-    await copyOrSymlink(queryEngineWasmFilePath, queryEngineWasmTargetPath)
+    await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
     await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
   }
 
@@ -521,15 +520,10 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
  * @param runtimeDirs overrides for the runtime directories
  * @returns
  */
-async function getGenerationDirs({
-  testMode,
-  runtimeDir: runtimeDirs,
-  generator,
-  outputDir,
-  datamodel,
-  schemaPath,
-}: GenerateClientOptions) {
-  const useDefaultOutdir = testMode ? !runtimeDirs : !generator?.isCustomOutput
+async function getGenerationDirs({ runtimeDir, generator, outputDir, datamodel, schemaPath }: GenerateClientOptions) {
+  const useDefaultOutdir = generator?.isCustomOutput !== true
+  const userRuntimeDir = useDefaultOutdir ? '@prisma/client/runtime' : './runtime'
+  const testRuntimeDir = runtimeDir?.replace(/\\/g, '/') // only tests override it
 
   const finalOutputDir = useDefaultOutdir ? await getDefaultOutdir(outputDir) : outputDir
   if (!useDefaultOutdir) {
@@ -538,10 +532,9 @@ async function getGenerationDirs({
 
   const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
   const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
-  const runtimeDir = useDefaultOutdir ? '@prisma/client/runtime' : './runtime'
 
   return {
-    runtimeDir,
+    runtimeDir: testRuntimeDir ?? userRuntimeDir,
     finalOutputDir,
     projectRoot,
   }
