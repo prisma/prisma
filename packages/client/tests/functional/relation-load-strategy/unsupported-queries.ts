@@ -8,6 +8,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     const relationJoinsEnabled = cliMeta.previewFeatures.includes('relationJoins')
+    const fullTextSearchEnabled = cliMeta.previewFeatures.includes('fullTextSearch')
 
     describeIf(relationJoinsEnabled)('relationLoadStrategy in unsupported positions', () => {
       test('nested subquery in findMany using include', async () => {
@@ -40,7 +41,9 @@ testMatrix.setupTestSuite(
                              comments: true
                            },
                      ?     where?: PostWhereInput,
-                     ?     orderBy?: PostOrderByWithRelationInput[] | PostOrderByWithRelationInput,
+                     ?     orderBy?: PostOrderByWithRelation${
+                       fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'
+                     }[] | PostOrderByWithRelation${fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'},
                      ?     cursor?: PostWhereUniqueInput,
                      ?     take?: Int,
                      ?     skip?: Int,
@@ -85,7 +88,9 @@ testMatrix.setupTestSuite(
                            comments: true
                          },
                    ?     where?: PostWhereInput,
-                   ?     orderBy?: PostOrderByWithRelationInput[] | PostOrderByWithRelationInput,
+                   ?     orderBy?: PostOrderByWithRelation${
+                     fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'
+                   }[] | PostOrderByWithRelation${fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'},
                    ?     cursor?: PostWhereUniqueInput,
                    ?     take?: Int,
                    ?     skip?: Int,
@@ -126,7 +131,9 @@ testMatrix.setupTestSuite(
                       relationLoadStrategy: "query",
                       ~~~~~~~~~~~~~~~~~~~~
                     ? where?: UserWhereInput,
-                    ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                    ? orderBy?: UserOrderByWithRelation${
+                      fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'
+                    }[] | UserOrderByWithRelation${fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'},
                     ? cursor?: UserWhereUniqueInput,
                     ? take?: Int,
                     ? skip?: Int
@@ -312,7 +319,9 @@ testMatrix.setupTestSuite(
                       relationLoadStrategy: "query",
                       ~~~~~~~~~~~~~~~~~~~~
                     ? where?: UserWhereInput,
-                    ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                    ? orderBy?: UserOrderByWithRelation${
+                      fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'
+                    }[] | UserOrderByWithRelation${fullTextSearchEnabled ? 'AndSearchRelevanceInput' : 'Input'},
                     ? cursor?: UserWhereUniqueInput,
                     ? take?: Int,
                     ? skip?: Int
