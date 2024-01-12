@@ -120,6 +120,8 @@ const args = arg(
 async function main(): Promise<number | void> {
   let miniProxyProcess: ExecaChildProcess | undefined
 
+  if (args instanceof Error) throw args
+
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let jestCli = jestCliBase
   // Pass all the Jest params to Jest CLI
@@ -225,8 +227,13 @@ async function main(): Promise<number | void> {
 
   try {
     if (args['--updateSnapshot']) {
+      const providers = args['--provider'] ?? [...allProviders]
       const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
-      snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
+
+      for (const provider of providers) {
+        snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline', ONLY_TEST_PROVIDERS: provider }).run()
+      }
+
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
       if (!args['--types-only']) {
