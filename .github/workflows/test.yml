@@ -168,8 +168,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 20
-          pnpm-version: ${{ inputs.pnpmVersion }}
-          engine-hash: ${{ inputs.engineHash }}
+          pnpm-version: 8
           skip-tsc: false
 
       - name: Get Preview Features
