@@ -282,9 +282,9 @@ function getDbUrl(provider: Providers): string {
  * @param driverAdapter provider variant, e.g. `vitess` for `mysql`
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
-function getDbUrlFromFlavor(driverAdapterOrFlavour: `${AdapterProviders}` | undefined, provider: Providers): string {
+function getDbUrlFromFlavor(driverAdapterOrFlavor: `${AdapterProviders}` | undefined, provider: Providers): string {
   return (
-    match(driverAdapterOrFlavour)
+    match(driverAdapterOrFlavor)
       .with(AdapterProviders.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
       // Note: we're using Postgres 10 for Postgres (Rust driver, `pg` driver adapter),
       // and Postgres 16 for Neon due to https://github.com/prisma/team-orm/issues/511.
