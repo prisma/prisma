@@ -551,7 +551,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
             ts
               .objectType()
               .add(ts.property('maxWait', ts.numberType).optional())
-              .add(ts.property('timeout', ts.numberType)),
+              .add(ts.property('timeout', ts.numberType).optional()),
           )
           .optional().setDocComment(ts.docComment`
              The default values for transactionOptions
