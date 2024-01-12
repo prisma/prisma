@@ -238,7 +238,7 @@ async function main(): Promise<number | void> {
     } else {
       if (!args['--types-only']) {
         jestCli
-          .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
+          .withArgs(['--testPathIgnorePatterns', 'typescript', '--', ...args['_']])
           .withEnv({ TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false' })
           .run()
       }
