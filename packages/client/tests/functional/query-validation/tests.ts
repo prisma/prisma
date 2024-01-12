@@ -158,7 +158,7 @@ testMatrix.setupTestSuite(
         notAnArgument: 123,
       })
 
-      if (cliMeta.previewFeatures.includes('relationJoins')) {
+      if (cliMeta.previewFeatures.includes('relationJoins') && cliMeta.previewFeatures.includes('fullTextSearch')) {
         await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
               Invalid \`prisma.user.findMany()\` invocation in
@@ -171,7 +171,7 @@ testMatrix.setupTestSuite(
                         notAnArgument: 123,
                         ~~~~~~~~~~~~~
                       ? where?: UserWhereInput,
-                      ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                      ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
                       ? cursor?: UserWhereUniqueInput,
                       ? take?: Int,
                       ? skip?: Int,
