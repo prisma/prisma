@@ -41,11 +41,28 @@ export function getTestSuitePlan(
     config.matrixOptions.engineType ??= testCliMeta.engineType
   })
 
-  return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
+  const testPlanEntries = expandedSuiteConfigs.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
     skip: shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
     suiteConfig: namedConfig,
   }))
+
+  // when updating inline snapshots the first non-skipped test will perform the
+  // inline snapshot. the other tests are skipped otherwise jest will fail with
+  // "Multiple inline snapshots for the same call are not supported" error.
+  if (context.updateSnapshots === 'inline') {
+    let testWillPerformSnapshot = false
+    return testPlanEntries.reduce((acc, { name, skip, suiteConfig }) => {
+      if (skip === false && testWillPerformSnapshot === false) {
+        testWillPerformSnapshot = true
+        return [...acc, { name, skip, suiteConfig }]
+      } else {
+        return [...acc, { name, skip: true, suiteConfig }]
+      }
+    }, [] as TestPlanEntry[])
+  }
+
+  return testPlanEntries
 }
 
 /**
@@ -80,7 +97,6 @@ function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuite
 
 function shouldSkipSuiteConfig(
   {
-    updateSnapshots,
     includedProviders,
     includedProviderAdapters,
     excludedProviders,
@@ -95,18 +111,6 @@ function shouldSkipSuiteConfig(
   const driverAdapter = config.matrixOptions.driverAdapter
   const relationMode = config.matrixOptions.relationMode
   const engineType = config.matrixOptions.engineType
-
-  if (updateSnapshots === 'inline' && configIndex > 0) {
-    // when updating inline snapshots, we have to run a  single suite only -
-    // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
-    return true
-  }
-
-  if (updateSnapshots === 'external' && configIndex === 0) {
-    // when updating external snapshots, we assume that inline snapshots update was run just before it - so
-    // there is no reason to re-run the first suite
-    return true
-  }
 
   // if the test doesn't support the engine type, skip
   if (options?.skipEngine?.from.includes(engineType!)) {
