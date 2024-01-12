@@ -223,6 +223,17 @@ ID_LIKE="opensuse suse"
       },
     },
     {
+      name: 'Artix Linux',
+      content: `
+ID="Artix Linux"
+      `,
+      expect: {
+        targetDistro: undefined,
+        familyDistro: undefined,
+        originalDistro: 'artix linux',
+      },
+    },
+    {
       name: 'unknown',
       content: `
 ID="whoknows"

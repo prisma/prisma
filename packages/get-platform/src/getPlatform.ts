@@ -6,7 +6,6 @@ import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { BinaryTarget } from './binaryTargets'
-import { link } from './link'
 import { warn } from './logger'
 
 const exec = promisify(cp.exec)
@@ -464,7 +463,7 @@ export async function getPlatformInfoMemoized(): Promise<PlatformInfo & { memoiz
  * This function is only exported for testing purposes.
  */
 export function getBinaryTargetForCurrentPlatformInternal(args: GetOSResult): BinaryTarget {
-  const { platform, arch, archFromUname, libssl, targetDistro, familyDistro, originalDistro } = args
+  const { platform, arch, archFromUname, libssl, targetDistro, familyDistro } = args
 
   if (platform === 'linux' && !['x64', 'arm64'].includes(arch)) {
     warn(
@@ -493,16 +492,9 @@ ${additionalMessage}`,
     )
   }
 
-  // sometimes we fail to detect the distro in use, so we default to debian
+  // Sometimes we fail to detect the distro in use, so we default to debian.
+  // In particular, if `familyDistro` is undefined or unknown, `targetDistro` is undefined.
   const defaultDistro = 'debian' as const
-  if (platform === 'linux' && targetDistro === undefined) {
-    warn(
-      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".
-Please report your experience by creating an issue at ${link(
-        'https://github.com/prisma/prisma/issues',
-      )} so we can add your distro to the list of known supported distros.`,
-    )
-  }
 
   // Apple Silicon (M1)
   if (platform === 'darwin' && arch === 'arm64') {
