@@ -158,31 +158,9 @@ jobs:
           echo "Don't forget to remove /engine-branch command from PR body before merge"
           exit 1
 
-  get_preview_features:
-    name: Get Preview Features
-    timeout-minutes: 7
-    runs-on: ubuntu-latest
-    outputs:
-      previewFeatures: ${{ steps.get.outputs.features }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: 20
-          pnpm-version: 8
-          skip-tsc: false
-
-      - name: Get Preview Features
-        id: get
-        run: ./.github/workflows/scripts/get-preview-features.js
-
   run_tests:
     name: Tests
     needs:
-      - get_preview_features
       - detect_jobs_to_run
       - build_custom_engine
     uses: ./.github/workflows/test-template.yml
@@ -190,5 +168,4 @@ jobs:
       jobsToRun: ${{ needs.detect_jobs_to_run.outputs.jobs }}
       queryEngine: ${{ needs.detect_jobs_to_run.outputs.queryEngine }}
       engineHash: ${{ needs.build_custom_engine.outputs.engineHash }}
-      previewFeatures: ${{ needs.get_preview_features.outputs.previewFeatures }}
     secrets: inherit

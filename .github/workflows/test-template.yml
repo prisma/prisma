@@ -33,10 +33,6 @@ on:
         description: Customly-built engine hash to use
         type: string
         required: false
-      previewFeatures:
-        description: List of preview features to run tests with as csv list
-        type: string
-        default: ''
     secrets:
       BUILDPULSE_ACCESS_KEY_ID:
         required: false
@@ -260,11 +256,7 @@ jobs:
         adapter: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
-        previewFeatures: ${{ fromJSON(format('["{0}", "{1}"]', 'driverAdapters', inputs.previewFeatures)) }}
-        # exclude:
-        #   # Exclude relationJoins tests with WASM because the WASM engine does not include the necessary changes yet.
-        #   - engine-type: 'wasm'
-        #     previewFeatures: 'driverAdapters,relationJoins'
+        allPreviewFeatures: [true, false]
 
     steps:
       - uses: actions/checkout@v4
@@ -277,6 +269,13 @@ jobs:
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
 
+      - name: Get Preview Features
+        id: get-preview-features
+        run: ./.github/workflows/scripts/get-preview-features.js
+        env:
+          EXCLUSIVE_PREVIEW_FEATURES: ${{ matrix.allPreviewFeatures && '[]' || '["driverAdapters"]' }}
+          EXCLUDED_PREVIEW_FEATURES: ${{ matrix.engine-type == 'wasm' && '["relationJoins"]' || '[]' }}
+
       - name: Install & build
         uses: ./.github/actions/setup
         with:
@@ -285,7 +284,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional --adapter ${{ matrix.adapter }} --shard ${{ matrix.shard }} --engine-type ${{ matrix.engine-type }} --preview-features ${{ matrix.previewFeatures }} --runInBand
+      - run: pnpm run test:functional --adapter ${{ matrix.adapter }} --shard ${{ matrix.shard }} --engine-type ${{ matrix.engine-type }} --preview-features ${{ steps.get-preview-features.outputs.previewFeatures }} --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
