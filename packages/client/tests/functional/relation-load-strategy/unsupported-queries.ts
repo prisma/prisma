@@ -9,7 +9,8 @@ testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     const relationJoinsEnabled = cliMeta.previewFeatures.includes('relationJoins')
     const fullTextSearchEnabled =
-      cliMeta.previewFeatures.includes('fullTextSearch') && provider === Providers.POSTGRESQL
+      cliMeta.previewFeatures.includes('fullTextSearch') &&
+      (provider === Providers.POSTGRESQL || provider === Providers.MYSQL)
 
     describeIf(relationJoinsEnabled)('relationLoadStrategy in unsupported positions', () => {
       test('nested subquery in findMany using include', async () => {

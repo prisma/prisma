@@ -9,7 +9,8 @@ testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     const relationJoinsDisabled = !cliMeta.previewFeatures.includes('relationJoins')
     const fullTextSearchEnabled =
-      cliMeta.previewFeatures.includes('fullTextSearch') && provider === Providers.POSTGRESQL
+      cliMeta.previewFeatures.includes('fullTextSearch') &&
+      (provider === Providers.POSTGRESQL || provider === Providers.MYSQL)
 
     describeIf(relationJoinsDisabled)('relationLoadStrategy with no relationJoins preview feature', () => {
       test('findMany', async () => {

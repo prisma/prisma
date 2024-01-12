@@ -8,7 +8,8 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     const fullTextSearchEnabled =
-      cliMeta.previewFeatures.includes('fullTextSearch') && provider === Providers.POSTGRESQL
+      cliMeta.previewFeatures.includes('fullTextSearch') &&
+      (provider === Providers.POSTGRESQL || provider === Providers.MYSQL)
 
     test('include and select are used at the same time', async () => {
       // @ts-expect-error
