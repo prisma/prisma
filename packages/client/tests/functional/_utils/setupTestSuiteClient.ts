@@ -10,7 +10,7 @@ import {
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
 } from './getTestSuiteInfo'
-import { ProviderFlavors } from './providers'
+import { AdapterProviders } from './providers'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
@@ -104,15 +104,15 @@ export function setupTestSuiteClientDriverAdapter({
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
 }) {
-  const providerFlavor = suiteConfig.matrixOptions.providerFlavor
+  const driverAdapter = suiteConfig.matrixOptions.driverAdapter
 
   if (clientMeta.driverAdapter !== true) return {}
 
-  if (providerFlavor === undefined) {
-    throw new Error(`Missing provider flavor`)
+  if (driverAdapter === undefined) {
+    throw new Error(`Missing Driver Adapter`)
   }
 
-  if (providerFlavor === ProviderFlavors.JS_PG) {
+  if (driverAdapter === AdapterProviders.JS_PG) {
     const { Pool } = require('pg') as typeof import('pg')
     const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
 
@@ -123,7 +123,7 @@ export function setupTestSuiteClientDriverAdapter({
     return { adapter: new PrismaPg(pool) }
   }
 
-  if (providerFlavor === ProviderFlavors.JS_NEON) {
+  if (driverAdapter === AdapterProviders.JS_NEON) {
     const { neonConfig, Pool } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
     const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
 
@@ -139,7 +139,7 @@ export function setupTestSuiteClientDriverAdapter({
     return { adapter: new PrismaNeon(pool) }
   }
 
-  if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+  if (driverAdapter === AdapterProviders.JS_PLANETSCALE) {
     const { Client } = require('@planetscale/database') as typeof import('@planetscale/database')
     const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
 
@@ -154,7 +154,7 @@ export function setupTestSuiteClientDriverAdapter({
     return { adapter: new PrismaPlanetScale(client) }
   }
 
-  if (providerFlavor === ProviderFlavors.JS_LIBSQL) {
+  if (driverAdapter === AdapterProviders.JS_LIBSQL) {
     const { createClient } = require('@libsql/client') as typeof import('@libsql/client')
     const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
 
@@ -166,5 +166,5 @@ export function setupTestSuiteClientDriverAdapter({
     return { adapter: new PrismaLibSQL(client) }
   }
 
-  throw new Error(`Unsupported provider flavor ${providerFlavor}`)
+  throw new Error(`No Driver Adapter support for ${driverAdapter}`)
 }

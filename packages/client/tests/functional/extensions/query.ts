@@ -3,7 +3,7 @@ import { assertNever } from '@prisma/internals'
 import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'
 
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import { wait } from '../_utils/tests/wait'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
@@ -23,7 +23,7 @@ const randomId3 = randomBytes(12).toString('hex')
 jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
+  ({ provider, driverAdapter }) => {
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -533,7 +533,7 @@ testMatrix.setupTestSuite(
     testIf(
       provider !== Providers.MONGODB &&
         process.platform !== 'win32' &&
-        providerFlavor !== ProviderFlavors.JS_PLANETSCALE,
+        driverAdapter !== AdapterProviders.JS_PLANETSCALE,
     )('hijacking a batch transaction into another one with a simple call', async () => {
       const fnEmitter = jest.fn()
 
@@ -592,7 +592,7 @@ testMatrix.setupTestSuite(
     testIf(
       provider !== Providers.MONGODB &&
         process.platform !== 'win32' &&
-        providerFlavor !== ProviderFlavors.JS_PLANETSCALE,
+        driverAdapter !== AdapterProviders.JS_PLANETSCALE,
     )('hijacking a batch transaction into another one with multiple calls', async () => {
       const fnEmitter = jest.fn()
 

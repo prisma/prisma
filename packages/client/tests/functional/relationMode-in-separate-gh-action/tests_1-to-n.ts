@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers, RelationModes } from '../_utils/providers'
+import { AdapterProviders, Providers, RelationModes } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
@@ -51,7 +51,7 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
@@ -68,7 +68,7 @@ testMatrix.setupTestSuite(
     // Looking at CI results
     // 30s was often not enough for vitess
     // so we put it back to 60s for now in this case
-    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+    if (suiteConfig.driverAdapter === AdapterProviders.VITESS_8) {
       jest.setTimeout(60_000)
     }
 
@@ -372,7 +372,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [AdapterProviders.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                   }),
             )

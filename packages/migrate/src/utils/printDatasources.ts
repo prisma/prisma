@@ -1,15 +1,7 @@
 // This is copied from prisma-client-js/runtime/utils. It needs to be moved into a separate package
 import indent from 'indent-string'
 
-export type ConnectorType =
-  | 'mysql'
-  | 'mongodb'
-  | 'sqlite'
-  | 'postgresql'
-  | 'postgres'
-  | 'sqlserver'
-  | 'jdbc:sqlserver'
-  | 'cockroachdb'
+export type ConnectorType = 'mysql' | 'mongodb' | 'sqlite' | 'postgresql' | 'postgres' | 'sqlserver' | 'cockroachdb'
 
 export interface GeneratorConfig {
   name: string
