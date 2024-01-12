@@ -689,11 +689,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     }
 
     const queryStr = JSON.stringify(query)
-    this.currentRequestPromise = this.connection.post('/', queryStr, headers)
+    this.currentRequestPromise = Connection.onHttpError(this.connection.post('/', queryStr, headers), (result) =>
+      this.httpErrorHandler(result),
+    )
     this.lastQuery = queryStr
 
     try {
       const { data, headers } = await this.currentRequestPromise
+
       if (data.errors) {
         if (data.errors.length === 1) {
           throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
@@ -746,7 +749,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     const request = getBatchRequestPayload(queries, transaction)
 
     this.lastQuery = JSON.stringify(request)
-    this.currentRequestPromise = this.connection.post('/', this.lastQuery, headers)
+    this.currentRequestPromise = Connection.onHttpError(this.connection.post('/', this.lastQuery, headers), (result) =>
+      this.httpErrorHandler(result),
+    )
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -819,17 +824,17 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       const result = await Connection.onHttpError(
         this.connection.post<Tx.InteractiveTransactionInfo<undefined>>('/transaction/start', jsonOptions, headers),
-        (result) => this.transactionHttpErrorHandler(result),
+        (result) => this.httpErrorHandler(result),
       )
 
       return result.data
     } else if (action === 'commit') {
       await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
-        this.transactionHttpErrorHandler(result),
+        this.httpErrorHandler(result),
       )
     } else if (action === 'rollback') {
       await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
-        this.transactionHttpErrorHandler(result),
+        this.httpErrorHandler(result),
       )
     }
 
@@ -961,10 +966,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   /**
-   * Decides how to handle error responses for transactions
+   * Decides how to handle non-200 http error responses
    * @param result
    */
-  transactionHttpErrorHandler<R>(result: Result<R>): never {
+  httpErrorHandler<R>(result: Result<R>): never {
     const response = result.data as { [K: string]: unknown }
     throw new PrismaClientKnownRequestError(response.message as string, {
       code: response.error_code as string,
