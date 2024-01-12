@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, suiteMeta, clientMeta) => {
+  ({ provider, engineType }, suiteMeta, clientMeta, cliMeta) => {
     const OLD_ENV = process.env
 
     beforeEach(() => {
@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
     })
 
     describe('via env var', () => {
-      testIf(clientMeta.dataProxy /** = --no-engine */)(
+      testIf(clientMeta.dataProxy /** = --no-engine */ && !cliMeta.previewFeatures.includes('metrics'))(
         '--no-engine prevents from using the other engines',
         async () => {
           process.env[`DATABASE_URI_${provider}`] = 'postgresql://postgres:password@localhost:5432/db'
@@ -42,7 +42,7 @@ testMatrix.setupTestSuite(
       // `prisma generate --accelerate` or the Data Proxy via `prisma generate
       // --data-proxy.`\n\nMore information about Data Proxy:
       // https://pris.ly/d/data-proxy\n" }], warnings: [] }
-      skipTestIf(clientMeta.dataProxy || engineType === 'wasm')(
+      skipTestIf(clientMeta.dataProxy || engineType === 'wasm' || cliMeta.previewFeatures.includes('metrics'))(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
           process.env[`DATABASE_URI_${provider}`] = 'prisma://localhost:5432/db'
@@ -59,7 +59,7 @@ testMatrix.setupTestSuite(
     })
 
     describe('via url override', () => {
-      testIf(clientMeta.dataProxy /** = --no-engine */)(
+      testIf(clientMeta.dataProxy /** = --no-engine */ && !cliMeta.previewFeatures.includes('metrics'))(
         '--no-engine prevents from using the other engines',
         async () => {
           const prisma = newPrismaClient({
@@ -87,7 +87,7 @@ testMatrix.setupTestSuite(
       // `prisma generate --accelerate` or the Data Proxy via `prisma generate
       // --data-proxy.`\n\nMore information about Data Proxy:
       // https://pris.ly/d/data-proxy\n" }], warnings: [] }
-      skipTestIf(clientMeta.dataProxy || engineType === 'wasm')(
+      skipTestIf(clientMeta.dataProxy || engineType === 'wasm' || cliMeta.previewFeatures.includes('metrics'))(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
           const prisma = newPrismaClient({
