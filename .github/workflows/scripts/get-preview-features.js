@@ -5,21 +5,20 @@ const fs = require('fs')
 const { getPreviewFeatures } = require('$internals')
 
 async function main() {
-  /** @type string */
+  /** @type string[] */
   let previewFeatures
-  const exclusivePreviewFeatures = JSON.parse(process.env.EXCLUSIVE_PREVIEW_FEATURES || '[]')
-  const excludedPreviewFeatures = JSON.parse(process.env.EXCLUDED_PREVIEW_FEATURES || '[]')
+  const featureSet = JSON.parse(process.env.PREVIEW_FEATURE_SET ?? 'none')
+  const included = JSON.parse(process.env.INCLUDED_PREVIEW_FEATURES ?? '[]')
+  const excluded = JSON.parse(process.env.EXCLUDED_PREVIEW_FEATURES ?? '[]')
 
-  if (exclusivePreviewFeatures.length > 0) {
-    previewFeatures = exclusivePreviewFeatures.join(',')
-  } else {
-    const allPreviewFeatures = getPreviewFeatures()
-    previewFeatures = allPreviewFeatures.filter((feature) => !excludedPreviewFeatures.includes(feature)).join(',')
-  }
+  previewFeatures = featureSet === 'all' ? getPreviewFeatures() : included
+  previewFeatures = previewFeatures.filter((pf) => !excluded.includes(pf))
+
+  const commaSeparatedPreviewFeaturesString = previewFeatures.join(',')
 
   if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
-    fs.appendFileSync(process.env.GITHUB_OUTPUT, `previewFeatures=${previewFeatures}\n`)
-    console.debug(`${previewFeatures} added to GITHUB_OUTPUT`)
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `previewFeatures=${commaSeparatedPreviewFeaturesString}\n`)
+    console.debug(`${commaSeparatedPreviewFeaturesString} added to GITHUB_OUTPUT`)
   }
 }
 
