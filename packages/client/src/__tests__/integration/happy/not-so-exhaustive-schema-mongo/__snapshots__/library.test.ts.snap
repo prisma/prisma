@@ -9,7 +9,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
-  detectRuntime,
+  runtime,
 } = require('@prisma/client/runtime/index-browser')
 
 
@@ -318,7 +318,6 @@ class PrismaClient {
   constructor() {
     return new Proxy(this, {
       get(target, prop) {
-        const runtime = detectRuntime()
         const edgeRuntimeName = {
           'workerd': 'Cloudflare Workers',
           'deno': 'Deno and Deno Deploy',
