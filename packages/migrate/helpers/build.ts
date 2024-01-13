@@ -9,5 +9,6 @@ void build([
     splitting: true,
     format: 'esm',
     plugins: [esmSplitCodeToCjs],
+    conditions: ['require', 'node', 'default'],
   },
 ])
