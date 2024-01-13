@@ -29,6 +29,35 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
+                                                            Invalid \`prisma.user.findMany()\` invocation in
+                                                            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+
+                                                              XX 
+                                                              XX describeIf(relationJoinsEnabled)('relationLoadStrategy in unsupported positions', () => {
+                                                              XX   test('nested subquery in findMany using include', async () => {
+                                                            → XX     const query = prisma.user.findMany({
+                                                                       include: {
+                                                                         posts: {
+                                                                           relationLoadStrategy: "query",
+                                                                           ~~~~~~~~~~~~~~~~~~~~
+                                                                           include: {
+                                                                             comments: true
+                                                                           },
+                                                                     ?     where?: PostWhereInput,
+                                                                     ?     orderBy?: PostOrderByWithRelationAndSearchRelevanceInput[] | PostOrderByWithRelationAndSearchRelevanceInput,
+                                                                     ?     cursor?: PostWhereUniqueInput,
+                                                                     ?     take?: Int,
+                                                                     ?     skip?: Int,
+                                                                     ?     distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
+                                                                         }
+                                                                       }
+                                                                     })
+
+                                                            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                                                  `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
                                                 Invalid \`prisma.user.findMany()\` invocation in
                                                 /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -44,7 +73,7 @@ testMatrix.setupTestSuite(
                                                                  comments: true
                                                                },
                                                          ?     where?: PostWhereInput,
-                                                         ?     orderBy?: PostOrderByWithRelationAndSearchRelevanceInput[] | PostOrderByWithRelationAndSearchRelevanceInput,
+                                                         ?     orderBy?: PostOrderByWithRelationInput[] | PostOrderByWithRelationInput,
                                                          ?     cursor?: PostWhereUniqueInput,
                                                          ?     take?: Int,
                                                          ?     skip?: Int,
@@ -55,35 +84,6 @@ testMatrix.setupTestSuite(
 
                                                 Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                                         `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                                    Invalid \`prisma.user.findMany()\` invocation in
-                                    /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
-
-                                      XX 
-                                      XX describeIf(relationJoinsEnabled)('relationLoadStrategy in unsupported positions', () => {
-                                      XX   test('nested subquery in findMany using include', async () => {
-                                    → XX     const query = prisma.user.findMany({
-                                               include: {
-                                                 posts: {
-                                                   relationLoadStrategy: "query",
-                                                   ~~~~~~~~~~~~~~~~~~~~
-                                                   include: {
-                                                     comments: true
-                                                   },
-                                             ?     where?: PostWhereInput,
-                                             ?     orderBy?: PostOrderByWithRelationInput[] | PostOrderByWithRelationInput,
-                                             ?     cursor?: PostWhereUniqueInput,
-                                             ?     take?: Int,
-                                             ?     skip?: Int,
-                                             ?     distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
-                                                 }
-                                               }
-                                             })
-
-                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-                              `)
         }
       })
 
@@ -104,6 +104,36 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
+                                                            Invalid \`prisma.user.findMany()\` invocation in
+                                                            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+
+                                                              XX })
+                                                              XX 
+                                                              XX test('nested subquery in findMany using select', async () => {
+                                                            → XX   const query = prisma.user.findMany({
+                                                                     select: {
+                                                                       posts: {
+                                                                         relationLoadStrategy: "query",
+                                                                         ~~~~~~~~~~~~~~~~~~~~
+                                                                         select: {
+                                                                           id: true,
+                                                                           comments: true
+                                                                         },
+                                                                   ?     where?: PostWhereInput,
+                                                                   ?     orderBy?: PostOrderByWithRelationAndSearchRelevanceInput[] | PostOrderByWithRelationAndSearchRelevanceInput,
+                                                                   ?     cursor?: PostWhereUniqueInput,
+                                                                   ?     take?: Int,
+                                                                   ?     skip?: Int,
+                                                                   ?     distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
+                                                                       }
+                                                                     }
+                                                                   })
+
+                                                            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                                                  `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
                                                 Invalid \`prisma.user.findMany()\` invocation in
                                                 /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -120,7 +150,7 @@ testMatrix.setupTestSuite(
                                                                comments: true
                                                              },
                                                        ?     where?: PostWhereInput,
-                                                       ?     orderBy?: PostOrderByWithRelationAndSearchRelevanceInput[] | PostOrderByWithRelationAndSearchRelevanceInput,
+                                                       ?     orderBy?: PostOrderByWithRelationInput[] | PostOrderByWithRelationInput,
                                                        ?     cursor?: PostWhereUniqueInput,
                                                        ?     take?: Int,
                                                        ?     skip?: Int,
@@ -131,36 +161,6 @@ testMatrix.setupTestSuite(
 
                                                 Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                                         `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                                    Invalid \`prisma.user.findMany()\` invocation in
-                                    /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
-
-                                      XX })
-                                      XX 
-                                      XX test('nested subquery in findMany using select', async () => {
-                                    → XX   const query = prisma.user.findMany({
-                                             select: {
-                                               posts: {
-                                                 relationLoadStrategy: "query",
-                                                 ~~~~~~~~~~~~~~~~~~~~
-                                                 select: {
-                                                   id: true,
-                                                   comments: true
-                                                 },
-                                           ?     where?: PostWhereInput,
-                                           ?     orderBy?: PostOrderByWithRelationInput[] | PostOrderByWithRelationInput,
-                                           ?     cursor?: PostWhereUniqueInput,
-                                           ?     take?: Int,
-                                           ?     skip?: Int,
-                                           ?     distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
-                                               }
-                                             }
-                                           })
-
-                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-                              `)
         }
       })
 
@@ -176,59 +176,59 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.aggregate()\` invocation in
-            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+                        Invalid \`prisma.user.aggregate()\` invocation in
+                        /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
-              XX })
-              XX 
-              XX test('aggregate', async () => {
-            → XX   const query = prisma.user.aggregate({
-                      select: {
-                        _count: {
-                          select: {
-                            _all: true
-                          }
-                        }
-                      },
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                    ? where?: UserWhereInput,
-                    ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
-                    ? cursor?: UserWhereUniqueInput,
-                    ? take?: Int,
-                    ? skip?: Int
-                    })
+                          XX })
+                          XX 
+                          XX test('aggregate', async () => {
+                        → XX   const query = prisma.user.aggregate({
+                                  select: {
+                                    _count: {
+                                      select: {
+                                        _all: true
+                                      }
+                                    }
+                                  },
+                                  relationLoadStrategy: "query",
+                                  ~~~~~~~~~~~~~~~~~~~~
+                                ? where?: UserWhereInput,
+                                ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
+                                ? cursor?: UserWhereUniqueInput,
+                                ? take?: Int,
+                                ? skip?: Int
+                                })
 
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
+                        Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                    `)
         } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-                                    Invalid \`prisma.user.aggregate()\` invocation in
-                                    /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+                                                Invalid \`prisma.user.aggregate()\` invocation in
+                                                /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
-                                      XX })
-                                      XX 
-                                      XX test('aggregate', async () => {
-                                    → XX   const query = prisma.user.aggregate({
-                                              select: {
-                                                _count: {
-                                                  select: {
-                                                    _all: true
-                                                  }
-                                                }
-                                              },
-                                              relationLoadStrategy: "query",
-                                              ~~~~~~~~~~~~~~~~~~~~
-                                            ? where?: UserWhereInput,
-                                            ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                                            ? cursor?: UserWhereUniqueInput,
-                                            ? take?: Int,
-                                            ? skip?: Int
-                                            })
+                                                  XX })
+                                                  XX 
+                                                  XX test('aggregate', async () => {
+                                                → XX   const query = prisma.user.aggregate({
+                                                          select: {
+                                                            _count: {
+                                                              select: {
+                                                                _all: true
+                                                              }
+                                                            }
+                                                          },
+                                                          relationLoadStrategy: "query",
+                                                          ~~~~~~~~~~~~~~~~~~~~
+                                                        ? where?: UserWhereInput,
+                                                        ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                                                        ? cursor?: UserWhereUniqueInput,
+                                                        ? take?: Int,
+                                                        ? skip?: Int
+                                                        })
 
-                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-                              `)
+                                                Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                                        `)
         }
       })
 
@@ -242,53 +242,53 @@ testMatrix.setupTestSuite(
         if (fullTextSearchEnabled) {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.groupBy()\` invocation in
-            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+                        Invalid \`prisma.user.groupBy()\` invocation in
+                        /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
-              XX })
-              XX 
-              XX test('groupBy', async () => {
-            → XX   const query = prisma.user.groupBy({
-                      select: {
-                        id: true
-                      },
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      by: "id",
-                    ? where?: UserWhereInput,
-                    ? orderBy?: UserOrderByWithAggregationInput[] | UserOrderByWithAggregationInput,
-                    ? having?: UserScalarWhereWithAggregatesInput,
-                    ? take?: Int,
-                    ? skip?: Int
-                    })
+                          XX })
+                          XX 
+                          XX test('groupBy', async () => {
+                        → XX   const query = prisma.user.groupBy({
+                                  select: {
+                                    id: true
+                                  },
+                                  relationLoadStrategy: "query",
+                                  ~~~~~~~~~~~~~~~~~~~~
+                                  by: "id",
+                                ? where?: UserWhereInput,
+                                ? orderBy?: UserOrderByWithAggregationInput[] | UserOrderByWithAggregationInput,
+                                ? having?: UserScalarWhereWithAggregatesInput,
+                                ? take?: Int,
+                                ? skip?: Int
+                                })
 
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
+                        Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                    `)
         } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-                                    Invalid \`prisma.user.groupBy()\` invocation in
-                                    /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+                                                Invalid \`prisma.user.groupBy()\` invocation in
+                                                /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
-                                      XX })
-                                      XX 
-                                      XX test('groupBy', async () => {
-                                    → XX   const query = prisma.user.groupBy({
-                                              select: {
-                                                id: true
-                                              },
-                                              relationLoadStrategy: "query",
-                                              ~~~~~~~~~~~~~~~~~~~~
-                                              by: "id",
-                                            ? where?: UserWhereInput,
-                                            ? orderBy?: UserOrderByWithAggregationInput[] | UserOrderByWithAggregationInput,
-                                            ? having?: UserScalarWhereWithAggregatesInput,
-                                            ? take?: Int,
-                                            ? skip?: Int
-                                            })
+                                                  XX })
+                                                  XX 
+                                                  XX test('groupBy', async () => {
+                                                → XX   const query = prisma.user.groupBy({
+                                                          select: {
+                                                            id: true
+                                                          },
+                                                          relationLoadStrategy: "query",
+                                                          ~~~~~~~~~~~~~~~~~~~~
+                                                          by: "id",
+                                                        ? where?: UserWhereInput,
+                                                        ? orderBy?: UserOrderByWithAggregationInput[] | UserOrderByWithAggregationInput,
+                                                        ? having?: UserScalarWhereWithAggregatesInput,
+                                                        ? take?: Int,
+                                                        ? skip?: Int
+                                                        })
 
-                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-                              `)
+                                                Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                                        `)
         }
       })
 
@@ -301,28 +301,6 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-            Invalid \`prisma.user.createMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
-
-              XX 
-              XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
-              XX   // @ts-test-if: provider !== 'sqlite'
-            → XX   const query = prisma.user.createMany({
-                      relationLoadStrategy: "query",
-                      ~~~~~~~~~~~~~~~~~~~~
-                      data: [
-                        {
-                          login: "user"
-                        }
-                      ],
-                    ? skipDuplicates?: Boolean
-                    })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.createMany()\` invocation in
@@ -344,6 +322,28 @@ testMatrix.setupTestSuite(
 
                         Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                     `)
+        } else {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                    Invalid \`prisma.user.createMany()\` invocation in
+                                    /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+
+                                      XX 
+                                      XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
+                                      XX   // @ts-test-if: provider !== 'sqlite'
+                                    → XX   const query = prisma.user.createMany({
+                                              relationLoadStrategy: "query",
+                                              ~~~~~~~~~~~~~~~~~~~~
+                                              data: [
+                                                {
+                                                  login: "user"
+                                                }
+                                              ],
+                                            ? skipDuplicates?: Boolean
+                                            })
+
+                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                              `)
         }
       })
 
@@ -357,11 +357,26 @@ testMatrix.setupTestSuite(
             data: [{ login: 'user' }],
           })
 
-          if (fullTextSearchEnabled) {
-            await expect(query).rejects.toMatchPrismaErrorInlineSnapshot()
-          } else {
-            await expect(query).rejects.toMatchPrismaErrorInlineSnapshot()
-          }
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+              Invalid \`prisma.user.createMany()\` invocation in
+              /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+
+                XX 'createMany (sqlserver, mongodb)',
+                XX async () => {
+                XX   // @ts-test-if: provider !== 'sqlite'
+              → XX   const query = prisma.user.createMany({
+                        relationLoadStrategy: "query",
+                        ~~~~~~~~~~~~~~~~~~~~
+                        data: [
+                          {
+                            login: "user"
+                          }
+                        ]
+                      })
+
+              Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+            `)
         },
       )
 
@@ -375,6 +390,26 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                                            Invalid \`prisma.user.updateMany()\` invocation in
+                                                            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+
+                                                              XX )
+                                                              XX 
+                                                              XX test('updateMany', async () => {
+                                                            → XX   const query = prisma.user.updateMany({
+                                                                      relationLoadStrategy: "query",
+                                                                      ~~~~~~~~~~~~~~~~~~~~
+                                                                      data: {
+                                                                        login: "user"
+                                                                      },
+                                                                    ? where?: UserWhereInput
+                                                                    })
+
+                                                            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                                                  `)
+        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                                                 Invalid \`prisma.user.updateMany()\` invocation in
@@ -394,26 +429,6 @@ testMatrix.setupTestSuite(
 
                                                 Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                                         `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                                    Invalid \`prisma.user.updateMany()\` invocation in
-                                    /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
-
-                                      XX )
-                                      XX 
-                                      XX test('updateMany', async () => {
-                                    → XX   const query = prisma.user.updateMany({
-                                              relationLoadStrategy: "query",
-                                              ~~~~~~~~~~~~~~~~~~~~
-                                              data: {
-                                                login: "user"
-                                              },
-                                            ? where?: UserWhereInput
-                                            })
-
-                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-                              `)
         }
       })
 
@@ -424,6 +439,23 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                                            Invalid \`prisma.user.deleteMany()\` invocation in
+                                                            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+
+                                                              XX })
+                                                              XX 
+                                                              XX test('deleteMany', async () => {
+                                                            → XX   const query = prisma.user.deleteMany({
+                                                                      relationLoadStrategy: "query",
+                                                                      ~~~~~~~~~~~~~~~~~~~~
+                                                                    ? where?: UserWhereInput
+                                                                    })
+
+                                                            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                                                  `)
+        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                                                 Invalid \`prisma.user.deleteMany()\` invocation in
@@ -440,23 +472,6 @@ testMatrix.setupTestSuite(
 
                                                 Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                                         `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                                    Invalid \`prisma.user.deleteMany()\` invocation in
-                                    /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
-
-                                      XX })
-                                      XX 
-                                      XX test('deleteMany', async () => {
-                                    → XX   const query = prisma.user.deleteMany({
-                                              relationLoadStrategy: "query",
-                                              ~~~~~~~~~~~~~~~~~~~~
-                                            ? where?: UserWhereInput
-                                            })
-
-                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-                              `)
         }
       })
 
@@ -467,6 +482,34 @@ testMatrix.setupTestSuite(
         })
 
         if (fullTextSearchEnabled) {
+          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                                                            Invalid \`prisma.user.count()\` invocation in
+                                                            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+
+                                                              XX })
+                                                              XX 
+                                                              XX test('count', async () => {
+                                                            → XX   const query = prisma.user.count({
+                                                                      select: {
+                                                                        _count: {
+                                                                          select: {
+                                                                            _all: true
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      relationLoadStrategy: "query",
+                                                                      ~~~~~~~~~~~~~~~~~~~~
+                                                                    ? where?: UserWhereInput,
+                                                                    ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
+                                                                    ? cursor?: UserWhereUniqueInput,
+                                                                    ? take?: Int,
+                                                                    ? skip?: Int
+                                                                    })
+
+                                                            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+                                                  `)
+        } else {
           await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                                                 Invalid \`prisma.user.count()\` invocation in
@@ -486,7 +529,7 @@ testMatrix.setupTestSuite(
                                                           relationLoadStrategy: "query",
                                                           ~~~~~~~~~~~~~~~~~~~~
                                                         ? where?: UserWhereInput,
-                                                        ? orderBy?: UserOrderByWithRelationAndSearchRelevanceInput[] | UserOrderByWithRelationAndSearchRelevanceInput,
+                                                        ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
                                                         ? cursor?: UserWhereUniqueInput,
                                                         ? take?: Int,
                                                         ? skip?: Int
@@ -494,34 +537,6 @@ testMatrix.setupTestSuite(
 
                                                 Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
                                         `)
-        } else {
-          await expect(query).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                                    Invalid \`prisma.user.count()\` invocation in
-                                    /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
-
-                                      XX })
-                                      XX 
-                                      XX test('count', async () => {
-                                    → XX   const query = prisma.user.count({
-                                              select: {
-                                                _count: {
-                                                  select: {
-                                                    _all: true
-                                                  }
-                                                }
-                                              },
-                                              relationLoadStrategy: "query",
-                                              ~~~~~~~~~~~~~~~~~~~~
-                                            ? where?: UserWhereInput,
-                                            ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                                            ? cursor?: UserWhereUniqueInput,
-                                            ? take?: Int,
-                                            ? skip?: Int
-                                            })
-
-                                    Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-                              `)
         }
       })
     })
