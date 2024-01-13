@@ -15,7 +15,7 @@ export function buildGetQueryEngineWasmModule(edge: boolean, engineType: ClientE
   // this is incompatible with cloudflare, so we hide it in a template
   if (edge === true) {
     return `config.getQueryEngineWasmModule = async () => {
-      if (detectRuntime() === 'edge-light') {
+      if (runtime === 'edge-light') {
         return (await import(\`./query-engine.wasm\${'?module'}\`)).default
       } else {
         return (await import(\`./query-engine.wasm\`)).default

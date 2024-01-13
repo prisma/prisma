@@ -337,7 +337,6 @@ class PrismaClient {
   constructor() {
     return new Proxy(this, {
       get(target, prop) {
-        const runtime = detectRuntime()
         const edgeRuntimeName = {
           'workerd': 'Cloudflare Workers',
           'deno': 'Deno and Deno Deploy',

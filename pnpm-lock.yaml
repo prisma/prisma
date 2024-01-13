@@ -547,9 +547,6 @@ importers:
       decimal.js:
         specifier: 10.4.3
         version: 10.4.3
-      detect-runtime:
-        specifier: 1.0.4
-        version: 1.0.4
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
@@ -649,6 +646,9 @@ importers:
       stacktrace-parser:
         specifier: 0.1.10
         version: 0.1.10
+      std-env:
+        specifier: 3.7.0
+        version: 3.7.0
       strip-ansi:
         specifier: 6.0.1
         version: 6.0.1
@@ -6220,11 +6220,6 @@ packages:
 
   /detect-node@2.1.0:
     resolution: {integrity: sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==}
-    dev: true
-
-  /detect-runtime@1.0.4:
-    resolution: {integrity: sha512-oJJu3EzRFbmJcflC0Z55Gs08z7lOZ+68HsegIOVmg9WjDFdolJ/PoHQokv+usWcBqyZvUSVdrpDghOhoZCXJyw==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     dev: true
 
   /diff-sequences@29.6.3:
@@ -12720,6 +12715,10 @@ packages:
   /statuses@1.5.0:
     resolution: {integrity: sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==}
     engines: {node: '>= 0.6'}
+    dev: true
+
+  /std-env@3.7.0:
+    resolution: {integrity: sha512-JPbdCEQLj1w5GilpiHAx3qJvFndqybBysA3qUOnznweH4QbNYUsW/ea8QzSrnh0vNsezMMw5bcVool8lM0gwzg==}
     dev: true
 
   /stdin-discarder@0.1.0:
