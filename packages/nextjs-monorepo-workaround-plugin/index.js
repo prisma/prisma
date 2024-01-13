@@ -138,7 +138,7 @@ class PrismaPlugin {
       const asyncActions = Object.entries(fromDestPrismaMap).map(async ([from, dest]) => {
         if ((await fs.access(dest).catch(() => false)) === false) {
           // making sure that directory the file is being copied to exists, otherwise create it
-          await fs.mkdir(dest.split('/').slice(0, -1).join('/'), { recursive: true })
+          await fs.mkdir(path.resolve(dest, '..'), { recursive: true })
           return fs.copyFile(from, dest)
         }
       })
