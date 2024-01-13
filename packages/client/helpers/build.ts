@@ -38,6 +38,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
 const browserBuildConfig: BuildOptions = {
   name: 'browser',
   entryPoints: ['src/runtime/index-browser.ts'],
+  conditions: ['browser', 'workerd', 'worker', 'import', 'require', 'node', 'default'],
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
@@ -50,6 +51,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   name: 'edge',
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
+  conditions: ['workerd', 'worker', 'import', 'require', 'node', 'default'],
   outfile: 'runtime/edge',
   bundle: true,
   minify: true,

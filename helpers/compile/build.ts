@@ -45,6 +45,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
     ignore: ['./src/__tests__/**/*'],
   }),
   mainFields: ['module', 'main'],
+  conditions: options.bundle ? ['import', 'require', 'node', 'default'] : undefined,
   ...options,
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getOutFile(options) : undefined,

@@ -89,7 +89,8 @@ export async function setupTestSuiteClient({
     edge: 'node_modules/@prisma/client/edge',
   }
 
-  return require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
+  // we return a callback, this allows us to clear jest modules cache if needed before hand
+  return () => require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
 }
 
 /**

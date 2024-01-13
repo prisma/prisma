@@ -91,7 +91,7 @@ function setupTestSuiteMatrix(
 
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
-        globalThis['loaded'] = await setupTestSuiteClient({
+        globalThis['load'] = await setupTestSuiteClient({
           cliMeta,
           suiteMeta,
           suiteConfig,
@@ -104,22 +104,18 @@ function setupTestSuiteMatrix(
         const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const client = new globalThis['loaded']['PrismaClient']({
-            // each Prisma Client instance uses its own instance of
-            // the driver adapter, and the driver adapter is only first instantiated
-            // when creating the first Prisma Client instance.
-            ...newDriverAdapter(),
-            ...args,
-          })
+          const loaded = globalThis['load']()
+          const client = new loaded['PrismaClient']({ ...newDriverAdapter(), ...args })
+
+          globalThis['Prisma'] = loaded['Prisma']
           clients.push(client)
+
           return client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
+          globalThis['prisma'] = globalThis['newPrismaClient']()
         }
-
-        globalThis['Prisma'] = (await global['loaded'])['Prisma']
 
         globalThis['db'] = {
           setupDb: () => setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback),
@@ -166,7 +162,7 @@ function setupTestSuiteMatrix(
         }
         process.env = originalEnv
         delete globalThis['datasourceInfo']
-        delete globalThis['loaded']
+        delete globalThis['load']
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']

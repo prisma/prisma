@@ -60,6 +60,8 @@ testMatrix.setupTestSuite(
     testIf(clientMeta.dataProxy && clientMeta.runtime === 'edge')(
       'PrismaClientInitializationError for missing env on edge on cloudflare',
       async () => {
+        jest.resetModules() // reset so that we can mock navigator
+
         globalThis.navigator = { userAgent: 'Cloudflare-Workers' }
 
         const prisma = newPrismaClient()
