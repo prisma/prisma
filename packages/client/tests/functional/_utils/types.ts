@@ -4,7 +4,7 @@ import { TestsFactoryFnParams } from './defineMatrix'
 import { TestSuiteMatrix } from './getTestSuiteInfo'
 import { AdapterProviders, Providers } from './providers'
 
-export type MatrixOptions<MatrixT extends TestSuiteMatrix> = {
+export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
   optOut?: {
     from: `${Providers}`[]
     reason: string

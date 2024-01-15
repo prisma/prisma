@@ -29,7 +29,7 @@ export function getTestSuitePlan(
   testCliMeta: CliMeta,
   suiteMeta: TestSuiteMeta,
   suiteConfigs: NamedTestSuiteConfig[],
-  options?: MatrixOptions<any>,
+  options?: MatrixOptions,
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
@@ -90,7 +90,7 @@ function shouldSkipSuiteConfig(
   config: NamedTestSuiteConfig,
   configIndex: number,
   cliMeta: CliMeta,
-  options?: MatrixOptions<any>,
+  options?: MatrixOptions,
 ): boolean {
   const provider = config.matrixOptions.provider
   const driverAdapter = config.matrixOptions.driverAdapter
