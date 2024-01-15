@@ -57,7 +57,7 @@ function setupTestSuiteMatrix(
     clientMeta: ClientMeta,
     cliMeta: CliMeta,
   ) => void,
-  options?: MatrixOptions,
+  options?: MatrixOptions<any>,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()

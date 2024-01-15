@@ -16,6 +16,7 @@ export type NamedTestSuiteConfig = {
     providerFlavor?: `${ProviderFlavors}`
     relationMode?: `${RelationModes}`
     engineType?: `${ClientEngineType}`
+    clientRuntime?: `${ClientRuntime}`
   }
 }
 

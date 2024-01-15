@@ -1,8 +1,10 @@
 import { ClientEngineType } from '@prisma/internals'
 
+import { TestsFactoryFnParams } from './defineMatrix'
+import { TestSuiteMatrix } from './getTestSuiteInfo'
 import { ProviderFlavors, Providers } from './providers'
 
-export type MatrixOptions = {
+export type MatrixOptions<MatrixT extends TestSuiteMatrix> = {
   optOut?: {
     from: `${Providers}`[]
     reason: string
@@ -20,6 +22,10 @@ export type MatrixOptions = {
     from: `${ProviderFlavors}`[]
     reason: string
   }
+  skip?: (
+    when: (predicate: boolean | (() => boolean), reason: string) => void,
+    suiteConfig: TestsFactoryFnParams<MatrixT>[0],
+  ) => void
   skipDb?: boolean
   // SQL Migration to apply after initial generated migration
   alterStatementCallback?: AlterStatementCallback

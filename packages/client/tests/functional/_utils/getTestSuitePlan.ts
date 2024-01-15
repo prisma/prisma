@@ -29,7 +29,7 @@ export function getTestSuitePlan(
   testCliMeta: CliMeta,
   suiteMeta: TestSuiteMeta,
   suiteConfigs: NamedTestSuiteConfig[],
-  options?: MatrixOptions,
+  options?: MatrixOptions<any>,
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
@@ -39,6 +39,7 @@ export function getTestSuitePlan(
 
   expandedSuiteConfigs.forEach((config) => {
     config.matrixOptions.engineType ??= testCliMeta.engineType
+    config.matrixOptions.clientRuntime ??= testCliMeta.runtime
   })
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
@@ -89,7 +90,7 @@ function shouldSkipSuiteConfig(
   config: NamedTestSuiteConfig,
   configIndex: number,
   cliMeta: CliMeta,
-  options?: MatrixOptions,
+  options?: MatrixOptions<any>,
 ): boolean {
   const provider = config.matrixOptions.provider
   const flavor = config.matrixOptions.providerFlavor
@@ -105,6 +106,16 @@ function shouldSkipSuiteConfig(
   if (updateSnapshots === 'external' && configIndex === 0) {
     // when updating external snapshots, we assume that inline snapshots update was run just before it - so
     // there is no reason to re-run the first suite
+    return true
+  }
+
+  // if one of the skip predicates is true, skip
+  let isSkipped = false
+  options?.skip?.((pred) => {
+    isSkipped ||= typeof pred === 'boolean' ? pred : pred()
+  }, config.matrixOptions)
+
+  if (isSkipped) {
     return true
   }
 
