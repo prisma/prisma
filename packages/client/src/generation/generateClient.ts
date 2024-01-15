@@ -402,7 +402,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     const dummyQueryEngineBgTargetPath = path.join(outputDir, 'query_engine_bg.js')
     const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
 
-    await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
+    const copyOrSymlink = testMode ? fs.symlink : fs.copyFile
+    await copyOrSymlink(queryEngineWasmFilePath, queryEngineWasmTargetPath)
     await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
   }
 
