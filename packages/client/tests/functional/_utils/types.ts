@@ -2,7 +2,7 @@ import { ClientEngineType } from '@prisma/internals'
 
 import { TestsFactoryFnParams } from './defineMatrix'
 import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { ProviderFlavors, Providers } from './providers'
+import { AdapterProviders, Providers } from './providers'
 
 export type MatrixOptions<MatrixT extends TestSuiteMatrix> = {
   optOut?: {
@@ -18,8 +18,8 @@ export type MatrixOptions<MatrixT extends TestSuiteMatrix> = {
     runtimes: ClientRuntime[]
     reason: string
   }
-  skipProviderFlavor?: {
-    from: `${ProviderFlavors}`[]
+  skipDriverAdapter?: {
+    from: `${AdapterProviders}`[]
     reason: string
   }
   skip?: (

@@ -85,11 +85,14 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor, relationMode, engineType }, _suiteMeta, clientMeta) => {
+  ({ provider, driverAdapter, relationMode, engineType }, _suiteMeta, clientMeta) => {
     const isMongoDb = provider === Providers.MONGODB
+    const isSqlite = provider === Providers.SQLITE
+    const isMySql = provider === Providers.MYSQL
+    const isSqlServer = provider === Providers.SQLSERVER
 
     const usesSyntheticTxQueries =
-      providerFlavor !== undefined && ['js_libsql', 'js_planetscale'].includes(providerFlavor)
+      driverAdapter !== undefined && ['js_libsql', 'js_planetscale'].includes(driverAdapter)
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -326,18 +329,16 @@ testMatrix.setupTestSuite(
         let expectedDbQueries: Tree[]
 
         if (isMongoDb) {
-          expectedDbQueries = [
-            dbQuery(expect.stringContaining('db.User.findOne(*)')),
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
-          ]
-        } else {
+          expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify(*)'))]
+        } else if (isSqlite || isMySql || isSqlServer) {
           expectedDbQueries = [
             txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
+        } else {
+          expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'))]
         }
         await waitForSpanTree(
           operation('User', 'delete', [

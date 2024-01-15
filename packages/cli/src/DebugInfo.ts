@@ -131,7 +131,7 @@ ${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
 
 For Prisma Client
 ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
-${formatEnvValue('PRISMA_CLIENT_NO_RETRY', '(Binary engine only)')}}
+${formatEnvValue('PRISMA_CLIENT_NO_RETRY', '(Binary engine only)')}
 
 For Prisma Migrate
 ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}

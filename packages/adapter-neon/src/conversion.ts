@@ -367,7 +367,7 @@ types.setTypeParser(ScalarColumnType.JSON, toJson)
  * 1. Check if using base64 would be more efficient than this encoding.
  * 2. Consider the possibility of eliminating re-encoding altogether
  *    and passing bytea hex format to the engine if that can be aligned
- *    with other adapter flavours.
+ *    with other adapters of the same database provider.
  */
 function encodeBuffer(buffer: Buffer) {
   return Array.from(new Uint8Array(buffer))

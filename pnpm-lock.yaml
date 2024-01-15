@@ -215,8 +215,8 @@ importers:
         version: 3.0.2
     devDependencies:
       '@neondatabase/serverless':
-        specifier: 0.6.0
-        version: 0.6.0
+        specifier: 0.7.2
+        version: 0.7.2
 
   packages/adapter-pg:
     dependencies:
@@ -422,8 +422,8 @@ importers:
         specifier: 0.3.6
         version: 0.3.6
       '@neondatabase/serverless':
-        specifier: 0.6.0
-        version: 0.6.0
+        specifier: 0.7.2
+        version: 0.7.2
       '@opentelemetry/api':
         specifier: 1.7.0
         version: 1.7.0
@@ -467,8 +467,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
-        version: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
+        specifier: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
+        version: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -491,8 +491,8 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/query-engine-wasm':
-        specifier: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
-        version: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
+        specifier: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
+        version: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -726,8 +726,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
-        version: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
+        specifier: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
+        version: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -763,8 +763,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
-        version: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
+        specifier: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
+        version: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,8 +1088,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
-        version: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
+        specifier: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
+        version: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1245,8 +1245,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
-        version: 5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464
+        specifier: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
+        version: 5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -2709,8 +2709,8 @@ packages:
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
     dev: true
 
-  /@neondatabase/serverless@0.6.0:
-    resolution: {integrity: sha512-qXxBRYN0m2v8kVQBfMxbzNGn2xFAhTXFibzQlE++NfJ56Shz3m7+MyBBtXDlEH+3Wfa6lToDXf1MElocY4sJ3w==}
+  /@neondatabase/serverless@0.7.2:
+    resolution: {integrity: sha512-wU3WA2uTyNO7wjPs3Mg0G01jztAxUxzd9/mskMmtPwPTjf7JKWi9AW5/puOGXLxmZ9PVgRFeBVRVYq5nBPhsCg==}
     dependencies:
       '@types/pg': 8.6.6
     dev: true
@@ -3175,8 +3175,8 @@ packages:
       config-chain: 1.1.13
     dev: true
 
-  /@prisma/engines-version@5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464:
-    resolution: {integrity: sha512-9JfMGgzdGIdHqFDoL0aTWnysGbsdgIJc7g2KQrNlq3x0egbGEBI0vgG5IpAfxwm0rvHS6cq5G7OIq+s96xIZRQ==}
+  /@prisma/engines-version@5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16:
+    resolution: {integrity: sha512-1DJIrjGaQSxzkaMZRWGMhzP0Ee6CBIhXHC1O6ATqZb0KgptXHGJo6VaRR8zX0XvQZQUXikfWpkxJVLwytyqRDQ==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3184,12 +3184,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464:
-    resolution: {integrity: sha512-ho9v2HXaNPh3culdH21eHzWGDd0N1LSYGeVFja6Ud1KYJF/jWgaPu/gVPZaum1aNja4bzu0HAeBH4xHIbelZxg==}
+  /@prisma/prisma-schema-wasm@5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16:
+    resolution: {integrity: sha512-1isRCAmKyY5/dg1XAjCn7zFaQRY0ANjK9csPpU7Yfz1g4nWDveogJTzUhksdnsdER3FTqTwttEJTtH3b3BjISQ==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.8.0-33.babfd598f1377beef44addb85eb86ac93bdf4464:
-    resolution: {integrity: sha512-rmcIi1D7BuHS13IwGc6F/AoYosaGf1bi/CsvLfd297vPiVFHkRJcShtjNnC9o0w/8nUE67Y74ve84Z1lGAvCdQ==}
+  /@prisma/query-engine-wasm@5.9.0-7.1deed7deeb1012f9f2040ac302258e1705f06c16:
+    resolution: {integrity: sha512-XoLB4AtsZguFlodYGk2e3Xz2p0PETvtSxMXBT56XsOR+wRFT0g9QhsqBBYS088Ujfv5HaMOxYa0mnX0BLduZ2g==}
     dev: true
 
   /@prisma/studio-common@0.497.0:
@@ -5012,7 +5012,7 @@ packages:
   /axios@1.6.1:
     resolution: {integrity: sha512-vfBmhDpKafglh0EldBEbVuoe7DyAavGSLWhuSm5ZSEKQnHhBf0xAAwybbNH1IkrJNGnS/VG4I5yxig1pCEXE4g==}
     dependencies:
-      follow-redirects: 1.15.2
+      follow-redirects: 1.15.4
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -7258,8 +7258,8 @@ packages:
     resolution: {integrity: sha512-Gz1EvfOneuFfk4yG458dJ3TLJ7gV19q3OM/vVvvHf7eT02Hm1DleB4edsia6ahbKgAYxO9gvyQ1ioWZR+a00Yw==}
     dev: true
 
-  /follow-redirects@1.15.2:
-    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+  /follow-redirects@1.15.4:
+    resolution: {integrity: sha512-Cr4D/5wlrb0z9dgERpUL3LrmPKVDsETIJhaCMeDfuFYcqa5bldGV6wBsAN6X/vxlXQtFBMrXdXxdL8CbDTGniw==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
