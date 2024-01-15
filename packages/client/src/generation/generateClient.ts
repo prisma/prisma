@@ -262,7 +262,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const {
     datamodel,
     schemaPath,
-    outputDir,
     transpile,
     generator,
     dmmf,
@@ -280,14 +279,14 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   } = options
 
   const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
-  const { runtimeDir, finalOutputDir } = await getGenerationDirs(options)
+  const { runtimeDir, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     schemaPath,
     transpile,
     runtimeDir,
-    outputDir: finalOutputDir,
+    outputDir,
     generator,
     dmmf,
     datasources,
@@ -317,21 +316,18 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   if (noEngine === true) {
-    await deleteOutputDir(finalOutputDir)
+    await deleteOutputDir(outputDir)
   }
 
-  await ensureDir(finalOutputDir)
+  await ensureDir(outputDir)
   await ensureDir(path.join(outputDir, 'runtime'))
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
     await ensureDir(path.join(outputDir, 'deno'))
   }
-  // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
-  // outputDir:       /home/millsp/Work/prisma/packages/client
-  // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
 
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
-      const filePath = path.join(finalOutputDir, fileName)
+      const filePath = path.join(outputDir, fileName)
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       if (existsSync(filePath)) {
@@ -345,7 +341,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     : eval(`require('path').join(__dirname, '../runtime')`)
 
   // if users use a custom output dir
-  if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
+  if (copyRuntime || generator?.isCustomOutput === true) {
     const copyTarget = path.join(outputDir, 'runtime')
     await ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {
@@ -384,14 +380,14 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {
         target = path.join('/tmp/prisma-engines', fileName)
       } else {
-        target = path.join(finalOutputDir, fileName)
+        target = path.join(outputDir, fileName)
       }
 
       await overwriteFile(filePath, target)
     }
   }
 
-  const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
+  const schemaTargetPath = path.join(outputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
     await fs.copyFile(schemaPath, schemaTargetPath)
   }
@@ -399,30 +395,15 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (generator?.previewFeatures.includes('driverAdapters') && noEngine !== true) {
     const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
-    const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
+    const queryEngineWasmTargetPath = path.join(outputDir, 'query-engine.wasm')
     // some bundlers (eg. webpack) need this file to exist, even if it's empty
     // this is because they analyze `query-engine.wasm` for references to other
     // files. It does not matter for us, because we bundle query_engine_bg.js.
-    const dummyQueryEngineBgTargetPath = path.join(finalOutputDir, 'query_engine_bg.js')
+    const dummyQueryEngineBgTargetPath = path.join(outputDir, 'query_engine_bg.js')
     const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
 
     await fs.copyFile(queryEngineWasmFilePath, queryEngineWasmTargetPath)
     await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
-  }
-
-  const proxyIndexJsPath = path.join(outputDir, 'index.js')
-  const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
-  const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
-  if (!existsSync(proxyIndexJsPath)) {
-    await fs.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
-  }
-
-  if (!existsSync(proxyIndexDTSPath)) {
-    await fs.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
-  }
-
-  if (!existsSync(proxyIndexBrowserJsPath)) {
-    await fs.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 
   try {
@@ -535,7 +516,7 @@ async function getGenerationDirs({ runtimeDir, generator, outputDir, datamodel, 
 
   return {
     runtimeDir: testRuntimeDir ?? userRuntimeDir,
-    finalOutputDir,
+    outputDir,
     projectRoot,
   }
 }
