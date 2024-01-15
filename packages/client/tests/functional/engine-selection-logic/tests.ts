@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, suiteMeta, clientMeta) => {
+  ({ provider, clientRuntime }, suiteMeta, clientMeta) => {
     const OLD_ENV = process.env
 
     beforeEach(() => {
@@ -42,7 +42,7 @@ testMatrix.setupTestSuite(
       // `prisma generate --accelerate` or the Data Proxy via `prisma generate
       // --data-proxy.`\n\nMore information about Data Proxy:
       // https://pris.ly/d/data-proxy\n" }], warnings: [] }
-      skipTestIf(clientMeta.dataProxy || engineType === 'wasm')(
+      skipTestIf(clientMeta.dataProxy || clientRuntime === 'wasm')(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
           process.env[`DATABASE_URI_${provider}`] = 'prisma://localhost:5432/db'
@@ -87,7 +87,7 @@ testMatrix.setupTestSuite(
       // `prisma generate --accelerate` or the Data Proxy via `prisma generate
       // --data-proxy.`\n\nMore information about Data Proxy:
       // https://pris.ly/d/data-proxy\n" }], warnings: [] }
-      skipTestIf(clientMeta.dataProxy || engineType === 'wasm')(
+      skipTestIf(clientMeta.dataProxy || clientRuntime === 'wasm')(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
           const prisma = newPrismaClient({

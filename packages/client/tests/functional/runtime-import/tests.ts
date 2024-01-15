@@ -9,13 +9,13 @@ const edgeRuntime = 'runtime/edge'
 const wasmRuntime = 'runtime/wasm'
 const nftAnnotation = '// file annotations for bundling tools'
 
-testMatrix.setupTestSuite(({ engineType }, suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(({ engineType, clientRuntime }, suiteMeta, clientMeta) => {
   test('imports correct runtime', async () => {
-    const clientModule = clientMeta.runtime === 'edge' ? '@prisma/client/edge' : '@prisma/client'
+    const clientModule = clientRuntime === 'edge' ? '@prisma/client/edge' : '@prisma/client'
     const clientModuleEntryPoint = require.resolve(clientModule, { paths: [suiteMeta.generatedFolder] })
     const generatedClientContents = await fs.readFile(clientModuleEntryPoint, 'utf-8')
 
-    if (clientMeta.dataProxy && clientMeta.runtime === 'edge') {
+    if (clientMeta.dataProxy && clientRuntime === 'edge') {
       expect(generatedClientContents).toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
@@ -40,17 +40,17 @@ testMatrix.setupTestSuite(({ engineType }, suiteMeta, clientMeta) => {
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(wasmRuntime)
-    } else if (clientMeta.driverAdapter && clientMeta.runtime === 'node') {
+    } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
       expect(generatedClientContents).toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
       expect(generatedClientContents).not.toContain(wasmRuntime)
-    } else if (clientMeta.driverAdapter && clientMeta.runtime === 'edge') {
+    } else if (clientMeta.driverAdapter && clientRuntime === 'edge') {
       expect(generatedClientContents).toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
       expect(generatedClientContents).not.toContain(wasmRuntime)
-    } else if (clientMeta.driverAdapter && clientMeta.runtime === 'wasm') {
+    } else if (clientMeta.driverAdapter && clientRuntime === 'wasm') {
       expect(generatedClientContents).toContain(wasmRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
@@ -61,11 +61,11 @@ testMatrix.setupTestSuite(({ engineType }, suiteMeta, clientMeta) => {
   })
 
   test('imported files have the expected annotations', async () => {
-    const clientModule = clientMeta.runtime === 'edge' ? '@prisma/client/edge' : '@prisma/client'
+    const clientModule = clientRuntime === 'edge' ? '@prisma/client/edge' : '@prisma/client'
     const clientModuleEntryPoint = require.resolve(clientModule, { paths: [suiteMeta.generatedFolder] })
     const generatedClientContents = await fs.readFile(clientModuleEntryPoint, 'utf-8')
 
-    if (clientMeta.dataProxy && clientMeta.runtime === 'edge') {
+    if (clientMeta.dataProxy && clientRuntime === 'edge') {
       expect(generatedClientContents).not.toContain(nftAnnotation)
     } else if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
       expect(generatedClientContents).not.toContain(nftAnnotation)
@@ -75,11 +75,11 @@ testMatrix.setupTestSuite(({ engineType }, suiteMeta, clientMeta) => {
       expect(generatedClientContents).toContain(nftAnnotation)
     } else if (engineType === ClientEngineType.Binary) {
       expect(generatedClientContents).toContain(nftAnnotation)
-    } else if (clientMeta.driverAdapter && clientMeta.runtime === 'node') {
+    } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
       expect(generatedClientContents).toContain(nftAnnotation)
-    } else if (clientMeta.driverAdapter && clientMeta.runtime === 'edge') {
+    } else if (clientMeta.driverAdapter && clientRuntime === 'edge') {
       expect(generatedClientContents).not.toContain(nftAnnotation)
-    } else if (clientMeta.driverAdapter && clientMeta.runtime === 'wasm') {
+    } else if (clientMeta.driverAdapter && clientRuntime === 'wasm') {
       expect(generatedClientContents).not.toContain(nftAnnotation)
     } else {
       throw new Error('Unhandled case')
