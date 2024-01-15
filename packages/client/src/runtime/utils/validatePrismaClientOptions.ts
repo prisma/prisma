@@ -163,7 +163,7 @@ Expected string or undefined.`,
     if (!value) {
       return
     }
-    const knownKeys = ['debug', 'hooks', 'engine', 'measurePerformance']
+    const knownKeys = ['debug', 'engine', 'configOverride']
     if (typeof value !== 'object') {
       throw new PrismaClientConstructorValidationError(
         `Invalid value ${JSON.stringify(value)} for "__internal" to PrismaClient constructor`,

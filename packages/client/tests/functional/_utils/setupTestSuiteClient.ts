@@ -119,7 +119,7 @@ export function setupTestSuiteClientDriverAdapter({
       // wasm engine can only be loaded on edge runtimes, so here we force it
       // this enables our wasm client runtime to be fully tested within jest
       async getQueryEngineWasmModule() {
-        const queryEngineWasmFilePath = path.join(runtimeDir, 'query_engine.wasm')
+        const queryEngineWasmFilePath = path.join(runtimeDir, 'query-engine.wasm')
         const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
         return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
