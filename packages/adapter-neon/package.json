@@ -39,9 +39,9 @@
     "postgres-array": "3.0.2"
   },
   "devDependencies": {
-    "@neondatabase/serverless": "0.6.0"
+    "@neondatabase/serverless": "0.7.2"
   },
   "peerDependencies": {
-    "@neondatabase/serverless": "^0.6.0"
+    "@neondatabase/serverless": "^0.6.0 || ^0.7.0"
   }
 }
