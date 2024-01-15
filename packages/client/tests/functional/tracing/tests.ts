@@ -334,7 +334,7 @@ testMatrix.setupTestSuite(
           expectedDbQueries = [
             txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
-            dbQuery(expect.stringContaining('DELETE')),
+            dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
         } else {
