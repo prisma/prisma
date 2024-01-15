@@ -593,9 +593,8 @@ testMatrix.setupTestSuite(
       runtimes: ['node', 'edge'],
       reason: 'Metrics are not supported with Data Proxy yet',
     },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Metrics are not supported with WASM engine yet',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', 'Metrics are not supported with WASM engine yet')
     },
   },
 )

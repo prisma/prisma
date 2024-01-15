@@ -638,10 +638,10 @@ testMatrix.setupTestSuite(
       })
     })
   },
+
   {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Tracing is not supported for wasm engine, many spans are missing',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', 'Tracing is not supported for wasm engine, many spans are missing')
     },
   },
 )

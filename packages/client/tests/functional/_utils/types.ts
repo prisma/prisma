@@ -46,7 +46,7 @@ export type CliMeta = {
   dataProxy: boolean
   runtime: ClientRuntime
   previewFeatures: string[]
-  engineType: ClientEngineType | undefined
+  engineType: `${ClientEngineType}` | undefined
 }
 
 export type ClientMeta = {
