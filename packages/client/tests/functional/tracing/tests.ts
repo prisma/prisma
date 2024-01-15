@@ -334,11 +334,11 @@ testMatrix.setupTestSuite(
           expectedDbQueries = [
             txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
-            dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
+            dbQuery(expect.stringContaining('DELETE')),
             txCommit(),
           ]
         } else {
-          expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly)]
+          expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'))]
         }
         await waitForSpanTree(
           operation('User', 'delete', [
