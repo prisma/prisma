@@ -55,7 +55,7 @@ const connectionString = `${process.env.DATABASE_URL}`
 
 // Init prisma client
 const pool = new Pool({ connectionString })
-const adapter = new PrismaNeon(pool)
+const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 // Use Prisma Client as normal
