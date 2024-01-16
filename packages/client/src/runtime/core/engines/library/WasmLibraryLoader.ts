@@ -25,19 +25,24 @@ export const wasmLibraryLoader: LibraryLoader = {
     // bindgen keeps an internal cache of its instance already, when the wasm
     // engine is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
-      const wasmMod = await config.getQueryEngineWasmModule?.()
+      loadedWasmInstance = (async () => {
+        const wasmModule = await config.getQueryEngineWasmModule?.()
 
-      if (wasmMod === undefined || wasmMod === null) {
-        throw new PrismaClientInitializationError(
-          'The loaded wasm module was unexpectedly `undefined` or `null` once loaded',
-          clientVersion,
-        )
-      }
+        if (wasmModule === undefined || wasmModule === null) {
+          throw new PrismaClientInitializationError(
+            'The loaded wasm module was unexpectedly `undefined` or `null` once loaded',
+            clientVersion,
+          )
+        }
 
-      // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
-      loadedWasmInstance = new WebAssembly.Instance(wasmMod, { './query_engine_bg.js': wasmBindgenRuntime }).exports
-      wasmBindgenRuntime.__wbg_set_wasm(loadedWasmInstance)
+        // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
+        const options = { './query_engine_bg.js': wasmBindgenRuntime }
+        const instance = new WebAssembly.Instance(wasmModule, options)
+        wasmBindgenRuntime.__wbg_set_wasm(instance.exports)
+      })()
     }
+
+    await loadedWasmInstance
 
     return {
       debugPanic() {

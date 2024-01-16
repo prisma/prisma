@@ -1,5 +1,5 @@
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
-import { readFileSync } from 'fs'
+import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
 
@@ -116,9 +116,9 @@ export function setupTestSuiteClientDriverAdapter({
     __internal.configOverride = {
       // wasm engine can only be loaded on edge runtimes, so here we force it
       // this enables our wasm client runtime to be fully tested within jest
-      getQueryEngineWasmModule() {
+      async getQueryEngineWasmModule() {
         const queryEngineWasmFilePath = path.join(runtimeDir, 'query-engine.wasm')
-        const queryEngineWasmFileBytes = readFileSync(queryEngineWasmFilePath)
+        const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
         return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
       },
