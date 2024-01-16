@@ -21,23 +21,27 @@ testMatrix.setupTestSuite(
       if (clientMeta.runtime === 'edge') {
         await expect(user).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-        Invalid \`prisma.user.create()\` invocation:
+          Invalid \`prisma.user.create()\` invocation in
+          /client/tests/functional/0-legacy-ports/malformed-id/tests.ts:0:0
 
-
-        Inconsistent column data: Malformed ObjectID: provided hex string representation must be exactly 12 bytes, instead got: "something invalid 1", length 19 for the field 'id'.
-      `)
+             8 testMatrix.setupTestSuite(
+             9   (suiteConfig, suiteMeta, clientMeta) => {
+            10     test('should throw Malformed ObjectID error: in 2 different fields', async () => {
+          → 11       const user = prisma.user.create(
+          Inconsistent column data: Malformed ObjectID: provided hex string representation must be exactly 12 bytes, instead got: "something invalid 1", length 19 for the field 'id'.
+        `)
       } else {
         await expect(user).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                    Invalid \`prisma.user.create()\` invocation in
-                    /client/tests/functional/0-legacy-ports/malformed-id/tests.ts:0:0
+                              Invalid \`prisma.user.create()\` invocation in
+                              /client/tests/functional/0-legacy-ports/malformed-id/tests.ts:0:0
 
-                       8 testMatrix.setupTestSuite(
-                       9   (suiteConfig, suiteMeta, clientMeta) => {
-                      10     test('should throw Malformed ObjectID error: in 2 different fields', async () => {
-                    → 11       const user = prisma.user.create(
-                    Inconsistent column data: Malformed ObjectID: provided hex string representation must be exactly 12 bytes, instead got: "something invalid 1", length 19 for the field 'id'.
-                `)
+                                 8 testMatrix.setupTestSuite(
+                                 9   (suiteConfig, suiteMeta, clientMeta) => {
+                                10     test('should throw Malformed ObjectID error: in 2 different fields', async () => {
+                              → 11       const user = prisma.user.create(
+                              Inconsistent column data: Malformed ObjectID: provided hex string representation must be exactly 12 bytes, instead got: "something invalid 1", length 19 for the field 'id'.
+                        `)
       }
     })
 
