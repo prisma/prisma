@@ -78,8 +78,7 @@ export async function setupTestSuiteClient({
     clientVersion: '0.0.0',
     testMode: true,
     activeProvider: suiteConfig.matrixOptions.provider,
-    // Change \\ to / for windows support
-    runtimeDir,
+    runtimeDir: runtimeDir,
     noEngine: clientMeta.dataProxy,
   })
 
