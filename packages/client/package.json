@@ -32,6 +32,59 @@
   "main": "index.js",
   "browser": "index-browser.js",
   "types": "index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "require": {
+        "types": "./default.d.ts",
+        "node": "./default.js",
+        "edge-light": "./wasm.js",
+        "workerd": "./wasm.js",
+        "worker": "./wasm.js",
+        "browser": "./index-browser.js"
+      },
+      "import": {
+        "types": "./default.d.ts",
+        "node": "./default.js",
+        "edge-light": "./wasm.js",
+        "workerd": "./wasm.js",
+        "worker": "./wasm.js",
+        "browser": "./index-browser.js"
+      },
+      "default": "./default.js"
+    },
+    "./edge": {
+      "types": "./edge.d.ts",
+      "require": "./edge.js",
+      "import": "./edge.js",
+      "default": "./edge.js"
+    },
+    "./extension": {
+      "types": "./extension.d.ts",
+      "require": "./extension.js",
+      "import": "./extension.js",
+      "default": "./extension.js"
+    },
+    "./index-browser": {
+      "types": "./default.d.ts",
+      "require": "./index-browser.js",
+      "import": "./index-browser.js",
+      "default": "./index-browser.js"
+    },
+    "./index": {
+      "types": "./default.d.ts",
+      "require": "./default.js",
+      "import": "./default.js",
+      "default": "./default.js"
+    },
+    "./wasm": {
+      "types": "./wasm.d.ts",
+      "require": "./wasm.js",
+      "import": "./wasm.js",
+      "default": "./wasm.js"
+    },
+    "./*": "./*"
+  },
   "license": "Apache-2.0",
   "engines": {
     "node": ">=16.13"
@@ -67,8 +120,12 @@
     "generator-build",
     "edge.js",
     "edge.d.ts",
+    "wasm.js",
+    "wasm.d.ts",
     "index.js",
     "index.d.ts",
+    "default.js",
+    "default.d.ts",
     "index-browser.js",
     "extension.js",
     "extension.d.ts"

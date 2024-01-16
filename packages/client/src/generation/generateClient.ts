@@ -11,7 +11,7 @@ import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
-import { name as clientPackageName } from '../../package.json'
+import { exports as clientPackageExports, name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
@@ -74,6 +74,7 @@ export async function buildClient({
   postinstall,
   overrideEngineType,
   noEngine,
+  testMode,
 }: O.Required<GenerateClientOptions, 'runtimeDir'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
@@ -96,6 +97,8 @@ export async function buildClient({
     noEngine,
   }
 
+  const scriptsDir = path.join(__dirname, `${testMode ? '../' : ''}../scripts`)
+
   // we create a regular client that is fit for Node.js
   const nodeClient = new TSClient({
     ...tsClientOptions,
@@ -115,65 +118,15 @@ export async function buildClient({
     main: 'index.js',
     types: 'index.d.ts',
     browser: 'index-browser.js',
+    exports: clientPackageExports,
     sideEffects: false,
   }
 
-  // we enable the new dx (optional /edge) for driver adapters
-  if (generator?.previewFeatures.includes('driverAdapters')) {
-    pkgJson['exports'] = {
-      './package.json': './package.json',
-      '.': {
-        require: {
-          types: './default.d.ts',
-          node: './default.js',
-          'edge-light': './wasm.js',
-          workerd: './wasm.js',
-          worker: './wasm.js',
-          browser: './index-browser.js',
-        },
-        import: {
-          types: './default.d.ts',
-          node: './default.js',
-          'edge-light': './wasm.js',
-          workerd: './wasm.js',
-          worker: './wasm.js',
-          browser: './index-browser.js',
-        },
-        default: './default.js',
-      },
-      './edge': {
-        types: './edge.d.ts',
-        require: './edge.js',
-        import: './edge.js',
-        default: './edge.js',
-      },
-      './extension': {
-        types: './extension.d.ts',
-        require: './extension.js',
-        import: './extension.js',
-        default: './extension.js',
-      },
-      './index-browser': {
-        types: './default.d.ts',
-        require: './index-browser.js',
-        import: './index-browser.js',
-        default: './index-browser.js',
-      },
-      './index': {
-        types: './default.d.ts',
-        require: './default.js',
-        import: './default.js',
-        default: './default.js',
-      },
-      './*': './*',
-    }
-  }
-
-  const fileMap = {} // we will store the generated contents here
-
-  // we generate the default client that is meant to work on Node
+  const fileMap: Record<string, string> = {} // we store the generated contents here
   fileMap['index.js'] = await JS(nodeClient)
   fileMap['index.d.ts'] = await TS(nodeClient)
+  fileMap['default.js'] = await JS(nodeClient)
+  fileMap['default.d.ts'] = await TS(nodeClient)
   fileMap['index-browser.js'] = await BrowserJS(nodeClient)
   fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
   fileMap['edge.js'] = await JS(edgeClient)
@@ -203,8 +156,9 @@ export async function buildClient({
 
     fileMap['wasm.js'] = await JS(wasmClient)
     fileMap['wasm.d.ts'] = await TS(wasmClient)
-    fileMap['default.js'] = await JS(nodeClient)
-    fileMap['default.d.ts'] = await TS(nodeClient)
+  } else {
+    fileMap['wasm.js'] = await fs.readFile(path.join(scriptsDir, 'default-wasm.js'), 'utf-8')
+    fileMap['wasm.d.ts'] = await fs.readFile(path.join(scriptsDir, 'default-wasm.d.ts'), 'utf-8')
   }
 
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
