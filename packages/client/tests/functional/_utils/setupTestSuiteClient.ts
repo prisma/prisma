@@ -76,7 +76,6 @@ export async function setupTestSuiteClient({
     generator: generator,
     engineVersion: '0000000000000000000000000000000000000000',
     clientVersion: '0.0.0',
-    transpile: false,
     testMode: true,
     activeProvider: suiteConfig.matrixOptions.provider,
     // Change \\ to / for windows support

@@ -24,19 +24,13 @@ const del = promisify(rimraf)
 
 export interface GenerateInFolderOptions {
   projectDir: string
-  useLocalRuntime?: boolean
-  transpile?: boolean
   packageSource?: string
-  useBuiltRuntime?: boolean
   overrideEngineType?: ClientEngineType
 }
 
 export async function generateInFolder({
   projectDir,
-  useLocalRuntime = false,
-  transpile = true,
   packageSource,
-  useBuiltRuntime,
   overrideEngineType,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
@@ -55,42 +49,23 @@ export async function generateInFolder({
   const clientGenerator = config.generators[0]
   const clientEngineType = overrideEngineType ?? getClientEngineType(clientGenerator)
 
-  const outputDir = transpile
-    ? path.join(projectDir, 'node_modules/@prisma/client')
-    : path.join(projectDir, '@prisma/client')
-
-  // if (transpile && config.generators[0]?.output) {
-  //   outputDir = path.join(path.dirname(schemaPath), config.generators[0]?.output)
-  // }
+  const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
 
   await del(outputDir)
 
-  if (transpile) {
-    if (packageSource) {
-      await copy({
-        from: packageSource, // when using yarn pack and extracting it, it includes a folder called "package"
-        to: outputDir,
-        recursive: true,
-        parallelJobs: 20,
-        overwrite: true,
-      })
-    } else {
-      await getPackedPackage('@prisma/client', outputDir)
-    }
+  if (packageSource) {
+    await copy({
+      from: packageSource, // when using yarn pack and extracting it, it includes a folder called "package"
+      to: outputDir,
+      recursive: true,
+      parallelJobs: 20,
+      overwrite: true,
+    })
+  } else {
+    await getPackedPackage('@prisma/client', outputDir)
   }
 
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
-
-  let runtimeDir: string | undefined
-  if (useLocalRuntime) {
-    if (useBuiltRuntime) {
-      runtimeDir = path.relative(outputDir, path.join(__dirname, '..', '..', 'runtime'))
-    } else {
-      runtimeDir = path.relative(outputDir, path.join(__dirname, '..', 'runtime'))
-    }
-  } else if (useBuiltRuntime) {
-    throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
-  }
 
   const enginesPath = getEnginesPath()
   const queryEngineLibraryPath =
@@ -126,9 +101,6 @@ export async function generateInFolder({
     dmmf,
     ...config,
     outputDir,
-    runtimeDir,
-    transpile,
-    testMode: true,
     schemaPath,
     copyRuntime: false,
     generator: config.generators[0],

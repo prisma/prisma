@@ -94,9 +94,6 @@ export async function generateTestClient({ projectDir, engineType }: GenerateTes
 
   await generateInFolder({
     projectDir,
-    useLocalRuntime: false,
-    transpile: true,
-    useBuiltRuntime: false,
     overrideEngineType: engineType,
   })
 }

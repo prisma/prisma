@@ -44,7 +44,6 @@ if (process.argv[1] === __filename) {
         generator: options.generator,
         engineVersion: options.version,
         clientVersion,
-        transpile: true,
         activeProvider: options.datasources[0]?.activeProvider,
         postinstall: options.postinstall,
         noEngine: options.noEngine,

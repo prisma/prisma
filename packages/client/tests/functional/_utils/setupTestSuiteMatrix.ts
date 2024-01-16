@@ -130,6 +130,8 @@ function setupTestSuiteMatrix(
       // for better type dx, copy a client into the test suite root node_modules
       // this is so that we can have intellisense for the client in the test suite
       beforeAll(() => {
+        if (process.env.CI === 'true') return // don't copy in CI (it's slow)
+
         const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
 
         // reserve the node_modules so that parallel tests suites don't conflict

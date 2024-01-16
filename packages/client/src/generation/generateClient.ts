@@ -37,7 +37,6 @@ setClassName(DenylistError, 'DenylistError')
 export interface GenerateClientOptions {
   datamodel: string
   schemaPath: string
-  transpile?: boolean
   runtimeDir?: string
   outputDir: string
   generator?: GeneratorConfig
@@ -262,7 +261,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const {
     datamodel,
     schemaPath,
-    transpile,
     generator,
     dmmf,
     datasources,
@@ -284,7 +282,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     schemaPath,
-    transpile,
     runtimeDir,
     outputDir,
     generator,
@@ -364,7 +361,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (transpile === true && noEngine !== true) {
+  if (noEngine !== true) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
@@ -502,23 +499,34 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
  * @param runtimeDirs overrides for the runtime directories
  * @returns
  */
-async function getGenerationDirs({ runtimeDir, generator, outputDir, datamodel, schemaPath }: GenerateClientOptions) {
-  const useDefaultOutdir = generator?.isCustomOutput !== true
-  const userRuntimeDir = useDefaultOutdir ? '@prisma/client/runtime' : './runtime'
-  const testRuntimeDir = runtimeDir?.replace(/\\/g, '/') // only tests override it
+async function getGenerationDirs({
+  runtimeDir,
+  generator,
+  outputDir,
+  datamodel,
+  schemaPath,
+  testMode,
+}: GenerateClientOptions) {
+  const isCustomOutput = generator?.isCustomOutput === true
+  let userRuntimeDir = isCustomOutput ? './runtime' : '@prisma/client/runtime'
+  let userOutputDir = isCustomOutput ? outputDir : await getDefaultOutdir(outputDir)
 
-  const finalOutputDir = useDefaultOutdir ? await getDefaultOutdir(outputDir) : outputDir
-  if (!useDefaultOutdir) {
-    await verifyOutputDirectory(finalOutputDir, datamodel, schemaPath)
+  if (testMode && runtimeDir) {
+    userOutputDir = outputDir // set direct location, ignores getDefaultOutdir
+    userRuntimeDir = runtimeDir?.replace(/\\/g, '/') // normalize windows paths
   }
 
-  const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
-  const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
+  if (isCustomOutput) {
+    await verifyOutputDirectory(userOutputDir, datamodel, schemaPath)
+  }
+
+  const userPackageRoot = await pkgUp({ cwd: path.dirname(userOutputDir) })
+  const userProjectRoot = userPackageRoot ? path.dirname(userPackageRoot) : process.cwd()
 
   return {
-    runtimeDir: testRuntimeDir ?? userRuntimeDir,
-    outputDir,
-    projectRoot,
+    runtimeDir: userRuntimeDir,
+    outputDir: userOutputDir,
+    projectRoot: userProjectRoot,
   }
 }
 

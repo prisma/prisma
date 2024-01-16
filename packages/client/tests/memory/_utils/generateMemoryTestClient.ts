@@ -26,8 +26,7 @@ export async function generateMemoryTestClient(testDir: MemoryTestDir) {
     generator: generator,
     engineVersion: '0000000000000000000000000000000000000000',
     clientVersion: '0.0.0',
-    transpile: false,
-    testMode: true,
+    testMode: 'latest',
     activeProvider: config.datasources[0].activeProvider,
     runtimeDir: path.join(__dirname, '..', '..', '..', 'runtime'),
   })
