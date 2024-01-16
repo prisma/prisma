@@ -1,6 +1,7 @@
 import { watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
 import { BuildContext } from 'esbuild'
+import { writeFileSync } from 'fs'
 import glob from 'globby'
 import path from 'path'
 
@@ -29,7 +30,6 @@ const DEFAULT_BUILD_OPTIONS = {
   target: 'ES2020',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
-  metafile: true,
 } as const
 
 /**
@@ -119,7 +119,15 @@ async function executeEsBuild(options: BuildOptions) {
     watch(context, options)
   }
 
-  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']) as any)] as const
+  const build = await esbuild.build(omit(options, ['name', 'emitTypes']) as any)
+
+  if (build.metafile) {
+    const outdir = options.outdir ?? path.dirname(options.outfile ?? '')
+    const metafilePath = `${outdir}/${options.name}.meta.json`
+    writeFileSync(metafilePath, JSON.stringify(build.metafile))
+  }
+
+  return [options, build] as const
 }
 
 /**
