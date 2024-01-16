@@ -104,19 +104,19 @@ function setupTestSuiteMatrix(
         const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const client = new globalThis['loaded']['PrismaClient']({
-            // each Prisma Client instance uses its own instance of
-            // the driver adapter, and the driver adapter is only first instantiated
-            // when creating the first Prisma Client instance.
-            ...newDriverAdapter(),
-            ...args,
-          })
+          const { PrismaClient, Prisma } = globalThis['loaded']
+
+          const options = { ...newDriverAdapter(), ...args }
+          const client = new PrismaClient(options)
+
+          globalThis['Prisma'] = Prisma
           clients.push(client)
+
           return client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
+          globalThis['prisma'] = globalThis['newPrismaClient']()
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
