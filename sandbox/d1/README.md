@@ -7,4 +7,9 @@ This is a playground for testing the Prisma Client with the D1 Driver Adapter.
 ```bash
 npm i
 npm run start
+
+# type b to open the browser
+# or run:
+open http://localhost:8787/
 ```
+
