@@ -33,12 +33,12 @@ testMatrix.setupTestSuite(
         expect(generatedClientContents).not.toContain(edgeRuntime)
         expect(generatedClientContents).not.toContain(libraryRuntime)
         expect(generatedClientContents).not.toContain(wasmRuntime)
-      } else if (engineType === ClientEngineType.Library) {
+      } else if (engineType === ClientEngineType.Library && clientRuntime === 'node') {
         expect(generatedClientContents).toContain(libraryRuntime)
         expect(generatedClientContents).not.toContain(edgeRuntime)
         expect(generatedClientContents).not.toContain(binaryRuntime)
         expect(generatedClientContents).not.toContain(wasmRuntime)
-      } else if (engineType === ClientEngineType.Binary) {
+      } else if (engineType === ClientEngineType.Binary && clientRuntime === 'node') {
         expect(generatedClientContents).toContain(binaryRuntime)
         expect(generatedClientContents).not.toContain(edgeRuntime)
         expect(generatedClientContents).not.toContain(libraryRuntime)
@@ -72,9 +72,9 @@ testMatrix.setupTestSuite(
         expect(generatedClientContents).not.toContain(nftAnnotation)
       } else if (clientMeta.dataProxy && engineType === ClientEngineType.Binary) {
         expect(generatedClientContents).not.toContain(nftAnnotation)
-      } else if (engineType === ClientEngineType.Library) {
+      } else if (engineType === ClientEngineType.Library && clientRuntime === 'node') {
         expect(generatedClientContents).toContain(nftAnnotation)
-      } else if (engineType === ClientEngineType.Binary) {
+      } else if (engineType === ClientEngineType.Binary && clientRuntime === 'node') {
         expect(generatedClientContents).toContain(nftAnnotation)
       } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
         expect(generatedClientContents).toContain(nftAnnotation)
