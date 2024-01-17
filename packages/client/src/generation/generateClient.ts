@@ -251,6 +251,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     postinstall,
     noEngine,
+    testMode,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -290,17 +291,16 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       await fs.writeFile(filePath, file)
     }),
   )
-  const runtimeSourceDir: string = testMode
-    ? eval(`require('path').join(__dirname, '../../runtime')`)
-    : eval(`require('path').join(__dirname, '../runtime')`)
+
+  const runtimeDir = path.join(__dirname, `${testMode ? '../' : ''}../runtime`)
 
   // if users use a custom output dir
   if (copyRuntime || generator?.isCustomOutput === true) {
     const copyTarget = path.join(outputDir, 'runtime')
     await ensureDir(copyTarget)
-    if (runtimeSourceDir !== copyTarget) {
+    if (runtimeDir !== copyTarget) {
       await copyRuntimeFiles({
-        from: runtimeSourceDir,
+        from: runtimeDir,
         to: copyTarget,
         sourceMaps: copyRuntimeSourceMaps,
         runtimeName: getNodeRuntimeName(clientEngineType),
@@ -348,7 +348,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (generator?.previewFeatures.includes('driverAdapters') && noEngine !== true) {
-    const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
+    const queryEngineWasmFilePath = path.join(runtimeDir, 'query-engine.wasm')
     const queryEngineWasmTargetPath = path.join(outputDir, 'query-engine.wasm')
     // some bundlers (eg. webpack) need this file to exist, even if it's empty
     // this is because they analyze `query-engine.wasm` for references to other
