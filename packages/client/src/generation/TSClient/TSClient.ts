@@ -1,16 +1,16 @@
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import crypto from 'crypto'
 import { readFile } from 'fs/promises'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
+import { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import { DMMFHelper } from '../dmmf'
-import type { DMMF } from '../dmmf-types'
+import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
@@ -32,58 +32,33 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-export interface TSClientOptions {
-  clientVersion: string
-  engineVersion: string
-  document: DMMF.Document
-  runtimeDir: string
-  runtimeName: string
-  datasources: DataSource[]
-  generator: GeneratorConfig | undefined
-  binaryTargets: BinaryTarget[]
-  schemaPath: string
-  outputDir: string
-  activeProvider: string
+export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** When generating the browser client */
-  browser?: boolean
+  runtimeName: string
+  /** When generating the browser client */
+  browser: boolean
   /** When generating via the Deno CLI */
-  deno?: boolean
-  /** when --postinstall is passed via CLI */
-  postinstall?: boolean
-  /** When --no-engine is passed via CLI */
-  noEngine?: boolean
+  deno: boolean
   /** When we are generating an /edge client */
-  edge?: boolean
+  edge: boolean
   /** When types don't need to be regenerated */
-  reuseTypes?: boolean
+  reuseTypes: boolean
   /** When user is not optimally importing client */
-  indexWarning?: boolean
+  indexWarning: boolean
   /** When we are generating a /wasm client */
-  wasm?: boolean
+  wasm: boolean
 }
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo
-  protected readonly options: Required<TSClientOptions>
+  protected readonly options: TSClientOptions
 
   static enabledPreviewFeatures: string[]
 
   constructor(options: TSClientOptions) {
-    // apply convenience defaults
-    this.options = {
-      edge: false,
-      wasm: false,
-      deno: false,
-      postinstall: false,
-      noEngine: false,
-      browser: false,
-      reuseTypes: false,
-      indexWarning: false,
-      ...options,
-    }
-
-    this.dmmf = new DMMFHelper(klona(options.document))
+    this.options = options
+    this.dmmf = new DMMFHelper(klona(options.dmmf))
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
 
     TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
@@ -93,11 +68,11 @@ export class TSClient implements Generatable {
     const {
       edge,
       wasm,
-      binaryTargets,
+      binaryPaths,
       generator,
       outputDir,
       schemaPath,
-      runtimeDir,
+      runtimeBase,
       runtimeName,
       datasources,
       deno,
@@ -113,10 +88,13 @@ export class TSClient implements Generatable {
     }
 
     // This ensures that any engine override is propagated to the generated clients config
-    const engineType = getClientEngineType(generator!)
-    if (generator) {
-      generator.config.engineType = engineType
-    }
+    const clientEngineType = getClientEngineType(generator)
+    generator.config.engineType = clientEngineType
+
+    const binaryTargets =
+      clientEngineType === ClientEngineType.Library
+        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
+        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
     const inlineSchema = (await readFile(schemaPath)).toString('base64')
     const inlineSchemaHash = crypto.createHash('sha256').update(inlineSchema).digest('hex')
@@ -167,12 +145,12 @@ ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
 ${buildGetQueryEngineWasmModule(wasm)}
 ${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
+${buildWarnEnvConflicts(edge, runtimeBase, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(edge || noEngine, engineType, binaryTargets, relativeOutdir)}
+${buildNFTAnnotations(edge || Boolean(noEngine), clientEngineType, binaryTargets, relativeOutdir)}
 `
     return code
   }

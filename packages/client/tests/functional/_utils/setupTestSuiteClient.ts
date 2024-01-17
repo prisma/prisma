@@ -17,7 +17,7 @@ import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestS
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
 
-const runtimeDir = path.join(__dirname, '..', '..', '..', 'runtime')
+const runtimeBase = path.join(__dirname, '..', '..', '..', 'runtime')
 
 /**
  * Does the necessary setup to get a test suite client ready to run.
@@ -47,7 +47,7 @@ export async function setupTestSuiteClient({
   const previewFeatures = getTestSuitePreviewFeatures(schema)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
-  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
+  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
 
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
@@ -78,7 +78,7 @@ export async function setupTestSuiteClient({
     clientVersion: '0.0.0',
     testMode: true,
     activeProvider: suiteConfig.matrixOptions.provider,
-    runtimeDir: runtimeDir,
+    runtimeBase: runtimeBase,
     noEngine: clientMeta.dataProxy,
   })
 
@@ -117,7 +117,7 @@ export function setupTestSuiteClientDriverAdapter({
       // wasm engine can only be loaded on edge runtimes, so here we force it
       // this enables our wasm client runtime to be fully tested within jest
       async getQueryEngineWasmModule() {
-        const queryEngineWasmFilePath = path.join(runtimeDir, 'query-engine.wasm')
+        const queryEngineWasmFilePath = path.join(runtimeBase, 'query-engine.wasm')
         const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
         return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)

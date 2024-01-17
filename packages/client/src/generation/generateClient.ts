@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { assertNever, BinaryTarget, ClientEngineType, getClientEngineType, setClassName } from '@prisma/internals'
+import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
 import fs from 'fs/promises'
@@ -37,9 +37,10 @@ setClassName(DenylistError, 'DenylistError')
 export interface GenerateClientOptions {
   datamodel: string
   schemaPath: string
-  runtimeDir?: string
+  /** Runtime path used in runtime/type imports */
+  runtimeBase?: string
   outputDir: string
-  generator?: GeneratorConfig
+  generator: GeneratorConfig
   dmmf: DMMF.Document
   datasources: DataSource[]
   binaryPaths: BinaryPaths
@@ -49,8 +50,9 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: string
+  /** When --postinstall is passed via CLI */
   postinstall?: boolean
-  overrideEngineType?: ClientEngineType
+  /** When --no-engine is passed via CLI */
   noEngine?: boolean
 }
 
@@ -62,7 +64,8 @@ export interface BuildClientResult {
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function buildClient({
   schemaPath,
-  runtimeDir,
+  runtimeBase,
+  datamodel,
   binaryPaths,
   outputDir,
   generator,
@@ -72,29 +75,31 @@ export async function buildClient({
   clientVersion,
   activeProvider,
   postinstall,
-  overrideEngineType,
   noEngine,
   testMode,
-}: O.Required<GenerateClientOptions, 'runtimeDir'>): Promise<BuildClientResult> {
+}: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
-  const document = getPrismaClientDMMF(dmmf)
-  const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
+  const clientEngineType = getClientEngineType(generator)
   const tsClientOptions: Omit<TSClientOptions, 'runtimeName'> = {
-    document,
+    dmmf: getPrismaClientDMMF(dmmf),
     datasources,
     generator,
-    binaryTargets:
-      clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[]),
+    binaryPaths,
     schemaPath,
     outputDir,
-    runtimeDir,
+    runtimeBase,
     clientVersion,
     engineVersion,
     activeProvider,
     postinstall,
     noEngine,
+    datamodel,
+    browser: false,
+    deno: false,
+    edge: false,
+    wasm: false,
+    indexWarning: false,
+    reuseTypes: false,
   }
 
   const scriptsDir = path.join(__dirname, `${testMode ? '../' : ''}../scripts`)
@@ -166,7 +171,7 @@ export async function buildClient({
     const denoEdgeTsClient = new TSClient({
       ...tsClientOptions,
       runtimeName: 'library.d.ts',
-      runtimeDir: '../' + runtimeDir,
+      runtimeBase: '../' + runtimeBase,
       deno: true,
       edge: true,
     })
@@ -182,7 +187,7 @@ export * from './edge.js'`
 
   return {
     fileMap, // a map of file names to their contents
-    prismaClientDmmf: document, // the DMMF document
+    prismaClientDmmf: dmmf, // the DMMF document
   }
 }
 
@@ -226,17 +231,16 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    overrideEngineType,
     noEngine,
   } = options
 
-  const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
-  const { runtimeDir, outputDir } = await getGenerationDirs(options)
+  const clientEngineType = getClientEngineType(generator)
+  const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     schemaPath,
-    runtimeDir,
+    runtimeBase,
     outputDir,
     generator,
     dmmf,
@@ -246,7 +250,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    overrideEngineType,
     noEngine,
   })
 
@@ -449,12 +452,10 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
 /**
  * Get all the directories involved in the generation process.
  *
- * @param useDefaultOutdir if we are generating to the default output
- * @param runtimeDirs overrides for the runtime directories
  * @returns
  */
 async function getGenerationDirs({
-  runtimeDir,
+  runtimeBase,
   generator,
   outputDir,
   datamodel,
@@ -462,12 +463,12 @@ async function getGenerationDirs({
   testMode,
 }: GenerateClientOptions) {
   const isCustomOutput = generator?.isCustomOutput === true
-  let userRuntimeDir = isCustomOutput ? './runtime' : '@prisma/client/runtime'
+  let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
   let userOutputDir = isCustomOutput ? outputDir : await getDefaultOutdir(outputDir)
 
-  if (testMode && runtimeDir) {
-    userOutputDir = outputDir // set direct location, ignores getDefaultOutdir
-    userRuntimeDir = runtimeDir?.replace(/\\/g, '/') // normalize windows paths
+  if (testMode && runtimeBase) {
+    userOutputDir = outputDir
+    userRuntimeImport = pathToPosix(runtimeBase)
   }
 
   if (isCustomOutput) {
@@ -478,7 +479,7 @@ async function getGenerationDirs({
   const userProjectRoot = userPackageRoot ? path.dirname(userPackageRoot) : process.cwd()
 
   return {
-    runtimeDir: userRuntimeDir,
+    runtimeBase: userRuntimeImport,
     outputDir: userOutputDir,
     projectRoot: userProjectRoot,
   }

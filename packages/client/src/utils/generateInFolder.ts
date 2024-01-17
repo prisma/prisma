@@ -45,9 +45,13 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+
+  if (overrideEngineType) {
+    config.generators[0].config.engineType = overrideEngineType
+  }
+
   const previewFeatures = extractPreviewFeatures(config)
-  const clientGenerator = config.generators[0]
-  const clientEngineType = overrideEngineType ?? getClientEngineType(clientGenerator)
+  const clientEngineType = getClientEngineType(config.generators[0])
 
   const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
 
@@ -107,7 +111,6 @@ export async function generateInFolder({
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
-    overrideEngineType,
   })
 
   const time = performance.now() - before
