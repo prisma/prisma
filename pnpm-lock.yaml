@@ -18,8 +18,8 @@ importers:
         specifier: 1.1.2
         version: 1.1.2
       '@size-limit/file':
-        specifier: 9.0.0
-        version: 9.0.0(size-limit@9.0.0)
+        specifier: 11.0.2
+        version: 11.0.2(size-limit@9.0.0)
       '@slack/webhook':
         specifier: 7.0.1
         version: 7.0.1
@@ -3362,13 +3362,12 @@ packages:
       '@sinonjs/commons': 2.0.0
     dev: true
 
-  /@size-limit/file@9.0.0(size-limit@9.0.0):
-    resolution: {integrity: sha512-oM2UaH2FRq4q22k+R+P6xCpzET10T94LFdSjb9svVu/vOD7NaB9LGcG6se8TW1BExXiyXO4GEhLsBt3uMKM3qA==}
+  /@size-limit/file@11.0.2(size-limit@9.0.0):
+    resolution: {integrity: sha512-874lrMtWYRL+xb/6xzejjwD+krfHTOo+2uFGpZfJScvuNv91Ni2O7k0o09zC70VzCYBGkXquV92ln/H+/ognGg==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      size-limit: 9.0.0
+      size-limit: 11.0.2
     dependencies:
-      semver: 7.5.4
       size-limit: 9.0.0
     dev: true
 
