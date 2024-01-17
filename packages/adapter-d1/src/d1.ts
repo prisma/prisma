@@ -1,5 +1,6 @@
 import { D1Database, D1Result } from '@cloudflare/workers-types'
 import {
+  ColumnTypeEnum,
   Debug,
   DriverAdapter,
   err,
@@ -39,13 +40,44 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 
     const ioResult = await this.performIO(query)
 
-    return ioResult.map((_) => {
+    return ioResult.map((results) => {
+      console.log(results)
+
+      const res = this.convertResultSet(results)
+      console.log(res)
+      return res
+    })
+  }
+
+  private convertResultSet(ioResult: PerformIOResult): ResultSet {
+    if (ioResult.results.length === 0) {
       return {
         columnNames: [],
         columnTypes: [],
         rows: [],
       }
-    })
+    }
+
+    const results = ioResult.results as any[]
+
+    const columnNames = Object.keys(results[0])
+    const columnTypes = [ColumnTypeEnum.Int32, ColumnTypeEnum.Text, ColumnTypeEnum.Text]
+    const rows = this.mapD1ToRows(results)
+
+    return {
+      columnNames,
+      columnTypes,
+      rows,
+    }
+  }
+
+  private mapD1ToRows(results: any) {
+    const rows: unknown[][] = []
+    for (const row of results) {
+      const entry = Object.keys(row).map((k) => row[k])
+      rows.push(entry)
+    }
+    return rows
   }
 
   /**
@@ -55,9 +87,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    */
   async executeRaw(query: Query): Promise<Result<number>> {
     const tag = '[js::execute_raw]'
-    debug(`${tag} %O`, query)
+    console.log(`${tag} %O`, query)
 
-    // ?(@druue) Unsure if `results.length` is what we actually want here. There is no direct count prop; there are `rows_read`, `rows_written`, and `changes` properties inside the meta prop.
     return (await this.performIO(query)).map(({ meta }) => meta.changes ?? 0)
   }
 
@@ -65,7 +96,14 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const release = await this[LOCK_TAG].acquire()
 
     try {
-      const result = await this.client.prepare(query.sql).bind(query.args).run()
+      console.log(query.sql)
+      console.log(query.args)
+
+      const result = await this.client
+        .prepare(query.sql)
+        .bind(...query.args)
+        .all()
+
       return ok(result)
     } catch (e) {
       const error = e as Error
