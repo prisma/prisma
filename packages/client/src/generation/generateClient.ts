@@ -130,8 +130,8 @@ export async function buildClient({
   const fileMap: Record<string, string> = {} // we store the generated contents here
   fileMap['index.js'] = await JS(nodeClient)
   fileMap['index.d.ts'] = await TS(nodeClient)
-  fileMap['default.js'] = await JS(nodeClient)
-  fileMap['default.d.ts'] = await TS(nodeClient)
+  fileMap['default.js'] = `module.exports = { ...require('./index.js') }`
+  fileMap['default.d.ts'] = `export * from './index.d.ts'`
   fileMap['index-browser.js'] = await BrowserJS(nodeClient)
   fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
   fileMap['edge.js'] = await JS(edgeClient)
@@ -147,7 +147,6 @@ export async function buildClient({
     })
 
     if (generator.isCustomOutput === true) {
-      // we create a regular client that that warns on /index usage
       const nodeWarnTsClient = new TSClient({
         ...tsClientOptions,
         runtimeName: getNodeRuntimeName(clientEngineType),
@@ -155,6 +154,11 @@ export async function buildClient({
         indexWarning: true,
       })
 
+      // in custom outputs, `index` shows a warning. if it is loaded, it means
+      // that the export map is not working for the user so we display them an
+      // `indexWarning`. If the exports map works, `default` will be loaded.
+      fileMap['default.d.ts'] = fileMap['index.js']
+      fileMap['default.js'] = fileMap['index.d.ts']
       fileMap['index.js'] = await JS(nodeWarnTsClient)
       fileMap['index.d.ts'] = await TS(nodeWarnTsClient)
     }
