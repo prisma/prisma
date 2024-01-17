@@ -44,12 +44,11 @@ export async function generateInFolder({
   const schemaPath = getSchemaPath(projectDir)
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
-  const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-
   if (overrideEngineType) {
-    config.generators[0].config.engineType = overrideEngineType
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = overrideEngineType
   }
 
+  const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const previewFeatures = extractPreviewFeatures(config)
   const clientEngineType = getClientEngineType(config.generators[0])
 
