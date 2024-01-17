@@ -4,12 +4,13 @@ import ciInfo from 'ci-info'
 import crypto from 'crypto'
 import { readFile } from 'fs/promises'
 import indent from 'indent-string'
-import { klona } from 'klona'
 import path from 'path'
 import { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import { DMMFHelper } from '../dmmf'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
+import type { buildClient } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
@@ -31,6 +32,7 @@ import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
+import { invalidImportWarning } from './utils/invalidImportWarning'
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** When generating the browser client */
@@ -41,27 +43,23 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   deno: boolean
   /** When we are generating an /edge client */
   edge: boolean
-  /** When types don't need to be regenerated */
-  reuseTypes: boolean
-  /** When user is not optimally importing client */
-  indexWarning: boolean
+  /** When user is not optimally importing client @see {buildClient} */
+  importWarning: boolean
   /** When we are generating a /wasm client */
   wasm: boolean
+  /** When types don't need to be regenerated */
+  reusedTs?: string // the entrypoint to reuse
+  /** When js doesn't need to be regenerated */
+  reusedJs?: string // the entrypoint to reuse
 }
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo
-  protected readonly options: TSClientOptions
 
-  static enabledPreviewFeatures: string[]
-
-  constructor(options: TSClientOptions) {
-    this.options = options
-    this.dmmf = new DMMFHelper(klona(options.dmmf))
+  constructor(protected readonly options: TSClientOptions) {
+    this.dmmf = new DMMFHelper(options.dmmf)
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
-
-    TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
 
   public async toJS(): Promise<string> {
@@ -77,8 +75,20 @@ export class TSClient implements Generatable {
       datasources,
       deno,
       noEngine,
-      indexWarning,
+      importWarning,
+      reusedJs,
     } = this.options
+
+    if (reusedJs && importWarning) {
+      const topExports = `module.exports = { ...require('./${reusedJs}.js') }`
+      const warning = `console.warn('${invalidImportWarning.join('\\n')}')`
+
+      return `${[topExports, warning].join('\n\n')}`
+    }
+
+    if (reusedJs) {
+      return `module.exports = { ...require('./${reusedJs}.js') }`
+    }
 
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
@@ -113,7 +123,6 @@ export class TSClient implements Generatable {
       }, {} as GetPrismaClientConfig['inlineDatasources']),
       inlineSchema,
       inlineSchemaHash,
-      indexWarning,
       noEngine,
     }
 
@@ -155,25 +164,48 @@ ${buildNFTAnnotations(edge || Boolean(noEngine), clientEngineType, binaryTargets
     return code
   }
   public toTS(): string {
-    const { reuseTypes, indexWarning } = this.options
+    const { reusedTs: reusedTs, importWarning } = this.options
 
-    if (reuseTypes === true && indexWarning === true && TSClient.enabledPreviewFeatures.includes('driverAdapters')) {
-      return `export * from './default'
-import { PrismaClient as $PrismaClient, Prisma } from './default'
-/** @deprecated TODO: add your custom client to your package.json if you have tsconfig set \`moduleResolution\` to 'node16', 'nodenext', or 'bundler' */
-export class PrismaClient<T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions> extends $PrismaClient<T> {
-  /** @deprecated TODO: add your custom client to your package.json if you have tsconfig set \`moduleResolution\` to 'node16', 'nodenext', or 'bundler' */
-  constructor(optionsArg?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-}`
+    if (reusedTs && importWarning) {
+      const topExports = ts.moduleExportFrom('*', `./${reusedTs}`)
+      const topImports = ts.moduleImport(['PrismaClient as $PrismaClient', 'Prisma'], `./${reusedTs}`)
+      const prismaClientClass = ts.classDeclaration('PrismaClient')
+
+      const deprecationComment = ts.docComment(`@deprecated`)
+      deprecationComment.addText(invalidImportWarning.join('\n\n'))
+
+      const prismaClientClassGenericParams = ts.genericParameter('T')
+      prismaClientClassGenericParams.extends(ts.namedType('Prisma.PrismaClientOptions'))
+      prismaClientClassGenericParams.default(ts.namedType('Prisma.PrismaClientOptions'))
+      prismaClientClass.addGenericParameter(prismaClientClassGenericParams)
+
+      const prismaClientClassExtends = ts.namedType('$PrismaClient')
+      prismaClientClassExtends.addGenericArgument(ts.namedType('T'))
+      prismaClientClass.extends(prismaClientClassExtends)
+
+      const prismaClientClassConstructor = ts.method('constructor')
+      prismaClientClassConstructor.setDocComment(deprecationComment)
+
+      const prismaClientClassConstructorArgType = ts.namedType('Prisma.Subset')
+      prismaClientClassConstructorArgType.addGenericArgument(ts.namedType('T'))
+      prismaClientClassConstructorArgType.addGenericArgument(ts.namedType('Prisma.PrismaClientOptions'))
+
+      const prismaClientClassConstructorArg = ts.parameter('optionsArg', prismaClientClassConstructorArgType)
+      prismaClientClassConstructor.addParameter(prismaClientClassConstructorArg.optional())
+
+      prismaClientClass.add(prismaClientClassConstructor)
+
+      const prismaClientClassExport = ts.moduleExport(prismaClientClass)
+      prismaClientClassExport.setDocComment(deprecationComment)
+
+      return [topExports, topImports, prismaClientClassExport].map((v) => ts.stringify(v)).join('\n\n')
     }
 
     // in some cases, we just re-export the existing types
-    if (reuseTypes === true && TSClient.enabledPreviewFeatures.includes('driverAdapters')) {
-      return `export * from './default'`
-    }
+    if (reusedTs) {
+      const topExports = ts.moduleExportFrom('*', `./${reusedTs}`)
 
-    if (reuseTypes === true && TSClient.enabledPreviewFeatures.includes('driverAdapters') === false) {
-      return `export * from './index'`
+      return ts.stringify(topExports)
     }
 
     const context: GenerateContext = {

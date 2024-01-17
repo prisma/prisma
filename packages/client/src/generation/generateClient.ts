@@ -98,8 +98,7 @@ export async function buildClient({
     deno: false,
     edge: false,
     wasm: false,
-    indexWarning: false,
-    reuseTypes: false,
+    importWarning: false,
   }
 
   const scriptsDir = path.join(__dirname, `${testMode ? '../' : ''}../scripts`)
@@ -110,12 +109,19 @@ export async function buildClient({
     runtimeName: getNodeRuntimeName(clientEngineType),
   })
 
+  const defaultClient = new TSClient({
+    ...tsClientOptions,
+    runtimeName: getNodeRuntimeName(clientEngineType),
+    reusedTs: 'index',
+    reusedJs: 'index',
+  })
+
   // we create a client that is fit for edge runtimes
   const edgeClient = new TSClient({
     ...tsClientOptions,
     runtimeName: 'edge',
+    reusedTs: 'default',
     edge: true,
-    reuseTypes: true,
   })
 
   const pkgJson = {
@@ -127,41 +133,43 @@ export async function buildClient({
     sideEffects: false,
   }
 
-  const fileMap: Record<string, string> = {} // we store the generated contents here
+  // we store the generated contents here
+  const fileMap: Record<string, string> = {}
   fileMap['index.js'] = await JS(nodeClient)
   fileMap['index.d.ts'] = await TS(nodeClient)
-  fileMap['default.js'] = `module.exports = { ...require('./index.js') }`
-  fileMap['default.d.ts'] = `export * from './index.d.ts'`
+  fileMap['default.js'] = await JS(defaultClient)
+  fileMap['default.d.ts'] = await TS(defaultClient)
   fileMap['index-browser.js'] = await BrowserJS(nodeClient)
   fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
   fileMap['edge.js'] = await JS(edgeClient)
   fileMap['edge.d.ts'] = await TS(edgeClient)
 
   if (generator.previewFeatures.includes('driverAdapters')) {
-    const wasmClient = new TSClient({
-      ...tsClientOptions,
-      runtimeName: 'wasm',
-      edge: true,
-      wasm: true,
-      reuseTypes: true,
-    })
-
+    // in custom outputs, `index` shows a warning. if it is loaded, it means
+    // that the export map is not working for the user so we display them an
+    // `importWarning`. If the exports map works, `default` will be loaded.
     if (generator.isCustomOutput === true) {
       const nodeWarnTsClient = new TSClient({
         ...tsClientOptions,
         runtimeName: getNodeRuntimeName(clientEngineType),
-        reuseTypes: true,
-        indexWarning: true,
+        reusedTs: 'default',
+        reusedJs: 'default',
+        importWarning: true,
       })
 
-      // in custom outputs, `index` shows a warning. if it is loaded, it means
-      // that the export map is not working for the user so we display them an
-      // `indexWarning`. If the exports map works, `default` will be loaded.
-      fileMap['default.d.ts'] = fileMap['index.js']
-      fileMap['default.js'] = fileMap['index.d.ts']
+      fileMap['default.js'] = fileMap['index.js']
+      fileMap['default.d.ts'] = fileMap['index.d.ts']
       fileMap['index.js'] = await JS(nodeWarnTsClient)
       fileMap['index.d.ts'] = await TS(nodeWarnTsClient)
     }
+
+    const wasmClient = new TSClient({
+      ...tsClientOptions,
+      runtimeName: 'wasm',
+      reusedTs: 'default',
+      edge: true,
+      wasm: true,
+    })
 
     fileMap['wasm.js'] = await JS(wasmClient)
     fileMap['wasm.d.ts'] = await TS(wasmClient)
@@ -174,8 +182,9 @@ export async function buildClient({
     // we create a client that is fit for edge runtimes
     const denoEdgeTsClient = new TSClient({
       ...tsClientOptions,
-      runtimeName: 'library.d.ts',
-      runtimeBase: '../' + runtimeBase,
+      runtimeBase: `../${runtimeBase}`,
+      runtimeName: 'edge-esm',
+      reusedTs: '../default',
       deno: true,
       edge: true,
     })

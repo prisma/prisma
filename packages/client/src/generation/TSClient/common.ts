@@ -35,7 +35,7 @@ import {
   defineDmmfProperty,
   Public,
   detectRuntime,
-} from '${runtimeBase}/edge-esm.js'`
+} from '${runtimeBase}/${runtimeName}.js'`
     : browser
     ? `
 const {
