@@ -44,7 +44,7 @@ const {
   makeStrictEnum,
   Public,
   detectRuntime,
-} = require('${runtimeBase}/${runtimeName}')
+} = require('${runtimeBase}/${runtimeName}.js')
 `
     : `
 const {
@@ -68,7 +68,7 @@ const {
   defineDmmfProperty,
   Public,
   detectRuntime,
-} = require('${runtimeBase}/${runtimeName}')
+} = require('${runtimeBase}/${runtimeName}.js')
 `
 }
 

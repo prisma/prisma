@@ -10,7 +10,7 @@ export function buildWarnEnvConflicts(edge: boolean, runtimeBase: string, runtim
   if (edge === true) return ''
 
   return `
-const { warnEnvConflicts } = require('${runtimeBase}/${runtimeName}')
+const { warnEnvConflicts } = require('${runtimeBase}/${runtimeName}.js')
 
 warnEnvConflicts({
     rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
