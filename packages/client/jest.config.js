@@ -13,7 +13,6 @@ module.exports = {
     '<rootDir>/generator-build/',
     '<rootDir>/runtime/',
     '<rootDir>/runtime-dist/',
-    '<rootDir>/sandbox/',
     '<rootDir>/scripts/',
     '<rootDir>/tests/memory',
     '<rootDir>/tests/functional',
@@ -37,8 +36,9 @@ module.exports = {
   ],
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*', '!src/**/*.test.ts'],
   snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
-  testTimeout: 90000,
+  testTimeout: 90_000,
   setupFiles: ['./helpers/jestSetup.js'],
+  openHandlesTimeout: 10_000,
   reporters: [
     'default',
     [

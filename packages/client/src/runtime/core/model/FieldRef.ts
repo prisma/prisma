@@ -1,12 +1,4 @@
-/**
- * A reference to a specific field of a specific model
- */
-export interface FieldRef<Model, FieldType> {
-  readonly modelName: Model
-  readonly name: string
-  readonly typeName: FieldType
-  readonly isList: boolean
-}
+import { FieldRef } from '../types/exported/FieldRef'
 
 export class FieldRefImpl<Model, FieldType> implements FieldRef<Model, FieldType> {
   public readonly modelName: Model

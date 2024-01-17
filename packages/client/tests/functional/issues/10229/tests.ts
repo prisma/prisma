@@ -34,8 +34,11 @@ testMatrix.setupTestSuite(
     },
     skipDataProxy: {
       runtimes: ['node', 'edge'],
-      reason:
-        'InvalidDatasourceError: Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used',
+      reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
+    },
+    skipDriverAdapter: {
+      from: ['js_neon', 'js_pg', 'js_planetscale'],
+      reason: "driver adapters don't get their url from the schema, so it does not fail",
     },
   },
 )

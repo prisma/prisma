@@ -1,9 +1,10 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { Providers } from '../../_utils/providers'
 
 const testMatrix = defineMatrix(() => [
   [
     {
-      provider: 'mongodb',
+      provider: Providers.MONGODB,
     },
   ],
 ])

@@ -6,8 +6,8 @@ import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 beforeAll(async () => {
-  process.env.TEST_POSTGRES_URI += '-native-types-tests'
-  await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+  process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-native-types-tests')
+  await tearDownPostgres(process.env.DATABASE_URL)
   await migrateDb({
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })

@@ -1,3 +1,4 @@
+import { AdapterProviders } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -9,11 +10,16 @@ declare let prisma: PrismaClient
  * Stored queries in variables for batched tx
  */
 testMatrix.setupTestSuite(
-  () => {
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
+  ({ driverAdapter, engineType }) => {
+    // TODO planetscale cannot snapshot this error because the id cannot be hidden
+    testIf(engineType !== 'binary' && driverAdapter !== AdapterProviders.JS_PLANETSCALE)(
       'stored query triggered twice should fail but not exit process',
       async () => {
-        const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
+        const query = prisma.resource.create({
+          data: {
+            email: 'john@prisma.io',
+          },
+        })
 
         const result = prisma.$transaction([query, query])
 
@@ -21,10 +27,15 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
+    // TODO planetscale cannot snapshot this error because the id cannot be hidden
+    testIf(engineType !== 'binary' && driverAdapter !== AdapterProviders.JS_PLANETSCALE)(
       'stored query trigger .requestTransaction twice should fail',
       async () => {
-        const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
+        const query = prisma.resource.create({
+          data: {
+            email: 'john@prisma.io',
+          },
+        })
 
         const fn = async () => {
           await (query as any).requestTransaction({ kind: 'batch', lock: Promise.resolve() })
@@ -35,7 +46,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('no multiple resolves should happen', async () => {
+    testIf(engineType !== 'binary')('no multiple resolves should happen', async () => {
       const mockMultipleResolve = jest.fn()
 
       process.on('multipleResolves', mockMultipleResolve)

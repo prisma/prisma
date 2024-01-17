@@ -6,7 +6,7 @@ declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  (_suiteConfig, _suiteMeta, clientMeta) => {
+  (_config, _suiteMeta, clientMeta) => {
     describe('nullableJsonField', () => {
       test('JsonNull', async () => {
         const data = await prisma.nullableJsonField.create({

@@ -7,8 +7,8 @@ void executeSteps({
     await $`pnpm install`
   },
   test: async () => {
-    await $`pnpm exec prisma generate`
-    await $`pnpm exec tsc --noEmit`
+    await $`pnpm prisma generate`
+    await $`pnpm tsc --noEmit`
   },
   finish: async () => {
     await $`echo "done"`

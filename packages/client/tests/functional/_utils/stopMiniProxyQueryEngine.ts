@@ -1,23 +1,21 @@
 import Debug from '@prisma/debug'
-import nodeFetch from 'node-fetch'
+import { fetch } from 'undici'
 
-import type { DataProxyEngine } from '../../../src/runtime/core/engines'
+import type { Client } from '../../../src/runtime/getPrismaClient'
+import { DatasourceInfo } from './setupTestSuiteEnv'
 
 const debug = Debug('prisma:test:stop-engine')
 
-export async function stopMiniProxyQueryEngine(client: any): Promise<void> {
-  const engine = client._engine as DataProxyEngine
+export async function stopMiniProxyQueryEngine(client: Client, datasourceInfo: DatasourceInfo): Promise<void> {
+  const schemaHash = client._engineConfig.inlineSchemaHash
+  const url = new URL(datasourceInfo.dataProxyUrl!)
 
-  const host = engine.host
-  const clientVersion = await engine.remoteClientVersion
-  const schemaHash = engine.inlineSchemaHash
+  debug('stopping mini-proxy query engine at', url.host)
 
-  debug('stopping mini-proxy query engine at', host)
-
-  const response = await nodeFetch(`https://${host}/_mini-proxy/${clientVersion}/${schemaHash}/stop-engine`, {
+  const response = await fetch(`https://${url.host}/_mini-proxy/0.0.0/${schemaHash}/stop-engine`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${engine.apiKey()}`,
+      Authorization: `Bearer ${url.searchParams.get('api_key')}`,
     },
   })
 

@@ -5,10 +5,10 @@ import stripAnsi from 'strip-ansi'
 
 import {
   EngineValidationError,
-  EventEmitter,
   Fetch,
   InteractiveTransactionOptions,
   JsonQuery,
+  LogEmitter,
   TransactionOptions,
 } from '../runtime/core/engines'
 import {
@@ -27,7 +27,7 @@ import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResp
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
-import { Action, JsArgs } from './core/types/JsApi'
+import { Action, JsArgs } from './core/types/exported/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
@@ -59,14 +59,15 @@ export type HandleErrorParams = {
   clientMethod: string
   callsite?: CallSite
   transaction?: PrismaPromiseTransaction
+  modelName?: string
 }
 
 export class RequestHandler {
   client: Client
   dataloader: DataLoader<RequestParams>
-  private logEmitter?: EventEmitter
+  private logEmitter?: LogEmitter
 
-  constructor(client: Client, logEmitter?: EventEmitter) {
+  constructor(client: Client, logEmitter?: LogEmitter) {
     this.logEmitter = logEmitter
     this.client = client
 
@@ -135,8 +136,8 @@ export class RequestHandler {
     try {
       return await this.dataloader.request(params)
     } catch (error) {
-      const { clientMethod, callsite, transaction, args } = params
-      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
+      const { clientMethod, callsite, transaction, args, modelName } = params
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args, modelName })
     }
   }
 
@@ -169,7 +170,7 @@ export class RequestHandler {
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite, transaction, args }: HandleErrorParams): never {
+  handleRequestError({ error, clientMethod, callsite, transaction, args, modelName }: HandleErrorParams): never {
     debug(error)
 
     if (isMismatchingBatchIndex(error, transaction)) {
@@ -210,10 +211,11 @@ export class RequestHandler {
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
+      const meta = modelName ? { modelName, ...error.meta } : error.meta
       throw new PrismaClientKnownRequestError(message, {
         code: error.code,
         clientVersion: this.client._clientVersion,
-        meta: error.meta,
+        meta,
         batchRequestIdx: error.batchRequestIdx,
       })
     } else if (error.isPanic) {

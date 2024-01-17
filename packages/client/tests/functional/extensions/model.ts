@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -11,7 +13,7 @@ let prisma: PrismaClient
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     beforeEach(() => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -317,22 +319,37 @@ testMatrix.setupTestSuite(
         })
       })
 
-      await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
+      if (cliMeta.previewFeatures.includes('relationJoins')) {
+        await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-        Invalid \`prisma.user.findUnique()\` invocation:
+          Invalid \`prisma.user.findUnique()\` invocation:
 
-        {
-          badInput: true,
-          ~~~~~~~~
-        ? where?: UserWhereUniqueInput
-        }
+          {
+            badInput: true,
+            ~~~~~~~~
+          ? where?: UserWhereUniqueInput,
+          ? relationLoadStrategy?: RelationLoadStrategy
+          }
 
-        Unknown argument \`badInput\`. Available options are listed in green.
-      `)
+          Unknown argument \`badInput\`. Available options are marked with ?.
+        `)
+      } else {
+        await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+          Invalid \`prisma.user.findUnique()\` invocation:
+
+          {
+            badInput: true,
+            ~~~~~~~~
+          ? where?: UserWhereUniqueInput
+          }
+
+          Unknown argument \`badInput\`. Available options are marked with ?.
+        `)
+      }
     })
 
-    // skipping data proxy because query count isn't the same
-    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !process.env.TEST_DATA_PROXY)(
+    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods',
       async () => {
         const fnEmitter = jest.fn()
@@ -372,8 +389,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    // skipping data proxy because query count isn't the same
-    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !process.env.TEST_DATA_PROXY)(
+    testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(
       'batching of PrismaPromise returning custom model methods and query',
       async () => {
         const fnEmitter = jest.fn()

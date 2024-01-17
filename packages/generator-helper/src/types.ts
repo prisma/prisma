@@ -61,10 +61,6 @@ export type ConnectorType =
   | 'sqlserver'
   | 'cockroachdb'
 
-  // TODO: this should be removed in favor of `'sqlserver'`, as per `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "sqlserver"`
-  // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
-  | 'jdbc:sqlserver'
-
 export interface DataSource {
   name: string
   provider: ConnectorType
@@ -93,8 +89,8 @@ export type GeneratorOptions = {
   // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
   binaryPaths?: BinaryPaths
-  dataProxy: boolean
   postinstall?: boolean
+  noEngine?: boolean
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'

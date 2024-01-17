@@ -2,20 +2,23 @@ import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig) => {
+  ({ provider }) => {
+    const isMongoDb = provider === Providers.MONGODB
+
     const fakeUser = {
-      id: suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.alphanumeric(5),
+      id: isMongoDb ? faker.database.mongodbObjectId() : faker.string.alphanumeric(5),
       email: faker.internet.email(),
       name: faker.person.firstName(),
     }
 
     const fakeProfile = {
-      id: suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.alphanumeric(5),
+      id: isMongoDb ? faker.database.mongodbObjectId() : faker.string.alphanumeric(5),
       bio: faker.person.jobTitle(),
     }
 
@@ -29,10 +32,10 @@ testMatrix.setupTestSuite(
         },
       })
 
-      if (suiteConfig.provider === 'mongodb') {
+      if (isMongoDb) {
         // alterStatement doesn't work with mongodb because
         // - no support for DbExecute
-        // @ts-test-if: provider === 'mongodb'
+        // @ts-test-if: provider === Providers.MONGODB
         await prisma.$runCommandRaw({
           create: 'UserInfo',
           viewOn: 'User',
@@ -88,7 +91,7 @@ testMatrix.setupTestSuite(
   },
   {
     alterStatementCallback: (provider) => {
-      if (provider === 'mysql') {
+      if (provider === Providers.MYSQL) {
         return `
           CREATE VIEW UserInfo 
           AS SELECT u.id, email, name, p.bio

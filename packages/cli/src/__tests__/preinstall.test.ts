@@ -47,3 +47,9 @@ it('should do nothing when Node.js version is supported - current', () => {
 
   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 })
+
+it('should do nothing when Node.js version is supported - 20.0', () => {
+  printMessageAndExitIfUnsupportedNodeVersion('v20.0.0')
+
+  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+})

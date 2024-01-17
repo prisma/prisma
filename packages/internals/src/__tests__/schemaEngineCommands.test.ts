@@ -53,7 +53,7 @@ describe('canConnectToDatabase', () => {
       Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
       }
     `)
-  }, 10000)
+  }, 10_000)
 })
 
 describe('createDatabase', () => {
@@ -65,20 +65,23 @@ describe('createDatabase', () => {
     await expect(createDatabase('file:./doesnotexist.db', tempy.directory())).resolves.toEqual(true)
   })
 
-  test('sqlite - invalid cwd (file path instead of directory)', async () => {
-    expect.assertions(1)
-    try {
-      await createDatabase('file:./doesnotexist.db', tempy.file())
-    } catch (e) {
-      expect(serialize(e)).toMatchInlineSnapshot(`
+  testIf(!process.env.PRISMA_SCHEMA_ENGINE_BINARY)(
+    'sqlite - invalid cwd (file path instead of directory)',
+    async () => {
+      expect.assertions(1)
+      try {
+        await createDatabase('file:./doesnotexist.db', tempy.file())
+      } catch (e) {
+        expect(serialize(e)).toMatchInlineSnapshot(`
         "Schema engine exited. Error: Command failed with ENOENT: /engines/schema-engine-TEST_PLATFORM cli --datasource <REDACTED> can-connect-to-database
         spawn /engines/schema-engine-TEST_PLATFORM ENOENT"
       `)
-    }
-  })
+      }
+    },
+  )
 
   test('postgresql - create database', async () => {
-    const uri = process.env.TEST_POSTGRES_URI!
+    const uri = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-createDatabase')
     const credentials = uriToCredentials(uri)
     credentials.database = 'can-create-a-db'
     const uriFromCredentials = credentialsToUri(credentials)
@@ -95,7 +98,7 @@ describe('createDatabase', () => {
 
             Please make sure your database server is running at \`doesnotexist\`:\`5432\`."
           `)
-  }, 30000)
+  }, 30_000)
 
   test('postgresql - database already exists', async () => {
     const uri = process.env.TEST_POSTGRES_URI!
@@ -106,7 +109,7 @@ describe('createDatabase', () => {
   })
 
   test('mysql - create database', async () => {
-    const uri = process.env.TEST_MYSQL_URI!
+    const uri = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-createDatabase')
     const credentials = uriToCredentials(uri)
     credentials.database = 'can-create-a-db'
     const uriFromCredentials = credentialsToUri(credentials)
@@ -117,7 +120,7 @@ describe('createDatabase', () => {
   })
 
   test('mysql - database already exists', async () => {
-    const uri = process.env.TEST_MYSQL_URI!
+    const uri = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-createDatabase-already-exists')
     const credentials = uriToCredentials(uri)
     credentials.database = 'alreadyexists'
     const uriFromCredentials = credentialsToUri(credentials)
@@ -150,7 +153,7 @@ describe('createDatabase', () => {
 
   test('invalid database type', async () => {
     await expect(createDatabase('invalid:somedburl')).rejects.toThrowErrorMatchingInlineSnapshot(
-      '"P1013: The provided database string is invalid. `invalid` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters."',
+      `"P1013: The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters."`,
     )
   })
 

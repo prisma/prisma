@@ -1,8 +1,10 @@
+import { ClientEngineType } from '@prisma/internals'
 import { U } from 'ts-toolbelt'
 
 import { TestSuiteMatrix } from './getTestSuiteInfo'
+import { AdapterProviders, Providers, RelationModes } from './providers'
 import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, MatrixOptions } from './types'
+import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 type MergedMatrixParams<MatrixT extends TestSuiteMatrix> = U.IntersectOf<MatrixT[number][number]>
 
@@ -20,10 +22,15 @@ type DefineMatrixOptions<MatrixT extends TestSuiteMatrix> = {
  * @param setupDatabase Manually setup the database of a test. Can only be called if `skipDb` is true.
  */
 type TestsFactoryFn<MatrixT extends TestSuiteMatrix> = (
-  suiteConfig: MergedMatrixParams<MatrixT>,
+  suiteConfig: MergedMatrixParams<MatrixT> & {
+    provider: Providers
+    driverAdapter?: `${AdapterProviders}`
+    relationMode?: `${RelationModes}`
+    engineType?: `${ClientEngineType}`
+  },
   suiteMeta: TestCallbackSuiteMeta,
   clientMeta: ClientMeta,
-  setupDatabase: () => Promise<void>,
+  cliMeta: CliMeta,
 ) => void
 
 export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {

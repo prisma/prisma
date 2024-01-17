@@ -1,44 +1,43 @@
 name: CI
-# Run on push only for main, if not it will trigger push & pull_request on PRs at the same time
+# Run on `push` only for main, if not it will trigger `push` & `pull_request` on PRs at the same time
 on:
   push:
     branches:
       - main
+      - '*.*.x'
     paths-ignore:
-      # Any update here needs to be done for
-      # - `pull_request` see below
-      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
+      # Any update here needs to be done for `pull_request`, see below
+      # and all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
       - '*.md'
+      - '*.bench.ts'
+      - 'LICENSE'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
       - '.vscode/**'
-      - '.github/ISSUE_TEMPLATE/**'
-      - 'LICENSE'
-      - '.github/CODEOWNERS'
-      - '.github/DISCUSSION_TEMPLATE/**'
-      - '.buildkite/**'
-      - '.dockerignore'
-      - '*.bench.ts'
-      - 'scripts/ci/publish.ts'
       - 'graphs/**'
+      - 'sandbox/**'
   pull_request:
     paths-ignore:
-      # Any update here needs to be done for
-      # - `push`see before
-      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
+      # Any update here needs to be done for `push`, see above
+      # and all files (test.yml, benchmark.yml, release-ci.yml)
       - '*.md'
+      - '*.bench.ts'
+      - 'LICENSE'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
       - '.vscode/**'
-      - '.github/ISSUE_TEMPLATE/**'
-      - 'LICENSE'
-      - '.github/CODEOWNERS'
-      - '.github/DISCUSSION_TEMPLATE/**'
-      - '.buildkite/**'
-      - '.dockerignore'
-      - '*.bench.ts'
-      - 'scripts/ci/publish.ts'
       - 'graphs/**'
+      - 'sandbox/**'
   workflow_dispatch:
 
 jobs:
@@ -49,7 +48,7 @@ jobs:
       jobs: ${{ steps.detect.outputs.jobs }}
       queryEngine: ${{ steps.enginesOutput.outputs.queryEngine }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - id: files
         uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
@@ -57,6 +56,16 @@ jobs:
           format: 'json'
       - id: detect
         run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
+
+      - name: Debug Pull Request Event
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "Pull Request: ${{ github.event.pull_request.number }}"
+          echo "Pull Request Author: ${{ github.event.pull_request.user.login }}"
+          echo "Pull Request Author Association: ${{ github.event.pull_request.author_association }}"
+          echo "Pull Request Body contains /integration: ${{ contains(env.PR_BODY, '/integration') }}"
 
       - name: Find "ci test all" comment
         uses: peter-evans/find-comment@v2
@@ -69,13 +78,28 @@ jobs:
         name: Decide on which engine types to run the next workflow
         run: |
           if [ -z "${{ steps.findTestAllComment.outputs.comment-id }}" ]; then
-            echo 'queryEngine=["library"]' >> $GITHUB_OUTPUT
+            echo 'queryEngine=["library"]' >> "$GITHUB_OUTPUT"
           else
-            echo 'queryEngine=["library","binary"]' >> $GITHUB_OUTPUT
+            echo 'queryEngine=["library","binary"]' >> "$GITHUB_OUTPUT"
           fi
 
       - name: Trigger npm release workflow for integration release
-        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.body, '/integration') && (github.event.pull_request.author_association == 'member' || github.event.pull_request.author_association == 'owner' || github.event.pull_request.author_association == 'collaborator') }}
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        # See https://docs.github.com/en/graphql/reference/enums
+        # https://michaelheap.com/github-actions-check-permission/
+        # Check if
+        # - the PR body contains `/integration`
+        # - the PR author has permissions to trigger the workflow (must be part of the org or a collaborator)
+        if: |
+          github.event_name == 'pull_request' &&
+          contains(env.PR_BODY, '/integration') && 
+          (
+            github.event.pull_request.author_association == 'OWNER' ||
+            github.event.pull_request.author_association == 'MEMBER' ||
+            github.event.pull_request.author_association == 'COLLABORATOR' ||
+            github.event.pull_request.author_association == 'CONTRIBUTOR'
+          )
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: release-ci.yml
@@ -83,10 +107,65 @@ jobs:
           inputs: '{ "forceIntegrationRelease": "true" }'
           ref: ${{ github.event.pull_request.head.ref }}
 
-  run_tests:
+  build_custom_engine:
+    name: Build custom engine
     needs: detect_jobs_to_run
+    uses: ./.github/workflows/build-engine-branch.yml
+
+  check_custom_engine:
+    name: Block merge if custom engine is used
+    needs: build_custom_engine
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find past custom engine comment
+        uses: peter-evans/find-comment@v2
+        id: findEngineComment
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: '<!-- custom-engine -->'
+      - name: Create or update comment (block)
+        uses: peter-evans/create-or-update-comment@v3
+        if: ${{ needs.build_custom_engine.outputs.engineHash != '' }}
+        with:
+          comment-id: ${{ steps.findEngineComment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            <!-- custom-engine -->
+            🔴 **CUSTOM ENGINE IS USED**
+            This PR is using custom engine: 
+              
+            Branch: [`${{ needs.build_custom_engine.outputs.branchName }}`](https://github.com/prisma/prisma-engines/tree/${{ needs.build_custom_engine.outputs.branchName }})
+            Commit: [`${{ needs.build_custom_engine.outputs.engineHash }}`](https://github.com/prisma/prisma-engines/commit/${{ needs.build_custom_engine.outputs.engineHash }}).
+
+            Don't forget to remove `/engine-branch` command from PR body and re-run the tests with default engine before merging.
+          edit-mode: replace
+
+      - name: Create or update comment (clear)
+        uses: peter-evans/create-or-update-comment@v3
+        if: ${{ steps.findEngineComment.outputs.comment-id != '' && needs.build_custom_engine.outputs.engineHash == '' }}
+        with:
+          comment-id: ${{ steps.findEngineComment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            <!-- custom-engine -->
+            🟢 All good, this PR is no longer uses custom engine.
+          edit-mode: replace
+      - name: Block merge
+        if: ${{ needs.build_custom_engine.outputs.engineHash != '' }}
+        run: |
+          echo "Custom engine is used, failing the job"
+          echo "Don't forget to remove /engine-branch command from PR body before merge"
+          exit 1
+
+  run_tests:
+    name: Tests
+    needs:
+      - detect_jobs_to_run
+      - build_custom_engine
     uses: ./.github/workflows/test-template.yml
     with:
       jobsToRun: ${{ needs.detect_jobs_to_run.outputs.jobs }}
       queryEngine: ${{ needs.detect_jobs_to_run.outputs.queryEngine }}
+      engineHash: ${{ needs.build_custom_engine.outputs.engineHash }}
     secrets: inherit

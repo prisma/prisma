@@ -1,28 +1,32 @@
+import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
+import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
-const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
-const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
+const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm'))
+const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
+const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
+const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
-function nodeRuntimeBuildConfig(targetEngineType: 'binary' | 'library' | 'data-proxy'): BuildOptions {
+function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): BuildOptions {
   return {
-    name: targetEngineType,
+    name: targetBuildType,
     entryPoints: ['src/runtime/index.ts'],
-    outfile: `runtime/${targetEngineType}`,
+    outfile: `runtime/${targetBuildType}`,
     bundle: true,
     minify: true,
     sourcemap: 'linked',
-    emitTypes: targetEngineType === 'library',
+    emitTypes: targetBuildType === 'library',
     define: {
       NODE_CLIENT: 'true',
-      TARGET_ENGINE_TYPE: JSON.stringify(targetEngineType),
+      TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
       // that fixes an issue with lz-string umd builds
       'define.amd': 'false',
     },
@@ -55,7 +59,8 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
-    TARGET_ENGINE_TYPE: '"data-proxy"',
+    // tree shake the Library and Binary engines out
+    TARGET_BUILD_TYPE: '"edge"',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
@@ -65,15 +70,21 @@ const edgeRuntimeBuildConfig: BuildOptions = {
       eval: { define: 'undefined' },
       Function: {
         define: 'fn',
-        inject: functionPolyfillPath,
+        globals: functionPolyfillPath,
       },
-
-      // TODO no tree shaking on wrapper pkgs
-      '@prisma/get-platform': { contents: '' },
+      // we shim WeakRef, it does not exist on CF
+      WeakRef: {
+        globals: weakrefPolyfillPath,
+      },
       // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
-      './utils/find': { contents: '' },
     }),
+    copyFilePlugin([
+      {
+        from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
+        to: path.join(runtimeDir, 'query-engine.wasm'),
+      },
+    ]),
   ],
   logLevel: 'error',
 }
@@ -110,14 +121,12 @@ function writeDtsRexport(fileName: string) {
 
 void build([
   generatorBuildConfig,
-  nodeRuntimeBuildConfig('binary'),
-  nodeRuntimeBuildConfig('library'),
-  nodeRuntimeBuildConfig('data-proxy'),
+  nodeRuntimeBuildConfig(ClientEngineType.Binary),
+  nodeRuntimeBuildConfig(ClientEngineType.Library),
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
   defaultIndexConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
-  writeDtsRexport('data-proxy.d.ts')
 })

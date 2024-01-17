@@ -29,7 +29,7 @@ async function fetchChecksum(url: string): Promise<string | null> {
     })
 
     if (!response.ok) {
-      let errorMessage = `Failed to fetch sha256 checksum at ${checksumUrl}. ${response.status} ${response.statusText}`
+      let errorMessage = `Failed to fetch sha256 checksum at ${checksumUrl} - ${response.status} ${response.statusText}`
       if (!process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
         errorMessage += `\n\nIf you need to ignore this error (e.g. in an offline environment), set the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable to a truthy value.\nExample: PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1`
       }
@@ -86,7 +86,7 @@ export async function downloadZip(
         agent: getProxyAgent(url),
       })
       if (!response.ok) {
-        throw new Error(`Failed to fetch the engine file at ${url}. ${response.status} ${response.statusText}`)
+        throw new Error(`Failed to fetch the engine file at ${url} - ${response.status} ${response.statusText}`)
       }
 
       const lastModified = response.headers.get('last-modified')!

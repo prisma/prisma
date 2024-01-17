@@ -1,21 +1,26 @@
 import { INDENT_SIZE } from '../../../generation/ts-builders/Writer'
+import { ArrayField } from './ArrayField'
 import { ErrorWriter, fieldsSeparator } from './base'
 import { FormattedString } from './FormattedString'
 import { Value } from './Value'
 
 export class ArrayValue extends Value {
-  private items: Value[] = []
+  private items: ArrayField[] = []
 
   addItem(item: Value): this {
-    this.items.push(item)
+    this.items.push(new ArrayField(item))
     return this
+  }
+
+  getField(index: number): ArrayField | undefined {
+    return this.items[index]
   }
 
   override getPrintWidth(): number {
     if (this.items.length === 0) {
       return 2
     }
-    const maxItemWidth = Math.max(...this.items.map((item) => item.getPrintWidth()))
+    const maxItemWidth = Math.max(...this.items.map((item) => item.value.getPrintWidth()))
     return maxItemWidth + INDENT_SIZE
   }
 

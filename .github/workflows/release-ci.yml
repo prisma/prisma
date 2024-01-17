@@ -8,17 +8,21 @@ on:
       - 'integration/*'
       - '*.*.x'
     paths-ignore:
+      # Any update here needs to be done for
+      # all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
       - '*.md'
+      - '*.bench.ts'
+      - 'LICENSE'
+      - '.dockerignore'
+      # - 'scripts/ci/publish.ts' -> should not be ignored in this workflow
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
       - '.vscode/**'
-      - '.github/ISSUE_TEMPLATE/**'
-      - 'LICENSE'
-      - '.github/CODEOWNERS'
-      - '.github/DISCUSSION_TEMPLATE/**'
-      - '.buildkite/**'
-      - '.dockerignore'
-      - '*.bench.ts'
       - 'graphs/**'
+      - 'sandbox/**'
   workflow_dispatch:
     inputs:
       dryRun:
@@ -33,27 +37,30 @@ env:
 
 jobs:
   release:
-    timeout-minutes: 45
+    timeout-minutes: 75
     # environment: 'npm-ci'
     runs-on: ubuntu-latest
     permissions:
       # required for publishing to npm with --provenance
       # see https://docs.npmjs.com/generating-provenance-statements
       id-token: write
+    outputs:
+      prismaVersion: ${{ steps.publish.outputs.prismaVersion }}
     steps:
       - name: Print input
         env:
           THE_INPUT: '${{ toJson(github.event.inputs) }}'
         run: |
-          echo $THE_INPUT
+          echo "$THE_INPUT"
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: 16
+          node-version: 18
           pnpm-version: 8
+          skip-tsc: false
 
       - name: Publish all packages to npm
         id: publish
@@ -79,7 +86,37 @@ jobs:
         env:
           THE_OUTPUT: '${{ toJson(steps.publish.outputs) }}'
         run: |
-          echo $THE_OUTPUT
+          echo "$THE_OUTPUT"
+
+      # TODO de-duplicate (currently duplicated in release-*.yml)
+      # Docs https://octokit.github.io/rest.js/v20#git-create-tag
+      - name: Create a tag on prisma-engines repository
+        uses: actions/github-script@v7
+        id: tag-prisma-engines
+        env:
+          REPO_NAME: 'prisma-engines'
+          TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
+          MESSAGE: '${{ steps.publish.outputs.changelogSanitized }}'
+          COMMIT_HASH: '${{ steps.publish.outputs.enginesCommitHash }}'
+        with:
+          result-encoding: string
+          github-token: ${{ secrets.BOT_TOKEN }}
+          script: |
+            const commitNewTag = await github.rest.git.createTag({
+              owner: 'prisma',
+              repo: '${{ env.REPO_NAME }}',
+              tag: '${{ env.TAG_NAME }}',
+              message: '${{ env.MESSAGE }}',
+              object: '${{ env.COMMIT_HASH }}',
+              type: 'commit',
+            })
+
+            await github.rest.git.createRef({
+              owner: 'prisma',
+              repo: '${{ env.REPO_NAME }}',
+              ref: `refs/tags/${{ env.TAG_NAME }}`,
+              sha: commitNewTag.data.sha,
+            })
 
   # We also have `sendSlackMessage()` in publish.ts
   # It uses the #feed-prisma-releases channel and adds more information
@@ -91,12 +128,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set current job url in SLACK_FOOTER env var
-        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
+        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
 
       - name: Slack Notification on Success
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@v2.2.1
         env:
-          SLACK_TITLE: 'prisma/prisma Release ${{ steps.publish.outputs.prismaVersion }} succeeded :white_check_mark:'
+          SLACK_TITLE: 'prisma/prisma Release ${{ needs.release.outputs.prismaVersion }} succeeded :white_check_mark:'
           SLACK_COLOR: '#55ff55'
           SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
           SLACK_CHANNEL: feed-prisma-publish
@@ -109,10 +146,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set current job url in SLACK_FOOTER env var
-        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
+        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
 
       - name: Slack Notification on Failure
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@v2.2.1
         env:
           SLACK_TITLE: 'prisma/prisma Release from ${{ github.ref_name }} to dev/integration failed :x:'
           SLACK_COLOR: '#FF0000'

@@ -78,7 +78,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
@@ -134,7 +134,7 @@ ${bold('Examples')}
       wasDatabaseReset = true
     }
 
-    const before = Date.now()
+    const before = Math.round(performance.now())
     let migration: EngineResults.SchemaPush
     try {
       migration = await migrate.push({
@@ -245,7 +245,7 @@ ${bold(red('All data will be lost.'))}
     if (!wasDatabaseReset && migration.warnings.length === 0 && migration.executedSteps === 0) {
       console.info(`\nThe database is already in sync with the Prisma schema.`)
     } else {
-      const migrationTimeMessage = `Done in ${formatms(Date.now() - before)}`
+      const migrationTimeMessage = `Done in ${formatms(Math.round(performance.now()) - before)}`
       const rocketEmoji = process.platform === 'win32' ? '' : '🚀  '
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'

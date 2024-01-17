@@ -1,7 +1,6 @@
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers, RelationModes } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
-import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
@@ -40,22 +39,22 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
-    // @ts-expect-error
+
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
-    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
+    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === RelationModes.PRISMA
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
     // Looking at CI results
     // 30s was often not enough for vitess
     // so we put it back to 60s for now in this case
-    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+    if (suiteConfig.driverAdapter === AdapterProviders.VITESS_8) {
       jest.setTimeout(60_000)
     }
 
@@ -589,7 +588,7 @@ testMatrix.setupTestSuite(
                         : // DEFAULT / SetNull
                           /*
                       Error occurred during query execution:
-                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
+                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { 
                         code: 1761,
                         message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
                         key 'ProfileOneToOne_userId_key'\",
@@ -610,7 +609,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [AdapterProviders.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                   })
 
@@ -691,7 +690,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [AdapterProviders.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                       }),
                 )

@@ -1,7 +1,6 @@
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers, RelationModes } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
-import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
@@ -52,24 +51,24 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
-    // @ts-expect-error
+
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isPostgreSQL = suiteConfig.provider === Providers.POSTGRESQL
     const isSQLite = suiteConfig.provider === Providers.SQLITE
-    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
+    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === RelationModes.PRISMA
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
     // Looking at CI results
     // 30s was often not enough for vitess
     // so we put it back to 60s for now in this case
-    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+    if (suiteConfig.driverAdapter === AdapterProviders.VITESS_8) {
       jest.setTimeout(60_000)
     }
 
@@ -199,7 +198,7 @@ testMatrix.setupTestSuite(
         describeIf(![Providers.SQLITE].includes(suiteConfig.provider))('not sqlite', () => {
           // SQLite doesn't support createMany
           test('[create] nested child [createMany]', async () => {
-            // @ts-test-if: provider !== 'sqlite'
+            // @ts-test-if: provider !== Providers.SQLITE
             await prisma[userModel].create({
               data: {
                 id: '1',
@@ -373,7 +372,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [AdapterProviders.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                   }),
             )

@@ -1,6 +1,9 @@
+import { klona } from 'klona'
+
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
+import { AdapterProviders, adaptersForProvider, Providers, relationModesForAdapter } from './providers'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, MatrixOptions } from './types'
+import { CliMeta, MatrixOptions } from './types'
 
 export type TestPlanEntry = {
   name: string
@@ -10,7 +13,9 @@ export type TestPlanEntry = {
 
 type SuitePlanContext = {
   includedProviders?: string[]
+  includedProviderAdapters?: string[]
   excludedProviders: string[]
+  excludedDriverAdapters: string[]
   updateSnapshots: 'inline' | 'external' | undefined
 }
 
@@ -20,38 +25,77 @@ type SuitePlanContext = {
  * @param suiteMeta
  * @returns [test-suite-title: string, test-suite-config: object]
  */
-
 export function getTestSuitePlan(
+  testCliMeta: CliMeta,
   suiteMeta: TestSuiteMeta,
-  suiteConfig: NamedTestSuiteConfig[],
-  clientMeta: ClientMeta,
+  suiteConfigs: NamedTestSuiteConfig[],
   options?: MatrixOptions,
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
+  const expandedSuiteConfigs = suiteConfigs.flatMap((config) => {
+    return getExpandedTestSuitePlanWithProviderFlavors(config)
+  })
 
-  return suiteConfig.map((namedConfig, configIndex) => ({
+  expandedSuiteConfigs.forEach((config) => {
+    config.matrixOptions.engineType ??= testCliMeta.engineType
+  })
+
+  return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
+    skip: shouldSkipSuiteConfig(context, namedConfig, configIndex, testCliMeta, options),
     suiteConfig: namedConfig,
   }))
 }
 
-function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
-  if (!clientMeta.dataProxy || !options?.skipDataProxy) {
-    return false
-  }
-  return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
+/**
+ * This function takes a regular `testPlanEntry` and expands this into the
+ * multiple compatible driver adapters that exist for a given provider. For
+ * example, postgres => [postgres (pg), postgres (neon)], put very simply. In
+ * other words, a given test matrix is expanded with the provider adapters.
+ * @param suiteConfig
+ * @returns
+ */
+function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuiteConfig) {
+  const provider = suiteConfig.matrixOptions.provider
+
+  const suiteConfigExpansions = adaptersForProvider[provider].map((adapterProvider) => {
+    const newSuiteConfig = klona(suiteConfig)
+
+    newSuiteConfig.matrixOptions.driverAdapter = adapterProvider
+    newSuiteConfig.parametersString += `, ${adapterProvider}`
+    // ^^^ temporary until I get to the TODO in getTestSuiteParametersString
+
+    // if the test is not doing stuff with relation mode already, we set one
+    if (newSuiteConfig.matrixOptions.relationMode === undefined) {
+      newSuiteConfig.matrixOptions.relationMode = relationModesForAdapter[adapterProvider]
+    }
+
+    return newSuiteConfig
+  })
+
+  // add the original suite config to the list of expanded configs
+  return [suiteConfig, ...suiteConfigExpansions]
 }
 
-function shouldSkipProvider(
-  { updateSnapshots, includedProviders, excludedProviders }: SuitePlanContext,
+function shouldSkipSuiteConfig(
+  {
+    updateSnapshots,
+    includedProviders,
+    includedProviderAdapters,
+    excludedProviders,
+    excludedDriverAdapters: excludedProviderFlavors,
+  }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
-  clientMeta: ClientMeta,
+  cliMeta: CliMeta,
+  options?: MatrixOptions,
 ): boolean {
-  const provider = config.matrixOptions['provider'].toLocaleLowerCase()
+  const provider = config.matrixOptions.provider
+  const driverAdapter = config.matrixOptions.driverAdapter
+  const relationMode = config.matrixOptions.relationMode
+  const engineType = config.matrixOptions.engineType
+
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
     // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
@@ -64,21 +108,70 @@ function shouldSkipProvider(
     return true
   }
 
-  if (includedProviders && !includedProviders.includes(provider)) {
+  // if the test doesn't support the engine type, skip
+  if (options?.skipEngine?.from.includes(engineType!)) {
     return true
   }
 
-  if (clientMeta.dataProxy && provider === 'sqlite') {
+  // if the test needs to skip the dataproxy test, skip
+  if (cliMeta.dataProxy && options?.skipDataProxy?.runtimes.includes(cliMeta.runtime)) {
     return true
   }
 
-  return excludedProviders.includes(provider)
+  // if the client doesn't support the provider, skip
+  if (cliMeta.dataProxy && provider === Providers.SQLITE) {
+    return true
+  }
+
+  // if the provider is not included, skip
+  if (includedProviders !== undefined && !includedProviders.includes(provider)) {
+    return true
+  }
+
+  // if the provider is excluded, skip
+  if (excludedProviders.includes(provider)) {
+    return true
+  }
+
+  // if there is a Driver Adapter to run and it's not included, skip
+  if (driverAdapter !== undefined && !includedProviderAdapters?.includes(driverAdapter)) {
+    return true
+  }
+
+  // if there is a Driver Adapter to run and it's excluded, skip
+  if (driverAdapter && excludedProviderFlavors.includes(driverAdapter)) {
+    return true
+  }
+
+  // if the Driver Adapter is explicitly skipped in the matrix options, skip
+  if (driverAdapter !== undefined && options?.skipDriverAdapter?.from.includes(driverAdapter)) {
+    return true
+  }
+
+  // if there is a relation mode set and the Driver Adapter doesn't support it, skip
+  if (
+    driverAdapter !== undefined &&
+    relationMode !== undefined &&
+    relationModesForAdapter[driverAdapter] !== undefined &&
+    relationMode !== relationModesForAdapter[driverAdapter]
+  ) {
+    return true
+  }
+
+  // if Driver Adapters are enabled and the test has no Driver Adapter, skip
+  if (includedProviderAdapters !== undefined && driverAdapter === undefined) {
+    return true
+  }
+
+  return false
 }
 
 function buildPlanContext(): SuitePlanContext {
   return {
     includedProviders: process.env.ONLY_TEST_PROVIDERS?.split(','),
-    excludedProviders: getExcludedProviders(),
+    includedProviderAdapters: process.env.ONLY_TEST_PROVIDER_ADAPTERS?.split(','),
+    excludedProviders: getExclusionsFromEnv(excludeEnvToProviderMap),
+    excludedDriverAdapters: getExclusionsFromEnv(excludeEnvToProviderFlavorMap),
     updateSnapshots: process.env.UPDATE_SNAPSHOTS as 'inline' | 'external' | undefined,
   }
 }
@@ -91,10 +184,18 @@ const excludeEnvToProviderMap = {
   TEST_SKIP_SQLITE: 'sqlite',
 }
 
-function getExcludedProviders() {
-  return Object.entries(excludeEnvToProviderMap).reduce((acc, [envVarName, provider]) => {
+const excludeEnvToProviderFlavorMap = {
+  TEST_SKIP_VITESS: AdapterProviders.VITESS_8,
+  TEST_SKIP_PG: AdapterProviders.JS_PG,
+  TEST_SKIP_NEON: AdapterProviders.JS_NEON,
+  TEST_SKIP_PLANETSCALE: AdapterProviders.JS_PLANETSCALE,
+  TEST_SKIP_LIBSQL: AdapterProviders.JS_LIBSQL,
+}
+
+function getExclusionsFromEnv(exclusionMap: Record<string, string>) {
+  return Object.entries(exclusionMap).reduce((acc, [envVarName, exclusionName]) => {
     if (process.env[envVarName]) {
-      acc.push(provider)
+      acc.push(exclusionName.toLowerCase())
     }
     return acc
   }, [] as string[])

@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
@@ -177,12 +177,12 @@ async function resolveBinaryTargets(generator: GeneratorConfig) {
 
     // resolve native to the current platform
     if (binaryTarget.value === 'native') {
-      binaryTarget.value = await getPlatform()
+      binaryTarget.value = await getBinaryTargetForCurrentPlatform()
       binaryTarget.native = true
     }
   }
 
   if (generator.binaryTargets.length === 0) {
-    generator.binaryTargets = [{ fromEnvVar: null, value: await getPlatform(), native: true }]
+    generator.binaryTargets = [{ fromEnvVar: null, value: await getBinaryTargetForCurrentPlatform(), native: true }]
   }
 }
