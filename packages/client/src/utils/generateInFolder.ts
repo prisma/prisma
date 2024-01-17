@@ -106,6 +106,7 @@ export async function generateInFolder({
     ...config,
     outputDir,
     schemaPath,
+    testMode: true,
     copyRuntime: false,
     generator: config.generators[0],
     clientVersion: 'local',
