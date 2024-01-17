@@ -24,7 +24,8 @@
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts"
+    "build": "node -r esbuild-register helpers/build.ts",
+    "test": "jest"
   },
   "files": [
     "dist",
