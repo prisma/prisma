@@ -22,6 +22,7 @@ export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
   name?: string
   emitTypes?: boolean
+  emitMetafile?: boolean
   outbase?: never // we don't support this
 }
 
@@ -30,6 +31,7 @@ const DEFAULT_BUILD_OPTIONS = {
   target: 'ES2020',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
+  metafile: true,
 } as const
 
 /**
@@ -114,15 +116,15 @@ function addDefaultOutDir(options: BuildOptions) {
  */
 async function executeEsBuild(options: BuildOptions) {
   if (process.env.WATCH === 'true') {
-    const context = await esbuild.context(omit(options, ['name', 'emitTypes']) as any)
+    const context = await esbuild.context(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
 
     watch(context, options)
   }
 
-  const build = await esbuild.build(omit(options, ['name', 'emitTypes']) as any)
+  const build = await esbuild.build(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
+  const outdir = options.outdir ?? (options.outfile ? path.dirname(options.outfile) : undefined)
 
-  if (build.metafile) {
-    const outdir = options.outdir ?? path.dirname(options.outfile ?? '')
+  if (build.metafile && options.emitMetafile) {
     const metafilePath = `${outdir}/${options.name}.meta.json`
     writeFileSync(metafilePath, JSON.stringify(build.metafile))
   }
