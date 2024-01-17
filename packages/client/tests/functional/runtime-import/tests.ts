@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(
         expect(generatedClientContents).toContain(wasmRuntime)
         expect(generatedClientContents).not.toContain(libraryRuntime)
         expect(generatedClientContents).not.toContain(binaryRuntime)
-        expect(generatedClientContents).not.toContain(wasmRuntime)
+        expect(generatedClientContents).not.toContain(edgeRuntime)
       } else {
         throw new Error('Unhandled case')
       }
