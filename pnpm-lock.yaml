@@ -437,20 +437,20 @@ importers:
         specifier: 1.7.0
         version: 1.7.0
       '@opentelemetry/context-async-hooks':
-        specifier: 1.19.0
-        version: 1.19.0(@opentelemetry/api@1.7.0)
+        specifier: 1.20.0
+        version: 1.20.0(@opentelemetry/api@1.7.0)
       '@opentelemetry/instrumentation':
-        specifier: 0.46.0
-        version: 0.46.0(@opentelemetry/api@1.7.0)
+        specifier: 0.47.0
+        version: 0.47.0(@opentelemetry/api@1.7.0)
       '@opentelemetry/resources':
-        specifier: 1.19.0
-        version: 1.19.0(@opentelemetry/api@1.7.0)
+        specifier: 1.20.0
+        version: 1.20.0(@opentelemetry/api@1.7.0)
       '@opentelemetry/sdk-trace-base':
-        specifier: 1.19.0
-        version: 1.19.0(@opentelemetry/api@1.7.0)
+        specifier: 1.20.0
+        version: 1.20.0(@opentelemetry/api@1.7.0)
       '@opentelemetry/semantic-conventions':
-        specifier: 1.19.0
-        version: 1.19.0
+        specifier: 1.20.0
+        version: 1.20.0
       '@planetscale/database':
         specifier: 1.13.0
         version: 1.13.0
@@ -967,11 +967,11 @@ importers:
         specifier: 1.7.0
         version: 1.7.0
       '@opentelemetry/instrumentation':
-        specifier: 0.46.0
-        version: 0.46.0(@opentelemetry/api@1.7.0)
+        specifier: 0.47.0
+        version: 0.47.0(@opentelemetry/api@1.7.0)
       '@opentelemetry/sdk-trace-base':
-        specifier: 1.19.0
-        version: 1.19.0(@opentelemetry/api@1.7.0)
+        specifier: 1.20.0
+        version: 1.20.0(@opentelemetry/api@1.7.0)
     devDependencies:
       '@prisma/internals':
         specifier: workspace:*
@@ -3093,8 +3093,8 @@ packages:
     resolution: {integrity: sha512-AdY5wvN0P2vXBi3b29hxZgSFvdhdxPB9+f0B6s//P9Q8nibRWeA3cHm8UmLpio9ABigkVHJ5NMPk+Mz8VCCyrw==}
     engines: {node: '>=8.0.0'}
 
-  /@opentelemetry/context-async-hooks@1.19.0(@opentelemetry/api@1.7.0):
-    resolution: {integrity: sha512-0i1ECOc9daKK3rjUgDDXf0GDD5XfCou5lXnt2DALIc2qKoruPPcesobNKE54laSVUWnC3jX26RzuOa31g0V32A==}
+  /@opentelemetry/context-async-hooks@1.20.0(@opentelemetry/api@1.7.0):
+    resolution: {integrity: sha512-PNecg4zvRF5y5h3luK/hzUEmgZtZ8hbX19TMALj3SVShYS2MrDZG6uT27uLkAwACMfK9BP7/UyXXjND5lkaC2w==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.8.0'
@@ -3102,53 +3102,53 @@ packages:
       '@opentelemetry/api': 1.7.0
     dev: true
 
-  /@opentelemetry/core@1.19.0(@opentelemetry/api@1.7.0):
-    resolution: {integrity: sha512-w42AukJh3TP8R0IZZOVJVM/kMWu8g+lm4LzT70WtuKqhwq7KVhcDzZZuZinWZa6TtQCl7Smt2wolEYzpHabOgw==}
+  /@opentelemetry/core@1.20.0(@opentelemetry/api@1.7.0):
+    resolution: {integrity: sha512-lSRvk5AIdD6CtgYJcJXh0wGibQ3S/8bC2qbqKs9wK8e0K1tsWV6YkGFOqVc+jIRlCbZoIBeZzDe5UI+vb94uvg==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.8.0'
     dependencies:
       '@opentelemetry/api': 1.7.0
-      '@opentelemetry/semantic-conventions': 1.19.0
+      '@opentelemetry/semantic-conventions': 1.20.0
 
-  /@opentelemetry/instrumentation@0.46.0(@opentelemetry/api@1.7.0):
-    resolution: {integrity: sha512-a9TijXZZbk0vI5TGLZl+0kxyFfrXHhX6Svtz7Pp2/VBlCSKrazuULEyoJQrOknJyFWNMEmbbJgOciHCCpQcisw==}
+  /@opentelemetry/instrumentation@0.47.0(@opentelemetry/api@1.7.0):
+    resolution: {integrity: sha512-ZFhphFbowWwMahskn6BBJgMm8Z+TUx98IM+KpLIX3pwCK/zzgbCgwsJXRnjF9edDkc5jEhA7cEz/mP0CxfQkLA==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': ^1.3.0
     dependencies:
       '@opentelemetry/api': 1.7.0
       '@types/shimmer': 1.0.2
-      import-in-the-middle: 1.7.1
+      import-in-the-middle: 1.7.2
       require-in-the-middle: 7.2.0
       semver: 7.5.4
       shimmer: 1.2.1
     transitivePeerDependencies:
       - supports-color
 
-  /@opentelemetry/resources@1.19.0(@opentelemetry/api@1.7.0):
-    resolution: {integrity: sha512-RgxvKuuMOf7nctOeOvpDjt2BpZvZGr9Y0vf7eGtY5XYZPkh2p7e2qub1S2IArdBMf9kEbz0SfycqCviOu9isqg==}
+  /@opentelemetry/resources@1.20.0(@opentelemetry/api@1.7.0):
+    resolution: {integrity: sha512-nOpV0vGegSq+9ze2cEDvO3BMA5pGBhmhKZiAlj+xQZjiEjPmJtdHIuBLRvptu2ahcbFJw85gIB9BYHZOvZK1JQ==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.8.0'
     dependencies:
       '@opentelemetry/api': 1.7.0
-      '@opentelemetry/core': 1.19.0(@opentelemetry/api@1.7.0)
-      '@opentelemetry/semantic-conventions': 1.19.0
+      '@opentelemetry/core': 1.20.0(@opentelemetry/api@1.7.0)
+      '@opentelemetry/semantic-conventions': 1.20.0
 
-  /@opentelemetry/sdk-trace-base@1.19.0(@opentelemetry/api@1.7.0):
-    resolution: {integrity: sha512-+IRvUm+huJn2KqfFW3yW/cjvRwJ8Q7FzYHoUNx5Fr0Lws0LxjMJG1uVB8HDpLwm7mg5XXH2M5MF+0jj5cM8BpQ==}
+  /@opentelemetry/sdk-trace-base@1.20.0(@opentelemetry/api@1.7.0):
+    resolution: {integrity: sha512-BAIZ0hUgnhdb3OBQjn1FKGz/Iwie4l+uOMKklP7FGh7PTqEAbbzDNMJKaZQh6KepF7Fq+CZDRKslD3yrYy2Tzw==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.8.0'
     dependencies:
       '@opentelemetry/api': 1.7.0
-      '@opentelemetry/core': 1.19.0(@opentelemetry/api@1.7.0)
-      '@opentelemetry/resources': 1.19.0(@opentelemetry/api@1.7.0)
-      '@opentelemetry/semantic-conventions': 1.19.0
+      '@opentelemetry/core': 1.20.0(@opentelemetry/api@1.7.0)
+      '@opentelemetry/resources': 1.20.0(@opentelemetry/api@1.7.0)
+      '@opentelemetry/semantic-conventions': 1.20.0
 
-  /@opentelemetry/semantic-conventions@1.19.0:
-    resolution: {integrity: sha512-14jRpC8f5c0gPSwoZ7SbEJni1PqI+AhAE8m1bMz6v+RPM4OlP1PT2UHBJj5Qh/ALLPjhVU/aZUK3YyjTUqqQVg==}
+  /@opentelemetry/semantic-conventions@1.20.0:
+    resolution: {integrity: sha512-3zLJJCgTKYpbqFX8drl8hOCHtdchELC+kGqlVcV4mHW1DiElTtv1Nt9EKBptTd1IfL56QkuYnWJ3DeHd2Gtu/A==}
     engines: {node: '>=14'}
 
   /@pkgjs/parseargs@0.11.0:
@@ -8060,8 +8060,8 @@ packages:
       resolve-from: 4.0.0
     dev: true
 
-  /import-in-the-middle@1.7.1:
-    resolution: {integrity: sha512-1LrZPDtW+atAxH42S6288qyDFNQ2YCty+2mxEPRtfazH6Z5QwkaBSTS2ods7hnVJioF6rkRfNoA6A/MstpFXLg==}
+  /import-in-the-middle@1.7.2:
+    resolution: {integrity: sha512-coz7AjRnPyKW36J6JX5Bjz1mcX7MX1H2XsEGseVcnXMdzsAbbAu0HBZhiAem+3SAmuZdi+p8OwoB2qUpTRgjOQ==}
     dependencies:
       acorn: 8.9.0
       acorn-import-assertions: 1.9.0(acorn@8.9.0)
