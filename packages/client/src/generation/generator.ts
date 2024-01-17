@@ -38,7 +38,7 @@ if (process.argv[1] === __filename) {
         binaryPaths: options.binaryPaths!,
         datasources: options.datasources,
         outputDir,
-        copyRuntime: Boolean(options.generator.config.copyRuntime),
+        copyRuntime: Boolean(options.generator.config.copyRuntime), // TODO: is this needed/valid?
         copyRuntimeSourceMaps: Boolean(process.env.PRISMA_COPY_RUNTIME_SOURCEMAPS),
         dmmf: options.dmmf,
         generator: options.generator,
