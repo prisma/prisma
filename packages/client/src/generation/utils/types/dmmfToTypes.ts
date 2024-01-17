@@ -31,7 +31,6 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     deno: false,
     edge: false,
     indexWarning: false,
-    reuseTypes: false,
     wasm: false,
   }).toTS()
 }

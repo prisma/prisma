@@ -11,20 +11,37 @@ type NamespacedTypeMap<T> = {
 type FullyQualifiedName = string & { readonly _brand: unique symbol }
 
 export class DMMFHelper implements DMMF.Document {
-  private compositeNames: Set<string>
-  private inputTypesByName: Map<FullyQualifiedName, DMMF.InputType>
-  readonly typeAndModelMap: Dictionary<DMMF.Model>
-  readonly mappingsMap: Dictionary<DMMF.ModelMapping>
-  readonly outputTypeMap: NamespacedTypeMap<DMMF.OutputType>
-  readonly rootFieldMap: Dictionary<DMMF.SchemaField>
+  private _compositeNames?: Set<string>
+  private _inputTypesByName?: Map<FullyQualifiedName, DMMF.InputType>
+  private _typeAndModelMap?: Dictionary<DMMF.Model>
+  private _mappingsMap?: Dictionary<DMMF.ModelMapping>
+  private _outputTypeMap?: NamespacedTypeMap<DMMF.OutputType>
+  private _rootFieldMap?: Dictionary<DMMF.SchemaField>
 
-  constructor(public document: DMMF.Document) {
-    this.compositeNames = new Set(this.datamodel.types.map((t) => t.name))
-    this.typeAndModelMap = this.buildTypeModelMap()
-    this.mappingsMap = this.buildMappingsMap()
-    this.outputTypeMap = this.buildMergedOutputTypeMap()
-    this.rootFieldMap = this.buildRootFieldMap()
-    this.inputTypesByName = this.buildInputTypesMap()
+  constructor(public document: DMMF.Document) {}
+
+  private get compositeNames() {
+    return (this._compositeNames ??= new Set(this.datamodel.types.map((t) => t.name)))
+  }
+
+  private get inputTypesByName() {
+    return (this._inputTypesByName ??= this.buildInputTypesMap())
+  }
+
+  get typeAndModelMap() {
+    return (this._typeAndModelMap ??= this.buildTypeModelMap())
+  }
+
+  get mappingsMap() {
+    return (this._mappingsMap ??= this.buildMappingsMap())
+  }
+
+  get outputTypeMap() {
+    return (this._outputTypeMap ??= this.buildMergedOutputTypeMap())
+  }
+
+  get rootFieldMap() {
+    return (this._rootFieldMap ??= this.buildRootFieldMap())
   }
 
   get datamodel() {
