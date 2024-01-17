@@ -194,16 +194,15 @@ importers:
 
   packages/adapter-d1:
     dependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20231218.0
+        version: 4.20231218.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
       async-mutex:
         specifier: 0.4.0
         version: 0.4.0
-    devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20231218.0
-        version: 4.20231218.0
 
   packages/adapter-libsql:
     dependencies:
@@ -1899,7 +1898,7 @@ packages:
 
   /@cloudflare/workers-types@4.20231218.0:
     resolution: {integrity: sha512-Vs1FKjfUjXYGbCsXzkl+ITp0Iyb6QiW6+vTERTNThC+v96T0IvPVAioH4tT20rXwoxAfxh380mAaxYtTrJUNVg==}
-    dev: true
+    dev: false
 
   /@codspeed/benchmark.js-plugin@2.3.1(benchmark@2.1.4):
     resolution: {integrity: sha512-Q/CraaVspowiN6bw73vrvSQ0VIS+UpRAjBu9fxph7VzJIPg6jJGKkPXZEDmmtEEurDrBRWQu+KEPFoY+8F+Z5w==}
