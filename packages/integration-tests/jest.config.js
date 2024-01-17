@@ -1,3 +1,3 @@
 module.exports = {
-  preset: '../../helpers/test/presets/default.js',
+  preset: '../../helpers/test/presets/withSnapshotSerializer.js',
 }
