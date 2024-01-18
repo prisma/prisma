@@ -23,6 +23,10 @@ module.exports = () => {
     collectCoverage: process.env.CI ? true : false,
   }
 
+  if (process.env.CI) {
+    configCommon.maxWorkers = 3
+  }
+
   if (process.env['JEST_JUNIT_DISABLE'] !== 'true') {
     configCommon.reporters.push([
       'jest-junit',
