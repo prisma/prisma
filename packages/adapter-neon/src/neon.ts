@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import * as neon from '@neondatabase/serverless'
+import type neon from '@neondatabase/serverless'
 import type {
   ColumnType,
   ConnectionInfo,
@@ -130,13 +130,6 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
   private isRunning = true
 
   constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
-    if (!(pool instanceof neon.Pool)) {
-      throw new TypeError(`PrismaNeon must be initialized with an instance of Pool:
-import { Pool } from '@neondatabase/serverless'
-const pool = new Pool({ connectionString: url })
-const adapter = new PrismaNeon(pool)
-`)
-    }
     super(pool)
   }
 
