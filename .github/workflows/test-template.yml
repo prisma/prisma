@@ -141,27 +141,6 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      - name: Check runner
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const os = require("os");
-
-            const availableParallelism = typeof os.availableParallelism === "function" ? os.availableParallelism()
-            console.log({ availableParallelism })
-
-            const cpus = os.cpus().length;
-            console.log("cpus", cpus);
-
-            const totalmem = os.totalmem();
-            console.log("totalmem", totalmem);
-
-            const freemem = os.freemem();
-            console.log("freemem", freemem);
-
-            const hostname = os.hostname();
-            console.log("hostname", hostname);
-
       # Run the functional test suite
       - run: pnpm run test:functional --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }} --preview-features "${{ matrix.previewFeatures }}"
         if: |
