@@ -20,47 +20,47 @@ export class DMMFHelper implements DMMF.Document {
 
   constructor(public document: DMMF.Document) {}
 
-  private get compositeNames() {
+  private get compositeNames(): Set<string> {
     return (this._compositeNames ??= new Set(this.datamodel.types.map((t) => t.name)))
   }
 
-  private get inputTypesByName() {
+  private get inputTypesByName(): Map<FullyQualifiedName, DMMF.InputType> {
     return (this._inputTypesByName ??= this.buildInputTypesMap())
   }
 
-  get typeAndModelMap() {
+  get typeAndModelMap(): Dictionary<DMMF.Model> {
     return (this._typeAndModelMap ??= this.buildTypeModelMap())
   }
 
-  get mappingsMap() {
+  get mappingsMap(): Dictionary<DMMF.ModelMapping> {
     return (this._mappingsMap ??= this.buildMappingsMap())
   }
 
-  get outputTypeMap() {
+  get outputTypeMap(): NamespacedTypeMap<DMMF.OutputType> {
     return (this._outputTypeMap ??= this.buildMergedOutputTypeMap())
   }
 
-  get rootFieldMap() {
+  get rootFieldMap(): Dictionary<DMMF.SchemaField> {
     return (this._rootFieldMap ??= this.buildRootFieldMap())
   }
 
-  get datamodel() {
+  get datamodel(): DMMF.Datamodel {
     return this.document.datamodel
   }
 
-  get mappings() {
+  get mappings(): DMMF.Mappings {
     return this.document.mappings
   }
 
-  get schema() {
+  get schema(): DMMF.Schema {
     return this.document.schema
   }
 
-  get inputObjectTypes() {
+  get inputObjectTypes(): DMMF.Schema['inputObjectTypes'] {
     return this.schema.inputObjectTypes
   }
 
-  get outputObjectTypes() {
+  get outputObjectTypes(): DMMF.Schema['outputObjectTypes'] {
     return this.schema.outputObjectTypes
   }
 
