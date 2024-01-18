@@ -11,7 +11,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
-import type pg from 'pg'
+import pg from 'pg'
 
 import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
 
@@ -130,6 +130,13 @@ export type PrismaPgOptions = {
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
   constructor(client: pg.Pool, private options?: PrismaPgOptions) {
+    if (!(client instanceof pg.Pool)) {
+      throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
+import { Pool } from 'pg'
+const pool = new Pool({ connectionString: url })
+const adapter = new PrismaPg(pool)
+`)
+    }
     super(client)
   }
 
