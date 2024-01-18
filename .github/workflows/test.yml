@@ -57,19 +57,19 @@ jobs:
             const os = require("os");
 
             const availableParallelism = typeof os.availableParallelism === "function" ? os.availableParallelism()
-            console.log({ availableParallelism })
+            core.debug({ availableParallelism })
 
             const cpus = os.cpus().length;
-            console.log({ cpus });
+            core.debug({ cpus });
 
             const totalmem = os.totalmem();
-            console.log({ totalmem });
+            core.debug({ totalmem });
 
             const freemem = os.freemem();
-            console.log({ freemem });
+            core.debug({ freemem });
 
             const hostname = os.hostname();
-            console.log({ hostname });
+            core.debug({ hostname });
 
       - id: files
         uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
