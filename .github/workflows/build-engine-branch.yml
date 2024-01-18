@@ -59,7 +59,7 @@ jobs:
         shell: bash
         run: echo "engineHash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Artifacts cache
         id: artifacts-cache
         with:
@@ -76,7 +76,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Dependencies cache
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
         with:
