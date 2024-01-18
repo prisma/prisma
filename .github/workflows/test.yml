@@ -50,6 +50,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check runner
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const os = require("os");
+
+            const availableParallelism = typeof os.availableParallelism === "function" ? os.availableParallelism()
+            console.log({ availableParallelism })
+
+            const cpus = os.cpus().length;
+            console.log({ cpus });
+
+            const totalmem = os.totalmem();
+            console.log({ totalmem });
+
+            const freemem = os.freemem();
+            console.log({ freemem });
+
+            const hostname = os.hostname();
+            console.log({ hostname });
+
       - id: files
         uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
         with:
