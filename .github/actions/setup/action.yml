@@ -39,22 +39,7 @@ runs:
       uses: actions/github-script@v7
       with:
         script: |
-          const os = require("os");
-
-          const availableParallelism = typeof os.availableParallelism === "function" ? os.availableParallelism()
-          console.log({ availableParallelism })
-
-          const cpus = os.cpus().length;
-          console.log("cpus", cpus);
-
-          const totalmem = os.totalmem();
-          console.log("totalmem", totalmem);
-
-          const freemem = os.freemem();
-          console.log("freemem", freemem);
-
-          const hostname = os.hostname();
-          console.log("hostname", hostname);
+          console.log(process.env.CI)
 
     - run: pnpm install
       shell: bash
