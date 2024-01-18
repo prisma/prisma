@@ -8,11 +8,6 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-// Note: see wrangler.toml and https://www.npmjs.com/package/@cloudflare/workers-types for the version
-/// <reference types="@cloudflare/workers-types" />
-
-// TODO
-// import { PrismaClient } from '@prisma/client/edge'
 import { PrismaClient } from '.prisma/client/edge'
 import { PrismaD1 } from '@prisma/adapter-d1'
 
@@ -20,27 +15,61 @@ export interface Env {
 	MY_DATABASE: D1Database;
 }
 
+
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		console.debug({db: env.MY_DATABASE})
-
 		const adapter = new PrismaD1(env.MY_DATABASE)
 		const prisma = new PrismaClient({ adapter })
-		const result = await prisma.$queryRaw`SELECT * from Customers;`
 
-		// const insert = await prisma.$executeRaw`
-		// 	INSERT INTO Customers (CustomerID, CompanyName, ContactName)
-		// 	VALUES
-		// 		(42, 'The Answer', 'Maria Anders')
-		// 	`
+		// const queryRaw = await prisma.$queryRaw`SELECT * from Customers;`
+		// console.log({ queryRaw })
 
-			// const deleteEx = await prisma.$executeRaw`
-			// 	DELETE FROM Customers
-			// `
+		// const create = await prisma.customers.create({
+		// 	data: {
+		// 		companyName: "Test Company",
+		// 		contactName: "Test Contact",
+		// 	}
+		// })
+		// console.log({ create })
 
-		// const result = await env.MY_DATABASE.exec("SELECT 1;")
+		// const createSelect = await prisma.customers.create({
+		// 	data: {
+		// 		companyName: "Test Company",
+		// 		contactName: "Test Contact",
+		// 	},
+		// 	select: {
+		// 		customerId: true,
+		// 	}
+		// })
+		// console.log({ createSelect })
 
-		return new Response(`Hello World! SQL Result from Prisma Client on D1!!: ${JSON.stringify(result)}`);
+		// const findMany = await prisma.customers.findMany({
+		// 	where: {
+		// 		customerId: {
+		// 			equals: 1
+		// 		}
+		// 	}
+		// })
+
+		// const deleteEx = await prisma.$executeRaw`
+		// 	DELETE FROM Customers
+		// `
+
+		const create = await prisma.test.create({
+			data: {
+				// id: 1,
+				text: "Test name",
+				boolean: true,
+				blob: new Uint8Array([1, 2, 3]),
+				int: 9,
+				real: 9.9,
+			}
+		})
+		console.log({ create })
+
+		await prisma.$disconnect()
+
+		return new Response(`Hello World! Result from Prisma Client from D1!:\n${JSON.stringify(create, null, 2)}`);
 	},
 };
 
