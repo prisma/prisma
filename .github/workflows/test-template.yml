@@ -867,6 +867,14 @@ jobs:
         name: 'adapter-planetscale'
         working-directory: packages/adapter-planetscale
 
+      - run: pnpm run test
+        name: 'adapter-neon'
+        working-directory: packages/adapter-neon
+
+      - run: pnpm run test
+        name: 'adapter-pg'
+        working-directory: packages/adapter-pg
+
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/adapter-planetscale/src/__tests__/coverage/clover.xml
