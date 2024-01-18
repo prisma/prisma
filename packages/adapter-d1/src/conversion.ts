@@ -6,6 +6,8 @@ import {
 
 // const debug = Debug('prisma:driver-adapter:d1:conversion')
 
+export type Value = null | string | number | object
+
 export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnType[] {
   const columnTypes: (ColumnType | null)[] = []
 
