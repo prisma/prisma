@@ -1,4 +1,6 @@
-import { ReadonlyDeep } from 'ts-toolbelt/out/Object/Readonly'
+export type ReadonlyDeep<O> = {
+  +readonly [K in keyof O]: ReadonlyDeep<O[K]>
+}
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
