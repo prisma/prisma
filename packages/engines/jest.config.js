@@ -1,3 +1,12 @@
 module.exports = {
-  preset: '../../helpers/test/presets/default.js',
+  transform: {
+    '^.+\\.(m?j|t)s$': '@swc/jest',
+  },
+  transformIgnorePatterns: [],
+  testEnvironment: 'node',
+  collectCoverage: process.env.CI ? true : false,
+  coverageReporters: ['clover'],
+  coverageDirectory: 'src/__tests__/coverage',
+  testMatch: ['**/src/__tests__/**/*.test.ts'],
+  collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
 }
