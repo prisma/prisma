@@ -1,10 +1,17 @@
+import { TSClientOptions } from '../TSClient/TSClient'
+
 /**
  * Builds the necessary glue code to load the query engine wasm module.
  * @returns
  */
-export function buildGetQueryEngineWasmModule(wasm: boolean) {
-  if (wasm === false) {
-    return `config.getQueryEngineWasmModule = undefined`
+export function buildGetQueryEngineWasmModule(wasm: boolean, runtimeName: TSClientOptions['runtimeName']) {
+  if (runtimeName === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
+    return `config.getQueryEngineWasmModule = async () => {
+      const queryEngineWasmFilePath = require('path').join(config.dirname, 'query-engine.wasm')
+      const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
+    
+      return new WebAssembly.Module(queryEngineWasmFileBytes)
+    }`
   }
 
   // for cloudflare (workers) we need to use import in order to load wasm
@@ -21,11 +28,5 @@ export function buildGetQueryEngineWasmModule(wasm: boolean) {
 }`
   }
 
-  // by default just make it work on node.js by turning the file into a module
-  return `config.getQueryEngineWasmModule = async () => {
-  const queryEngineWasmFilePath = require('path').join(config.dirname, 'query-engine.wasm')
-  const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
-
-  return new WebAssembly.Module(queryEngineWasmFileBytes)
-}`
+  return `config.getQueryEngineWasmModule = undefined`
 }

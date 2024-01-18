@@ -80,6 +80,11 @@ export class LibraryEngine extends Engine<undefined> {
 
     if (TARGET_BUILD_TYPE === 'library') {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
+
+      // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
+      if (config.getQueryEngineWasmModule !== undefined) {
+        this.libraryLoader = libraryLoader ?? wasmLibraryLoader
+      }
     } else if (TARGET_BUILD_TYPE === 'wasm') {
       this.libraryLoader = libraryLoader ?? wasmLibraryLoader
     } else {

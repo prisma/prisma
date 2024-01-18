@@ -36,7 +36,7 @@ import { invalidImportWarning } from './utils/invalidImportWarning'
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** When generating the browser client */
-  runtimeName: string
+  runtimeName: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser'
   /** When generating the browser client */
   browser: boolean
   /** When generating via the Deno CLI */
@@ -152,7 +152,7 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
-${buildGetQueryEngineWasmModule(wasm)}
+${buildGetQueryEngineWasmModule(wasm, runtimeName)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeBase, runtimeName)}
 ${buildDebugInitialization(edge)}
