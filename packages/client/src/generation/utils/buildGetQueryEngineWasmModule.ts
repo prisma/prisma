@@ -4,8 +4,8 @@ import { TSClientOptions } from '../TSClient/TSClient'
  * Builds the necessary glue code to load the query engine wasm module.
  * @returns
  */
-export function buildGetQueryEngineWasmModule(wasm: boolean, runtimeName: TSClientOptions['runtimeName']) {
-  if (runtimeName === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
+export function buildGetQueryEngineWasmModule(wasm: boolean, runtimeNameJs: TSClientOptions['runtimeNameJs']) {
+  if (runtimeNameJs === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
     return `config.getQueryEngineWasmModule = async () => {
       const queryEngineWasmFilePath = require('path').join(config.dirname, 'query-engine.wasm')
       const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)

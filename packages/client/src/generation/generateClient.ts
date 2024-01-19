@@ -80,7 +80,7 @@ export async function buildClient({
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
-  const tsClientOptions: Omit<TSClientOptions, 'runtimeName'> = {
+  const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
     dmmf: getPrismaClientDMMF(dmmf),
     datasources,
     generator,
@@ -103,23 +103,26 @@ export async function buildClient({
 
   const scriptsDir = path.join(__dirname, `${testMode ? '../' : ''}../scripts`)
 
+  const nodeClientOptions = {
+    ...baseClientOptions,
+    runtimeNameJs: getNodeRuntimeName(clientEngineType),
+    runtimeNameTs: getNodeRuntimeName(clientEngineType),
+  }
+
   // we create a regular client that is fit for Node.js
-  const nodeClient = new TSClient({
-    ...tsClientOptions,
-    runtimeName: getNodeRuntimeName(clientEngineType),
-  })
+  const nodeClient = new TSClient(nodeClientOptions)
 
   const defaultClient = new TSClient({
-    ...tsClientOptions,
-    runtimeName: getNodeRuntimeName(clientEngineType),
+    ...nodeClientOptions,
     reusedTs: 'index',
     reusedJs: 'index',
   })
 
   // we create a client that is fit for edge runtimes
   const edgeClient = new TSClient({
-    ...tsClientOptions,
-    runtimeName: 'edge',
+    ...baseClientOptions,
+    runtimeNameJs: 'edge',
+    runtimeNameTs: 'library',
     reusedTs: 'default',
     edge: true,
   })
@@ -150,8 +153,7 @@ export async function buildClient({
     // `importWarning`. If the exports map works, `default` will be loaded.
     if (generator.isCustomOutput === true) {
       const nodeWarnTsClient = new TSClient({
-        ...tsClientOptions,
-        runtimeName: getNodeRuntimeName(clientEngineType),
+        ...nodeClientOptions,
         reusedTs: 'default',
         reusedJs: 'default',
         importWarning: true,
@@ -164,8 +166,9 @@ export async function buildClient({
     }
 
     const wasmClient = new TSClient({
-      ...tsClientOptions,
-      runtimeName: 'wasm',
+      ...baseClientOptions,
+      runtimeNameJs: 'wasm',
+      runtimeNameTs: 'library',
       reusedTs: 'default',
       edge: true,
       wasm: true,
@@ -180,17 +183,17 @@ export async function buildClient({
 
   if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
     // we create a client that is fit for edge runtimes
-    const denoEdgeTsClient = new TSClient({
-      ...tsClientOptions,
+    const denoEdgeClient = new TSClient({
+      ...baseClientOptions,
       runtimeBase: `../${runtimeBase}`,
-      runtimeName: 'edge-esm',
-      reusedTs: '../default',
+      runtimeNameJs: 'edge-esm',
+      runtimeNameTs: 'library.d.ts',
       deno: true,
       edge: true,
     })
 
-    fileMap['deno/edge.js'] = await JS(denoEdgeTsClient)
-    fileMap['deno/index.d.ts'] = await TS(denoEdgeTsClient)
+    fileMap['deno/edge.js'] = await JS(denoEdgeClient)
+    fileMap['deno/index.d.ts'] = await TS(denoEdgeClient)
     fileMap['deno/edge.ts'] = `
 import './polyfill.js'
 // @deno-types="./index.d.ts"

@@ -5,7 +5,7 @@ import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
   runtimeBase,
-  runtimeName,
+  runtimeNameJs,
   browser,
   clientVersion,
   engineVersion,
@@ -35,7 +35,7 @@ import {
   defineDmmfProperty,
   Public,
   detectRuntime,
-} from '${runtimeBase}/${runtimeName}.js'`
+} from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
 const {
@@ -44,7 +44,7 @@ const {
   makeStrictEnum,
   Public,
   detectRuntime,
-} = require('${runtimeBase}/${runtimeName}.js')
+} = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
 const {
@@ -68,7 +68,7 @@ const {
   defineDmmfProperty,
   Public,
   detectRuntime,
-} = require('${runtimeBase}/${runtimeName}.js')
+} = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
 
@@ -132,8 +132,8 @@ In case this error is unexpected for you, please report it in https://github.com
   return fnc
 }
 
-export const commonCodeTS = ({ runtimeBase, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeName}';
+export const commonCodeTS = ({ runtimeBase, runtimeNameTs, clientVersion, engineVersion }: TSClientOptions) => ({
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils

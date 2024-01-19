@@ -35,8 +35,10 @@ import { PrismaClientClass } from './PrismaClient'
 import { invalidImportWarning } from './utils/invalidImportWarning'
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
-  /** When generating the browser client */
-  runtimeName: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser'
+  /** More granular way to define JS runtime name */
+  runtimeNameJs: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | String
+  /** More granular way to define TS runtime name */
+  runtimeNameTs: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | String
   /** When generating the browser client */
   browser: boolean
   /** When generating via the Deno CLI */
@@ -71,7 +73,7 @@ export class TSClient implements Generatable {
       outputDir,
       schemaPath,
       runtimeBase,
-      runtimeName,
+      runtimeNameJs,
       datasources,
       deno,
       noEngine,
@@ -152,9 +154,9 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
-${buildGetQueryEngineWasmModule(wasm, runtimeName)}
+${buildGetQueryEngineWasmModule(wasm, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeBase, runtimeName)}
+${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
@@ -164,7 +166,7 @@ ${buildNFTAnnotations(edge || Boolean(noEngine), clientEngineType, binaryTargets
     return code
   }
   public toTS(): string {
-    const { reusedTs: reusedTs, importWarning } = this.options
+    const { reusedTs, importWarning } = this.options
 
     if (reusedTs && importWarning) {
       const topExports = ts.moduleExportFrom('*', `./${reusedTs}`)
@@ -219,7 +221,7 @@ ${buildNFTAnnotations(edge || Boolean(noEngine), clientEngineType, binaryTargets
       this.dmmf,
       this.options.datasources,
       this.options.outputDir,
-      this.options.runtimeName,
+      this.options.runtimeNameTs,
       this.options.browser,
       this.options.generator,
       path.dirname(this.options.schemaPath),
@@ -379,7 +381,7 @@ export const dmmf: runtime.BaseDMMF
   public toBrowserJS(): string {
     const code = `${commonCodeJS({
       ...this.options,
-      runtimeName: 'index-browser',
+      runtimeNameJs: 'index-browser',
       browser: true,
     })}
 /**
