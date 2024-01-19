@@ -476,8 +476,8 @@ importers:
         specifier: 1.20.0
         version: 1.20.0
       '@planetscale/database':
-        specifier: 1.13.0
-        version: 1.13.0
+        specifier: 1.14.0
+        version: 1.14.0
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
@@ -3181,11 +3181,6 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
-
-  /@planetscale/database@1.13.0:
-    resolution: {integrity: sha512-sb9tUoF+Po55o+3PRHZVeH8XzUIABKBKcnq6oBUa+p/2uau/E2EXhnUPXmkC/x7oB6ILBqmqTL6dPP5Dn6d6iA==}
-    engines: {node: '>=16'}
-    dev: true
 
   /@planetscale/database@1.14.0:
     resolution: {integrity: sha512-7BB+iH6EH4YJuDeVeEbxpo60BFz3wIXJNXCmBGl40eC4HStRMGZ1COxKfiuPcINWwwrJhAhI9AEI97AOZYT7JQ==}
