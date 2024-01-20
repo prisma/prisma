@@ -1,4 +1,4 @@
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
@@ -333,7 +333,18 @@ export class PrismaClientClass implements Generatable {
   private get jsDoc(): string {
     const { dmmf } = this
 
-    const example = dmmf.mappings.modelOperations[0]
+    let example: DMMF.ModelMapping
+
+    if (dmmf.mappings.modelOperations.length) {
+      example = dmmf.mappings.modelOperations[0]
+    } else {
+      // because generator modelss is empty we need to create a fake example
+      example = {
+        model: 'User',
+        plural: 'users',
+      }
+    }
+
     return `/**
  * ##  Prisma Client ʲˢ
  * 
@@ -341,8 +352,8 @@ export class PrismaClientClass implements Generatable {
  * @example
  * \`\`\`
  * const prisma = new PrismaClient()
- * // Fetch zero or more ${capitalize(example?.plural) ?? '`User`'}
- * const ${lowerCase(example?.plural) ?? 'user'} = await prisma.${lowerCase(example?.model) ?? 'user'}.findMany()
+ * // Fetch zero or more ${capitalize(example.plural)}
+ * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
  * \`\`\`
  *
  * 
