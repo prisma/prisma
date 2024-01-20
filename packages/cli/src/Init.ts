@@ -92,8 +92,6 @@ export const defaultURL = (provider: ConnectorType, port = defaultPort(provider)
       return `mysql://johndoe:randompassword@localhost:${port}/mydb`
     case 'sqlserver':
       return `sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
-    case 'jdbc:sqlserver':
-      return `jdbc:sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
     case 'mongodb':
       return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
     case 'sqlite':

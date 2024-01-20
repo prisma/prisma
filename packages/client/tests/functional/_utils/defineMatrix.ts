@@ -2,7 +2,7 @@ import { ClientEngineType } from '@prisma/internals'
 import { U } from 'ts-toolbelt'
 
 import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { ProviderFlavors, Providers, RelationModes } from './providers'
+import { AdapterProviders, Providers, RelationModes } from './providers'
 import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
@@ -24,7 +24,7 @@ type DefineMatrixOptions<MatrixT extends TestSuiteMatrix> = {
 type TestsFactoryFn<MatrixT extends TestSuiteMatrix> = (
   suiteConfig: MergedMatrixParams<MatrixT> & {
     provider: Providers
-    providerFlavor?: `${ProviderFlavors}`
+    driverAdapter?: `${AdapterProviders}`
     relationMode?: `${RelationModes}`
     engineType?: `${ClientEngineType}`
   },

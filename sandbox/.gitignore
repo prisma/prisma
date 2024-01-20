@@ -12,6 +12,8 @@
 !tracing/**
 !driver-adapters
 !driver-adapters/**
+!d1
+!d1/**
 
 # Ignore node_modules
 **/node_modules

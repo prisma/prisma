@@ -1,4 +1,4 @@
-import { ProviderFlavors } from '../../_utils/providers'
+import { AdapterProviders } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -10,9 +10,9 @@ declare let prisma: PrismaClient
  * Stored queries in variables for batched tx
  */
 testMatrix.setupTestSuite(
-  ({ providerFlavor, engineType }) => {
+  ({ driverAdapter, engineType }) => {
     // TODO planetscale cannot snapshot this error because the id cannot be hidden
-    testIf(engineType !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
+    testIf(engineType !== 'binary' && driverAdapter !== AdapterProviders.JS_PLANETSCALE)(
       'stored query triggered twice should fail but not exit process',
       async () => {
         const query = prisma.resource.create({
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
     )
 
     // TODO planetscale cannot snapshot this error because the id cannot be hidden
-    testIf(engineType !== 'binary' && providerFlavor !== ProviderFlavors.JS_PLANETSCALE)(
+    testIf(engineType !== 'binary' && driverAdapter !== AdapterProviders.JS_PLANETSCALE)(
       'stored query trigger .requestTransaction twice should fail',
       async () => {
         const query = prisma.resource.create({

@@ -23,7 +23,7 @@ export interface ResultSet {
 
   /**
    * The last ID of an `INSERT` statement, if any.
-   * This is required for `AUTO_INCREMENT` columns in MySQL and SQLite-flavoured databases.
+   * This is required for `AUTO_INCREMENT` columns in databases based on MySQL and SQLite.
    */
   lastInsertId?: string
 }

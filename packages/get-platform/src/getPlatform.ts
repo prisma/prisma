@@ -25,7 +25,7 @@ export type DistroInfo = {
   originalDistro?: string
 
   /**
-   * The family distro is the Linux distro name that is used to determine Linux flavors based on the same base distro, and likely using the same package manager.
+   * The family distro is the Linux distro name that is used to determine Linux families based on the same base distro, and likely using the same package manager.
    * E.g., both Ubuntu and Debian belong to the `debian` family of distros, and thus rely on the same package manager (`apt`).
    */
   familyDistro?: string
