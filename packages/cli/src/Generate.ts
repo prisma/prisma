@@ -49,11 +49,12 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-    -h, --help   Display this help message
-      --schema   Custom path to your Prisma schema
-       --watch   Watch the Prisma schema and rerun after a change
-   --generator   Generator to use (may be provided multiple times)
-   --no-engine   Generate a client for use with Accelerate only
+    -h, --help         Display this help message
+      --schema         Custom path to your Prisma schema
+       --watch         Watch the Prisma schema and rerun after a change
+   --generator         Generator to use (may be provided multiple times)
+   --no-engine         Generate a client for use with Accelerate only
+   --allow-no-models   Allow generating a client without models
 
 ${bold('Examples')}
 
@@ -107,6 +108,7 @@ ${bold('Examples')}
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
+      '--allow-no-models': Boolean,
     })
 
     const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL
@@ -152,6 +154,7 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
+        allowNoModules: Boolean(args['--allow-no-models']),
       })
 
       if (!generators || generators.length === 0) {

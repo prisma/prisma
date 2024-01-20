@@ -341,8 +341,8 @@ export class PrismaClientClass implements Generatable {
  * @example
  * \`\`\`
  * const prisma = new PrismaClient()
- * // Fetch zero or more ${capitalize(example.plural)}
- * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
+ * // Fetch zero or more ${capitalize(example?.plural) ?? '`User`'}
+ * const ${lowerCase(example?.plural) ?? 'user'} = await prisma.${lowerCase(example?.model) ?? 'user'}.findMany()
  * \`\`\`
  *
  * 
