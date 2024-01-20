@@ -91,7 +91,7 @@ export type GeneratorOptions = {
   binaryPaths?: BinaryPaths
   postinstall?: boolean
   noEngine?: boolean
-  allowNoModules?: boolean
+  allowNoModels?: boolean
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'

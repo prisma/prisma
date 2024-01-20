@@ -154,7 +154,7 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
-        allowNoModules: Boolean(args['--allow-no-models']),
+        allowNoModels: Boolean(args['--allow-no-models']),
       })
 
       if (!generators || generators.length === 0) {
