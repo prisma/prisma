@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.9.0-17.53daea5e19292fbbfc60d3a98b0b811dc848b829",
+    "@prisma/engines-version": "5.9.0-19.chore-update-napi-rs-to-latest-1ec47ad2e3265d5add9ceb21bb8a10b796d01c57",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
