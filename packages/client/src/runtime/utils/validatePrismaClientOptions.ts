@@ -65,6 +65,7 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     if (adapter === null) {
       return
     }
+
     if (adapter === undefined) {
       throw new PrismaClientConstructorValidationError(
         `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
@@ -192,6 +193,7 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, config
     }
     validators[key](value, config)
   }
+
   if (options.datasourceUrl && options.datasources) {
     throw new PrismaClientConstructorValidationError(
       'Can not use "datasourceUrl" and "datasources" options at the same time. Pick one of them',

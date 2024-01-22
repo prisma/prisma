@@ -85,7 +85,7 @@ export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
-  adapter?: DriverAdapter
+  adapter?: DriverAdapter | null
 
   /**
    * Overwrites the datasource url from your schema.prisma file

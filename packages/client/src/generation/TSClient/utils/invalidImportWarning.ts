@@ -20,4 +20,4 @@ export const invalidImportWarningTs = [
   'More information: https://pris.ly/d/custom-output',
 ]
 
-export const invalidImportWarningJs = invalidImportWarningTs.map((line) => line.replace('-----', '\n'))
+export const invalidImportWarningJs = invalidImportWarningTs.map((line) => line.replace('-----', '\\n'))

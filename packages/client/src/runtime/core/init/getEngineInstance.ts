@@ -1,4 +1,5 @@
 import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
+import { detectRuntime } from 'detect-runtime'
 
 import { GetPrismaClientConfig } from '../../getPrismaClient'
 import { BinaryEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
@@ -39,12 +40,26 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
 
   if (url?.startsWith('prisma://') || clientConfig.noEngine || TARGET_BUILD_TYPE === 'edge') {
     return new DataProxyEngine(engineConfig) // accelerate works on all builds
-  } else if (TARGET_BUILD_TYPE === 'wasm') {
+  } else if (engineConfig.adapter && TARGET_BUILD_TYPE === 'wasm') {
     return new LibraryEngine(engineConfig)
   } else if (engineType === ClientEngineType.Library && TARGET_BUILD_TYPE === 'library') {
     return new LibraryEngine(engineConfig)
   } else if (engineType === ClientEngineType.Binary && TARGET_BUILD_TYPE === 'binary') {
     return new BinaryEngine(engineConfig)
+  }
+
+  // if either accelerate or wasm library could not be used, we throw an error
+  if (TARGET_BUILD_TYPE === 'wasm') {
+    const message = [
+      `PrismaClient failed to initialize because it wasn't configured to run in this environment (${detectRuntime()}).`,
+      'In order to run Prisma Client in an edge runtime, you will need to configure one of the following options:',
+      '- Enable Driver Adapters: https://pris.ly/d/driver-adapters',
+      '- Enable Accelerate: https://pris.ly/d/accelerate',
+    ]
+
+    throw new PrismaClientValidationError(message.join('\n'), {
+      clientVersion: engineConfig.clientVersion,
+    })
   }
 
   throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`', {
