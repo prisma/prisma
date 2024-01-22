@@ -45,25 +45,13 @@ const browserBuildConfig: BuildOptions = {
   sourcemap: 'linked',
 }
 
-// we define the config for edge
-const edgeRuntimeBuildConfig: BuildOptions = {
-  name: 'edge',
+const commonEdgeWasmRuntimeBuildConfig: BuildOptions = {
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
-  outfile: 'runtime/edge',
   bundle: true,
   minify: true,
   sourcemap: 'linked',
-  legalComments: 'none',
   emitTypes: false,
-  define: {
-    // that helps us to tree-shake unused things out
-    NODE_CLIENT: 'false',
-    // tree shake the Library and Binary engines out
-    TARGET_BUILD_TYPE: '"edge"',
-    // that fixes an issue with lz-string umd builds
-    'define.amd': 'false',
-  },
   plugins: [
     fillPlugin({
       // we remove eval and Function for vercel
@@ -80,43 +68,39 @@ const edgeRuntimeBuildConfig: BuildOptions = {
       './warnEnvConflicts': { contents: '' },
     }),
   ],
+  define: {
+    // that helps us to tree-shake unused things out
+    NODE_CLIENT: 'false',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
+  },
   logLevel: 'error',
+  legalComments: 'none',
+}
+
+// we define the config for edge
+const edgeRuntimeBuildConfig: BuildOptions = {
+  ...commonEdgeWasmRuntimeBuildConfig,
+  name: 'edge',
+  outfile: 'runtime/edge',
+  define: {
+    ...commonEdgeWasmRuntimeBuildConfig.define,
+    // tree shake the Library and Binary engines out
+    TARGET_BUILD_TYPE: '"edge"',
+  },
 }
 
 // we define the config for wasm
 const wasmRuntimeBuildConfig: BuildOptions = {
+  ...commonEdgeWasmRuntimeBuildConfig,
   name: 'wasm',
-  target: 'ES2018',
-  entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/wasm',
-  bundle: true,
-  minify: true,
-  sourcemap: 'linked',
-  legalComments: 'none',
-  emitTypes: false,
   define: {
-    // that helps us to tree-shake unused things out
-    NODE_CLIENT: 'false',
-    // tree shake the Library and Binary engines out
+    ...commonEdgeWasmRuntimeBuildConfig.define,
     TARGET_BUILD_TYPE: '"wasm"',
-    // that fixes an issue with lz-string umd builds
-    'define.amd': 'false',
   },
   plugins: [
-    fillPlugin({
-      // we remove eval and Function for vercel
-      eval: { define: 'undefined' },
-      Function: {
-        define: 'fn',
-        globals: functionPolyfillPath,
-      },
-      // we shim WeakRef, it does not exist on CF
-      WeakRef: {
-        globals: weakrefPolyfillPath,
-      },
-      // these can not be exported anymore
-      './warnEnvConflicts': { contents: '' },
-    }),
+    ...commonEdgeWasmRuntimeBuildConfig.plugins!,
     copyFilePlugin([
       {
         from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
@@ -124,7 +108,6 @@ const wasmRuntimeBuildConfig: BuildOptions = {
       },
     ]),
   ],
-  logLevel: 'error',
 }
 
 // we define the config for edge in esm format (used by deno)
