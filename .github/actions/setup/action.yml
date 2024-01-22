@@ -35,27 +35,6 @@ runs:
         # The NPM_TOKEN secret needs to be defined in the job
         registry-url: 'https://registry.npmjs.org'
 
-    - name: Check runner
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const os = require('os')
-
-          const availableParallelism = typeof os.availableParallelism === 'function' ? os.availableParallelism() : 'unknown'
-          console.log('availableParallelism', availableParallelism)
-
-          const cpus = os.cpus().length
-          console.log('cpus', cpus)
-
-          const totalmem = os.totalmem()
-          console.log('totalmem', totalmem)
-
-          const freemem = os.freemem()
-          console.log('freemem', freemem)
-
-          const hostname = os.hostname()
-          console.log('hostname', hostname)
-
     - run: pnpm install
       shell: bash
 
