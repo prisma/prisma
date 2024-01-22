@@ -60,7 +60,7 @@ export default {
 				// id: 1,
 				text: "Test name",
 				boolean: true,
-				blob: new Uint8Array([1, 2, 3]),
+				blob: new Uint8Array([1, 2, 3]) as Buffer,
 				int: 9,
 				real: 9.9,
 			}
