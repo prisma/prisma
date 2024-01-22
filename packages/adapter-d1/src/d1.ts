@@ -93,8 +93,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const tag = '[js::execute_raw]'
     // console.debug(`${tag} %O`, query)
 
-    // TODO: rows_written or changes? Only rows_written is documented.
-    return (await this.performIO(query)).map(({ meta }) => meta.changes ?? 0)
+    return (await this.performIO(query)).map(({ meta }) => meta.rows_written ?? 0)
   }
 
   private async performIO(query: Query): Promise<Result<PerformIOResult>> {
