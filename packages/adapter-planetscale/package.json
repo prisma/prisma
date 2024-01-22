@@ -46,6 +46,6 @@
     "jest-junit": "16.0.0"
   },
   "peerDependencies": {
-    "@planetscale/database": "^1.11.0"
+    "@planetscale/database": "^1.14.0"
   }
 }
