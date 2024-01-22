@@ -6,6 +6,7 @@ This is a playground for testing the Prisma Client with the D1 Driver Adapter.
 
 ```bash
 npm i
+npx wrangler d1 execute MY_DATABASE --local --file=./sql/schema.sql
 npm run start
 
 # type b to open the browser
