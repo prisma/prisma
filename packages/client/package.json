@@ -57,7 +57,7 @@
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
-    "new-test": "NODE_OPTIONS='-r esbuild-register' yo ./helpers/generator-test/index.ts"
+    "new-test": "node -r esbuild-register ./helpers/new-test/new-test.ts"
   },
   "files": [
     "README.md",
@@ -74,9 +74,10 @@
     "extension.d.ts"
   ],
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "2.3.1",
+    "@codspeed/benchmark.js-plugin": "3.0.0",
     "@faker-js/faker": "8.3.1",
     "@fast-check/jest": "1.8.0",
+    "@inquirer/prompts": "3.3.0",
     "@jest/create-cache-key-function": "29.7.0",
     "@jest/globals": "29.7.0",
     "@jest/test-sequencer": "29.7.0",
@@ -118,7 +119,6 @@
     "@types/node": "18.18.13",
     "@types/node-fetch": "2.6.9",
     "@types/pg": "8.10.9",
-    "@types/yeoman-generator": "5.2.14",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "ci-info": "4.0.0",
@@ -164,8 +164,6 @@
     "tsd": "0.29.0",
     "typescript": "5.2.2",
     "undici": "5.28.1",
-    "yeoman-generator": "5.10.0",
-    "yo": "5.0.0",
     "zx": "7.2.3"
   },
   "peerDependencies": {
