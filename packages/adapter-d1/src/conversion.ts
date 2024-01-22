@@ -28,20 +28,21 @@ export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnTyp
   return columnTypes as ColumnType[]
 }
 
-// JavaScript	D1
-// null	NULL
-// Number	REAL
-// Number 1	INTEGER
-// String	TEXT
-// Boolean 2	INTEGER
-// ArrayBuffer	BLOB
-// undefined	Not supported. Queries with undefined values will return a D1_TYPE_ERROR
-//
-// 1 D1 supports 64-bit signed INTEGER values internally, however BigInts
-// are not currently supported in the API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER
-//
-// 2 Booleans will be cast to an INTEGER type where 1 is TRUE and 0 is FALSE.
-
+/**
+ * Default mapping between JS and D1 types.
+ * | JavaScript       | D1           |
+ * | :--------------: | :---------:  |
+ * | null             | NULL         |
+ * | Number           | REAL         |
+ * | Number¹          | INTEGER      |
+ * | null             | TEXT         |
+ * | Boolean²         | INTEGER      |
+ * | ArrayBuffer      | BLOB         |
+ *
+ * ¹ - D1 supports 64-bit signed INTEGER values internally, however BigInts are not currently supported in the API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER.
+ *
+ * ² - Booleans will be cast to an INTEGER type where 1 is TRUE and 0 is FALSE.
+ */
 function inferColumnType(value: NonNullable<Value>): ColumnType {
   switch (typeof value) {
     case 'string':
@@ -75,48 +76,40 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-// TODO
-// export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
-//   // `Row` doesn't have map, so we copy the array once and modify it in-place
-//   // to avoid allocating and copying twice if we used `Array.from(row).map(...)`.
-//   const result: unknown[] = Array.from(row)
+// TODO(@druue) This currently mimics mapD1ToRows without the extra type functionality.
+// TODO(@druue) next step is to implement further types.
+export function mapRow(obj: Object, _columnTypes: ColumnType[]): unknown[] {
+  const result: unknown[] = Object.keys(obj).map((k) => obj[k])
 
-//   for (let i = 0; i < result.length; i++) {
-//     const value = result[i]
+  console.log(result)
 
-//     // Convert array buffers to arrays of bytes.
-//     // Base64 would've been more efficient but would collide with the existing
-//     // logic that treats string values of type Bytes as raw UTF-8 bytes that was
-//     // implemented for other adapters.
-//     if (value instanceof ArrayBuffer) {
-//       result[i] = Array.from(new Uint8Array(value))
-//       continue
-//     }
+  // for (let i = 0; i < result.length; i++) {
+  //   const value = result[i]
 
-//     // If an integer is required and the current number isn't one,
-//     // discard the fractional part.
-//     if (
-//       typeof value === 'number' &&
-//       (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64) &&
-//       !Number.isInteger(value)
-//     ) {
-//       result[i] = Math.trunc(value)
-//       continue
-//     }
+  //   if (value instanceof ArrayBuffer) {
+  //     result[i] = Array.from(new Uint8Array(value))
+  //     continue
+  //   }
 
-//     // Decode DateTime values saved as numeric timestamps which is the
-//     // format used by the native quaint sqlite connector.
-//     if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
-//       result[i] = new Date(Number(value)).toISOString()
-//       continue
-//     }
+  //   if (
+  //     typeof value === 'number' &&
+  //     (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64) &&
+  //     !Number.isInteger(value)
+  //   ) {
+  //     result[i] = Math.trunc(value)
+  //     continue
+  //   }
 
-//     // Convert bigint to string as we can only use JSON-encodable types here.
-//     if (typeof value === 'bigint') {
-//       result[i] = value.toString()
-//       continue
-//     }
-//   }
+  //   if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
+  //     result[i] = new Date(Number(value)).toISOString()
+  //     continue
+  //   }
 
-//   return result
-// }
+  //   if (typeof value === 'bigint') {
+  //     result[i] = value.toString()
+  //     continue
+  //   }
+  // }
+
+  return result
+}

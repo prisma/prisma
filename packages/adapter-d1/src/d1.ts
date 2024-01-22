@@ -13,7 +13,7 @@ import {
 } from '@prisma/driver-adapter-utils'
 
 // import { Mutex } from 'async-mutex'
-import { getColumnTypes } from './conversion'
+import { getColumnTypes, mapRow } from './conversion'
 
 // TODO? Env var works differently in D1 so `debug` does not work.
 // const debug = Debug('prisma:driver-adapter:d1')
@@ -61,26 +61,21 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const results = ioResult.results as Object[]
     const columnNames = Object.keys(results[0])
     const columnTypes = getColumnTypes(columnNames, results)
-    const rows = this.mapD1ToRows(results)
+
+    console.log('---- RESULTS ----')
+    console.log(results)
+    console.log('---- ROWS ----')
+    const rows = ioResult.results.map((value) => mapRow(value as Object, []))
 
     return {
       columnNames,
-      // Note: without Object.values the array looks like
-      // columnTypes: [ id: 128 ],
-      // and errors with:
-      // ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
+      // * Note: without Object.values the array looks like
+      // * columnTypes: [ id: 128 ],
+      // * and errors with:
+      // * ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
       columnTypes: Object.values(columnTypes),
       rows,
     }
-  }
-
-  private mapD1ToRows(results: any) {
-    const rows: unknown[][] = []
-    for (const row of results) {
-      const entry = Object.keys(row).map((k) => row[k])
-      rows.push(entry)
-    }
-    return rows
   }
 
   /**
@@ -101,8 +96,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     // console.debug({ query })
 
     try {
-      // Hack for
-      // ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
+      // * Hack for
+      // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
       query.args = query.args.map((arg) => {
         if (arg === true) {
           return 1

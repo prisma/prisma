@@ -16,6 +16,7 @@ model Customers {
   contactName String?
 }
 
+/// Testing with D1 types
 model Test {
   id      Int     @id @default(autoincrement())
   text    String?
@@ -23,4 +24,11 @@ model Test {
   int     Int?
   boolean Boolean
   blob    Bytes?
+}
+
+/// Testing with non-default D1 types
+model PrismaTest {
+  id     Int      @id @default(autoincrement())
+  date   DateTime
+  bigint BigInt
 }
