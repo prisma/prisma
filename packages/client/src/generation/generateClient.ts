@@ -18,7 +18,7 @@ import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
 import type { Dictionary } from './utils/common'
 
-const GENERATED_PACKAGE_NAME = '.prisma/client'
+const GENERATED_PACKAGE_NAME = 'prisma-client'
 const debug = Debug('prisma:client:generateClient')
 
 type OutputDeclaration = {
@@ -134,6 +134,7 @@ export async function buildClient({
     browser: 'index-browser.js',
     exports: clientPackageExports,
     sideEffects: false,
+    private: true,
   }
 
   // we store the generated contents here
