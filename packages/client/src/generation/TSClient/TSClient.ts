@@ -32,7 +32,7 @@ import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
-import { invalidImportWarning } from './utils/invalidImportWarning'
+import { invalidImportWarningJs, invalidImportWarningTs } from './utils/invalidImportWarning'
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
@@ -83,7 +83,7 @@ export class TSClient implements Generatable {
 
     if (reusedJs && importWarning) {
       const topExports = `module.exports = { ...require('./${reusedJs}.js') }`
-      const warning = `console.warn('${invalidImportWarning.join('\\n')}')`
+      const warning = `console.warn('${invalidImportWarningJs.join('\\n')}')`
 
       return `${[topExports, warning].join('\n\n')}`
     }
@@ -174,7 +174,7 @@ ${buildNFTAnnotations(edge || Boolean(noEngine), clientEngineType, binaryTargets
       const prismaClientClass = ts.classDeclaration('PrismaClient')
 
       const deprecationComment = ts.docComment(`@deprecated`)
-      deprecationComment.addText(invalidImportWarning.join('\n\n'))
+      deprecationComment.addText(invalidImportWarningTs.join('\n'))
 
       const prismaClientClassGenericParams = ts.genericParameter('T')
       prismaClientClassGenericParams.extends(ts.namedType('Prisma.PrismaClientOptions'))
