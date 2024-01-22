@@ -6,41 +6,35 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter }, suiteMeta, { dataProxy }) => {
-    testIf(dataProxy === false && !driverAdapter)(
-      'using accelerate without --no-engine produces a warning at runtime',
-      () => {
-        process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
-        const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
+  ({ provider }, suiteMeta, { dataProxy }) => {
+    testIf(dataProxy === false)('using accelerate without --no-engine produces a warning at runtime', () => {
+      process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
+      const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
 
-        newPrismaClient()
+      newPrismaClient()
 
-        // should only warn once
-        newPrismaClient()
+      // should only warn once
+      newPrismaClient()
 
-        expect(consoleWarnMock).toHaveBeenCalledTimes(1)
-        expect(consoleWarnMock.mock.calls[0]).toMatchInlineSnapshot(`
+      expect(consoleWarnMock).toHaveBeenCalledTimes(1)
+      expect(consoleWarnMock.mock.calls[0]).toMatchInlineSnapshot(`
         [
           prisma:warn In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`),
         ]
       `)
 
-        consoleWarnMock.mockRestore()
-      },
-    )
+      consoleWarnMock.mockRestore()
+    })
 
-    testIf(dataProxy === true && !driverAdapter)(
-      'using accelerate with --no-engine produces no warning at runtime',
-      () => {
-        process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
-        const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
+    testIf(dataProxy === true)('using accelerate with --no-engine produces no warning at runtime', () => {
+      process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
+      const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
 
-        newPrismaClient()
+      newPrismaClient()
 
-        expect(consoleWarnMock).toHaveBeenCalledTimes(0)
-        consoleWarnMock.mockRestore()
-      },
-    )
+      expect(consoleWarnMock).toHaveBeenCalledTimes(0)
+      consoleWarnMock.mockRestore()
+    })
   },
   {
     optOut: {
@@ -48,5 +42,8 @@ testMatrix.setupTestSuite(
       reason: 'warnOnce can only be tested one time per process',
     },
     skipDefaultClientInstance: true,
+    skip(when, { driverAdapter }) {
+      when(driverAdapter !== undefined, 'Driver adapters cannot be used with accelerate')
+    },
   },
 )
