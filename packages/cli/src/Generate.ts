@@ -218,6 +218,7 @@ Please run \`prisma generate\` manually.`
       )
       let hint = ''
       if (prismaClientJSGenerator) {
+        const agentPathPrefix = (await getPackageCmd(cwd, 'agent')) !== 'npm' ? 'link:' : ''
         const generator = prismaClientJSGenerator.options?.generator
         const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
         if (isDeno && !generator?.isCustomOutput) {
@@ -297,7 +298,7 @@ Prisma Client has been generated to a custom path:
 ${bold('1. Make it a dependency of your project')}
 ${dim('```')}
 ${grey(`# adapt this relative path if needed`)}
-${bold(blue(await getPackageCmd(cwd, 'add', `db@${importPath}`)))}
+${bold(blue(await getPackageCmd(cwd, 'add', `db@${agentPathPrefix}${importPath}`)))}
 ${dim('```')}
 
 More information: https://pris.ly/d/custom-output
