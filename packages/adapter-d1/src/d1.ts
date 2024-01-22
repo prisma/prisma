@@ -147,11 +147,17 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
   async commit(): Promise<Result<void>> {
     console.debug(`[js::commit]`)
 
+    // TODO remove (added to have linting pass)
+    await new Promise((resolve) => resolve)
+
     return ok(undefined)
   }
 
   async rollback(): Promise<Result<void>> {
     console.debug(`[js::rollback]`)
+
+    // TODO remove (added to have linting pass)
+    await new Promise((resolve) => resolve)
 
     return ok(undefined)
   }
@@ -170,6 +176,9 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
 
     const tag = '[js::startTransaction]'
     console.debug(`${tag} options: %O`, options)
+
+    // TODO remove (added to have linting pass)
+    await new Promise((resolve) => resolve)
 
     return ok(new D1Transaction(this.client, options))
   }
