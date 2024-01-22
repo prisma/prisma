@@ -65,7 +65,7 @@ runs:
 
     - name: Download custom engines
       id: custom-engine
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       with:
         key: ${{ runner.os }}-engine-${{ inputs.engine-hash }}-${{ github.event.number }}
         path: |
