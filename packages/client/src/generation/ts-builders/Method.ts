@@ -47,7 +47,11 @@ export class Method implements BasicBuilder {
     if (this.parameters.length > 0) {
       writer.writeJoined(', ', this.parameters)
     }
-    writer.write(')').write(': ').write(this.returnType)
+    writer.write(')')
+
+    if (this.name !== 'constructor') {
+      writer.write(': ').write(this.returnType)
+    }
   }
 }
 

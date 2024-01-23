@@ -132,6 +132,10 @@
       "gzip": false
     },
     {
+      "path": "packages/client/runtime/wasm.js",
+      "gzip": false
+    },
+    {
       "path": "packages/client/runtime/index-browser.js",
       "gzip": false
     },

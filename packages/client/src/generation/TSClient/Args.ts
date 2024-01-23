@@ -12,7 +12,7 @@ export class ArgsType implements Generatable {
   private generatedName: string | null = null
   private comment: string | null = null
   constructor(
-    protected readonly args: DMMF.SchemaArg[],
+    protected readonly args: readonly DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
     protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
@@ -30,9 +30,10 @@ export class ArgsType implements Generatable {
   public toTS(): string {
     const { action, args } = this
     const { name } = this.type
-    for (const arg of args) {
-      arg.comment = getArgFieldJSDoc(this.type, action, arg)
-    }
+
+    const updatedArgs = args.map((arg) => {
+      return { ...arg, comment: getArgFieldJSDoc(this.type, action, arg) }
+    })
 
     const selectName = getSelectName(name)
 
@@ -81,7 +82,7 @@ export class ArgsType implements Generatable {
       })
     }
 
-    argsToGenerate.push(...args)
+    argsToGenerate.push(...updatedArgs)
     if (!action && !this.generatedName) {
       this.context.defaultArgsAliases.addPossibleAlias(getModelArgName(name), getLegacyModelArgName(name))
     }
@@ -105,7 +106,7 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, this.context.genericArg
 
 export class MinimalArgsType implements Generatable {
   constructor(
-    protected readonly args: DMMF.SchemaArg[],
+    protected readonly args: readonly DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
     protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
@@ -115,9 +116,9 @@ export class MinimalArgsType implements Generatable {
     const { action, args } = this
     const { name } = this.type
 
-    for (const arg of args) {
-      arg.comment = getArgFieldJSDoc(this.type, action, arg)
-    }
+    const updatedArgs = args.map((arg) => {
+      return { ...arg, comment: getArgFieldJSDoc(this.type, action, arg) }
+    })
 
     if (!action && !this.generatedTypeName) {
       this.context.defaultArgsAliases.addPossibleAlias(getModelArgName(name), getLegacyModelArgName(name))
@@ -130,7 +131,7 @@ export class MinimalArgsType implements Generatable {
  */
 export type ${typeName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
 ${indent(
-  args
+  updatedArgs
     .map((arg) => {
       return new InputField(arg, this.context.genericArgsInfo).toTS()
     })
