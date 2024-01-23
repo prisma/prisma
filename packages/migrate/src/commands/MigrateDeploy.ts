@@ -104,9 +104,13 @@ ${bold('Examples')}
     if (migrationIds.length === 0) {
       return green(`No pending migrations to apply.`)
     } else {
-      return `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
-        'migration.sql': '',
-      })}
+      return `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
+        'migrations',
+        migrationIds,
+        {
+          'migration.sql': '',
+        },
+      )}
       
 ${green('All migrations have been successfully applied.')}`
     }

@@ -4,8 +4,8 @@ import { TAB_SIZE } from './constants'
 import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
-  runtimeDir,
-  runtimeName,
+  runtimeBase,
+  runtimeNameJs,
   browser,
   clientVersion,
   engineVersion,
@@ -35,7 +35,7 @@ import {
   defineDmmfProperty,
   Public,
   detectRuntime,
-} from '${runtimeDir}/edge-esm.js'`
+} from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
 const {
@@ -44,7 +44,7 @@ const {
   makeStrictEnum,
   Public,
   detectRuntime,
-} = require('${runtimeDir}/${runtimeName}')
+} = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
 const {
@@ -68,7 +68,7 @@ const {
   defineDmmfProperty,
   Public,
   detectRuntime,
-} = require('${runtimeDir}/${runtimeName}')
+} = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
 
@@ -132,8 +132,8 @@ In case this error is unexpected for you, please report it in https://github.com
   return fnc
 }
 
-export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
+export const commonCodeTS = ({ runtimeBase, runtimeNameTs, clientVersion, engineVersion }: TSClientOptions) => ({
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils

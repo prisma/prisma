@@ -19,6 +19,7 @@ import { runtimeImport } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
+import { TSClientOptions } from './TSClient'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(this: PrismaClientClass) {
@@ -306,8 +307,8 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function eventRegistrationMethodDeclaration(runtimeName: string) {
-  if (runtimeName === 'binary') {
+function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
+  if (runtimeNameTs === 'binary') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;`
   } else {
     return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
@@ -323,7 +324,7 @@ export class PrismaClientClass implements Generatable {
     protected readonly dmmf: DMMFHelper,
     protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
-    protected readonly runtimeName: string,
+    protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
     protected readonly cwd?: string,
@@ -362,7 +363,7 @@ export class PrismaClient<
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  ${eventRegistrationMethodDeclaration(this.runtimeName)}
+  ${eventRegistrationMethodDeclaration(this.runtimeNameTs)}
 
   /**
    * Connect with the database
@@ -545,7 +546,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           `),
       )
 
-    if (this.runtimeName === 'library' && this.generator?.previewFeatures.includes('driverAdapters')) {
+    if (this.runtimeNameTs === 'library' && this.generator?.previewFeatures.includes('driverAdapters')) {
       clientOptions.add(
         ts
           .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))
