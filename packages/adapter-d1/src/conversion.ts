@@ -17,6 +17,10 @@ export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnTyp
       const candidateValue = rows[rowIndex][columnIndex]
       if (candidateValue !== null) {
         columnTypes[columnIndex] = inferColumnType(candidateValue)
+
+        console.log(candidateValue)
+        console.log(columnTypes[columnIndex])
+
         continue columnLoop
       }
     }
@@ -46,13 +50,13 @@ export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnTyp
 function inferColumnType(value: NonNullable<Value>): ColumnType {
   switch (typeof value) {
     case 'string':
-      return ColumnTypeEnum.Text
+      return inferStringType(value)
     // case 'bigint':
     //   return ColumnTypeEnum.Int64
     // case 'boolean':
     //   return ColumnTypeEnum.Boolean
     case 'number':
-      return ColumnTypeEnum.UnknownNumber
+      return inferNumberType(value)
     case 'object':
       return inferObjectType(value)
     default:
@@ -60,7 +64,27 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
   }
 }
 
-function inferObjectType(value: {}): ColumnType {
+function inferStringType(value: string): ColumnType {
+  if (!(value.indexOf('.') == -1)) {
+    return ColumnTypeEnum.Double
+  }
+
+  if (new Date(value).getTime() > 0) {
+    return ColumnTypeEnum.DateTime
+  }
+
+  return ColumnTypeEnum.Text
+}
+
+function inferNumberType(value: number): ColumnType {
+  if (value % 1 !== 0) {
+    return ColumnTypeEnum.Float
+  }
+
+  return ColumnTypeEnum.UnknownNumber
+}
+
+function inferObjectType(value: Object): ColumnType {
   if (value instanceof Array) {
     return ColumnTypeEnum.Bytes
   }
@@ -78,38 +102,44 @@ class UnexpectedTypeError extends Error {
 
 // TODO(@druue) This currently mimics mapD1ToRows without the extra type functionality.
 // TODO(@druue) next step is to implement further types.
-export function mapRow(obj: Object, _columnTypes: ColumnType[]): unknown[] {
+export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
   const result: unknown[] = Object.keys(obj).map((k) => obj[k])
 
-  console.log(result)
+  // console.log(result)
+  // console.log(columnTypes)
 
-  // for (let i = 0; i < result.length; i++) {
-  //   const value = result[i]
+  for (let i = 0; i < result.length; i++) {
+    const value = result[i]
 
-  //   if (value instanceof ArrayBuffer) {
-  //     result[i] = Array.from(new Uint8Array(value))
-  //     continue
-  //   }
+    if (value instanceof ArrayBuffer) {
+      result[i] = Array.from(new Uint8Array(value))
+      continue
+    }
 
-  //   if (
-  //     typeof value === 'number' &&
-  //     (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64) &&
-  //     !Number.isInteger(value)
-  //   ) {
-  //     result[i] = Math.trunc(value)
-  //     continue
-  //   }
+    if (
+      typeof value === 'number' &&
+      (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64) &&
+      !Number.isInteger(value)
+    ) {
+      result[i] = Math.trunc(value)
+      continue
+    }
 
-  //   if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
-  //     result[i] = new Date(Number(value)).toISOString()
-  //     continue
-  //   }
+    // if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
+    //   result[i] = new Date(Number(value)).toISOString()
+    //   continue
+    // }
 
-  //   if (typeof value === 'bigint') {
-  //     result[i] = value.toString()
-  //     continue
-  //   }
-  // }
+    // if (typeof value === 'bigint') {
+    //   result[i] = value.toString()
+    //   continue
+    // }
+
+    if (typeof value === 'string' && columnTypes[i] === ColumnTypeEnum.Double) {
+      result[i] = Number.parseFloat(value)
+      continue
+    }
+  }
 
   return result
 }

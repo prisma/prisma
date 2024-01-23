@@ -60,12 +60,12 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 
     const results = ioResult.results as Object[]
     const columnNames = Object.keys(results[0])
-    const columnTypes = getColumnTypes(columnNames, results)
+    const columnTypes = Object.values(getColumnTypes(columnNames, results))
 
-    console.log('---- RESULTS ----')
-    console.log(results)
-    console.log('---- ROWS ----')
-    const rows = ioResult.results.map((value) => mapRow(value as Object, []))
+    // console.log('---- RESULTS ----')
+    // console.log(results)
+    // console.log('---- ROWS ----')
+    const rows = ioResult.results.map((value) => mapRow(value as Object, columnTypes))
 
     return {
       columnNames,
@@ -73,7 +73,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       // * columnTypes: [ id: 128 ],
       // * and errors with:
       // * ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
-      columnTypes: Object.values(columnTypes),
+      columnTypes,
       rows,
     }
   }
@@ -98,14 +98,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     try {
       // * Hack for
       // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
-      query.args = query.args.map((arg) => {
-        if (arg === true) {
-          return 1
-        } else if (arg === false) {
-          return 0
-        }
-        return arg
-      })
+      query.args = query.args.map((arg) => this.cleanArg(arg))
 
       const result = await this.client
         .prepare(query.sql)
@@ -131,6 +124,32 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     } finally {
       // release()
     }
+  }
+
+  cleanArg(arg: unknown): unknown {
+    if (arg === true) {
+      return 1
+    } else if (arg === false) {
+      return 0
+    }
+
+    // ? Question of correctness:
+    // ? I'm not entirely sure what we want to do here,
+    // ? if we just check for typeof bigint or no
+    // ? D1 API can technically handle `i64` ints
+    // ? i.e. ""bigints"" but not _actual_ `bigint`
+    // --
+    // ? In the case that we do want to explicitly discriminate against bigint values,
+    // ? How do we want to deal with that? :thinking:
+    const isGoodBigint = typeof arg === 'bigint' // ? && arg <= Number.MAX_SAFE_INTEGER
+    // console.log(isGoodBigint)
+    // console.log(arg)
+
+    if (isGoodBigint) {
+      return Number(arg)
+    }
+
+    return arg
   }
 }
 
