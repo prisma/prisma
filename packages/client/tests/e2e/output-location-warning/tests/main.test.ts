@@ -3,7 +3,7 @@ import path from 'path'
 import { $ } from 'zx'
 
 const WARNING_GENERATE = 'Make it a dependency of your project'
-const WARNING_IMPORT = 'Add your client as a `db` dependency to `package.json` and import it as a dependency instead'
+const WARNING_IMPORT = 'Once you know where your client is located, add your own client as a dependency.'
 
 const src = path.resolve(__dirname, '../src')
 
