@@ -8,7 +8,7 @@
     "start": "wrangler dev",
     "start-proxy": "wrangler dev node_modules/wrangler-proxy/dist/worker.js",
     "test": "tsx src/proxy.ts",
-    "execute": "npx wrangler d1 execute MY_DATABASE --local"
+    "execute": "npx wrangler d1 execute MY_DATABASE --local --file=./sql/schema.sql"
   },
   "dependencies": {
     "@prisma/adapter-d1": "../../packages/adapter-d1",
