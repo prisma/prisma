@@ -141,7 +141,7 @@ export async function setupTestSuiteDatabase(
         if (table.name === '_cf_KV' || table.name === 'sqlite_schema') {
           continue
         }
-        console.log(await client.$executeRawUnsafe(`DROP TABLE ${table.name};`))
+        await client.$executeRawUnsafe(`DROP TABLE ${table.name};`)
       }
 
       // Use `migrate diff` to get the DDL statements
