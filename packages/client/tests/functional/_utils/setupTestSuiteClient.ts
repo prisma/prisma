@@ -112,6 +112,7 @@ export function setupTestSuiteClientDriverAdapter({
         const queryEngineWasmFilePath = path.join(runtimeBase, 'query-engine.wasm')
         const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
+        // @ts-expect-error (2511) - Cannot create an instance of an abstract class.
         return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
       },
     }
