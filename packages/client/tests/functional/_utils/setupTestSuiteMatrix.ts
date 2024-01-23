@@ -12,7 +12,6 @@ import {
   getTestSuiteMeta,
 } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { AdapterProviders } from './providers'
 import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
@@ -99,6 +98,8 @@ function setupTestSuiteMatrix(
           suiteConfig,
           datasourceInfo,
           clientMeta,
+          skipDb: options?.skipDb,
+          alterStatementCallback: options?.alterStatementCallback,
         })
 
         const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
@@ -122,22 +123,8 @@ function setupTestSuiteMatrix(
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
 
         globalThis['db'] = {
-          setupDb: () =>
-            setupTestSuiteDatabase(
-              suiteMeta,
-              suiteConfig,
-              [],
-              options?.alterStatementCallback,
-              suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1
-                ? (globalThis['newPrismaClient']({ ...newDriverAdapter() }) as Client)
-                : undefined,
-            ),
+          setupDb: () => setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback),
           dropDb: () => dropTestSuiteDatabase(suiteMeta, suiteConfig).catch(() => {}),
-        }
-
-        // Setup database
-        if (options?.skipDb !== true) {
-          await globalThis['db'].setupDb()
         }
       })
 

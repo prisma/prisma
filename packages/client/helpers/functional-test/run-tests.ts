@@ -181,7 +181,7 @@ async function main(): Promise<number | void> {
         ],
         {
           preferLocal: true,
-          stdio: 'inherit',
+          // stdio: 'inherit',
           env: {
             DEBUG: process.env.DEBUG,
           },

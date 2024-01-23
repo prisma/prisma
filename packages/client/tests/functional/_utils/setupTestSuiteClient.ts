@@ -13,9 +13,9 @@ import {
   getTestSuiteSchemaPath,
 } from './getTestSuiteInfo'
 import { AdapterProviders } from './providers'
-import { DatasourceInfo, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
+import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, ClientRuntime, CliMeta } from './types'
+import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
 
 const runtimeBase = path.join(__dirname, '..', '..', '..', 'runtime')
 
@@ -31,12 +31,16 @@ export async function setupTestSuiteClient({
   suiteConfig,
   datasourceInfo,
   clientMeta,
+  skipDb,
+  alterStatementCallback,
 }: {
   cliMeta: CliMeta
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
+  skipDb?: boolean
+  alterStatementCallback?: AlterStatementCallback
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const schema = getTestSuiteSchema(cliMeta, suiteMeta, suiteConfig.matrixOptions)
@@ -50,6 +54,10 @@ export async function setupTestSuiteClient({
 
   process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
   process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
+
+  if (skipDb !== true) {
+    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
+  }
 
   if (clientMeta.dataProxy === true) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl

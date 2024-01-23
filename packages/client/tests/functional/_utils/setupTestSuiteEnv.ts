@@ -115,33 +115,28 @@ export async function setupTestSuiteDatabase(
   suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
   alterStatementCallback?: AlterStatementCallback,
-  client?: Client,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+  const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
+  let d1Client: D1Database
 
   try {
-    const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    const dbPushParams = ['--schema', schemaPath, '--skip-generate']
-
-    // we reuse and clean the db when it is explicitly required
-    if (process.env.TEST_REUSE_DATABASE === 'true') {
-      dbPushParams.push('--force-reset')
-    }
-
     // The Schema Engine does not know how to use a Driver Adapter at the moment
     // So we cannot use `db push` for D1
     if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
-      if (!client) {
-        throw new Error('Client must be provided to `setupTestSuiteDatabase` when using D1 adapter')
-      }
+      const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
+
+      // Note: default hostname is `http://127.0.0.1:8787`
+      // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
+      d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
 
       // Delete existing tables
-      const existingTables = await client.$queryRaw`PRAGMA main.table_list;`
-      for (const table of existingTables as Record<string, unknown>[]) {
+      const existingTables = (await d1Client.prepare(`PRAGMA main.table_list;`).run()).results
+      for (const table of existingTables) {
         if (table.name === '_cf_KV' || table.name === 'sqlite_schema') {
           continue
         }
-        await client.$executeRawUnsafe(`DROP TABLE ${table.name};`)
+        await d1Client.exec(`DROP TABLE ${table.name};`)
       }
 
       // Use `migrate diff` to get the DDL statements
@@ -158,8 +153,9 @@ export async function setupTestSuiteDatabase(
 
       // Execute the DDL statements
       for (const sqlStatement of sqlStatements.split(';')) {
+        console.log({ sqlStatementsqlStatement: sqlStatement })
         if (sqlStatement.includes('CREATE ')) {
-          await client.$executeRawUnsafe(sqlStatement)
+          await d1Client.prepare(sqlStatement).run()
         } else if (sqlStatement === '\n') {
           // Ignore
         } else {
@@ -167,18 +163,24 @@ export async function setupTestSuiteDatabase(
         }
       }
     } else {
+      const dbPushParams = ['--schema', schemaPath, '--skip-generate']
+
+      // we reuse and clean the db when it is explicitly required
+      if (process.env.TEST_REUSE_DATABASE === 'true') {
+        dbPushParams.push('--force-reset')
+      }
+
       await DbPush.new().parse(dbPushParams)
+
+      if (
+        suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
+        suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_PLANETSCALE
+      ) {
+        // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
+        await new Promise((r) => setTimeout(r, 1_000))
+      }
     }
 
-    if (
-      suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
-      suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_PLANETSCALE
-    ) {
-      // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
-      await new Promise((r) => setTimeout(r, 1_000))
-    }
-
-    // TODO later for D1 (I think it's only used for one test)
     if (alterStatementCallback) {
       const { provider } = suiteConfig.matrixOptions
       const prismaDir = path.dirname(schemaPath)
@@ -195,12 +197,17 @@ export async function setupTestSuiteDatabase(
         alterStatementCallback(provider),
       )
 
-      await DbExecute.new().parse([
-        '--file',
-        `${prismaDir}/migrations/${timestamp}/migration.sql`,
-        '--schema',
-        `${schemaPath}`,
-      ])
+      if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
+        // TODO - split statements
+        await d1Client!.prepare(alterStatementCallback(provider)).run()
+      } else {
+        await DbExecute.new().parse([
+          '--file',
+          `${prismaDir}/migrations/${timestamp}/migration.sql`,
+          '--schema',
+          `${schemaPath}`,
+        ])
+      }
     }
 
     consoleInfoMock.mockRestore()
@@ -210,7 +217,7 @@ export async function setupTestSuiteDatabase(
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
     } else {
-      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors, undefined, client) // retry logic
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
     }
   }
 }
