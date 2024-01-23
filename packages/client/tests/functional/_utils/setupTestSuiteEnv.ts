@@ -227,6 +227,11 @@ export async function dropTestSuiteDatabase(
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
+  // TODO for D1 ?
+  if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
+    return
+  }
+
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])

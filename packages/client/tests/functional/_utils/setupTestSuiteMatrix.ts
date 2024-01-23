@@ -91,8 +91,6 @@ function setupTestSuiteMatrix(
 
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
-        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
-
         globalThis['loaded'] = await setupTestSuiteClient({
           cliMeta,
           suiteMeta,
@@ -100,6 +98,8 @@ function setupTestSuiteMatrix(
           datasourceInfo,
           clientMeta,
         })
+
+        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['newPrismaClient'] = (args: any) => {
           const { PrismaClient, Prisma } = globalThis['loaded']
