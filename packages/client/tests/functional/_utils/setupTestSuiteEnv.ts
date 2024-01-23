@@ -130,15 +130,20 @@ export async function setupTestSuiteDatabase(
       d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
 
       // Delete existing tables
-      const existingTables = (await d1Client.prepare(`PRAGMA main.table_list;`).run()).results
-      for (const table of existingTables) {
-        if (table.name === '_cf_KV' || table.name === 'sqlite_schema') {
+      const existingItems = (await d1Client.prepare(`PRAGMA main.table_list;`).run()).results
+      for (const item of existingItems) {
+        const batch: D1PreparedStatement[] = []
+        if (item.name === '_cf_KV' || item.name === 'sqlite_schema') {
           continue
-        } else if (table.name === 'sqlite_sequence') {
-          await d1Client.exec('DELETE FROM `sqlite_sequence`')
+        } else if (item.name === 'sqlite_sequence') {
+          batch.push(d1Client.prepare('DELETE FROM `sqlite_sequence`;'))
+        } else if (item.type === 'view') {
+          batch.push(d1Client.prepare(`DROP VIEW "${item.name}";`))
         } else {
-          await d1Client.exec(`DROP TABLE ${table.name};`)
+          batch.push(d1Client.prepare(`DROP TABLE "${item.name}";`))
         }
+
+        await d1Client.batch(batch)
       }
 
       // Use `migrate diff` to get the DDL statements
