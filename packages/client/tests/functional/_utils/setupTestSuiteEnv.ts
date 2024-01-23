@@ -134,8 +134,11 @@ export async function setupTestSuiteDatabase(
       for (const table of existingTables) {
         if (table.name === '_cf_KV' || table.name === 'sqlite_schema') {
           continue
+        } else if (table.name === 'sqlite_sequence') {
+          await d1Client.exec('DELETE FROM `sqlite_sequence`')
+        } else {
+          await d1Client.exec(`DROP TABLE ${table.name};`)
         }
-        await d1Client.exec(`DROP TABLE ${table.name};`)
       }
 
       // Use `migrate diff` to get the DDL statements
