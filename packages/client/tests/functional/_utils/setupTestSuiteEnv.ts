@@ -114,8 +114,8 @@ export async function setupTestSuiteDatabase(
   suiteMeta: TestSuiteMeta,
   suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
-  client?: Client,
   alterStatementCallback?: AlterStatementCallback,
+  client?: Client,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
@@ -210,7 +210,7 @@ export async function setupTestSuiteDatabase(
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
     } else {
-      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors, client) // retry logic
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors, undefined, client) // retry logic
     }
   }
 }
