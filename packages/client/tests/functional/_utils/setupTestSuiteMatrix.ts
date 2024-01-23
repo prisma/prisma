@@ -91,17 +91,15 @@ function setupTestSuiteMatrix(
 
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
+        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+
         globalThis['loaded'] = await setupTestSuiteClient({
           cliMeta,
           suiteMeta,
           suiteConfig,
           datasourceInfo,
           clientMeta,
-          skipDb: options?.skipDb,
-          alterStatementCallback: options?.alterStatementCallback,
         })
-
-        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['newPrismaClient'] = (args: any) => {
           const { PrismaClient, Prisma } = globalThis['loaded']
@@ -122,8 +120,20 @@ function setupTestSuiteMatrix(
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
 
         globalThis['db'] = {
-          setupDb: () => setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback),
+          setupDb: () =>
+            setupTestSuiteDatabase(
+              suiteMeta,
+              suiteConfig,
+              [],
+              globalThis['newPrismaClient']({ ...newDriverAdapter() }),
+              options?.alterStatementCallback,
+            ),
           dropDb: () => dropTestSuiteDatabase(suiteMeta, suiteConfig).catch(() => {}),
+        }
+
+        // Setup database
+        if (options?.skipDb !== true) {
+          await globalThis['db'].setupDb()
         }
       })
 

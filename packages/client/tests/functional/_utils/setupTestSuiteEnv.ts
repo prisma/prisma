@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
+import execa from 'execa'
 import fs from 'fs-extra'
 import path from 'path'
 import { match } from 'ts-pattern'
@@ -9,6 +10,7 @@ import { Script } from 'vm'
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
+import type { Client } from '../../../src/runtime/getPrismaClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { AdapterProviders, Providers } from './providers'
@@ -112,6 +114,7 @@ export async function setupTestSuiteDatabase(
   suiteMeta: TestSuiteMeta,
   suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
+  client?: Client,
   alterStatementCallback?: AlterStatementCallback,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
@@ -125,7 +128,47 @@ export async function setupTestSuiteDatabase(
       dbPushParams.push('--force-reset')
     }
 
-    await DbPush.new().parse(dbPushParams)
+    // The Schema Engine does not know how to use a Driver Adapter at the moment
+    // So we cannot use `db push` for D1
+    if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
+      if (!client) {
+        throw new Error('Client must be provided to `setupTestSuiteDatabase` when using D1 adapter')
+      }
+
+      // Delete existing tables
+      const existingTables = await client.$queryRaw`PRAGMA main.table_list;`
+      for (const table of existingTables as Record<string, unknown>[]) {
+        if (table.name === '_cf_KV' || table.name === 'sqlite_schema') {
+          continue
+        }
+        console.log(await client.$executeRawUnsafe(`DROP TABLE ${table.name};`))
+      }
+
+      // Use `migrate diff` to get the DDL statements
+      const diffResult = await execa(
+        '../cli/src/bin.ts',
+        ['migrate', 'diff', '--from-empty', '--to-schema-datamodel', schemaPath, '--script'],
+        {
+          env: {
+            DEBUG: process.env.DEBUG,
+          },
+        },
+      )
+      const sqlStatements = diffResult.stdout
+
+      // Execute the DDL statements
+      for (const sqlStatement of sqlStatements.split(';')) {
+        if (sqlStatement.includes('CREATE ')) {
+          await client.$executeRawUnsafe(sqlStatement)
+        } else if (sqlStatement === '\n') {
+          // Ignore
+        } else {
+          console.debug(`Skipping ${sqlStatement} as it is not a CREATE statement`)
+        }
+      }
+    } else {
+      await DbPush.new().parse(dbPushParams)
+    }
 
     if (
       suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
@@ -135,6 +178,7 @@ export async function setupTestSuiteDatabase(
       await new Promise((r) => setTimeout(r, 1_000))
     }
 
+    // TODO later for D1 (I think it's only used for one test)
     if (alterStatementCallback) {
       const { provider } = suiteConfig.matrixOptions
       const prismaDir = path.dirname(schemaPath)
@@ -166,7 +210,7 @@ export async function setupTestSuiteDatabase(
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
     } else {
-      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors, client) // retry logic
     }
   }
 }

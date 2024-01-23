@@ -13,9 +13,9 @@ import {
   getTestSuiteSchemaPath,
 } from './getTestSuiteInfo'
 import { AdapterProviders } from './providers'
-import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
+import { DatasourceInfo, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
+import { ClientMeta, ClientRuntime, CliMeta } from './types'
 
 const runtimeBase = path.join(__dirname, '..', '..', '..', 'runtime')
 
@@ -31,16 +31,12 @@ export async function setupTestSuiteClient({
   suiteConfig,
   datasourceInfo,
   clientMeta,
-  skipDb,
-  alterStatementCallback,
 }: {
   cliMeta: CliMeta
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
-  skipDb?: boolean
-  alterStatementCallback?: AlterStatementCallback
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const schema = getTestSuiteSchema(cliMeta, suiteMeta, suiteConfig.matrixOptions)
@@ -54,10 +50,6 @@ export async function setupTestSuiteClient({
 
   process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
   process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
-
-  if (skipDb !== true) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
-  }
 
   if (clientMeta.dataProxy === true) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl
@@ -177,6 +169,17 @@ export function setupTestSuiteClientDriverAdapter({
     })
 
     return { adapter: new PrismaLibSQL(client), __internal }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_D1) {
+    const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
+    const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
+
+    // Note: default hostname is `http://127.0.0.1:8787`
+    // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
+    const db = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
+
+    return { adapter: new PrismaD1(db) }
   }
 
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)
