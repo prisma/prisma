@@ -23,7 +23,7 @@ testMatrix.setupTestSuite(
       switch (provider) {
         case 'sqlite':
           // TODO the error does not match to the usual one
-          driverAdapter === AdapterProviders.JS_LIBSQL
+          driverAdapter === AdapterProviders.JS_LIBSQL || driverAdapter === AdapterProviders.JS_D1
             ? expect((result as Error).message).toContain(': not an error')
             : expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
           break
@@ -60,7 +60,7 @@ testMatrix.setupTestSuite(
       switch (provider) {
         case 'sqlite':
           // TODO the error does not match to the usual one
-          driverAdapter === AdapterProviders.JS_LIBSQL
+          driverAdapter === AdapterProviders.JS_LIBSQL || driverAdapter === AdapterProviders.JS_D1
             ? expect((result as Error).message).toContain(': not an error')
             : expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
           break
