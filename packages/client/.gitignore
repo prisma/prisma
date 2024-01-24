@@ -20,3 +20,5 @@ prisma-generator-helper-0.0.0.tgz
 prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz
 LOGS.txt
 LOGS.*.txt
+
+.wrangler

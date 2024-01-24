@@ -257,13 +257,16 @@ ${bold('Examples')}
       migrate.stop()
     }
 
-    debug(result)
+    // Note: only contains the exitCode
+    debug({ migrateDiffOutput: result })
 
     if (args['--exit-code'] && result.exitCode) {
       process.exit(result.exitCode)
     }
 
     // Return nothing
+    // See below for where the printing to stdout happens
+    // [console.info(result.params.content)](https://github.com/prisma/prisma/blob/e6d2bc01af44cec35cb2bda35a5c93e13dc4ba4e/packages/migrate/src/SchemaEngine.ts#L303)
     return ``
   }
 

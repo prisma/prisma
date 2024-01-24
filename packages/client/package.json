@@ -147,6 +147,7 @@
     "@opentelemetry/sdk-trace-base": "1.20.0",
     "@opentelemetry/semantic-conventions": "1.20.0",
     "@planetscale/database": "1.14.0",
+    "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
@@ -221,6 +222,8 @@
     "tsd": "0.29.0",
     "typescript": "5.2.2",
     "undici": "5.28.1",
+    "wrangler": "3.23.0",
+    "wrangler-proxy": "2.2.4",
     "zx": "7.2.3"
   },
   "peerDependencies": {
