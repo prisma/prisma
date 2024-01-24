@@ -70,7 +70,7 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,
-    options?: Transaction.Options,
+    options: Transaction.Options,
   ): Promise<Transaction.InteractiveTransactionInfo<unknown>>
   abstract transaction(
     action: 'commit',

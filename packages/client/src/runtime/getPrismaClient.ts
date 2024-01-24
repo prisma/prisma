@@ -718,7 +718,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       options?: Options
     }) {
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
-      const info = await this._engine.transaction('start', headers, options as Options)
+
+      const optionsWithDefaults: Options = {
+        maxWait: options?.maxWait ?? this._engineConfig.transactionOptions.maxWait,
+        timeout: options?.timeout ?? this._engineConfig.transactionOptions.timeout,
+        isolationLevel: options?.isolationLevel ?? this._engineConfig.transactionOptions.isolationLevel,
+      }
+      const info = await this._engine.transaction('start', headers, optionsWithDefaults)
 
       let result: unknown
       try {
