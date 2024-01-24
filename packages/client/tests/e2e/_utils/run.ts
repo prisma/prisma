@@ -36,7 +36,7 @@ async function main() {
     process.exit(1)
   }
 
-  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
+  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 4 : Infinity)
   args['--runInBand'] = args['--runInBand'] ?? false
   args['--skipBuild'] = args['--skipBuild'] ?? false
   args['--skipPack'] = args['--skipPack'] ?? false
@@ -129,14 +129,13 @@ async function main() {
     const pendingJobResults = [] as Promise<void>[]
     let availableWorkers = args['--maxWorkers']
     for (const [i, job] of dockerJobs.entries()) {
-      console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
-
       while (availableWorkers === 0) {
         await new Promise((resolve) => setTimeout(resolve, 100))
       }
 
       --availableWorkers // borrow worker
       const pendingJob = (async () => {
+        console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
         jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
         ++availableWorkers // return worker
       })()
