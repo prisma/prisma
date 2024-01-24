@@ -216,11 +216,15 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
+    // use regex to extract the output location below with a dummy location
+    const outputLocation = data.stdout.match(/to (.*) in/)?.[1]
+    const stdout = data.stdout.replace(outputLocation!, '<output>')
+
     if (getClientEngineType() === ClientEngineType.Library) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0) to ./../../client in XXXms
+        ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
         Start using Prisma Client
         \`\`\`
@@ -238,10 +242,10 @@ describe('using cli', () => {
 
       `)
     } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./../../client in XXXms
+        ✔ Generated Prisma Client (v0.0.0, engine=binary) to <output> in XXXms
 
         Start using Prisma Client
         \`\`\`
