@@ -36,6 +36,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * Execute a query given as SQL, interpolating the given parameters.
    */
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::query_raw]'
     // console.debug(`${tag} %O`, query)
 
@@ -88,6 +89,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
   async executeRaw(query: Query): Promise<Result<number>> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::execute_raw]'
     // console.debug(`${tag} %O`, query)
 
@@ -170,6 +172,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
       usePhantomQuery: true,
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::startTransaction]'
     // console.debug(`${tag} options: %O`, options)
 
