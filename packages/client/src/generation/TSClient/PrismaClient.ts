@@ -544,21 +544,23 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
              Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
           `),
       )
-      .add(
-        ts
-          .property(
-            'transactionOptions',
-            ts
-              .objectType()
-              .add(ts.property('maxWait', ts.numberType).optional())
-              .add(ts.property('timeout', ts.numberType).optional()),
-          )
-          .optional().setDocComment(ts.docComment`
+
+    const transactionOptions = ts
+      .objectType()
+      .add(ts.property('maxWait', ts.numberType).optional())
+      .add(ts.property('timeout', ts.numberType).optional())
+
+    if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
+      transactionOptions.add(ts.property('isolationLevel', ts.namedType('Prisma.TransactionIsolationLevel')).optional())
+    }
+
+    clientOptions.add(
+      ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
              The default values for transactionOptions
              maxWait ?= 2000
              timeout ?= 5000
           `),
-      )
+    )
 
     if (this.runtimeName === 'library' && this.generator?.previewFeatures.includes('driverAdapters')) {
       clientOptions.add(
