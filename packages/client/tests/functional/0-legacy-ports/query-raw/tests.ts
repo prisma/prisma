@@ -299,5 +299,9 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: 'MongoDB does not support raw queries',
     },
+    skipDriverAdapter: {
+      from: ['js_d1'],
+      reason: '"D1_ERROR: FOREIGN KEY constraint failed"',
+    },
   },
 )

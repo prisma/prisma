@@ -140,14 +140,14 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 }
 
 class D1Transaction extends D1Queryable<StdClient> implements Transaction {
-  constructor(client: StdClient, readonly options: TransactionOptions, private savepoint: string) {
+  constructor(client: StdClient, readonly options: TransactionOptions) {
     super(client)
   }
 
   async commit(): Promise<Result<void>> {
     console.debug(`[js::commit]`)
 
-    await this.client.prepare(`SAVEPOINT ${this.savepoint}`).run()
+    await Promise.resolve(true)
 
     return ok(undefined)
   }
@@ -155,7 +155,7 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
   async rollback(): Promise<Result<void>> {
     console.debug(`[js::rollback]`)
 
-    await this.client.prepare(`ROLLBACK TO ${this.savepoint}`).run()
+    await Promise.resolve(true)
 
     return ok(undefined)
   }
@@ -172,16 +172,11 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
       usePhantomQuery: true,
     }
 
+    await Promise.resolve(true)
+
     const tag = '[js::startTransaction]'
     console.debug(`${tag} options: %O`, options)
 
-    const savepointName = 'thisIsASavepoint'
-    try {
-      await this.client.prepare(`SAVEPOINT ${savepointName}`).run()
-      return ok(new D1Transaction(this.client, options, savepointName))
-    } catch (e) {
-      await this.client.prepare(`RELEASE SAVEPOINT ${savepointName}`).run()
-      throw e
-    }
+    return ok(new D1Transaction(this.client, options))
   }
 }
