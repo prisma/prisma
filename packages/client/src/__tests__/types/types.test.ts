@@ -28,8 +28,6 @@ describe('valid types', () => {
     }
     await generateInFolder({
       projectDir: dir,
-      useLocalRuntime: false,
-      transpile: true,
       packageSource,
     })
 

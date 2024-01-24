@@ -65,7 +65,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm'
 }
 
 // used by esbuild for tree-shaking
@@ -86,7 +86,7 @@ export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
-  adapter?: DriverAdapter
+  adapter?: DriverAdapter | null
 
   /**
    * Overwrites the datasource url from your schema.prisma file
@@ -134,6 +134,8 @@ export type PrismaClientOptions = {
       endpoint?: string
       allowTriggerPanic?: boolean
     }
+    /** This can be used for testing purposes */
+    configOverride?: Partial<GetPrismaClientConfig>
   }
 }
 
@@ -329,6 +331,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _createPrismaPromise = createPrismaPromiseFactory()
 
     constructor(optionsArg?: PrismaClientOptions) {
+      config = { ...config, ...optionsArg?.__internal?.configOverride }
+
       checkPlatformCaching(config)
 
       if (optionsArg) {
@@ -519,14 +523,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
       const activeProvider = this._activeProvider
-      const driverAdapterProvider = this._engineConfig.adapter?.provider
 
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -619,14 +622,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
       const activeProvider = this._activeProvider
-      const driverAdapterProvider = this._engineConfig.adapter?.provider
 
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,

@@ -3,7 +3,7 @@ import { DriverAdapter } from '@prisma/driver-adapter-utils'
 import { Providers as Provider } from '../../_utils/providers'
 
 /**
- * Get driver adapter flavour from provider in schema.
+ * Return the driver adapter provider name for a given provider, if it is supported.
  */
 export function getDriverAdaptersProvider(provider: Provider): DriverAdapter['provider'] {
   switch (provider) {

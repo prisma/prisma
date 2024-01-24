@@ -73,6 +73,7 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     if (adapter === null) {
       return
     }
+
     if (adapter === undefined) {
       throw new PrismaClientConstructorValidationError(
         `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
@@ -190,7 +191,7 @@ Expected string or undefined.`,
     if (!value) {
       return
     }
-    const knownKeys = ['debug', 'hooks', 'engine', 'measurePerformance']
+    const knownKeys = ['debug', 'engine', 'configOverride']
     if (typeof value !== 'object') {
       throw new PrismaClientConstructorValidationError(
         `Invalid value ${JSON.stringify(value)} for "__internal" to PrismaClient constructor`,
@@ -219,6 +220,7 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, config
     }
     validators[key](value, config)
   }
+
   if (options.datasourceUrl && options.datasources) {
     throw new PrismaClientConstructorValidationError(
       'Can not use "datasourceUrl" and "datasources" options at the same time. Pick one of them',

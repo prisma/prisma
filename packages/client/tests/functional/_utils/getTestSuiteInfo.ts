@@ -4,18 +4,19 @@ import path from 'path'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
-import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers, RelationModes } from './providers'
+import { AdapterProviders, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, CliMeta } from './types'
+import { ClientMeta, ClientRuntime, CliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
   matrixOptions: Record<string, string> & {
     provider: Providers
-    providerFlavor?: `${ProviderFlavors}`
+    driverAdapter?: `${AdapterProviders}`
     relationMode?: `${RelationModes}`
     engineType?: `${ClientEngineType}`
+    clientRuntime?: `${ClientRuntime}`
   }
 }
 
@@ -141,8 +142,8 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
       // For `relationMode` tests
       // we hardcode how it looks like for test results
       if (config.relationMode !== undefined) {
-        const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
-        return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
+        const driverAdapterStr = config.driverAdapter === undefined ? '' : `driverAdapter=${config.driverAdapter},`
+        return `relationMode=${config.relationMode},provider=${config.provider},${driverAdapterStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
       } else {
         const firstKey = Object.keys(config)[0] // ! TODO this can actually produce incorrect tests and break type checks ! \\ Replace with hash
         return `${firstKey}=${config[firstKey]}`
@@ -253,19 +254,15 @@ export function getTestSuiteMeta() {
  */
 export function getTestSuiteCliMeta(): CliMeta {
   const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
-  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+  const runtime = process.env.TEST_CLIENT_RUNTIME as ClientRuntime | undefined
+  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType | undefined
   const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
-  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType
-
-  if (edge && !dataProxy) {
-    throw new Error('Edge client requires Data Proxy')
-  }
 
   return {
     dataProxy,
-    runtime: edge ? 'edge' : 'node',
-    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
+    runtime: runtime ?? 'node',
     engineType: engineType ?? ClientEngineType.Library,
+    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
   }
 }
 
@@ -275,6 +272,6 @@ export function getTestSuiteCliMeta(): CliMeta {
 export function getTestSuiteClientMeta(suiteConfig: NamedTestSuiteConfig['matrixOptions']): ClientMeta {
   return {
     ...getTestSuiteCliMeta(),
-    driverAdapter: isDriverAdapterProviderFlavor(suiteConfig.providerFlavor),
+    driverAdapter: isDriverAdapterProviderLabel(suiteConfig.driverAdapter),
   }
 }

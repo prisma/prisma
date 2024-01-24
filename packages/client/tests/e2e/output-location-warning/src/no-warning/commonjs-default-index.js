@@ -1,0 +1,1 @@
+require('@prisma/client/index')
