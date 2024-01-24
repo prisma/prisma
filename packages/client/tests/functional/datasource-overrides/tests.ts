@@ -61,7 +61,7 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     skipDriverAdapter: {
-      from: ['js_libsql', 'js_planetscale', 'js_pg', 'js_neon', 'js_libsql'],
+      from: ['js_libsql', 'js_planetscale', 'js_pg', 'js_neon', 'js_d1'],
       reason: 'Datasource override do not work with driver adapters',
     },
     skipDataProxy: {

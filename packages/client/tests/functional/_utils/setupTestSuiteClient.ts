@@ -120,6 +120,10 @@ export function setupTestSuiteClientDriverAdapter({
         const queryEngineWasmFilePath = path.join(runtimeBase, 'query-engine.wasm')
         const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
+        // TODO: cleanup and remove ts-expect-error
+        // Pierre thinks that this is an upstream problem with the type definitions
+        // (provided by TS or @types/node) and will get fixed at some point.
+        // @ts-expect-error (2511) - Cannot create an instance of an abstract class.
         return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
       },
     }
@@ -177,6 +181,17 @@ export function setupTestSuiteClientDriverAdapter({
     })
 
     return { adapter: new PrismaLibSQL(client), __internal }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_D1) {
+    const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
+    const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
+
+    // Note: default hostname is `http://127.0.0.1:8787`
+    // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
+    const db = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
+
+    return { adapter: new PrismaD1(db), __internal }
   }
 
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)
