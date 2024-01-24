@@ -36,7 +36,7 @@ async function main() {
     process.exit(1)
   }
 
-  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 4 : Infinity)
+  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
   args['--runInBand'] = args['--runInBand'] ?? false
   args['--skipBuild'] = args['--skipBuild'] ?? false
   args['--skipPack'] = args['--skipPack'] ?? false
