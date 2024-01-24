@@ -87,7 +87,6 @@ testMatrix.setupTestSuite(
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                   [AdapterProviders.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [AdapterProviders.JS_PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
-                  [AdapterProviders.JS_LIBSQL]: 'Foreign key constraint failed on the field: `foreign key`',
                   [AdapterProviders.JS_PLANETSCALE]: 'Foreign key constraint failed on the field: `aliceId',
                 },
                 prisma: errors[onDelete],
