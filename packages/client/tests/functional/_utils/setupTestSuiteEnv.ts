@@ -129,10 +129,10 @@ export async function setupTestSuiteDatabase(
       // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
       d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
 
-      // Delete existing tables
       const existingItems = (await d1Client.prepare(`PRAGMA main.table_list;`).run()).results
       for (const item of existingItems) {
         const batch: D1PreparedStatement[] = []
+
         if (item.name === '_cf_KV' || item.name === 'sqlite_schema') {
           continue
         } else if (item.name === 'sqlite_sequence') {
@@ -140,10 +140,29 @@ export async function setupTestSuiteDatabase(
         } else if (item.type === 'view') {
           batch.push(d1Client.prepare(`DROP VIEW "${item.name}";`))
         } else {
-          batch.push(d1Client.prepare(`DROP TABLE "${item.name}";`))
+          // Check indexes
+          const existingIndexes = (await d1Client.prepare(`PRAGMA index_list("${item.name}");`).run()).results
+          const indexesToDrop = existingIndexes.filter((i) => i.origin === 'c')
+          for (const index of indexesToDrop) {
+            batch.push(d1Client.prepare(`DROP INDEX "${index.name}";`))
+          }
+
+          // We cannot do `DROP TABLE "${item.name}";`
+          // Because we cannot use "PRAGMA foreign_keys = OFF;" as it is ignored inside transactions
+          // and everything runs inside an implicit transaction on D1
+          batch.push(
+            d1Client.prepare(
+              `ALTER TABLE "${item.name}" RENAME TO ${(item.name as string).split('_')[0]}_${new Date().getTime()};`,
+            ),
+          )
         }
 
-        await d1Client.batch(batch)
+        const batchResult = await d1Client.batch(batch)
+        // @ts-ignore
+        if (batchResult.error) {
+          // @ts-ignore
+          console.error('Error in batch: %O', batchResult.error)
+        }
       }
 
       // Use `migrate diff` to get the DDL statements
@@ -160,7 +179,6 @@ export async function setupTestSuiteDatabase(
 
       // Execute the DDL statements
       for (const sqlStatement of sqlStatements.split(';')) {
-        console.log({ sqlStatementsqlStatement: sqlStatement })
         if (sqlStatement.includes('CREATE ')) {
           await d1Client.prepare(sqlStatement).run()
         } else if (sqlStatement === '\n') {

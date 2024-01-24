@@ -37,13 +37,13 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    */
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
     const tag = '[js::query_raw]'
-    console.debug(`${tag} %O`, query)
+    // console.debug(`${tag} %O`, query)
 
     const ioResult = await this.performIO(query)
 
     return ioResult.map((data) => {
       const convertedData = this.convertData(data)
-      console.debug({ convertedData })
+      // console.debug({ convertedData })
       return convertedData
     })
   }
@@ -89,7 +89,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    */
   async executeRaw(query: Query): Promise<Result<number>> {
     const tag = '[js::execute_raw]'
-    console.debug(`${tag} %O`, query)
+    // console.debug(`${tag} %O`, query)
 
     // TODO: rows_written or changes? Only rows_written is documented.
     return (await this.performIO(query)).map(({ meta }) => meta.changes ?? 0)
@@ -97,8 +97,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 
   private async performIO(query: Query): Promise<Result<PerformIOResult>> {
     // const release = await this[LOCK_TAG].acquire()
-
-    console.debug({ query })
+    // console.debug({ query })
 
     try {
       // Hack for
@@ -117,7 +116,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
         .bind(...query.args)
         .all()
 
-      console.debug({ result })
+      // console.debug({ result })
 
       return ok(result)
     } catch (e) {
@@ -144,18 +143,16 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
     super(client)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<Result<void>> {
-    console.debug(`[js::commit]`)
-
-    await Promise.resolve(true)
+    // console.debug(`[js::commit]`)
 
     return ok(undefined)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<Result<void>> {
-    console.debug(`[js::rollback]`)
-
-    await Promise.resolve(true)
+    // console.debug(`[js::rollback]`)
 
     return ok(undefined)
   }
@@ -166,16 +163,15 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
     super(client)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async startTransaction(): Promise<Result<Transaction>> {
     const options: TransactionOptions = {
       // TODO: D1 does not support transactions.
       usePhantomQuery: true,
     }
 
-    await Promise.resolve(true)
-
     const tag = '[js::startTransaction]'
-    console.debug(`${tag} options: %O`, options)
+    // console.debug(`${tag} options: %O`, options)
 
     return ok(new D1Transaction(this.client, options))
   }
