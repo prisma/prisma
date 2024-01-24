@@ -126,6 +126,7 @@ async function main() {
   } else {
     console.log('🏃 Running tests in parallel')
 
+    const pendingJobResults = [] as Promise<void>[]
     let availableWorkers = args['--maxWorkers']
     for (const [i, job] of dockerJobs.entries()) {
       console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
@@ -133,11 +134,17 @@ async function main() {
       while (availableWorkers === 0) {
         await new Promise((resolve) => setTimeout(resolve, 100))
       }
-      --availableWorkers // borrow a worker
 
-      const jobOutput = job().finally(() => ++availableWorkers)
-      jobResults.push(Object.assign(await jobOutput, { name: e2eTestNames[i] }))
+      --availableWorkers // borrow worker
+      const pendingJob = (async () => {
+        jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
+        ++availableWorkers // return worker
+      })()
+
+      pendingJobResults.push(pendingJob)
     }
+
+    await Promise.allSettled(pendingJobResults)
   }
 
   const failedJobResults = jobResults.filter((r) => r.exitCode !== 0)
