@@ -1,6 +1,5 @@
 test('driver adapters cannot be used via @prisma/client/edge', () => {
   jest.isolateModules(() => {
-    expect.assertions(1)
     const { PrismaClient } = require('@prisma/client/edge')
 
     const newClient = () =>

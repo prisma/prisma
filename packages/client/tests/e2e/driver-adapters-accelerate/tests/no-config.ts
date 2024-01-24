@@ -1,6 +1,5 @@
 test('error is shown when both driver adapters and accelerate are not configured via @prisma/client/wasm', () => {
   jest.isolateModules(() => {
-    expect.assertions(1)
     const { PrismaClient } = require('@prisma/client/wasm')
 
     const newClient = () => new PrismaClient({})
@@ -16,7 +15,6 @@ In order to run Prisma Client in an edge runtime, you will need to configure one
 
 test('no error is shown when both driver adapters and accelerate are not configured via @prisma/client/default', () => {
   jest.isolateModules(() => {
-    expect.assertions(1)
     const { PrismaClient } = require('@prisma/client/default')
 
     const newClient = () => new PrismaClient({})

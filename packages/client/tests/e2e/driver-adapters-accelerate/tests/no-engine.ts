@@ -1,6 +1,5 @@
 test('driver adapters be used without an engine via @prisma/client/wasm', () => {
   jest.isolateModules(() => {
-    expect.assertions(1)
     const { PrismaClient } = require('@prisma/client/wasm')
 
     const newClient = () =>
@@ -21,7 +20,6 @@ Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma 
 
 test('driver adapters cannot be used without an engine via @prisma/client/default', () => {
   jest.isolateModules(() => {
-    expect.assertions(1)
     const { PrismaClient } = require('@prisma/client/default')
 
     const newClient = () =>

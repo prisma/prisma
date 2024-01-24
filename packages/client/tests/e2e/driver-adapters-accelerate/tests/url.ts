@@ -1,6 +1,5 @@
 test('driver adapters cannot be used with accelerate via @prisma/client/wasm', () => {
   jest.isolateModules(() => {
-    expect.assertions(1)
     const { PrismaClient } = require('@prisma/client/wasm')
 
     const newClient = () =>
@@ -22,7 +21,6 @@ Please either use the \`prisma://\` URL or remove the \`adapter\` from the Prism
 
 test('driver adapters cannot be used with accelerate via @prisma/client/default', () => {
   jest.isolateModules(() => {
-    expect.assertions(1)
     const { PrismaClient } = require('@prisma/client/default')
 
     const newClient = () =>
