@@ -43,8 +43,6 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
   const libraryEngineConfigured = engineType === ClientEngineType.Library
   const binaryEngineConfigured = engineType === ClientEngineType.Binary
 
-  console.log('adapter', engineConfig.adapter)
-
   if ((accelerateConfigured && driverAdapterConfigured) || (driverAdapterConfigured && TARGET_BUILD_TYPE === 'edge')) {
     let message: string[]
 
