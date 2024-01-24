@@ -117,76 +117,10 @@ export async function setupTestSuiteDatabase(
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
   const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-  let d1Client: D1Database
 
   try {
-    // The Schema Engine does not know how to use a Driver Adapter at the moment
-    // So we cannot use `db push` for D1
     if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
-      const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
-
-      // Note: default hostname is `http://127.0.0.1:8787`
-      // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
-      d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
-
-      const existingItems = (await d1Client.prepare(`PRAGMA main.table_list;`).run()).results
-      for (const item of existingItems) {
-        const batch: D1PreparedStatement[] = []
-
-        if (item.name === '_cf_KV' || item.name === 'sqlite_schema') {
-          continue
-        } else if (item.name === 'sqlite_sequence') {
-          batch.push(d1Client.prepare('DELETE FROM `sqlite_sequence`;'))
-        } else if (item.type === 'view') {
-          batch.push(d1Client.prepare(`DROP VIEW "${item.name}";`))
-        } else {
-          // Check indexes
-          const existingIndexes = (await d1Client.prepare(`PRAGMA index_list("${item.name}");`).run()).results
-          const indexesToDrop = existingIndexes.filter((i) => i.origin === 'c')
-          for (const index of indexesToDrop) {
-            batch.push(d1Client.prepare(`DROP INDEX "${index.name}";`))
-          }
-
-          // We cannot do `DROP TABLE "${item.name}";`
-          // Because we cannot use "PRAGMA foreign_keys = OFF;" as it is ignored inside transactions
-          // and everything runs inside an implicit transaction on D1
-          batch.push(
-            d1Client.prepare(
-              `ALTER TABLE "${item.name}" RENAME TO ${(item.name as string).split('_')[0]}_${new Date().getTime()};`,
-            ),
-          )
-        }
-
-        const batchResult = await d1Client.batch(batch)
-        // @ts-ignore
-        if (batchResult.error) {
-          // @ts-ignore
-          console.error('Error in batch: %O', batchResult.error)
-        }
-      }
-
-      // Use `migrate diff` to get the DDL statements
-      const diffResult = await execa(
-        '../cli/src/bin.ts',
-        ['migrate', 'diff', '--from-empty', '--to-schema-datamodel', schemaPath, '--script'],
-        {
-          env: {
-            DEBUG: process.env.DEBUG,
-          },
-        },
-      )
-      const sqlStatements = diffResult.stdout
-
-      // Execute the DDL statements
-      for (const sqlStatement of sqlStatements.split(';')) {
-        if (sqlStatement.includes('CREATE ')) {
-          await d1Client.prepare(sqlStatement).run()
-        } else if (sqlStatement === '\n') {
-          // Ignore
-        } else {
-          console.debug(`Skipping ${sqlStatement} as it is not a CREATE statement`)
-        }
-      }
+      await setupTestSuiteDatabaseD1(schemaPath, alterStatementCallback)
     } else {
       const dbPushParams = ['--schema', schemaPath, '--skip-generate']
 
@@ -222,17 +156,12 @@ export async function setupTestSuiteDatabase(
         alterStatementCallback(provider),
       )
 
-      if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
-        // TODO - split statements
-        await d1Client!.prepare(alterStatementCallback(provider)).run()
-      } else {
-        await DbExecute.new().parse([
-          '--file',
-          `${prismaDir}/migrations/${timestamp}/migration.sql`,
-          '--schema',
-          `${schemaPath}`,
-        ])
-      }
+      await DbExecute.new().parse([
+        '--file',
+        `${prismaDir}/migrations/${timestamp}/migration.sql`,
+        '--schema',
+        `${schemaPath}`,
+      ])
     }
 
     consoleInfoMock.mockRestore()
@@ -244,6 +173,84 @@ export async function setupTestSuiteDatabase(
     } else {
       await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
     }
+  }
+}
+
+/**
+ * Cleanup the D1 database and apply the DDL generated from migrate diff for the generated schema of the test suite.
+ * The Schema Engine does not know how to use a Driver Adapter at the moment
+ * So we cannot use `db push` for D1
+ */
+export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatementCallback?: AlterStatementCallback) {
+  // The Schema Engine does not know how to use a Driver Adapter at the moment
+  // So we cannot use `db push` for D1
+  const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
+
+  // Note: default hostname is `http://127.0.0.1:8787`
+  // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
+  const d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
+
+  const existingItems = (await d1Client.prepare(`PRAGMA main.table_list;`).run()).results
+  for (const item of existingItems) {
+    const batch: D1PreparedStatement[] = []
+
+    if (item.name === '_cf_KV' || item.name === 'sqlite_schema') {
+      continue
+    } else if (item.name === 'sqlite_sequence') {
+      batch.push(d1Client.prepare('DELETE FROM `sqlite_sequence`;'))
+    } else if (item.type === 'view') {
+      batch.push(d1Client.prepare(`DROP VIEW "${item.name}";`))
+    } else {
+      // Check indexes
+      const existingIndexes = (await d1Client.prepare(`PRAGMA index_list("${item.name}");`).run()).results
+      const indexesToDrop = existingIndexes.filter((i) => i.origin === 'c')
+      for (const index of indexesToDrop) {
+        batch.push(d1Client.prepare(`DROP INDEX "${index.name}";`))
+      }
+
+      // We cannot do `DROP TABLE "${item.name}";`
+      // Because we cannot use "PRAGMA foreign_keys = OFF;" as it is ignored inside transactions
+      // and everything runs inside an implicit transaction on D1
+      batch.push(
+        d1Client.prepare(
+          `ALTER TABLE "${item.name}" RENAME TO ${(item.name as string).split('_')[0]}_${new Date().getTime()};`,
+        ),
+      )
+    }
+
+    const batchResult = await d1Client.batch(batch)
+    // @ts-ignore
+    if (batchResult.error) {
+      // @ts-ignore
+      console.error('Error in batch: %O', batchResult.error)
+    }
+  }
+
+  // Use `migrate diff` to get the DDL statements
+  const diffResult = await execa(
+    '../cli/src/bin.ts',
+    ['migrate', 'diff', '--from-empty', '--to-schema-datamodel', schemaPath, '--script'],
+    {
+      env: {
+        DEBUG: process.env.DEBUG,
+      },
+    },
+  )
+  const sqlStatements = diffResult.stdout
+
+  // Execute the DDL statements
+  for (const sqlStatement of sqlStatements.split(';')) {
+    if (sqlStatement.includes('CREATE ')) {
+      await d1Client.prepare(sqlStatement).run()
+    } else if (sqlStatement === '\n') {
+      // Ignore
+    } else {
+      console.debug(`Skipping ${sqlStatement} as it is not a CREATE statement`)
+    }
+  }
+
+  if (alterStatementCallback) {
+    throw new Error('TODO alterStatementCallback for D1')
   }
 }
 
