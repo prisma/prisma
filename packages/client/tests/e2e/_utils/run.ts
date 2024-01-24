@@ -81,7 +81,7 @@ async function main() {
       await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
     }
 
-    await $`pnpm -r exec pnpm pack --pack-destination /tmp/`
+    await $`pnpm -r --parallel exec pnpm pack --pack-destination /tmp/`
     await restoreOriginalState()
   }
 
