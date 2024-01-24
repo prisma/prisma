@@ -9,6 +9,7 @@ const binaryRuntime = 'runtime/binary'
 const edgeRuntime = 'runtime/edge'
 const wasmRuntime = 'runtime/wasm'
 const nftAnnotation = '// file annotations for bundling tools'
+const wasmFileUsage = '.wasm'
 
 testMatrix.setupTestSuite(
   ({ engineType, clientRuntime }, suiteMeta, clientMeta) => {
@@ -68,20 +69,28 @@ testMatrix.setupTestSuite(
 
       if (clientMeta.dataProxy && clientRuntime === 'edge') {
         expect(generatedClientContents).not.toContain(nftAnnotation)
+        expect(generatedClientContents).not.toContain(wasmFileUsage)
       } else if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
         expect(generatedClientContents).not.toContain(nftAnnotation)
+        expect(generatedClientContents).not.toContain(wasmFileUsage)
       } else if (clientMeta.dataProxy && engineType === ClientEngineType.Binary) {
         expect(generatedClientContents).not.toContain(nftAnnotation)
+        expect(generatedClientContents).not.toContain(wasmFileUsage)
       } else if (engineType === ClientEngineType.Library && clientRuntime === 'node') {
         expect(generatedClientContents).toContain(nftAnnotation)
+        expect(generatedClientContents).not.toContain(wasmFileUsage)
       } else if (engineType === ClientEngineType.Binary && clientRuntime === 'node') {
         expect(generatedClientContents).toContain(nftAnnotation)
+        expect(generatedClientContents).not.toContain(wasmFileUsage)
       } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
         expect(generatedClientContents).toContain(nftAnnotation)
+        expect(generatedClientContents).not.toContain(wasmFileUsage)
       } else if (clientMeta.driverAdapter && clientRuntime === 'edge') {
         expect(generatedClientContents).not.toContain(nftAnnotation)
+        expect(generatedClientContents).not.toContain(wasmFileUsage)
       } else if (clientMeta.driverAdapter && clientRuntime === 'wasm') {
         expect(generatedClientContents).not.toContain(nftAnnotation)
+        expect(generatedClientContents).toContain(wasmFileUsage)
       } else {
         throw new Error('Unhandled case')
       }
