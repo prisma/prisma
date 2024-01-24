@@ -188,7 +188,7 @@ export function setupTestSuiteClientDriverAdapter({
     // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
     const db = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
 
-    return { adapter: new PrismaD1(db) }
+    return { adapter: new PrismaD1(db), __internal }
   }
 
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)
