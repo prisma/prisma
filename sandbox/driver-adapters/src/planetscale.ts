@@ -1,14 +1,40 @@
-import { connect } from '@planetscale/database'
+import { PrismaClient } from '.prisma/client'
+import { Client } from '@planetscale/database'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
-import { smokeTest } from './test'
+
+const connectionString = `${process.env.JS_PLANETSCALE_DATABASE_URL}`
 
 async function main() {
-  const connectionString = `${process.env.JS_PLANETSCALE_DATABASE_URL as string}`
+  const client = new Client({ url: connectionString })
+  const adapter = new PrismaPlanetScale(client)
+  const prisma = new PrismaClient({ adapter })
 
-  const connection = connect({ url: connectionString })
-  const adapter = new PrismaPlanetScale(connection)
+  await prisma.binary.deleteMany()
 
-  await smokeTest(adapter)
+  await prisma.binary.create({
+    data: {
+      id: '1',
+      bytes: Buffer.from('AQID'),
+    },
+  })
+
+  await prisma.binary.create({
+    data: {
+      id: '2',
+      bytes: Buffer.from('FSDF'),
+    },
+  })
+
+  await prisma.binary.create({
+    data: {
+      id: '3',
+      bytes: Buffer.from('AA'),
+    },
+  })
+
+  const result = await prisma.binary.findMany()
+  console.log('result')
+  console.dir(result, { depth: null })
 }
 
 main().catch((e) => {

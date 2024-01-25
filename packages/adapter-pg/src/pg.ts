@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await */
+import { inspect } from 'node:util'
+
 import type {
   ColumnType,
   ConnectionInfo,
@@ -54,11 +56,15 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
       throw e
     }
 
-    return ok({
+    const resultSet = {
       columnNames,
       columnTypes,
       rows,
-    })
+    }
+
+    debug(`${tag} resultset:\n%O`, inspect(resultSet, { depth: null }))
+
+    return ok(resultSet)
   }
 
   /**
