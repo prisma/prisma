@@ -2,7 +2,7 @@
 
 This tests ensures that custom output clients are working as expected with Yarn.
 
-A package is deemed not to be valid by yarn if:
+A `package.json` is invalid for `yarn` if:
 
 - It is not a valid json file
 - It does not have a `name` field
