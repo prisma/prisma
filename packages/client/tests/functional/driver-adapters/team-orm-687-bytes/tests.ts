@@ -22,5 +22,6 @@ testMatrix.setupTestSuite(
   },
   {
     ...defaultTestSuiteOptions,
+    skipDefaultClientInstance: false,
   },
 )
