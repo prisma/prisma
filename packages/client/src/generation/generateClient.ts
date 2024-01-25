@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { assertNever, BinaryTarget, ClientEngineType, getClientEngineType, setClassName } from '@prisma/internals'
+import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
 import fs from 'fs/promises'
@@ -11,13 +11,14 @@ import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
-import { name as clientPackageName } from '../../package.json'
+import { exports as clientPackageExports, name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
+import { TSClientOptions } from './TSClient/TSClient'
 import type { Dictionary } from './utils/common'
 
-const GENERATED_PACKAGE_NAME = '.prisma/client'
+const GENERATED_PACKAGE_NAME = 'prisma-client'
 const debug = Debug('prisma:client:generateClient')
 
 type OutputDeclaration = {
@@ -34,13 +35,12 @@ export class DenylistError extends Error {
 setClassName(DenylistError, 'DenylistError')
 
 export interface GenerateClientOptions {
-  projectRoot?: string
   datamodel: string
   schemaPath: string
-  transpile?: boolean
-  runtimeDirs?: { node: string; edge: string }
+  /** Runtime path used in runtime/type imports */
+  runtimeBase?: string
   outputDir: string
-  generator?: GeneratorConfig
+  generator: GeneratorConfig
   dmmf: DMMF.Document
   datasources: DataSource[]
   binaryPaths: BinaryPaths
@@ -50,8 +50,9 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: string
+  /** When --postinstall is passed via CLI */
   postinstall?: boolean
-  overrideEngineType?: ClientEngineType
+  /** When --no-engine is passed via CLI */
   noEngine?: boolean
 }
 
@@ -63,7 +64,8 @@ export interface BuildClientResult {
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function buildClient({
   schemaPath,
-  runtimeDirs,
+  runtimeBase,
+  datamodel,
   binaryPaths,
   outputDir,
   generator,
@@ -71,79 +73,128 @@ export async function buildClient({
   datasources,
   engineVersion,
   clientVersion,
-  projectRoot,
   activeProvider,
   postinstall,
-  overrideEngineType,
   noEngine,
-}: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
+  testMode,
+}: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
-  const document = getPrismaClientDMMF(dmmf)
-  const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
-  const tsClientOptions = {
-    document,
+  const clientEngineType = getClientEngineType(generator)
+  const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
+    dmmf: getPrismaClientDMMF(dmmf),
     datasources,
     generator,
-    binaryTargets:
-      clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[]),
+    binaryPaths,
     schemaPath,
     outputDir,
+    runtimeBase,
     clientVersion,
     engineVersion,
-    projectRoot: projectRoot!,
     activeProvider,
     postinstall,
     noEngine,
+    datamodel,
+    browser: false,
+    deno: false,
+    edge: false,
+    wasm: false,
+    importWarning: false,
+  }
+
+  const scriptsDir = path.join(__dirname, `${testMode ? '../' : ''}../scripts`)
+
+  const nodeClientOptions = {
+    ...baseClientOptions,
+    runtimeNameJs: getNodeRuntimeName(clientEngineType),
+    runtimeNameTs: getNodeRuntimeName(clientEngineType),
   }
 
   // we create a regular client that is fit for Node.js
-  const nodeTsClient = new TSClient({
-    ...tsClientOptions,
-    runtimeName: getNodeRuntimeName(clientEngineType),
-    runtimeDir: runtimeDirs.node,
+  const nodeClient = new TSClient(nodeClientOptions)
+
+  const defaultClient = new TSClient({
+    ...nodeClientOptions,
+    reusedTs: 'index',
+    reusedJs: 'index',
   })
 
   // we create a client that is fit for edge runtimes
-  const edgeTsClient = new TSClient({
-    ...tsClientOptions,
-    runtimeName: 'edge',
-    runtimeDir: runtimeDirs.edge,
+  const edgeClient = new TSClient({
+    ...baseClientOptions,
+    runtimeNameJs: 'edge',
+    runtimeNameTs: 'library',
+    reusedTs: 'default',
+    edge: true,
   })
 
-  const fileMap = {} // we will store the generated contents here
+  const pkgJson = {
+    name: GENERATED_PACKAGE_NAME,
+    main: 'index.js',
+    types: 'index.d.ts',
+    browser: 'index-browser.js',
+    exports: clientPackageExports,
+    sideEffects: false,
+    private: true,
+  }
 
-  // we generate the default client that is meant to work on Node
-  fileMap['index.js'] = await JS(nodeTsClient, false)
-  fileMap['index.d.ts'] = await TS(nodeTsClient)
-  fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
-  fileMap['package.json'] = JSON.stringify(
-    {
-      name: GENERATED_PACKAGE_NAME,
-      main: 'index.js',
-      types: 'index.d.ts',
-      browser: 'index-browser.js',
-      sideEffects: false,
-    },
-    null,
-    2,
-  )
+  // we store the generated contents here
+  const fileMap: Record<string, string> = {}
+  fileMap['index.js'] = await JS(nodeClient)
+  fileMap['index.d.ts'] = await TS(nodeClient)
+  fileMap['default.js'] = await JS(defaultClient)
+  fileMap['default.d.ts'] = await TS(defaultClient)
+  fileMap['index-browser.js'] = await BrowserJS(nodeClient)
+  fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
+  fileMap['edge.js'] = await JS(edgeClient)
+  fileMap['edge.d.ts'] = await TS(edgeClient)
 
-  fileMap['edge.js'] = await JS(edgeTsClient, true)
-  fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
+  if (generator.previewFeatures.includes('driverAdapters')) {
+    // in custom outputs, `index` shows a warning. if it is loaded, it means
+    // that the export map is not working for the user so we display them an
+    // `importWarning`. If the exports map works, `default` will be loaded.
+    if (generator.isCustomOutput === true) {
+      const nodeWarnTsClient = new TSClient({
+        ...nodeClientOptions,
+        reusedTs: 'default',
+        reusedJs: 'default',
+        importWarning: true,
+      })
 
-  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    // we create a client that is fit for edge runtimes
-    const denoEdgeTsClient = new TSClient({
-      ...tsClientOptions,
-      runtimeName: 'library.d.ts',
-      runtimeDir: '../' + runtimeDirs.edge,
-      deno: true,
+      fileMap['default.js'] = fileMap['index.js']
+      fileMap['default.d.ts'] = fileMap['index.d.ts']
+      fileMap['index.js'] = await JS(nodeWarnTsClient)
+      fileMap['index.d.ts'] = await TS(nodeWarnTsClient)
+    }
+
+    const wasmClient = new TSClient({
+      ...baseClientOptions,
+      runtimeNameJs: 'wasm',
+      runtimeNameTs: 'library',
+      reusedTs: 'default',
+      edge: true,
+      wasm: true,
     })
 
-    fileMap['deno/edge.js'] = await JS(denoEdgeTsClient, true)
-    fileMap['deno/index.d.ts'] = await TS(denoEdgeTsClient)
+    fileMap['wasm.js'] = await JS(wasmClient)
+    fileMap['wasm.d.ts'] = await TS(wasmClient)
+  } else {
+    fileMap['wasm.js'] = await fs.readFile(path.join(scriptsDir, 'default-wasm.js'), 'utf-8')
+    fileMap['wasm.d.ts'] = await fs.readFile(path.join(scriptsDir, 'default-wasm.d.ts'), 'utf-8')
+  }
+
+  if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
+    // we create a client that is fit for edge runtimes
+    const denoEdgeClient = new TSClient({
+      ...baseClientOptions,
+      runtimeBase: `../${runtimeBase}`,
+      runtimeNameJs: 'edge-esm',
+      runtimeNameTs: 'library.d.ts',
+      deno: true,
+      edge: true,
+    })
+
+    fileMap['deno/edge.js'] = await JS(denoEdgeClient)
+    fileMap['deno/index.d.ts'] = await TS(denoEdgeClient)
     fileMap['deno/edge.ts'] = `
 import './polyfill.js'
 // @deno-types="./index.d.ts"
@@ -153,7 +204,7 @@ export * from './edge.js'`
 
   return {
     fileMap, // a map of file names to their contents
-    prismaClientDmmf: document, // the DMMF document
+    prismaClientDmmf: dmmf, // the DMMF document
   }
 }
 
@@ -186,8 +237,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const {
     datamodel,
     schemaPath,
-    outputDir,
-    transpile,
     generator,
     dmmf,
     datasources,
@@ -199,30 +248,27 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    overrideEngineType,
     noEngine,
   } = options
 
-  const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
-  const { runtimeDirs, finalOutputDir, projectRoot } = await getGenerationDirs(options)
+  const clientEngineType = getClientEngineType(generator)
+  const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     schemaPath,
-    transpile,
-    runtimeDirs,
-    outputDir: finalOutputDir,
+    runtimeBase,
+    outputDir,
     generator,
     dmmf,
     datasources,
     binaryPaths,
     clientVersion,
     engineVersion,
-    projectRoot,
     activeProvider,
     postinstall,
-    overrideEngineType,
     noEngine,
+    testMode,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -242,21 +288,17 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   if (noEngine === true) {
-    await deleteOutputDir(finalOutputDir)
+    await deleteOutputDir(outputDir)
   }
 
-  await ensureDir(finalOutputDir)
-  await ensureDir(path.join(outputDir, 'runtime'))
-  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
+  await ensureDir(outputDir)
+  if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
     await ensureDir(path.join(outputDir, 'deno'))
   }
-  // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
-  // outputDir:       /home/millsp/Work/prisma/packages/client
-  // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
 
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
-      const filePath = path.join(finalOutputDir, fileName)
+      const filePath = path.join(outputDir, fileName)
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       if (existsSync(filePath)) {
@@ -265,23 +307,22 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       await fs.writeFile(filePath, file)
     }),
   )
-  const runtimeSourceDir: string = testMode
-    ? eval(`require('path').join(__dirname, '../../runtime')`)
-    : eval(`require('path').join(__dirname, '../runtime')`)
+
+  const runtimeDir = path.join(__dirname, `${testMode ? '../' : ''}../runtime`)
 
   // if users use a custom output dir
-  if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
-    const copyTarget = path.join(outputDir, 'runtime')
-    await ensureDir(copyTarget)
-    if (runtimeSourceDir !== copyTarget) {
-      await copyRuntimeFiles({
-        from: runtimeSourceDir,
-        to: copyTarget,
-        sourceMaps: copyRuntimeSourceMaps,
-        runtimeName: getNodeRuntimeName(clientEngineType),
-      })
-    }
+  if (copyRuntime || generator.isCustomOutput === true) {
+    const copiedRuntimeDir = path.join(outputDir, 'runtime')
+    await ensureDir(copiedRuntimeDir)
+
+    await copyRuntimeFiles({
+      from: runtimeDir,
+      to: copiedRuntimeDir,
+      sourceMaps: copyRuntimeSourceMaps,
+      runtimeName: getNodeRuntimeName(clientEngineType),
+    })
   }
+
   const enginePath =
     clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
 
@@ -293,7 +334,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (transpile === true && noEngine !== true && getClientEngineType(generator) !== ClientEngineType.Wasm) {
+  if (noEngine !== true) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
@@ -303,52 +344,37 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       let target: string
 
       // Introduced in https://github.com/prisma/prisma/pull/6527
-      // The engines that are not needed for the runtime deployment on AWS Lambda 
+      // The engines that are not needed for the runtime deployment on AWS Lambda
       // are moved to `/tmp/prisma-engines`
       // They will be ignored and not included in the final build, reducing its size
       if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {
         target = path.join('/tmp/prisma-engines', fileName)
       } else {
-        target = path.join(finalOutputDir, fileName)
+        target = path.join(outputDir, fileName)
       }
 
       await overwriteFile(filePath, target)
     }
   }
 
-  const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
+  const schemaTargetPath = path.join(outputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
     await fs.copyFile(schemaPath, schemaTargetPath)
   }
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (getClientEngineType(generator) === ClientEngineType.Wasm) {
-    const queryEngineWasmFilePath = path.join(runtimeSourceDir, 'query-engine.wasm')
-    const queryEngineWasmTargetPath = path.join(finalOutputDir, 'query-engine.wasm')
+  if (generator.previewFeatures.includes('driverAdapters') && noEngine !== true) {
+    const queryEngineWasmFilePath = path.join(runtimeDir, 'query-engine.wasm')
+    const queryEngineWasmTargetPath = path.join(outputDir, 'query-engine.wasm')
     // some bundlers (eg. webpack) need this file to exist, even if it's empty
     // this is because they analyze `query-engine.wasm` for references to other
     // files. It does not matter for us, because we bundle query_engine_bg.js.
-    const dummyQueryEngineBgTargetPath = path.join(finalOutputDir, 'query_engine_bg.js')
+    const dummyQueryEngineBgTargetPath = path.join(outputDir, 'query_engine_bg.js')
     const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
 
-    const copyOrSymlink = testMode ? fs.symlink : fs.copyFile
-    await copyOrSymlink(queryEngineWasmFilePath, queryEngineWasmTargetPath)
+    const copyOrNoop = testMode ? function noop() {} : fs.copyFile
+    await copyOrNoop(queryEngineWasmFilePath, queryEngineWasmTargetPath)
     await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
-  }
-
-  const proxyIndexJsPath = path.join(outputDir, 'index.js')
-  const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
-  const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
-  if (!existsSync(proxyIndexJsPath)) {
-    await fs.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
-  }
-
-  if (!existsSync(proxyIndexDTSPath)) {
-    await fs.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
-  }
-
-  if (!existsSync(proxyIndexBrowserJsPath)) {
-    await fs.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 
   try {
@@ -442,38 +468,36 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
 /**
  * Get all the directories involved in the generation process.
  *
- * @param useDefaultOutdir if we are generating to the default output
- * @param runtimeDirs overrides for the runtime directories
  * @returns
  */
 async function getGenerationDirs({
-  testMode,
-  runtimeDirs,
+  runtimeBase,
   generator,
   outputDir,
   datamodel,
   schemaPath,
+  testMode,
 }: GenerateClientOptions) {
-  const useDefaultOutdir = testMode ? !runtimeDirs : !generator?.isCustomOutput
+  const isCustomOutput = generator.isCustomOutput === true
+  let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
+  let userOutputDir = isCustomOutput ? outputDir : await getDefaultOutdir(outputDir)
 
-  const _runtimeDirs = {
-    // if we have an override, we use it, but if not then use the defaults
-    node: runtimeDirs?.node || (useDefaultOutdir ? '@prisma/client/runtime' : './runtime'),
-    edge: runtimeDirs?.edge || (useDefaultOutdir ? '@prisma/client/runtime' : './runtime'),
+  if (testMode && runtimeBase) {
+    userOutputDir = outputDir
+    userRuntimeImport = pathToPosix(runtimeBase)
   }
 
-  const finalOutputDir = useDefaultOutdir ? await getDefaultOutdir(outputDir) : outputDir
-  if (!useDefaultOutdir) {
-    await verifyOutputDirectory(finalOutputDir, datamodel, schemaPath)
+  if (isCustomOutput) {
+    await verifyOutputDirectory(userOutputDir, datamodel, schemaPath)
   }
 
-  const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
-  const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
+  const userPackageRoot = await pkgUp({ cwd: path.dirname(userOutputDir) })
+  const userProjectRoot = userPackageRoot ? path.dirname(userPackageRoot) : process.cwd()
 
   return {
-    runtimeDirs: _runtimeDirs,
-    finalOutputDir,
-    projectRoot,
+    runtimeBase: userRuntimeImport,
+    outputDir: userOutputDir,
+    projectRoot: userProjectRoot,
   }
 }
 
@@ -531,17 +555,12 @@ function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null 
   return null
 }
 
-function getNodeRuntimeName(engineType: ClientEngineType): string {
+function getNodeRuntimeName(engineType: ClientEngineType) {
   if (engineType === ClientEngineType.Binary) {
     return 'binary'
   }
 
   if (engineType === ClientEngineType.Library) {
-    return 'library'
-  }
-
-  // the wasm engine fully depends on the library engine
-  if (engineType === ClientEngineType.Wasm) {
     return 'library'
   }
 
@@ -557,14 +576,15 @@ type CopyRuntimeOptions = {
 
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
   const files = [
-    // library.d.ts is always included, because
-    // it contains the actual runtime type definitions. Rest of
-    // the `runtime.d.ts` files just re-export everything from `library.d.ts`
+    // library.d.ts is always included, as it contains the actual runtime type
+    // definitions. Rest of the `runtime.d.ts` files just re-export everything
+    // from `library.d.ts`
     'library.d.ts',
     'index-browser.js',
     'index-browser.d.ts',
     'edge.js',
     'edge-esm.js',
+    'wasm.js',
   ]
 
   files.push(`${runtimeName}.js`)

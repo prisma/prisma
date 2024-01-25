@@ -20,7 +20,7 @@ export function dmmfToRuntimeDataModel(dmmfDataModel: DMMF.Datamodel): RuntimeDa
   }
 }
 
-function buildMapForRuntime<T extends { name: string }>(list: T[]): Record<string, Omit<T, 'name'>> {
+function buildMapForRuntime<T extends { name: string }>(list: readonly T[]): Record<string, Omit<T, 'name'>> {
   const result: Record<string, Omit<T, 'name'>> = {}
   for (const { name, ...rest } of list) {
     result[name] = rest

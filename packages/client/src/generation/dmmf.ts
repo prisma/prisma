@@ -11,39 +11,56 @@ type NamespacedTypeMap<T> = {
 type FullyQualifiedName = string & { readonly _brand: unique symbol }
 
 export class DMMFHelper implements DMMF.Document {
-  private compositeNames: Set<string>
-  private inputTypesByName: Map<FullyQualifiedName, DMMF.InputType>
-  readonly typeAndModelMap: Dictionary<DMMF.Model>
-  readonly mappingsMap: Dictionary<DMMF.ModelMapping>
-  readonly outputTypeMap: NamespacedTypeMap<DMMF.OutputType>
-  readonly rootFieldMap: Dictionary<DMMF.SchemaField>
+  private _compositeNames?: Set<string>
+  private _inputTypesByName?: Map<FullyQualifiedName, DMMF.InputType>
+  private _typeAndModelMap?: Dictionary<DMMF.Model>
+  private _mappingsMap?: Dictionary<DMMF.ModelMapping>
+  private _outputTypeMap?: NamespacedTypeMap<DMMF.OutputType>
+  private _rootFieldMap?: Dictionary<DMMF.SchemaField>
 
-  constructor(public document: DMMF.Document) {
-    this.compositeNames = new Set(this.datamodel.types.map((t) => t.name))
-    this.typeAndModelMap = this.buildTypeModelMap()
-    this.mappingsMap = this.buildMappingsMap()
-    this.outputTypeMap = this.buildMergedOutputTypeMap()
-    this.rootFieldMap = this.buildRootFieldMap()
-    this.inputTypesByName = this.buildInputTypesMap()
+  constructor(public document: DMMF.Document) {}
+
+  private get compositeNames(): Set<string> {
+    return (this._compositeNames ??= new Set(this.datamodel.types.map((t) => t.name)))
   }
 
-  get datamodel() {
+  private get inputTypesByName(): Map<FullyQualifiedName, DMMF.InputType> {
+    return (this._inputTypesByName ??= this.buildInputTypesMap())
+  }
+
+  get typeAndModelMap(): Dictionary<DMMF.Model> {
+    return (this._typeAndModelMap ??= this.buildTypeModelMap())
+  }
+
+  get mappingsMap(): Dictionary<DMMF.ModelMapping> {
+    return (this._mappingsMap ??= this.buildMappingsMap())
+  }
+
+  get outputTypeMap(): NamespacedTypeMap<DMMF.OutputType> {
+    return (this._outputTypeMap ??= this.buildMergedOutputTypeMap())
+  }
+
+  get rootFieldMap(): Dictionary<DMMF.SchemaField> {
+    return (this._rootFieldMap ??= this.buildRootFieldMap())
+  }
+
+  get datamodel(): DMMF.Datamodel {
     return this.document.datamodel
   }
 
-  get mappings() {
+  get mappings(): DMMF.Mappings {
     return this.document.mappings
   }
 
-  get schema() {
+  get schema(): DMMF.Schema {
     return this.document.schema
   }
 
-  get inputObjectTypes() {
+  get inputObjectTypes(): DMMF.Schema['inputObjectTypes'] {
     return this.schema.inputObjectTypes
   }
 
-  get outputObjectTypes() {
+  get outputObjectTypes(): DMMF.Schema['outputObjectTypes'] {
     return this.schema.outputObjectTypes
   }
 

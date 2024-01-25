@@ -1,1 +1,1 @@
-export const TEMP = 42
+export { PrismaD1 } from './d1'

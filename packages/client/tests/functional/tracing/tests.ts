@@ -91,7 +91,7 @@ testMatrix.setupTestSuite(
     const isSqlServer = provider === Providers.SQLSERVER
 
     const usesSyntheticTxQueries =
-      driverAdapter !== undefined && ['js_libsql', 'js_planetscale'].includes(driverAdapter)
+      driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale'].includes(driverAdapter)
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -639,10 +639,10 @@ testMatrix.setupTestSuite(
       })
     })
   },
+
   {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Tracing is not supported for wasm engine, many spans are missing',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', 'Tracing is not supported for wasm engine, many spans are missing')
     },
   },
 )

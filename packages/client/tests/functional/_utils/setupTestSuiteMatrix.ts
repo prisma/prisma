@@ -2,6 +2,7 @@ import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
 
+import type { Client } from '../../../src/runtime/getPrismaClient'
 import { checkMissingProviders } from './checkMissingProviders'
 import {
   getTestSuiteClientMeta,
@@ -104,19 +105,19 @@ function setupTestSuiteMatrix(
         const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const client = new globalThis['loaded']['PrismaClient']({
-            // each Prisma Client instance uses its own instance of
-            // the driver adapter, and the driver adapter is only first instantiated
-            // when creating the first Prisma Client instance.
-            ...newDriverAdapter(),
-            ...args,
-          })
+          const { PrismaClient, Prisma } = globalThis['loaded']
+
+          const options = { ...newDriverAdapter(), ...args }
+          const client = new PrismaClient(options)
+
+          globalThis['Prisma'] = Prisma
           clients.push(client)
-          return client
+
+          return client as Client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']({ ...newDriverAdapter() })
+          globalThis['prisma'] = globalThis['newPrismaClient']() as Client
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
@@ -130,6 +131,8 @@ function setupTestSuiteMatrix(
       // for better type dx, copy a client into the test suite root node_modules
       // this is so that we can have intellisense for the client in the test suite
       beforeAll(() => {
+        if (process.env.CI === 'true') return // don't copy in CI (it's slow)
+
         const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
 
         // reserve the node_modules so that parallel tests suites don't conflict
@@ -152,7 +155,7 @@ function setupTestSuiteMatrix(
           })
 
           if (clientMeta.dataProxy) {
-            await stopMiniProxyQueryEngine(client, globalThis['datasourceInfo'])
+            await stopMiniProxyQueryEngine(client as Client, globalThis['datasourceInfo'] as DatasourceInfo)
           }
         }
         clients.length = 0

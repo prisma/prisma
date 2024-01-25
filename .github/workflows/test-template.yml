@@ -214,7 +214,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - run: pnpm run test:functional --data-proxy --edge-client --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --data-proxy --client-runtime edge --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
@@ -252,14 +252,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine-type: ['library', 'wasm']
-        adapter: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale']
+        clientRuntime: ['node', 'wasm']
+        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale'] # 'js_d1'
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
         previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
         exclude:
           # Exclude relationJoins tests with WASM because the WASM engine does not include the necessary changes yet.
-          - engine-type: 'wasm'
+          - clientRuntime: 'wasm'
             previewFeatures: 'driverAdapters,relationJoins'
     steps:
       - uses: actions/checkout@v4
@@ -280,7 +280,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional --adapter ${{ matrix.adapter }} --shard ${{ matrix.shard }} --engine-type ${{ matrix.engine-type }} --preview-features ${{ matrix.previewFeatures }} --runInBand
+      - run: pnpm run test:functional --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
