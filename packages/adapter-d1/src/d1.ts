@@ -38,7 +38,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::query_raw]'
-    // console.debug(`${tag} %O`, query)
+    console.debug(`${tag} %O`, query)
 
     const ioResult = await this.performIO(query)
 
@@ -50,6 +50,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   private convertData(ioResult: PerformIOResult): ResultSet {
+    console.log(ioResult)
+
     if (ioResult.results.length === 0) {
       return {
         columnNames: [],
@@ -100,12 +102,12 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
       query.args = query.args.map((arg) => this.cleanArg(arg))
 
-      const result = await this.client
-        .prepare(query.sql)
-        .bind(...query.args)
-        .all()
+      const prep = this.client.prepare(query.sql)
+      const bind = prep.bind(...query.args)
+      const result = await bind.all()
 
-      // console.debug({ result })
+      console.log('result')
+      console.log(JSON.stringify(result))
 
       return ok(result)
     } catch (e) {
@@ -127,6 +129,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   cleanArg(arg: unknown): unknown {
+    console.log(typeof arg)
+
     if (arg === true) {
       return 1
     } else if (arg === false) {

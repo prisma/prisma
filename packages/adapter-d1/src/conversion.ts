@@ -18,8 +18,8 @@ export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnTyp
       if (candidateValue !== null) {
         columnTypes[columnIndex] = inferColumnType(candidateValue)
 
-        console.log(candidateValue)
-        console.log(columnTypes[columnIndex])
+        // console.log(`candidate value: ${candidateValue}`)
+        // console.log(`column index: ${columnTypes[columnIndex]}`)
 
         continue columnLoop
       }
@@ -65,6 +65,11 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
 }
 
 function inferStringType(value: string): ColumnType {
+  // ? :thinking: if this is a good way to do it
+  if (['true', 'false'].includes(value.toLowerCase())) {
+    return ColumnTypeEnum.Boolean
+  }
+
   if (!(value.indexOf('.') == -1)) {
     return ColumnTypeEnum.Double
   }
@@ -105,11 +110,11 @@ class UnexpectedTypeError extends Error {
 export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
   const result: unknown[] = Object.keys(obj).map((k) => obj[k])
 
-  // console.log(result)
-  // console.log(columnTypes)
-
   for (let i = 0; i < result.length; i++) {
     const value = result[i]
+
+    console.log(`result : ${value}`)
+    console.log(`column type ${columnTypes[i]}`)
 
     if (value instanceof ArrayBuffer) {
       result[i] = Array.from(new Uint8Array(value))
@@ -138,6 +143,10 @@ export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
     if (typeof value === 'string' && columnTypes[i] === ColumnTypeEnum.Double) {
       result[i] = Number.parseFloat(value)
       continue
+    }
+
+    if (columnTypes[i] === ColumnTypeEnum.Boolean) {
+      result[i] = JSON.parse(value as any)
     }
   }
 

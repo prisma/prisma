@@ -37,6 +37,8 @@ testMatrix.setupTestSuite(
         },
       })
 
+      console.log(record?.binary)
+
       expect(record?.binary).toEqual(Buffer.from('hello'))
     })
 

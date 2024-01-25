@@ -21,8 +21,28 @@ export default {
 		const adapter = new PrismaD1(env.MY_DATABASE)
 		const prisma = new PrismaClient({ adapter })
 
-		// const result = await prisma.$queryRaw`SELECT * from PrismaTest;`
-		// console.log({ queryRaw })
+		let tenc = new TextEncoder()
+		let buffer = tenc.encode("Hello")
+
+		// let buffer = Uint8Array.from(['H', 'e', 'l', 'l', 'o'])
+
+		const qr = await prisma.$queryRaw`
+		INSERT INTO "Test"
+			("boolean", "blob")
+			VALUES (true, ${buffer})
+			RETURNING *
+		`
+
+		console.log(qr);
+		
+
+		console.log('--------');
+
+		const result = await prisma.test.findUnique({
+			where: {
+				id: qr.re
+			}
+		})
 
 		// const result = await prisma.customers.create({
 		// 	data: {
@@ -30,7 +50,6 @@ export default {
 		// 		contactName: "Test Contact",
 		// 	}
 		// })
-		// console.log({ create })
 
 		// const result = await prisma.customers.create({
 		// 	data: {
@@ -41,7 +60,6 @@ export default {
 		// 		customerId: true,
 		// 	}
 		// })
-		// console.log({ createSelect })
 
 		// const result = await prisma.customers.findMany({
 		// 	where: {
@@ -71,13 +89,13 @@ export default {
 		// })
 		
 		// const result = await prisma.prismaTest.create({
-			// 	data: {
-				// 		date: new Date("2019-06-17T14:20:57Z"),
-				// 		bigint: Number.MAX_SAFE_INTEGER + 1,
-				// 		decimal: 121.10299000124800000001
-				// 	}
-				// })
-				// console.log({ create })
+		// 		data: {
+		// 				date: new Date("2019-06-17T14:20:57Z"),
+		// 				bigint: Number.MAX_SAFE_INTEGER + 1,
+		// 				decimal: 121.10299000124800000001
+		// 			}
+		// 		})
+
 
 			// const result = await prisma.user.create({
 			// 	data: {
@@ -91,16 +109,18 @@ export default {
 			// 	}
 			// })
 
-		const result = await prisma.user.findFirst()
+		// const result = await prisma.user.findFirst()
 				
 		console.log('\u2800');
 		console.log('\u2800');
 		console.log('--- Result from User ----');
 		
+		console.log(typeof result.blob)
+		console.log(typeof buffer)
 		console.log({ result })
 		await prisma.$disconnect()
 
-		return new Response(`Hello World! Result from Prisma Client from D1!:\n${{result}}, null, 2)}`);
+		return new Response(`Hello World! Result from Prisma Client from D1!:\n${JSON.stringify(result, null, 2)}`);
 	},
 };
 
