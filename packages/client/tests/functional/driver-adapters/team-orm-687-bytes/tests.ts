@@ -12,11 +12,10 @@ testMatrix.setupTestSuite(
       const inputBuffers = inputStrings.map((s) => Buffer.from(s))
       const inputData = inputBuffers.map((b, i) => ({ id: `${i + 1}`, bytes: b }))
 
-      await prisma.a.createMany({
-        data: inputData,
-      })
+      // sqlite doesn't support `createMany` yet
+      await prisma.$transaction(inputData.map((data) => prisma.a.create({ data })))
 
-      const result = prisma.a.findMany()
+      const result = await prisma.a.findMany()
       expect(result).toEqual(inputData)
     })
   },
