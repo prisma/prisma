@@ -22,6 +22,9 @@ const args = arg(
     '--skip-pack': '--skipPack',
     // a way to cleanup created files that also works on linux
     '--clean': Boolean,
+    // number of workers to use for parallel tests
+    '--maxWorkers': Number,
+    '--max-workers': '--maxWorkers',
   },
   true,
   true,
@@ -33,6 +36,7 @@ async function main() {
     process.exit(1)
   }
 
+  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
   args['--runInBand'] = args['--runInBand'] ?? false
   args['--skipBuild'] = args['--skipBuild'] ?? false
   args['--skipPack'] = args['--skipPack'] ?? false
@@ -112,7 +116,7 @@ async function main() {
       await $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
   })
 
-  let jobResults: (ProcessOutput & { name: string })[] = []
+  const jobResults: (ProcessOutput & { name: string })[] = []
   if (args['--runInBand'] === true) {
     console.log('🏃 Running tests in band')
     for (const [i, job] of dockerJobs.entries()) {
@@ -121,9 +125,25 @@ async function main() {
     }
   } else {
     console.log('🏃 Running tests in parallel')
-    jobResults = (await Promise.all(dockerJobs.map((job) => job()))).map((result, i) => {
-      return Object.assign(result, { name: e2eTestNames[i] })
-    })
+
+    const pendingJobResults = [] as Promise<void>[]
+    let availableWorkers = args['--maxWorkers']
+    for (const [i, job] of dockerJobs.entries()) {
+      while (availableWorkers === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+
+      --availableWorkers // borrow worker
+      const pendingJob = (async () => {
+        console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
+        jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
+        ++availableWorkers // return worker
+      })()
+
+      pendingJobResults.push(pendingJob)
+    }
+
+    await Promise.allSettled(pendingJobResults)
   }
 
   const failedJobResults = jobResults.filter((r) => r.exitCode !== 0)
