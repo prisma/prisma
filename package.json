@@ -28,7 +28,7 @@
     "bench-stdout-only": "ts-node scripts/bench.ts",
     "prepare": "is-ci || husky install",
     "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
-    "size": "pnpm run build && pnpm size-limit"
+    "size": "pnpm -r --parallel exec pnpm pack && pnpm run build && pnpm size-limit"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "7.39.1",
@@ -145,6 +145,14 @@
     },
     {
       "path": "packages/cli/build/index.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/cli/prisma-client-0.0.0.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/cli/prisma-0.0.0.tgz",
       "gzip": false
     }
   ]
