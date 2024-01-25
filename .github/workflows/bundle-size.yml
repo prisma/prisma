@@ -35,6 +35,7 @@ jobs:
         with:
           node-version: 18
           pnpm-version: 8
+          skip-tsc: false
 
       - name: Pack all packages
         run: pnpm -r --parallel exec pnpm pack
