@@ -133,7 +133,7 @@ export async function buildClient({
     types: 'index.d.ts',
     browser: 'index-browser.js',
     exports: clientPackageExports,
-    version: '0.0.0',
+    version: clientVersion,
     sideEffects: false,
   }
 
