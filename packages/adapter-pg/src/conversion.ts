@@ -385,10 +385,6 @@ const parsePgBytes = types.getTypeParser(ScalarColumnType.BYTEA) as (_: string) 
  * boundary.
  */
 function convertBytes(serializedBytes: string): number[] {
-  console.error('value before cast', serializedBytes)
-  console.error('apply TextEncoder', new TextEncoder().encode(serializedBytes))
-  console.error('typeof value', typeof serializedBytes)
-
   const buffer = parsePgBytes(serializedBytes)
   return encodeBuffer(buffer)
 }

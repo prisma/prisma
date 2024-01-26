@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/require-await */
 // default import does not work correctly for JS values inside,
 // i.e. client
-import { inspect } from 'node:util'
-
 import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
@@ -47,16 +45,12 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
     return ioResult.map(({ fields, insertId: lastInsertId, rows }) => {
       const columns = fields.map((field) => field.name)
 
-      const resultSet = {
+      return {
         columnNames: columns,
         columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
         rows: rows as ResultSet['rows'],
         lastInsertId,
       }
-
-      debug(`${tag} resultset:\n%O`, inspect(resultSet, { depth: null }))
-
-      return resultSet
     })
   }
 
@@ -145,6 +139,15 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
 
 export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
   constructor(client: planetScale.Client) {
+    // this used to be a check for constructor name at same point (more reliable when having multiple copies
+    // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
+    if (!(client instanceof planetScale.Client)) {
+      throw new TypeError(`PrismaPlanetScale must be initialized with an instance of Client:
+import { Client } from '@planetscale/database'
+const client = new Client({ url })
+const adapter = new PrismaPlanetScale(client)
+`)
+    }
     super(client)
   }
 

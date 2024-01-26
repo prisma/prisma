@@ -98,15 +98,8 @@ export function fieldToColumnType(field: PlanetScaleColumnType): ColumnType {
 }
 
 export const cast: typeof defaultCast = (field, value) => {
-  if (field.type === 'BLOB' || field.type === 'BINARY') {
-    console.error('value before cast', value)
-    console.error('apply TextEncoder', new TextEncoder().encode(value!))
-    console.error('typeof value', typeof value)
-  }
-
   if (field.type === 'JSON' && value === 'null') {
     return JsonNullMarker
   }
-
   return defaultCast(field, value)
 }

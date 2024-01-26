@@ -131,8 +131,3 @@ model Product {
 model leak_test {
   id String @id @default(cuid())
 }
-
-model binary {
-  id    String @id @default(cuid())
-  bytes Bytes
-}
