@@ -178,6 +178,13 @@ async function main(): Promise<number | void> {
           'dev',
           '--config=./tests/functional/_utils/wrangler.toml',
           'node_modules/wrangler-proxy/dist/worker.js',
+          // see https://github.com/cloudflare/workers-sdk/blob/6bfd267fe88b492a616754f04e574620941be2c1/packages/wrangler/src/logger.ts
+          // `info` currently prints too many logs when running tests with `wrangler-proxy`
+          // Example:
+          // [wrangler:inf] POST /instruction 200 OK (1ms)
+          // [wrangler:inf] POST /data 200 OK (8ms)
+          // ...
+          '--log-level=warn',
         ],
         {
           preferLocal: true,
