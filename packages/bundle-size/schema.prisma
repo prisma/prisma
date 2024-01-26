@@ -1,3 +1,5 @@
+// Taken from https://github.com/prisma/introspection-ci/blob/automated/dev/introspection-analysis/output/postgresql_public/mastodon.log
+
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
