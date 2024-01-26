@@ -44,7 +44,6 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
     const ioResult = await this.performIO(query)
     return ioResult.map(({ fields, insertId: lastInsertId, rows }) => {
       const columns = fields.map((field) => field.name)
-
       return {
         columnNames: columns,
         columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
