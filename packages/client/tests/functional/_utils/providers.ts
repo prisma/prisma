@@ -12,6 +12,7 @@ export enum AdapterProviders {
   JS_PLANETSCALE = 'js_planetscale',
   JS_NEON = 'js_neon',
   JS_LIBSQL = 'js_libsql',
+  JS_D1 = 'js_d1',
 
   // TODO: what to do with Vitess? It's not a driver adapter, but it's a flavor of MySQL.
   VITESS_8 = 'vitess_8',
@@ -25,7 +26,7 @@ export enum RelationModes {
 export const adaptersForProvider = {
   [Providers.POSTGRESQL]: [AdapterProviders.JS_PG, AdapterProviders.JS_NEON],
   [Providers.MYSQL]: [AdapterProviders.JS_PLANETSCALE],
-  [Providers.SQLITE]: [AdapterProviders.JS_LIBSQL],
+  [Providers.SQLITE]: [AdapterProviders.JS_LIBSQL, AdapterProviders.JS_D1],
   [Providers.MONGODB]: [],
   [Providers.COCKROACHDB]: [],
   [Providers.SQLSERVER]: [],
@@ -36,6 +37,7 @@ export const relationModesForAdapter = {
   [AdapterProviders.JS_PLANETSCALE]: RelationModes.PRISMA,
   [AdapterProviders.JS_NEON]: undefined,
   [AdapterProviders.JS_LIBSQL]: undefined,
+  [AdapterProviders.JS_D1]: undefined,
   [AdapterProviders.VITESS_8]: RelationModes.PRISMA,
 } as Record<AdapterProviders, RelationModes | undefined>
 

@@ -90,9 +90,8 @@ testMatrix.setupTestSuite(
         query results.
       `,
     },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'All buffer assertions fail with different binary data',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', 'All buffer assertions fail with different binary data')
     },
   },
 )

@@ -9,7 +9,7 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ engineType, provider }, suiteMeta, clientMeta) => {
+  ({ clientRuntime, provider }, suiteMeta, clientMeta) => {
     const OLD_ENV = process.env
 
     beforeEach(() => {
@@ -22,7 +22,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO: fails with Expected constructor: PrismaClientInitializationError Received constructor: Error
-    skipTestIf(engineType === 'wasm')('PrismaClientInitializationError for invalid env', async () => {
+    skipTestIf(clientRuntime === 'wasm')('PrismaClientInitializationError for invalid env', async () => {
       // This test often fails on macOS CI with thrown: "Exceeded timeout of
       // 60000 ms for a hook. Retrying might help, let's find out
       const isMacCI = Boolean(process.env.CI) && ['darwin'].includes(process.platform)

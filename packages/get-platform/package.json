@@ -14,9 +14,9 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "2.3.1",
+    "@codspeed/benchmark.js-plugin": "3.0.0",
     "@swc/core": "1.3.96",
-    "@swc/jest": "0.2.29",
+    "@swc/jest": "0.2.31",
     "@types/jest": "29.5.11",
     "@types/node": "18.18.13",
     "benchmark": "2.1.4",
