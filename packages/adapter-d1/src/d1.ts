@@ -102,7 +102,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     // console.debug({ query })
 
     try {
-      // Hack for
+      // Hack for booleans, we must convert them to 0/1.
       // ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
       query.args = query.args.map((arg) => {
         if (arg === true) {
@@ -125,15 +125,26 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       const error = e as Error
       console.error('Error in performIO: %O', error)
 
-      const rawCode = error['rawCode'] ?? e.cause?.['rawCode']
-      if (typeof rawCode === 'number') {
+      try {
+        const errorAsJson = JSON.parse(error.message)
+        // We only get the error message, not the error code.
+        // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
+        // So we try to match some errors and use the generic error code as a fallback.
+        // https://www.sqlite.org/rescode.html
+        // 1 = The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
+        let extendedCode = 1
+        if (errorAsJson.message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
+          extendedCode = 2067
+        }
+
         return err({
           kind: 'Sqlite',
-          extendedCode: rawCode,
-          message: error.message,
+          extendedCode,
+          message: errorAsJson.message,
         })
+      } catch (e) {
+        throw error
       }
-      throw error
     } finally {
       // release()
     }
