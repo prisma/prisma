@@ -68,7 +68,7 @@ jobs:
           echo "Pull Request Body contains /integration: ${{ contains(env.PR_BODY, '/integration') }}"
 
       - name: Find "ci test all" comment
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: findTestAllComment
         if: ${{ github.event_name == 'pull_request' }}
         with:
@@ -118,7 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Find past custom engine comment
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: findEngineComment
         if: ${{ github.event_name == 'pull_request' }}
         with:
