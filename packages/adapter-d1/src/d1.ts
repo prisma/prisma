@@ -134,6 +134,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
         let extendedCode = 1
         if (errorAsJson.message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
           extendedCode = 2067
+        } else if (errorAsJson.message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
+          extendedCode = 787
         }
 
         return err({
