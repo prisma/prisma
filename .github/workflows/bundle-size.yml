@@ -41,7 +41,7 @@ jobs:
         run: pnpm -r --parallel exec pnpm pack
 
       - name: Run bundle size project
-        working-directory: packages/client
+        working-directory: packages/bundle-size
         run: pnpm run create-gzip-files
 
       - uses: andresz1/size-limit-action@v1
