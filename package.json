@@ -153,6 +153,22 @@
     {
       "path": "packages/cli/prisma-0.0.0.tgz",
       "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-libsql/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-neon/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-pg/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
+      "gzip": false
     }
   ]
 }
