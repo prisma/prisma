@@ -1,7 +1,7 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "ES2022",
     "moduleResolution": "NodeNext"
   },
   "exclude": ["_steps.ts"]

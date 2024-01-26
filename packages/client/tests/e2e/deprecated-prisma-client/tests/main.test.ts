@@ -5,6 +5,7 @@ const baseTsConfig = require('../../tsconfig.base.json').compilerOptions
 
 const depTs = path.resolve(__dirname, '..', 'src', 'dep.ts')
 const noDepTs = path.resolve(__dirname, '..', 'src', 'no-dep.ts')
+const defaultTs = path.resolve(__dirname, '..', 'src', 'default.ts')
 const prismaClientName = ts.escapeLeadingUnderscores('PrismaClient')
 
 const deprecatedOptions = [
@@ -13,22 +14,12 @@ const deprecatedOptions = [
   { module: 'ES2020', moduleResolution: 'Node' },
   { module: 'ES2022', moduleResolution: 'Node' },
   { module: 'ESNext', moduleResolution: 'Node' },
-  { module: 'Node16', moduleResolution: 'Node' },
-  { module: 'NodeNext', moduleResolution: 'Node' },
 ]
 
 const nonDeprecatedOptions = [
-  { module: 'ES2015', moduleResolution: 'Node16' },
-  { module: 'ES2020', moduleResolution: 'Node16' },
-  { module: 'ES2022', moduleResolution: 'Node16' },
-  { module: 'ESNext', moduleResolution: 'Node16' },
   { module: 'Node16', moduleResolution: 'Node16' },
   { module: 'NodeNext', moduleResolution: 'Node16' },
 
-  { module: 'ES2015', moduleResolution: 'NodeNext' },
-  { module: 'ES2020', moduleResolution: 'NodeNext' },
-  { module: 'ES2022', moduleResolution: 'NodeNext' },
-  { module: 'ESNext', moduleResolution: 'NodeNext' },
   { module: 'Node16', moduleResolution: 'NodeNext' },
   { module: 'NodeNext', moduleResolution: 'NodeNext' },
 
@@ -36,11 +27,11 @@ const nonDeprecatedOptions = [
   { module: 'ES2020', moduleResolution: 'Bundler' },
   { module: 'ES2022', moduleResolution: 'Bundler' },
   { module: 'ESNext', moduleResolution: 'Bundler' },
-  { module: 'Node16', moduleResolution: 'Bundler' },
-  { module: 'NodeNext', moduleResolution: 'Bundler' },
 ]
 
-describe('import via dependency', () => {
+const allOptions = deprecatedOptions.concat(nonDeprecatedOptions)
+
+describe('custom import via dependency', () => {
   for (const options of deprecatedOptions) {
     test(`${JSON.stringify(options)}: PrismaClient is deprecated`, () => {
       expect(isPrismaClientDeprecated(depTs, options)).toBe(true)
@@ -54,11 +45,20 @@ describe('import via dependency', () => {
   }
 })
 
-describe('direct import', () => {
+describe('custom direct import', () => {
   // for direct import, client should always be deprecated
-  for (const options of deprecatedOptions.concat(nonDeprecatedOptions)) {
+  for (const options of allOptions) {
     test(`${JSON.stringify(options)}: PrismaClient is deprecated`, () => {
       expect(isPrismaClientDeprecated(noDepTs, options)).toBe(true)
+    })
+  }
+})
+
+describe('default import', () => {
+  // for default import, client should never be deprecated
+  for (const options of allOptions) {
+    test(`${JSON.stringify(options)}: PrismaClient is not deprecated`, () => {
+      expect(isPrismaClientDeprecated(defaultTs, options)).toBe(false)
     })
   }
 })
@@ -69,21 +69,19 @@ function isPrismaClientDeprecated(fileName: string, options: any) {
     path.resolve(__dirname, '..', 'tsconfig.json'),
   )
 
-  if (fullOptions.errors.length > 0) {
-    throw new Error(`Config file errors: ${fullOptions.errors.map((err) => err.messageText).join('\n')}`)
-  }
+  assertNoErrors(fullOptions.errors)
 
   const program = ts.createProgram([fileName], fullOptions.options)
+
+  assertNoErrors(program.getConfigFileParsingDiagnostics())
+  assertNoErrors(program.getOptionsDiagnostics())
   const checker = program.getTypeChecker()
   const sourceFile = program.getSourceFile(fileName)
   if (!sourceFile) {
     throw new Error(`Source file ${fileName} not found`)
   }
-  const diagnostic = program.getSemanticDiagnostics(sourceFile)
-  if (diagnostic.length > 0) {
-    const error = diagnostic.map((error) => error.messageText).join('\n\n')
-    throw new Error(`TS Error: ${error}`)
-  }
+  assertNoErrors(program.getSemanticDiagnostics(sourceFile))
+  assertNoErrors(program.getSyntacticDiagnostics(sourceFile))
   const prismaImport = findPrismaImport(sourceFile)
   if (!prismaImport) {
     throw new Error(`No PrismaClient import found in ${fileName}}`)
@@ -91,6 +89,12 @@ function isPrismaClientDeprecated(fileName: string, options: any) {
   const type = checker.getTypeAtLocation(prismaImport)
   const deprecatedTag = type.symbol.getJsDocTags().find((tag) => tag.name === 'deprecated')
   return Boolean(deprecatedTag)
+}
+
+function assertNoErrors(errors: readonly ts.Diagnostic[]) {
+  if (errors.length > 0) {
+    throw new Error(`TS errors: ${errors.map((err) => err.messageText).join('\n')}`)
+  }
 }
 
 function findPrismaImport(sourceFile: ts.SourceFile) {
