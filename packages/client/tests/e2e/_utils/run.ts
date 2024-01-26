@@ -13,12 +13,18 @@ const args = arg(
     '--verbose': Boolean,
     // like run jest in band, useful for debugging and CI
     '--runInBand': Boolean,
+    '--run-in-band': '--runInBand',
     // do not fully build cli and client packages before packing
     '--skipBuild': Boolean,
+    '--skip-build': '--skipBuild',
     // do not fully pack cli and client packages before packing
     '--skipPack': Boolean,
+    '--skip-pack': '--skipPack',
     // a way to cleanup created files that also works on linux
     '--clean': Boolean,
+    // number of workers to use for parallel tests
+    '--maxWorkers': Number,
+    '--max-workers': '--maxWorkers',
   },
   true,
   true,
@@ -30,9 +36,11 @@ async function main() {
     process.exit(1)
   }
 
+  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
   args['--runInBand'] = args['--runInBand'] ?? false
-  args['--verbose'] = args['--verbose'] ?? false
   args['--skipBuild'] = args['--skipBuild'] ?? false
+  args['--skipPack'] = args['--skipPack'] ?? false
+  args['--verbose'] = args['--verbose'] ?? false
   args['--clean'] = args['--clean'] ?? false
   $.verbose = args['--verbose']
 
@@ -44,59 +52,41 @@ async function main() {
   if (args['--clean'] === true) {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml up clean`
-  } else {
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up pre-clean`
   }
 
   console.log('🎠 Preparing e2e tests')
 
-  // this process will need to modify some package.json, we save copies
-  await $`pnpm -r exec cp package.json package.copy.json`
-
-  // we provide a function that can revert modified package.json back
-  const restoreOriginal = async () => {
-    await $`pnpm -r exec cp package.copy.json package.json`
-  }
-
-  // if process is killed by hand, ensure that package.json is restored
-  process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
-
-  // we prepare to replace references to local packages with their tarballs names
   const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
-  const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma']
-  const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
-  const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
-  const allPkgJson = allPkgJsonPaths.map((p) => require(p))
 
-  // replace references to unbundled local packages with built and packaged tarballs
-  for (let i = 0; i < allPkgJson.length; i++) {
-    for (const key of Object.keys(allPkgJson[i].dependencies ?? {})) {
-      if (localPackageNames.includes(key)) {
-        allPkgJson[i].dependencies[key] = `/tmp/${key.replace('@prisma/', 'prisma-')}-0.0.0.tgz`
-      }
-    }
+  if (args['--skipBuild'] === false) {
+    console.log('📦 Packing package tarballs')
 
-    await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
+    await $`pnpm -r build`
   }
 
-  try {
-    if (args['--skipBuild'] !== true) {
-      console.log('📦 Packing package tarballs')
+  if (args['--skipPack'] === false) {
+    // this process will need to modify some package.json, we save copies
+    await $`pnpm -r exec cp package.json package.copy.json`
 
-      await $`pnpm -r build`
+    // we prepare to replace references to local packages with their tarballs names
+    const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma']
+    const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
+    const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
+    const allPkgJson = allPkgJsonPaths.map((p) => require(p))
+
+    // replace references to unbundled local packages with built and packaged tarballs
+    for (let i = 0; i < allPkgJson.length; i++) {
+      for (const key of Object.keys(allPkgJson[i].dependencies ?? {})) {
+        if (localPackageNames.includes(key)) {
+          allPkgJson[i].dependencies[key] = `/tmp/${key.replace('@prisma/', 'prisma-')}-0.0.0.tgz`
+        }
+      }
+
+      await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
     }
 
-    if (args['--skipPack'] !== true) {
-      await $`pnpm -r exec pnpm pack --pack-destination /tmp/`
-    }
-  } catch (e) {
-    console.log(e.message)
-    console.log('🛑 Failed to pack one or more of the packages')
-    console.log('💡 Make sure to run `watch`, `dev` or `build`')
-    throw e
-  } finally {
-    await restoreOriginal() // when done, we restore the original package.json
+    await $`pnpm -r --parallel exec pnpm pack --pack-destination /tmp/`
+    await restoreOriginalState()
   }
 
   console.log('🐳 Starting tests in docker')
@@ -126,7 +116,7 @@ async function main() {
       await $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
   })
 
-  let jobResults: (ProcessOutput & { name: string })[] = []
+  const jobResults: (ProcessOutput & { name: string })[] = []
   if (args['--runInBand'] === true) {
     console.log('🏃 Running tests in band')
     for (const [i, job] of dockerJobs.entries()) {
@@ -135,9 +125,25 @@ async function main() {
     }
   } else {
     console.log('🏃 Running tests in parallel')
-    jobResults = (await Promise.all(dockerJobs.map((job) => job()))).map((result, i) => {
-      return Object.assign(result, { name: e2eTestNames[i] })
-    })
+
+    const pendingJobResults = [] as Promise<void>[]
+    let availableWorkers = args['--maxWorkers']
+    for (const [i, job] of dockerJobs.entries()) {
+      while (availableWorkers === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+
+      --availableWorkers // borrow worker
+      const pendingJob = (async () => {
+        console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
+        jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
+        ++availableWorkers // return worker
+      })()
+
+      pendingJobResults.push(pendingJob)
+    }
+
+    await Promise.allSettled(pendingJobResults)
   }
 
   const failedJobResults = jobResults.filter((r) => r.exitCode !== 0)
@@ -163,7 +169,19 @@ async function main() {
   }
 }
 
+async function restoreOriginalState() {
+  if (args['--skipPack'] === false) {
+    await $`pnpm -r exec cp package.copy.json package.json`
+  }
+}
+
+process.on('SIGINT', async () => {
+  await restoreOriginalState()
+  process.exit(0)
+})
+
 void main().catch((e) => {
   console.log(e)
+  void restoreOriginalState()
   process.exit(1)
 })

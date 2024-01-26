@@ -370,7 +370,7 @@ jobs:
             }
 
       - name: Find report comment
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: fc
         if: ${{ always() && github.event_name == 'pull_request' }}
         with:
@@ -379,7 +379,7 @@ jobs:
           body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
 
       - name: Create or update remote comment (failure)
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@v4
         if: ${{ failure() && steps.upload-report.outputs.url }}
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
@@ -391,7 +391,7 @@ jobs:
           edit-mode: replace
 
       - name: Create or update remote comment (success)
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@v4
         if: ${{ success() && steps.fc.outputs.comment-id != '' }}
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
@@ -441,7 +441,7 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test:e2e --skipBuild --verbose --runInBand
+      - run: pnpm run test:e2e --skipBuild --verbose
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'

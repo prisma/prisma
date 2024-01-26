@@ -19,7 +19,7 @@
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
     "@swc/core": "1.3.96",
-    "@swc/jest": "0.2.29",
+    "@swc/jest": "0.2.31",
     "@types/jest": "29.5.11",
     "@types/node": "18.18.13",
     "@types/pg": "8.10.9",
@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.9.0-25.c1c37743e10f06003dd24aa38a5d259b96f4ffe0",
+    "@prisma/engines-version": "5.9.0-27.6248b507d344261d8c98c3096bd082ad09b3750b",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
