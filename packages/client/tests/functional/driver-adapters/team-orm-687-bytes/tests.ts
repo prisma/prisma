@@ -17,12 +17,15 @@ testMatrix.setupTestSuite(
 
       const results = await prisma.a.findMany()
 
-      // we can't compare buffers directly, or else we'd see this diff in the test output:
+      // We can't compare buffers directly, or else we'd see this diff in the test output:
       // ```
       // - "bytes": Buffer [
       // + "bytes": C [
       // ```
       const outputData = results.map((result) => {
+        console.log('typeof result.bytes', typeof result.bytes)
+        console.log('typeof Buffer.from(result.bytes)', typeof Buffer.from(result.bytes))
+
         return {
           id: result.id,
           bytes: Buffer.from(result.bytes),
