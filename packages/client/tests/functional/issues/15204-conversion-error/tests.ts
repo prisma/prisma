@@ -12,6 +12,7 @@ testMatrix.setupTestSuite(
 
       if (driverAdapter === undefined) {
         await expect(prisma.testModel.findMany()).rejects.toThrow(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           expect.objectContaining({
             code: 'P2023',
             message: expect.stringContaining(
@@ -19,8 +20,8 @@ testMatrix.setupTestSuite(
             ),
           }),
         )
-      } else {
         await expect(prisma.testModel.findMany()).rejects.toThrow(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           expect.objectContaining({
             code: 'P2023',
             message: expect.stringContaining(
