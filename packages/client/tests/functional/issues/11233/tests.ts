@@ -23,11 +23,14 @@ testMatrix.setupTestSuite(
       switch (provider) {
         case 'sqlite':
           // TODO the error does not match to the usual one
-          driverAdapter === AdapterProviders.JS_LIBSQL || driverAdapter === AdapterProviders.JS_D1
-            ? expect((result as Error).message).toContain(': not an error')
-            : expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+          if (driverAdapter === AdapterProviders.JS_LIBSQL) {
+            expect((result as Error).message).toContain(': not an error')
+          } else if (driverAdapter === AdapterProviders.JS_D1) {
+            expect((result as Error).message).toContain('D1_ERROR: No SQL statements detected.')
+          } else {
+            expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+          }
           break
-
         case 'postgresql':
         case 'cockroachdb':
         case 'sqlserver':
@@ -60,11 +63,14 @@ testMatrix.setupTestSuite(
       switch (provider) {
         case 'sqlite':
           // TODO the error does not match to the usual one
-          driverAdapter === AdapterProviders.JS_LIBSQL || driverAdapter === AdapterProviders.JS_D1
-            ? expect((result as Error).message).toContain(': not an error')
-            : expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+          if (driverAdapter === AdapterProviders.JS_LIBSQL) {
+            expect((result as Error).message).toContain(': not an error')
+          } else if (driverAdapter === AdapterProviders.JS_D1) {
+            expect((result as Error).message).toContain('D1_ERROR: No SQL statements detected.')
+          } else {
+            expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+          }
           break
-
         case 'postgresql':
         case 'cockroachdb':
         case 'sqlserver':
