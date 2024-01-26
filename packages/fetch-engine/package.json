@@ -16,7 +16,7 @@
   "enginesOverride": {},
   "devDependencies": {
     "@swc/core": "1.3.96",
-    "@swc/jest": "0.2.29",
+    "@swc/jest": "0.2.31",
     "@types/jest": "29.5.11",
     "@types/node": "18.18.13",
     "@types/node-fetch": "2.6.9",

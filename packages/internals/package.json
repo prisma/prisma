@@ -30,7 +30,7 @@
     "@antfu/ni": "0.21.8",
     "@opentelemetry/api": "1.7.0",
     "@swc/core": "1.2.204",
-    "@swc/jest": "0.2.29",
+    "@swc/jest": "0.2.31",
     "@types/jest": "29.5.11",
     "@types/node": "18.18.13",
     "@types/node-fetch": "2.6.9",
