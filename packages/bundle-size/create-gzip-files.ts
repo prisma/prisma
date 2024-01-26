@@ -6,8 +6,10 @@ void (async () => {
   for (const project of projects) {
     const nodeCompat = project.includes('pg') ? '--node-compat' : ''
 
+    await $`pnpm install` // needs this otherwise `pnpm prisma` does not work
     await $`cd ${__dirname}/${project}`
     await $`cp ${__dirname}/schema.prisma ${__dirname}/${project}/schema.prisma`
+    await $`pnpm prisma generate --schema=${__dirname}/${project}/schema.prisma`
     await $`rm -rf ${__dirname}/${project}/output`
     await $`rm -rf ${__dirname}/${project}/output.tgz`
     await $`pnpm wrangler deploy ${__dirname}/${project}/index.js --dry-run --outdir=${__dirname}/${project}/output --compatibility-date 2024-01-26 --name ${project} ${nodeCompat}`
