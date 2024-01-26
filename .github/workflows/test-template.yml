@@ -370,7 +370,7 @@ jobs:
             }
 
       - name: Find report comment
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: fc
         if: ${{ always() && github.event_name == 'pull_request' }}
         with:
