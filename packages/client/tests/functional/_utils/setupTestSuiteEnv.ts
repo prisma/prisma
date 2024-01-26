@@ -217,7 +217,15 @@ export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatemen
   }
 
   if (alterStatementCallback) {
-    throw new Error('TODO alterStatementCallback for D1')
+    const alterSqlStatements = alterStatementCallback(Providers.SQLITE)
+    // Execute the DDL statements
+    for (const alterSqlStatement of alterSqlStatements.split(';')) {
+      if (alterSqlStatement === '\n') {
+        // Ignore
+      } else {
+        await d1Client.prepare(alterSqlStatement).run()
+      }
+    }
   }
 }
 
