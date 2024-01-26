@@ -218,10 +218,7 @@ async function createDefaultGeneratedThrowFiles() {
       index: defaultFileConfig,
       edge: defaultFileConfig,
       default: defaultFileConfig,
-      wasm: {
-        js: path.join(__dirname, 'default-wasm.js'),
-        ts: path.join(__dirname, 'default-wasm.d.ts'),
-      },
+      wasm: defaultFileConfig,
       'index-browser': {
         js: path.join(__dirname, 'default-index.js'),
         ts: undefined,
