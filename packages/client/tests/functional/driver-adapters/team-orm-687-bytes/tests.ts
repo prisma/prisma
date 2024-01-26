@@ -8,8 +8,11 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   () => {
     test('Bytes encoding is preserved', async () => {
-      const inputStrings = ['AQID', 'FSDF', 'AA']
-      const inputBuffers = inputStrings.map((s) => Buffer.from(s))
+      const inputStrings = ['AQID', 'FSDF', 'AA', 'BB']
+      const inputBtoas = inputStrings.map((s) => btoa(s))
+      const inputs = [...inputStrings, ...inputBtoas]
+
+      const inputBuffers = inputs.map((s) => Buffer.from(s))
       const inputData = inputBuffers.map((b, i) => ({ id: `${i + 1}`, bytes: b }))
 
       // sqlite doesn't support `createMany` yet
@@ -23,9 +26,6 @@ testMatrix.setupTestSuite(
       // + "bytes": C [
       // ```
       const outputData = results.map((result) => {
-        console.log('result.bytes.constructor?.name', result.bytes.constructor?.name)
-        console.log('result.bytes instanceof Buffer', result.bytes instanceof Buffer)
-
         return {
           id: result.id,
           bytes: Buffer.from(result.bytes),
