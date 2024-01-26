@@ -19,7 +19,6 @@ import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
 import type { Dictionary } from './utils/common'
 
-const GENERATED_PACKAGE_NAME = 'prisma-client'
 const debug = Debug('prisma:client:generateClient')
 
 type OutputDeclaration = {
@@ -632,5 +631,5 @@ async function deleteOutputDir(finalOutputDir: string, datamodel: string) {
 function getUniquePackageName(datamodel: string) {
   const hash = createHash('sha256')
   hash.write(datamodel)
-  return `${GENERATED_PACKAGE_NAME}-${hash.digest().toString('hex')}`
+  return `prisma-client-${hash.digest().toString('hex')}`
 }
