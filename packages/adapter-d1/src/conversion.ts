@@ -52,7 +52,7 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
     //   return ColumnTypeEnum.Boolean
     case 'number':
       // Hack - TODO change this when we have type metadata
-      if (Number.isInteger(value) && value < Number.MAX_SAFE_INTEGER) {
+      if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
         return ColumnTypeEnum.Int32
       } else {
         return ColumnTypeEnum.UnknownNumber
