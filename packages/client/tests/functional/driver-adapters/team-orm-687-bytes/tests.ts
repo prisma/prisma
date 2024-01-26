@@ -23,8 +23,8 @@ testMatrix.setupTestSuite(
       // + "bytes": C [
       // ```
       const outputData = results.map((result) => {
-        console.log('typeof result.bytes', typeof result.bytes)
-        console.log('typeof Buffer.from(result.bytes)', typeof Buffer.from(result.bytes))
+        console.log('result.bytes.constructor?.name', result.bytes.constructor?.name)
+        console.log('result.bytes instanceof Buffer', result.bytes instanceof Buffer)
 
         return {
           id: result.id,
