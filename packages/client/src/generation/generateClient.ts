@@ -288,7 +288,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   if (noEngine === true) {
-    await deleteOutputDir(outputDir, datamodel)
+    await deleteOutputDir(outputDir)
   }
 
   await ensureDir(outputDir)
@@ -601,19 +601,19 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
 
 /**
  * Attempts to delete the output directory.
- * @param finalOutputDir
+ * @param outputDir
  */
-async function deleteOutputDir(finalOutputDir: string, datamodel: string) {
+async function deleteOutputDir(outputDir: string) {
   try {
-    debug(`attempting to delete ${finalOutputDir} recursively`)
+    debug(`attempting to delete ${outputDir} recursively`)
     // we want to make sure that if we delete, we delete the right directory
-    if (require(`${finalOutputDir}/package.json`).name === getUniquePackageName(datamodel)) {
-      await fs.rmdir(finalOutputDir, { recursive: true }).catch(() => {
-        debug(`failed to delete ${finalOutputDir} recursively`)
+    if (require(`${outputDir}/package.json`).name?.startsWith(GENERATED_PACKAGE_NAME_PREFIX)) {
+      await fs.rmdir(outputDir, { recursive: true }).catch(() => {
+        debug(`failed to delete ${outputDir} recursively`)
       })
     }
   } catch {
-    debug(`failed to delete ${finalOutputDir} recursively, not found`)
+    debug(`failed to delete ${outputDir} recursively, not found`)
   }
 }
 
@@ -631,5 +631,7 @@ async function deleteOutputDir(finalOutputDir: string, datamodel: string) {
 function getUniquePackageName(datamodel: string) {
   const hash = createHash('sha256')
   hash.write(datamodel)
-  return `prisma-client-${hash.digest().toString('hex')}`
+  return `${GENERATED_PACKAGE_NAME_PREFIX}${hash.digest().toString('hex')}`
 }
+
+const GENERATED_PACKAGE_NAME_PREFIX = 'prisma-client-'
