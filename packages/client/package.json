@@ -138,7 +138,7 @@
     "@jest/create-cache-key-function": "29.7.0",
     "@jest/globals": "29.7.0",
     "@jest/test-sequencer": "29.7.0",
-    "@libsql/client": "0.3.6",
+    "@libsql/client": "0.4.0",
     "@neondatabase/serverless": "0.7.2",
     "@opentelemetry/api": "1.7.0",
     "@opentelemetry/context-async-hooks": "1.20.0",
