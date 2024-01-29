@@ -17,8 +17,8 @@ void executeSteps({
 
     // we change the schema to make sure that our unique naming of the generated
     // package json "name" field (via hash) does not interfere with the deletion
-    $`echo "// change the schema" >> ./prisma/schema.prisma`
-    $`pnpm prisma generate`
+    await $`echo "// change the schema" >> ./prisma/schema.prisma`
+    await $`pnpm prisma generate`
 
     // generate with no engine and ensure that it is gone
     await $`pnpm prisma generate --no-engine`
