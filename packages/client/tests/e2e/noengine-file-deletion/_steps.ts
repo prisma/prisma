@@ -15,6 +15,11 @@ void executeSteps({
       throw new Error('libquery_engine-debian.so should be found')
     }
 
+    // we change the schema to make sure that our unique naming
+    // of the package json does not interfere with the deletion
+    $`echo "// change the schema" >> ./prisma/schema.prisma`
+    $`pnpm prisma generate`
+
     // generate with no engine and ensure that it is gone
     await $`pnpm prisma generate --no-engine`
 
