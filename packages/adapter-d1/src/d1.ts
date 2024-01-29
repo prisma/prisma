@@ -12,6 +12,7 @@ import {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 
+import { tags } from '../../internals/src/logger'
 // import { Mutex } from 'async-mutex'
 import { getColumnTypes } from './conversion'
 
@@ -161,8 +162,17 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
 }
 
 export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
+  alreadyWarned = new Set()
+
   constructor(client: StdClient) {
     super(client)
+  }
+
+  warnOnce = (key: string, message: string, ...args: unknown[]) => {
+    if (!this.alreadyWarned.has(key)) {
+      this.alreadyWarned.add(key)
+      console.info(`${tags.warn} ${message}`, ...args)
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -176,7 +186,10 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
     const tag = '[js::startTransaction]'
     // console.debug(`${tag} options: %O`, options)
 
-    console.warn('D1 does not currently provide transactions support, as such, we cannot guarantee atomicity')
+    this.warnOnce(
+      'D1 Transaction',
+      'D1 does not currently provide transactions support, as such, we cannot guarantee atomicity',
+    )
 
     return ok(new D1Transaction(this.client, options))
   }

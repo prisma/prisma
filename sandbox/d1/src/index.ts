@@ -62,6 +62,9 @@ export default {
 			prisma.customers.create({
 				data: { customerId: 508, companyName: "Blaze Away", contactName: "LonDone" }
 			}),
+		])
+
+		await prisma.$transaction([
 			prisma.customers.create({
 				data: { customerId: 420, companyName: "Sky High", contactName: "Bush" }
 			})
