@@ -15,8 +15,8 @@ void executeSteps({
       throw new Error('libquery_engine-debian.so should be found')
     }
 
-    // we change the schema to make sure that our unique naming
-    // of the package json does not interfere with the deletion
+    // we change the schema to make sure that our unique naming of the generated
+    // package json "name" field (via hash) does not interfere with the deletion
     $`echo "// change the schema" >> ./prisma/schema.prisma`
     $`pnpm prisma generate`
 
