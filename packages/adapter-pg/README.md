@@ -1,14 +1,18 @@
 # @prisma/adapter-pg
 
-Prisma driver adapter for the [Postgres `pg` driver](https://github.com/brianc/node-postgres).
+This package contains the driver adapter for Prisma ORM that enables usage of the [`node-postgres`](https://node-postgres.com/) (`pg`) database driver for PostgreSQL. You can learn more in the [documentation](https://www.prisma.io/docs/orm/overview/databases/postgresql#using-the-node-postgres-driver).
+
+`pg` is one of the most popular drivers in the JavaScript ecosystem for PostgreSQL databases. It can be used with any PostgreSQL database that's accessed via TCP.
 
 > **Note:**: Support for the `pg` driver is available from Prisma versions [5.4.2](https://github.com/prisma/prisma/releases/tag/5.4.2) and later.
 
-The [Postgres `pg` driver](https://github.com/brianc/node-postgres) is a low-latency Postgres driver for JavaScript and TypeScript that allows you to query data any environment, including serverless and edge clouds.
+## Usage
 
-## Getting started
+This section explains how you can use it with Prisma ORM and the `@prisma/adapter-pg` driver adapter. Be sure that the `DATABASE_URL` environment variable is set to your PostgreSQL connection string (e.g. in a `.env` file).
 
-To get started, enable the `driverAdapters` Preview feature in your Prisma schema:
+### 1. Enable the `driverAdapters` Preview feature flag
+
+Since driver adapters are currently in [Preview](/orm/more/releases#preview), you need to enable its feature flag on the `datasource` block in your Prisma schema:
 
 ```prisma
 // schema.prisma
@@ -23,45 +27,36 @@ datasource db {
 }
 ```
 
-> **Note**: Make sure your connection string exists in your `.env` file.
->
-> ```bash
-> DATABASE_URL="postgres://user:password@server.us-east-2.aws.com/yourdb"
-> ```
+Once you have added the feature flag to your schema, re-generate Prisma Client:
 
-Generate Prisma Client:
-
-```sh
+```
 npx prisma generate
 ```
 
-Install the Prisma adapter for `pg`, as well as `pg` itself:
+### 2. Install the dependencies
 
-```sh
-npm install @prisma/adapter-pg
+Next, install the `pg` package and Prisma ORM's driver adapter:
+
+```
 npm install pg
+npm install @prisma/adapter-pg
 ```
 
-Update your Prisma Client instance to use the `pg` driver:
+### 3. Instantiate Prisma Client using the driver adapter
+
+Finally, when you instantiate Prisma Client, you need to pass an instance of Prisma ORM's driver adapter to the `PrismaClient` constructor:
 
 ```ts
-// Import needed packages
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
-// Setup
 const connectionString = `${process.env.DATABASE_URL}`
 
-// Init prisma client
 const pool = new Pool({ connectionString })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
-
-// Use Prisma Client as normal
 ```
-
-You can now use Prisma Client as you normally would with full type-safety. Your Prisma Client instance now uses the Postgres `pg` driver to connect to your database.
 
 ## Feedback
 
