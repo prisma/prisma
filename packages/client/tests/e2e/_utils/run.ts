@@ -14,9 +14,6 @@ const args = arg(
     // like run jest in band, useful for debugging and CI
     '--runInBand': Boolean,
     '--run-in-band': '--runInBand',
-    // do not fully build cli and client packages before packing
-    '--skipBuild': Boolean,
-    '--skip-build': '--skipBuild',
     // do not fully pack cli and client packages before packing
     '--skipPack': Boolean,
     '--skip-pack': '--skipPack',
@@ -38,7 +35,6 @@ async function main() {
 
   args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
   args['--runInBand'] = args['--runInBand'] ?? false
-  args['--skipBuild'] = args['--skipBuild'] ?? false
   args['--skipPack'] = args['--skipPack'] ?? false
   args['--verbose'] = args['--verbose'] ?? false
   args['--clean'] = args['--clean'] ?? false
@@ -57,12 +53,6 @@ async function main() {
   console.log('🎠 Preparing e2e tests')
 
   const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
-
-  if (args['--skipBuild'] === false) {
-    console.log('📦 Packing package tarballs')
-
-    await $`pnpm -r build`
-  }
 
   if (args['--skipPack'] === false) {
     // this process will need to modify some package.json, we save copies
