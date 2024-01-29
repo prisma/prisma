@@ -176,6 +176,8 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
     const tag = '[js::startTransaction]'
     // console.debug(`${tag} options: %O`, options)
 
+    console.warn('D1 does not currently provide transactions support, as such, we cannot guarantee atomicity')
+
     return ok(new D1Transaction(this.client, options))
   }
 }
