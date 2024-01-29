@@ -10,7 +10,7 @@ export const invalidImportWarningTs = [
   ' - For yarn, run `yarn add db@link:./path/to/your/client`',
   '-----',
   '3. If you have a `tsconfig.json`, you will need to set `module` and `moduleResolution`.',
-  'Set `moduleResolution` to `nodenext`, or `bundler` and set `module` to `nodenext`.',
+  'Set `moduleResolution` to `nodenext` or `bundler`, and set `module` to `nodenext`.',
   '',
   '-----',
   '4. Update your imports, once done, your client will be properly set up.',
