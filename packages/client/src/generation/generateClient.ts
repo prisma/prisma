@@ -179,8 +179,8 @@ export async function buildClient({
     fileMap['wasm.js'] = await JS(wasmClient)
     fileMap['wasm.d.ts'] = await TS(wasmClient)
   } else {
-    fileMap['wasm.js'] = await fs.readFile(path.join(scriptsDir, 'default-wasm.js'), 'utf-8')
-    fileMap['wasm.d.ts'] = await fs.readFile(path.join(scriptsDir, 'default-wasm.d.ts'), 'utf-8')
+    fileMap['wasm.js'] = await fs.readFile(path.join(scriptsDir, 'wasm-da-feature-deactivated.js'), 'utf-8')
+    fileMap['wasm.d.ts'] = await fs.readFile(path.join(scriptsDir, 'wasm-da-feature-deactivated.d.ts'), 'utf-8')
   }
 
   if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
