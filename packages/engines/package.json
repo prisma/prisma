@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.9.0-29.79f6f09ba683cc77d70f9ea0cf6177a3e35a2525",
+    "@prisma/engines-version": "5.9.0-30.fix-nested-json-dollar-type-2-384423d3343745433a53da003b53596d916e52f6",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
