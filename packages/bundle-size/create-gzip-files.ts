@@ -4,6 +4,7 @@ void (async () => {
   const projects = ['da-workers-neon', 'da-workers-planetscale', 'da-workers-pg', 'da-workers-libsql']
 
   for (const project of projects) {
+    // `--node-compat` is only needed when using `pg`
     const nodeCompat = project.includes('pg') ? '--node-compat' : ''
 
     // Install deps & copy schema & generate Prisma Client
