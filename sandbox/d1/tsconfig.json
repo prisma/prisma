@@ -23,9 +23,9 @@
 		// "noLib": true,                                    /* Disable including any library files, including the default lib.d.ts. */
 		// "useDefineForClassFields": true,                  /* Emit ECMAScript-standard-compliant class fields. */
 		/* Modules */
-		"module": "es2022" /* Specify what module code is generated. */,
+		"module": "Node16" /* Specify what module code is generated. */,
 		// "rootDir": "./",                                  /* Specify the root folder within your source files. */
-		"moduleResolution": "node" /* Specify how TypeScript looks up a file from a given module specifier. */,
+		"moduleResolution": "Node16" /* Specify how TypeScript looks up a file from a given module specifier. */,
 		// "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
 		// "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
 		// "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
