@@ -27,8 +27,7 @@
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "bench-stdout-only": "ts-node scripts/bench.ts",
     "prepare": "is-ci || husky install",
-    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
-    "size": "pnpm run build && pnpm size-limit"
+    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "7.39.1",
@@ -145,6 +144,30 @@
     },
     {
       "path": "packages/cli/build/index.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/prisma-client-0.0.0.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/cli/prisma-0.0.0.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-libsql/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-neon/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-pg/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
       "gzip": false
     }
   ]

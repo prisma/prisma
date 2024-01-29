@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
+import { createHash } from 'crypto'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
 import fs from 'fs/promises'
@@ -18,7 +19,6 @@ import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
 import type { Dictionary } from './utils/common'
 
-const GENERATED_PACKAGE_NAME = 'prisma-client'
 const debug = Debug('prisma:client:generateClient')
 
 type OutputDeclaration = {
@@ -128,13 +128,13 @@ export async function buildClient({
   })
 
   const pkgJson = {
-    name: GENERATED_PACKAGE_NAME,
+    name: getUniquePackageName(datamodel),
     main: 'index.js',
     types: 'index.d.ts',
     browser: 'index-browser.js',
     exports: clientPackageExports,
+    version: clientVersion,
     sideEffects: false,
-    private: true,
   }
 
   // we store the generated contents here
@@ -178,8 +178,8 @@ export async function buildClient({
     fileMap['wasm.js'] = await JS(wasmClient)
     fileMap['wasm.d.ts'] = await TS(wasmClient)
   } else {
-    fileMap['wasm.js'] = await fs.readFile(path.join(scriptsDir, 'default-wasm.js'), 'utf-8')
-    fileMap['wasm.d.ts'] = await fs.readFile(path.join(scriptsDir, 'default-wasm.d.ts'), 'utf-8')
+    fileMap['wasm.js'] = await fs.readFile(path.join(scriptsDir, 'wasm-da-feature-deactivated.js'), 'utf-8')
+    fileMap['wasm.d.ts'] = await fs.readFile(path.join(scriptsDir, 'wasm-da-feature-deactivated.d.ts'), 'utf-8')
   }
 
   if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
@@ -601,18 +601,37 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
 
 /**
  * Attempts to delete the output directory.
- * @param finalOutputDir
+ * @param outputDir
  */
-async function deleteOutputDir(finalOutputDir: string) {
+async function deleteOutputDir(outputDir: string) {
   try {
-    debug(`attempting to delete ${finalOutputDir} recursively`)
+    debug(`attempting to delete ${outputDir} recursively`)
     // we want to make sure that if we delete, we delete the right directory
-    if (require(`${finalOutputDir}/package.json`).name === GENERATED_PACKAGE_NAME) {
-      await fs.rmdir(finalOutputDir, { recursive: true }).catch(() => {
-        debug(`failed to delete ${finalOutputDir} recursively`)
+    if (require(`${outputDir}/package.json`).name?.startsWith(GENERATED_PACKAGE_NAME_PREFIX)) {
+      await fs.rmdir(outputDir, { recursive: true }).catch(() => {
+        debug(`failed to delete ${outputDir} recursively`)
       })
     }
   } catch {
-    debug(`failed to delete ${finalOutputDir} recursively, not found`)
+    debug(`failed to delete ${outputDir} recursively, not found`)
   }
 }
+
+/**
+ * This function ensures that each generated client has unique package name
+ * It appends sha256 of the schema to the fixed prefix. That ensures unique schemas
+ * produce unique generated packages while still keeping `generate` results reproducible.
+ *
+ * Without unique package name, if you have several TS clients in the project, TS Compiler
+ * might merge different `Prisma` namespace declarations together and produce unusable results.
+ *
+ * @param datamodel
+ * @returns
+ */
+function getUniquePackageName(datamodel: string) {
+  const hash = createHash('sha256')
+  hash.write(datamodel)
+  return `${GENERATED_PACKAGE_NAME_PREFIX}${hash.digest().toString('hex')}`
+}
+
+const GENERATED_PACKAGE_NAME_PREFIX = 'prisma-client-'
