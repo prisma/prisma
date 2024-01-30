@@ -169,6 +169,10 @@
     {
       "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
       "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-d1/output.tgz",
+      "gzip": false
     }
   ]
 }

@@ -16,6 +16,7 @@
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
     "@prisma/adapter-libsql": "workspace:*",
+    "@prisma/adapter-d1": "workspace:*",
     "@prisma/client": "workspace:*",
     "pg": "8.11.3",
     "prisma": "workspace:*",
