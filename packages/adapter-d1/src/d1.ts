@@ -11,6 +11,7 @@ import {
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
+import { blue, cyan, red, yellow } from 'kleur/colors'
 
 import { tags } from '../../internals/src/logger'
 // import { Mutex } from 'async-mutex'
@@ -162,12 +163,29 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
 }
 
 export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
+  readonly tags = {
+    error: red('prisma:error'),
+    warn: yellow('prisma:warn'),
+    info: cyan('prisma:info'),
+    query: blue('prisma:query'),
+  }
+
   alreadyWarned = new Set()
 
   constructor(client: StdClient) {
     super(client)
   }
 
+  /**
+   * This will warn once per transaction
+   * e.g. the following two explicit transactions
+   * will only trigger _two_ warnings
+   *
+   * ```ts
+   * await prisma.$transaction([ ...queries ])
+   * await prisma.$transaction([ ...moreQueries ])
+   * ```
+   */
   warnOnce = (key: string, message: string, ...args: unknown[]) => {
     if (!this.alreadyWarned.has(key)) {
       this.alreadyWarned.add(key)
@@ -188,7 +206,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
 
     this.warnOnce(
       'D1 Transaction',
-      'D1 does not currently provide transactions support, as such, we cannot guarantee atomicity',
+      "Cloudflare D1 - currently in Beta - does not support transactions. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and ran as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
     )
 
     return ok(new D1Transaction(this.client, options))
