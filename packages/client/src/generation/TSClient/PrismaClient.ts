@@ -308,7 +308,7 @@ function runCommandRawDefinition(this: PrismaClientClass) {
 }
 
 function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
-  if (runtimeNameTs === 'binary') {
+  if (runtimeNameTs === 'binary.js') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;`
   } else {
     return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
