@@ -13,7 +13,6 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
-import { tags } from '../../internals/src/logger'
 // import { Mutex } from 'async-mutex'
 import { getColumnTypes } from './conversion'
 
@@ -189,7 +188,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
   warnOnce = (key: string, message: string, ...args: unknown[]) => {
     if (!this.alreadyWarned.has(key)) {
       this.alreadyWarned.add(key)
-      console.info(`${tags.warn} ${message}`, ...args)
+      console.info(`${this.tags.warn} ${message}`, ...args)
     }
   }
 
