@@ -131,7 +131,7 @@
     "extension.d.ts"
   ],
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "3.0.0",
+    "@codspeed/benchmark.js-plugin": "3.1.0",
     "@faker-js/faker": "8.4.0",
     "@fast-check/jest": "1.8.0",
     "@inquirer/prompts": "3.3.0",
