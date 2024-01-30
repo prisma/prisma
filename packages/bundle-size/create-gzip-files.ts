@@ -1,7 +1,7 @@
 import { $ } from 'zx'
 
 void (async () => {
-  const projects = ['da-workers-neon', 'da-workers-planetscale', 'da-workers-pg', 'da-workers-libsql']
+  const projects = ['da-workers-neon', 'da-workers-planetscale', 'da-workers-pg', 'da-workers-libsql', 'da-workers-d1']
 
   for (const project of projects) {
     // `--node-compat` is only needed when using `pg`
