@@ -114,8 +114,8 @@ importers:
         specifier: 0.0.9
         version: 0.0.9
       husky:
-        specifier: 8.0.3
-        version: 8.0.3
+        specifier: 9.0.7
+        version: 9.0.7
       is-ci:
         specifier: 3.0.1
         version: 3.0.1
@@ -7145,9 +7145,9 @@ packages:
     dev: true
     optional: true
 
-  /husky@8.0.3:
-    resolution: {integrity: sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==}
-    engines: {node: '>=14'}
+  /husky@9.0.7:
+    resolution: {integrity: sha512-vWdusw+y12DUEeoZqW1kplOFqk3tedGV8qlga8/SF6a3lOiWLqGZZQvfWvY0fQYdfiRi/u1DFNpudTSV9l1aCg==}
+    engines: {node: '>=18'}
     hasBin: true
     dev: true
 
