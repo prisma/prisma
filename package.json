@@ -26,7 +26,7 @@
     "prettier-check": "prettier --check .",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "bench-stdout-only": "ts-node scripts/bench.ts",
-    "prepare": "is-ci || husky install",
+    "prepare": "is-ci || husky",
     "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox"
   },
   "devDependencies": {
