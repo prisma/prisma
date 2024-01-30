@@ -106,7 +106,7 @@ export async function buildClient({
   const nodeClientOptions = {
     ...baseClientOptions,
     runtimeNameJs: getNodeRuntimeName(clientEngineType),
-    runtimeNameTs: getNodeRuntimeName(clientEngineType),
+    runtimeNameTs: `${getNodeRuntimeName(clientEngineType)}.js`,
   }
 
   // we create a regular client that is fit for Node.js
@@ -122,7 +122,7 @@ export async function buildClient({
   const edgeClient = new TSClient({
     ...baseClientOptions,
     runtimeNameJs: 'edge',
-    runtimeNameTs: 'library',
+    runtimeNameTs: 'library.js',
     reusedTs: 'default',
     edge: true,
   })
@@ -169,7 +169,7 @@ export async function buildClient({
     const wasmClient = new TSClient({
       ...baseClientOptions,
       runtimeNameJs: 'wasm',
-      runtimeNameTs: 'library',
+      runtimeNameTs: 'library.js',
       reusedTs: 'default',
       edge: true,
       wasm: true,
