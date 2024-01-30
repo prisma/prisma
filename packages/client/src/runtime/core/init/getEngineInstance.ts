@@ -78,9 +78,10 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
   if (TARGET_BUILD_TYPE === 'wasm') {
     const message = [
       `PrismaClient failed to initialize because it wasn't configured to run in this environment (${detectRuntime()}).`,
-      'In order to run Prisma Client in an edge runtime, you will need to configure one of the following options:',
-      '- Enable Driver Adapters: https://pris.ly/d/driver-adapters',
-      '- Enable Accelerate: https://pris.ly/d/accelerate',
+      `In order to run Prisma Client in an edge runtime, you will need to configure Accelerate: https://pris.ly/d/accelerate.`,
+      // 'In order to run Prisma Client in an edge runtime, you will need to configure one of the following options:',
+      // '- Enable Driver Adapters: https://pris.ly/d/driver-adapters',
+      // '- Enable Accelerate: https://pris.ly/d/accelerate',
     ]
 
     throw new PrismaClientValidationError(message.join('\n'), {

@@ -13,9 +13,11 @@ async function main() {
 
   // we copy each file that we found in pkg to a new destination
   for (const file of clientFiles) {
-    const from = path.join(clientPath, file)
-    const to = path.join(clientCopyPath, file)
-    copySync(from, to, { overwrite: true, recursive: true })
+    if (file.includes('wasm') === false) {
+      const from = path.join(clientPath, file)
+      const to = path.join(clientCopyPath, file)
+      copySync(from, to, { overwrite: true, recursive: true })
+    }
   }
 }
 
