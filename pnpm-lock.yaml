@@ -303,6 +303,9 @@ importers:
       '@planetscale/database':
         specifier: 1.14.0
         version: 1.14.0
+      '@prisma/adapter-d1':
+        specifier: workspace:*
+        version: link:../adapter-d1
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
