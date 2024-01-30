@@ -441,7 +441,7 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test:e2e --skipBuild --verbose
+      - run: pnpm run test:e2e --verbose
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
