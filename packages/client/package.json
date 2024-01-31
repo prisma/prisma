@@ -83,10 +83,26 @@
       "import": "./wasm.js",
       "default": "./wasm.js"
     },
-    "./runtime/library": "./runtime/library.js",
-    "./runtime/binary": "./runtime/binary.js",
-    "./runtime/edge": "./runtime/edge.js",
-    "./runtime/wasm": "./runtime/wasm.js",
+    "./runtime/library": {
+      "require": "./runtime/library.js",
+      "import": "./runtime/library.js",
+      "default": "./runtime/library.js"
+    },
+    "./runtime/binary": {
+      "require": "./runtime/binary.js",
+      "import": "./runtime/binary.js",
+      "default": "./runtime/binary.js"
+    },
+    "./runtime/edge": {
+      "require": "./runtime/edge.js",
+      "import": "./runtime/edge.js",
+      "default": "./runtime/edge.js"
+    },
+    "./runtime/wasm": {
+      "require": "./runtime/wasm.js",
+      "import": "./runtime/wasm.js",
+      "default": "./runtime/wasm.js"
+    },
     "./*": "./*"
   },
   "license": "Apache-2.0",
