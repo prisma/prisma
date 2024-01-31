@@ -1,6 +1,6 @@
 # @prisma/adapter-pg
 
-This package contains the driver adapter for Prisma ORM that enables usage of the [`node-postgres`](https://node-postgres.com/) (`pg`) database driver for PostgreSQL. You can learn more in the [documentation](https://www.prisma.io/docs/orm/overview/databases/postgresql#using-the-node-postgres-driver).
+This package contains the driver adapter for Prisma ORM that enables usage of the [`node-postgres`](https://node-postgres.com/) (`pg`) database driver for PostgreSQL. You can learn more in the [documentation](https://pris.ly/d/adapter-pg).
 
 `pg` is one of the most popular drivers in the JavaScript ecosystem for PostgreSQL databases. It can be used with any PostgreSQL database that's accessed via TCP.
 
