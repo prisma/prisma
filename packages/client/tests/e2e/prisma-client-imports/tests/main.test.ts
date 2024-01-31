@@ -93,7 +93,9 @@ function isPrismaClientDeprecated(fileName: string, options: any) {
 
 function assertNoErrors(errors: readonly ts.Diagnostic[]) {
   if (errors.length > 0) {
-    throw new Error(`TS errors: ${errors.map((err) => err.messageText).join('\n')}`)
+    errors.map(console.error)
+
+    throw new Error(`Test exited with ${errors.length} errors. See above for details.`)
   }
 }
 
