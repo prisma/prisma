@@ -1,5 +1,6 @@
 // add all jest-extended matchers
 // see https://jest-extended.jestcommunity.dev/docs/matchers/
+import fs from 'fs-extra'
 import * as matchers from 'jest-extended'
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
 import stripAnsi from 'strip-ansi'
@@ -80,5 +81,9 @@ globalThis.testIf = (condition: boolean) => (condition && process.env.TEST_GENER
 globalThis.skipTestIf = (condition: boolean) => (condition || process.env.TEST_GENERATE_ONLY === 'true' ? skip : test)
 globalThis.describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 globalThis.testRepeat = testRepeat
+
+// @ts-ignore, a global fs variable that is injected by us to make our snapshots
+// work in clients that cannot read from disk (e.g. wasm or edge clients)
+globalThis.$fs = fs
 
 export {}

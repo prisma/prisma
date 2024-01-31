@@ -26,9 +26,8 @@
     "prettier-check": "prettier --check .",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "bench-stdout-only": "ts-node scripts/bench.ts",
-    "prepare": "is-ci || husky install",
-    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
-    "size": "pnpm run build && pnpm size-limit"
+    "prepare": "is-ci || husky",
+    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "7.39.1",
@@ -57,7 +56,7 @@
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.29.0",
-    "eslint-plugin-jest": "27.6.1",
+    "eslint-plugin-jest": "27.6.3",
     "eslint-plugin-local-rules": "2.0.0",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-simple-import-sort": "10.0.0",
@@ -66,7 +65,7 @@
     "fs-extra": "11.1.1",
     "globby": "11.1.0",
     "graphviz-mit": "0.0.9",
-    "husky": "8.0.3",
+    "husky": "9.0.7",
     "is-ci": "3.0.1",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
@@ -83,7 +82,7 @@
     "safe-buffer": "5.2.1",
     "semver": "7.5.4",
     "size-limit": "9.0.0",
-    "spdx-exceptions": "2.3.0",
+    "spdx-exceptions": "2.4.0",
     "spdx-license-ids": "3.0.16",
     "staged-git-files": "1.3.0",
     "ts-node": "10.9.1",
@@ -132,6 +131,10 @@
       "gzip": false
     },
     {
+      "path": "packages/client/runtime/wasm.js",
+      "gzip": false
+    },
+    {
       "path": "packages/client/runtime/index-browser.js",
       "gzip": false
     },
@@ -141,6 +144,34 @@
     },
     {
       "path": "packages/cli/build/index.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/prisma-client-0.0.0.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/cli/prisma-0.0.0.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-libsql/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-neon/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-pg/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-d1/output.tgz",
       "gzip": false
     }
   ]

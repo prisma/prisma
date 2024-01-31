@@ -78,9 +78,8 @@ testMatrix.setupTestSuite(
   //   },
   // },
   {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Tracing preview feature creates a panic in the wasm engine',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', `Tracing preview feature creates a panic in the wasm engine`)
     },
   },
 )

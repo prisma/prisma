@@ -30,7 +30,7 @@
     "@antfu/ni": "0.21.8",
     "@opentelemetry/api": "1.7.0",
     "@swc/core": "1.2.204",
-    "@swc/jest": "0.2.29",
+    "@swc/jest": "0.2.31",
     "@types/jest": "29.5.11",
     "@types/node": "18.18.13",
     "@types/node-fetch": "2.6.9",
@@ -81,7 +81,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.9.0-8.0fb4ba094a61e322c9a21dd664c30f0bc36ee80d",
+    "@prisma/prisma-schema-wasm": "5.9.0-32.23fdc5965b1e05fc54e5f26ed3de66776b93de64",
     "arg": "5.0.2",
     "prompts": "2.4.2"
   },

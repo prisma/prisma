@@ -6,7 +6,7 @@ import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, CliMeta } from './types'
+import { ClientMeta, ClientRuntime, CliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
@@ -16,6 +16,7 @@ export type NamedTestSuiteConfig = {
     driverAdapter?: `${AdapterProviders}`
     relationMode?: `${RelationModes}`
     engineType?: `${ClientEngineType}`
+    clientRuntime?: `${ClientRuntime}`
   }
 }
 
@@ -253,19 +254,15 @@ export function getTestSuiteMeta() {
  */
 export function getTestSuiteCliMeta(): CliMeta {
   const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
-  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+  const runtime = process.env.TEST_CLIENT_RUNTIME as ClientRuntime | undefined
+  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType | undefined
   const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
-  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType
-
-  if (edge && !dataProxy) {
-    throw new Error('Edge client requires Data Proxy')
-  }
 
   return {
     dataProxy,
-    runtime: edge ? 'edge' : 'node',
-    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
+    runtime: runtime ?? 'node',
     engineType: engineType ?? ClientEngineType.Library,
+    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
   }
 }
 

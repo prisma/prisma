@@ -87,12 +87,11 @@ afterAll(() => {
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter, relationMode, engineType }, _suiteMeta, clientMeta) => {
     const isMongoDb = provider === Providers.MONGODB
-    const isSqlite = provider === Providers.SQLITE
     const isMySql = provider === Providers.MYSQL
     const isSqlServer = provider === Providers.SQLSERVER
 
     const usesSyntheticTxQueries =
-      driverAdapter !== undefined && ['js_libsql', 'js_planetscale'].includes(driverAdapter)
+      driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale'].includes(driverAdapter)
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -228,9 +227,10 @@ testMatrix.setupTestSuite(
         ]
       }
 
-      if (['postgresql', 'cockroachdb'].includes(provider)) {
+      if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
         return [dbQuery(expect.stringContaining('INSERT'))]
       }
+
       const dbQueries: Tree[] = []
       if (tx) {
         dbQueries.push(txBegin())
@@ -299,7 +299,7 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('db.User.updateMany(*)')),
             dbQuery(expect.stringContaining('db.User.findOne(*)')),
           ]
-        } else if (['postgresql', 'cockroachdb'].includes(provider)) {
+        } else if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
           expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
         } else {
           expectedDbQueries = [
@@ -330,7 +330,7 @@ testMatrix.setupTestSuite(
 
         if (isMongoDb) {
           expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify(*)'))]
-        } else if (isSqlite || isMySql || isSqlServer) {
+        } else if (isMySql || isSqlServer) {
           expectedDbQueries = [
             txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
@@ -639,10 +639,10 @@ testMatrix.setupTestSuite(
       })
     })
   },
+
   {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Tracing is not supported for wasm engine, many spans are missing',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', 'Tracing is not supported for wasm engine, many spans are missing')
     },
   },
 )

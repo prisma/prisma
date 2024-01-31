@@ -88,8 +88,8 @@ const args = arg(
     '-p': '--provider',
     // Generate Data Proxy client and run tests using Mini-Proxy
     '--data-proxy': Boolean,
-    // Use edge client (requires --data-proxy)
-    '--edge-client': Boolean,
+    // Force using a specific client runtime under the hood
+    '--client-runtime': String,
     // Don't start the Mini-Proxy server and don't override NODE_EXTRA_CA_CERTS. You need to start the Mini-Proxy server
     // externally on the default port and run `eval $(mini-proxy env)` in your shell before starting the tests.
     '--no-mini-proxy-server': Boolean,
@@ -119,6 +119,7 @@ const args = arg(
 
 async function main(): Promise<number | void> {
   let miniProxyProcess: ExecaChildProcess | undefined
+  let wranglerProcess: ExecaChildProcess | undefined
 
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let jestCli = jestCliBase
@@ -167,11 +168,35 @@ async function main(): Promise<number | void> {
     }
 
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_ADAPTERS: adapterProviders.join(',') })
+
+    // Start wrangler dev server with the `wrangler-proxy` for D1 tests
+    if (adapterProviders.includes(AdapterProviders.JS_D1)) {
+      wranglerProcess = execa(
+        'pnpm',
+        [
+          'wrangler',
+          'dev',
+          '--config=./tests/functional/_utils/wrangler.toml',
+          'node_modules/wrangler-proxy/dist/worker.js',
+        ],
+        {
+          preferLocal: true,
+          // stdio: 'inherit',
+          env: {
+            DEBUG: process.env.DEBUG,
+          },
+        },
+      )
+    }
   }
 
   if (args['--engine-type']) {
     jestCli = jestCli.withEnv({ TEST_ENGINE_TYPE: args['--engine-type'] })
     jestCli = jestCli.withEnv({ PRISMA_CLIENT_ENGINE_TYPE: '' })
+  }
+
+  if (args['--client-runtime']) {
+    jestCli = jestCli.withEnv({ TEST_CLIENT_RUNTIME: args['--client-runtime'] })
   }
 
   if (args['--data-proxy']) {
@@ -182,12 +207,6 @@ async function main(): Promise<number | void> {
     jestCli = jestCli.withEnv({
       TEST_DATA_PROXY: 'true',
     })
-
-    if (args['--edge-client']) {
-      jestCli = jestCli.withEnv({
-        TEST_DATA_PROXY_EDGE_CLIENT: 'true',
-      })
-    }
 
     if (!args['--no-mini-proxy-server']) {
       jestCli = jestCli.withEnv({
@@ -206,8 +225,8 @@ async function main(): Promise<number | void> {
     }
   }
 
-  if (args['--edge-client'] && !args['--data-proxy']) {
-    throw new Error('--edge-client is only available when --data-proxy is used')
+  if (args['--client-runtime'] === 'edge' && !args['--data-proxy']) {
+    throw new Error('--client-runtime=edge is only available when --data-proxy is used')
   }
 
   // See flag description above.
@@ -251,6 +270,9 @@ async function main(): Promise<number | void> {
   } finally {
     if (miniProxyProcess) {
       miniProxyProcess.kill()
+    }
+    if (wranglerProcess) {
+      wranglerProcess.kill()
     }
   }
 }

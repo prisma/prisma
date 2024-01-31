@@ -8,7 +8,7 @@ import { lowerCase } from '../utils/common'
 type BuildIncludeTypeParams = {
   modelName: string
   dmmf: DMMFHelper
-  fields: DMMF.SchemaField[]
+  fields: readonly DMMF.SchemaField[]
 }
 
 const extArgsParameter = ts
@@ -23,7 +23,7 @@ export function buildIncludeType({ modelName, dmmf, fields }: BuildIncludeTypePa
 
 type BuildSelectTypeParams = {
   modelName: string
-  fields: DMMF.SchemaField[]
+  fields: readonly DMMF.SchemaField[]
 }
 
 export function buildSelectType({ modelName, fields }: BuildSelectTypeParams) {
@@ -45,7 +45,7 @@ export function buildScalarSelectType({ modelName, fields }: BuildSelectTypePara
   return ts.moduleExport(ts.typeDeclaration(`${getSelectName(modelName)}Scalar`, object))
 }
 
-function buildSelectOrIncludeObject(modelName: string, fields: DMMF.SchemaField[]) {
+function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.SchemaField[]) {
   const objectType = ts.objectType()
 
   for (const field of fields) {
@@ -67,7 +67,7 @@ function buildExport(typeName: string, type: ts.TypeBuilder) {
   return ts.moduleExport(declaration.addGenericParameter(extArgsParameter))
 }
 
-function getIncludeFields(fields: DMMF.SchemaField[], dmmf: DMMFHelper) {
+function getIncludeFields(fields: readonly DMMF.SchemaField[], dmmf: DMMFHelper) {
   return fields.filter((field) => {
     if (field.outputType.location !== 'outputObjectTypes') {
       return false

@@ -4,7 +4,7 @@ export interface Dictionary<T> {
   [key: string]: T
 }
 
-export const keyBy: <T>(collection: T[], prop: string) => Dictionary<T> = (collection, prop) => {
+export const keyBy: <T>(collection: readonly T[], prop: string) => Dictionary<T> = (collection, prop) => {
   const acc = {}
 
   for (const obj of collection) {

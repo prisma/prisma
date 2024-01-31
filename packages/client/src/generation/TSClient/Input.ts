@@ -96,7 +96,7 @@ function namedInputType(typeName: string) {
  * 2. Generate them out and `|` them
  */
 function buildAllFieldTypes(
-  inputTypes: DMMF.InputTypeRef[],
+  inputTypes: readonly DMMF.InputTypeRef[],
   genericsInfo: GenericArgsInfo,
   source?: string,
 ): ts.TypeBuilder {

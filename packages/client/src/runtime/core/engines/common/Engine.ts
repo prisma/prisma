@@ -112,24 +112,25 @@ export interface EngineConfig {
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`.
    * If set, this is only used in the library engine, and all queries would be performed through it,
    * rather than Prisma's Rust drivers.
+   * @remarks only used by LibraryEngine.ts
    */
   adapter?: ErrorCapturingDriverAdapter
 
   /**
    * The contents of the schema encoded into a string
-   * @remarks only used for the purpose of data proxy
+   * @remarks only used by DataProxyEngine.ts
    */
   inlineSchema: string
 
   /**
    * The contents of the datasource url saved in a string
-   * @remarks only used for the purpose of data proxy
+   * @remarks only used by DataProxyEngine.ts
    */
   inlineDatasources: GetPrismaClientConfig['inlineDatasources']
 
   /**
    * The string hash that was produced for a given schema
-   * @remarks only used for the purpose of data proxy
+   * @remarks only used by DataProxyEngine.ts
    */
   inlineSchemaHash: string
 
@@ -151,6 +152,7 @@ export interface EngineConfig {
    * generated specifically for each type of client, eg. Node.js client and Edge
    * clients will have different implementations.
    * @remarks this is a callback on purpose, we only load the wasm if needed.
+   * @remarks only used by LibraryEngine.ts
    */
   getQueryEngineWasmModule?: () => Promise<unknown>
 }

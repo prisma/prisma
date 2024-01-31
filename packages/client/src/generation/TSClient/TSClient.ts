@@ -1,16 +1,17 @@
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import crypto from 'crypto'
 import { readFile } from 'fs/promises'
 import indent from 'indent-string'
-import { klona } from 'klona'
 import path from 'path'
+import { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import { DMMFHelper } from '../dmmf'
-import type { DMMF } from '../dmmf-types'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
+import type { buildClient } from '../generateClient'
+import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
@@ -26,47 +27,71 @@ import { Count } from './Count'
 import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
-import type { Generatable } from './Generatable'
+import { type Generatable } from './Generatable'
 import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
+import { invalidImportWarningJs, invalidImportWarningTs } from './utils/invalidImportWarning'
 
-export interface TSClientOptions {
-  projectRoot: string
-  clientVersion: string
-  engineVersion: string
-  document: DMMF.Document
-  runtimeDir: string
-  runtimeName: string
-  browser?: boolean
-  datasources: DataSource[]
-  generator?: GeneratorConfig
-  binaryTargets?: BinaryTarget[] // TODO: consider making it non-nullable
-  schemaPath: string
-  outputDir: string
-  activeProvider: string
-  deno?: boolean
-  postinstall?: boolean
-  noEngine?: boolean
+export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
+  /** More granular way to define JS runtime name */
+  runtimeNameJs: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | String
+  /** More granular way to define TS runtime name */
+  runtimeNameTs: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | String
+  /** When generating the browser client */
+  browser: boolean
+  /** When generating via the Deno CLI */
+  deno: boolean
+  /** When we are generating an /edge client */
+  edge: boolean
+  /** When user is not optimally importing client @see {buildClient} */
+  importWarning: boolean
+  /** When we are generating a /wasm client */
+  wasm: boolean
+  /** When types don't need to be regenerated */
+  reusedTs?: string // the entrypoint to reuse
+  /** When js doesn't need to be regenerated */
+  reusedJs?: string // the entrypoint to reuse
 }
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo
 
-  static enabledPreviewFeatures: string[]
-
   constructor(protected readonly options: TSClientOptions) {
-    this.dmmf = new DMMFHelper(klona(options.document))
+    this.dmmf = new DMMFHelper(options.dmmf)
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
-
-    TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
 
-  public async toJS(edge = false): Promise<string> {
-    const { binaryTargets, generator, outputDir, schemaPath, runtimeDir, runtimeName, datasources, deno, noEngine } =
-      this.options
+  public async toJS(): Promise<string> {
+    const {
+      edge,
+      wasm,
+      binaryPaths,
+      generator,
+      outputDir,
+      schemaPath,
+      runtimeBase,
+      runtimeNameJs,
+      datasources,
+      deno,
+      noEngine,
+      importWarning,
+      reusedJs,
+    } = this.options
+
+    if (reusedJs && importWarning) {
+      const topExports = `module.exports = { ...require('./${reusedJs}.js') }`
+      const warning = `console.warn('${invalidImportWarningJs.join('\\n')}')`
+
+      return `${[topExports, warning].join('\n\n')}`
+    }
+
+    if (reusedJs) {
+      return `module.exports = { ...require('./${reusedJs}.js') }`
+    }
+
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -75,10 +100,13 @@ export class TSClient implements Generatable {
     }
 
     // This ensures that any engine override is propagated to the generated clients config
-    const engineType = getClientEngineType(generator!)
-    if (generator) {
-      generator.config.engineType = engineType
-    }
+    const clientEngineType = getClientEngineType(generator)
+    generator.config.engineType = clientEngineType
+
+    const binaryTargets =
+      clientEngineType === ClientEngineType.Library
+        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
+        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
     const inlineSchema = (await readFile(schemaPath)).toString('base64')
     const inlineSchemaHash = crypto.createHash('sha256').update(inlineSchema).digest('hex')
@@ -126,20 +154,61 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
-${buildGetQueryEngineWasmModule(edge, engineType)}
+${buildGetQueryEngineWasmModule(wasm, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
+${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(Boolean(edge || noEngine), engineType, binaryTargets, relativeOutdir)}
+${buildNFTAnnotations(edge || Boolean(noEngine), clientEngineType, binaryTargets, relativeOutdir)}
 `
     return code
   }
-  public toTS(edge = false): string {
-    // edge exports the same ts definitions as the index
-    if (edge === true) return `export * from './index'`
+  public toTS(): string {
+    const { reusedTs, importWarning } = this.options
+
+    if (reusedTs && importWarning) {
+      const topExports = ts.moduleExportFrom('*', `./${reusedTs}`)
+      const topImports = ts.moduleImport(['PrismaClient as $PrismaClient', 'Prisma'], `./${reusedTs}`)
+      const prismaClientClass = ts.classDeclaration('PrismaClient')
+
+      const deprecationComment = ts.docComment(`@deprecated`)
+      deprecationComment.addText(invalidImportWarningTs.join('\n'))
+
+      const prismaClientClassGenericParams = ts.genericParameter('T')
+      prismaClientClassGenericParams.extends(ts.namedType('Prisma.PrismaClientOptions'))
+      prismaClientClassGenericParams.default(ts.namedType('Prisma.PrismaClientOptions'))
+      prismaClientClass.addGenericParameter(prismaClientClassGenericParams)
+
+      const prismaClientClassExtends = ts.namedType('$PrismaClient')
+      prismaClientClassExtends.addGenericArgument(ts.namedType('T'))
+      prismaClientClass.extends(prismaClientClassExtends)
+
+      const prismaClientClassConstructor = ts.method('constructor')
+      prismaClientClassConstructor.setDocComment(deprecationComment)
+
+      const prismaClientClassConstructorArgType = ts.namedType('Prisma.Subset')
+      prismaClientClassConstructorArgType.addGenericArgument(ts.namedType('T'))
+      prismaClientClassConstructorArgType.addGenericArgument(ts.namedType('Prisma.PrismaClientOptions'))
+
+      const prismaClientClassConstructorArg = ts.parameter('optionsArg', prismaClientClassConstructorArgType)
+      prismaClientClassConstructor.addParameter(prismaClientClassConstructorArg.optional())
+
+      prismaClientClass.add(prismaClientClassConstructor)
+
+      const prismaClientClassExport = ts.moduleExport(prismaClientClass)
+      prismaClientClassExport.setDocComment(deprecationComment)
+
+      return [topExports, topImports, prismaClientClassExport].map((v) => ts.stringify(v)).join('\n\n')
+    }
+
+    // in some cases, we just re-export the existing types
+    if (reusedTs) {
+      const topExports = ts.moduleExportFrom('*', `./${reusedTs}`)
+
+      return ts.stringify(topExports)
+    }
 
     const context: GenerateContext = {
       dmmf: this.dmmf,
@@ -152,7 +221,7 @@ ${buildNFTAnnotations(Boolean(edge || noEngine), engineType, binaryTargets, rela
       this.dmmf,
       this.options.datasources,
       this.options.outputDir,
-      this.options.runtimeName,
+      this.options.runtimeNameTs,
       this.options.browser,
       this.options.generator,
       path.dirname(this.options.schemaPath),
@@ -312,7 +381,7 @@ export const dmmf: runtime.BaseDMMF
   public toBrowserJS(): string {
     const code = `${commonCodeJS({
       ...this.options,
-      runtimeName: 'index-browser',
+      runtimeNameJs: 'index-browser',
       browser: true,
     })}
 /**
