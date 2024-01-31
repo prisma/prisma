@@ -76,7 +76,6 @@ export async function buildClient({
   activeProvider,
   postinstall,
   noEngine,
-  testMode,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
@@ -100,8 +99,6 @@ export async function buildClient({
     wasm: false,
     importWarning: false,
   }
-
-  const scriptsDir = path.join(__dirname, `${testMode ? '../' : ''}../scripts`)
 
   const nodeClientOptions = {
     ...baseClientOptions,
@@ -178,8 +175,8 @@ export async function buildClient({
     fileMap['wasm.js'] = await JS(wasmClient)
     fileMap['wasm.d.ts'] = await TS(wasmClient)
   } else {
-    fileMap['wasm.js'] = await fs.readFile(path.join(scriptsDir, 'wasm-da-feature-deactivated.js'), 'utf-8')
-    fileMap['wasm.d.ts'] = await fs.readFile(path.join(scriptsDir, 'wasm-da-feature-deactivated.d.ts'), 'utf-8')
+    fileMap['wasm.js'] = fileMap['index-browser.js']
+    fileMap['wasm.d.ts'] = fileMap['default.d.ts']
   }
 
   if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {

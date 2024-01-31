@@ -29,9 +29,9 @@
     "SQLServer",
     "MongoDB"
   ],
-  "main": "index.js",
+  "main": "default.js",
   "browser": "index-browser.js",
-  "types": "index.d.ts",
+  "types": "default.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -82,6 +82,18 @@
       "require": "./wasm.js",
       "import": "./wasm.js",
       "default": "./wasm.js"
+    },
+    "./runtime/library": {
+      "types": "./runtime/library.d.ts",
+      "require": "./runtime/library.js",
+      "import": "./runtime/library.js",
+      "default": "./runtime/library.js"
+    },
+    "./runtime/binary": {
+      "types": "./runtime/binary.d.ts",
+      "require": "./runtime/binary.js",
+      "import": "./runtime/binary.js",
+      "default": "./runtime/binary.js"
     },
     "./*": "./*"
   },
