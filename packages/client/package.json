@@ -83,14 +83,11 @@
       "import": "./wasm.js",
       "default": "./wasm.js"
     },
-    "./*.js": "./*.js",
-    "./*.d.ts": "./*.d.ts",
-    "./*": {
-      "types": "./*.d.ts",
-      "require": "./*.js",
-      "import": "./*.js",
-      "default": "./*.js"
-    }
+    "./runtime/library": "./runtime/library.js",
+    "./runtime/binary": "./runtime/binary.js",
+    "./runtime/edge": "./runtime/edge.js",
+    "./runtime/wasm": "./runtime/wasm.js",
+    "./*": "./*"
   },
   "license": "Apache-2.0",
   "engines": {
