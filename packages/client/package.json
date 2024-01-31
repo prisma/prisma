@@ -84,21 +84,25 @@
       "default": "./wasm.js"
     },
     "./runtime/library": {
+      "types": "./runtime/library.d.ts",
       "require": "./runtime/library.js",
       "import": "./runtime/library.js",
       "default": "./runtime/library.js"
     },
     "./runtime/binary": {
+      "types": "./runtime/binary.d.ts",
       "require": "./runtime/binary.js",
       "import": "./runtime/binary.js",
       "default": "./runtime/binary.js"
     },
     "./runtime/edge": {
+      "types": "./runtime/edge.d.ts",
       "require": "./runtime/edge.js",
       "import": "./runtime/edge.js",
       "default": "./runtime/edge.js"
     },
     "./runtime/wasm": {
+      "types": "./runtime/wasm.d.ts",
       "require": "./runtime/wasm.js",
       "import": "./runtime/wasm.js",
       "default": "./runtime/wasm.js"
