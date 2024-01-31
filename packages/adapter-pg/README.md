@@ -62,4 +62,4 @@ const prisma = new PrismaClient({ adapter })
 
 We encourage you to create an issue if you find something missing or run into a bug.
 
-If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/21346).
+If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/22899).
