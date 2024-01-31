@@ -1,4 +1,7 @@
 # Readme
 
-This tests that certain tsconfig.json `module`/`moduleResolution` combinations produce a deprecated `PrismaClient` with the
-instructions for correct setup.
+This test suite is for ensuring that the `PrismaClient` and related utils can be correctly imported in various scenarios:
+
+- Ensures that `module`/`moduleResolution` combinations produce a deprecated `PrismaClient` with additional instructions.
+- Ensures that imports from `@prisma/client/runtime/library` are allowed and work both on the type level and at runtime.
+- Ensures that `accelerate` and `read-replicas` extensions can be imported and used correctly on the type level and at runtime.
