@@ -29,9 +29,9 @@
     "SQLServer",
     "MongoDB"
   ],
-  "main": "index.js",
+  "main": "default.js",
   "browser": "index-browser.js",
-  "types": "index.d.ts",
+  "types": "default.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -83,7 +83,14 @@
       "import": "./wasm.js",
       "default": "./wasm.js"
     },
-    "./*": "./*"
+    "./*.js": "./*.js",
+    "./*.d.ts": "./*.d.ts",
+    "./*": {
+      "types": "./*.d.ts",
+      "require": "./*.js",
+      "import": "./*.js",
+      "default": "./*.js"
+    }
   },
   "license": "Apache-2.0",
   "engines": {
