@@ -125,7 +125,7 @@ jobs:
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -191,7 +191,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -265,7 +265,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -326,7 +326,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -425,7 +425,7 @@ jobs:
 
       # Not currently needed, but we might need it in the future
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -477,7 +477,7 @@ jobs:
           fi
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -609,7 +609,7 @@ jobs:
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -653,7 +653,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -705,7 +705,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -757,7 +757,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
