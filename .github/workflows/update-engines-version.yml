@@ -58,7 +58,7 @@ jobs:
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/query-engine-wasm -u ${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/engines-version)
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 7
           max_attempts: 3
@@ -67,7 +67,7 @@ jobs:
             pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/prisma-schema-wasm)
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 7
           max_attempts: 3
@@ -76,7 +76,7 @@ jobs:
             pnpm update -r @prisma/prisma-schema-wasm@${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/query-engine-wasm)
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 7
           max_attempts: 3
