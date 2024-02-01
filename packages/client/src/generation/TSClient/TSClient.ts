@@ -411,7 +411,7 @@ class PrismaClient {
           'workerd': 'Cloudflare Workers',
           'deno': 'Deno and Deno Deploy',
           'netlify': 'Netlify Edge Functions',
-          'edge-light': 'Vercel Edge Functions',
+          'edge-light': 'Vercel Edge Functions or Middleware',
         }[runtime]
 
         let message = 'PrismaClient is unable to run in '
@@ -422,7 +422,7 @@ class PrismaClient {
         }
         
         message += \`
-If this is unexpected, please open an issue: https://github.com/prisma/prisma/issues\`
+If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report\`
 
         throw new Error(message)
       }
