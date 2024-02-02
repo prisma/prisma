@@ -29,9 +29,9 @@
     "SQLServer",
     "MongoDB"
   ],
-  "main": "index.js",
+  "main": "default.js",
   "browser": "index-browser.js",
-  "types": "index.d.ts",
+  "types": "default.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -83,6 +83,18 @@
       "import": "./wasm.js",
       "default": "./wasm.js"
     },
+    "./runtime/library": {
+      "types": "./runtime/library.d.ts",
+      "require": "./runtime/library.js",
+      "import": "./runtime/library.js",
+      "default": "./runtime/library.js"
+    },
+    "./runtime/binary": {
+      "types": "./runtime/binary.d.ts",
+      "require": "./runtime/binary.js",
+      "import": "./runtime/binary.js",
+      "default": "./runtime/binary.js"
+    },
     "./*": "./*"
   },
   "license": "Apache-2.0",
@@ -131,7 +143,7 @@
     "extension.d.ts"
   ],
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "3.0.0",
+    "@codspeed/benchmark.js-plugin": "3.1.0",
     "@faker-js/faker": "8.4.0",
     "@fast-check/jest": "1.8.0",
     "@inquirer/prompts": "3.3.0",
@@ -141,11 +153,11 @@
     "@libsql/client": "0.4.0",
     "@neondatabase/serverless": "0.7.2",
     "@opentelemetry/api": "1.7.0",
-    "@opentelemetry/context-async-hooks": "1.20.0",
-    "@opentelemetry/instrumentation": "0.47.0",
-    "@opentelemetry/resources": "1.20.0",
-    "@opentelemetry/sdk-trace-base": "1.20.0",
-    "@opentelemetry/semantic-conventions": "1.20.0",
+    "@opentelemetry/context-async-hooks": "1.21.0",
+    "@opentelemetry/instrumentation": "0.48.0",
+    "@opentelemetry/resources": "1.21.0",
+    "@opentelemetry/sdk-trace-base": "1.21.0",
+    "@opentelemetry/semantic-conventions": "1.21.0",
     "@planetscale/database": "1.14.0",
     "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-libsql": "workspace:*",
@@ -155,7 +167,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.9.0-32.23fdc5965b1e05fc54e5f26ed3de66776b93de64",
+    "@prisma/engines-version": "5.10.0-3.2db61cfe98ac57fda36ee57b9e2214833e1e7d08",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -163,7 +175,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
-    "@prisma/query-engine-wasm": "5.9.0-32.23fdc5965b1e05fc54e5f26ed3de66776b93de64",
+    "@prisma/query-engine-wasm": "5.10.0-3.2db61cfe98ac57fda36ee57b9e2214833e1e7d08",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.6.8",
     "@swc/core": "1.3.96",

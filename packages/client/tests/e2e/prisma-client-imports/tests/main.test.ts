@@ -80,8 +80,8 @@ function isPrismaClientDeprecated(fileName: string, options: any) {
   if (!sourceFile) {
     throw new Error(`Source file ${fileName} not found`)
   }
-  assertNoErrors(program.getSemanticDiagnostics(sourceFile))
-  assertNoErrors(program.getSyntacticDiagnostics(sourceFile))
+  assertNoErrors(program.getSemanticDiagnostics())
+  assertNoErrors(program.getSyntacticDiagnostics())
   const prismaImport = findPrismaImport(sourceFile)
   if (!prismaImport) {
     throw new Error(`No PrismaClient import found in ${fileName}}`)
@@ -93,7 +93,9 @@ function isPrismaClientDeprecated(fileName: string, options: any) {
 
 function assertNoErrors(errors: readonly ts.Diagnostic[]) {
   if (errors.length > 0) {
-    throw new Error(`TS errors: ${errors.map((err) => err.messageText).join('\n')}`)
+    errors.map(console.error)
+
+    throw new Error(`Test exited with ${errors.length} errors. See above for details.`)
   }
 }
 

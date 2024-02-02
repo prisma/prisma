@@ -26,7 +26,7 @@
     "prettier-check": "prettier --check .",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "bench-stdout-only": "ts-node scripts/bench.ts",
-    "prepare": "is-ci || husky install",
+    "prepare": "is-ci || husky",
     "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox"
   },
   "devDependencies": {
@@ -65,7 +65,7 @@
     "fs-extra": "11.1.1",
     "globby": "11.1.0",
     "graphviz-mit": "0.0.9",
-    "husky": "8.0.3",
+    "husky": "9.0.7",
     "is-ci": "3.0.1",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
@@ -168,6 +168,10 @@
     },
     {
       "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-d1/output.tgz",
       "gzip": false
     }
   ]
