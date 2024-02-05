@@ -7,6 +7,8 @@
   },
   "dependencies": {
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
+    "@prisma/extension-accelerate": "0.6.2",
+    "@prisma/extension-read-replicas": "0.3.0",
     "db": "link:custom"
   },
   "devDependencies": {

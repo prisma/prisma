@@ -127,7 +127,7 @@ export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
     return `() => {
   throw new Error(\`${fnc} is unable to be run \${runtimeDescription}.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report\`,
 )}`
   return fnc
 }
