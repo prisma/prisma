@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
-import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type { BinaryPaths, ConnectorType, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
@@ -362,7 +362,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (generator.previewFeatures.includes('driverAdapters') && noEngine !== true) {
+  if (generator.previewFeatures.includes('driverAdapters') && isWasmEngineSupported(provider) && noEngine !== true) {
     const copyOrNoop = testMode ? function noop() {} : fs.copyFile
     await copyOrNoop(
       path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
@@ -381,6 +381,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await fs.mkdir(prismaCache, { recursive: true })
     await fs.writeFile(signalsPath, Date.now().toString())
   } catch {}
+}
+
+function isWasmEngineSupported(provider: ConnectorType) {
+  return provider === 'postgresql' || provider === 'mysql' || provider === 'sqlite'
 }
 
 function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Document): Error[] | null {
