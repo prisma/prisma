@@ -13,7 +13,7 @@ export function buildQueryEngineWasmModule(
 ) {
   if (runtimeNameJs === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
     return `config.wasm = {
-      runtime: wasmRuntime,
+      runtime: require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         const queryEngineWasmFilePath = require('path').join(config.dirname, 'query_engine_bg.${provider}.wasm')
         const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
@@ -29,7 +29,7 @@ export function buildQueryEngineWasmModule(
   // this is incompatible with cloudflare, so we hide it in a template
   if (wasm === true) {
     return `config.wasm = {
-      runtime: wasmRuntime,
+      runtime: require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         if (detectRuntime() === 'edge-light') {
           return (await import(\`./query_engine_bg.${provider}.wasm\${'?module'}\`)).default
