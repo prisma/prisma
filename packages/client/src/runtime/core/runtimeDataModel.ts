@@ -12,8 +12,12 @@ export type RuntimeDataModel = {
   readonly types: Record<string, RuntimeModel>
 }
 
+export type PrunedRuntimeModel = {
+  readonly fields: Pick<RuntimeModel['fields'][number], 'name' | 'kind' | 'type' | 'relationName'>[]
+}
+
 export type PrunedRuntimeDataModel = {
-  readonly models: Record<string, { fields: { name: string }[] }>
+  readonly models: Record<string, PrunedRuntimeModel>
   readonly enums: {}
   readonly types: {}
 }
@@ -31,19 +35,18 @@ export function dmmfToRuntimeDataModel(dmmfDataModel: DMMF.Datamodel): RuntimeDa
  * @param runtimeDataModel
  * @returns
  */
-export function pruneRuntimeDataModel(runtimeDataModel: RuntimeDataModel) {
-  const prunedRuntimeDataModel: PrunedRuntimeDataModel = { models: {}, enums: {}, types: {} }
+export function pruneRuntimeDataModel({ models }: RuntimeDataModel) {
+  const prunedModels: PrunedRuntimeDataModel['models'] = {}
 
-  for (const modelName of Object.keys(runtimeDataModel.models)) {
-    prunedRuntimeDataModel.models[modelName] = { fields: [] }
-    for (const { name, kind } of runtimeDataModel.models[modelName].fields) {
-      if (kind === 'object') {
-        prunedRuntimeDataModel[modelName].fields.push({ name, kind })
-      }
+  for (const modelName of Object.keys(models)) {
+    prunedModels[modelName] = { fields: [] }
+
+    for (const { name, kind, type, relationName } of models[modelName].fields) {
+      prunedModels[modelName].fields.push({ name, kind, type, relationName })
     }
   }
 
-  return prunedRuntimeDataModel
+  return { models: prunedModels, enums: {}, types: {} }
 }
 
 function buildMapForRuntime<T extends { name: string }>(list: readonly T[]): Record<string, Omit<T, 'name'>> {
