@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf 1`] = `
+exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
     enums: [],
@@ -140,7 +140,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf 1`] = `
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf 1`] = `
+exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
     enums: [],
@@ -282,7 +282,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf 1`] = `
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf 1`] = `
+exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
     enums: [],
@@ -422,7 +422,65 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf 1`] = `
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf 1`] = `
+exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (wasm) 1`] = `
+{
+  datamodel: {
+    enums: [],
+    models: [
+      {
+        fields: [
+          {
+            kind: scalar,
+            name: id,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: name,
+            type: String,
+          },
+          {
+            kind: object,
+            name: posts,
+            relationName: PostToUser,
+            type: Post,
+          },
+        ],
+        name: User,
+      },
+      {
+        fields: [
+          {
+            kind: scalar,
+            name: id,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: title,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: authorId,
+            type: String,
+          },
+          {
+            kind: object,
+            name: author,
+            relationName: PostToUser,
+            type: User,
+          },
+        ],
+        name: Post,
+      },
+    ],
+    types: [],
+  },
+}
+`;
+
+exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
     enums: [],
@@ -562,7 +620,123 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf 1`
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf 1`] = `
+exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (wasm) 1`] = `
+{
+  datamodel: {
+    enums: [],
+    models: [
+      {
+        fields: [
+          {
+            kind: scalar,
+            name: id,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: name,
+            type: String,
+          },
+          {
+            kind: object,
+            name: posts,
+            relationName: PostToUser,
+            type: Post,
+          },
+        ],
+        name: User,
+      },
+      {
+        fields: [
+          {
+            kind: scalar,
+            name: id,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: title,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: authorId,
+            type: String,
+          },
+          {
+            kind: object,
+            name: author,
+            relationName: PostToUser,
+            type: User,
+          },
+        ],
+        name: Post,
+      },
+    ],
+    types: [],
+  },
+}
+`;
+
+exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (wasm) 1`] = `
+{
+  datamodel: {
+    enums: [],
+    models: [
+      {
+        fields: [
+          {
+            kind: scalar,
+            name: id,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: name,
+            type: String,
+          },
+          {
+            kind: object,
+            name: posts,
+            relationName: PostToUser,
+            type: Post,
+          },
+        ],
+        name: User,
+      },
+      {
+        fields: [
+          {
+            kind: scalar,
+            name: id,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: title,
+            type: String,
+          },
+          {
+            kind: scalar,
+            name: authorId,
+            type: String,
+          },
+          {
+            kind: object,
+            name: author,
+            relationName: PostToUser,
+            type: User,
+          },
+        ],
+        name: Post,
+      },
+    ],
+    types: [],
+  },
+}
+`;
+
+exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
     enums: [],
@@ -702,139 +876,57 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf 1`] = `
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf 1`] = `
+exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (wasm) 1`] = `
 {
   datamodel: {
     enums: [],
     models: [
       {
-        dbName: null,
         fields: [
           {
-            default: {
-              args: [],
-              name: cuid,
-            },
-            hasDefaultValue: true,
-            isGenerated: false,
-            isId: true,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: id,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: name,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: true,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: object,
             name: posts,
-            relationFromFields: [],
             relationName: PostToUser,
-            relationToFields: [],
             type: Post,
           },
         ],
-        isGenerated: false,
         name: User,
-        primaryKey: null,
-        uniqueFields: [],
-        uniqueIndexes: [],
       },
       {
-        dbName: null,
         fields: [
           {
-            default: {
-              args: [],
-              name: cuid,
-            },
-            hasDefaultValue: true,
-            isGenerated: false,
-            isId: true,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: id,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: title,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: true,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: authorId,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: object,
             name: author,
-            relationFromFields: [
-              authorId,
-            ],
             relationName: PostToUser,
-            relationToFields: [
-              id,
-            ],
             type: User,
           },
         ],
-        isGenerated: false,
         name: Post,
-        primaryKey: null,
-        uniqueFields: [],
-        uniqueIndexes: [],
       },
     ],
     types: [],
@@ -842,139 +934,57 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf 1`] 
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf 1`] = `
+exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (wasm) 1`] = `
 {
   datamodel: {
     enums: [],
     models: [
       {
-        dbName: null,
         fields: [
           {
-            default: {
-              args: [],
-              name: cuid,
-            },
-            hasDefaultValue: true,
-            isGenerated: false,
-            isId: true,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: id,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: name,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: true,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: object,
             name: posts,
-            relationFromFields: [],
             relationName: PostToUser,
-            relationToFields: [],
             type: Post,
           },
         ],
-        isGenerated: false,
         name: User,
-        primaryKey: null,
-        uniqueFields: [],
-        uniqueIndexes: [],
       },
       {
-        dbName: null,
         fields: [
           {
-            default: {
-              args: [],
-              name: cuid,
-            },
-            hasDefaultValue: true,
-            isGenerated: false,
-            isId: true,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: id,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: title,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: true,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: scalar,
             name: authorId,
             type: String,
           },
           {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
             kind: object,
             name: author,
-            relationFromFields: [
-              authorId,
-            ],
             relationName: PostToUser,
-            relationToFields: [
-              id,
-            ],
             type: User,
           },
         ],
-        isGenerated: false,
         name: Post,
-        primaryKey: null,
-        uniqueFields: [],
-        uniqueIndexes: [],
       },
     ],
     types: [],
@@ -982,287 +992,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf 1`] = 
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf 1`] = `
-{
-  datamodel: {
-    enums: [],
-    models: [
-      {
-        dbName: null,
-        fields: [
-          {
-            default: {
-              args: [],
-              name: cuid,
-            },
-            hasDefaultValue: true,
-            isGenerated: false,
-            isId: true,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: name,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: true,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: object,
-            name: posts,
-            relationFromFields: [],
-            relationName: PostToUser,
-            relationToFields: [],
-            type: Post,
-          },
-        ],
-        isGenerated: false,
-        name: User,
-        primaryKey: null,
-        uniqueFields: [],
-        uniqueIndexes: [],
-      },
-      {
-        dbName: null,
-        fields: [
-          {
-            default: {
-              args: [],
-              name: cuid,
-            },
-            hasDefaultValue: true,
-            isGenerated: false,
-            isId: true,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: title,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: true,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: authorId,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: object,
-            name: author,
-            relationFromFields: [
-              authorId,
-            ],
-            relationName: PostToUser,
-            relationToFields: [
-              id,
-            ],
-            type: User,
-          },
-        ],
-        isGenerated: false,
-        name: Post,
-        primaryKey: null,
-        uniqueFields: [],
-        uniqueIndexes: [],
-      },
-    ],
-    types: [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf 1`] = `
-{
-  datamodel: {
-    enums: [],
-    models: [
-      {
-        dbName: null,
-        fields: [
-          {
-            default: {
-              args: [],
-              name: cuid,
-            },
-            hasDefaultValue: true,
-            isGenerated: false,
-            isId: true,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: name,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: true,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: object,
-            name: posts,
-            relationFromFields: [],
-            relationName: PostToUser,
-            relationToFields: [],
-            type: Post,
-          },
-        ],
-        isGenerated: false,
-        name: User,
-        primaryKey: null,
-        uniqueFields: [],
-        uniqueIndexes: [],
-      },
-      {
-        dbName: null,
-        fields: [
-          {
-            default: {
-              args: [],
-              name: cuid,
-            },
-            hasDefaultValue: true,
-            isGenerated: false,
-            isId: true,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: title,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: true,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: scalar,
-            name: authorId,
-            type: String,
-          },
-          {
-            hasDefaultValue: false,
-            isGenerated: false,
-            isId: false,
-            isList: false,
-            isReadOnly: false,
-            isRequired: true,
-            isUnique: false,
-            isUpdatedAt: false,
-            kind: object,
-            name: author,
-            relationFromFields: [
-              authorId,
-            ],
-            relationName: PostToUser,
-            relationToFields: [
-              id,
-            ],
-            type: User,
-          },
-        ],
-        isGenerated: false,
-        name: Post,
-        primaryKey: null,
-        uniqueFields: [],
-        uniqueIndexes: [],
-      },
-    ],
-    types: [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf 1`] = `
+exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
     enums: [],
