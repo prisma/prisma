@@ -13,6 +13,7 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
+import { WasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
@@ -127,7 +128,7 @@ export type PrismaClientOptions = {
       allowTriggerPanic?: boolean
     }
     /** This can be used for testing purposes */
-    configOverride?: Partial<GetPrismaClientConfig>
+    configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
   }
 }
 
@@ -280,12 +281,9 @@ export type GetPrismaClientConfig = {
   noEngine?: boolean
 
   /**
-   * Loads the raw wasm module for the wasm query engine. This configuration is
-   * generated specifically for each type of client, eg. Node.js client and Edge
-   * clients will have different implementations.
-   * @remarks this is a callback on purpose, we only load the wasm if needed.
+   * Optional wasm loading configuration
    */
-  getQueryEngineWasmModule?: () => Promise<unknown>
+  wasm?: WasmLoadingConfig
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -323,7 +321,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _createPrismaPromise = createPrismaPromiseFactory()
 
     constructor(optionsArg?: PrismaClientOptions) {
-      config = { ...config, ...optionsArg?.__internal?.configOverride }
+      config = optionsArg?.__internal?.configOverride?.(config) ?? config
 
       checkPlatformCaching(config)
 
@@ -405,7 +403,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             ),
           env: loadedEnv?.parsed ?? {},
           flags: [],
-          getQueryEngineWasmModule: config.getQueryEngineWasmModule,
+          wasm: config.wasm,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,

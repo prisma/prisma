@@ -1,16 +1,25 @@
+import { ConnectorType } from '@prisma/generator-helper'
+
 import { TSClientOptions } from '../TSClient/TSClient'
 
 /**
  * Builds the necessary glue code to load the query engine wasm module.
  * @returns
  */
-export function buildGetQueryEngineWasmModule(wasm: boolean, runtimeNameJs: TSClientOptions['runtimeNameJs']) {
+export function buildQueryEngineWasmModule(
+  wasm: boolean,
+  provider: ConnectorType,
+  runtimeNameJs: TSClientOptions['runtimeNameJs'],
+) {
   if (runtimeNameJs === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
-    return `config.getQueryEngineWasmModule = async () => {
-      const queryEngineWasmFilePath = require('path').join(config.dirname, 'query-engine.wasm')
-      const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
-    
-      return new WebAssembly.Module(queryEngineWasmFileBytes)
+    return `config.wasm = {
+      runtime: wasmRuntime,
+      getQueryEngineWasmModule: async () => {
+        const queryEngineWasmFilePath = require('path').join(config.dirname, 'query_engine_bg.${provider}.wasm')
+        const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
+      
+        return new WebAssembly.Module(queryEngineWasmFileBytes)
+      }
     }`
   }
 
@@ -19,14 +28,17 @@ export function buildGetQueryEngineWasmModule(wasm: boolean, runtimeNameJs: TSCl
   // additionally we need to append ?module to the import path for vercel
   // this is incompatible with cloudflare, so we hide it in a template
   if (wasm === true) {
-    return `config.getQueryEngineWasmModule = async () => {
-      if (detectRuntime() === 'edge-light') {
-        return (await import(\`./query-engine.wasm\${'?module'}\`)).default
-      } else {
-        return (await import(\`./query-engine.wasm\`)).default
+    return `config.wasm = {
+      runtime: wasmRuntime,
+      getQueryEngineWasmModule: async () => {
+        if (detectRuntime() === 'edge-light') {
+          return (await import(\`./query_engine_bg.${provider}.wasm\${'?module'}\`)).default
+        } else {
+          return (await import(\`./query_engine_bg.${provider}.wasm\`)).default
+        }
       }
-}`
+    }`
   }
 
-  return `config.getQueryEngineWasmModule = undefined`
+  return `config.wasm = undefined`
 }

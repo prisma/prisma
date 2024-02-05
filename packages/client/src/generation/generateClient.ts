@@ -268,6 +268,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     testMode,
   })
 
+  const provider = datasources[0].provider
+
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
@@ -361,17 +363,15 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (generator.previewFeatures.includes('driverAdapters') && noEngine !== true) {
-    const queryEngineWasmFilePath = path.join(runtimeDir, 'query-engine.wasm')
-    const queryEngineWasmTargetPath = path.join(outputDir, 'query-engine.wasm')
-    // some bundlers (eg. webpack) need this file to exist, even if it's empty
-    // this is because they analyze `query-engine.wasm` for references to other
-    // files. It does not matter for us, because we bundle query_engine_bg.js.
-    const dummyQueryEngineBgTargetPath = path.join(outputDir, 'query_engine_bg.js')
-    const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
-
     const copyOrNoop = testMode ? function noop() {} : fs.copyFile
-    await copyOrNoop(queryEngineWasmFilePath, queryEngineWasmTargetPath)
-    await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
+    await copyOrNoop(
+      path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
+      path.join(outputDir, `query_engine_bg.wasm`),
+    )
+    await fs.copyFile(
+      path.join(runtimeDir, `query_engine_bg.${provider}.js`),
+      path.join(outputDir, `query_engine_bg.js`),
+    )
   }
 
   try {

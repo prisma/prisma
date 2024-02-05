@@ -8,7 +8,7 @@ import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
-const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm'))
+const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
 const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
@@ -102,12 +102,23 @@ const wasmRuntimeBuildConfig: BuildOptions = {
   },
   plugins: [
     ...commonEdgeWasmRuntimeBuildConfig.plugins,
-    copyFilePlugin([
-      {
-        from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
-        to: path.join(runtimeDir, 'query-engine.wasm'),
-      },
-    ]),
+    copyFilePlugin(
+      ['postgresql', 'sqlite', 'mysql'].flatMap((provider) => {
+        // TODO: rename subdir to postgres on engine side
+        const outName = provider === 'postgresql' ? 'postgres' : provider
+        return [
+          {
+            from: path.join(wasmEngineDir, provider, 'query_engine_bg.wasm'),
+            to: path.join(runtimeDir, `query_engine_bg.${outName}.wasm`),
+          },
+
+          {
+            from: path.join(wasmEngineDir, provider, 'query_engine_bg.js'),
+            to: path.join(runtimeDir, `query_engine_bg.${outName}.js`),
+          },
+        ]
+      }),
+    ),
   ],
 }
 
