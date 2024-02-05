@@ -45,7 +45,6 @@ pnpm -r run dev
 
 In the root directory:
 
-- `pnpm run setup` will install and build all the packages.
 - `pnpm -r run build` (-r for recursive) will build all the packages.
 - `pnpm -r run dev` (-r for recursive) will build all the packages, without running `tsc`.
 - `pnpm run watch` will continuously build any packages that have been modified, without running `tsc` (Fastest).
