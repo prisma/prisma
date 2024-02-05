@@ -104,17 +104,15 @@ const wasmRuntimeBuildConfig: BuildOptions = {
     ...commonEdgeWasmRuntimeBuildConfig.plugins,
     copyFilePlugin(
       ['postgresql', 'sqlite', 'mysql'].flatMap((provider) => {
-        // TODO: rename subdir to postgres on engine side
-        const outName = provider === 'postgresql' ? 'postgres' : provider
         return [
           {
             from: path.join(wasmEngineDir, provider, 'query_engine_bg.wasm'),
-            to: path.join(runtimeDir, `query_engine_bg.${outName}.wasm`),
+            to: path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
           },
 
           {
             from: path.join(wasmEngineDir, provider, 'query_engine_bg.js'),
-            to: path.join(runtimeDir, `query_engine_bg.${outName}.js`),
+            to: path.join(runtimeDir, `query_engine_bg.${provider}.js`),
           },
         ]
       }),
