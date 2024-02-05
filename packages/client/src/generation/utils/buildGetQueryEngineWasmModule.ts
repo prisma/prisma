@@ -15,7 +15,7 @@ export function buildQueryEngineWasmModule(
     return `config.wasm = {
       runtime: require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
-        const queryEngineWasmFilePath = require('path').join(config.dirname, 'query_engine_bg.${provider}.wasm')
+        const queryEngineWasmFilePath = require('path').join(config.dirname, 'query_engine_bg.wasm')
         const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
       
         return new WebAssembly.Module(queryEngineWasmFileBytes)
@@ -32,9 +32,9 @@ export function buildQueryEngineWasmModule(
       runtime: require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         if (detectRuntime() === 'edge-light') {
-          return (await import(\`./query_engine_bg.${provider}.wasm\${'?module'}\`)).default
+          return (await import(\`./query_engine_bg.wasm\${'?module'}\`)).default
         } else {
-          return (await import(\`./query_engine_bg.${provider}.wasm\`)).default
+          return (await import(\`./query_engine_bg.wasm\`)).default
         }
       }
     }`
