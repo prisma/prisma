@@ -7,7 +7,9 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
-    test('Bytes encoding is preserved', async () => {
+    // Skipping until https://github.com/prisma/team-orm/issues/687 is resolved
+    // (it requires changes in prisma-engines)
+    test.skip('Bytes encoding is preserved', async () => {
       const inputStrings = ['AQID', 'FSDF', 'AA', 'BB']
       const inputBtoas = inputStrings.map((s) => btoa(s))
       const inputs = [...inputStrings, ...inputBtoas]
