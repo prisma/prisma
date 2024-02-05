@@ -146,6 +146,22 @@ export async function buildClient({
   fileMap['edge.d.ts'] = await TS(edgeClient)
 
   if (generator.previewFeatures.includes('driverAdapters')) {
+    fileMap['wasm-worker-loader.js'] = `export default (await import('./query-engine.wasm')).default`
+    fileMap['wasm-edge-light-loader.js'] = `export default (await import('./query-engine.wasm?module')).default`
+    pkgJson['imports'] = {
+      '#wasm-engine-loader': {
+        'edge-light': './wasm-edge-light-loader.js',
+        workerd: './wasm-worker-loader.js',
+        worker: './wasm-worker-loader.js',
+        default: './wasm-worker-loader.js',
+      },
+      '#main-entry-point': {
+        node: './default.js',
+        workerd: './wasm.js',
+        'index-browser': './index-browser.js',
+      },
+    }
+
     // in custom outputs, `index` shows a warning. if it is loaded, it means
     // that the export map is not working for the user so we display them an
     // `importWarning`. If the exports map works, `default` will be loaded.
