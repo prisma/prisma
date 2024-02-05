@@ -108,7 +108,7 @@ export class TSClient implements Generatable {
         ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
         : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
-    const inlineSchema = (await readFile(schemaPath)).toString('base64')
+    const inlineSchema = (await readFile(schemaPath)).toString('utf8')
     const inlineSchemaHash = crypto.createHash('sha256').update(inlineSchema).digest('hex')
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
