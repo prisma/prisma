@@ -12,7 +12,7 @@ declare const WebAssembly: any // TODO not defined in Node types?
 let loadedWasmInstance: any
 export const wasmLibraryLoader: LibraryLoader = {
   async loadLibrary(config) {
-    const { clientVersion, adapter, wasm } = config
+    const { clientVersion, adapter, engineWasm } = config
 
     if (adapter === undefined) {
       throw new PrismaClientInitializationError(
@@ -21,7 +21,7 @@ export const wasmLibraryLoader: LibraryLoader = {
       )
     }
 
-    if (wasm === undefined) {
+    if (engineWasm === undefined) {
       throw new PrismaClientInitializationError(
         `WASM engine loading was not configured correctly. Please, re-run \`prisma generate\``,
         clientVersion,
@@ -33,7 +33,7 @@ export const wasmLibraryLoader: LibraryLoader = {
     // engine is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
       loadedWasmInstance = (async () => {
-        const wasmModule = await wasm.getQueryEngineWasmModule()
+        const wasmModule = await engineWasm.getQueryEngineWasmModule()
 
         if (wasmModule === undefined || wasmModule === null) {
           throw new PrismaClientInitializationError(
@@ -43,9 +43,9 @@ export const wasmLibraryLoader: LibraryLoader = {
         }
 
         // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
-        const options = { './query_engine_bg.js': wasm.runtime }
+        const options = { './query_engine_bg.js': engineWasm.runtime }
         const instance = new WebAssembly.Instance(wasmModule, options)
-        wasm.runtime.__wbg_set_wasm(instance.exports)
+        engineWasm.runtime.__wbg_set_wasm(instance.exports)
       })()
     }
 
@@ -61,7 +61,7 @@ export const wasmLibraryLoader: LibraryLoader = {
       version() {
         return { commit: 'unknown', version: 'unknown' } // not used
       },
-      QueryEngine: wasm.runtime.QueryEngine,
+      QueryEngine: engineWasm.runtime.QueryEngine,
     }
   },
 }

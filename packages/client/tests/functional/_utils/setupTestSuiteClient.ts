@@ -116,9 +116,9 @@ export function setupTestSuiteClientDriverAdapter({
   if (clientMeta.runtime === 'wasm') {
     __internal.configOverride = (config) => ({
       ...config,
-      wasm: config.wasm
+      engineWasm: config.engineWasm
         ? {
-            ...config.wasm,
+            ...config.engineWasm,
             // wasm engine can only be loaded on edge runtimes, so here we force it
             // this enables our wasm client runtime to be fully tested within jest
             async getQueryEngineWasmModule() {

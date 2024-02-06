@@ -12,7 +12,7 @@ export function buildQueryEngineWasmModule(
   runtimeNameJs: TSClientOptions['runtimeNameJs'],
 ) {
   if (runtimeNameJs === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
-    return `config.wasm = {
+    return `config.engineWasm = {
       runtime: require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         const queryEngineWasmFilePath = require('path').join(config.dirname, 'query_engine_bg.wasm')
@@ -28,7 +28,7 @@ export function buildQueryEngineWasmModule(
   // additionally we need to append ?module to the import path for vercel
   // this is incompatible with cloudflare, so we hide it in a template
   if (wasm === true) {
-    return `config.wasm = {
+    return `config.engineWasm = {
       runtime: require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         if (detectRuntime() === 'edge-light') {
@@ -40,5 +40,5 @@ export function buildQueryEngineWasmModule(
     }`
   }
 
-  return `config.wasm = undefined`
+  return `config.engineWasm = undefined`
 }

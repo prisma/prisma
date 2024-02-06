@@ -283,7 +283,7 @@ export type GetPrismaClientConfig = {
   /**
    * Optional wasm loading configuration
    */
-  wasm?: WasmLoadingConfig
+  engineWasm?: WasmLoadingConfig
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -403,7 +403,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             ),
           env: loadedEnv?.parsed ?? {},
           flags: [],
-          wasm: config.wasm,
+          engineWasm: config.engineWasm,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,

@@ -151,7 +151,7 @@ export interface EngineConfig {
   /**
    * Web Assembly module loading configuration
    */
-  wasm?: WasmLoadingConfig
+  engineWasm?: WasmLoadingConfig
 }
 
 export type WasmLoadingConfig = {
