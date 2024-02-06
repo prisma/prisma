@@ -4,7 +4,7 @@ import * as Types from './core/types'
 
 export { type Types }
 export { Extensions }
-export { type Public }
+export { Public }
 
 export { type BaseDMMF, type DMMF } from '../generation/dmmf-types'
 export { NotFoundError } from './core/errors/NotFoundError'
