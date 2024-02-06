@@ -5,6 +5,8 @@ import * as matchers from 'jest-extended'
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
 import stripAnsi from 'strip-ansi'
 
+import { getCallSite } from '../../../src/runtime/utils/CallSite'
+
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
 expect.extend(matchers)
 
@@ -85,5 +87,9 @@ globalThis.testRepeat = testRepeat
 // @ts-ignore, a global fs variable that is injected by us to make our snapshots
 // work in clients that cannot read from disk (e.g. wasm or edge clients)
 globalThis.$fs = fs
+
+// @ts-ignore, a global variable that is injected by us to make our snapshots
+// work in clients that cannot read from disk (e.g. wasm or edge clients)
+globalThis.$getCallSite = getCallSite
 
 export {}

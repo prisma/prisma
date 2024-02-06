@@ -3,6 +3,14 @@ import * as stackTraceParser from 'stacktrace-parser'
 
 import { ErrorFormat } from '../getPrismaClient'
 
+declare global {
+  /**
+   * a global variable that is injected by us via jest to make our snapshots
+   * work in clients that cannot read from disk (e.g. wasm or edge clients)
+   */
+  let $getCallSite: typeof getCallSite | undefined
+}
+
 export type LocationInFile = {
   fileName: string
   lineNumber: number | null
@@ -69,7 +77,11 @@ class EnabledCallSite implements CallSite {
 
 export function getCallSite(errorFormat: ErrorFormat): CallSite {
   if (errorFormat === 'minimal' || TARGET_BUILD_TYPE === 'wasm' || TARGET_BUILD_TYPE === 'edge') {
-    return new DisabledCallSite()
+    if (typeof $getCallSite === 'function') {
+      return $getCallSite(errorFormat)
+    } else {
+      return new DisabledCallSite()
+    }
   } else {
     return new EnabledCallSite()
   }
