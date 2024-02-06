@@ -2,12 +2,11 @@ import * as Extensions from './core/extensions'
 import * as Public from './core/public'
 import * as Types from './core/types'
 
-export { Types }
+export { type Types }
 export { Extensions }
-export { Public }
+export { type Public }
 
-export { DMMFHelper as DMMFClass } from '../generation/dmmf'
-export { type BaseDMMF, DMMF } from '../generation/dmmf-types'
+export { type BaseDMMF, type DMMF } from '../generation/dmmf-types'
 export { NotFoundError } from './core/errors/NotFoundError'
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
@@ -22,7 +21,7 @@ export {
   MetricsClient,
 } from './core/metrics/MetricsClient'
 export { defineDmmfProperty } from './core/runtimeDataModel'
-export * from './core/types/exported'
+export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'
 export { objectEnumValues } from './core/types/exported/ObjectEnums'
 export type { PrismaClientOptions } from './getPrismaClient'
