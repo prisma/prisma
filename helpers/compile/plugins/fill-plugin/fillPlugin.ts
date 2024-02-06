@@ -165,7 +165,7 @@ const fillPlugin = (
       // timers: { path: load('timers-browserify') },
       tty: { imports: load('tty-browserify') },
       // url: { path: load('url') },
-      util: { imports: load('util') },
+      util: { imports: path.join(__dirname, 'fillers', 'util.ts') },
       // vm: { path: load('vm-browserify') },
       // zlib: { path: load('browserify-zlib') },
 
