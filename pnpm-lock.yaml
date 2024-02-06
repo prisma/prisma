@@ -291,9 +291,6 @@ importers:
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
-      undici:
-        specifier: 5.28.1
-        version: 5.28.1
 
   packages/bundle-size:
     dependencies:
