@@ -11,7 +11,9 @@ testMatrix.setupTestSuite(
     })
 
     testIf(clientRuntime === 'wasm')('exports Prisma.dmmf (wasm)', () => {
-      expect(Prisma.dmmf).toMatchSnapshot()
+      expect(() => Prisma.dmmf).toThrowErrorMatchingInlineSnapshot(
+        `Prisma.dmmf is not available when running in edge runtimes.`,
+      )
     })
   },
   {

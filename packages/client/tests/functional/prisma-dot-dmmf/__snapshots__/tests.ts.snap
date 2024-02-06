@@ -562,64 +562,6 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (wasm) 1`] = `
-{
-  datamodel: {
-    enums: [],
-    models: [
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: name,
-            type: String,
-          },
-          {
-            kind: object,
-            name: posts,
-            relationName: PostToUser,
-            type: Post,
-          },
-        ],
-        name: User,
-      },
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: title,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: authorId,
-            type: String,
-          },
-          {
-            kind: object,
-            name: author,
-            relationName: PostToUser,
-            type: User,
-          },
-        ],
-        name: Post,
-      },
-    ],
-    types: [],
-  },
-}
-`;
-
 exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
@@ -900,64 +842,6 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (wasm) 1`] = `
-{
-  datamodel: {
-    enums: [],
-    models: [
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: name,
-            type: String,
-          },
-          {
-            kind: object,
-            name: posts,
-            relationName: PostToUser,
-            type: Post,
-          },
-        ],
-        name: User,
-      },
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: title,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: authorId,
-            type: String,
-          },
-          {
-            kind: object,
-            name: author,
-            relationName: PostToUser,
-            type: User,
-          },
-        ],
-        name: Post,
-      },
-    ],
-    types: [],
-  },
-}
-`;
-
 exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
@@ -1091,64 +975,6 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
         primaryKey: null,
         uniqueFields: [],
         uniqueIndexes: [],
-      },
-    ],
-    types: [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (wasm) 1`] = `
-{
-  datamodel: {
-    enums: [],
-    models: [
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: name,
-            type: String,
-          },
-          {
-            kind: object,
-            name: posts,
-            relationName: PostToUser,
-            type: Post,
-          },
-        ],
-        name: User,
-      },
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: title,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: authorId,
-            type: String,
-          },
-          {
-            kind: object,
-            name: author,
-            relationName: PostToUser,
-            type: User,
-          },
-        ],
-        name: Post,
       },
     ],
     types: [],
@@ -1436,64 +1262,6 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (wasm) 1`] = `
-{
-  datamodel: {
-    enums: [],
-    models: [
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: name,
-            type: String,
-          },
-          {
-            kind: object,
-            name: posts,
-            relationName: PostToUser,
-            type: Post,
-          },
-        ],
-        name: User,
-      },
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: title,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: authorId,
-            type: String,
-          },
-          {
-            kind: object,
-            name: author,
-            relationName: PostToUser,
-            type: User,
-          },
-        ],
-        name: Post,
-      },
-    ],
-    types: [],
-  },
-}
-`;
-
 exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (default) 1`] = `
 {
   datamodel: {
@@ -1627,64 +1395,6 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
         primaryKey: null,
         uniqueFields: [],
         uniqueIndexes: [],
-      },
-    ],
-    types: [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (wasm) 1`] = `
-{
-  datamodel: {
-    enums: [],
-    models: [
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: name,
-            type: String,
-          },
-          {
-            kind: object,
-            name: posts,
-            relationName: PostToUser,
-            type: Post,
-          },
-        ],
-        name: User,
-      },
-      {
-        fields: [
-          {
-            kind: scalar,
-            name: id,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: title,
-            type: String,
-          },
-          {
-            kind: scalar,
-            name: authorId,
-            type: String,
-          },
-          {
-            kind: object,
-            name: author,
-            relationName: PostToUser,
-            type: User,
-          },
-        ],
-        name: Post,
       },
     ],
     types: [],

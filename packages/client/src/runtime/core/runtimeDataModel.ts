@@ -13,7 +13,8 @@ export type RuntimeDataModel = {
 }
 
 export type PrunedRuntimeModel = {
-  readonly fields: Pick<RuntimeModel['fields'][number], 'name' | 'kind' | 'type' | 'relationName'>[]
+  readonly dbName: RuntimeModel['dbName']
+  readonly fields: Pick<RuntimeModel['fields'][number], 'name' | 'kind' | 'type' | 'relationName' | 'dbName'>[]
 }
 
 export type PrunedRuntimeDataModel = {
@@ -39,10 +40,10 @@ export function pruneRuntimeDataModel({ models }: RuntimeDataModel) {
   const prunedModels: PrunedRuntimeDataModel['models'] = {}
 
   for (const modelName of Object.keys(models)) {
-    prunedModels[modelName] = { fields: [] }
+    prunedModels[modelName] = { fields: [], dbName: models[modelName].dbName }
 
-    for (const { name, kind, type, relationName } of models[modelName].fields) {
-      prunedModels[modelName].fields.push({ name, kind, type, relationName })
+    for (const { name, kind, type, relationName, dbName } of models[modelName].fields) {
+      prunedModels[modelName].fields.push({ name, kind, type, relationName, dbName })
     }
   }
 
@@ -66,6 +67,10 @@ export function defineDmmfProperty(target: object, runtimeDataModel: RuntimeData
 }
 
 function runtimeDataModelToBaseDmmf(runtimeDataModel: RuntimeDataModel): BaseDMMF {
+  if (TARGET_BUILD_TYPE === 'wasm') {
+    throw new Error('Prisma.dmmf is not available when running in edge runtimes.')
+  }
+
   return {
     datamodel: {
       models: buildDMMFList(runtimeDataModel.models),
