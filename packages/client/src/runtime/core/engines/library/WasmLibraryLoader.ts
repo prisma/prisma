@@ -5,11 +5,11 @@
 import { detectRuntime } from 'detect-runtime'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { LibraryLoader } from './types/Library'
+import { LibraryLoader, QueryEngineConstructor } from './types/Library'
 
 declare const WebAssembly: any // TODO not defined in Node types?
 
-let loadedWasmInstance: any
+let loadedWasmInstance: Promise<QueryEngineConstructor>
 export const wasmLibraryLoader: LibraryLoader = {
   async loadLibrary(config) {
     const { clientVersion, adapter, engineWasm } = config
@@ -46,10 +46,11 @@ export const wasmLibraryLoader: LibraryLoader = {
         const options = { './query_engine_bg.js': engineWasm.runtime }
         const instance = new WebAssembly.Instance(wasmModule, options)
         engineWasm.runtime.__wbg_set_wasm(instance.exports)
+        return engineWasm.runtime.QueryEngine
       })()
     }
 
-    await loadedWasmInstance
+    const QueryEngine = await loadedWasmInstance
 
     return {
       debugPanic() {
@@ -61,7 +62,7 @@ export const wasmLibraryLoader: LibraryLoader = {
       version() {
         return { commit: 'unknown', version: 'unknown' } // not used
       },
-      QueryEngine: engineWasm.runtime.QueryEngine,
+      QueryEngine,
     }
   },
 }
