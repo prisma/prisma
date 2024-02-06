@@ -14,6 +14,10 @@ const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
+const DRIVER_ADAPTER_SUPPORTED_PROVIDERS = ['postgresql', 'sqlite', 'mysql'] as const
+
+type DriverAdapterSupportedProvider = (typeof DRIVER_ADAPTER_SUPPORTED_PROVIDERS)[number]
+
 // we define the config for runtime
 function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): BuildOptions {
   return {
@@ -31,6 +35,16 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
       'define.amd': 'false',
     },
     plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/)],
+  }
+}
+
+function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): BuildOptions {
+  return {
+    name: `query_engine_bg.${provider}`,
+    entryPoints: [`@prisma/query-engine-wasm/${provider}/query_engine_bg.js`],
+    outfile: `runtime/query_engine_bg.${provider}`,
+    minify: true,
+    sourcemap: 'linked',
   }
 }
 
@@ -103,19 +117,10 @@ const wasmRuntimeBuildConfig: BuildOptions = {
   plugins: [
     ...commonEdgeWasmRuntimeBuildConfig.plugins,
     copyFilePlugin(
-      ['postgresql', 'sqlite', 'mysql'].flatMap((provider) => {
-        return [
-          {
-            from: path.join(wasmEngineDir, provider, 'query_engine_bg.wasm'),
-            to: path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
-          },
-
-          {
-            from: path.join(wasmEngineDir, provider, 'query_engine_bg.js'),
-            to: path.join(runtimeDir, `query_engine_bg.${provider}.js`),
-          },
-        ]
-      }),
+      DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
+        from: path.join(wasmEngineDir, provider, 'query_engine_bg.wasm'),
+        to: path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
+      })),
     ),
   ],
 }
@@ -158,6 +163,9 @@ void build([
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
   wasmRuntimeBuildConfig,
+  wasmBindgenRuntimeConfig('postgresql'),
+  wasmBindgenRuntimeConfig('mysql'),
+  wasmBindgenRuntimeConfig('sqlite'),
   defaultIndexConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')

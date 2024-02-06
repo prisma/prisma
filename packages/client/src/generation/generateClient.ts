@@ -363,17 +363,15 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (generator.previewFeatures.includes('driverAdapters') && isWasmEngineSupported(provider)) {
+    const suffix = provider === 'postgres' ? 'postgresql' : provider
     if (noEngine !== true && !testMode) {
       await fs.copyFile(
-        path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
+        path.join(runtimeDir, `query_engine_bg.${suffix}.wasm`),
         path.join(outputDir, `query_engine_bg.wasm`),
       )
     }
 
-    await fs.copyFile(
-      path.join(runtimeDir, `query_engine_bg.${provider}.js`),
-      path.join(outputDir, `query_engine_bg.js`),
-    )
+    await fs.copyFile(path.join(runtimeDir, `query_engine_bg.${suffix}.js`), path.join(outputDir, `query_engine_bg.js`))
   }
 
   try {
@@ -386,7 +384,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 }
 
 function isWasmEngineSupported(provider: ConnectorType) {
-  return provider === 'postgresql' || provider === 'mysql' || provider === 'sqlite'
+  return provider === 'postgresql' || provider === 'postgres' || provider === 'mysql' || provider === 'sqlite'
 }
 
 function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Document): Error[] | null {

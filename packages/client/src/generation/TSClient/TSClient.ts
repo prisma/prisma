@@ -102,7 +102,6 @@ export class TSClient implements Generatable {
     // This ensures that any engine override is propagated to the generated clients config
     const clientEngineType = getClientEngineType(generator)
     generator.config.engineType = clientEngineType
-    const provider = datasources[0].provider
 
     const binaryTargets =
       clientEngineType === ClientEngineType.Library
@@ -155,7 +154,7 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
-${buildQueryEngineWasmModule(wasm, provider, runtimeNameJs)}
+${buildQueryEngineWasmModule(wasm, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
