@@ -362,12 +362,14 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (generator.previewFeatures.includes('driverAdapters') && isWasmEngineSupported(provider) && noEngine !== true) {
-    const copyOrNoop = testMode ? function noop() {} : fs.copyFile
-    await copyOrNoop(
-      path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
-      path.join(outputDir, `query_engine_bg.wasm`),
-    )
+  if (generator.previewFeatures.includes('driverAdapters') && isWasmEngineSupported(provider)) {
+    if (noEngine !== true && !testMode) {
+      await fs.copyFile(
+        path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
+        path.join(outputDir, `query_engine_bg.wasm`),
+      )
+    }
+
     await fs.copyFile(
       path.join(runtimeDir, `query_engine_bg.${provider}.js`),
       path.join(outputDir, `query_engine_bg.js`),
