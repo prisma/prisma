@@ -93,6 +93,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 // we define the config for wasm
 const wasmRuntimeBuildConfig: BuildOptions = {
   ...commonEdgeWasmRuntimeBuildConfig,
+  target: 'ES2022',
   name: 'wasm',
   outfile: 'runtime/wasm',
   define: {
