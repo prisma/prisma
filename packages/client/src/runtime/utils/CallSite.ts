@@ -8,7 +8,7 @@ declare global {
    * a global variable that is injected by us via jest to make our snapshots
    * work in clients that cannot read from disk (e.g. wasm or edge clients)
    */
-  let $getCallSite: typeof getCallSite | undefined
+  let $EnabledCallSite: typeof EnabledCallSite | undefined
 }
 
 export type LocationInFile = {
@@ -27,7 +27,7 @@ class DisabledCallSite implements CallSite {
   }
 }
 
-class EnabledCallSite implements CallSite {
+export class EnabledCallSite implements CallSite {
   private _error: Error
   constructor() {
     this._error = new Error()
@@ -77,8 +77,8 @@ class EnabledCallSite implements CallSite {
 
 export function getCallSite(errorFormat: ErrorFormat): CallSite {
   if (errorFormat === 'minimal' || TARGET_BUILD_TYPE === 'wasm' || TARGET_BUILD_TYPE === 'edge') {
-    if (typeof $getCallSite === 'function') {
-      return $getCallSite(errorFormat)
+    if (typeof $EnabledCallSite === 'function') {
+      return new $EnabledCallSite()
     } else {
       return new DisabledCallSite()
     }
