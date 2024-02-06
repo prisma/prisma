@@ -96,7 +96,7 @@ export class LibraryEngine extends Engine<undefined> {
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = config.logEmitter
-    this.datamodel = atob(config.inlineSchema)
+    this.datamodel = config.inlineSchema
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'

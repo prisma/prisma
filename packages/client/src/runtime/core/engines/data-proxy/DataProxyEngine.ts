@@ -165,7 +165,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
     this.config = config
     this.env = { ...this.config.env, ...process.env }
-    this.inlineSchema = config.inlineSchema
+    // TODO (perf) schema should be uploaded as-is
+    this.inlineSchema = btoa(config.inlineSchema)
     this.inlineDatasources = config.inlineDatasources
     this.inlineSchemaHash = config.inlineSchemaHash
     this.clientVersion = config.clientVersion
