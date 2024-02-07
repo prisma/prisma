@@ -310,8 +310,9 @@ async function binaryNeedsToBeDownloaded(
             await overwriteFile(cachedFile, job.targetFilePath)
             return false
           }
+        return true
       }
-      return true
+      return false
     } else {
       return true
     }
