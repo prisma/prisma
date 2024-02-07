@@ -158,8 +158,10 @@ export type WasmLoadingConfig = {
   /**
    * WASM-bindgen runtime for corresponding module
    */
-
-  runtime: WasmRuntime
+  runtime: {
+    __wbg_set_wasm(exports: unknown)
+    QueryEngine: QueryEngineConstructor
+  }
   /**
    * Loads the raw wasm module for the wasm query engine. This configuration is
    * generated specifically for each type of client, eg. Node.js client and Edge
@@ -168,11 +170,6 @@ export type WasmLoadingConfig = {
    * @remarks only used by LibraryEngine.ts
    */
   getQueryEngineWasmModule: () => Promise<unknown>
-}
-
-type WasmRuntime = {
-  __wbg_set_wasm(exports: unknown)
-  QueryEngine: QueryEngineConstructor
 }
 
 export type GetConfigResult = {

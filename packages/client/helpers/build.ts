@@ -44,7 +44,6 @@ function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): Bui
     entryPoints: [`@prisma/query-engine-wasm/${provider}/query_engine_bg.js`],
     outfile: `runtime/query_engine_bg.${provider}`,
     minify: true,
-    sourcemap: 'linked',
   }
 }
 

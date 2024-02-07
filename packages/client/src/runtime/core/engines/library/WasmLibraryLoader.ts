@@ -22,10 +22,7 @@ export const wasmLibraryLoader: LibraryLoader = {
     }
 
     if (engineWasm === undefined) {
-      throw new PrismaClientInitializationError(
-        `WASM engine loading was not configured correctly. Please, re-run \`prisma generate\``,
-        clientVersion,
-      )
+      throw new PrismaClientInitializationError('WASM engine was unexpectedly `undefined`', clientVersion)
     }
 
     // we only create the instance once for efficiency and also because wasm

@@ -114,26 +114,23 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (clientMeta.runtime === 'wasm') {
-    __internal.configOverride = (config) => ({
-      ...config,
-      engineWasm: config.engineWasm
-        ? {
-            ...config.engineWasm,
-            // wasm engine can only be loaded on edge runtimes, so here we force it
-            // this enables our wasm client runtime to be fully tested within jest
-            async getQueryEngineWasmModule() {
-              const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
-              const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
+    __internal.configOverride = (config) => {
+      if (!config.engineWasm) {
+        return config
+      }
 
-              // TODO: cleanup and remove ts-expect-error
-              // Pierre thinks that this is an upstream problem with the type definitions
-              // (provided by TS or @types/node) and will get fixed at some point.
-              // @ts-expect-error (2511) - Cannot create an instance of an abstract class.
-              return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
-            },
-          }
-        : undefined,
-    })
+      config.engineWasm.getQueryEngineWasmModule = async () => {
+        const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
+        const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
+
+        // TODO: cleanup and remove ts-expect-error
+        // Pierre thinks that this is an upstream problem with the type definitions
+        // (provided by TS or @types/node) and will get fixed at some point.
+        // @ts-expect-error (2511) - Cannot create an instance of an abstract class.
+        return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+      }
+      return config
+    }
   }
 
   if (driverAdapter === AdapterProviders.JS_PG) {
