@@ -5,6 +5,14 @@ import { bold, dim, gray, red, underline } from 'kleur/colors'
 import { CallSite, LocationInFile } from './CallSite'
 import { SourceFileSlice } from './SourceFileSlice'
 
+declare global {
+  /**
+   * a global variable that is injected by us via jest to make our snapshots
+   * work in clients that cannot read from disk (e.g. wasm or edge clients)
+   */
+  let $getTemplateParameters: typeof getTemplateParameters | undefined
+}
+
 export interface ErrorArgs {
   callsite?: CallSite
   originalMethod: string
@@ -50,16 +58,26 @@ type ErrorContextTemplateParameters = {
   isPanic: boolean
 }
 
-function getTemplateParameters(
-  { callsite, message, originalMethod, isPanic, callArguments }: ErrorArgs,
-  colors: Colors,
-): ErrorContextTemplateParameters {
-  const templateParameters: ErrorContextTemplateParameters = {
+function getRawTemplateParameters({
+  message,
+  originalMethod,
+  isPanic,
+  callArguments,
+}: ErrorArgs): ErrorContextTemplateParameters {
+  return {
     functionName: `prisma.${originalMethod}()`,
     message,
     isPanic: isPanic ?? false,
     callArguments,
   }
+}
+
+export function getTemplateParameters(
+  { callsite, message, originalMethod, isPanic, callArguments }: ErrorArgs,
+  colors: Colors,
+): ErrorContextTemplateParameters {
+  const templateParameters = getRawTemplateParameters({ message, originalMethod, isPanic, callArguments })
+
   // @ts-ignore
   if (!callsite || typeof window !== 'undefined') {
     return templateParameters
@@ -197,6 +215,17 @@ function stringifyLocationInFile(location: LocationInFile): string {
 
 export function createErrorMessageWithContext(args: ErrorArgs): string {
   const colors = args.showColors ? colorsEnabled : colorsDisabled
-  const templateParameters = getTemplateParameters(args, colors)
+  let templateParameters: ErrorContextTemplateParameters
+
+  if (TARGET_BUILD_TYPE === 'wasm' || TARGET_BUILD_TYPE === 'edge') {
+    if (typeof $getTemplateParameters !== 'undefined') {
+      templateParameters = $getTemplateParameters(args, colors)
+    } else {
+      templateParameters = getRawTemplateParameters(args)
+    }
+  } else {
+    templateParameters = getTemplateParameters(args, colors)
+  }
+
   return stringifyErrorMessage(templateParameters, colors)
 }
