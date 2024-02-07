@@ -2,7 +2,7 @@ import { copySync } from 'fs-extra'
 import packlist from 'npm-packlist'
 import path from 'path'
 
-async function main() {
+export async function copyPrismaClient() {
   // that's where we want to copy the local client for @prisma/studio
   const clientCopyPath = path.join(__dirname, '..', 'prisma-client')
 
@@ -20,8 +20,3 @@ async function main() {
     }
   }
 }
-
-main().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})
