@@ -9,6 +9,8 @@ export class EventEmitter {
     }
 
     this.events[event].push(listener)
+
+    return this
   }
 
   emit(event: string, ...args: any[]) {
