@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "create-gzip-files": "node -r esbuild-register create-gzip-files.ts"
+    "create-gzip-files": "tsx create-gzip-files.ts"
   },
   "keywords": [],
   "author": "Pierre-Antoine Mills",

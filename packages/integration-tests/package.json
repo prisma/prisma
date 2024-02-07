@@ -41,8 +41,8 @@
     "verror": "1.10.1"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts",
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
     "test:integration": "dotenv -e ../../.db.env -- jest integration --maxWorkers=1 --silent",
     "test:sqlite": "dotenv -e ../../.db.env -- jest integration.sqlite --silent",
     "test:postgresql": "dotenv -e ../../.db.env -- jest integration.postgresql --maxWorkers=1 --silent",

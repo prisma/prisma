@@ -6,7 +6,7 @@ import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
-import { run } from '../../../helpers/compile/run'
+import { copyPrismaClient } from './copy-prisma-client'
 
 /**
  * Manages the extra actions that are needed for the CLI to work
@@ -14,13 +14,8 @@ import { run } from '../../../helpers/compile/run'
 const cliLifecyclePlugin: esbuild.Plugin = {
   name: 'cliLifecyclePlugin',
   setup(build) {
-    // we only do this for the first one of the builds
-    if (build.initialOptions?.format === 'esm') return
-
-    build.onStart(async () => {
-      // provide a copy of the client for studio to work
-      await run('node -r esbuild-register ./helpers/copy-prisma-client.ts')
-    })
+    // provide a copy of the client for studio to work
+    build.onStart(copyPrismaClient)
 
     build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build

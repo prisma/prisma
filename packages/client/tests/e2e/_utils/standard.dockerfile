@@ -9,7 +9,7 @@ RUN npm i -g zx
 RUN npm i -g pnpm
 RUN npm i -g typescript 
 RUN npm i -g ts-node 
-RUN npm i -g esbuild esbuild-register
+RUN npm i -g esbuild tsx
 RUN npm i -g jest 
 RUN npm i -g @swc/jest@0.2.32
 
