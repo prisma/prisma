@@ -8,11 +8,16 @@ export function join(...args: any[]) {
 
 export const sep = '/'
 
+export const posix = {
+  sep,
+}
+
 /**
  * A poor man's shim for the "path" module
  */
 const path = {
   resolve,
+  posix,
   join,
   sep,
 }
