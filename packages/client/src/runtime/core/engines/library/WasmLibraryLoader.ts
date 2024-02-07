@@ -30,6 +30,7 @@ export const wasmLibraryLoader: LibraryLoader = {
     // engine is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
       loadedWasmInstance = (async () => {
+        const runtime = engineWasm.getRuntime()
         const wasmModule = await engineWasm.getQueryEngineWasmModule()
 
         if (wasmModule === undefined || wasmModule === null) {
@@ -38,8 +39,6 @@ export const wasmLibraryLoader: LibraryLoader = {
             clientVersion,
           )
         }
-
-        const runtime = engineWasm.getRuntime()
 
         // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
         const options = { './query_engine_bg.js': runtime }
