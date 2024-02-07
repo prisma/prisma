@@ -53,7 +53,7 @@ export interface GenerateClientOptions {
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
   /** When --no-engine is passed via CLI */
-  noEngine?: boolean
+  copyEngine?: boolean
 }
 
 export interface BuildClientResult {
@@ -75,7 +75,7 @@ export async function buildClient({
   clientVersion,
   activeProvider,
   postinstall,
-  noEngine,
+  copyEngine,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
@@ -91,7 +91,7 @@ export async function buildClient({
     engineVersion,
     activeProvider,
     postinstall,
-    noEngine,
+    copyEngine,
     datamodel,
     browser: false,
     deno: false,
@@ -245,7 +245,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    noEngine,
+    copyEngine = true,
   } = options
 
   const clientEngineType = getClientEngineType(generator)
@@ -264,7 +264,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    noEngine,
+    copyEngine,
     testMode,
   })
 
@@ -286,7 +286,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
-  if (noEngine === true) {
+  if (copyEngine) {
     await deleteOutputDir(outputDir)
   }
 
@@ -333,7 +333,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (noEngine !== true) {
+  if (copyEngine) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
@@ -362,14 +362,17 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (generator.previewFeatures.includes('driverAdapters') && isWasmEngineSupported(provider)) {
+  if (
+    generator.previewFeatures.includes('driverAdapters') &&
+    isWasmEngineSupported(provider) &&
+    copyEngine &&
+    !testMode
+  ) {
     const suffix = provider === 'postgres' ? 'postgresql' : provider
-    if (noEngine !== true && !testMode) {
-      await fs.copyFile(
-        path.join(runtimeDir, `query_engine_bg.${suffix}.wasm`),
-        path.join(outputDir, `query_engine_bg.wasm`),
-      )
-    }
+    await fs.copyFile(
+      path.join(runtimeDir, `query_engine_bg.${suffix}.wasm`),
+      path.join(outputDir, `query_engine_bg.wasm`),
+    )
 
     await fs.copyFile(path.join(runtimeDir, `query_engine_bg.${suffix}.js`), path.join(outputDir, `query_engine_bg.js`))
   }

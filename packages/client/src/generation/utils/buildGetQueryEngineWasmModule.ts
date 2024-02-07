@@ -4,10 +4,14 @@ import { TSClientOptions } from '../TSClient/TSClient'
  * Builds the necessary glue code to load the query engine wasm module.
  * @returns
  */
-export function buildQueryEngineWasmModule(wasm: boolean, runtimeNameJs: TSClientOptions['runtimeNameJs']) {
-  if (runtimeNameJs === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
+export function buildQueryEngineWasmModule(
+  wasm: boolean,
+  copyEngine: boolean,
+  runtimeNameJs: TSClientOptions['runtimeNameJs'],
+) {
+  if (copyEngine && runtimeNameJs === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
     return `config.engineWasm = {
-      runtime: require('./query_engine_bg.js'),
+      getRuntime: () => require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         const queryEngineWasmFilePath = require('path').join(config.dirname, 'query_engine_bg.wasm')
         const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
@@ -21,9 +25,9 @@ export function buildQueryEngineWasmModule(wasm: boolean, runtimeNameJs: TSClien
   // so we use a dynamic import which is compatible with both cjs and esm
   // additionally we need to append ?module to the import path for vercel
   // this is incompatible with cloudflare, so we hide it in a template
-  if (wasm === true) {
+  if (copyEngine && wasm === true) {
     return `config.engineWasm = {
-      runtime: require('./query_engine_bg.js'),
+      getRuntime: () => require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         if (detectRuntime() === 'edge-light') {
           return (await import(\`./query_engine_bg.wasm\${'?module'}\`)).default

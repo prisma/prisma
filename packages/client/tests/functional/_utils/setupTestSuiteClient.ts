@@ -79,7 +79,7 @@ export async function setupTestSuiteClient({
     testMode: true,
     activeProvider: suiteConfig.matrixOptions.provider,
     runtimeBase: runtimeBase,
-    noEngine: clientMeta.dataProxy,
+    copyEngine: !clientMeta.dataProxy,
   })
 
   const clientPathForRuntime: Record<ClientRuntime, string> = {
@@ -115,19 +115,18 @@ export function setupTestSuiteClientDriverAdapter({
 
   if (clientMeta.runtime === 'wasm') {
     __internal.configOverride = (config) => {
-      if (!config.engineWasm) {
-        return config
-      }
+      config.engineWasm = {
+        getRuntime: () => require(path.join(runtimeBase, `query_engine_bg.${provider}.js`)),
+        getQueryEngineWasmModule: async () => {
+          const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
+          const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
-      config.engineWasm.getQueryEngineWasmModule = async () => {
-        const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
-        const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
-
-        // TODO: cleanup and remove ts-expect-error
-        // Pierre thinks that this is an upstream problem with the type definitions
-        // (provided by TS or @types/node) and will get fixed at some point.
-        // @ts-expect-error (2511) - Cannot create an instance of an abstract class.
-        return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+          // TODO: cleanup and remove ts-expect-error
+          // Pierre thinks that this is an upstream problem with the type definitions
+          // (provided by TS or @types/node) and will get fixed at some point.
+          // @ts-expect-error (2511) - Cannot create an instance of an abstract class.
+          return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+        },
       }
       return config
     }

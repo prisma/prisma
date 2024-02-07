@@ -158,7 +158,7 @@ export type WasmLoadingConfig = {
   /**
    * WASM-bindgen runtime for corresponding module
    */
-  runtime: {
+  getRuntime: () => {
     __wbg_set_wasm(exports: unknown)
     QueryEngine: QueryEngineConstructor
   }

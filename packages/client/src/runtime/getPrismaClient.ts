@@ -275,10 +275,10 @@ export type GetPrismaClientConfig = {
   isBundled?: boolean
 
   /**
-   * A boolean that is `true` when the client was generated with --no-engine. At
+   * A boolean that is `false` when the client was generated with --no-engine. At
    * runtime, this means the client will be bound to be using the Data Proxy.
    */
-  noEngine?: boolean
+  copyEngine?: boolean
 
   /**
    * Optional wasm loading configuration
