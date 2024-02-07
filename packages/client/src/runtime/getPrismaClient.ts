@@ -333,14 +333,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
       const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
 
-      const logEmitter = new EventEmitter().on('error', () => {
-        // this is a no-op to prevent unhandled error events
-        //
-        // If the user enabled error logging this would never be executed. If the user did not
-        // enabled error logging, this would be executed, and a trace for the error would be logged
-        // in debug mode, which is like going in the opposite direction than what the user wanted by
-        // not enabling error logging in the first place.
-      }) as LogEmitter
+      // prevents unhandled error events when users do not explicitly listen to them
+      const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = getPreviewFeatures(config)
