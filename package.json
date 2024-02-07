@@ -48,7 +48,7 @@
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
     "buffer": "6.0.3",
-    "chokidar": "3.5.3",
+    "chokidar": "3.6.0",
     "dotenv-cli": "7.3.0",
     "esbuild": "0.19.10",
     "esbuild-register": "3.5.0",
