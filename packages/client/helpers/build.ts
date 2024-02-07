@@ -45,7 +45,7 @@ const browserBuildConfig: BuildOptions = {
   sourcemap: 'linked',
 }
 
-const commonEdgeWasmRuntimeBuildConfig: BuildOptions = {
+const commonEdgeWasmRuntimeBuildConfig = {
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
   bundle: true,
@@ -76,7 +76,7 @@ const commonEdgeWasmRuntimeBuildConfig: BuildOptions = {
   },
   logLevel: 'error',
   legalComments: 'none',
-}
+} satisfies BuildOptions
 
 // we define the config for edge
 const edgeRuntimeBuildConfig: BuildOptions = {
@@ -101,7 +101,7 @@ const wasmRuntimeBuildConfig: BuildOptions = {
     TARGET_BUILD_TYPE: '"wasm"',
   },
   plugins: [
-    ...commonEdgeWasmRuntimeBuildConfig.plugins!,
+    ...commonEdgeWasmRuntimeBuildConfig.plugins,
     copyFilePlugin([
       {
         from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
