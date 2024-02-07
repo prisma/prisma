@@ -77,7 +77,7 @@ export class EnabledCallSite implements CallSite {
 
 export function getCallSite(errorFormat: ErrorFormat): CallSite {
   if (errorFormat === 'minimal' || TARGET_BUILD_TYPE === 'wasm' || TARGET_BUILD_TYPE === 'edge') {
-    if (typeof $EnabledCallSite === 'function') {
+    if (typeof $EnabledCallSite === 'function' && errorFormat !== 'minimal') {
       return new $EnabledCallSite()
     } else {
       return new DisabledCallSite()
