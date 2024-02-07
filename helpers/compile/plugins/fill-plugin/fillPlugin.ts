@@ -207,8 +207,7 @@ const fillPlugin = (
         globals: path.join(__dirname, 'fillers', 'buffer.ts'),
       },
       process: {
-        globals: path.join(__dirname, 'fillers', 'process.ts'),
-        imports: path.join(__dirname, 'fillers', 'process.ts'),
+        contents: '',
       },
       performance: {
         globals: path.join(__dirname, 'fillers', 'perf_hooks.ts'),
