@@ -18,8 +18,8 @@
     "@prisma/debug": "workspace:*"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts",
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
     "test": "jest",
     "prepublishOnly": "pnpm run build"
   },

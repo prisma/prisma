@@ -8,7 +8,7 @@ void executeSteps({
     await $`pnpm prisma generate`
   },
   test: async () => {
-    const { stdout } = await $`node -r esbuild-register src/index.ts`
+    const { stdout } = await $`tsx src/index.ts`
 
     if (!stdout.includes('loaded @prisma/client')) {
       throw new Error('Expected to load @prisma/client')

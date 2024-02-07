@@ -63,8 +63,8 @@
     "prompts": "2.4.2"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts",
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
     "run": "node dist/bin.js",
     "test": "dotenv -e ../../.db.env -- jest --verbose",
     "prepublishOnly": "pnpm run build"
