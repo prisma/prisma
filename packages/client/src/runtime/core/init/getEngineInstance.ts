@@ -29,7 +29,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     // means we can't use the DataProxyEngine and will default to LibraryEngine
   }
 
-  if (!copyEngine && url?.startsWith('prisma://')) {
+  if (copyEngine && url?.startsWith('prisma://')) {
     warnOnce(
       'recommend--no-engine',
       'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
