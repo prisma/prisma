@@ -3,14 +3,6 @@ import fs from 'fs'
 import { highlightTS } from '../highlight/highlight'
 import { dedent } from './dedent'
 
-declare global {
-  /**
-   * a global fs variable that is injected by us via jest to make our snapshots
-   * work in clients that cannot read from disk (e.g. wasm or edge clients)
-   */
-  let $fs: typeof import('fs-extra') | undefined
-}
-
 /**
  * Class represents a source code or it's slice.
  * Provides various methods for manipulating individual lines
@@ -27,11 +19,7 @@ export class SourceFileSlice {
   static read(filePath: string): SourceFileSlice | null {
     let content: string
     try {
-      if (typeof $fs !== 'undefined') {
-        content = $fs.readFileSync(filePath, 'utf-8')
-      } else {
-        content = fs.readFileSync(filePath, 'utf-8')
-      }
+      content = fs.readFileSync(filePath, 'utf-8')
     } catch (e) {
       return null
     }
