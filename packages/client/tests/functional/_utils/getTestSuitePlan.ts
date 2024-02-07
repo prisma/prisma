@@ -40,6 +40,7 @@ export function getTestSuitePlan(
   expandedSuiteConfigs.forEach((config) => {
     config.matrixOptions.engineType ??= testCliMeta.engineType
     config.matrixOptions.clientRuntime ??= testCliMeta.runtime
+    config.matrixOptions.previewFeatures ??= testCliMeta.previewFeatures
   })
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({

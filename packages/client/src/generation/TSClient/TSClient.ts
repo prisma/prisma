@@ -153,7 +153,7 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
-${buildRuntimeDataModel(this.dmmf.datamodel)}
+${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildGetQueryEngineWasmModule(wasm, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
