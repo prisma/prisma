@@ -286,7 +286,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
-  if (copyEngine) {
+  if (!copyEngine) {
     await deleteOutputDir(outputDir)
   }
 
