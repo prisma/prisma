@@ -30,7 +30,6 @@ const unusedIgnore = [
 
   // these are indirectly used by build
   'buffer',
-  'eventemitter3',
 ]
 
 // packages that aren't missing but are detected

@@ -151,6 +151,7 @@ const fillPlugin = (
       // constants: { path: load('constants-browserify') },
       // crypto: { path: load('crypto-browserify') },
       // domain: { path: load('domain-browser') },
+      // events: { imports: load('eventemitter3') },
       events: { imports: path.join(__dirname, 'fillers', 'events.ts') },
       // http: { path: load('stream-http') },
       // https: { path: load('https-browserify') },
