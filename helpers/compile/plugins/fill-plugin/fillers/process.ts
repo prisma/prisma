@@ -1,4 +1,4 @@
-export const process: NodeJS.Process = {
+export const process: Partial<NodeJS.Process> = {
   nextTick: (fn: Function, ...args: unknown[]) => {
     setTimeout(() => {
       fn(...args)
@@ -7,10 +7,6 @@ export const process: NodeJS.Process = {
   env: {},
   version: '',
   cwd: () => '/',
-  stderr: { fd: 2, isTTY: false } as any,
-  stdin: { fd: 0, isTTY: false } as any,
-  stdout: { fd: 1, isTTY: false } as any,
+  stderr: {} as any,
   argv: ['/bin/node'],
-  // @ts-expect-error
-  browser: true,
 }
