@@ -232,7 +232,7 @@
     "ts-node": "10.9.1",
     "ts-pattern": "5.0.5",
     "tsd": "0.30.4",
-    "typescript": "5.2.2",
+    "typescript": "5.3.3",
     "undici": "5.28.1",
     "wrangler": "3.25.0",
     "wrangler-proxy": "2.2.4",
