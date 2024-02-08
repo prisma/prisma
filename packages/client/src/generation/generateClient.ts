@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
-import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type { BinaryPaths, ConnectorType, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
@@ -53,7 +53,7 @@ export interface GenerateClientOptions {
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
   /** When --no-engine is passed via CLI */
-  noEngine?: boolean
+  copyEngine?: boolean
 }
 
 export interface BuildClientResult {
@@ -75,8 +75,7 @@ export async function buildClient({
   clientVersion,
   activeProvider,
   postinstall,
-  noEngine,
-  testMode,
+  copyEngine,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
@@ -92,7 +91,7 @@ export async function buildClient({
     engineVersion,
     activeProvider,
     postinstall,
-    noEngine,
+    copyEngine,
     datamodel,
     browser: false,
     deno: false,
@@ -101,12 +100,10 @@ export async function buildClient({
     importWarning: false,
   }
 
-  const scriptsDir = path.join(__dirname, `${testMode ? '../' : ''}../scripts`)
-
   const nodeClientOptions = {
     ...baseClientOptions,
     runtimeNameJs: getNodeRuntimeName(clientEngineType),
-    runtimeNameTs: getNodeRuntimeName(clientEngineType),
+    runtimeNameTs: `${getNodeRuntimeName(clientEngineType)}.js`,
   }
 
   // we create a regular client that is fit for Node.js
@@ -122,7 +119,7 @@ export async function buildClient({
   const edgeClient = new TSClient({
     ...baseClientOptions,
     runtimeNameJs: 'edge',
-    runtimeNameTs: 'library',
+    runtimeNameTs: 'library.js',
     reusedTs: 'default',
     edge: true,
   })
@@ -169,7 +166,7 @@ export async function buildClient({
     const wasmClient = new TSClient({
       ...baseClientOptions,
       runtimeNameJs: 'wasm',
-      runtimeNameTs: 'library',
+      runtimeNameTs: 'library.js',
       reusedTs: 'default',
       edge: true,
       wasm: true,
@@ -178,8 +175,8 @@ export async function buildClient({
     fileMap['wasm.js'] = await JS(wasmClient)
     fileMap['wasm.d.ts'] = await TS(wasmClient)
   } else {
-    fileMap['wasm.js'] = await fs.readFile(path.join(scriptsDir, 'wasm-da-feature-deactivated.js'), 'utf-8')
-    fileMap['wasm.d.ts'] = await fs.readFile(path.join(scriptsDir, 'wasm-da-feature-deactivated.d.ts'), 'utf-8')
+    fileMap['wasm.js'] = fileMap['index-browser.js']
+    fileMap['wasm.d.ts'] = fileMap['default.d.ts']
   }
 
   if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
@@ -248,7 +245,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    noEngine,
+    copyEngine = true,
   } = options
 
   const clientEngineType = getClientEngineType(generator)
@@ -267,9 +264,11 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    noEngine,
+    copyEngine,
     testMode,
   })
+
+  const provider = datasources[0].provider
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
@@ -287,7 +286,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
-  if (noEngine === true) {
+  if (!copyEngine) {
     await deleteOutputDir(outputDir)
   }
 
@@ -334,7 +333,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (noEngine !== true) {
+  if (copyEngine) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
@@ -363,18 +362,19 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (generator.previewFeatures.includes('driverAdapters') && noEngine !== true) {
-    const queryEngineWasmFilePath = path.join(runtimeDir, 'query-engine.wasm')
-    const queryEngineWasmTargetPath = path.join(outputDir, 'query-engine.wasm')
-    // some bundlers (eg. webpack) need this file to exist, even if it's empty
-    // this is because they analyze `query-engine.wasm` for references to other
-    // files. It does not matter for us, because we bundle query_engine_bg.js.
-    const dummyQueryEngineBgTargetPath = path.join(outputDir, 'query_engine_bg.js')
-    const dummyQueryEngineBgContents = '/** Dummy file needed by some bundlers when using `query-engine.wasm` */'
+  if (
+    generator.previewFeatures.includes('driverAdapters') &&
+    isWasmEngineSupported(provider) &&
+    copyEngine &&
+    !testMode
+  ) {
+    const suffix = provider === 'postgres' ? 'postgresql' : provider
+    await fs.copyFile(
+      path.join(runtimeDir, `query_engine_bg.${suffix}.wasm`),
+      path.join(outputDir, `query_engine_bg.wasm`),
+    )
 
-    const copyOrNoop = testMode ? function noop() {} : fs.copyFile
-    await copyOrNoop(queryEngineWasmFilePath, queryEngineWasmTargetPath)
-    await fs.writeFile(dummyQueryEngineBgTargetPath, dummyQueryEngineBgContents)
+    await fs.copyFile(path.join(runtimeDir, `query_engine_bg.${suffix}.js`), path.join(outputDir, `query_engine_bg.js`))
   }
 
   try {
@@ -384,6 +384,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await fs.mkdir(prismaCache, { recursive: true })
     await fs.writeFile(signalsPath, Date.now().toString())
   } catch {}
+}
+
+function isWasmEngineSupported(provider: ConnectorType) {
+  return provider === 'postgresql' || provider === 'postgres' || provider === 'mysql' || provider === 'sqlite'
 }
 
 function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Document): Error[] | null {

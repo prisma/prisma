@@ -191,6 +191,11 @@
       "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
     },
     {
+      "groupName": "e2e tests",
+      "ignoreDeps": ["prisma", "@prisma/client"],
+      "matchFileNames": ["packages/client/tests/e2e/**"]
+    },
+    {
       "groupName": "Weekly vitess docker image version update",
       "matchPackageNames": ["vitess/vttestserver"],
       "schedule": ["before 7am on Wednesday"]

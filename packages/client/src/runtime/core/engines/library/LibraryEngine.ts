@@ -82,7 +82,7 @@ export class LibraryEngine extends Engine<undefined> {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
       // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
-      if (config.getQueryEngineWasmModule !== undefined) {
+      if (config.engineWasm !== undefined) {
         this.libraryLoader = libraryLoader ?? wasmLibraryLoader
       }
     } else if (TARGET_BUILD_TYPE === 'wasm') {
@@ -96,7 +96,7 @@ export class LibraryEngine extends Engine<undefined> {
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = config.logEmitter
-    this.datamodel = atob(config.inlineSchema)
+    this.datamodel = config.inlineSchema
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'

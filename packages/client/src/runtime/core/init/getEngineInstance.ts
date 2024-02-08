@@ -14,7 +14,7 @@ import { resolveDatasourceUrl } from './resolveDatasourceUrl'
  * @param engineConfig
  * @returns
  */
-export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineConfig: EngineConfig) {
+export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, engineConfig: EngineConfig) {
   let url: string | undefined
 
   try {
@@ -29,7 +29,7 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
     // means we can't use the DataProxyEngine and will default to LibraryEngine
   }
 
-  if (clientConfig.noEngine !== true && url?.startsWith('prisma://')) {
+  if (copyEngine && url?.startsWith('prisma://')) {
     warnOnce(
       'recommend--no-engine',
       'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
@@ -38,7 +38,7 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
 
   const engineType = getClientEngineType(engineConfig.generator!)
 
-  const accelerateConfigured = Boolean(url?.startsWith('prisma://') || clientConfig.noEngine)
+  const accelerateConfigured = Boolean(url?.startsWith('prisma://') || !copyEngine)
   const driverAdapterConfigured = Boolean(engineConfig.adapter)
   const libraryEngineConfigured = engineType === ClientEngineType.Library
   const binaryEngineConfigured = engineType === ClientEngineType.Binary
@@ -51,7 +51,7 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
         `Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.`,
         `Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor.`,
       ]
-    } else if (clientConfig.noEngine) {
+    } else if (!copyEngine) {
       message = [
         `Prisma Client was configured to use the \`adapter\` option but \`prisma generate\` was run with \`--no-engine\`.`,
         `Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma Client with the adapter.`,

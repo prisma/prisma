@@ -40,9 +40,9 @@ rm -f /e2e/$NAME/LOGS.txt
   # copy some necessary files that are needed for all the tests to run well
   cp tsconfig.base.json /test/tsconfig.base.json;
   cp jest.config.js /test/$NAME/jest.config.js;
-  # execute the test by running the _steps.ts file with esbuild-register
+  # execute the test by running the _steps.ts file with tsx
   cd /test/$NAME;
-  node -r 'esbuild-register' _steps.ts;
+  tsx _steps.ts;
   # when inline snapshots are created the first time, copy for convencience
   cp -r /test/$NAME/tests/* /e2e/$NAME/tests/ 2> /dev/null || true;
   cp -r /test/$NAME/pnpm-lock.yaml /e2e/$NAME/ 2> /dev/null || true;

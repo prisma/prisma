@@ -1,10 +1,11 @@
 import { Client, connect } from '@planetscale/database'
+import { fetch as undiciFetch } from 'undici'
 
 import { PrismaPlanetScale } from './planetscale'
 
 describe('validation', () => {
   test('throws if passed Connection instance', () => {
-    const connection = connect({ url: 'http://example.com' })
+    const connection = connect({ url: 'http://example.com', fetch: undiciFetch })
 
     expect(() => {
       // @ts-ignore
