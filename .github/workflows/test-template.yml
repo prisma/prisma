@@ -40,6 +40,8 @@ on:
         required: false
       BOT_TOKEN:
         required: false
+      CODECOV_TOKEN:
+        required: false
 
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
