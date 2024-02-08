@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@libsql/client": "0.4.2",
-    "@neondatabase/serverless": "0.7.2",
+    "@neondatabase/serverless": "0.8.1",
     "@planetscale/database": "1.15.0",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
