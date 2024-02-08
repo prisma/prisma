@@ -4,6 +4,7 @@ import { TracingHelper } from '@prisma/internals'
 
 import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'
 import { Fetch } from '../data-proxy/utils/request'
+import { QueryEngineConstructor } from '../library/types/Library'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
@@ -148,13 +149,27 @@ export interface EngineConfig {
   isBundled?: boolean
 
   /**
+   * Web Assembly module loading configuration
+   */
+  engineWasm?: WasmLoadingConfig
+}
+
+export type WasmLoadingConfig = {
+  /**
+   * WASM-bindgen runtime for corresponding module
+   */
+  getRuntime: () => {
+    __wbg_set_wasm(exports: unknown)
+    QueryEngine: QueryEngineConstructor
+  }
+  /**
    * Loads the raw wasm module for the wasm query engine. This configuration is
    * generated specifically for each type of client, eg. Node.js client and Edge
    * clients will have different implementations.
    * @remarks this is a callback on purpose, we only load the wasm if needed.
    * @remarks only used by LibraryEngine.ts
    */
-  getQueryEngineWasmModule?: () => Promise<unknown>
+  getQueryEngineWasmModule: () => Promise<unknown>
 }
 
 export type GetConfigResult = {
