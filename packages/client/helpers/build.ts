@@ -71,7 +71,7 @@ const commonEdgeWasmRuntimeBuildConfig = {
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
-    DEBUG_COLORS: 'false',
+    'globalThis.DEBUG_COLORS': 'false',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },

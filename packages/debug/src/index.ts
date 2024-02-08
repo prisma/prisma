@@ -9,11 +9,6 @@ const argsHistory: [nsp: string, ...unknown[]][] = []
 let lastTimestamp = Date.now()
 let lastColor = 0
 
-declare global {
-  var DEBUG: string
-  var DEBUG_COLORS: boolean
-}
-
 globalThis.DEBUG ??= process.env.DEBUG ?? ''
 globalThis.DEBUG_COLORS ??=
   process.env.DEBUG_COLORS !== undefined ? process.env.DEBUG_COLORS === 'true' : undefined ?? true
@@ -32,16 +27,16 @@ globalThis.DEBUG_COLORS ??=
 const topProps = {
   enable(namespace: any) {
     if (typeof namespace === 'string') {
-      DEBUG = namespace
+      globalThis.DEBUG = namespace
     }
   },
   disable() {
-    const prev = DEBUG
-    DEBUG = ''
+    const prev = globalThis.DEBUG
+    globalThis.DEBUG = ''
     return prev
   },
   enabled(namespace: string) {
-    return DEBUG.split(',').every((ns) => {
+    return globalThis.DEBUG.split(',').every((ns) => {
       const isNegated = ns.startsWith('-')
       ns = isNegated ? ns.slice(1) : ns
 
@@ -85,22 +80,15 @@ const topProps = {
  * ```
  */
 function debugCreate(namespace: string) {
-  let forceEnabled: boolean | undefined
   const instanceProps = {
-    color: COLORS[lastColor++ % COLORS.length],
-    namespace: namespace,
     log: topProps.log,
-    get enabled() {
-      return forceEnabled ?? topProps.enabled(namespace)
-    },
-    set enabled(value: boolean) {
-      forceEnabled = value
-    },
+    namespace: namespace,
+    enabled: topProps.enabled(namespace),
+    color: COLORS[lastColor++ % COLORS.length],
     extend: () => {}, // not implemented
   }
 
   const debugCall = (...args: any[]) => {
-    const [format, ...rest] = args
     const { enabled, namespace: ns, color, log } = instanceProps
 
     // we push the args to our history of args
@@ -113,17 +101,16 @@ function debugCreate(namespace: string) {
       argsHistory.shift()
     }
 
-    if (enabled) {
-      const stringFormat = typeof format === 'string' ? format : JSON.stringify(format, null, 2)
-      const stringArgs = rest.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+    if (enabled && topProps.enabled(namespace)) {
+      const stringArgs = args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg, null, 2)))
 
       const ms = `+${Date.now() - lastTimestamp}ms`
       lastTimestamp = Date.now()
 
       if (globalThis.DEBUG_COLORS) {
-        log(kleur[color](bold(ns)), stringFormat, ...stringArgs, kleur[color](ms))
+        log(kleur[color](bold(ns)), ...stringArgs, kleur[color](ms))
       } else {
-        log(ns, stringFormat, ...stringArgs, ms)
+        log(ns, ...stringArgs, ms)
       }
     }
   }
