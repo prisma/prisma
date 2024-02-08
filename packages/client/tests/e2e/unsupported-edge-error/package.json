@@ -10,6 +10,6 @@
     "@types/jest": "29.5.11",
     "@types/node": "16.18.65",
     "prisma": "/tmp/prisma-0.0.0.tgz",
-    "wrangler": "3.5.1"
+    "wrangler": "3.19.0"
   }
 }
