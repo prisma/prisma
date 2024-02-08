@@ -1,48 +1,13 @@
-import crypto from 'crypto'
 import * as esbuild from 'esbuild'
-import os from 'os'
 import path from 'path'
-import resolve from 'resolve'
-
-type LoadCache = { [K in string]: string }
 
 type Fillers = {
   [k in string]: {
-    imports?: string
+    imports?: string | { path: string; external: boolean }
     globals?: string
     contents?: string
     define?: string
   }
-}
-
-/**
- * Bundle a polyfill with all its dependencies. We use paths to files in /tmp
- * instead of direct contents so that esbuild can include things once only.
- * @param cache to serve from
- * @param module to be compiled
- * @returns the path to the bundle
- */
-const loader = (cache: LoadCache) => (module: string) => {
-  if (cache[module]) return cache[module]
-
-  const modulePkg = `${module}/package.json`
-  const resolveOpt = { includeCoreModules: false }
-  const modulePath = path.dirname(resolve.sync(modulePkg, resolveOpt))
-  const filename = `${module}${crypto.randomBytes(4).toString('hex')}.js`
-  const outfile = path.join(os.tmpdir(), 'esbuild', filename)
-
-  esbuild.buildSync({
-    format: 'cjs',
-    platform: 'node',
-    outfile: outfile,
-    entryPoints: [modulePath],
-    absWorkingDir: modulePath,
-    mainFields: ['browser', 'main'],
-    bundle: true,
-    minify: true,
-  })
-
-  return (cache[module] = outfile)
 }
 
 /**
@@ -98,7 +63,10 @@ function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs): esbuild.OnRes
 
   // if a path is provided, we just replace it
   if (item.imports !== undefined) {
-    return { path: item.imports }
+    if (typeof item.imports === 'string') {
+      return { path: item.imports }
+    }
+    return item.imports
   }
 
   // if not, we defer action to the loaders cb
@@ -125,8 +93,6 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
   return fillers[args.path] // inject the contents
 }
 
-const load = loader({})
-
 /**
  * Provides a simple way to use esbuild's injection capabilities while providing
  * sensible defaults for node polyfills.
@@ -146,32 +112,10 @@ const fillPlugin = (
 
     const fillers: Fillers = {
       // enabled
-      // assert: { path: load('assert-browserify') },
-      buffer: { imports: load('buffer') },
-      // constants: { path: load('constants-browserify') },
-      // crypto: { path: load('crypto-browserify') },
-      // domain: { path: load('domain-browser') },
-      // events: { imports: load('eventemitter3') },
       events: { imports: path.join(__dirname, 'fillers', 'events.ts') },
-      // http: { path: load('stream-http') },
-      // https: { path: load('https-browserify') },
-      // inherits: { path: load('inherits') },
-      // os: { path: load('os-browserify') },
-      // path: { imports: load('path-browserify') },
       path: { imports: path.join(__dirname, 'fillers', 'path.ts') },
-      // punycode: { path: load('punycode') },
-      // querystring: { path: load('querystring-es3') },
-      // stream: { path: load('readable-stream') },
-      // string_decoder: { path: load('string_decoder') },
-      // sys: { path: load('util') },
-      // timers: { path: load('timers-browserify') },
-      // tty: { imports: load('tty-browserify') },
       tty: { imports: path.join(__dirname, 'fillers', 'tty.ts') },
-      // url: { path: load('url') },
-      // util: { imports: load('util')  },
       util: { imports: path.join(__dirname, 'fillers', 'util.ts') },
-      // vm: { path: load('vm-browserify') },
-      // zlib: { path: load('browserify-zlib') },
 
       // disabled
       constants: { contents: '' },
@@ -219,14 +163,6 @@ const fillPlugin = (
       },
       __dirname: { define: '"/"' },
       __filename: { define: '"index.js"' },
-
-      // not needed
-      // global: {
-      //   define: '{}',
-      // },
-      // globalThis: {
-      //   define: '{}',
-      // },
 
       // overrides
       ...fillerOverrides,

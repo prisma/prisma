@@ -44,15 +44,25 @@ function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): Bui
     entryPoints: [`@prisma/query-engine-wasm/${provider}/query_engine_bg.js`],
     outfile: `runtime/query_engine_bg.${provider}`,
     minify: true,
+    bundle: true,
     plugins: [
       fillPlugin({
         Function: {
           define: 'fn',
           globals: functionPolyfillPath,
         },
+        buffer: { imports: { path: './buffer-polyfill.js', external: true } },
       }),
     ],
   }
+}
+
+const bufferPolyfill: BuildOptions = {
+  name: 'buffer-polyfill',
+  entryPoints: [require.resolve('buffer-polyfill')],
+  outfile: 'runtime/buffer-polyfill',
+  minify: true,
+  bundle: true,
 }
 
 // we define the config for browser
@@ -75,6 +85,7 @@ const commonEdgeWasmRuntimeBuildConfig = {
   emitTypes: false,
   plugins: [
     fillPlugin({
+      buffer: { imports: { path: './buffer-polyfill.js', external: true } },
       // we remove eval and Function for vercel
       eval: { define: 'undefined' },
       Function: {
@@ -163,6 +174,7 @@ function writeDtsRexport(fileName: string) {
 }
 
 void build([
+  bufferPolyfill,
   generatorBuildConfig,
   nodeRuntimeBuildConfig(ClientEngineType.Binary),
   nodeRuntimeBuildConfig(ClientEngineType.Library),

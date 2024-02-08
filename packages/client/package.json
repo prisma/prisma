@@ -196,6 +196,7 @@
     "@types/pg": "8.11.0",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
+    "buffer-polyfill": "npm:buffer@6.0.3",
     "ci-info": "4.0.0",
     "decimal.js": "10.4.3",
     "detect-runtime": "1.0.4",

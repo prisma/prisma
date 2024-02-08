@@ -309,6 +309,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const runtimeDir = path.join(__dirname, `${testMode ? '../' : ''}../runtime`)
 
+  await fs.copyFile(path.join(runtimeDir, 'buffer-polyfill.js'), path.join(outputDir, 'buffer-polyfill.js'))
+
   // if users use a custom output dir
   if (copyRuntime || generator.isCustomOutput === true) {
     const copiedRuntimeDir = path.join(outputDir, 'runtime')

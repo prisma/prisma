@@ -59,9 +59,6 @@ importers:
       batching-toposort:
         specifier: 1.2.0
         version: 1.2.0
-      buffer:
-        specifier: 6.0.3
-        version: 6.0.3
       chokidar:
         specifier: 3.6.0
         version: 3.6.0
@@ -613,6 +610,9 @@ importers:
       benchmark:
         specifier: 2.1.4
         version: 2.1.4
+      buffer-polyfill:
+        specifier: npm:buffer@6.0.3
+        version: /buffer@6.0.3
       ci-info:
         specifier: 4.0.0
         version: 4.0.0
@@ -7709,7 +7709,13 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
+<<<<<<< HEAD
       ts-node: 10.9.2(@types/node@20.11.16)(typescript@5.3.3)
+||||||| parent of 81c08252c (fix(client): Reuse buffer polyfill in wasm-bindgen runtime)
+      ts-node: 10.9.1(@types/node@20.11.16)(typescript@5.3.3)
+=======
+      ts-node: 10.9.1(@swc/core@1.4.0)(@types/node@18.19.14)(typescript@5.3.3)
+>>>>>>> 81c08252c (fix(client): Reuse buffer polyfill in wasm-bindgen runtime)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
