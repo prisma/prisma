@@ -187,12 +187,12 @@
     },
     {
       "groupName": "e2e ts-version tests",
-      "ignoreDeps": ["typescript"],
+      "excludePackageNames": ["typescript"],
       "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
     },
     {
       "groupName": "e2e tests",
-      "ignoreDeps": ["prisma", "@prisma/client"],
+      "excludePackageNames": ["prisma", "@prisma/client"],
       "matchFileNames": ["packages/client/tests/e2e/**"]
     },
     {
