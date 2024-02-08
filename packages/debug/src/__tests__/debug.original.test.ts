@@ -1,8 +1,9 @@
+// copied from the original debug tests
+
 import Debug from '../index'
 
 const assert = require('assert')
 
-// copied from the original debug tests
 it('passes a basic sanity check', () => {
   const log = Debug('test')
   log.enabled = true

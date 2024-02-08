@@ -1,4 +1,3 @@
-// additional tests to complement the original debug tests
 beforeEach(() => {
   jest.resetModules()
   delete process.env.DEBUG

@@ -10,8 +10,7 @@ let lastTimestamp = Date.now()
 let lastColor = 0
 
 globalThis.DEBUG ??= process.env.DEBUG ?? ''
-globalThis.DEBUG_COLORS ??=
-  process.env.DEBUG_COLORS !== undefined ? process.env.DEBUG_COLORS === 'true' : undefined ?? true
+globalThis.DEBUG_COLORS ??= process.env.DEBUG_COLORS ? process.env.DEBUG_COLORS === 'true' : true
 
 /**
  * Top-level utilities to configure the debug module.
@@ -35,12 +34,19 @@ const topProps = {
     globalThis.DEBUG = ''
     return prev
   },
+  // this is the core logic to check if logging should happen or not
   enabled(namespace: string) {
-    return globalThis.DEBUG.split(',').every((ns) => {
-      const isNegated = ns.startsWith('-')
-      ns = isNegated ? ns.slice(1) : ns
+    // these are the namespaces that we are listening to in DEBUG=...
+    const listenedNamespaces: string[] = globalThis.DEBUG.split(',')
 
-      let listenedParts = ns.split(':')
+    // we take incoming namespaces and check then against listened
+    return listenedNamespaces.every((listenedNamespace) => {
+      // namespaces can be negated with a `-` prefix (exclusions)
+      const isNegated = listenedNamespace.startsWith('-') ? 1 : 0
+      listenedNamespace = listenedNamespace.slice(isNegated)
+
+      // we split the namespaces by `:` to be able to compare them
+      let listenedParts = listenedNamespace.split(':')
       let emittedParts = namespace.split(':')
       const sizeDiff = listenedParts.length - emittedParts.length
 
@@ -53,17 +59,17 @@ const topProps = {
         listenedParts = [...listenedParts, ...Array(Math.abs(sizeDiff)).fill(filler)]
       }
 
+      // matches if each part is equal or if the listened part is a wildcard
       const matched = listenedParts.every((listenedPart, i) => {
-        return listenedPart === emittedParts[i] || (emittedParts[i] !== undefined && listenedPart === '*')
+        return listenedPart === emittedParts[i] || (emittedParts[i] && listenedPart === '*')
       })
 
-      return isNegated ? !matched : matched
+      return isNegated ? !matched : matched // flip the result if negated
     })
   },
-  log(this: void, ...args: string[]) {
+  log: (...args: string[]) => {
     const [ns, format, ...rest] = args
-    // console can only format the very first argument
-    // because of that, we concat both `ns` & `format`
+    // concat `ns`+`format` because console only formats first arg
     console.log(`${ns} ${format}`, ...rest)
   },
   formatters: {}, // not implemented
@@ -102,7 +108,13 @@ function debugCreate(namespace: string) {
     }
 
     if (topProps.enabled(namespace) || enabled) {
-      const stringArgs = args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg, null, 2)))
+      const stringArgs = args.map((arg) => {
+        if (typeof arg === 'string') {
+          return arg
+        }
+
+        return JSON.stringify(arg, null, 2)
+      })
 
       const ms = `+${Date.now() - lastTimestamp}ms`
       lastTimestamp = Date.now()
