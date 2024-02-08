@@ -39,7 +39,7 @@
     "async-mutex": "0.4.1"
   },
   "devDependencies": {
-    "@libsql/client": "0.4.0"
+    "@libsql/client": "0.4.3"
   },
   "peerDependencies": {
     "@libsql/client": "^0.3.5 || ^0.4.0"
