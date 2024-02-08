@@ -23,3 +23,11 @@ model Test {
   boolean Boolean
   blob    Bytes?
 }
+
+query findCustomerById(id: String) {
+where: { id: id }
+selection  {
+    id 
+    name
+  }
+}
