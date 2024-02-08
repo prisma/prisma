@@ -1,6 +1,6 @@
 import { Providers } from '../_utils/providers'
 
-export const providersSupportingRelationJoins = [Providers.POSTGRESQL, Providers.COCKROACHDB]
+export const providersSupportingRelationJoins = [Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.MYSQL]
 
 /**
  * Generic relation load strategy.
