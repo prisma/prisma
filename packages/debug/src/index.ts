@@ -5,7 +5,7 @@ import { bold } from 'kleur/colors'
 const MAX_ARGS_HISTORY = 100
 const COLORS = ['green', 'yellow', 'blue', 'magenta', 'cyan', 'red']
 
-const argsHistory: [nsp: string, ...unknown[]][] = []
+const argsHistory: [namespace: string, ...unknown[]][] = []
 let lastTimestamp = Date.now()
 let lastColor = 0
 
@@ -46,8 +46,8 @@ const topProps = {
       listenedNamespace = listenedNamespace.slice(isNegated)
 
       // we split the namespaces by `:` to be able to compare them
-      let listenedParts = listenedNamespace.split(':')
       let emittedParts = namespace.split(':')
+      let listenedParts = listenedNamespace.split(':')
       const sizeDiff = listenedParts.length - emittedParts.length
 
       // here we make that the two compared arrays have the same length
@@ -70,7 +70,7 @@ const topProps = {
   log: (...args: string[]) => {
     const [ns, format, ...rest] = args
     // concat `ns`+`format` because console only formats first arg
-    console.log(`${ns} ${format}`, ...rest)
+    console.warn(`${ns} ${format}`, ...rest)
   },
   formatters: {}, // not implemented
 }
@@ -95,11 +95,11 @@ function debugCreate(namespace: string) {
   }
 
   const debugCall = (...args: any[]) => {
-    const { enabled, namespace: ns, color, log } = instanceProps
+    const { enabled, namespace, color, log } = instanceProps
 
     // we push the args to our history of args
     if (args.length !== 0) {
-      argsHistory.push([ns, ...args])
+      argsHistory.push([namespace, ...args])
     }
 
     // if it is too big, then we remove some
@@ -120,9 +120,9 @@ function debugCreate(namespace: string) {
       lastTimestamp = Date.now()
 
       if (globalThis.DEBUG_COLORS) {
-        log(kleur[color](bold(ns)), ...stringArgs, kleur[color](ms))
+        log(kleur[color](bold(namespace)), ...stringArgs, kleur[color](ms))
       } else {
-        log(ns, ...stringArgs, ms)
+        log(namespace, ...stringArgs, ms)
       }
     }
   }
@@ -147,8 +147,8 @@ const Debug = new Proxy(debugCreate, {
  */
 export function getLogs(numChars = 7500): string {
   const logs = argsHistory
-    .map(([ns, ...args]) => {
-      return `${ns} ${args
+    .map(([namespace, ...args]) => {
+      return `${namespace} ${args
         .map((arg) => {
           if (typeof arg === 'string') {
             return arg

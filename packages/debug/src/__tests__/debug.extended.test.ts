@@ -11,7 +11,7 @@ beforeEach(() => {
 let Debug: typeof import('../index').default
 test('with a namespace', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test'
     process.env.DEBUG_COLORS = 'false'
@@ -29,7 +29,7 @@ test('with a namespace', () => {
 
 test('with colors', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test2'
     process.env.FORCE_COLOR = 'true'
@@ -48,7 +48,7 @@ test('with colors', () => {
 
 test('with multiple wild cards', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:*:*:*'
     process.env.DEBUG_COLORS = 'false'
@@ -65,7 +65,7 @@ test('with multiple wild cards', () => {
 
 test('with multiple wild cards and filter', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:*:query-engine:*'
     process.env.DEBUG_COLORS = 'false'
@@ -84,7 +84,7 @@ test('with multiple wild cards and filter', () => {
 
 test('with trailing wild cards', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:*:*'
     process.env.DEBUG_COLORS = 'false'
@@ -104,7 +104,7 @@ test('with trailing wild cards', () => {
 
 test('with trailing wild cards and filter', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:client:*'
     process.env.DEBUG_COLORS = 'false'
@@ -123,7 +123,7 @@ test('with trailing wild cards and filter', () => {
 
 test('with multiple wild cards and exclusion filter', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:*:*,-test3:*:*:init'
     process.env.DEBUG_COLORS = 'false'
@@ -142,7 +142,7 @@ test('with multiple wild cards and exclusion filter', () => {
 
 test('with multiple wild cards and multiple exclusion filters', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:*:*,-test3:*:*:init,-test3:pool:*'
     process.env.DEBUG_COLORS = 'false'
@@ -160,7 +160,7 @@ test('with multiple wild cards and multiple exclusion filters', () => {
 
 test('truncation when no wildcard is used', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:client'
     process.env.DEBUG_COLORS = 'false'
@@ -179,7 +179,7 @@ test('truncation when no wildcard is used', () => {
 
 test('object serialization', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:client'
     process.env.DEBUG_COLORS = 'false'
@@ -202,7 +202,7 @@ test('object serialization', () => {
 
 test('millisecond timestamps', () => {
   jest.isolateModules(() => {
-    const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
+    const consoleLogMock = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:client'
     process.env.DEBUG_COLORS = 'false'
