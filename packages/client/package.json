@@ -234,7 +234,7 @@
     "tsd": "0.30.4",
     "typescript": "5.3.3",
     "undici": "5.28.1",
-    "wrangler": "3.25.0",
+    "wrangler": "3.27.0",
     "wrangler-proxy": "2.2.4",
     "zx": "7.2.3"
   },
