@@ -1,6 +1,16 @@
 # Enable/Disable PR comments
 comment: false
 
+# https://docs.codecov.com/docs/commit-status
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
 # About `carryforward: true`
 # https://docs.codecov.com/docs/carryforward-flags
 
