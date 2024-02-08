@@ -1,7 +1,13 @@
 import { DMMF } from '@prisma/generator-helper'
 
-import { dmmfToRuntimeDataModel } from '../../runtime/core/runtimeDataModel'
+import {
+  dmmfToRuntimeDataModel,
+  PrunedRuntimeDataModel,
+  pruneRuntimeDataModel,
+  RuntimeDataModel,
+} from '../../runtime/core/runtimeDataModel'
 import { escapeJson } from '../TSClient/helpers'
+import { TSClientOptions } from '../TSClient/TSClient'
 
 /**
  * Given DMMF models, computes runtime datamodel from it and embeds
@@ -16,9 +22,17 @@ import { escapeJson } from '../TSClient/helpers'
  * @param datamodel
  * @returns
  */
-export function buildRuntimeDataModel(datamodel: DMMF.Datamodel) {
+export function buildRuntimeDataModel(datamodel: DMMF.Datamodel, runtimeNameJs: TSClientOptions['runtimeNameJs']) {
   const runtimeDataModel = dmmfToRuntimeDataModel(datamodel)
-  const datamodelString = escapeJson(JSON.stringify(runtimeDataModel))
+
+  let prunedDataModel: PrunedRuntimeDataModel | RuntimeDataModel
+  if (runtimeNameJs === 'wasm') {
+    prunedDataModel = pruneRuntimeDataModel(runtimeDataModel)
+  } else {
+    prunedDataModel = runtimeDataModel
+  }
+  const datamodelString = escapeJson(JSON.stringify(prunedDataModel))
+
   return `
 config.runtimeDataModel = JSON.parse(${JSON.stringify(datamodelString)})
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)`

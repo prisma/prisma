@@ -23,8 +23,8 @@
     "directory": "packages/adapter-libsql"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts"
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts"
   },
   "files": [
     "dist",
@@ -39,9 +39,9 @@
     "async-mutex": "0.4.0"
   },
   "devDependencies": {
-    "@libsql/client": "0.3.6"
+    "@libsql/client": "0.4.0"
   },
   "peerDependencies": {
-    "@libsql/client": "^0.3.5"
+    "@libsql/client": "^0.3.5 || ^0.4.0"
   }
 }

@@ -8,7 +8,7 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { PrismaClient } from '.prisma/client/edge'
+import { PrismaClient } from 'db'
 import { PrismaD1 } from '@prisma/adapter-d1'
 
 export interface Env {
@@ -96,19 +96,34 @@ export default {
 		// 			}
 		// 		})
 
+    // const result = await prisma.user.create({
+    // 	data: {
+    // 		posts: {
+    // 			create: [
+    // 				{ title: "The fire living beneath your curtains" },
+    // 				{ title: "The ocean breeze beneath your feet" },
+    // 				{ title: "The starlight beaming afore your eyes" },
+    // 			]
+    // 		}
+    // 	}
+    // })
+    
+		await prisma.$transaction([
+			prisma.customers.create({
+				data: { customerId: 3, companyName: "The Sith", contactName: "Vader" }
+			}),
+			prisma.customers.create({
+				data: { customerId: 508, companyName: "Blaze Away", contactName: "LonDone" }
+			}),
+		])
 
-			// const result = await prisma.user.create({
-			// 	data: {
-			// 		posts: {
-			// 			create: [
-			// 				{ title: "The fire living beneath your curtains" },
-			// 				{ title: "The ocean breeze beneath your feet" },
-			// 				{ title: "The starlight beaming afore your eyes" },
-			// 			]
-			// 		}
-			// 	}
-			// })
+		await prisma.$transaction([
+			prisma.customers.create({
+				data: { customerId: 420, companyName: "Sky High", contactName: "Bush" }
+			})
+		])
 
+		const result = await prisma.customers.findMany()
 		// const result = await prisma.user.findFirst()
 				
 		console.log('\u2800');

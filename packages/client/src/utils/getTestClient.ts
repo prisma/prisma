@@ -60,7 +60,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
     inlineDatasources: { db: { url: config.datasources[0].url } },
-    inlineSchema: btoa(datamodel),
+    inlineSchema: datamodel,
     inlineSchemaHash: '',
   }
 
