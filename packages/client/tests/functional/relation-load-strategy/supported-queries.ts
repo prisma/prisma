@@ -35,23 +35,34 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
       })
     }
 
-    const lateralJoinLogsMatcher = expect.arrayContaining([
-      expect.objectContaining({ query: expect.stringMatching('LEFT JOIN LATERAL') }),
+    const lateralJoinQueryMatcher = expect.stringMatching('LEFT JOIN LATERAL')
+
+    const relationJoinQueryMatcher = match(suiteConfig.provider)
+      .with(Providers.MYSQL, () => {
+        // For MySQL, JSON_OBJECT is the only available indicator. We use correlated subqueries
+        // rather than lateral joins, and 1:1 queries don't even have JSON aggregations or the
+        // `__prisma_data__` column.
+        return expect.stringMatching('JSON_OBJECT')
+      })
+      .otherwise(() => lateralJoinQueryMatcher)
+
+    const relationJoinLogsMatcher = expect.arrayContaining([
+      expect.objectContaining({ query: relationJoinQueryMatcher }),
     ])
 
-    function expectLateralJoinToBeUsed() {
-      expect(logs).toEqual(lateralJoinLogsMatcher)
+    function expectRelationJoinToBeUsed() {
+      expect(logs).toEqual(relationJoinLogsMatcher)
     }
 
-    function expectLateralJoinNotToBeUsed() {
-      expect(logs).not.toEqual(lateralJoinLogsMatcher)
+    function expectRelationJoinNotToBeUsed() {
+      expect(logs).not.toEqual(relationJoinLogsMatcher)
     }
 
-    function expectLateralJoinToBeUsedIfRequested() {
+    function expectRelationJoinToBeUsedIfRequested() {
       if (suiteConfig.strategy === 'join') {
-        expectLateralJoinToBeUsed()
+        expectRelationJoinToBeUsed()
       } else {
-        expectLateralJoinNotToBeUsed()
+        expectRelationJoinNotToBeUsed()
       }
     }
 
@@ -158,7 +169,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: 4,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('findFirst', async () => {
@@ -211,7 +222,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: 4,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('findFirstOrThrow', async () => {
@@ -264,7 +275,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: 4,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('findUnique', async () => {
@@ -317,7 +328,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: 4,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('findUniqueOrThrow', async () => {
@@ -370,7 +381,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: 4,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('create', async () => {
@@ -421,7 +432,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: suiteConfig.provider === Providers.MONGODB ? 6 : 8,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('update', async () => {
@@ -469,7 +480,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: 6,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('delete', async () => {
@@ -514,7 +525,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: 6,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('upsert', async () => {
@@ -563,7 +574,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: suiteConfig.provider === Providers.MONGODB ? 6 : 7,
       })
 
-      expectLateralJoinToBeUsedIfRequested()
+      expectRelationJoinToBeUsedIfRequested()
     })
 
     test('create with no relation selection', async () => {
@@ -598,7 +609,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         query: suiteConfig.provider === Providers.MONGODB ? 4 : 6,
       })
 
-      expectLateralJoinNotToBeUsed()
+      expectRelationJoinNotToBeUsed()
     })
   })
 })
