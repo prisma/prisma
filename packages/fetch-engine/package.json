@@ -16,10 +16,10 @@
   "enginesOverride": {},
   "devDependencies": {
     "@swc/core": "1.4.0",
-    "@swc/jest": "0.2.31",
-    "@types/jest": "29.5.11",
-    "@types/node": "18.18.13",
-    "@types/node-fetch": "2.6.9",
+    "@swc/jest": "0.2.36",
+    "@types/jest": "29.5.12",
+    "@types/node": "18.19.14",
+    "@types/node-fetch": "2.6.11",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
     "execa": "5.1.1",
@@ -39,11 +39,11 @@
     "strip-ansi": "6.0.1",
     "temp-dir": "2.0.0",
     "tempy": "1.0.1",
-    "typescript": "5.2.2"
+    "typescript": "5.3.3"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.10.0-9.6ba3e3dafd721b725fde0d4d73e987283feaf176",
+    "@prisma/engines-version": "5.10.0-11.c4aabf6593138e7f6c30b5ca7a962a2512ee6dd8",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

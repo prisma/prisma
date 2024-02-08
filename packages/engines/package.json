@@ -13,16 +13,16 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@swc/core": "1.4.0",
-    "@swc/jest": "0.2.31",
-    "@types/jest": "29.5.11",
-    "@types/node": "18.18.13",
+    "@swc/jest": "0.2.36",
+    "@types/jest": "29.5.12",
+    "@types/node": "18.19.14",
     "execa": "5.1.1",
     "jest": "29.7.0",
-    "typescript": "5.2.2"
+    "typescript": "5.3.3"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.10.0-9.6ba3e3dafd721b725fde0d4d73e987283feaf176",
+    "@prisma/engines-version": "5.10.0-11.c4aabf6593138e7f6c30b5ca7a962a2512ee6dd8",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
