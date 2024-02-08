@@ -27,7 +27,7 @@
     "scripts"
   ],
   "devDependencies": {
-    "@antfu/ni": "0.21.8",
+    "@antfu/ni": "0.21.12",
     "@opentelemetry/api": "1.7.0",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.36",
@@ -43,7 +43,7 @@
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
     "find-up": "5.0.0",
-    "fp-ts": "2.16.1",
+    "fp-ts": "2.16.2",
     "fs-extra": "11.1.1",
     "fs-jetpack": "5.1.0",
     "global-dirs": "3.0.1",
@@ -70,8 +70,8 @@
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
     "tmp": "0.2.1",
-    "ts-node": "10.9.1",
-    "ts-pattern": "5.0.5",
+    "ts-node": "10.9.2",
+    "ts-pattern": "5.0.6",
     "typescript": "5.3.3",
     "yarn": "1.22.21"
   },
