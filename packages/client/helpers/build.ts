@@ -51,7 +51,7 @@ function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): Bui
           define: 'fn',
           globals: functionPolyfillPath,
         },
-        buffer: { imports: { path: './buffer-polyfill.js', external: true } },
+        buffer: { imports: { path: '../buffer-polyfill.js', external: true } },
       }),
     ],
   }
@@ -60,7 +60,10 @@ function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): Bui
 const bufferPolyfill: BuildOptions = {
   name: 'buffer-polyfill',
   entryPoints: [require.resolve('buffer-polyfill')],
-  outfile: 'runtime/buffer-polyfill',
+  // putting it at the root of the package so ../buffer-polyfill
+  // relative path will be correct for both default and
+  // custom location
+  outfile: 'buffer-polyfill',
   minify: true,
   bundle: true,
 }
@@ -85,7 +88,7 @@ const commonEdgeWasmRuntimeBuildConfig = {
   emitTypes: false,
   plugins: [
     fillPlugin({
-      buffer: { imports: { path: './buffer-polyfill.js', external: true } },
+      buffer: { imports: { path: '../buffer-polyfill.js', external: true } },
       // we remove eval and Function for vercel
       eval: { define: 'undefined' },
       Function: {
