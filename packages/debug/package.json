@@ -21,7 +21,6 @@
     "jest-junit": "16.0.0",
     "strip-ansi": "6.0.1",
     "kleur": "4.1.5",
-    "debug": "4.3.2",
     "typescript": "5.2.2"
   },
   "scripts": {
