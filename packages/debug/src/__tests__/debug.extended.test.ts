@@ -33,6 +33,7 @@ test('with colors', () => {
     const consoleLogMock = jest.spyOn(console, 'log').mockImplementation()
 
     process.env.DEBUG = 'test2'
+    process.env.FORCE_COLOR = 'true'
     process.env.DEBUG_COLORS = 'true'
     Debug = require('../index').default
     const debug = Debug('test2')
