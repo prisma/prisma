@@ -192,8 +192,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       async-mutex:
-        specifier: 0.4.0
-        version: 0.4.0
+        specifier: 0.4.1
+        version: 0.4.1
 
   packages/adapter-libsql:
     dependencies:
@@ -201,8 +201,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       async-mutex:
-        specifier: 0.4.0
-        version: 0.4.0
+        specifier: 0.4.1
+        version: 0.4.1
     devDependencies:
       '@libsql/client':
         specifier: 0.4.0
@@ -289,8 +289,8 @@ importers:
   packages/bundle-size:
     dependencies:
       '@libsql/client':
-        specifier: 0.4.2
-        version: 0.4.2
+        specifier: 0.4.3
+        version: 0.4.3
       '@neondatabase/serverless':
         specifier: 0.8.1
         version: 0.8.1
@@ -3147,12 +3147,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@libsql/client@0.4.2:
-    resolution: {integrity: sha512-aH5Z2zuCcHju+50L9sX4SKExihFd/0YGaSa89kct91sglD92Inj/BgbBvtNWcppwv4ipQuP0kRRNwXfJhOZRWQ==}
+  /@libsql/client@0.4.3:
+    resolution: {integrity: sha512-AUYKnSPqAsFBVWBvmtrb4dG3pQlvTKT92eztAest9wQU2iJkabH8WzHLDb3dKFWKql7/kiCqvBQUVpozDwhekQ==}
     dependencies:
-      '@libsql/core': 0.4.2
+      '@libsql/core': 0.4.3
       '@libsql/hrana-client': 0.5.6
       js-base64: 3.7.5
+    optionalDependencies:
       libsql: 0.2.0
     transitivePeerDependencies:
       - bufferutil
@@ -3166,8 +3167,8 @@ packages:
       js-base64: 3.7.5
     dev: true
 
-  /@libsql/core@0.4.2:
-    resolution: {integrity: sha512-HlH7P3yMUJBuj/BfGKfSTc5YbBeLlVXoXz6tRNw0ughH2wtl+iXVzwWS4h7WscGgI9PiVDHC0zQxBuU6YK5fmA==}
+  /@libsql/core@0.4.3:
+    resolution: {integrity: sha512-r28iYBtaLBW9RRgXPFh6cGCsVI/rwRlOzSOpAu/1PVTm6EJ3t233pUf97jETVHU0vjdr1d8VvV6fKAvJkokqCw==}
     dependencies:
       js-base64: 3.7.5
     dev: false
@@ -4912,8 +4913,8 @@ packages:
     engines: {node: '>= 14'}
     dev: true
 
-  /async-mutex@0.4.0:
-    resolution: {integrity: sha512-eJFZ1YhRR8UN8eBLoNzcDPcy/jqjsg6I1AP+KvWQX80BqOSW1oJPJXDylPUEeMr2ZQvHgnQ//Lp6f3RQ1zI7HA==}
+  /async-mutex@0.4.1:
+    resolution: {integrity: sha512-WfoBo4E/TbCX1G95XTjbWTE3X2XLG0m1Xbv2cwOtuPdyH9CZvnaA5nCt1ucjaKEgW2A5IF71hxrRhr83Je5xjA==}
     dependencies:
       tslib: 2.6.2
     dev: false
