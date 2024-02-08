@@ -40,6 +40,8 @@ on:
         required: false
       BOT_TOKEN:
         required: false
+      CODECOV_TOKEN:
+        required: false
 
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
@@ -156,6 +158,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,ubuntu,${{ matrix.queryEngine }}
           name: client-ubuntu-${{ matrix.queryEngine }}
@@ -223,6 +226,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,ubuntu,dataproxy
           name: client-ubuntu-dataproxy
@@ -291,6 +295,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,ubuntu,driveradapters
           name: client-ubuntu-driveradapters
@@ -554,6 +559,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client-legacy-types,ubuntu,library,binary
           name: client-legacy-types-ubuntu
@@ -629,6 +635,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/integration-tests/src/__tests__/coverage/clover.xml
           flags: integration-tests,${{ matrix.node }},${{ matrix.queryEngine }}
           name: integration-tests-${{ matrix.node }}-${{ matrix.queryEngine }}
@@ -681,6 +688,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/internals/src/__tests__/coverage/clover.xml
           flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
           name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -733,6 +741,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
           name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -785,6 +794,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
           name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -819,6 +829,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
           name: debug-${{ matrix.os }}
@@ -829,6 +840,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
@@ -839,6 +851,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
           flags: get-platform,${{ matrix.os }},library,binary
           name: get-platform-${{ matrix.os }}
@@ -849,6 +862,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
           flags: fetch-engine,${{ matrix.os }},library,binary
           name: fetch-engine-${{ matrix.os }}
@@ -859,6 +873,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}
@@ -877,6 +892,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/adapter-planetscale/src/__tests__/coverage/clover.xml
           flags: adapter-planetscale,${{ matrix.os }},library,binary
           name: adapter-planetscale-${{ matrix.os }}
@@ -887,6 +903,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
           flags: instrumentation,${{ matrix.os }},library,binary
           name: instrumentation-${{ matrix.os }}
@@ -958,6 +975,7 @@ jobs:
 
       - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-functional-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1029,6 +1047,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/internals/src/__tests__/coverage/clover.xml
           flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
           name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1047,6 +1066,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1061,6 +1081,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
           name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1075,6 +1096,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
           name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1089,6 +1111,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
           name: debug-${{ matrix.os }}
@@ -1103,6 +1126,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
@@ -1117,6 +1141,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
           flags: get-platform,${{ matrix.os }},library,binary
           name: get-platform-${{ matrix.os }}
@@ -1131,6 +1156,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
           flags: fetch-engine,${{ matrix.os }},library,binary
           name: fetch-engine-${{ matrix.os }}
@@ -1145,6 +1171,7 @@ jobs:
       - uses: codecov/codecov-action@v4
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}
