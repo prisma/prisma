@@ -218,8 +218,8 @@ importers:
         version: 3.0.2
     devDependencies:
       '@neondatabase/serverless':
-        specifier: 0.7.2
-        version: 0.7.2
+        specifier: 0.8.1
+        version: 0.8.1
       '@swc/core':
         specifier: 1.4.0
         version: 1.4.0
@@ -292,8 +292,8 @@ importers:
         specifier: 0.4.2
         version: 0.4.2
       '@neondatabase/serverless':
-        specifier: 0.7.2
-        version: 0.7.2
+        specifier: 0.8.1
+        version: 0.8.1
       '@planetscale/database':
         specifier: 1.15.0
         version: 1.15.0
@@ -494,8 +494,8 @@ importers:
         specifier: 0.4.0
         version: 0.4.0
       '@neondatabase/serverless':
-        specifier: 0.7.2
-        version: 0.7.2
+        specifier: 0.8.1
+        version: 0.8.1
       '@opentelemetry/api':
         specifier: 1.7.0
         version: 1.7.0
@@ -3114,8 +3114,8 @@ packages:
   /@neon-rs/load@0.0.4:
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
 
-  /@neondatabase/serverless@0.7.2:
-    resolution: {integrity: sha512-wU3WA2uTyNO7wjPs3Mg0G01jztAxUxzd9/mskMmtPwPTjf7JKWi9AW5/puOGXLxmZ9PVgRFeBVRVYq5nBPhsCg==}
+  /@neondatabase/serverless@0.8.1:
+    resolution: {integrity: sha512-nxZfTLbGqvDrw0W9WnQxzoPn4KC6SLjkvK4grdf6eWVMQSc24X+8udz9inZWOGu8f0O3wJAq586fCZ32r22lwg==}
     dependencies:
       '@types/pg': 8.6.6
 
