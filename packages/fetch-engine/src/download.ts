@@ -81,7 +81,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         os.targetDistro
       }, please provide the paths via environment variables, see https://pris.ly/d/custom-engines`,
     )
-  } else if (['freebsd11', 'freebsd12', 'freebsd13', 'freebsd14', 'openbsd', 'netbsd'].includes(binaryTarget)) {
+  } else if (
+    ['freebsd11', 'freebsd12', 'freebsd13', 'freebsd14', 'freebsd15', 'openbsd', 'netbsd'].includes(binaryTarget)
+  ) {
     console.error(
       `${yellow(
         'Warning',
