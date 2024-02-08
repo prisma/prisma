@@ -81,10 +81,10 @@ const topProps = {
  */
 function debugCreate(namespace: string) {
   const instanceProps = {
-    log: topProps.log,
-    namespace: namespace,
-    enabled: topProps.enabled(namespace),
     color: COLORS[lastColor++ % COLORS.length],
+    enabled: topProps.enabled(namespace),
+    namespace: namespace,
+    log: topProps.log,
     extend: () => {}, // not implemented
   }
 
@@ -101,7 +101,7 @@ function debugCreate(namespace: string) {
       argsHistory.shift()
     }
 
-    if (enabled && topProps.enabled(namespace)) {
+    if (topProps.enabled(namespace) || enabled) {
       const stringArgs = args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg, null, 2)))
 
       const ms = `+${Date.now() - lastTimestamp}ms`
