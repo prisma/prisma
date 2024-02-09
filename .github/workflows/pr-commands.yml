@@ -1,0 +1,7 @@
+on: issue_comment
+jobs:
+  check_commands:
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello"
