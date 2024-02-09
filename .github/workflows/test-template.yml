@@ -800,6 +800,47 @@ jobs:
           name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
 
   #
+  # CLI-PLATFORM-COMMANDS (only)
+  #
+  cli-platform-commands:
+    name: CLI platform
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-cli-platform-')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [16, 18, 20]
+        include:
+          - os: windows-latest
+            version: 16
+          - os: macos-latest
+            version: 16
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test:platform
+        working-directory: packages/cli
+
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/cli/src/__tests__/coverage/clover.xml
+          flags: cli-plateform,${{ matrix.os }}
+          name: cli-plateform-${{ matrix.os }}-${{ matrix.queryEngine }}
+
+  #
   # All the other packages!
   #
   others:

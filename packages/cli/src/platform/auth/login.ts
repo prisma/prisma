@@ -7,7 +7,7 @@ import { green } from 'kleur/colors'
 import open from 'open'
 
 import { name as PRISMA_CLI_NAME, version as PRISMA_CLI_VERSION } from '../../../package.json'
-import { platformConsoleUrl, readAuthConfig, successMessage, writeAuthConfig } from '../../utils/platform'
+import { platformConsoleUrl, readAuthConfig, successMessage, writeAuthConfig } from '../platformUtils'
 
 interface AuthResult {
   token: string
