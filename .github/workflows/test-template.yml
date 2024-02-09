@@ -837,8 +837,8 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/cli/src/__tests__/coverage/clover.xml
-          flags: cli-plateform,${{ matrix.os }}
-          name: cli-plateform-${{ matrix.os }}
+          flags: cli-platform,${{ matrix.os }}
+          name: cli-platform-${{ matrix.os }}
 
   #
   # All the other packages!
