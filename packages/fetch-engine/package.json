@@ -18,12 +18,12 @@
     "@swc/core": "1.4.0",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.14",
+    "@types/node": "18.19.15",
     "@types/node-fetch": "2.6.11",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
     "execa": "5.1.1",
-    "find-cache-dir": "3.3.2",
+    "find-cache-dir": "5.0.0",
     "fs-extra": "11.1.1",
     "hasha": "5.2.2",
     "http-proxy-agent": "7.0.0",
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.10.0-11.c4aabf6593138e7f6c30b5ca7a962a2512ee6dd8",
+    "@prisma/engines-version": "5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

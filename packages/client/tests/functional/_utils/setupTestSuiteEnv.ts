@@ -264,12 +264,13 @@ async function prepareD1Database() {
   // The Schema Engine does not know how to use a Driver Adapter at the moment
   // So we cannot use `db push` for D1
   const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
-
+  
   // Note: default hostname is `http://127.0.0.1:8787`
   // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
   const d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
 
-  const existingItems = (await d1Client.prepare(`PRAGMA main.table_list;`).run()).results
+  const existingItems = ((await d1Client.prepare(`PRAGMA main.table_list;`).run()) as D1Result<Record<string, unknown>>)
+    .results
   for (const item of existingItems) {
     const batch: D1PreparedStatement[] = []
 
@@ -281,7 +282,9 @@ async function prepareD1Database() {
       batch.push(d1Client.prepare(`DROP VIEW "${item.name}";`))
     } else {
       // Check indexes
-      const existingIndexes = (await d1Client.prepare(`PRAGMA index_list("${item.name}");`).run()).results
+      const existingIndexes = (
+        (await d1Client.prepare(`PRAGMA index_list("${item.name}");`).run()) as D1Result<Record<string, unknown>>
+      ).results
       const indexesToDrop = existingIndexes.filter((i) => i.origin === 'c')
       for (const index of indexesToDrop) {
         batch.push(d1Client.prepare(`DROP INDEX "${index.name}";`))
@@ -303,7 +306,7 @@ async function prepareD1Database() {
       // @ts-ignore
       console.error('Error in batch: %O', batchResult.error)
     }
-  }
+  }  
 }
 
 export type DatasourceInfo = {
