@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
