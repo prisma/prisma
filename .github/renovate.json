@@ -185,7 +185,7 @@
     {
       "groupName": "e2e tests",
       "excludePackageNames": ["prisma", "@prisma/client"],
-      "matchFileNames": ["packages/client/tests/e2e/**"]
+      "matchFileNames": ["packages/client/tests/e2e/**", "!packages/client/tests/e2e/ts-version/**"]
     },
     {
       "groupName": "Weekly vitess docker image version update",
