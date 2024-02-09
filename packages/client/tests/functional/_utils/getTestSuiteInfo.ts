@@ -17,6 +17,7 @@ export type NamedTestSuiteConfig = {
     relationMode?: `${RelationModes}`
     engineType?: `${ClientEngineType}`
     clientRuntime?: `${ClientRuntime}`
+    previewFeatures?: string[]
   }
 }
 
