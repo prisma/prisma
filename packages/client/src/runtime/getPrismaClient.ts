@@ -12,7 +12,9 @@ import { RawValue, Sql } from 'sql-template-tag'
 
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
+import { WasmLoadingConfig } from './core/engines/common/Engine'
+import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
@@ -63,7 +65,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm'
 }
 
 // used by esbuild for tree-shaking
@@ -84,7 +86,7 @@ export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
-  adapter?: DriverAdapter
+  adapter?: DriverAdapter | null
 
   /**
    * Overwrites the datasource url from your schema.prisma file
@@ -125,6 +127,8 @@ export type PrismaClientOptions = {
       endpoint?: string
       allowTriggerPanic?: boolean
     }
+    /** This can be used for testing purposes */
+    configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
   }
 }
 
@@ -174,16 +178,6 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition
-  ? T['emit'] extends 'event'
-    ? T['level']
-    : never
-  : never
-export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
-  | GetLogType<T[0]>
-  | GetLogType<T[1]>
-  | GetLogType<T[2]>
-
 export type QueryEvent = {
   timestamp: Date
   query: string
@@ -198,6 +192,13 @@ export type LogEvent = {
   target: string
 }
 /* End Types for Logging */
+
+type ExtendedEventType = LogLevel | 'beforeExit'
+type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
+  ? () => Promise<void>
+  : [E] extends [LogLevel]
+  ? (event: EngineEvent<E>) => void
+  : never
 
 /**
  * Config that is stored into the generated client. When the generated client is
@@ -274,18 +275,15 @@ export type GetPrismaClientConfig = {
   isBundled?: boolean
 
   /**
-   * A boolean that is `true` when the client was generated with --no-engine. At
+   * A boolean that is `false` when the client was generated with --no-engine. At
    * runtime, this means the client will be bound to be using the Data Proxy.
    */
-  noEngine?: boolean
+  copyEngine?: boolean
 
   /**
-   * Loads the raw wasm module for the wasm query engine. This configuration is
-   * generated specifically for each type of client, eg. Node.js client and Edge
-   * clients will have different implementations.
-   * @remarks this is a callback on purpose, we only load the wasm if needed.
+   * Optional wasm loading configuration
    */
-  getQueryEngineWasmModule?: () => Promise<unknown>
+  engineWasm?: WasmLoadingConfig
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -323,6 +321,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _createPrismaPromise = createPrismaPromiseFactory()
 
     constructor(optionsArg?: PrismaClientOptions) {
+      config = optionsArg?.__internal?.configOverride?.(config) ?? config
+
       checkPlatformCaching(config)
 
       if (optionsArg) {
@@ -331,14 +331,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
       const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
 
-      const logEmitter = new EventEmitter().on('error', () => {
-        // this is a no-op to prevent unhandled error events
-        //
-        // If the user enabled error logging this would never be executed. If the user did not
-        // enabled error logging, this would be executed, and a trace for the error would be logged
-        // in debug mode, which is like going in the opposite direction than what the user wanted by
-        // not enabling error logging in the first place.
-      })
+      // prevents unhandled error events when users do not explicitly listen to them
+      const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = getPreviewFeatures(config)
@@ -409,7 +403,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             ),
           env: loadedEnv?.parsed ?? {},
           flags: [],
-          getQueryEngineWasmModule: config.getQueryEngineWasmModule,
+          engineWasm: config.engineWasm,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
@@ -419,7 +413,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
-          logEmitter: logEmitter,
+          logEmitter,
           isBundled: config.isBundled,
           adapter,
         }
@@ -434,7 +428,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
             if (level) {
               this.$on(level, (event) => {
-                logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
+                logger.log(`${logger.tags[level] ?? ''}`, (event as LogEvent).message || (event as QueryEvent).query)
               })
             }
           }
@@ -463,29 +457,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._middlewares.use(middleware)
     }
 
-    $on(eventType: EngineEventType, callback: (event: any) => void) {
+    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>) {
       if (eventType === 'beforeExit') {
-        this._engine.on('beforeExit', callback)
-      } else {
-        this._engine.on(eventType, (event) => {
-          const fields = event.fields
-          if (eventType === 'query') {
-            return callback({
-              timestamp: event.timestamp,
-              query: fields?.query ?? event.query,
-              params: fields?.params ?? event.params,
-              duration: fields?.duration_ms ?? event.duration,
-              target: event.target,
-            })
-          } else {
-            // warn, info, or error events
-            return callback({
-              timestamp: event.timestamp,
-              message: fields?.message ?? event.message,
-              target: event.target,
-            })
-          }
-        })
+        this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)
+      } else if (eventType) {
+        this._engineConfig.logEmitter.on(eventType, callback as EventCallback<LogLevel>)
       }
     }
 
@@ -526,14 +502,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
       const activeProvider = this._activeProvider
-      const driverAdapterProvider = this._engineConfig.adapter?.provider
 
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -626,14 +601,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
       const activeProvider = this._activeProvider
-      const driverAdapterProvider = this._engineConfig.adapter?.provider
 
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, driverAdapterProvider }),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,

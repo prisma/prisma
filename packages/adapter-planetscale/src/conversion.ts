@@ -101,5 +101,12 @@ export const cast: typeof defaultCast = (field, value) => {
   if (field.type === 'JSON' && value === 'null') {
     return JsonNullMarker
   }
-  return defaultCast(field, value)
+
+  const defaultValue = defaultCast(field, value)
+
+  if (defaultValue instanceof Uint8Array) {
+    return Array.from(defaultValue)
+  }
+
+  return defaultValue
 }

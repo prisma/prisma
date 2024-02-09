@@ -23,7 +23,7 @@ export interface ResultSet {
 
   /**
    * The last ID of an `INSERT` statement, if any.
-   * This is required for `AUTO_INCREMENT` columns in MySQL and SQLite-flavoured databases.
+   * This is required for `AUTO_INCREMENT` columns in databases based on MySQL and SQLite.
    */
   lastInsertId?: string
 }
@@ -66,6 +66,10 @@ export type Error =
       message: string
     }
 
+export type ConnectionInfo = {
+  schemaName?: string
+}
+
 export interface Queryable {
   readonly provider: 'mysql' | 'postgres' | 'sqlite'
 
@@ -92,6 +96,11 @@ export interface DriverAdapter extends Queryable {
    * Starts new transation.
    */
   startTransaction(): Promise<Result<Transaction>>
+
+  /**
+   * Optional method that returns extra connection info
+   */
+  getConnectionInfo?(): Result<ConnectionInfo>
 }
 
 export type TransactionOptions = {

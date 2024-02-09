@@ -18,17 +18,17 @@ jobs:
     steps:
       - name: Extract custom engine branch name from PR body
         id: detectCustomEngineBranch
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         if: |
           github.event_name == 'pull_request' &&
-          contains(github.event.pull_request.body, '/engine-branch') &&
+          contains(env.PR_BODY, '/engine-branch') &&
           (
             github.event.pull_request.author_association == 'OWNER' ||
             github.event.pull_request.author_association == 'MEMBER' ||
             github.event.pull_request.author_association == 'COLLABORATOR' ||
             github.event.pull_request.author_association == 'CONTRIBUTOR'
           )
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           BRANCH_NAME=$(echo "$PR_BODY" | grep -o '/engine-branch \S*' | awk '{print $2}')
           if [ -z "$BRANCH_NAME" ]; then
@@ -37,7 +37,7 @@ jobs:
           fi
 
           echo "Requested custom engine from branch: $BRANCH_NAME"
-          echo "branchName=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "branchName=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build
@@ -57,9 +57,9 @@ jobs:
       - name: Get current engine hash
         id: engine-hash
         shell: bash
-        run: echo "engineHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        run: echo "engineHash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Artifacts cache
         id: artifacts-cache
         with:
@@ -76,7 +76,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Dependencies cache
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
         with:

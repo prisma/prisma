@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
+import execa from 'execa'
 import fs from 'fs-extra'
 import path from 'path'
 import { match } from 'ts-pattern'
@@ -11,7 +12,7 @@ import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
-import { ProviderFlavors, Providers } from './providers'
+import { AdapterProviders, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta } from './types'
 
@@ -115,24 +116,28 @@ export async function setupTestSuiteDatabase(
   alterStatementCallback?: AlterStatementCallback,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+  const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
 
   try {
-    const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    const dbPushParams = ['--schema', schemaPath, '--skip-generate']
+    if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
+      await setupTestSuiteDatabaseD1(schemaPath, alterStatementCallback)
+    } else {
+      const dbPushParams = ['--schema', schemaPath, '--skip-generate']
 
-    // we reuse and clean the db when it is explicitly required
-    if (process.env.TEST_REUSE_DATABASE === 'true') {
-      dbPushParams.push('--force-reset')
-    }
+      // we reuse and clean the db when it is explicitly required
+      if (process.env.TEST_REUSE_DATABASE === 'true') {
+        dbPushParams.push('--force-reset')
+      }
 
-    await DbPush.new().parse(dbPushParams)
+      await DbPush.new().parse(dbPushParams)
 
-    if (
-      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.VITESS_8 ||
-      suiteConfig.matrixOptions.providerFlavor === ProviderFlavors.JS_PLANETSCALE
-    ) {
-      // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
-      await new Promise((r) => setTimeout(r, 1_000))
+      if (
+        suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
+        suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_PLANETSCALE
+      ) {
+        // wait for vitess to catch up, corresponds to TABLET_REFRESH_INTERVAL in docker-compose.yml
+        await new Promise((r) => setTimeout(r, 1_000))
+      }
     }
 
     if (alterStatementCallback) {
@@ -172,6 +177,87 @@ export async function setupTestSuiteDatabase(
 }
 
 /**
+ * Cleanup the D1 database and apply the DDL generated from migrate diff for the generated schema of the test suite.
+ * The Schema Engine does not know how to use a Driver Adapter at the moment
+ * So we cannot use `db push` for D1
+ */
+export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatementCallback?: AlterStatementCallback) {
+  // The Schema Engine does not know how to use a Driver Adapter at the moment
+  // So we cannot use `db push` for D1
+  const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
+
+  // Note: default hostname is `http://127.0.0.1:8787`
+  // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
+  const d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
+
+  const existingItems = ((await d1Client.prepare(`PRAGMA main.table_list;`).run()) as D1Result<Record<string, unknown>>)
+    .results
+  for (const item of existingItems) {
+    const batch: D1PreparedStatement[] = []
+
+    if (item.name === '_cf_KV' || item.name === 'sqlite_schema') {
+      continue
+    } else if (item.name === 'sqlite_sequence') {
+      batch.push(d1Client.prepare('DELETE FROM `sqlite_sequence`;'))
+    } else if (item.type === 'view') {
+      batch.push(d1Client.prepare(`DROP VIEW "${item.name}";`))
+    } else {
+      // Check indexes
+      const existingIndexes = (
+        (await d1Client.prepare(`PRAGMA index_list("${item.name}");`).run()) as D1Result<Record<string, unknown>>
+      ).results
+      const indexesToDrop = existingIndexes.filter((i) => i.origin === 'c')
+      for (const index of indexesToDrop) {
+        batch.push(d1Client.prepare(`DROP INDEX "${index.name}";`))
+      }
+
+      // We cannot do `DROP TABLE "${item.name}";`
+      // Because we cannot use "PRAGMA foreign_keys = OFF;" as it is ignored inside transactions
+      // and everything runs inside an implicit transaction on D1
+      batch.push(
+        d1Client.prepare(
+          `ALTER TABLE "${item.name}" RENAME TO ${(item.name as string).split('_')[0]}_${new Date().getTime()};`,
+        ),
+      )
+    }
+
+    const batchResult = await d1Client.batch(batch)
+    // @ts-ignore
+    if (batchResult.error) {
+      // @ts-ignore
+      console.error('Error in batch: %O', batchResult.error)
+    }
+  }
+
+  // Use `migrate diff` to get the DDL statements
+  const diffResult = await execa(
+    '../cli/src/bin.ts',
+    ['migrate', 'diff', '--from-empty', '--to-schema-datamodel', schemaPath, '--script'],
+    {
+      env: {
+        DEBUG: process.env.DEBUG,
+      },
+    },
+  )
+  const sqlStatements = diffResult.stdout
+
+  // Execute the DDL statements
+  for (const sqlStatement of sqlStatements.split(';')) {
+    if (sqlStatement.includes('CREATE ')) {
+      await d1Client.prepare(sqlStatement).run()
+    } else if (sqlStatement === '\n') {
+      // Ignore
+    } else {
+      console.debug(`Skipping ${sqlStatement} as it is not a CREATE statement`)
+    }
+  }
+
+  if (alterStatementCallback) {
+    throw new Error('TODO alterStatementCallback for D1')
+  }
+}
+
+/**
  * Drop the database for the generated schema of the test suite.
  * @param suiteMeta
  * @param suiteConfig
@@ -182,6 +268,11 @@ export async function dropTestSuiteDatabase(
   errors: Error[] = [],
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+
+  // TODO for D1 ?
+  if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
+    return
+  }
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
@@ -218,14 +309,14 @@ export function setupTestSuiteDbURI(
   suiteConfig: NamedTestSuiteConfig['matrixOptions'],
   clientMeta: ClientMeta,
 ): DatasourceInfo {
-  const { provider, providerFlavor } = suiteConfig
+  const { provider, driverAdapter } = suiteConfig
 
   const envVarName = `DATABASE_URI_${provider}`
   const directEnvVarName = `DIRECT_${envVarName}`
 
-  let databaseUrl = match(providerFlavor)
+  let databaseUrl = match(driverAdapter)
     .with(undefined, () => getDbUrl(provider))
-    .otherwise(() => getDbUrlFromFlavor(providerFlavor, provider))
+    .otherwise(() => getDbUrlFromFlavor(driverAdapter, provider))
 
   if (process.env.TEST_REUSE_DATABASE === 'true') {
     // we reuse and clean the same db when running in single-threaded mode
@@ -277,21 +368,21 @@ function getDbUrl(provider: Providers): string {
 }
 
 /**
- * Returns configured database URL for specified provider flavor, falling back to
- * `getDbUrl(provider)` if no flavor-specific URL is configured.
- * @param providerFlavor provider variant, e.g. `vitess` for `mysql`
+ * Returns configured database URL for specified provider, Driver Adapter, or provider variant (e.g., Vitess 8 is a known variant of the "mysql" provider),
+ * falling back to `getDbUrl(provider)` if no specific URL is configured.
+ * @param driverAdapter provider variant, e.g. `vitess` for `mysql`
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
-function getDbUrlFromFlavor(providerFlavor: `${ProviderFlavors}` | undefined, provider: Providers): string {
+function getDbUrlFromFlavor(driverAdapterOrFlavor: `${AdapterProviders}` | undefined, provider: Providers): string {
   return (
-    match(providerFlavor)
-      .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+    match(driverAdapterOrFlavor)
+      .with(AdapterProviders.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
       // Note: we're using Postgres 10 for Postgres (Rust driver, `pg` driver adapter),
       // and Postgres 16 for Neon due to https://github.com/prisma/team-orm/issues/511.
-      .with(ProviderFlavors.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
-      .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
-      .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
-      .with(ProviderFlavors.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
+      .with(AdapterProviders.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+      .with(AdapterProviders.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
+      .with(AdapterProviders.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+      .with(AdapterProviders.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
       .otherwise(() => getDbUrl(provider))
   )
 }

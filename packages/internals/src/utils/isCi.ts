@@ -61,7 +61,9 @@ export const isCi = (): boolean => {
     env.TRAVIS ||
     env.VELA ||
     env.NOW_BUILDER ||
-    env.VERCEL ||
+    // See https://github.com/prisma/prisma/issues/22380 for why we commented it out
+    // Users deploying on Vercel might have this env var set in the local dev env
+    // env.VERCEL ||
     env.APPCENTER_BUILD_ID ||
     env.CI_XCODE_PROJECT ||
     env.XCS ||

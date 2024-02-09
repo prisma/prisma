@@ -20,6 +20,14 @@ function mockFile(mockedPath: string, content: string) {
   })
 }
 
+beforeAll(() => {
+  ;(globalThis as any).TARGET_BUILD_TYPE = 'library'
+})
+
+afterAll(() => {
+  delete (globalThis as any).TARGET_BUILD_TYPE
+})
+
 afterEach(() => vol.reset())
 
 test('basic', () => {

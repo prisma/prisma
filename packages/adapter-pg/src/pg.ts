@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 import type {
   ColumnType,
+  ConnectionInfo,
   DriverAdapter,
   Query,
   Queryable,
@@ -10,7 +11,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
-import type pg from 'pg'
+import pg from 'pg'
 
 import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
 
@@ -123,9 +124,26 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
+export type PrismaPgOptions = {
+  schema?: string
+}
+
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
-  constructor(client: pg.Pool) {
+  constructor(client: pg.Pool, private options?: PrismaPgOptions) {
+    if (!(client instanceof pg.Pool)) {
+      throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
+import { Pool } from 'pg'
+const pool = new Pool({ connectionString: url })
+const adapter = new PrismaPg(pool)
+`)
+    }
     super(client)
+  }
+
+  getConnectionInfo(): Result<ConnectionInfo> {
+    return ok({
+      schemaName: this.options?.schema,
+    })
   }
 
   async startTransaction(): Promise<Result<Transaction>> {

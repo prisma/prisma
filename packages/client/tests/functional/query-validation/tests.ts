@@ -5,7 +5,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  () => {
+  (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
     test('include and select are used at the same time', async () => {
       // @ts-expect-error
       const result = prisma.user.findMany({
@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
                 Invalid \`prisma.user.findMany()\` invocation in
                 /client/tests/functional/query-validation/tests.ts:0:0
 
-                   XX () => {
+                   XX (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
                    XX   test('include and select are used at the same time', async () => {
                   XX     // @ts-expect-error
                 → XX     const result = prisma.user.findMany({
@@ -158,27 +158,52 @@ testMatrix.setupTestSuite(
         notAnArgument: 123,
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      if (cliMeta.previewFeatures.includes('relationJoins')) {
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-                                  Invalid \`prisma.user.findMany()\` invocation in
-                                  /client/tests/functional/query-validation/tests.ts:0:0
+              Invalid \`prisma.user.findMany()\` invocation in
+              /client/tests/functional/query-validation/tests.ts:0:0
 
-                                    XX })
-                                    XX 
-                                    XX test('unknown argument', async () => {
-                                  → XX   const result = prisma.user.findMany({
-                                            notAnArgument: 123,
-                                            ~~~~~~~~~~~~~
-                                          ? where?: UserWhereInput,
-                                          ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                                          ? cursor?: UserWhereUniqueInput,
-                                          ? take?: Int,
-                                          ? skip?: Int,
-                                          ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
-                                          })
+                XX })
+                XX 
+                XX test('unknown argument', async () => {
+              → XX   const result = prisma.user.findMany({
+                        notAnArgument: 123,
+                        ~~~~~~~~~~~~~
+                      ? where?: UserWhereInput,
+                      ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                      ? cursor?: UserWhereUniqueInput,
+                      ? take?: Int,
+                      ? skip?: Int,
+                      ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[],
+                      ? relationLoadStrategy?: RelationLoadStrategy
+                      })
 
-                                  Unknown argument \`notAnArgument\`. Available options are marked with ?.
-                          `)
+              Unknown argument \`notAnArgument\`. Available options are marked with ?.
+      `)
+      } else {
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+              Invalid \`prisma.user.findMany()\` invocation in
+              /client/tests/functional/query-validation/tests.ts:0:0
+
+                XX })
+                XX 
+                XX test('unknown argument', async () => {
+              → XX   const result = prisma.user.findMany({
+                        notAnArgument: 123,
+                        ~~~~~~~~~~~~~
+                      ? where?: UserWhereInput,
+                      ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                      ? cursor?: UserWhereUniqueInput,
+                      ? take?: Int,
+                      ? skip?: Int,
+                      ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+                      })
+
+              Unknown argument \`notAnArgument\`. Available options are marked with ?.
+      `)
+      }
     })
 
     test('unknown object field', async () => {

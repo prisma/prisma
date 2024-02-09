@@ -119,8 +119,8 @@ export type ${groupByArgsName}<ExtArgs extends $Extensions.InternalArgs = $Exten
 ${indent(
   groupByRootField.args
     .map((arg) => {
-      arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg)
-      return new InputField(arg, this.genericsInfo).toTS()
+      const updatedArg = { ...arg, comment: getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg) }
+      return new InputField(updatedArg, this.genericsInfo).toTS()
     })
     .concat(
       groupByType.fields
@@ -237,8 +237,8 @@ export type ${aggregateArgsName}<ExtArgs extends $Extensions.InternalArgs = $Ext
 ${indent(
   aggregateRootField.args
     .map((arg) => {
-      arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg)
-      return new InputField(arg, this.genericsInfo).toTS()
+      const updatedArg = { ...arg, comment: getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg) }
+      return new InputField(updatedArg, this.genericsInfo).toTS()
     })
     .concat(
       aggregateType.fields.map((f) => {
@@ -355,11 +355,17 @@ export class ModelDelegate implements Generatable {
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     this.context.defaultArgsAliases.registerArgName(countArgsName)
 
+    const excludedArgsForCount = ['select', 'include', 'distinct']
+    if (this.context.generator?.previewFeatures.includes('relationJoins')) {
+      excludedArgsForCount.push('relationLoadStrategy')
+    }
+    const excludedArgsForCountType = excludedArgsForCount.map((name) => `'${name}'`).join(' | ')
+
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
     ? `type ${countArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include' | 'distinct' > & {
+  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, ${excludedArgsForCountType}> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
 `

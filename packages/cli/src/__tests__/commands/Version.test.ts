@@ -1,6 +1,6 @@
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
-import { getPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { engineEnvVarMap } from '@prisma/internals'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
@@ -39,12 +39,11 @@ describe('version', () => {
       // This Omits query-engine from the map
       const { ['query-engine']: qe, ...envVarMap } = engineEnvVarMap
 
-      const platform = await getPlatform()
+      const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
-        process.env[envVar] = binaryPaths[engine][platform]
-        // console.debug(`Setting ${envVar} to ${binaryPaths[engine][platform]}`)
+        process.env[envVar] = binaryPaths[engine][binaryTarget]
       }
 
       const data = await ctx.cli('--version')
@@ -84,12 +83,11 @@ describe('version', () => {
         failSilent: false,
       })
 
-      const platform = await getPlatform()
+      const binaryTarget = await getBinaryTargetForCurrentPlatform()
       const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
-        process.env[envVar] = binaryPaths[engine][platform]
-        // console.debug(`Setting ${envVar} to ${binaryPaths[engine][platform]}`)
+        process.env[envVar] = binaryPaths[engine][binaryTarget]
       }
 
       const data = await ctx.cli('--version')

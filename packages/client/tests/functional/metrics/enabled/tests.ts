@@ -18,8 +18,8 @@ const executeOneQuery = async () => {
 }
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
-    const usesDriverAdapter = providerFlavor !== undefined
+  ({ provider, driverAdapter }) => {
+    const usesDriverAdapter = driverAdapter !== undefined
     describe('empty', () => {
       test('$metrics.prometheus() does not crash before client is connected', async () => {
         await expect(prisma.$metrics.prometheus()).resolves.not.toThrow()
@@ -593,9 +593,8 @@ testMatrix.setupTestSuite(
       runtimes: ['node', 'edge'],
       reason: 'Metrics are not supported with Data Proxy yet',
     },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Metrics are not supported with WASM engine yet',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', 'Metrics are not supported with WASM engine yet')
     },
   },
 )

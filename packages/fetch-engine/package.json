@@ -15,15 +15,15 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@swc/core": "1.3.96",
-    "@swc/jest": "0.2.29",
-    "@types/jest": "29.5.10",
-    "@types/node": "18.18.13",
-    "@types/node-fetch": "2.6.9",
+    "@swc/core": "1.4.0",
+    "@swc/jest": "0.2.36",
+    "@types/jest": "29.5.12",
+    "@types/node": "18.19.15",
+    "@types/node-fetch": "2.6.11",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
     "execa": "5.1.1",
-    "find-cache-dir": "3.3.2",
+    "find-cache-dir": "5.0.0",
     "fs-extra": "11.1.1",
     "hasha": "5.2.2",
     "http-proxy-agent": "7.0.0",
@@ -39,16 +39,16 @@
     "strip-ansi": "6.0.1",
     "temp-dir": "2.0.0",
     "tempy": "1.0.1",
-    "typescript": "5.2.2"
+    "typescript": "5.3.3"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.7.0-41.79fb5193cf0a8fdbef536e4b4a159cad677ab1b9",
+    "@prisma/engines-version": "5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts",
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
     "test": "jest",
     "prepublishOnly": "pnpm run build"
   },

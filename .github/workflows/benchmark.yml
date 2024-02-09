@@ -60,7 +60,7 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 20
           pnpm-version: 8
           skip-tsc: false
 
@@ -93,7 +93,7 @@ jobs:
 
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() && github.ref == 'refs/heads/main' }}
-        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
+        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
 
       - name: Slack Notification on Failure
         if: ${{ failure() && github.ref == 'refs/heads/main' }}

@@ -1,7 +1,7 @@
 const path = require('path')
 const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
-const { platformRegex } = require('./platformRegex')
+const { binaryTargetRegex } = require('./binaryTargetRegex')
 
 // Pipe utility
 const pipe =
@@ -51,7 +51,7 @@ function normalizeTsClientStackTrace(str) {
 }
 
 function removePlatforms(str) {
-  return str.replace(platformRegex, 'TEST_PLATFORM')
+  return str.replace(binaryTargetRegex, 'TEST_PLATFORM')
 }
 
 // When updating snapshots this is sensitive to OS

@@ -43,15 +43,18 @@ async function main() {
     // If changes are located only in one of the paths below
     if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/cli/'))) {
       jobsToRun.push('-cli-')
+      jobsToRun.push('-client-e2e-')
     } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/client/'))) {
       jobsToRun.push('-client-')
       jobsToRun.push('-integration-tests-')
       jobsToRun.push('-cli-')
+      jobsToRun.push('-client-e2e-')
     } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/integration-tests/'))) {
       jobsToRun.push('-integration-tests-')
     } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/migrate/'))) {
       jobsToRun.push('-migrate-')
       jobsToRun.push('-cli-')
+      jobsToRun.push('-client-e2e-')
     } else {
       jobsToRun.push('-all-')
     }

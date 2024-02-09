@@ -75,7 +75,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:45d240643d8700256bdf34bc919cadbb4d60b128e21a38a068d07bc79656194e
+    image: vitess/vttestserver:mysql80@sha256:ecd8af328f585251f195c7d19a3e4e3d03163795b066d937216a21464cc66734
     restart: unless-stopped
     ports:
       - 33807:33807
@@ -161,13 +161,12 @@ services:
     image: mongo:4
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: prisma
       MONGO_INITDB_DATABASE: tests-migrate
     ports:
       - '27017:27017'
     healthcheck:
-      test: ['CMD', 'mongo', 'admin', '--port', '27017', '--eval', "db.adminCommand('ping')"]
+      # Use "mongo" instead of "mongosh" before v5.0
+      test: ['CMD', 'mongo', 'admin', '--port', '27017', '--eval', "db.adminCommand('ping').ok"]
       interval: 5s
       timeout: 2s
       retries: 20
@@ -177,19 +176,47 @@ services:
     depends_on:
       - mongodb_migrate
 
-  # Replica Set (required for Prisma Client)
+  # This config is for MongoDB v4
+  # It's a Replica Set (required for Prisma Client)
   mongo:
-    build: ./mongodb_replica
+    build:
+      context: ./mongodb_replica
+      args:
+        MONGO_VERSION: 4
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: prisma
       MONGO_REPLICA_HOST: 127.0.0.1
       MONGO_REPLICA_PORT: 27018
+      # Use "mongo" instead of "mongosh" before v5.0
+      MONGO_COMMAND: 'mongo'
     ports:
       - '27018:27018'
-    restart: always # restart between reboots
+    restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'mongo', 'admin', '--port', '27018', '--eval', "db.adminCommand('ping')"]
+      # Use "mongo" instead of "mongosh" before v5.0
+      test: ['CMD', 'mongo', 'admin', '--port', '27018', '--eval', "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
+  # -> only used for manual testing locally
+  # This config is for MongoDB v5+
+  # It's a Replica Set (required for Prisma Client)
+  mongo6:
+    build:
+      context: ./mongodb_replica
+      args:
+        MONGO_VERSION: 6
+    environment:
+      MONGO_REPLICA_HOST: 127.0.0.1
+      MONGO_REPLICA_PORT: 27019
+      # Use "mongo" instead of "mongosh" before v5.0
+      MONGO_COMMAND: 'mongosh'
+    ports:
+      - '27019:27019'
+    restart: unless-stopped
+    healthcheck:
+      # Use "mongo" instead of "mongosh" before v5.0
+      test: ['CMD', 'mongosh', 'admin', '--port', '27019', '--eval', "db.adminCommand('ping').ok"]
       interval: 5s
       timeout: 2s
       retries: 20
@@ -205,7 +232,7 @@ services:
       - '5488:80'
     depends_on:
       - postgres-16
-    restart: always
+    restart: unless-stopped
     healthcheck:
       test: ['CMD', 'nc', '-z', '127.0.0.1', '80']
       interval: 5s
@@ -222,7 +249,7 @@ services:
       - '8085:8085'
     depends_on:
       - vitess-8
-    restart: always
+    restart: unless-stopped
     healthcheck:
       test: ['CMD', 'nc', '-z', '127.0.0.1', '8085']
       interval: 5s
