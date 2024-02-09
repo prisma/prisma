@@ -172,7 +172,6 @@ services:
       retries: 20
       start_period: 20s
     volumes:
-      # - mongodb-volume:/data/db
       - ./mongodb_migrate_seed:/mongodb_migrate_seed
       - ./mongodb_migrate_seed:/docker-entrypoint-initdb.d
 
