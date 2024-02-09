@@ -189,7 +189,15 @@ export class GeneratorProcess {
 
   stop(): void {
     if (!this.child?.killed) {
-      this.child?.kill()
+      // https://nodejs.org/api/process.html#signal-events
+      // 'SIGKILL' cannot have a listener installed, it will unconditionally terminate Node.js on all platforms.
+      // Before `5.10.0` we were not passing explicitly a signal (so using the default `SIGTERM` signal)
+      // the "should work with a custom generator" test was failing very often on macOS (in CI) with a timeout for example
+      //
+      // See https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
+      // The SIGTERM signal is a generic signal used to cause program termination. Unlike SIGKILL, this signal can be blocked, handled, and ignored. It is the normal way to politely ask a program to terminate.
+      // The SIGKILL signal is used to cause immediate program termination. It cannot be handled or ignored, and is therefore always fatal. It is also not possible to block this signal.
+      this.child?.kill('SIGKILL')
     }
   }
 
