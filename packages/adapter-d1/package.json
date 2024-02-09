@@ -40,7 +40,7 @@
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
     "async-mutex": "0.4.1",
-    "@cloudflare/workers-types": "4.20240129.0"
+    "@cloudflare/workers-types": "4.20240208.0"
   },
   "devDependencies": {},
   "peerDependencies": {}
