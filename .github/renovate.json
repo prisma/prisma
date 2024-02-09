@@ -179,7 +179,7 @@
     },
     {
       "groupName": "e2e tests",
-      "excludePackageNames": ["prisma", "@prisma/client"],
+      "excludePackageNames": ["typescript", "prisma", "@prisma/client"],
       "matchFileNames": ["packages/client/tests/e2e/**"]
     },
     {
