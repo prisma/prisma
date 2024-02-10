@@ -10,6 +10,11 @@ import { applyModel } from './applyModel'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
 
+// symbol we use for storing raw, unproxied
+// client instance, so we later can retrieve it
+// via `unapplyModels` methods
+const rawClient = Symbol()
+
 /**
  * Dynamically creates a model proxy interface for a give name. For each prop
  * accessed on this proxy, it will lookup the dmmf to find if that model exists.
@@ -18,7 +23,11 @@ import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
  * @returns a proxy to access models
  */
 export function applyModelsAndClientExtensions(client: Client) {
-  const layers = [modelsLayer(client), addProperty('$parent', () => client._appliedParent)]
+  const layers = [
+    modelsLayer(client),
+    addProperty(rawClient, () => client),
+    addProperty('$parent', () => client._appliedParent),
+  ]
   const clientExtensions = client._extensions.getAllClientExtensions()
   if (clientExtensions) {
     layers.push(addObjectProperties(clientExtensions))
@@ -59,4 +68,11 @@ function modelsLayer(client: Client): CompositeProxyLayer {
       return undefined
     },
   })
+}
+
+export function unApplyModelsAndClientExtensions(client: Client): Client {
+  if (client[rawClient]) {
+    return client[rawClient]
+  }
+  return client
 }

@@ -17,9 +17,7 @@ export function $extends(this: Client, extension: ExtensionArgs | ((client: Clie
   }
 
   const newClient = Object.create(this._originalClient, {
-    _extensions: {
-      value: this._extensions.append(extension),
-    },
+    _extensions: { value: this._extensions.append(extension) },
     _appliedParent: { value: this, configurable: true },
     $use: { value: undefined },
     $on: { value: undefined },

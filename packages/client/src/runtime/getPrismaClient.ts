@@ -36,7 +36,10 @@ import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
-import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
+import {
+  applyModelsAndClientExtensions,
+  unApplyModelsAndClientExtensions,
+} from './core/model/applyModelsAndClientExtensions'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import {
   checkAlter,
@@ -745,7 +748,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
       return applyModelsAndClientExtensions(
-        createCompositeProxy(this._originalClient, [
+        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
           addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
           addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
           addProperty(TX_ID, () => transaction.id),
