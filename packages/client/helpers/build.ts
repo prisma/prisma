@@ -158,6 +158,15 @@ const defaultIndexConfig: BuildOptions = {
   emitTypes: false,
 }
 
+const accelerateContractBuildConfig: BuildOptions = {
+  name: 'accelerate-contract',
+  entryPoints: ['src/runtime/core/engines/accelerate/AccelerateEngine.ts'],
+  outfile: '../accelerate-contract/dist/index',
+  format: 'cjs',
+  bundle: true,
+  emitTypes: true,
+}
+
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -174,6 +183,7 @@ void build([
   wasmBindgenRuntimeConfig('mysql'),
   wasmBindgenRuntimeConfig('sqlite'),
   defaultIndexConfig,
+  accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
 })

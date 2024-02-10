@@ -10,12 +10,21 @@ import fs from 'fs'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
 
-import { PrismaClientValidationError } from '.'
+import { devDependencies } from '../../package.json'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError,
+} from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
+import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
 import { WasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
+import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
+import { prismaGraphQLToJSError } from './core/errors/utils/prismaGraphQLToJSError'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
@@ -24,12 +33,10 @@ import { checkPlatformCaching } from './core/init/checkPlatformCaching'
 import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
+import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
-import {
-  applyModelsAndClientExtensions,
-  unApplyModelsAndClientExtensions,
-} from './core/model/applyModelsAndClientExtensions'
+import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import {
   checkAlter,
@@ -73,9 +80,7 @@ typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-export type Datasource = {
-  url?: string
-}
+export type Datasource = { url?: string }
 export type Datasources = { [name in string]: Datasource }
 
 export type PrismaClientOptions = {
@@ -299,11 +304,13 @@ export type Client = ReturnType<typeof getPrismaClient> extends new () => infer 
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
+    _originalClient = this
     _runtimeDataModel: RuntimeDataModel
     _requestHandler: RequestHandler
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
+    _accelerateEngineConfig: AccelerateEngineConfig
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
@@ -416,6 +423,22 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           logEmitter,
           isBundled: config.isBundled,
           adapter,
+        }
+
+        this._accelerateEngineConfig = {
+          ...this._engineConfig,
+          // share runtime utils to accelerate
+          accelerateUtils: {
+            resolveDatasourceUrl,
+            getBatchRequestPayload,
+            prismaGraphQLToJSError,
+            PrismaClientUnknownRequestError,
+            PrismaClientInitializationError,
+            PrismaClientKnownRequestError,
+            debug: Debug('prisma:client:accelerateEngine'),
+            engineVersion: devDependencies['@prisma/engines-version'],
+            clientVersion: config.clientVersion,
+          },
         }
 
         debug('clientVersion', config.clientVersion)
@@ -722,7 +745,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
       return applyModelsAndClientExtensions(
-        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+        createCompositeProxy(this._originalClient, [
           addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
           addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
           addProperty(TX_ID, () => transaction.id),

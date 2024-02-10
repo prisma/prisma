@@ -1,3 +1,7 @@
+const path = require('path')
+
+const project = path.resolve(process.cwd(), 'tsconfig.json')
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -9,7 +13,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./tsconfig.json'],
+    project,
   },
   overrides: [
     {
