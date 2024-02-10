@@ -1,6 +1,7 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
+import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
@@ -10,7 +11,6 @@ import fs from 'fs'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
 
-import { devDependencies } from '../../package.json'
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
@@ -439,7 +439,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             PrismaClientInitializationError,
             PrismaClientKnownRequestError,
             debug: Debug('prisma:client:accelerateEngine'),
-            engineVersion: devDependencies['@prisma/engines-version'],
+            engineVersion: enginesVersion,
             clientVersion: config.clientVersion,
           },
         }
