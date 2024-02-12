@@ -57,8 +57,10 @@ const topProps = {
   },
   log: (...args: string[]) => {
     const [ns, format, ...rest] = args
+    const logger = console.warn ?? console.log
+
     // concat `ns`+`format` because console only formats first arg
-    console.warn(`${ns} ${format}`, ...rest)
+    logger(`${ns} ${format}`, ...rest)
   },
   formatters: {}, // not implemented
 }
