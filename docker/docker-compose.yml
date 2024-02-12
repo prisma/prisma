@@ -75,7 +75,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:c1c98010cfcfd6102fd13e024e540d9b347fc87afef658e4778a41b6311e3a5a
+    image: vitess/vttestserver:mysql80@sha256:09b830a2d990c262e8e6e278be1481f438c9686e193d22bc8ff1edeec2990e89
     restart: unless-stopped
     ports:
       - 33807:33807
@@ -170,11 +170,10 @@ services:
       interval: 5s
       timeout: 2s
       retries: 20
-
-  mongodb_migrate_seed:
-    build: ./mongodb_migrate_seed
-    depends_on:
-      - mongodb_migrate
+      start_period: 20s
+    volumes:
+      - ./mongodb_migrate_seed:/mongodb_migrate_seed
+      - ./mongodb_migrate_seed:/docker-entrypoint-initdb.d
 
   # This config is for MongoDB v4
   # It's a Replica Set (required for Prisma Client)

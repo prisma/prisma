@@ -23,7 +23,7 @@ async function run(benchmarks: string[]) {
 
   for (const location of benchmarks) {
     try {
-      await execa.command(`node -r esbuild-register ${location}`, {
+      await execa.command(`pnpm tsx ${location}`, {
         stdio: 'inherit',
       })
     } catch (e) {

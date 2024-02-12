@@ -23,8 +23,8 @@
     "directory": "packages/adapter-d1"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts"
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts"
   },
   "files": [
     "dist",
@@ -39,8 +39,8 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "async-mutex": "0.4.0",
-    "@cloudflare/workers-types": "4.20240129.0"
+    "async-mutex": "0.4.1",
+    "@cloudflare/workers-types": "4.20240208.0"
   },
   "devDependencies": {},
   "peerDependencies": {}

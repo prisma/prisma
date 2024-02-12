@@ -1,7 +1,21 @@
 import { $ } from 'zx'
 
 void (async () => {
-  const projects = ['da-workers-neon', 'da-workers-planetscale', 'da-workers-pg', 'da-workers-libsql', 'da-workers-d1']
+  const postgresProjects = ['da-workers-neon', 'da-workers-pg']
+  const sqliteProjects = ['da-workers-libsql', 'da-workers-d1']
+  const mysqlProjects = ['da-workers-planetscale']
+
+  const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects]
+
+  const getSchemaFile = (project: string) => {
+    if (postgresProjects.includes(project)) {
+      return `${__dirname}/schema.postgres.prisma`
+    }
+    if (mysqlProjects.includes(project)) {
+      return `${__dirname}/schema.mysql.prisma`
+    }
+    return `${__dirname}/schema.sqlite.prisma`
+  }
 
   await $`pnpm install` // needs this for `pnpm prisma`
 
@@ -12,7 +26,7 @@ void (async () => {
 
     // Install deps & copy schema & generate Prisma Client
     await $`cd ${projectDir}`
-    await $`cp ${__dirname}/schema.prisma ${projectDir}/schema.prisma`
+    await $`cp ${getSchemaFile(project)} ${projectDir}/schema.prisma`
     await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`
 
     // Delete existing output (if it exists)
