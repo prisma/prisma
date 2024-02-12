@@ -12,7 +12,7 @@ test('is schema and env written on disk replace', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema())
+  expect(schema).toMatch(stripAnsi(defaultSchema()))
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -26,9 +26,11 @@ test('works with url param', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      datasourceProvider: 'sqlite',
-    }),
+    stripAnsi(
+      defaultSchema({
+        datasourceProvider: 'sqlite',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 
@@ -51,9 +53,11 @@ test('works with provider param - postgresql', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      datasourceProvider: 'postgresql',
-    }),
+    stripAnsi(
+      defaultSchema({
+        datasourceProvider: 'postgresql',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 
@@ -76,9 +80,11 @@ test('works with provider param - cockroachdb', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      datasourceProvider: 'cockroachdb',
-    }),
+    stripAnsi(
+      defaultSchema({
+        datasourceProvider: 'cockroachdb',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 
@@ -107,9 +113,11 @@ test('works with provider and url params - cockroachdb', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      datasourceProvider: 'cockroachdb',
-    }),
+    stripAnsi(
+      defaultSchema({
+        datasourceProvider: 'cockroachdb',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 
@@ -132,9 +140,11 @@ test('works with provider param - mysql', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      datasourceProvider: 'mysql',
-    }),
+    stripAnsi(
+      defaultSchema({
+        datasourceProvider: 'mysql',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 
@@ -157,9 +167,11 @@ test('works with provider param - SQLITE', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      datasourceProvider: 'sqlite',
-    }),
+    stripAnsi(
+      defaultSchema({
+        datasourceProvider: 'sqlite',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 
@@ -182,9 +194,11 @@ test('works with provider param - SqlServer', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      datasourceProvider: 'sqlserver',
-    }),
+    stripAnsi(
+      defaultSchema({
+        datasourceProvider: 'sqlserver',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 
@@ -207,9 +221,11 @@ test('works with provider param - MongoDB', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      datasourceProvider: 'mongodb',
-    }),
+    stripAnsi(
+      defaultSchema({
+        datasourceProvider: 'mongodb',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 
@@ -238,9 +254,11 @@ test('works with generator param - `go run github.com/steebchen/prisma-client-go
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      generatorProvider: 'go run github.com/steebchen/prisma-client-go',
-    }),
+    stripAnsi(
+      defaultSchema({
+        generatorProvider: 'go run github.com/steebchen/prisma-client-go',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 })
@@ -252,9 +270,11 @@ test('works with preview features - mock test', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      previewFeatures: ['mock-123'],
-    }),
+    stripAnsi(
+      defaultSchema({
+        previewFeatures: ['mock-123'],
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 })
@@ -266,9 +286,11 @@ test('works with preview features - multiple', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      previewFeatures: ['mock-123', 'mock-456'],
-    }),
+    stripAnsi(
+      defaultSchema({
+        previewFeatures: ['mock-123', 'mock-456'],
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 })
@@ -280,9 +302,11 @@ test('works with custom output', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
-    defaultSchema({
-      output: './db',
-    }),
+    stripAnsi(
+      defaultSchema({
+        output: './db',
+      }),
+    ),
   )
   expect(schema).toMatchSnapshot()
 })
@@ -293,7 +317,7 @@ test('warns when DATABASE_URL present in .env ', async () => {
   expect(stripAnsi(result.all!)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema())
+  expect(schema).toMatch(stripAnsi(defaultSchema()))
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -306,7 +330,7 @@ test('appends when .env present', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema())
+  expect(schema).toMatch(stripAnsi(defaultSchema()))
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')

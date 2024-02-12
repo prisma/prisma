@@ -32,9 +32,16 @@ export const defaultSchema = (props?: {
     previewFeatures = defaultPreviewFeatures,
     output = defaultOutput,
   } = props || {}
+
+  const aboutAccelerate = `\n// Deploying your app to serverless or edge functions?
+// Try Prisma Accelerate for connection pooling and caching.
+// ${link('https://pris.ly/cli/accelerate')}\n`
+
+  const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
+
   return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+${isProviderCompatibleWithAccelerate ? aboutAccelerate : ''}
 generator client {
   provider = "${generatorProvider}"
 ${
