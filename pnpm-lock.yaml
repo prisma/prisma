@@ -96,8 +96,8 @@ importers:
         specifier: 4.2.1
         version: 4.2.1(eslint-config-prettier@9.1.0)(eslint@8.56.0)(prettier@2.8.8)
       eslint-plugin-simple-import-sort:
-        specifier: 10.0.0
-        version: 10.0.0(eslint@8.56.0)
+        specifier: 12.0.0
+        version: 12.0.0(eslint@8.56.0)
       execa:
         specifier: 5.1.1
         version: 5.1.1
@@ -162,8 +162,8 @@ importers:
         specifier: 2.4.0
         version: 2.4.0
       spdx-license-ids:
-        specifier: 3.0.16
-        version: 3.0.16
+        specifier: 3.0.17
+        version: 3.0.17
       staged-git-files:
         specifier: 1.3.0
         version: 1.3.0
@@ -174,8 +174,8 @@ importers:
         specifier: 9.6.0
         version: 9.6.0
       tsx:
-        specifier: 4.7.0
-        version: 4.7.0
+        specifier: 4.7.1
+        version: 4.7.1
       typescript:
         specifier: 5.3.3
         version: 5.3.3
@@ -268,8 +268,8 @@ importers:
         version: link:../driver-adapter-utils
     devDependencies:
       '@planetscale/database':
-        specifier: 1.15.0
-        version: 1.15.0
+        specifier: 1.16.0
+        version: 1.16.0
       '@swc/core':
         specifier: 1.4.0
         version: 1.4.0
@@ -295,8 +295,8 @@ importers:
         specifier: 0.8.1
         version: 0.8.1
       '@planetscale/database':
-        specifier: 1.15.0
-        version: 1.15.0
+        specifier: 1.16.0
+        version: 1.16.0
       '@prisma/adapter-d1':
         specifier: workspace:*
         version: link:../adapter-d1
@@ -515,8 +515,8 @@ importers:
         specifier: 1.21.0
         version: 1.21.0
       '@planetscale/database':
-        specifier: 1.15.0
-        version: 1.15.0
+        specifier: 1.16.0
+        version: 1.16.0
       '@prisma/adapter-d1':
         specifier: workspace:*
         version: link:../adapter-d1
@@ -542,8 +542,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
-        version: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
+        specifier: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
+        version: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -566,8 +566,8 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/query-engine-wasm':
-        specifier: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
-        version: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
+        specifier: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
+        version: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -743,8 +743,8 @@ importers:
         specifier: 5.28.3
         version: 5.28.3
       wrangler:
-        specifier: 3.28.0
-        version: 3.28.0
+        specifier: 3.28.1
+        version: 3.28.1
       wrangler-proxy:
         specifier: 2.2.7
         version: 2.2.7
@@ -798,8 +798,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
-        version: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
+        specifier: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
+        version: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -835,8 +835,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
-        version: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
+        specifier: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
+        version: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1160,8 +1160,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
-        version: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
+        specifier: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
+        version: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1317,8 +1317,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
-        version: 5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20
+        specifier: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
+        version: 5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1399,8 +1399,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       mongoose:
-        specifier: 8.1.1
-        version: 8.1.1
+        specifier: 8.1.2
+        version: 8.1.2
       mssql:
         specifier: 10.0.2
         version: 10.0.2
@@ -3406,12 +3406,12 @@ packages:
     resolution: {integrity: sha512-lkC8kZYntxVKr7b8xmjCVUgE0a8xgDakPyDo9uSWavXPyYqLgYYGdEd2j8NxihRyb6UwpX3G/hFUF4/9q2V+/g==}
     engines: {node: '>=14'}
 
-  /@planetscale/database@1.15.0:
-    resolution: {integrity: sha512-X4GmGGKE3o6tj/FM+ElDdyVb9BI8Y2OSSeOtyW/gCmVS0XLs4tTppg0cVLL89CS+awEhIIYXFDwqT3a7pbYROg==}
+  /@planetscale/database@1.16.0:
+    resolution: {integrity: sha512-HNUrTqrd8aTRZYMDcsoZ62s36sIWkMMmKZBOehoCWR2WrfNPKq+Q1yQef5okl3pSVlldFnu2h/dbHjOsDTHXug==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20:
-    resolution: {integrity: sha512-Th8dGbwrjVj2dgZJpXMGeT5uq0AsB9fnrqOj/wSsO/NcccBTpXdM7SPXzqcnHwCDjLTUXBqym1R6q/EWb90gTA==}
+  /@prisma/engines-version@5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421:
+    resolution: {integrity: sha512-Pir8elbvo9e/KJatNuNYCKd6HXsRG2Xfmg39QtNisyB/IoQhbjbYbxhmHVZo1KsgRVbyEYSX/1nWq5hpll8FMw==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3419,12 +3419,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20:
-    resolution: {integrity: sha512-oZUtBu2E28sa5BtRiSwXxgJOXrPoeNfxTeYo5f5wCH/xP54Edjmsac4DqwbxoundyvWgGPGi9IIOR4dU1l0DkA==}
+  /@prisma/prisma-schema-wasm@5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421:
+    resolution: {integrity: sha512-2y1NfEH2wq5DY6yXY7R5UpF87K1DzVP7qSgZUfcxVgqwwYXdi4L2dcQtH7xCYfzuxq+ii3d8JQe8u5oRtded9Q==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20:
-    resolution: {integrity: sha512-WvqCbgjcFBsKsRpI/F3TvWlT7ZcGv7kMOd1m6aSPZncmoGTAG6RJQCaurnpV8lrm7nqsbTpMEchdS971v99XfQ==}
+  /@prisma/query-engine-wasm@5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421:
+    resolution: {integrity: sha512-vnmRKakP6RV07op6paw7PjjHpsukcWSQzbSrCBkufIHMc10cgAStHNxxyayeq3cHxKGDxvp+T4r4+En2XJf40A==}
     dev: true
 
   /@prisma/studio-common@0.498.0:
@@ -6232,8 +6232,8 @@ packages:
       prettier-linter-helpers: 1.0.0
     dev: true
 
-  /eslint-plugin-simple-import-sort@10.0.0(eslint@8.56.0):
-    resolution: {integrity: sha512-AeTvO9UCMSNzIHRkg8S6c3RPy5YEwKWSQPx3DYghLedo2ZQxowPFLGDN1AZ2evfg6r6mjBSZSLxLFsWSu3acsw==}
+  /eslint-plugin-simple-import-sort@12.0.0(eslint@8.56.0):
+    resolution: {integrity: sha512-8o0dVEdAkYap0Cn5kNeklaKcT1nUsa3LITWEuFk3nJifOoD+5JQGoyDUW2W/iPWwBsNBJpyJS9y4je/BgxLcyQ==}
     peerDependencies:
       eslint: '>=5.0.0'
     dependencies:
@@ -8880,8 +8880,8 @@ packages:
       mongodb-connection-string-url: 3.0.0
     dev: true
 
-  /mongoose@8.1.1:
-    resolution: {integrity: sha512-DbLb0NsiEXmaqLOpEz+AtAsgwhRw6f25gwa1dF5R7jj6lS1D8X6uTdhBSC8GDVtOwe5Tfw2EL7nTn6hiJT3Bgg==}
+  /mongoose@8.1.2:
+    resolution: {integrity: sha512-5KMq7k6KmFCIB8/YMKMFsWdsdNkBwuARDRHDRpp5GKC78eT0LwHIaMEKo6gDUg3zBuMoy9OdcM/6f4dkW06C/A==}
     engines: {node: '>=16.20.1'}
     dependencies:
       bson: 6.2.0
@@ -10338,7 +10338,7 @@ packages:
     resolution: {integrity: sha512-cOYcUWwhCuHCXi49RhFRCyJEK3iPj1Ziz9DpViV3tbZOwXD49QzIN3MpOLJNxh2qwq2lJJZaKMVw9qNi4jTC0w==}
     dependencies:
       spdx-expression-parse: 3.0.1
-      spdx-license-ids: 3.0.16
+      spdx-license-ids: 3.0.17
     dev: true
 
   /spdx-exceptions@2.4.0:
@@ -10349,11 +10349,11 @@ packages:
     resolution: {integrity: sha512-cbqHunsQWnJNE6KhVSMsMeH5H/L9EpymbzqTQ3uLwNCLZ1Q481oWaofqH7nO6V07xlXwY6PhQdQ2IedWx/ZK4Q==}
     dependencies:
       spdx-exceptions: 2.4.0
-      spdx-license-ids: 3.0.16
+      spdx-license-ids: 3.0.17
     dev: true
 
-  /spdx-license-ids@3.0.16:
-    resolution: {integrity: sha512-eWN+LnM3GR6gPu35WxNgbGl8rmY1AEmoMDvL/QD6zYmPWgywxWqJWNdLGT+ke8dKNWrcYgYjPpG5gbTfghP8rw==}
+  /spdx-license-ids@3.0.17:
+    resolution: {integrity: sha512-sh8PWc/ftMqAAdFiBu6Fy6JUOYjqDJBJvIhpfDMyHrr0Rbp5liZqd4TjtQ/RgfLjKFZb+LMx5hpml5qOWy0qvg==}
     dev: true
 
   /split2@4.1.0:
@@ -10959,8 +10959,8 @@ packages:
       typescript: 5.3.3
     dev: true
 
-  /tsx@4.7.0:
-    resolution: {integrity: sha512-I+t79RYPlEYlHn9a+KzwrvEwhJg35h/1zHsLC2JXvhC2mdynMv6Zxzvhv5EMV6VF5qJlLlkSnMVvdZV3PSIGcg==}
+  /tsx@4.7.1:
+    resolution: {integrity: sha512-8d6VuibXHtlN5E3zFkgY8u4DX7Y3Z27zvvPKVmLon/D4AjuKzarkUBTLDBgj9iTQ0hg5xM7c/mYiRVM+HETf0g==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     dependencies:
@@ -11402,6 +11402,39 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: false
+
+  /wrangler@3.28.1:
+    resolution: {integrity: sha512-3O8vCzd7IC71Kciu/+oDVO0VZ83ujlUuKwmCkv6/zzt4WAoYu0vk7PyEo4WvlsSbZL8aHuv3bS917rd6TM1/9Q==}
+    engines: {node: '>=16.17.0'}
+    hasBin: true
+    peerDependencies:
+      '@cloudflare/workers-types': ^4.20230914.0
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.2.0
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      chokidar: 3.6.0
+      esbuild: 0.17.19
+      miniflare: 3.20240129.1
+      nanoid: 3.3.7
+      path-to-regexp: 6.2.1
+      resolve: 1.22.8
+      resolve.exports: 2.0.2
+      selfsigned: 2.4.1
+      source-map: 0.6.1
+      xxhash-wasm: 1.0.2
+    optionalDependencies:
+      fsevents: 2.3.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: true
 
   /wrap-ansi@6.2.0:
     resolution: {integrity: sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==}

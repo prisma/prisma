@@ -39,7 +39,7 @@
     "log-update": "4.0.0",
     "mariadb": "3.2.3",
     "mock-stdin": "1.0.0",
-    "mongoose": "8.1.1",
+    "mongoose": "8.1.2",
     "mssql": "10.0.2",
     "ora": "5.4.1",
     "pg": "8.11.3",
@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.10.0-12.c3c9c6a33ff8b3ac40479ea0da12a09ee80dde20",
+    "@prisma/engines-version": "5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
