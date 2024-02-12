@@ -799,7 +799,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(
     action: 'start',
     headers: Tx.TransactionHeaders,
-    options?: Tx.Options,
+    options: Tx.Options,
   ): Promise<Tx.InteractiveTransactionInfo<undefined>>
   async transaction(
     action: 'commit',
@@ -816,9 +816,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-        isolation_level: arg?.isolationLevel,
+        max_wait: arg.maxWait,
+        timeout: arg.timeout,
+        isolation_level: arg.isolationLevel,
       })
 
       const result = await Connection.onHttpError(

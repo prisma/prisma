@@ -126,7 +126,7 @@ export class LibraryEngine implements Engine<undefined> {
   async transaction(
     action: 'start',
     headers: Tx.TransactionHeaders,
-    options?: Tx.Options,
+    options: Tx.Options,
   ): Promise<Tx.InteractiveTransactionInfo<undefined>>
   async transaction(
     action: 'commit',
@@ -146,9 +146,9 @@ export class LibraryEngine implements Engine<undefined> {
     let result: string | undefined
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-        isolation_level: arg?.isolationLevel,
+        max_wait: arg.maxWait,
+        timeout: arg.timeout,
+        isolation_level: arg.isolationLevel,
       })
 
       result = await this.engine?.startTransaction(jsonOptions, headerStr)
