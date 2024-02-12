@@ -1,8 +1,9 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 
 import {
+  argOrThrow,
   getPlatformTokenOrThrow,
-  getRequiredParameter,
+  getRequiredParameterOrThrow,
   platformParameters,
   platformRequestOrThrow,
   successMessage,
@@ -14,28 +15,36 @@ export class Disable implements Command {
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
-      ...platformParameters.project,
+    const args = argOrThrow(argv, {
+      ...platformParameters.environment,
     })
-    if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
+    const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
 
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-    const project = getRequiredParameter(args, ['--project', '-p'])
-    if (isError(project)) return project
-    const payload = await platformRequestOrThrow<{ data: {}; error: null | { message: string } }>({
+    await platformRequestOrThrow<
+      {
+        accelerateDisable: {
+          __typename: 'SideEffectConfirmation'
+        }
+      },
+      { environmentId: string }
+    >({
       token,
-      path: `/${workspace}/${project}/accelerate/settings`,
-      route: '_app.$organizationId_.$projectId.accelerate.settings',
-      payload: {
-        intent: 'disable',
-        projectId: project,
+      body: {
+        query: /* GraphQL */ `
+          mutation(input: { $environmentId: ID! }) {
+            accelerateDisable(input: $input) {
+              __typename
+              ...on 
+            }
+          }
+        `,
+        variables: {
+          input: { environmentId },
+        },
       },
     })
-    if (payload.error?.message) {
-      throw new Error(payload.error.message)
-    }
+
     return successMessage(
       `Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
     )

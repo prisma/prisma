@@ -1,23 +1,22 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 
 import {
+  argOrThrow,
   getOptionalParameter,
   getPlatformTokenOrThrow,
-  getRequiredParameter,
+  getRequiredParameterOrThrow,
   platformParameters,
   platformRequestOrThrow,
   successMessage,
 } from '../../utils/platform'
 
-type Payload =
-  | { data: { id: string; createdAt: string; displayName: string }; error: null }
-  | {
-      data: null
-      error: {
-        name: string
-        message: string
-      }
-    }
+interface Payload {
+  createProject: { __typename: 'Project'; id: string; createdAt: string; displayName: string }
+}
+interface Input {
+  workspaceId: string
+  displayName?: string
+}
 
 export class Create implements Command {
   public static new(): Create {
@@ -25,29 +24,42 @@ export class Create implements Command {
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
+    const args = argOrThrow(argv, {
       ...platformParameters.workspace,
       '--name': String,
       '-n': '--name',
     })
-    if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-
+    const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
 
-    const payload = await platformRequestOrThrow<Payload>({
+    const { createProject } = await platformRequestOrThrow<Payload, Input>({
       token,
-      path: `/${workspace}/overview/create`,
-      route: '_app.$organizationId.overview.create',
-      payload: {
-        displayName,
+      body: {
+        query: /* graphql */ `
+          mutation CreateProject($input: { $workspaceId: ID!, $displayName: String }) {
+            createProject(input:$input) {
+              __typename
+              ...on Error {
+                message
+              }
+              ...on Project {
+                id
+                createdAt
+                displayName
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            workspaceId,
+            displayName,
+          },
+        },
       },
     })
-    if (payload.error) throw new Error(`${payload.error.name}: ${payload.error.message}`)
 
-    return successMessage(`Project ${payload.data.displayName} - ${payload.data.id} created.`)
+    return successMessage(`Project ${createProject.displayName} - ${createProject.id} created.`)
   }
 }

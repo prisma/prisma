@@ -4,7 +4,7 @@ import {
   generateConnectionString,
   getOptionalParameter,
   getPlatformTokenOrThrow,
-  getRequiredParameter,
+  getRequiredParameterOrThrow,
   platformParameters,
   platformRequestOrThrow,
   successMessage,
@@ -17,41 +17,46 @@ export class Enable implements Command {
 
   public async parse(argv: string[]) {
     const args = arg(argv, {
-      ...platformParameters.project,
+      // todo this is actually databaseLinkId in api right now
+      ...platformParameters.environment,
       '--url': String,
-      '--apikey': Boolean,
+      '--serviceToken': Boolean,
       '--region': String,
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-    const project = getRequiredParameter(args, ['--project', '-p'])
-    if (isError(project)) return project
-    const url = getRequiredParameter(args, ['--url'])
-    if (isError(url)) return url
-    const apikey = getOptionalParameter(args, ['--apikey'])
-    if (isError(apikey)) return apikey
+    const url = getRequiredParameterOrThrow(args, ['--url'])
+    url // todo
+    const databaseLinkId = 'todo'
+    const serviceToken = getOptionalParameter(args, ['--serviceToken'])
     // region won't be used in this first iteration
-    const _region = getOptionalParameter(args, ['--region'])
-    if (isError(_region)) return _region
+    // const _region = getOptionalParameter(args, ['--region'])
 
-    const accelerateSetupPayload = await platformRequestOrThrow<{
-      data: {}
-      error: { message: string } | null
-    }>({
+    await platformRequestOrThrow<
+      {
+        accelerateEnable: {}
+      },
+      { databaseLinkId: string }
+    >({
       token,
-      path: `/${workspace}/${project}/accelerate/setup`,
-      route: '_app.$organizationId_.$projectId.accelerate.setup',
-      payload: {
-        intent: 'enable',
-        connectionString: url,
+      body: {
+        query: /* GraphQL */ `
+          mutation ($input: { databaseLinkId: String! }) {
+            accelerateEnable(input: $input) {
+              __typename
+              ... on Error {
+                message
+              }
+            }
+          }
+        `,
+        variables: {
+          input: { databaseLinkId },
+        },
       },
     })
-    if (accelerateSetupPayload.error) {
-      throw new Error(accelerateSetupPayload.error.message)
-    }
-    if (apikey) {
+
+    if (serviceToken) {
       const payload = await platformRequestOrThrow<{
         data: {
           tenantAPIKey: string

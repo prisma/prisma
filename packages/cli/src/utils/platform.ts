@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
-import { Commands, format, getCommandWithExecutor, HelpError, isError, link } from '@prisma/internals'
+import { arg, Commands, format, getCommandWithExecutor, HelpError, isError, link } from '@prisma/internals'
+import Arg from 'arg'
 import fs from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
 import fetch, { Headers } from 'node-fetch'
@@ -27,6 +28,11 @@ export const platformParameters = {
     '--project': String,
     '-p': '--project',
   },
+  environment: {
+    '--token': String,
+    '--environment': String,
+    '-e': '--environment',
+  },
 } as const
 
 export const getOptionalParameter = <$Args extends Record<string, unknown>, $Names extends (keyof $Args)[]>(
@@ -47,6 +53,12 @@ export const getOptionalParameter = <$Args extends Record<string, unknown>, $Nam
   return (entry?.[1] ?? undefined) as any
 }
 
+export function argOrThrow<T extends Arg.Spec>(argv: string[], spec: T): Arg.Result<T> {
+  const args = arg(argv, spec)
+  if (isError(args)) throw args
+  return args
+}
+
 export const getRequiredParameter = <$Args extends Record<string, unknown>, $Names extends (keyof $Args)[]>(
   args: $Args,
   names: $Names,
@@ -57,11 +69,30 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
   return value
 }
 
+export const getRequiredParameterOrThrow = <$Args extends Record<string, unknown>, $Names extends (keyof $Args)[]>(
+  args: $Args,
+  names: $Names,
+  environmentVariable?: string,
+): Exclude<$Args[$Names[number]], undefined> => {
+  const value = getRequiredParameter(args, names, environmentVariable)
+  if (value instanceof Error) throw new Error(`Missing ${names.join(' or ')} parameter`)
+  return value
+}
+
 export const ErrorPlatformUnauthorized = new Error(
   `No platform credentials found. Run ${green(
     getCommandWithExecutor('prisma platform login'),
   )} first. Alternatively you can provide a token via the \`--token\` or \`-t\` parameters, or set the 'PRISMA_TOKEN' environment variable with a token.`,
 )
+
+export type PlatformError<$Types extends string = string> = {
+  __typename: $Types
+  message: string
+}
+
+export const errorFromPlatformError = (error: PlatformError): Error => {
+  return new Error(error.message)
+}
 
 export const getPlatformTokenOrThrow = async <$Args extends Record<string, unknown>>(args: $Args) => {
   try {
@@ -79,12 +110,8 @@ export const getPlatformTokenOrThrow = async <$Args extends Record<string, unkno
   }
 }
 
-/**
- * @remark
- * For the time being, console and api url are the same. This will change in the future.
- */
-export const platformConsoleUrl = 'https://console.prisma.io'
-const platformAPIBaseURL = 'https://console.prisma.io/'
+export const platformConsoleUrl = new URL('https://console.prisma.io')
+const platformAPIEndpoint = new URL('http://localhost:8788/api')
 const accelerateConnectionStringUrl = 'prisma://accelerate.prisma-data.net'
 /**
  *
@@ -94,36 +121,42 @@ const accelerateConnectionStringUrl = 'prisma://accelerate.prisma-data.net'
  *    It could be interesting to set a default timeout because it's not part of fetch spec, see:
  *    npmjs.com/package/node-fetch#request-cancellation-with-abortsignal
  */
-export const platformRequestOrThrow = async <$Data extends object = object>(params: {
-  route: string
+export const platformRequestOrThrow = async <
+  $Data extends object = object,
+  $Input extends null | object = null,
+>(params: {
   token: string
-  path: string
-  payload?: object
+  body: $Input extends null
+    ? {
+        query: string
+        variables?: undefined
+      }
+    : {
+        query: string
+        variables: { input: $Input }
+      }
 }): Promise<$Data> => {
-  const { path, payload, token, route } = params
-  const apiPath = `${path.replace(/^\//, '')}?_data=routes/${route}`
-  const url = new URL(apiPath, platformAPIBaseURL)
-
+  const method = 'POST'
   const headers = new Headers({
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-    // For how to format it
+    Authorization: `Bearer ${params.token}`,
     // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
     'User-Agent': `${PRISMA_CLI_NAME}/${PRISMA_CLI_VERSION}`,
   })
-  const response = await fetch(url, {
-    method: payload ? 'POST' : 'GET',
-    headers,
-    body: payload ? JSON.stringify(payload) : undefined,
-  })
+  const body = JSON.stringify(params.body)
+  const response = await fetch(platformAPIEndpoint.href, { method, headers, body })
   const text = await response.text()
+  if (response.status >= 400) throw new Error(text)
 
-  if (response.status >= 400) {
-    throw new Error(text)
-  }
+  const json = JSON.parse(text) as { data: $Data; error: null | object }
+  if (json.error) throw new Error(`Error from PDP Platform API: ${text}`)
 
-  const json = JSON.parse(text || '""')
-  return json
+  const error = Object.values(json).filter(
+    (_): _ is { __typename: string } => typeof _ === 'object' && _ !== null && _['__typename']?.startsWith('Error'),
+  )[0]
+  if (error) throw errorFromPlatformError({ message: '<message not selected from server>', ...error })
+
+  return json.data
 }
 
 export const dispatchToSubCommand = async (commands: Commands, argv: string[]) => {

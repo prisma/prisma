@@ -1,5 +1,5 @@
 export * from './$'
-export * from './accelerate'
+export * from './accelerate/*Accelerate'
 export * from './auth/*Auth'
 export * from './auth/login'
 export * from './auth/logout'

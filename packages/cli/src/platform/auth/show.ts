@@ -1,7 +1,7 @@
-import { arg, Command, formatTable, isError } from '@prisma/internals'
+import { Command, formatTable } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
-import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import { argOrThrow, getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
 
 export class Show implements Command {
   public static new(): Show {
@@ -9,24 +9,38 @@ export class Show implements Command {
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
-      ...platformParameters.global,
-    })
-    if (isError(args)) return args
+    const args = argOrThrow(argv, { ...platformParameters.global })
     const token = await getPlatformTokenOrThrow(args)
-    const payload = await platformRequestOrThrow<{
-      user: { id: string; handle: string; email: string; displayName: string }
+    const { me } = await platformRequestOrThrow<{
+      me: {
+        user: {
+          id: string
+          handle: string
+          email: string
+          displayName: string
+        }
+      }
     }>({
       token,
-      path: `/settings/account`,
-      route: '_app._user.settings.account',
+      body: {
+        query: /* graphql */ `
+          {
+            me {
+              user {
+                id
+                email
+                displayName
+              }
+            }
+          }
+        `,
+      },
     })
-    console.info(`Currently authenticated as ${green(payload.user.email)}\n`)
+    console.info(`Currently authenticated as ${green(me.user.email)}\n`)
     return formatTable([
-      ['id', payload.user.id],
-      ['handle', payload.user.handle],
-      ['email', payload.user.email],
-      ['displayName', payload.user.displayName],
+      ['id', me.user.id],
+      ['email', me.user.email],
+      ['displayName', me.user.displayName],
     ])
   }
 }
