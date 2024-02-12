@@ -26,7 +26,7 @@ import type {
 import { RequestError } from '../common/types/RequestError'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
-import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
+import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
@@ -294,10 +294,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         duration: Number(event.duration_ms),
         target: event.module_path,
       })
-    } else if (isPanicEvent(event)) {
+    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm') {
       // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
-        this.getErrorMessageWithLink(
+        getErrorMessageWithLink(
+          this,
           `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
         ),
         this.config.clientVersion!,
@@ -309,17 +310,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         target: event.module_path,
       })
     }
-  }
-
-  private getErrorMessageWithLink(title: string) {
-    return getErrorMessageWithLink({
-      binaryTarget: this.binaryTarget,
-      title,
-      version: this.config.clientVersion!,
-      engineVersion: this.versionInfo?.commit,
-      database: this.config.activeProvider as any,
-      query: this.lastQuery!,
-    })
   }
 
   private parseInitError(str: string): SyncRustError | string {
@@ -472,8 +462,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (e instanceof PrismaClientInitializationError) {
         throw e
       }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:')) {
-        throw new PrismaClientRustPanicError(this.getErrorMessageWithLink(e.message), this.config.clientVersion!)
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
+        throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
       }
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
@@ -533,9 +523,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private buildQueryError(error: RequestError) {
-    if (error.user_facing_error.is_panic) {
+    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm') {
       return new PrismaClientRustPanicError(
-        this.getErrorMessageWithLink(error.user_facing_error.message),
+        getErrorMessageWithLink(this, error.user_facing_error.message),
         this.config.clientVersion!,
       )
     }
@@ -570,4 +560,15 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
 function isUserFacingError(e: unknown): e is RequestError['user_facing_error'] {
   return typeof e === 'object' && e !== null && e['error_code'] !== undefined
+}
+
+function getErrorMessageWithLink(engine: LibraryEngine, title: string) {
+  return genericGetErrorMessageWithLink({
+    binaryTarget: engine.binaryTarget,
+    title,
+    version: engine.config.clientVersion!,
+    engineVersion: engine.versionInfo?.commit,
+    database: engine.config.activeProvider as any,
+    query: engine.lastQuery!,
+  })
 }
