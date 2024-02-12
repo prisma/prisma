@@ -178,14 +178,15 @@
       "matchPackagePatterns": ["^esbuild"]
     },
     {
-      "groupName": "e2e ts-version tests",
-      "excludePackageNames": ["typescript"],
-      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
+      "groupName": "e2e tests",
+      "excludePackageNames": ["typescript", "prisma", "@prisma/client"],
+      "matchFileNames": ["packages/client/tests/e2e/**"]
     },
     {
-      "groupName": "e2e tests",
-      "excludePackageNames": ["prisma", "@prisma/client"],
-      "matchFileNames": ["packages/client/tests/e2e/**", "!packages/client/tests/e2e/ts-version/**"]
+      "groupName": "e2e ts-version tests",
+      "matchPackageNames": ["typescript"],
+      "automerge": true,
+      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
     },
     {
       "groupName": "Weekly vitess docker image version update",
