@@ -20,9 +20,8 @@ exports[`appends when .env present 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -68,9 +67,8 @@ exports[`is schema and env written on disk replace 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -105,9 +103,8 @@ exports[`warns when DATABASE_URL present in .env  2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -140,9 +137,8 @@ exports[`works with custom output 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -176,9 +172,8 @@ exports[`works with generator param - \`go run github.com/steebchen/prisma-clien
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "go run github.com/steebchen/prisma-client-go"
@@ -211,9 +206,8 @@ exports[`works with preview features - mock test 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -247,9 +241,8 @@ exports[`works with preview features - multiple 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -282,9 +275,8 @@ exports[`works with provider and url params - cockroachdb 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -316,9 +308,8 @@ exports[`works with provider param - MongoDB 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -380,9 +371,8 @@ exports[`works with provider param - SqlServer 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -414,9 +404,8 @@ exports[`works with provider param - cockroachdb 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -448,9 +437,8 @@ exports[`works with provider param - mysql 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -482,9 +470,8 @@ exports[`works with provider param - postgresql 2`] = `
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// https://pris.ly/cli/accelerate
+// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"

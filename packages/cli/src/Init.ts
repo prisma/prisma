@@ -33,9 +33,8 @@ export const defaultSchema = (props?: {
     output = defaultOutput,
   } = props || {}
 
-  const aboutAccelerate = `\n// Deploying your app to serverless or edge functions?
-// Try Prisma Accelerate for connection pooling and caching.
-// ${link('https://pris.ly/cli/accelerate')}\n`
+  const aboutAccelerate = `\n// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n`
 
   const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
 
