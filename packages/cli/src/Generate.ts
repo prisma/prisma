@@ -18,7 +18,6 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  serializeSchemaToBytes,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import fs from 'fs'
@@ -137,7 +136,6 @@ ${bold('Examples')}
 
     // TODO Extract logic from here
     let hasJsClient: boolean = false
-    let usesWasmEngineType: boolean = false
 
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
@@ -169,9 +167,6 @@ ${bold('Examples')}
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
 
         hasJsClient = Boolean(jsClient)
-        if (hasJsClient && jsClient?.config.config.engineType === 'wasm') {
-          usesWasmEngineType = true
-        }
 
         try {
           await this.runGenerate({ generators })
@@ -195,15 +190,6 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
 
     let printBreakingChangesMessage = false
     if (hasJsClient) {
-      if (usesWasmEngineType) {
-        const serializedSchema = serializeSchemaToBytes({
-          datamodel,
-          datamodelPath: schemaPath,
-        })
-        const serializedSchemaPath = `${schemaPath}.bin`
-        await fs.promises.writeFile(serializedSchemaPath, serializedSchema)
-      }
-
       try {
         const clientVersionBeforeGenerate = getCurrentClientVersion()
 
