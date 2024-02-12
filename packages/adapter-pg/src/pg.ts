@@ -13,7 +13,7 @@ import type {
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 
-import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:pg')
 
@@ -83,7 +83,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const { sql, args: values } = query
 
     try {
-      const result = await this.client.query({ text: sql, values, rowMode: 'array' })
+      const result = await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' })
       return ok(result)
     } catch (e) {
       const error = e as Error
