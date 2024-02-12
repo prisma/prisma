@@ -322,8 +322,8 @@ importers:
         specifier: workspace:*
         version: link:../cli
       wrangler:
-        specifier: 3.28.0
-        version: 3.28.0
+        specifier: 3.28.1
+        version: 3.28.1
 
   packages/cli:
     dependencies:
@@ -11372,38 +11372,6 @@ packages:
     resolution: {integrity: sha512-5s3Vou6LipuXBwHLSSx2P5SqtRXoQooVCxMU132ZrYUSHlMF/UeAGMkR8JnVAyvJhOKzuVJ3YmI+STNFbYncOw==}
     dev: true
 
-  /wrangler@3.28.0:
-    resolution: {integrity: sha512-28lqaO4THoGyvnRtrC5+GvyFthn8E9brRSiz4sMJU8Wf5UT8JRq31Pp4leHuQ3sCzSI2yqzB4+NTo6YZaoXMfw==}
-    engines: {node: '>=16.17.0'}
-    hasBin: true
-    peerDependencies:
-      '@cloudflare/workers-types': ^4.20230914.0
-    peerDependenciesMeta:
-      '@cloudflare/workers-types':
-        optional: true
-    dependencies:
-      '@cloudflare/kv-asset-handler': 0.2.0
-      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
-      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
-      blake3-wasm: 2.1.5
-      chokidar: 3.6.0
-      esbuild: 0.17.19
-      miniflare: 3.20240129.1
-      nanoid: 3.3.7
-      path-to-regexp: 6.2.1
-      resolve: 1.22.8
-      resolve.exports: 2.0.2
-      selfsigned: 2.4.1
-      source-map: 0.6.1
-      xxhash-wasm: 1.0.2
-    optionalDependencies:
-      fsevents: 2.3.3
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-    dev: false
-
   /wrangler@3.28.1:
     resolution: {integrity: sha512-3O8vCzd7IC71Kciu/+oDVO0VZ83ujlUuKwmCkv6/zzt4WAoYu0vk7PyEo4WvlsSbZL8aHuv3bS917rd6TM1/9Q==}
     engines: {node: '>=16.17.0'}
@@ -11434,7 +11402,6 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
-    dev: true
 
   /wrap-ansi@6.2.0:
     resolution: {integrity: sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==}
