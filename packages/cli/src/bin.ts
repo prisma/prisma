@@ -27,7 +27,7 @@ import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
-import { Platform } from './platform'
+import { Platform } from './platform/*Platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -101,10 +101,10 @@ async function main(): Promise<number> {
           enable: Platform.Accelerate.Enable.new(),
           disable: Platform.Accelerate.Disable.new(),
         }),
-        apikey: Platform.APIKey.$.new({
-          create: Platform.APIKey.Create.new(),
-          delete: Platform.APIKey.Delete.new(),
-          show: Platform.APIKey.Show.new(),
+        serviceToken: Platform.ServiceToken.$.new({
+          create: Platform.ServiceToken.Create.new(),
+          delete: Platform.ServiceToken.Delete.new(),
+          show: Platform.ServiceToken.Show.new(),
         }),
       }),
       migrate: MigrateCommand.new({

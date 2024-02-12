@@ -1,1 +1,1 @@
-export * as Platform from './index_'
+export * as Platform from './*'

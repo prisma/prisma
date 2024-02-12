@@ -41,6 +41,6 @@ export class Delete implements Command {
     if (payload.error?.message) {
       throw new Error(payload.error.message)
     }
-    return successMessage(`API Key ${payload.data.displayName} deleted.`)
+    return successMessage(`Service Token ${payload.data.displayName} deleted.`)
   }
 }
