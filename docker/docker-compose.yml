@@ -170,11 +170,10 @@ services:
       interval: 5s
       timeout: 2s
       retries: 20
-
-  mongodb_migrate_seed:
-    build: ./mongodb_migrate_seed
-    depends_on:
-      - mongodb_migrate
+      start_period: 20s
+    volumes:
+      - ./mongodb_migrate_seed:/mongodb_migrate_seed
+      - ./mongodb_migrate_seed:/docker-entrypoint-initdb.d
 
   # This config is for MongoDB v4
   # It's a Replica Set (required for Prisma Client)
