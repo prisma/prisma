@@ -35,7 +35,7 @@ export interface GeneratorConfig {
   output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
-  config: Dictionary<string | string[]>
+  config: Dictionary<string | string[]> | { engineType?: 'wasm' }
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
