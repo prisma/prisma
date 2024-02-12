@@ -71,7 +71,7 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,
-    options?: Transaction.Options,
+    options: Transaction.Options,
   ): Promise<Transaction.InteractiveTransactionInfo<unknown>>
   abstract transaction(
     action: 'commit',
@@ -108,6 +108,7 @@ export interface EngineConfig {
   engineEndpoint?: string
   activeProvider?: string
   logEmitter: LogEmitter
+  transactionOptions: Transaction.Options
 
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`.

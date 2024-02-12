@@ -15,6 +15,7 @@ import { addProperty, createCompositeProxy, removeProperties } from './core/comp
 import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
 import { WasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
+import type * as Transaction from './core/engines/common/types/Transaction'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
@@ -97,6 +98,13 @@ export type PrismaClientOptions = {
    * @default "colorless"
    */
   errorFormat?: ErrorFormat
+
+  /**
+   * The default values for Transaction options
+   * maxWait ?= 2000
+   * timeout ?= 5000
+   */
+  transactionOptions?: Transaction.Options
 
   /**
    * @example
@@ -413,6 +421,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
+          transactionOptions: {
+            maxWait: options.transactionOptions?.maxWait ?? 2000,
+            timeout: options.transactionOptions?.timeout ?? 5000,
+            isolationLevel: options.transactionOptions?.isolationLevel,
+          },
           logEmitter,
           isBundled: config.isBundled,
           adapter,
@@ -677,7 +690,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           )
         }
 
-        const isolationLevel = options?.isolationLevel
+        const isolationLevel = options?.isolationLevel ?? this._engineConfig.transactionOptions.isolationLevel
         const transaction = { kind: 'batch', id, index, isolationLevel, lock } as const
         return request.requestTransaction?.(transaction) ?? request
       })
@@ -699,7 +712,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       options?: Options
     }) {
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
-      const info = await this._engine.transaction('start', headers, options as Options)
+
+      const optionsWithDefaults: Options = {
+        maxWait: options?.maxWait ?? this._engineConfig.transactionOptions.maxWait,
+        timeout: options?.timeout ?? this._engineConfig.transactionOptions.timeout,
+        isolationLevel: options?.isolationLevel ?? this._engineConfig.transactionOptions.isolationLevel,
+      }
+      const info = await this._engine.transaction('start', headers, optionsWithDefaults)
 
       let result: unknown
       try {
