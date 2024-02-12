@@ -577,24 +577,29 @@ test('args - object with $type field', () => {
       args: { where: { jsonColumn: { $type: 'Decimal', value: '123' } } },
     }),
     // not using inline snapshot here because our default serializer mangles backslashes on windows
-  ).toBe(`{
-  "modelName": "User",
-  "action": "findMany",
-  "query": {
-    "arguments": {
-      "where": {
-        "jsonColumn": {
-          "$type": "Json",
-          "value": "{\\"$type\\":\\"Decimal\\",\\"value\\":\\"123\\"}"
+  ).toMatchInlineSnapshot(`
+    {
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "jsonColumn": {
+              "$type": "Raw",
+              "value": {
+                "$type": "Decimal",
+                "value": "123"
+              }
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
         }
       }
-    },
-    "selection": {
-      "$composites": true,
-      "$scalars": true
     }
-  }
-}`)
+  `)
 })
 
 test('args - JsonNull field', () => {

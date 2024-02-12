@@ -1,3 +1,3 @@
-# Prisma driver adapter for D1
+# Prisma driver adapter for Cloudflare D1
 
 **INTERNAL PACKAGE, DO NOT USE**

@@ -8,7 +8,7 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { PrismaClient } from '.prisma/client/edge'
+import { PrismaClient } from 'db'
 import { PrismaD1 } from '@prisma/adapter-d1'
 
 export interface Env {
@@ -55,21 +55,26 @@ export default {
 		// 	DELETE FROM Customers
 		// `
 
-		const create = await prisma.test.create({
-			data: {
-				// id: 1,
-				text: "Test name",
-				boolean: true,
-				blob: new Uint8Array([1, 2, 3]),
-				int: 9,
-				real: 9.9,
-			}
-		})
-		console.log({ create })
+		await prisma.$transaction([
+			prisma.customers.create({
+				data: { customerId: 3, companyName: "The Sith", contactName: "Vader" }
+			}),
+			prisma.customers.create({
+				data: { customerId: 508, companyName: "Blaze Away", contactName: "LonDone" }
+			}),
+		])
+
+		await prisma.$transaction([
+			prisma.customers.create({
+				data: { customerId: 420, companyName: "Sky High", contactName: "Bush" }
+			})
+		])
+
+		const result = await prisma.customers.findMany()
 
 		await prisma.$disconnect()
 
-		return new Response(`Hello World! Result from Prisma Client from D1!:\n${JSON.stringify(create, null, 2)}`);
+		return new Response(`Hello World! Result from Prisma Client from D1!:\n${JSON.stringify(result, null, 2)}`);
 	},
 };
 

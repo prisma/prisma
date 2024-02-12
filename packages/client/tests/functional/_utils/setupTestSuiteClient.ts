@@ -79,7 +79,7 @@ export async function setupTestSuiteClient({
     testMode: true,
     activeProvider: suiteConfig.matrixOptions.provider,
     runtimeBase: runtimeBase,
-    noEngine: clientMeta.dataProxy,
+    copyEngine: !clientMeta.dataProxy,
   })
 
   const clientPathForRuntime: Record<ClientRuntime, string> = {
@@ -104,6 +104,7 @@ export function setupTestSuiteClientDriverAdapter({
   clientMeta: ClientMeta
 }) {
   const driverAdapter = suiteConfig.matrixOptions.driverAdapter
+  const provider = suiteConfig.matrixOptions.provider
   const __internal: PrismaClientOptions['__internal'] = {}
 
   if (clientMeta.driverAdapter !== true) return {}
@@ -113,15 +114,21 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (clientMeta.runtime === 'wasm') {
-    __internal.configOverride = {
-      // wasm engine can only be loaded on edge runtimes, so here we force it
-      // this enables our wasm client runtime to be fully tested within jest
-      async getQueryEngineWasmModule() {
-        const queryEngineWasmFilePath = path.join(runtimeBase, 'query-engine.wasm')
-        const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
+    __internal.configOverride = (config) => {
+      config.engineWasm = {
+        getRuntime: () => require(path.join(runtimeBase, `query_engine_bg.${provider}.js`)),
+        getQueryEngineWasmModule: async () => {
+          const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
+          const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
-        return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
-      },
+          // TODO: cleanup and remove ts-expect-error
+          // Pierre thinks that this is an upstream problem with the type definitions
+          // (provided by TS or @types/node) and will get fixed at some point.
+          // @ts-expect-error (2511) - Cannot create an instance of an abstract class.
+          return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+        },
+      }
+      return config
     }
   }
 
@@ -177,6 +184,17 @@ export function setupTestSuiteClientDriverAdapter({
     })
 
     return { adapter: new PrismaLibSQL(client), __internal }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_D1) {
+    const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
+    const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
+
+    // Note: default hostname is `http://127.0.0.1:8787`
+    // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
+    const db = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
+
+    return { adapter: new PrismaD1(db), __internal }
   }
 
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)

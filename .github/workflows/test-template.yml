@@ -40,6 +40,8 @@ on:
         required: false
       BOT_TOKEN:
         required: false
+      CODECOV_TOKEN:
+        required: false
 
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
@@ -125,7 +127,7 @@ jobs:
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -156,6 +158,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,ubuntu,${{ matrix.queryEngine }}
           name: client-ubuntu-${{ matrix.queryEngine }}
@@ -191,7 +194,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -223,6 +226,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,ubuntu,dataproxy
           name: client-ubuntu-dataproxy
@@ -253,7 +257,7 @@ jobs:
       fail-fast: false
       matrix:
         clientRuntime: ['node', 'wasm']
-        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale']
+        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale'] # 'js_d1'
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
         previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
@@ -265,7 +269,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -291,6 +295,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,ubuntu,driveradapters
           name: client-ubuntu-driveradapters
@@ -326,7 +331,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -370,7 +375,7 @@ jobs:
             }
 
       - name: Find report comment
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: fc
         if: ${{ always() && github.event_name == 'pull_request' }}
         with:
@@ -379,7 +384,7 @@ jobs:
           body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
 
       - name: Create or update remote comment (failure)
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@v4
         if: ${{ failure() && steps.upload-report.outputs.url }}
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
@@ -391,7 +396,7 @@ jobs:
           edit-mode: replace
 
       - name: Create or update remote comment (success)
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@v4
         if: ${{ success() && steps.fc.outputs.comment-id != '' }}
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
@@ -425,7 +430,7 @@ jobs:
 
       # Not currently needed, but we might need it in the future
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -441,7 +446,7 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test:e2e --skipBuild --verbose --runInBand
+      - run: pnpm run test:e2e --verbose
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
@@ -477,7 +482,7 @@ jobs:
           fi
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -554,6 +559,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client-legacy-types,ubuntu,library,binary
           name: client-legacy-types-ubuntu
@@ -609,7 +615,7 @@ jobs:
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -629,6 +635,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/integration-tests/src/__tests__/coverage/clover.xml
           flags: integration-tests,${{ matrix.node }},${{ matrix.queryEngine }}
           name: integration-tests-${{ matrix.node }}-${{ matrix.queryEngine }}
@@ -653,7 +660,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -681,6 +688,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/internals/src/__tests__/coverage/clover.xml
           flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
           name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -705,12 +713,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate cockroachdb
 
       - name: Set CLI Engine Type
         run: |
@@ -733,6 +741,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
           name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -757,7 +766,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Docker Compose Services
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -785,6 +794,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
           name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -819,6 +829,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
           name: debug-${{ matrix.os }}
@@ -829,6 +840,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
@@ -839,6 +851,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
           flags: get-platform,${{ matrix.os }},library,binary
           name: get-platform-${{ matrix.os }}
@@ -849,6 +862,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
           flags: fetch-engine,${{ matrix.os }},library,binary
           name: fetch-engine-${{ matrix.os }}
@@ -859,6 +873,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}
@@ -877,6 +892,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/adapter-planetscale/src/__tests__/coverage/clover.xml
           flags: adapter-planetscale,${{ matrix.os }},library,binary
           name: adapter-planetscale-${{ matrix.os }}
@@ -887,6 +903,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
           flags: instrumentation,${{ matrix.os }},library,binary
           name: instrumentation-${{ matrix.os }}
@@ -958,6 +975,7 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-functional-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1029,6 +1047,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/internals/src/__tests__/coverage/clover.xml
           flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
           name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1047,6 +1066,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1061,6 +1081,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
           name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1075,6 +1096,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
           name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
@@ -1089,6 +1111,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
           name: debug-${{ matrix.os }}
@@ -1103,6 +1126,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
@@ -1117,6 +1141,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
           flags: get-platform,${{ matrix.os }},library,binary
           name: get-platform-${{ matrix.os }}
@@ -1131,6 +1156,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
           flags: fetch-engine,${{ matrix.os }},library,binary
           name: fetch-engine-${{ matrix.os }}
@@ -1145,6 +1171,7 @@ jobs:
       - uses: codecov/codecov-action@v3
         if: contains(inputs.jobsToRun, '-all-')
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}

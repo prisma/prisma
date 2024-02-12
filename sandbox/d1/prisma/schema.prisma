@@ -1,7 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../node_modules/.prisma/client"
-  engineType      = "wasm"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -23,4 +22,12 @@ model Test {
   int     Int?
   boolean Boolean
   blob    Bytes?
+}
+
+query findCustomerById(id: String) {
+where: { id: id }
+selection  {
+    id 
+    name
+  }
 }

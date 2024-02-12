@@ -2,6 +2,7 @@ import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
 
+import type { Client } from '../../../src/runtime/getPrismaClient'
 import { checkMissingProviders } from './checkMissingProviders'
 import {
   getTestSuiteClientMeta,
@@ -112,11 +113,11 @@ function setupTestSuiteMatrix(
           globalThis['Prisma'] = Prisma
           clients.push(client)
 
-          return client
+          return client as Client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']()
+          globalThis['prisma'] = globalThis['newPrismaClient']() as Client
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
@@ -154,7 +155,7 @@ function setupTestSuiteMatrix(
           })
 
           if (clientMeta.dataProxy) {
-            await stopMiniProxyQueryEngine(client, globalThis['datasourceInfo'])
+            await stopMiniProxyQueryEngine(client as Client, globalThis['datasourceInfo'] as DatasourceInfo)
           }
         }
         clients.length = 0
