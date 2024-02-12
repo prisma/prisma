@@ -184,8 +184,7 @@
     },
     {
       "groupName": "e2e ts-version tests",
-      "matchPackageNames": ["typescript"],
-      "automerge": true,
+      "excludePackageNames": ["typescript"],
       "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
     },
     {
