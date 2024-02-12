@@ -163,7 +163,7 @@
     "@opentelemetry/resources": "1.21.0",
     "@opentelemetry/sdk-trace-base": "1.21.0",
     "@opentelemetry/semantic-conventions": "1.21.0",
-    "@planetscale/database": "1.15.0",
+    "@planetscale/database": "1.16.0",
     "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
@@ -239,7 +239,7 @@
     "tsd": "0.30.4",
     "typescript": "5.3.3",
     "undici": "5.28.3",
-    "wrangler": "3.28.0",
+    "wrangler": "3.28.1",
     "wrangler-proxy": "2.2.7",
     "zx": "7.2.3"
   },
