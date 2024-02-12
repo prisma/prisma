@@ -13,7 +13,7 @@ export function $extends(this: Client, extension: ExtensionArgs | ((client: Clie
 
   if (extension.client?.__AccelerateEngine) {
     const Engine = extension.client.__AccelerateEngine as typeof AccelerateEngine
-    this._originalClient._engine = new Engine(this._originalClient._accelerateEngineConfig) as any
+    this._originalClient._engine = new Engine(this._originalClient._accelerateEngineConfig)
   }
 
   const newClient = Object.create(this._originalClient, {
