@@ -408,7 +408,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<DataProxyTxInfo>
+  transaction(action: 'start', headers: Tx.TransactionHeaders, options: Tx.Options): Promise<DataProxyTxInfo>
   transaction(action: 'commit', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
   transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
@@ -423,9 +423,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       callback: async ({ logHttpCall }) => {
         if (action === 'start') {
           const body = JSON.stringify({
-            max_wait: arg?.maxWait ?? 2000, // default
-            timeout: arg?.timeout ?? 5000, // default
-            isolation_level: arg?.isolationLevel,
+            max_wait: arg.maxWait,
+            timeout: arg.timeout,
+            isolation_level: arg.isolationLevel,
           })
 
           const url = await this.url('transaction/start')
