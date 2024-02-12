@@ -121,6 +121,8 @@ const wasmRuntimeBuildConfig: BuildOptions = {
     ...commonEdgeWasmRuntimeBuildConfig.define,
     TARGET_BUILD_TYPE: '"wasm"',
   },
+  mangleProps: /^_.*$/,
+  mangleQuoted: true,
   plugins: [
     ...commonEdgeWasmRuntimeBuildConfig.plugins,
     copyFilePlugin(
