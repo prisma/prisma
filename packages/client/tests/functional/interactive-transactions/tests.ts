@@ -100,6 +100,35 @@ testMatrix.setupTestSuite(
     })
 
     /**
+     * Transactions should fail if they time out on `timeout` by PrismaClient
+     */
+    test('timeout override by PrismaClient', async () => {
+      const isolatedPrisma = newPrismaClient({
+        transactionOptions: {
+          maxWait: 200,
+          timeout: 500,
+        },
+      })
+      const result = isolatedPrisma.$transaction(async (prisma) => {
+        await prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
+
+        await delay(600)
+      })
+
+      await expect(result).rejects.toMatchObject({
+        message: expect.stringMatching(
+          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+        ),
+      })
+
+      expect(await prisma.user.findMany()).toHaveLength(0)
+    })
+
+    /**
      * Transactions should fail and rollback if thrown within
      */
     test('rollback throw', async () => {
