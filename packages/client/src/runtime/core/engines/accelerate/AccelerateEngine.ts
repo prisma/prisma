@@ -7,7 +7,7 @@ import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common
 import { QueryEngineResult } from '../common/types/QueryEngine'
 import { InteractiveTransactionInfo as ITXInfo, Options, TransactionHeaders } from '../common/types/Transaction'
 
-const ERROR_MESSAGE = `Accelerate has not been setup correctly. Make sure your client is using \`.$extends(withAccelerate())\`.`
+const ERROR_MESSAGE = `Accelerate has not been setup correctly. Make sure your client is using \`.$extends(withAccelerate())\`. See https://pris.ly/d/accelerate-getting-started`
 
 export type AccelerateEngineConfig = {
   inlineSchema: EngineConfig['inlineSchema']
