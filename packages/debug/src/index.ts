@@ -40,32 +40,20 @@ const topProps = {
     const listenedNamespaces: string[] = globalThis.DEBUG.split(',')
 
     // we take incoming namespaces and check then against listened
-    return listenedNamespaces.every((listenedNamespace) => {
-      // namespaces can be negated with a `-` prefix (exclusions)
-      const isNegated = listenedNamespace.startsWith('-') ? 1 : 0
-      listenedNamespace = listenedNamespace.slice(isNegated)
+    const isListened = listenedNamespaces.some((listenedNamespace) => {
+      if (listenedNamespace === '' || listenedNamespace[0] === '-') return false
 
-      // we split the namespaces by `:` to be able to compare them
-      let emittedParts = namespace.split(':')
-      let listenedParts = listenedNamespace.split(':')
-      const sizeDiff = listenedParts.length - emittedParts.length
-
-      // here we make that the two compared arrays have the same length
-      if (listenedParts.length > emittedParts.length) {
-        emittedParts = [...emittedParts, ...Array(Math.abs(sizeDiff)).fill(undefined)]
-      } else if (listenedParts.length < emittedParts.length) {
-        // if the last part is a wildcard, we fill the rest with wildcards
-        const filler = listenedParts[listenedParts.length - 1] === '*' ? '*' : undefined
-        listenedParts = [...listenedParts, ...Array(Math.abs(sizeDiff)).fill(filler)]
-      }
-
-      // matches if each part is equal or if the listened part is a wildcard
-      const matched = listenedParts.every((listenedPart, i) => {
-        return listenedPart === emittedParts[i] || (emittedParts[i] && listenedPart === '*')
-      })
-
-      return isNegated ? !matched : matched // flip the result if negated
+      return namespace.match(RegExp(listenedNamespace.split('*').join('.*') + '$'))
     })
+
+    // we take incoming namespaces and check then against excluded
+    const isExcluded = listenedNamespaces.some((listenedNamespace) => {
+      if (listenedNamespace === '' || listenedNamespace[0] !== '-') return false
+
+      return namespace.match(RegExp(listenedNamespace.slice(1).split('*').join('.*') + '$'))
+    })
+
+    return isListened && !isExcluded
   },
   log: (...args: string[]) => {
     const [ns, format, ...rest] = args
