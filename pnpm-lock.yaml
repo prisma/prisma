@@ -268,8 +268,8 @@ importers:
         version: link:../driver-adapter-utils
     devDependencies:
       '@planetscale/database':
-        specifier: 1.15.0
-        version: 1.15.0
+        specifier: 1.16.0
+        version: 1.16.0
       '@swc/core':
         specifier: 1.4.0
         version: 1.4.0
@@ -295,8 +295,8 @@ importers:
         specifier: 0.8.1
         version: 0.8.1
       '@planetscale/database':
-        specifier: 1.15.0
-        version: 1.15.0
+        specifier: 1.16.0
+        version: 1.16.0
       '@prisma/adapter-d1':
         specifier: workspace:*
         version: link:../adapter-d1
@@ -515,8 +515,8 @@ importers:
         specifier: 1.21.0
         version: 1.21.0
       '@planetscale/database':
-        specifier: 1.15.0
-        version: 1.15.0
+        specifier: 1.16.0
+        version: 1.16.0
       '@prisma/adapter-d1':
         specifier: workspace:*
         version: link:../adapter-d1
@@ -3406,8 +3406,8 @@ packages:
     resolution: {integrity: sha512-lkC8kZYntxVKr7b8xmjCVUgE0a8xgDakPyDo9uSWavXPyYqLgYYGdEd2j8NxihRyb6UwpX3G/hFUF4/9q2V+/g==}
     engines: {node: '>=14'}
 
-  /@planetscale/database@1.15.0:
-    resolution: {integrity: sha512-X4GmGGKE3o6tj/FM+ElDdyVb9BI8Y2OSSeOtyW/gCmVS0XLs4tTppg0cVLL89CS+awEhIIYXFDwqT3a7pbYROg==}
+  /@planetscale/database@1.16.0:
+    resolution: {integrity: sha512-HNUrTqrd8aTRZYMDcsoZ62s36sIWkMMmKZBOehoCWR2WrfNPKq+Q1yQef5okl3pSVlldFnu2h/dbHjOsDTHXug==}
     engines: {node: '>=16'}
 
   /@prisma/engines-version@5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421:
