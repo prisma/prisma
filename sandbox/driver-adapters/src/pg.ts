@@ -4,7 +4,6 @@ import { smokeTest } from './test'
 
 async function main() {
   const connectionString = `${process.env.JS_PG_DATABASE_URL as string}`
-
   const pool = new Pool({ connectionString })
   const adapters = new PrismaPg(pool)
 

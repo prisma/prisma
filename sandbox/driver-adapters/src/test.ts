@@ -1,5 +1,5 @@
 import superjson from 'superjson'
-import { PrismaClient } from '.prisma/client'
+import { PrismaClient } from 'db'
 import { setImmediate, setTimeout } from 'node:timers/promises'
 import type { DriverAdapter } from '@prisma/driver-adapter-utils'
 
