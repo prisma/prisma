@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "18.19.15",
+    "@types/node": "20.11.17",
     "@types/react": "18.2.55",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   },
@@ -22,6 +22,6 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "4.9.5",
-    "vercel": "28.20.0"
+    "vercel": "33.5.0"
   }
 }
