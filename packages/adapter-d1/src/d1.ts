@@ -131,30 +131,23 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       const error = e as Error
       console.error('Error in performIO: %O', error)
 
-      try {
-        const errorAsJson = JSON.parse(error.message)
-        // We only get the error message, not the error code.
-        // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
-        // So we try to match some errors and use the generic error code as a fallback.
-        // https://www.sqlite.org/rescode.html
-        // 1 = The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
-        let extendedCode = 1
-        if (errorAsJson.message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
-          extendedCode = 2067
-        } else if (errorAsJson.message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
-          extendedCode = 787
-        }
-
-        return err({
-          kind: 'Sqlite',
-          extendedCode,
-          message: errorAsJson.message,
-        })
-      } catch (e) {
-        throw error
+      // We only get the error message, not the error code.
+      // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
+      // So we try to match some errors and use the generic error code as a fallback.
+      // https://www.sqlite.org/rescode.html
+      // 1 = The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
+      let extendedCode = 1
+      if (error.message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
+        extendedCode = 2067
+      } else if (error.message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
+        extendedCode = 787
       }
-    } finally {
-      // release()
+
+      return err({
+        kind: 'Sqlite',
+        extendedCode,
+        message: error.message,
+      })
     }
   }
 }

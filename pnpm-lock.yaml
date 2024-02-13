@@ -191,9 +191,6 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
-      async-mutex:
-        specifier: 0.4.1
-        version: 0.4.1
 
   packages/adapter-libsql:
     dependencies:
