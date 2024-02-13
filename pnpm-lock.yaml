@@ -59,9 +59,6 @@ importers:
       batching-toposort:
         specifier: 1.2.0
         version: 1.2.0
-      buffer:
-        specifier: 6.0.3
-        version: 6.0.3
       chokidar:
         specifier: 3.6.0
         version: 3.6.0

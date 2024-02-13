@@ -131,7 +131,8 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
   return fillers[args.path] // inject the contents
 }
 
-const load = loader({})
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const load = loader({}) // could be useful later
 
 /**
  * Provides a simple way to use esbuild's injection capabilities while providing
@@ -195,8 +196,8 @@ const fillPlugin = (
 
       // globals
       buffer: {
-        imports: load('buffer'),
-        globals: path.join(__dirname, 'fillers', 'buffer.ts'),
+        imports: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+        globals: path.join(__dirname, 'fillers', 'buffer-small.ts'),
       },
       process: {
         globals: path.join(__dirname, 'fillers', 'process.ts'),
