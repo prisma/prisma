@@ -8,7 +8,7 @@ import {
   platformParameters,
   platformRequestOrThrow,
   successMessage,
-} from '../../utils/platform'
+} from '../platformUtils'
 
 interface Payload {
   createProject: { __typename: 'Project'; id: string; createdAt: string; displayName: string }

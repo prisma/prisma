@@ -1,7 +1,7 @@
 import { Command, formatTable } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
-import { argOrThrow, getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import { argOrThrow, getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../platformUtils'
 
 export class Show implements Command {
   public static new(): Show {
