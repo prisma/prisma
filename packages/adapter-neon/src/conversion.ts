@@ -421,7 +421,7 @@ export function fixArrayBufferValues(values: unknown[]) {
     for (let j = 0; j < list.length; j++) {
       const listItem = list[j]
       if (ArrayBuffer.isView(listItem)) {
-        list[j] = Buffer.from(listItem.buffer, listItem.byteOffset, listItem.byteLength)
+        list[j] = new Uint8Array(listItem.buffer, listItem.byteOffset, listItem.byteLength)
       }
     }
   }
