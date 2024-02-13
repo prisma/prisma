@@ -1,4 +1,4 @@
-import { D1Database, D1PreparedStatement } from '@cloudflare/workers-types'
+import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
