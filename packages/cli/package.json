@@ -120,6 +120,7 @@
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "test": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts",
+    "test:platform": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts src/platform",
     "tsc": "tsc -d -p tsconfig.build.json",
     "preinstall": "node scripts/preinstall-entry.js",
     "prepublishOnly": "pnpm run build"

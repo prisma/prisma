@@ -1,18 +1,18 @@
 import { isError } from '@prisma/internals'
 
-import { $ } from '../../../platform/$'
+import { $ as platform } from './$'
 
 describe('--early-access flag', () => {
   it('should not work without it', () => {
     // eslint-disable-next-line
-    expect($.new({}).parse([])).rejects.toMatchInlineSnapshot(`
+    expect(platform.new({}).parse([])).rejects.toMatchInlineSnapshot(`
       This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
       Please provide the --early-access flag to use this command.
     `)
   })
 
   it('should output help if no subcommand or parameter is passed', async () => {
-    const commandInstance = $.new({})
+    const commandInstance = platform.new({})
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
     const result = await commandInstance.parse(['--early-access'])
     const resultIsError = isError(result)
@@ -22,7 +22,7 @@ describe('--early-access flag', () => {
   })
 
   it('should output help if -h is passed', async () => {
-    const commandInstance = $.new({})
+    const commandInstance = platform.new({})
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
     const result = await commandInstance.parse(['--early-access', '-h'])
     const resultIsError = isError(result)
@@ -32,7 +32,7 @@ describe('--early-access flag', () => {
   })
 
   it('should output the help', async () => {
-    const commandInstance = $.new({})
+    const commandInstance = platform.new({})
     const result = await commandInstance.parse(['--early-access'])
     expect(result).toMatchInlineSnapshot(`
 
