@@ -133,7 +133,7 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
 
 const load = loader({})
 
-const defaultFillersConfig: Fillers = {
+export const defaultFillersConfig: Fillers = {
   // enabled
   // assert: { path: load('assert-browserify') },
   buffer: { imports: load('buffer') },
