@@ -192,7 +192,7 @@ export function setupTestSuiteClientDriverAdapter({
   if (driverAdapter === AdapterProviders.JS_D1) {
     const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
 
-    const d1Client = cfWorkerBindings.MY_DATABASE as D1Database
+    const d1Client = cfWorkerBindings!.MY_DATABASE as D1Database
 
     return { adapter: new PrismaD1(d1Client), __internal }
   }
