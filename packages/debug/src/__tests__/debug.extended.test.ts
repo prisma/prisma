@@ -193,14 +193,20 @@ test('object serialization', () => {
     process.env.DEBUG = 'test10:client'
     process.env.DEBUG_COLORS = 'false'
     Debug = require('../index').default
-    Debug('test10:client')({ a: 1, b: { c: {} } })
+    const object = { a: 1, b: { c: {}, d: {} } }
+    object.b.c = object
+    object.b.d = [object]
+    Debug('test10:client')(object)
 
     const stderrMockParams = stderrMock.mock.calls.map(mapper)
     expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`
       "test10:client {
         "a": 1,
         "b": {
-          "c": {}
+          "c": "[Circular *]",
+          "d": [
+            "[Circular *]"
+          ]
         }
       }"
     `)

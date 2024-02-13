@@ -1,7 +1,6 @@
 /* eslint-disable no-var */
 import * as kleur from 'kleur/colors'
 import { bold } from 'kleur/colors'
-import util from 'util'
 
 const MAX_ARGS_HISTORY = 100
 const COLORS = ['green', 'yellow', 'blue', 'magenta', 'cyan', 'red']
@@ -63,11 +62,13 @@ const topProps = {
     let logger: (...args: unknown[]) => void
 
     if (
+      typeof require === 'function' &&
       typeof process !== 'undefined' &&
       typeof process.stderr !== 'undefined' &&
       typeof process.stderr.write === 'function'
     ) {
       logger = (...args: unknown[]) => {
+        const util = require(`${'util'}`)
         process.stderr.write(util.format(...args) + '\n')
       }
     } else {
@@ -118,7 +119,7 @@ function debugCreate(namespace: string) {
           return arg
         }
 
-        return JSON.stringify(arg, null, 2)
+        return safeStringify(arg)
       })
 
       const ms = `+${Date.now() - lastTimestamp}ms`
@@ -142,6 +143,26 @@ const Debug = new Proxy(debugCreate, {
   get: (_, prop) => topProps[prop],
   set: (_, prop, value) => (topProps[prop] = value),
 }) as typeof debugCreate & typeof topProps
+
+function safeStringify(value: any, indent = 2) {
+  const cache = new Set<any>()
+
+  return JSON.stringify(
+    value,
+    (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (cache.has(value)) {
+          return `[Circular *]`
+        }
+
+        cache.add(value)
+      }
+
+      return value
+    },
+    indent,
+  )
+}
 
 /**
  * We can get the logs for all the last {@link MAX_ARGS_HISTORY} ${@link debugCall} that
