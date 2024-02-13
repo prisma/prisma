@@ -1,6 +1,7 @@
 /* eslint-disable no-var */
 import * as kleur from 'kleur/colors'
 import { bold } from 'kleur/colors'
+import util from 'util'
 
 const MAX_ARGS_HISTORY = 100
 const COLORS = ['green', 'yellow', 'blue', 'magenta', 'cyan', 'red']
@@ -37,7 +38,9 @@ const topProps = {
   // this is the core logic to check if logging should happen or not
   enabled(namespace: string) {
     // these are the namespaces that we are listening to in DEBUG=...
-    const listenedNamespaces: string[] = globalThis.DEBUG.split(',')
+    const listenedNamespaces: string[] = globalThis.DEBUG.split(',').map((s: string) => {
+      return s.replace(/[.+?^${}()|[\]\\]/g, '\\$&') // escape regex except "*"
+    })
 
     // we take incoming namespaces and check then against listened
     const isListened = listenedNamespaces.some((listenedNamespace) => {
@@ -56,11 +59,23 @@ const topProps = {
     return isListened && !isExcluded
   },
   log: (...args: string[]) => {
-    const [ns, format, ...rest] = args
-    const logger = console.warn ?? console.log
+    const [namespace, format, ...rest] = args
+    let logger: (...args: unknown[]) => void
 
-    // concat `ns`+`format` because console only formats first arg
-    logger(`${ns} ${format}`, ...rest)
+    if (
+      typeof process !== 'undefined' &&
+      typeof process.stderr !== 'undefined' &&
+      typeof process.stderr.write === 'function'
+    ) {
+      logger = (...args: unknown[]) => {
+        process.stderr.write(util.format(...args) + '\n')
+      }
+    } else {
+      logger = console.warn ?? console.log
+    }
+
+    // console only formats first arg, concat ns+format
+    logger(`${namespace} ${format}`, ...rest)
   },
   formatters: {}, // not implemented
 }
