@@ -13,7 +13,6 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
-// import { Mutex } from 'async-mutex'
 import { getColumnTypes } from './conversion'
 
 // TODO? Env var works differently in D1 so `debug` does not work.
@@ -28,8 +27,6 @@ type StdClient = D1Database
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
   readonly provider = 'sqlite'
-
-  // [LOCK_TAG] = new Mutex()
 
   constructor(protected readonly client: ClientT) {}
 
@@ -98,7 +95,6 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   private async performIO(query: Query): Promise<Result<PerformIOResult>> {
-    // const release = await this[LOCK_TAG].acquire()
     // console.debug({ query })
 
     try {
@@ -115,7 +111,10 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
         // https://github.com/prisma/team-orm/issues/878
         else if (typeof arg === 'bigint') {
           return Number(arg)
+        } else if (arg instanceof Uint8Array) {
+          return Array.from(arg)
         }
+
         return arg
       })
 
