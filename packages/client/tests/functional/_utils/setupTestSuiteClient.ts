@@ -1,4 +1,4 @@
-import { D1Database } from '@cloudflare/workers-types'
+import type { D1Database } from '@cloudflare/workers-types'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
