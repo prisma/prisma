@@ -11,7 +11,7 @@ testMatrix.setupTestSuite(
       // The test times out if we try to create too many entries for D1 in our setup
       // each statement will be executed separately at the moment because it's not batching them into a transaction
       // so we lowered the number for D1 for now
-      const numberOfEntries = driverAdapter === 'js_d1' ? 30_000 : 150_000
+      const numberOfEntries = driverAdapter === 'js_d1' ? 20_000 : 150_000
 
       const result = prisma.dictionary.create({
         data: {

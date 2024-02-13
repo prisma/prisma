@@ -171,7 +171,6 @@ function setupTestSuiteMatrix(
 
       afterAll(async () => {
         if (disposeWrangler) {
-          console.debug('Disposing wrangler...')
           await disposeWrangler()
         }
 
