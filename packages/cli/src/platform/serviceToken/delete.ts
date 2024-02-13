@@ -1,9 +1,9 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 
 import {
+  argOrThrow,
   getPlatformTokenOrThrow,
-  getRequiredParameter,
-  platformParameters,
+  getRequiredParameterOrThrow,
   platformRequestOrThrow,
   successMessage,
 } from '../platformUtils'
@@ -14,33 +14,42 @@ export class Delete implements Command {
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
-      ...platformParameters.project,
+    const args = argOrThrow(argv, {
+      '--token': String,
+      '--id': String,
       '--apikey': String,
     })
-    if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-    const project = getRequiredParameter(args, ['--project', '-p'])
-    if (isError(project)) return project
-    const apikey = getRequiredParameter(args, ['--apikey'])
-    if (isError(apikey)) return apikey
-    const payload = await platformRequestOrThrow<{
-      data: { id: string; displayName: string }
-      error: null | { message: string }
-    }>({
+    const id = getRequiredParameterOrThrow(args, ['--id'])
+    const { serviceTokenDelete } = await platformRequestOrThrow<
+      {
+        serviceTokenDelete: {
+          displayName: string
+        }
+      },
+      { id: string }
+    >({
       token,
-      path: `/${workspace}/${project}/settings/api-keys`,
-      route: '_app.$organizationId_.$projectId.settings.api-keys',
-      payload: {
-        id: apikey,
+      body: {
+        query: /* GraphQL */ `
+          mutation ($input: { id: ID! }) {
+            serviceTokenDelete(input: $input) {
+              ...on Error {
+                message
+              }
+              ...on ServiceToken {
+                displayName
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id,
+          },
+        },
       },
     })
-    if (payload.error?.message) {
-      throw new Error(payload.error.message)
-    }
-    return successMessage(`Service Token ${payload.data.displayName} deleted.`)
+    return successMessage(`Service Token ${serviceTokenDelete.displayName} deleted.`)
   }
 }

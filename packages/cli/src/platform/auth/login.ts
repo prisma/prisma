@@ -104,6 +104,7 @@ const generateAuthSigninUrl = async (params: { connection: string; redirectTo: s
     return null
   })
 
+  // todo change how we pass signature. Put into header user-agent, format idea: <sig>.<ver>.client.prisma
   const state = {
     client: `${PRISMA_CLI_NAME}@${PRISMA_CLI_VERSION}`,
     // will be `null` if it throws during retrieval

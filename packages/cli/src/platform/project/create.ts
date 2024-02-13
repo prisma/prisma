@@ -10,14 +10,6 @@ import {
   successMessage,
 } from '../platformUtils'
 
-interface Payload {
-  createProject: { __typename: 'Project'; id: string; createdAt: string; displayName: string }
-}
-interface Input {
-  workspaceId: string
-  displayName?: string
-}
-
 export class Create implements Command {
   public static new(): Create {
     return new Create()
@@ -32,13 +24,25 @@ export class Create implements Command {
     const token = await getPlatformTokenOrThrow(args)
     const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
-
-    const { createProject } = await platformRequestOrThrow<Payload, Input>({
+    const { createProject } = await platformRequestOrThrow<
+      {
+        createProject: {
+          __typename: 'Project'
+          id: string
+          createdAt: string
+          displayName: string
+        }
+      },
+      {
+        workspaceId: string
+        displayName?: string
+      }
+    >({
       token,
       body: {
         query: /* graphql */ `
-          mutation CreateProject($input: { $workspaceId: ID!, $displayName: String }) {
-            createProject(input:$input) {
+          mutation ($input: { $workspaceId: ID!, $displayName: String }) {
+            createProject(input: $input) {
               __typename
               ...on Error {
                 message

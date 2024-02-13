@@ -2,7 +2,7 @@ import { arg, Command, isError } from '@prisma/internals'
 
 import {
   getPlatformTokenOrThrow,
-  getRequiredParameter,
+  getRequiredParameterOrThrow,
   platformParameters,
   platformRequestOrThrow,
 } from '../platformUtils'
@@ -18,22 +18,48 @@ export class Show implements Command {
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-
-    const payload = await platformRequestOrThrow<{
-      organization: { projects: { id: string; createdAt: string; displayName: string }[] }
-    }>({
+    const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
+    const { workspace } = await platformRequestOrThrow<
+      {
+        workspace: {
+          projects: {
+            id: string
+            createdAt: string
+            displayName: string
+          }[]
+        }
+      },
+      {
+        workspaceId: string
+      }
+    >({
       token,
-      path: `/${workspace}/overview`,
-      route: '_app.$organizationId.overview',
+      body: {
+        query: /* GraphQL */ `
+          query ($input: { $workspaceId: ID! }) {
+            workspace(input: $input) {
+              ... on Error {
+                message
+              }
+              ... on Workspace {
+                projects {
+                  id
+                  createdAt
+                  name: displayName
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            workspaceId,
+          },
+        },
+      },
     })
 
-    console.table(
-      payload.organization.projects.map(({ id, displayName, createdAt }) => ({ id, createdAt, name: displayName })),
-      ['id', 'name', 'createdAt'],
-    )
+    console.table(workspace.projects, ['id', 'name', 'createdAt'])
 
     return ''
   }

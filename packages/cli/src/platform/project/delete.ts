@@ -20,7 +20,6 @@ export class Delete implements Command {
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
     const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
-
     const { projectDelete } = await platformRequestOrThrow<
       {
         projectDelete: {
@@ -37,7 +36,7 @@ export class Delete implements Command {
       token,
       body: {
         query: /* graphql */ `
-          mutation ProjectDelete($input: { $id: ID! }) {
+          mutation ($input: { $id: ID! }) {
             projectDelete(input: $input) {
               __typename
               ...on Error {
@@ -58,7 +57,6 @@ export class Delete implements Command {
         },
       },
     })
-
     return successMessage(`Project ${projectDelete.displayName} - ${projectDelete.id} deleted.`)
   }
 }

@@ -2,7 +2,7 @@ import { arg, Command, isError } from '@prisma/internals'
 
 import {
   getPlatformTokenOrThrow,
-  getRequiredParameter,
+  getRequiredParameterOrThrow,
   platformParameters,
   platformRequestOrThrow,
 } from '../platformUtils'
@@ -14,26 +14,47 @@ export class Show implements Command {
 
   public async parse(argv: string[]) {
     const args = arg(argv, {
-      ...platformParameters.project,
+      ...platformParameters.environment,
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-    const project = getRequiredParameter(args, ['--project', '-p'])
-    if (isError(project)) return project
-    const payload = await platformRequestOrThrow<{
-      serviceKeys: { createdAt: string; displayName: string; id: string }[]
-    }>({
+    const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
+    const { serviceTokens } = await platformRequestOrThrow<
+      {
+        serviceTokens: {
+          createdAt: string
+          name: string
+          id: string
+        }[]
+      },
+      {
+        environmentId: string
+      }
+    >({
       token,
-      path: `/${workspace}/${project}/settings/api-keys`,
-      route: '_app.$organizationId_.$projectId.settings.api-keys',
+      body: {
+        query: /* GraphQL */ `
+          query ($input: { environmentId: ID! }) {
+            serviceTokens(input: $input) {
+              ... on Error {
+                message
+              }
+              ... on ServiceToken {
+                id
+                createdAt
+                name: displayName
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            environmentId,
+          },
+        },
+      },
     })
-    console.table(
-      payload.serviceKeys.map(({ id, displayName, createdAt }) => ({ id, createdAt, name: displayName })),
-      ['id', 'name', 'createdAt'],
-    )
+    console.table(serviceTokens, ['id', 'name', 'createdAt'])
     return ''
   }
 }

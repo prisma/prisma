@@ -1,9 +1,10 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 
 import {
+  argOrThrow,
   getOptionalParameter,
   getPlatformTokenOrThrow,
-  getRequiredParameter,
+  getRequiredParameterOrThrow,
   platformParameters,
   platformRequestOrThrow,
   successMessage,
@@ -15,35 +16,48 @@ export class Create implements Command {
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
-      ...platformParameters.project,
+    const args = argOrThrow(argv, {
+      ...platformParameters.environment,
       '--name': String,
       '-n': '--name',
     })
-    if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-    const project = getRequiredParameter(args, ['--project', '-p'])
-    if (isError(project)) return project
+    const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
-    const payload = await platformRequestOrThrow<{
-      data: {
-        tenantAPIKey: string
+    const { serviceTokenCreate } = await platformRequestOrThrow<
+      {
+        serviceTokenCreate: {
+          value: string
+        }
+      },
+      {
+        displayName?: string
+        environmentId?: string
       }
-      error: null | { message: string }
-    }>({
+    >({
       token,
-      path: `/${workspace}/${project}/settings/api-keys/create`,
-      route: '_app.$organizationId_.$projectId.settings.api-keys.create',
-      payload: {
-        displayName,
+      body: {
+        query: /* GraphQL */ `
+          mutation ($input: { displayName: String, environmentId: String!}) {
+            serviceKeyCreate(input: $input) {
+              ... on Error {
+                message
+              }
+              ... on ServiceKeyWithValue {
+                value
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            displayName,
+            environmentId,
+          },
+        },
       },
     })
-    if (payload.error?.message) {
-      throw new Error(payload.error.message)
-    }
-    return successMessage(`New API Key created: ${payload.data.tenantAPIKey}`)
+
+    return successMessage(`New Service Token created: ${serviceTokenCreate.value}`)
   }
 }
