@@ -3,6 +3,7 @@ import {
   areUint8ArraysEqual,
   base64ToUint8Array,
   compareUint8Arrays,
+  concatUint8Arrays,
   hexToUint8Array,
   stringToUint8Array,
   uint8ArrayToBase64,
@@ -38,6 +39,10 @@ export class Buffer extends Uint8Array implements NodeBuffer {
     throw new TypeError(
       'The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object.',
     )
+  }
+
+  static concat(list: Array<Buffer>, totalLength?: number) {
+    return new Buffer(concatUint8Arrays(list, totalLength))
   }
 
   slice(start = 0, end = this.length) {
