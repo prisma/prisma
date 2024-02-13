@@ -565,6 +565,9 @@ importers:
       '@prisma/mini-proxy':
         specifier: 0.9.5
         version: 0.9.5
+      '@prisma/prisma-schema-wasm':
+        specifier: 5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed
+        version: 5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed
       '@prisma/query-engine-wasm':
         specifier: 5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed
         version: 5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed
@@ -3421,7 +3424,6 @@ packages:
 
   /@prisma/prisma-schema-wasm@5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed:
     resolution: {integrity: sha512-rdDuzSsmZ7o3TjzBuceO2L5Otmtnx0wqla9D3ExWJa4otq4DSxLhXVz5RHVFRUojsWQb4EFyP9Or+oNE+U542Q==}
-    dev: false
 
   /@prisma/query-engine-wasm@5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed:
     resolution: {integrity: sha512-bXN9OQla0N0kW5eXKXXvjva3mfCmvDMskpRdGi6Q2WNCZLkJHMy3OdAxtYZDLTcdvffGIaKERR7/I+DlFewDpA==}
@@ -7716,7 +7718,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.2(@types/node@20.11.17)(typescript@5.3.3)
+      ts-node: 10.9.2(@swc/core@1.4.0)(@types/node@18.19.15)(typescript@5.3.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color

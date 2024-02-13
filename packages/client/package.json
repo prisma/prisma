@@ -180,6 +180,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
+    "@prisma/prisma-schema-wasm": "5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed",
     "@prisma/query-engine-wasm": "5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.8.0",
