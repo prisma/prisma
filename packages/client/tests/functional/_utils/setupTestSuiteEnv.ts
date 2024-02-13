@@ -1,3 +1,4 @@
+import { D1Database, D1PreparedStatement } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
@@ -6,6 +7,7 @@ import fs from 'fs-extra'
 import path from 'path'
 import { match } from 'ts-pattern'
 import { Script } from 'vm'
+import { getBindingsProxy } from 'wrangler'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
@@ -182,14 +184,6 @@ export async function setupTestSuiteDatabase(
  * So we cannot use `db push` for D1
  */
 export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatementCallback?: AlterStatementCallback) {
-  // The Schema Engine does not know how to use a Driver Adapter at the moment
-  // So we cannot use `db push` for D1
-  const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
-
-  // Note: default hostname is `http://127.0.0.1:8787`
-  // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
-  const d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
-
   // Cleanup the database
   await prepareD1Database()
 
@@ -204,6 +198,11 @@ export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatemen
     },
   )
   const sqlStatements = diffResult.stdout
+
+  const { bindings: d1Bindings, dispose: disposeWrangler } = await getBindingsProxy({
+    configPath: path.join(__dirname, './wrangler.toml'),
+  })
+  const d1Client = d1Bindings.MY_DATABASE as D1Database
 
   // Execute the DDL statements
   for (const sqlStatement of sqlStatements.split(';')) {
@@ -227,6 +226,9 @@ export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatemen
       }
     }
   }
+
+  // we need to dispose of the underlying child process in order for this nodejs script to properly terminate
+  await disposeWrangler()
 }
 
 /**
@@ -263,11 +265,10 @@ export async function dropTestSuiteDatabase(
 async function prepareD1Database() {
   // The Schema Engine does not know how to use a Driver Adapter at the moment
   // So we cannot use `db push` for D1
-  const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
-  
-  // Note: default hostname is `http://127.0.0.1:8787`
-  // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
-  const d1Client = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
+  const { bindings: d1Bindings, dispose: disposeWrangler } = await getBindingsProxy({
+    configPath: path.join(__dirname, './wrangler.toml'),
+  })
+  const d1Client = d1Bindings.MY_DATABASE as D1Database
 
   const existingItems = ((await d1Client.prepare(`PRAGMA main.table_list;`).run()) as D1Result<Record<string, unknown>>)
     .results
@@ -306,7 +307,10 @@ async function prepareD1Database() {
       // @ts-ignore
       console.error('Error in batch: %O', batchResult.error)
     }
-  }  
+  }
+
+  // we need to dispose of the underlying child process in order for this nodejs script to properly terminate
+  await disposeWrangler()
 }
 
 export type DatasourceInfo = {

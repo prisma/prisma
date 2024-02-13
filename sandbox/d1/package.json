@@ -6,7 +6,6 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
-    "start-proxy": "wrangler dev node_modules/wrangler-proxy/dist/worker.js",
     "test": "tsx src/proxy.ts"
   },
   "dependencies": {
@@ -20,7 +19,6 @@
     "prisma": "../../packages/cli",
     "tsx": "4.7.0",
     "typescript": "5.3.3",
-    "wrangler": "3.22.5",
-    "wrangler-proxy": "2.2.4"
+    "wrangler": "3.22.5"
   }
 }

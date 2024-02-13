@@ -110,6 +110,12 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
         } else if (arg === false) {
           return 0
         }
+        // Temporary unblock for "D1_TYPE_ERROR: Type 'bigint' not supported for value '20'"
+        // For 0-legacy-ports.query-raw tests
+        // https://github.com/prisma/team-orm/issues/878
+        else if (typeof arg === 'bigint') {
+          return Number(arg)
+        }
         return arg
       })
 

@@ -240,7 +240,6 @@
     "typescript": "5.3.3",
     "undici": "5.28.3",
     "wrangler": "3.28.1",
-    "wrangler-proxy": "2.2.7",
     "zx": "7.2.3"
   },
   "peerDependencies": {
@@ -251,5 +250,8 @@
       "optional": true
     }
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "dependencies": {
+    "@cloudflare/workers-types": "4.20240117.0"
+  }
 }

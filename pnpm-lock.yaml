@@ -323,7 +323,7 @@ importers:
         version: link:../cli
       wrangler:
         specifier: 3.28.1
-        version: 3.28.1
+        version: 3.28.1(@cloudflare/workers-types@4.20240117.0)
 
   packages/cli:
     dependencies:
@@ -468,6 +468,10 @@ importers:
         version: 7.2.3
 
   packages/client:
+    dependencies:
+      '@cloudflare/workers-types':
+        specifier: 4.20240117.0
+        version: 4.20240117.0
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 3.1.0
@@ -744,10 +748,7 @@ importers:
         version: 5.28.3
       wrangler:
         specifier: 3.28.1
-        version: 3.28.1
-      wrangler-proxy:
-        specifier: 2.2.7
-        version: 2.2.7
+        version: 3.28.1(@cloudflare/workers-types@4.20240117.0)
       zx:
         specifier: 7.2.3
         version: 7.2.3
@@ -1995,6 +1996,9 @@ packages:
     os: [win32]
     requiresBuild: true
     optional: true
+
+  /@cloudflare/workers-types@4.20240117.0:
+    resolution: {integrity: sha512-HQU8lJhaJVh8gQXFtVA7lZwd0hK1ckIFjRuxOXkVN2Z9t7DtzNbA2YTwBry5thKNgF5EwjN4THjHg5NUZzj05A==}
 
   /@cloudflare/workers-types@4.20240208.0:
     resolution: {integrity: sha512-MVGTTjZpJu4kJONvai5SdJzWIhOJbuweVZ3goI7FNyG+JdoQH41OoB+nMhLsX626vPLZVWGPIWsiSo/WZHzgQw==}
@@ -11368,11 +11372,7 @@ packages:
       '@cloudflare/workerd-linux-arm64': 1.20240129.0
       '@cloudflare/workerd-windows-64': 1.20240129.0
 
-  /wrangler-proxy@2.2.7:
-    resolution: {integrity: sha512-5s3Vou6LipuXBwHLSSx2P5SqtRXoQooVCxMU132ZrYUSHlMF/UeAGMkR8JnVAyvJhOKzuVJ3YmI+STNFbYncOw==}
-    dev: true
-
-  /wrangler@3.28.1:
+  /wrangler@3.28.1(@cloudflare/workers-types@4.20240117.0):
     resolution: {integrity: sha512-3O8vCzd7IC71Kciu/+oDVO0VZ83ujlUuKwmCkv6/zzt4WAoYu0vk7PyEo4WvlsSbZL8aHuv3bS917rd6TM1/9Q==}
     engines: {node: '>=16.17.0'}
     hasBin: true
@@ -11383,6 +11383,7 @@ packages:
         optional: true
     dependencies:
       '@cloudflare/kv-asset-handler': 0.2.0
+      '@cloudflare/workers-types': 4.20240117.0
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5

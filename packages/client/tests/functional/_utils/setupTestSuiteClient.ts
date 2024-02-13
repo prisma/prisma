@@ -1,3 +1,4 @@
+import { D1Database } from '@cloudflare/workers-types'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
@@ -98,10 +99,12 @@ export function setupTestSuiteClientDriverAdapter({
   suiteConfig,
   datasourceInfo,
   clientMeta,
+  cfWorkerBindings,
 }: {
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
+  cfWorkerBindings?: Record<string, unknown>
 }) {
   const driverAdapter = suiteConfig.matrixOptions.driverAdapter
   const provider = suiteConfig.matrixOptions.provider
@@ -187,14 +190,11 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_D1) {
-    const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
     const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
 
-    // Note: default hostname is `http://127.0.0.1:8787`
-    // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
-    const db = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
+    const d1Client = cfWorkerBindings.MY_DATABASE as D1Database
 
-    return { adapter: new PrismaD1(db), __internal }
+    return { adapter: new PrismaD1(d1Client), __internal }
   }
 
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)

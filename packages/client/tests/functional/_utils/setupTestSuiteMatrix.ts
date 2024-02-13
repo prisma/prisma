@@ -83,6 +83,9 @@ function setupTestSuiteMatrix(
     const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
 
+    let disposeWrangler: (() => Promise<void>) | undefined
+    let d1Bindings: Record<string, unknown> | undefined
+
     describeFn(name, () => {
       const clients = [] as any[]
 
@@ -102,7 +105,26 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        const newDriverAdapter = () => setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+        // If using D1 Driver adapter
+        // We need to setup wrangler bindings to the D1 db (using miniflare under the hood)
+        if (suiteConfig.matrixOptions.driverAdapter === 'js_d1') {
+          const { getBindingsProxy } = require('wrangler') as typeof import('wrangler')
+          const { bindings, dispose } = await getBindingsProxy({
+            configPath: path.join(__dirname, './wrangler.toml'),
+          })
+
+          // Expose the bindings to the test suite
+          disposeWrangler = dispose
+          d1Bindings = bindings
+        }
+
+        const newDriverAdapter = () =>
+          setupTestSuiteClientDriverAdapter({
+            suiteConfig,
+            clientMeta,
+            datasourceInfo,
+            cfWorkerBindings: d1Bindings,
+          })
 
         globalThis['newPrismaClient'] = (args: any) => {
           const { PrismaClient, Prisma } = globalThis['loaded']
@@ -148,6 +170,11 @@ function setupTestSuiteMatrix(
       })
 
       afterAll(async () => {
+        if (disposeWrangler) {
+          console.debug('Disposing wrangler...')
+          await disposeWrangler()
+        }
+
         for (const client of clients) {
           await client.$disconnect().catch(() => {
             // sometimes we test connection errors. In that case,

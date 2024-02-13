@@ -119,7 +119,6 @@ const args = arg(
 
 async function main(): Promise<number | void> {
   let miniProxyProcess: ExecaChildProcess | undefined
-  let wranglerProcess: ExecaChildProcess | undefined
 
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let jestCli = jestCliBase
@@ -168,33 +167,6 @@ async function main(): Promise<number | void> {
     }
 
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_ADAPTERS: adapterProviders.join(',') })
-
-    // Start wrangler dev server with the `wrangler-proxy` for D1 tests
-    if (adapterProviders.includes(AdapterProviders.JS_D1)) {
-      wranglerProcess = execa(
-        'pnpm',
-        [
-          'wrangler',
-          'dev',
-          '--config=./tests/functional/_utils/wrangler.toml',
-          'node_modules/wrangler-proxy/dist/worker.js',
-          // see https://github.com/cloudflare/workers-sdk/blob/6bfd267fe88b492a616754f04e574620941be2c1/packages/wrangler/src/logger.ts
-          // `info` currently prints too many logs when running tests with `wrangler-proxy`
-          // Example:
-          // [wrangler:inf] POST /instruction 200 OK (1ms)
-          // [wrangler:inf] POST /data 200 OK (8ms)
-          // ...
-          '--log-level=warn',
-        ],
-        {
-          preferLocal: true,
-          stdio: 'inherit',
-          env: {
-            DEBUG: process.env.DEBUG,
-          },
-        },
-      )
-    }
   }
 
   if (args['--engine-type']) {
@@ -277,9 +249,6 @@ async function main(): Promise<number | void> {
   } finally {
     if (miniProxyProcess) {
       miniProxyProcess.kill()
-    }
-    if (wranglerProcess) {
-      wranglerProcess.kill()
     }
   }
 }
