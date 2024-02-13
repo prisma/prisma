@@ -46,9 +46,12 @@ function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): Bui
     minify: true,
     plugins: [
       fillPlugin({
-        Function: {
-          define: 'fn',
-          globals: functionPolyfillPath,
+        defaultFillers: false,
+        fillerOverrides: {
+          Function: {
+            define: 'fn',
+            globals: functionPolyfillPath,
+          },
         },
       }),
     ],
@@ -75,18 +78,20 @@ const commonEdgeWasmRuntimeBuildConfig = {
   emitTypes: false,
   plugins: [
     fillPlugin({
-      // we remove eval and Function for vercel
-      eval: { define: 'undefined' },
-      Function: {
-        define: 'fn',
-        globals: functionPolyfillPath,
+      fillerOverrides: {
+        // we remove eval and Function for vercel
+        eval: { define: 'undefined' },
+        Function: {
+          define: 'fn',
+          globals: functionPolyfillPath,
+        },
+        // we shim WeakRef, it does not exist on CF
+        WeakRef: {
+          globals: weakrefPolyfillPath,
+        },
+        // these can not be exported anymore
+        './warnEnvConflicts': { contents: '' },
       },
-      // we shim WeakRef, it does not exist on CF
-      WeakRef: {
-        globals: weakrefPolyfillPath,
-      },
-      // these can not be exported anymore
-      './warnEnvConflicts': { contents: '' },
     }),
   ],
   define: {
