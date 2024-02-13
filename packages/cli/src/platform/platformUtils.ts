@@ -31,6 +31,11 @@ export const platformParameters = {
     '--environment': String,
     '-e': '--environment',
   },
+  serviceToken: {
+    '--token': String,
+    '--serviceToken': String,
+    '-s': '--serviceToken',
+  },
 } as const
 
 export const getOptionalParameter = <$Args extends Record<string, unknown>, $Names extends (keyof $Args)[]>(

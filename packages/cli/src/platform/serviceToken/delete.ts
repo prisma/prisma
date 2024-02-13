@@ -4,6 +4,7 @@ import {
   argOrThrow,
   getPlatformTokenOrThrow,
   getRequiredParameterOrThrow,
+  platformParameters,
   platformRequestOrThrow,
   successMessage,
 } from '../platformUtils'
@@ -15,12 +16,10 @@ export class Delete implements Command {
 
   public async parse(argv: string[]) {
     const args = argOrThrow(argv, {
-      '--token': String,
-      '--id': String,
-      '--apikey': String,
+      ...platformParameters.serviceToken,
     })
     const token = await getPlatformTokenOrThrow(args)
-    const id = getRequiredParameterOrThrow(args, ['--id'])
+    const serviceTokenId = getRequiredParameterOrThrow(args, ['--serviceToken', '-s'])
     const { serviceTokenDelete } = await platformRequestOrThrow<
       {
         serviceTokenDelete: {
@@ -46,7 +45,7 @@ export class Delete implements Command {
         `,
         variables: {
           input: {
-            id,
+            id: serviceTokenId,
           },
         },
       },
