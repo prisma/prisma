@@ -57,7 +57,8 @@ const engines: BinaryEngine[] = []
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
-export class BinaryEngine extends Engine<undefined> {
+export class BinaryEngine implements Engine<undefined> {
+  name = 'BinaryEngine' as const
   private config: EngineConfig
   private logEmitter: LogEmitter
   private showColors: boolean
@@ -101,8 +102,6 @@ export class BinaryEngine extends Engine<undefined> {
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
    */
   constructor(config: EngineConfig) {
-    super()
-
     this.config = config
     this.env = config.env
     this.cwd = this.resolveCwd(config.cwd)
@@ -222,7 +221,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return process.cwd()
   }
 
-  override onBeforeExit(listener: () => Promise<void>) {
+  onBeforeExit(listener: () => Promise<void>) {
     this.beforeExitListener = listener
   }
 

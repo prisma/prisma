@@ -183,6 +183,12 @@ importers:
         specifier: 7.2.3
         version: 7.2.3
 
+  packages/accelerate-contract:
+    devDependencies:
+      '@prisma/client':
+        specifier: workspace:*
+        version: link:../client
+
   packages/adapter-d1:
     dependencies:
       '@cloudflare/workers-types':
