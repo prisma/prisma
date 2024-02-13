@@ -46,9 +46,12 @@ function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): Bui
     minify: true,
     plugins: [
       fillPlugin({
-        Function: {
-          define: 'fn',
-          globals: functionPolyfillPath,
+        defaultFillers: false,
+        fillerOverrides: {
+          Function: {
+            define: 'fn',
+            globals: functionPolyfillPath,
+          },
         },
       }),
     ],
@@ -75,18 +78,20 @@ const commonEdgeWasmRuntimeBuildConfig = {
   emitTypes: false,
   plugins: [
     fillPlugin({
-      // we remove eval and Function for vercel
-      eval: { define: 'undefined' },
-      Function: {
-        define: 'fn',
-        globals: functionPolyfillPath,
+      fillerOverrides: {
+        // we remove eval and Function for vercel
+        eval: { define: 'undefined' },
+        Function: {
+          define: 'fn',
+          globals: functionPolyfillPath,
+        },
+        // we shim WeakRef, it does not exist on CF
+        WeakRef: {
+          globals: weakrefPolyfillPath,
+        },
+        // these can not be exported anymore
+        './warnEnvConflicts': { contents: '' },
       },
-      // we shim WeakRef, it does not exist on CF
-      WeakRef: {
-        globals: weakrefPolyfillPath,
-      },
-      // these can not be exported anymore
-      './warnEnvConflicts': { contents: '' },
     }),
   ],
   define: {
@@ -159,6 +164,15 @@ const defaultIndexConfig: BuildOptions = {
   emitTypes: false,
 }
 
+const accelerateContractBuildConfig: BuildOptions = {
+  name: 'accelerate-contract',
+  entryPoints: ['src/runtime/core/engines/accelerate/AccelerateEngine.ts'],
+  outfile: '../accelerate-contract/dist/index',
+  format: 'cjs',
+  bundle: true,
+  emitTypes: true,
+}
+
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -175,6 +189,7 @@ void build([
   wasmBindgenRuntimeConfig('mysql'),
   wasmBindgenRuntimeConfig('sqlite'),
   defaultIndexConfig,
+  accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
 })

@@ -49,7 +49,8 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 let engineInstanceCount = 0
 
-export class LibraryEngine extends Engine<undefined> {
+export class LibraryEngine implements Engine<undefined> {
+  name = 'LibraryEngine' as const
   engine?: QueryEngineInstance
   libraryInstantiationPromise?: Promise<void>
   libraryStartingPromise?: Promise<void>
@@ -76,8 +77,6 @@ export class LibraryEngine extends Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
-    super()
-
     if (TARGET_BUILD_TYPE === 'library') {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
@@ -333,7 +332,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return str
   }
 
-  override onBeforeExit() {
+  onBeforeExit() {
     throw new Error(
       '"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.',
     )
