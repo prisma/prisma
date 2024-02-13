@@ -217,7 +217,7 @@
     "kleur": "4.1.5",
     "klona": "2.0.6",
     "mariadb": "3.2.3",
-    "memfs": "4.6.0",
+    "memfs": "4.6.1",
     "mssql": "10.0.2",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.7.0",
