@@ -85,6 +85,7 @@ testMatrix.setupTestSuite(
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `aliceId`',
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                   [AdapterProviders.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [AdapterProviders.JS_PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [AdapterProviders.JS_PLANETSCALE]: 'Foreign key constraint failed on the field: `aliceId',

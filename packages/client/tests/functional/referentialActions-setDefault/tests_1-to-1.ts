@@ -155,6 +155,7 @@ testMatrix.setupTestSuite(
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                 [AdapterProviders.JS_NEON]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [AdapterProviders.JS_PG]:
@@ -234,6 +235,7 @@ testMatrix.setupTestSuite(
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                 [AdapterProviders.JS_NEON]:
                   'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                 [AdapterProviders.JS_PG]:
