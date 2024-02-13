@@ -1,4 +1,4 @@
-import { type Buffer as NodeBuffer } from 'buffer'
+import { Buffer as NodeBuffer } from 'buffer'
 import {
   areUint8ArraysEqual,
   base64ToUint8Array,
@@ -15,6 +15,29 @@ export class Buffer extends Uint8Array implements NodeBuffer {
 
   static isBuffer(arg: any): arg is Buffer {
     return arg && arg._isBuffer
+  }
+
+  static from(value: string | ArrayBuffer | Iterable<number> | ArrayLike<number>, encoding: any = 'utf8') {
+    if (typeof value === 'string' && typeof encoding === 'string') {
+      return stringToBuffer(value, encoding ?? 'utf8')
+    }
+
+    if (ArrayBuffer.isView(value)) {
+      return new Buffer(value.buffer, value.byteOffset, value.byteLength)
+    }
+
+    if (
+      Array.isArray(value) ||
+      value instanceof Uint8Array ||
+      value instanceof ArrayBuffer ||
+      value instanceof SharedArrayBuffer
+    ) {
+      return new Buffer(value)
+    }
+
+    throw new TypeError(
+      'The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object.',
+    )
   }
 
   slice(start = 0, end = this.length) {
@@ -483,25 +506,36 @@ export class Buffer extends Uint8Array implements NodeBuffer {
       length = this.length - offset
     }
 
-    if (encoding === 'utf8' || encoding === 'utf-8') {
-      return new Buffer(stringToUint8Array(string)).copy(this, offset, 0, length)
-    }
-    if (encoding === 'base64') {
-      return new Buffer(base64ToUint8Array(string)).copy(this, offset, 0, length)
-    }
-    if (encoding === 'hex') {
-      return new Buffer(hexToUint8Array(string)).copy(this, offset, 0, length)
-    }
+    return stringToBuffer(string, encoding).copy(this, offset, 0, length)
   }
 
   toString(encoding: Encoding = 'utf8', start = 0, end = this.length) {
-    if (encoding === 'utf-8') return uint8ArrayToString(this.slice(start, end))
-    if (encoding === 'utf8') return uint8ArrayToString(this.slice(start, end))
-    if (encoding === 'hex') return uint8ArrayToHex(this.slice(start, end))
-    if (encoding === 'base64') return uint8ArrayToBase64(this.slice(start, end))
+    if (encoding === 'utf8' || encoding === 'utf-8') {
+      return uint8ArrayToString(this.slice(start, end))
+    }
+    if (encoding === 'hex') {
+      return uint8ArrayToHex(this.slice(start, end))
+    }
+    if (encoding === 'base64') {
+      return uint8ArrayToBase64(this.slice(start, end))
+    }
 
     throw new Error(`buffer.toString does not support encoding "${encoding}"`)
   }
+}
+
+function stringToBuffer(value: string, encoding: string) {
+  if (encoding === 'utf8' || encoding === 'utf-8') {
+    return new Buffer([...stringToUint8Array(value)])
+  }
+  if (encoding === 'base64') {
+    return new Buffer([...base64ToUint8Array(value)])
+  }
+  if (encoding === 'hex') {
+    return new Buffer([...hexToUint8Array(value)])
+  }
+
+  throw new Error(`Buffer polyfill does not support encoding "${encoding}"`)
 }
 
 export type Encoding = 'utf8' | 'utf-8' | 'hex' | 'base64'
