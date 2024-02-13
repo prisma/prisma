@@ -224,6 +224,12 @@ export type GetPrismaClientConfig = {
   activeProvider: string
 
   /**
+   * The metadata of the schema binary encoded into bytes
+   * @remarks only used for Wasm Query Engine
+   */
+  serializedSchema?: Uint8Array
+
+  /**
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
@@ -415,6 +421,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter,
           isBundled: config.isBundled,
+          serializedSchema: config.serializedSchema,
           adapter,
         }
 

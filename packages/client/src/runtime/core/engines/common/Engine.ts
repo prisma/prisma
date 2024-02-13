@@ -110,6 +110,12 @@ export interface EngineConfig {
   logEmitter: LogEmitter
 
   /**
+   * The metadata of the schema binary encoded into bytes
+   * @remarks only used for Wasm Query Engine
+   */
+  serializedSchema?: Uint8Array
+
+  /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`.
    * If set, this is only used in the library engine, and all queries would be performed through it,
    * rather than Prisma's Rust drivers.

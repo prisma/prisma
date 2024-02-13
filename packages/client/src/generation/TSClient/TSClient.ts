@@ -21,6 +21,7 @@ import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModu
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
+import { buildSerializedSchema } from '../utils/buildSerializedSchema'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
@@ -152,6 +153,7 @@ ${new Enum(
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
+${buildSerializedSchema(wasm)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}

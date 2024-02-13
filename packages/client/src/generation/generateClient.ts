@@ -1,7 +1,14 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, ConnectorType, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
+import {
+  assertNever,
+  ClientEngineType,
+  getClientEngineType,
+  pathToPosix,
+  serializeSchemaToBytes,
+  setClassName,
+} from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
@@ -15,7 +22,7 @@ import type { O } from 'ts-toolbelt'
 import { exports as clientPackageExports, name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
-import { BrowserJS, JS, TS, TSClient } from './TSClient'
+import { BrowserJS, JS, jsifyUint8Array, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
 import type { Dictionary } from './utils/common'
 
@@ -162,6 +169,14 @@ export async function buildClient({
       fileMap['index.js'] = await JS(nodeWarnTsClient)
       fileMap['index.d.ts'] = await TS(nodeWarnTsClient)
     }
+
+    const serializedSchema = serializeSchemaToBytes({
+      datamodel,
+      datamodelPath: schemaPath,
+    })
+
+    // we store the serialized binary schema as `export const serializedSchema = new Uint8Array([...])`
+    fileMap['schema.bin.js'] = jsifyUint8Array(serializedSchema, 'serializedSchema')
 
     const wasmClient = new TSClient({
       ...baseClientOptions,
