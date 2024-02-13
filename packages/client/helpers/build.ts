@@ -185,7 +185,7 @@ const runtimeBuildConfigs = [
 ]
 
 // this means the configs that use Buffer and Decimal libs
-const heavyRuntimeBuildConfigs = runtimeBuildConfigs
+// const heavyRuntimeBuildConfigs = runtimeBuildConfigs
 
 // these are lightweight configs that do not use Buffer and Decimal libs and are
 // only copied to the runtime folder when using driverAdapters. this will be the
@@ -193,8 +193,8 @@ const heavyRuntimeBuildConfigs = runtimeBuildConfigs
 const smallRuntimeBuildConfigs = runtimeBuildConfigs.map((config) => {
   return {
     ...config,
-    name: `${config.name}-small`,
-    outfile: `runtime/${config.name}-small`,
+    name: `${config.name}`,
+    outfile: `runtime/${config.name}`,
     minify: true,
     plugins: [
       fillPlugin({
@@ -209,7 +209,7 @@ const smallRuntimeBuildConfigs = runtimeBuildConfigs.map((config) => {
 })
 
 void build([
-  ...heavyRuntimeBuildConfigs,
+  // ...heavyRuntimeBuildConfigs,
   ...smallRuntimeBuildConfigs,
   generatorBuildConfig,
   defaultIndexConfig,

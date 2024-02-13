@@ -22,7 +22,7 @@ export class Buffer extends Uint8Array implements NodeBuffer {
   }
 
   subarray(start = 0, end = this.length) {
-    return Object.setPrototypeOf(super.subarray(start, end), Buffer.prototype)
+    return Object.setPrototypeOf(super.subarray(start, end), Buffer.prototype) as Buffer
   }
 
   reverse() {
