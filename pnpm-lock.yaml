@@ -179,6 +179,9 @@ importers:
       typescript:
         specifier: 5.3.3
         version: 5.3.3
+      uint8array-extras:
+        specifier: 1.1.0
+        version: 1.1.0
       zx:
         specifier: 7.2.3
         version: 7.2.3
@@ -11078,6 +11081,11 @@ packages:
     resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
     engines: {node: '>=14.17'}
     hasBin: true
+    dev: true
+
+  /uint8array-extras@1.1.0:
+    resolution: {integrity: sha512-CVaBSyOmGoFHu+zOVPbetXEXykOd8KHVBHLlqvmaMWpwcq3rewj18xVNbU5uzf48hclnNQhfNaNany2cMHFK/g==}
+    engines: {node: '>=18'}
     dev: true
 
   /unbox-primitive@1.0.2:

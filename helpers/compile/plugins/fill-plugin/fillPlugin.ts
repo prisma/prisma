@@ -91,7 +91,7 @@ function setInjectionsAndDefinitions(fillers: Fillers, options: esbuild.BuildOpt
  * @param args from esbuild
  * @returns
  */
-function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs): esbuild.OnResolveResult {
+function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs, namespace: string): esbuild.OnResolveResult {
   // removes trailing slashes in imports paths
   const path = args.path.replace(/\/$/, '')
   const item = fillers[path]
@@ -103,8 +103,8 @@ function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs): esbuild.OnRes
 
   // if not, we defer action to the loaders cb
   return {
+    namespace,
     path: path,
-    namespace: 'fill-plugin',
     pluginData: args.importer,
   }
 }
@@ -117,6 +117,12 @@ function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs): esbuild.OnRes
  * @param args from esbuild
  */
 function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResult {
+  if (fillers[args.path] === undefined) {
+    console.log('fillers', fillers[args.path])
+    console.log('args', args)
+    process.exit(1)
+  }
+
   // display useful info if no shim has been found
   if (fillers[args.path].contents === undefined) {
     throw `no shim for "${args.path}" imported by "${args.pluginData}"`
@@ -141,37 +147,18 @@ const fillPlugin = (
 ): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
+    const uid = Math.random().toString(36).substring(7) + ''
+    const namespace = `fill-plugin-${uid}`
+
     // in some cases, we just want to run this once (eg. on esm)
     if (triggerPredicate(build.initialOptions) === false) return
 
     const fillers: Fillers = {
       // enabled
-      // assert: { path: load('assert-browserify') },
-      buffer: { imports: load('buffer') },
-      // constants: { path: load('constants-browserify') },
-      // crypto: { path: load('crypto-browserify') },
-      // domain: { path: load('domain-browser') },
-      // events: { imports: load('eventemitter3') },
       events: { imports: path.join(__dirname, 'fillers', 'events.ts') },
-      // http: { path: load('stream-http') },
-      // https: { path: load('https-browserify') },
-      // inherits: { path: load('inherits') },
-      // os: { path: load('os-browserify') },
-      // path: { imports: load('path-browserify') },
       path: { imports: path.join(__dirname, 'fillers', 'path.ts') },
-      // punycode: { path: load('punycode') },
-      // querystring: { path: load('querystring-es3') },
-      // stream: { path: load('readable-stream') },
-      // string_decoder: { path: load('string_decoder') },
-      // sys: { path: load('util') },
-      // timers: { path: load('timers-browserify') },
-      // tty: { imports: load('tty-browserify') },
       tty: { imports: path.join(__dirname, 'fillers', 'tty.ts') },
-      // url: { path: load('url') },
-      // util: { imports: load('util')  },
       util: { imports: path.join(__dirname, 'fillers', 'util.ts') },
-      // vm: { path: load('vm-browserify') },
-      // zlib: { path: load('browserify-zlib') },
 
       // disabled
       constants: { contents: '' },
@@ -207,7 +194,8 @@ const fillPlugin = (
       tls: { contents: '' },
 
       // globals
-      Buffer: {
+      buffer: {
+        imports: load('buffer'),
         globals: path.join(__dirname, 'fillers', 'buffer.ts'),
       },
       process: {
@@ -220,14 +208,6 @@ const fillPlugin = (
       __dirname: { define: '"/"' },
       __filename: { define: '"index.js"' },
 
-      // not needed
-      // global: {
-      //   define: '{}',
-      // },
-      // globalThis: {
-      //   define: '{}',
-      // },
-
       // overrides
       ...fillerOverrides,
     }
@@ -237,11 +217,11 @@ const fillPlugin = (
 
     // allows us to change the path of a filtered import by another
     build.onResolve({ filter: createImportFilter(fillers) }, (args) => {
-      return onResolve(fillers, args)
+      return onResolve(fillers, args, namespace)
     })
 
     // if no path was provided it defers to virtual nsp `fill-plugin`
-    build.onLoad({ filter: /.*/, namespace: 'fill-plugin' }, (args) => {
+    build.onLoad({ filter: /.*/, namespace }, (args) => {
       return onLoad(fillers, args)
     })
   },

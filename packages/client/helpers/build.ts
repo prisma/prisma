@@ -9,7 +9,7 @@ import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlu
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
-const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
+const fillPluginDir = path.join(__dirname, '..', '..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
@@ -60,7 +60,7 @@ const browserBuildConfig: BuildOptions = {
   name: 'browser',
   entryPoints: ['src/runtime/index-browser.ts'],
   outfile: 'runtime/index-browser',
-  target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
+  target: 'ES2018',
   bundle: true,
   minify: true,
   sourcemap: 'linked',
@@ -117,6 +117,7 @@ const wasmRuntimeBuildConfig: BuildOptions = {
   target: 'ES2022',
   name: 'wasm',
   outfile: 'runtime/wasm',
+  minify: true,
   define: {
     ...commonEdgeWasmRuntimeBuildConfig.define,
     TARGET_BUILD_TYPE: '"wasm"',
@@ -171,8 +172,7 @@ function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
 
-void build([
-  generatorBuildConfig,
+const runtimeBuildConfigs = [
   nodeRuntimeBuildConfig(ClientEngineType.Binary),
   nodeRuntimeBuildConfig(ClientEngineType.Library),
   browserBuildConfig,
@@ -182,8 +182,36 @@ void build([
   wasmBindgenRuntimeConfig('postgresql'),
   wasmBindgenRuntimeConfig('mysql'),
   wasmBindgenRuntimeConfig('sqlite'),
+]
+
+// this means the configs that use Buffer and Decimal libs
+const heavyRuntimeBuildConfigs = runtimeBuildConfigs
+
+// these are lightweight configs that do not use Buffer and Decimal libs and are
+// only copied to the runtime folder when using driverAdapters. this will be the
+// default for everyone once driverAdapters are is in general availability.
+const smallRuntimeBuildConfigs = runtimeBuildConfigs.map((config) => {
+  return {
+    ...config,
+    name: `${config.name}-small`,
+    outfile: `runtime/${config.name}-small`,
+    minify: true,
+    plugins: [
+      fillPlugin({
+        buffer: {
+          imports: path.join(fillPluginDir, 'fillers', 'buffer-small.ts'),
+          globals: path.join(fillPluginDir, 'fillers', 'buffer-small.ts'),
+        },
+      }),
+      ...(config.plugins ?? []),
+    ],
+  }
+})
+
+void build([
+  ...heavyRuntimeBuildConfigs,
+  ...smallRuntimeBuildConfigs,
+  generatorBuildConfig,
   defaultIndexConfig,
   accelerateContractBuildConfig,
-]).then(() => {
-  writeDtsRexport('binary.d.ts')
-})
+]).then(() => writeDtsRexport('binary.d.ts'))
