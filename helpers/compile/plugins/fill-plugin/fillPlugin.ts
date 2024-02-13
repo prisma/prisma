@@ -15,6 +15,12 @@ type Fillers = {
   }
 }
 
+type FillPluginOptions = {
+  fillerOverrides: Fillers
+  defaultFillers?: boolean
+  triggerPredicate?: (options: esbuild.BuildOptions) => boolean
+}
+
 /**
  * Bundle a polyfill with all its dependencies. We use paths to files in /tmp
  * instead of direct contents so that esbuild can include things once only.
@@ -134,6 +140,62 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const load = loader({}) // could be useful later
 
+const defaultFillersConfig: Fillers = {
+  // enabled
+  events: { imports: path.join(__dirname, 'fillers', 'events.ts') },
+  path: { imports: path.join(__dirname, 'fillers', 'path.ts') },
+  tty: { imports: path.join(__dirname, 'fillers', 'tty.ts') },
+  util: { imports: path.join(__dirname, 'fillers', 'util.ts') },
+
+  // disabled
+  constants: { contents: '' },
+  crypto: { contents: '' },
+  domain: { contents: '' },
+  http: { contents: '' },
+  https: { contents: '' },
+  inherits: { contents: '' },
+  os: { contents: '' },
+  punycode: { contents: '' },
+  querystring: { contents: '' },
+  stream: { contents: '' },
+  string_decoder: { contents: '' },
+  sys: { contents: '' },
+  timers: { contents: '' },
+  url: { contents: '' },
+  vm: { contents: '' },
+  zlib: { contents: '' },
+
+  // no shims
+  async_hooks: { contents: '' },
+  child_process: { contents: '' },
+  cluster: { contents: '' },
+  dns: { contents: '' },
+  dgram: { contents: '' },
+  fs: { imports: path.join(__dirname, 'fillers', 'fs.ts') },
+  http2: { contents: '' },
+  module: { contents: '' },
+  net: { contents: '' },
+  perf_hooks: { imports: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
+  readline: { contents: '' },
+  repl: { contents: '' },
+  tls: { contents: '' },
+
+  // globals
+  buffer: {
+    imports: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+    globals: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+  },
+  process: {
+    globals: path.join(__dirname, 'fillers', 'process.ts'),
+    imports: path.join(__dirname, 'fillers', 'process.ts'),
+  },
+  performance: {
+    globals: path.join(__dirname, 'fillers', 'perf_hooks.ts'),
+  },
+  __dirname: { define: '"/"' },
+  __filename: { define: '"index.js"' },
+}
+
 /**
  * Provides a simple way to use esbuild's injection capabilities while providing
  * sensible defaults for node polyfills.
@@ -142,10 +204,11 @@ const load = loader({}) // could be useful later
  * @param fillerOverrides override default fillers
  * @returns
  */
-const fillPlugin = (
-  fillerOverrides: Fillers,
-  triggerPredicate: (options: esbuild.BuildOptions) => boolean = () => true,
-): esbuild.Plugin => ({
+const fillPlugin = ({
+  fillerOverrides,
+  defaultFillers = true,
+  triggerPredicate = () => true,
+}: FillPluginOptions): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
     const uid = Math.random().toString(36).substring(7) + ''
@@ -154,64 +217,14 @@ const fillPlugin = (
     // in some cases, we just want to run this once (eg. on esm)
     if (triggerPredicate(build.initialOptions) === false) return
 
-    const fillers: Fillers = {
-      // enabled
-      events: { imports: path.join(__dirname, 'fillers', 'events.ts') },
-      path: { imports: path.join(__dirname, 'fillers', 'path.ts') },
-      tty: { imports: path.join(__dirname, 'fillers', 'tty.ts') },
-      util: { imports: path.join(__dirname, 'fillers', 'util.ts') },
-
-      // disabled
-      constants: { contents: '' },
-      crypto: { contents: '' },
-      domain: { contents: '' },
-      http: { contents: '' },
-      https: { contents: '' },
-      inherits: { contents: '' },
-      os: { contents: '' },
-      punycode: { contents: '' },
-      querystring: { contents: '' },
-      stream: { contents: '' },
-      string_decoder: { contents: '' },
-      sys: { contents: '' },
-      timers: { contents: '' },
-      url: { contents: '' },
-      vm: { contents: '' },
-      zlib: { contents: '' },
-
-      // no shims
-      async_hooks: { contents: '' },
-      child_process: { contents: '' },
-      cluster: { contents: '' },
-      dns: { contents: '' },
-      dgram: { contents: '' },
-      fs: { imports: path.join(__dirname, 'fillers', 'fs.ts') },
-      http2: { contents: '' },
-      module: { contents: '' },
-      net: { contents: '' },
-      perf_hooks: { imports: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
-      readline: { contents: '' },
-      repl: { contents: '' },
-      tls: { contents: '' },
-
-      // globals
-      buffer: {
-        imports: path.join(__dirname, 'fillers', 'buffer-small.ts'),
-        globals: path.join(__dirname, 'fillers', 'buffer-small.ts'),
-      },
-      process: {
-        globals: path.join(__dirname, 'fillers', 'process.ts'),
-        imports: path.join(__dirname, 'fillers', 'process.ts'),
-      },
-      performance: {
-        globals: path.join(__dirname, 'fillers', 'perf_hooks.ts'),
-      },
-      __dirname: { define: '"/"' },
-      __filename: { define: '"index.js"' },
-
-      // overrides
+    // overrides
+    const fillers = {
+      ...(defaultFillers ? defaultFillersConfig : {}),
       ...fillerOverrides,
     }
+
+    // in some cases, we just want to run this once (eg. on esm)
+    if (triggerPredicate(build.initialOptions) === false) return
 
     // our first step is to update options with basic injections
     setInjectionsAndDefinitions(fillers, build.initialOptions)
