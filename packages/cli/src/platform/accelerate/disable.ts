@@ -6,7 +6,7 @@ import {
   platformParameters,
   platformRequestOrThrow,
   successMessage,
-} from '../../utils/platform'
+} from '../platformUtils'
 
 export class Disable implements Command {
   public static new(): Disable {

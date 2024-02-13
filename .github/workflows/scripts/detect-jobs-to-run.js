@@ -41,7 +41,9 @@ async function main() {
     console.debug('filesChanged:', filesChanged)
 
     // If changes are located only in one of the paths below
-    if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/cli/'))) {
+    if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/cli/src/platform/'))) {
+      jobsToRun.push('-cli-platform-')
+    } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/cli/'))) {
       jobsToRun.push('-cli-')
       jobsToRun.push('-client-e2e-')
     } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/client/'))) {

@@ -8,7 +8,7 @@ import {
   platformParameters,
   platformRequestOrThrow,
   successMessage,
-} from '../../utils/platform'
+} from '../platformUtils'
 
 export class Enable implements Command {
   public static new(): Enable {
