@@ -39,7 +39,8 @@ export class Create implements Command {
       body: {
         query: /* GraphQL */ `
           mutation ($input: { displayName: String, environmentId: String!}) {
-            serviceKeyCreate(input: $input) {
+            serviceTokenCreate(input: $input) {
+              __typename
               ... on Error {
                 message
               }

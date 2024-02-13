@@ -23,8 +23,6 @@ export const platformParameters = {
   },
   project: {
     '--token': String,
-    '--workspace': String,
-    '-w': '--workspace',
     '--project': String,
     '-p': '--project',
   },
@@ -39,7 +37,7 @@ export const getOptionalParameter = <$Args extends Record<string, unknown>, $Nam
   args: $Args,
   names: $Names,
   environmentVariable?: string,
-): Exclude<$Args[$Names[number]], undefined> => {
+): $Args[$Names[number]] => {
   const entry = Object.entries(args).find(([key]) => names.includes(key))
   if (!entry) {
     // TODO document for our users when the CLI goes production that environment variables are overridden by flags
@@ -66,7 +64,7 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
 ): Error | Exclude<$Args[$Names[number]], undefined> => {
   const value = getOptionalParameter(args, names, environmentVariable)
   if (value === undefined) return new Error(`Missing ${names.join(' or ')} parameter`)
-  return value
+  return value as any
 }
 
 export const getRequiredParameterOrThrow = <$Args extends Record<string, unknown>, $Names extends (keyof $Args)[]>(
@@ -124,13 +122,19 @@ const accelerateConnectionStringUrl = 'prisma://accelerate.prisma-data.net'
 export const platformRequestOrThrow = async <
   $Data extends object = object,
   $Input extends null | object = null,
+  $Variables extends null | object = null,
 >(params: {
   token: string
   body: $Input extends null
-    ? {
-        query: string
-        variables?: undefined
-      }
+    ? $Variables extends null
+      ? {
+          query: string
+          variables?: undefined
+        }
+      : {
+          query: string
+          variables: $Variables
+        }
     : {
         query: string
         variables: { input: $Input }

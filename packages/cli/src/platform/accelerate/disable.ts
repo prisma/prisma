@@ -20,12 +20,9 @@ export class Disable implements Command {
     })
     const token = await getPlatformTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
-
     await platformRequestOrThrow<
       {
-        accelerateDisable: {
-          __typename: 'SideEffectConfirmation'
-        }
+        accelerateDisable: {}
       },
       { environmentId: string }
     >({
@@ -35,7 +32,9 @@ export class Disable implements Command {
           mutation(input: { $environmentId: ID! }) {
             accelerateDisable(input: $input) {
               __typename
-              ...on 
+              ... on Error {
+                message
+              }
             }
           }
         `,
@@ -46,7 +45,7 @@ export class Disable implements Command {
     })
 
     return successMessage(
-      `Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
+      `Accelerate disabled. Prisma clients connected to ${environmentId} will not be able to send queries through Accelerate.`,
     )
   }
 }

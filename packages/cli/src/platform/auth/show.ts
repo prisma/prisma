@@ -24,8 +24,9 @@ export class Show implements Command {
       token,
       body: {
         query: /* graphql */ `
-          {
+          query {
             me {
+              __typename
               user {
                 id
                 email

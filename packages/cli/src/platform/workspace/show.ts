@@ -1,6 +1,6 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 
-import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../platformUtils'
+import { argOrThrow, getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../platformUtils'
 
 export class Show implements Command {
   public static new(): Show {
@@ -8,33 +8,36 @@ export class Show implements Command {
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
+    const args = argOrThrow(argv, {
       ...platformParameters.global,
     })
-    if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-
-    const payload = await platformRequestOrThrow<{
-      actor: any
-      organizations: {
-        id: string
-        displayName: string
-        createdAt: string
-      }[]
+    const { me } = await platformRequestOrThrow<{
+      me: {
+        workspaces: {
+          id: string
+          displayName: string
+          createdAt: string
+        }[]
+      }
     }>({
       token,
-      path: `/settings/workspaces`,
-      route: '_app._user.settings.workspaces',
+      body: {
+        query: /* GraphQL */ `
+          query {
+            me {
+              __typename
+              workspaces {
+                id
+                name: displayName
+                createdAt
+              }
+            }
+          }
+        `,
+      },
     })
-
-    console.table(
-      payload.organizations.map((workspace) => ({
-        id: workspace.id,
-        name: workspace.displayName,
-        createdAt: workspace.createdAt,
-      })),
-      ['id', 'name', 'createdAt'],
-    )
+    console.table(me.workspaces, ['id', 'name', 'createdAt'])
     return ''
   }
 }

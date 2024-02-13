@@ -38,6 +38,7 @@ export class Show implements Command {
         query: /* GraphQL */ `
           query ($input: { $workspaceId: ID! }) {
             workspace(input: $input) {
+              __typename
               ... on Error {
                 message
               }

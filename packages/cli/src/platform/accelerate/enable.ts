@@ -21,68 +21,72 @@ export class Enable implements Command {
       ...platformParameters.environment,
       '--url': String,
       '--serviceToken': Boolean,
-      '--region': String,
     })
     if (isError(args)) return args
     const token = await getPlatformTokenOrThrow(args)
-    const url = getRequiredParameterOrThrow(args, ['--url'])
-    url // todo
+    const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
+    // const url = getRequiredParameterOrThrow(args, ['--url'])
+    // url // todo
     const databaseLinkId = 'todo'
-    const serviceToken = getOptionalParameter(args, ['--serviceToken'])
-    // region won't be used in this first iteration
-    // const _region = getOptionalParameter(args, ['--region'])
-
-    await platformRequestOrThrow<
+    const withServiceToken = getOptionalParameter(args, ['--serviceToken']) ?? false
+    const { serviceTokenCreate } = await platformRequestOrThrow<
       {
         accelerateEnable: {}
+        serviceTokenCreate?: {
+          value: string
+        }
       },
-      { databaseLinkId: string }
+      null,
+      {
+        accelerateEnableInput: { databaseLinkId: string }
+        serviceTokenCreateInput: { environmentId: string }
+        withServiceToken: boolean
+      }
     >({
       token,
       body: {
         query: /* GraphQL */ `
-          mutation ($input: { databaseLinkId: String! }) {
-            accelerateEnable(input: $input) {
+          mutation ($accelerateEnableInput: { databaseLinkId: String! }, $serviceTokenCreateInput: { environmentId: String! }, withServiceToken: Boolean! ) {
+            accelerateEnable(input: { databaseLinkId: $input[''] }) {
               __typename
               ... on Error {
                 message
               }
             }
+            serviceTokenCreate(input: $input) @include(if: $withServiceToken) {
+              __typename
+              ... on Error {
+                message
+              }
+              ... on ServiceTokenWithValue {
+                value
+              }
+            }
           }
         `,
         variables: {
-          input: { databaseLinkId },
+          withServiceToken,
+          accelerateEnableInput: { databaseLinkId },
+          serviceTokenCreateInput: { environmentId },
         },
       },
     })
 
-    if (serviceToken) {
-      const payload = await platformRequestOrThrow<{
-        data: {
-          tenantAPIKey: string
-        }
-        error: null | { message: string }
-      }>({
-        token,
-        path: `/${workspace}/${project}/settings/api-keys/create`,
-        route: '_app.$organizationId_.$projectId.settings.api-keys.create',
-        payload: {},
-      })
-      if (payload.error?.message) {
-        throw new Error(payload.error.message)
-      }
+    const gettingStartedUrl = link('https://pris.ly/d/accelerate-getting-started')
+
+    if (serviceTokenCreate) {
       return successMessage(
-        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests:\n\n${generateConnectionString(
-          payload.data.tenantAPIKey,
-        )}\n\nFor more information, check out the Getting started guide here: ${link(
-          'https://pris.ly/d/accelerate-getting-started',
-        )}`,
+        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests:\n` +
+          '\n' +
+          `${generateConnectionString(serviceTokenCreate.value)}\n` +
+          '\n' +
+          `For more information, check out the Getting started guide here: ${gettingStartedUrl}`,
       )
     } else {
       return successMessage(
-        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n\nFor more information, check out the Getting started guide here: ${link(
-          'https://pris.ly/d/accelerate-getting-started',
-        )}`,
+        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n` +
+          `\n` +
+          `For more information, check out the Getting started guide here: ${gettingStartedUrl}`,
       )
     }
   }

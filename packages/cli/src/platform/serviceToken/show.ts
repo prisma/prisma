@@ -36,6 +36,7 @@ export class Show implements Command {
         query: /* GraphQL */ `
           query ($input: { environmentId: ID! }) {
             serviceTokens(input: $input) {
+              __typename
               ... on Error {
                 message
               }

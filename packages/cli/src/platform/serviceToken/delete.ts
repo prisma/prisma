@@ -34,6 +34,7 @@ export class Delete implements Command {
         query: /* GraphQL */ `
           mutation ($input: { id: ID! }) {
             serviceTokenDelete(input: $input) {
+              __typename
               ...on Error {
                 message
               }
