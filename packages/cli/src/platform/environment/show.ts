@@ -11,11 +11,11 @@ export class Show implements Command {
 
   public async parse(argv: string[]) {
     const args = arg(argv, {
-      ...platformParameters.workspace,
+      ...platformParameters.project,
     })
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
-    const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
+    const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
     const { workspace } = await requestOrThrow<
       {
         workspace: {
@@ -27,20 +27,20 @@ export class Show implements Command {
         }
       },
       {
-        workspaceId: string
+        id: string
       }
     >({
       token,
       body: {
         query: /* GraphQL */ `
-          query ($input: { $workspaceId: ID! }) {
-            workspace(input: $input) {
+          query ($input: { $id: ID! }) {
+            project(input: $input) {
               __typename
               ... on Error {
                 message
               }
-              ... on Workspace {
-                projects {
+              ... on Project {
+                environments {
                   id
                   createdAt
                   name: displayName
@@ -51,14 +51,13 @@ export class Show implements Command {
         `,
         variables: {
           input: {
-            workspaceId,
+            id: projectId,
           },
         },
       },
     })
 
     console.table(workspace.projects, ['id', 'name', 'createdAt'])
-
     return ''
   }
 }

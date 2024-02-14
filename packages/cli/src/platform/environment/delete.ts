@@ -12,14 +12,14 @@ export class Delete implements Command {
 
   public async parse(argv: string[]) {
     const args = arg(argv, {
-      ...platformParameters.project,
+      ...platformParameters.environment,
     })
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
-    const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
-    const { projectDelete } = await requestOrThrow<
+    const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
+    const { environmentDelete } = await requestOrThrow<
       {
-        projectDelete: {
+        environmentDelete: {
           __typename: string
           id: string
           createdAt: string
@@ -34,12 +34,12 @@ export class Delete implements Command {
       body: {
         query: /* graphql */ `
           mutation ($input: { $id: ID! }) {
-            projectDelete(input: $input) {
+            environmentDelete(input: $input) {
               __typename
               ...on Error {
                 message
               }
-              ...on Project {
+              ...on Environment {
                 id
                 createdAt
                 displayName
@@ -49,11 +49,11 @@ export class Delete implements Command {
         `,
         variables: {
           input: {
-            id: projectId,
+            id: environmentId,
           },
         },
       },
     })
-    return messages.resourceDeleted(projectDelete)
+    return messages.resourceDeleted(environmentDelete)
   }
 }

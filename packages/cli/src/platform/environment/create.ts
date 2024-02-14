@@ -19,9 +19,9 @@ export class Create implements Command {
     const token = await getTokenOrThrow(args)
     const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
-    const { createEnvironment } = await requestOrThrow<
+    const { environmentCreate } = await requestOrThrow<
       {
-        createEnvironment: {
+        environmentCreate: {
           __typename: string
           id: string
           createdAt: string
@@ -37,12 +37,12 @@ export class Create implements Command {
       body: {
         query: /* graphql */ `
           mutation ($input: { $projectId: ID!, $displayName: String }) {
-            createEnvironment(input: $input) {
+            environmentCreate(input: $input) {
               __typename
               ...on Error {
                 message
               }
-              ...on Project {
+              ...on Environment {
                 id
                 createdAt
                 displayName
@@ -59,6 +59,6 @@ export class Create implements Command {
       },
     })
 
-    return messages.resourceCreated(createEnvironment)
+    return messages.resourceCreated(environmentCreate)
   }
 }

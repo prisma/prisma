@@ -27,13 +27,13 @@ export class Show implements Command {
         }
       },
       {
-        workspaceId: string
+        id: string
       }
     >({
       token,
       body: {
         query: /* GraphQL */ `
-          query ($input: { $workspaceId: ID! }) {
+          query ($input: { $id: ID! }) {
             workspace(input: $input) {
               __typename
               ... on Error {
@@ -51,14 +51,13 @@ export class Show implements Command {
         `,
         variables: {
           input: {
-            workspaceId,
+            id: workspaceId,
           },
         },
       },
     })
 
     console.table(workspace.projects, ['id', 'name', 'createdAt'])
-
     return ''
   }
 }

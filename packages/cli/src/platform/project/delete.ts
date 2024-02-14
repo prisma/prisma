@@ -1,6 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { successMessage } from '../_lib/messages'
+import { messages } from '../_lib/messages'
 import { getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -20,6 +20,7 @@ export class Delete implements Command {
     const { projectDelete } = await requestOrThrow<
       {
         projectDelete: {
+          __typename: string
           id: string
           createdAt: string
           displayName: string
@@ -53,6 +54,6 @@ export class Delete implements Command {
         },
       },
     })
-    return successMessage(`Project ${projectDelete.displayName} - ${projectDelete.id} deleted.`)
+    return messages.resourceDeleted(projectDelete)
   }
 }
