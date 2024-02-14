@@ -15,7 +15,7 @@
     "@types/node": "18.19.15",
     "@types/react": "18.2.55",
     "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz",
-    "webpack": "5.75.0"
+    "webpack": "5.90.1"
   },
   "dependencies": {
     "db": "workspace:*",
@@ -23,6 +23,6 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "4.9.5",
-    "vercel": "28.20.0"
+    "vercel": "33.5.0"
   }
 }
