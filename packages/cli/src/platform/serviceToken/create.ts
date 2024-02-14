@@ -1,14 +1,8 @@
 import { Command } from '@prisma/internals'
 
-import {
-  argOrThrow,
-  getOptionalParameter,
-  getPlatformTokenOrThrow,
-  getRequiredParameterOrThrow,
-  platformParameters,
-  platformRequestOrThrow,
-  successMessage,
-} from '../platformUtils'
+import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../lib/parameters'
+import { requestOrThrow } from '../lib/pdp'
+import { getTokenOrThrow, platformParameters, successMessage } from '../lib/utils'
 
 export class Create implements Command {
   public static new(): Create {
@@ -21,10 +15,10 @@ export class Create implements Command {
       '--name': String,
       '-n': '--name',
     })
-    const token = await getPlatformTokenOrThrow(args)
+    const token = await getTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
-    const { serviceTokenCreate } = await platformRequestOrThrow<
+    const { serviceTokenCreate } = await requestOrThrow<
       {
         serviceTokenCreate: {
           value: string

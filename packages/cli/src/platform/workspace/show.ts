@@ -1,6 +1,8 @@
 import { Command } from '@prisma/internals'
 
-import { argOrThrow, getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../platformUtils'
+import { argOrThrow } from '../lib/parameters'
+import { requestOrThrow } from '../lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../lib/utils'
 
 export class Show implements Command {
   public static new(): Show {
@@ -11,8 +13,8 @@ export class Show implements Command {
     const args = argOrThrow(argv, {
       ...platformParameters.global,
     })
-    const token = await getPlatformTokenOrThrow(args)
-    const { me } = await platformRequestOrThrow<{
+    const token = await getTokenOrThrow(args)
+    const { me } = await requestOrThrow<{
       me: {
         workspaces: {
           id: string

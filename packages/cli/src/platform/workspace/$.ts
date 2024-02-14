@@ -1,6 +1,6 @@
 import { Command, Commands } from '@prisma/internals'
 
-import { dispatchToSubCommand } from '../platformUtils'
+import { dispatchToSubCommand } from '../lib/utils'
 
 export class $ implements Command {
   public static new(commands: Commands): $ {

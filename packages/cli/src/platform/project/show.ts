@@ -1,11 +1,8 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import {
-  getPlatformTokenOrThrow,
-  getRequiredParameterOrThrow,
-  platformParameters,
-  platformRequestOrThrow,
-} from '../platformUtils'
+import { getRequiredParameterOrThrow } from '../lib/parameters'
+import { requestOrThrow } from '../lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../lib/utils'
 
 export class Show implements Command {
   public static new(): Show {
@@ -17,9 +14,9 @@ export class Show implements Command {
       ...platformParameters.workspace,
     })
     if (isError(args)) return args
-    const token = await getPlatformTokenOrThrow(args)
+    const token = await getTokenOrThrow(args)
     const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
-    const { workspace } = await platformRequestOrThrow<
+    const { workspace } = await requestOrThrow<
       {
         workspace: {
           projects: {

@@ -1,13 +1,8 @@
 import { Command } from '@prisma/internals'
 
-import {
-  argOrThrow,
-  getPlatformTokenOrThrow,
-  getRequiredParameterOrThrow,
-  platformParameters,
-  platformRequestOrThrow,
-  successMessage,
-} from '../platformUtils'
+import { argOrThrow, getRequiredParameterOrThrow } from '../lib/parameters'
+import { requestOrThrow } from '../lib/pdp'
+import { getTokenOrThrow, platformParameters, successMessage } from '../lib/utils'
 
 export class Disable implements Command {
   public static new(): Disable {
@@ -18,9 +13,9 @@ export class Disable implements Command {
     const args = argOrThrow(argv, {
       ...platformParameters.environment,
     })
-    const token = await getPlatformTokenOrThrow(args)
+    const token = await getTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
-    await platformRequestOrThrow<
+    await requestOrThrow<
       {
         accelerateDisable: {}
       },

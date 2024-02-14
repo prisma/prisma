@@ -1,13 +1,8 @@
 import { Command } from '@prisma/internals'
 
-import {
-  argOrThrow,
-  getPlatformTokenOrThrow,
-  getRequiredParameterOrThrow,
-  platformParameters,
-  platformRequestOrThrow,
-  successMessage,
-} from '../platformUtils'
+import { argOrThrow, getRequiredParameterOrThrow } from '../lib/parameters'
+import { requestOrThrow } from '../lib/pdp'
+import { getTokenOrThrow, platformParameters, successMessage } from '../lib/utils'
 
 export class Delete implements Command {
   public static new(): Delete {
@@ -18,9 +13,9 @@ export class Delete implements Command {
     const args = argOrThrow(argv, {
       ...platformParameters.serviceToken,
     })
-    const token = await getPlatformTokenOrThrow(args)
+    const token = await getTokenOrThrow(args)
     const serviceTokenId = getRequiredParameterOrThrow(args, ['--serviceToken', '-s'])
-    const { serviceTokenDelete } = await platformRequestOrThrow<
+    const { serviceTokenDelete } = await requestOrThrow<
       {
         serviceTokenDelete: {
           displayName: string

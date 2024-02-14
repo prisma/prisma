@@ -1,12 +1,8 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import {
-  getPlatformTokenOrThrow,
-  getRequiredParameterOrThrow,
-  platformParameters,
-  platformRequestOrThrow,
-  successMessage,
-} from '../platformUtils'
+import { getRequiredParameterOrThrow } from '../lib/parameters'
+import { requestOrThrow } from '../lib/pdp'
+import { getTokenOrThrow, platformParameters, successMessage } from '../lib/utils'
 
 export class Delete implements Command {
   public static new(): Delete {
@@ -18,9 +14,9 @@ export class Delete implements Command {
       ...platformParameters.project,
     })
     if (isError(args)) return args
-    const token = await getPlatformTokenOrThrow(args)
+    const token = await getTokenOrThrow(args)
     const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
-    const { projectDelete } = await platformRequestOrThrow<
+    const { projectDelete } = await requestOrThrow<
       {
         projectDelete: {
           __typename: 'Project'

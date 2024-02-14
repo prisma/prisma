@@ -1,14 +1,8 @@
 import { arg, Command, isError, link } from '@prisma/internals'
 
-import {
-  generateConnectionString,
-  getOptionalParameter,
-  getPlatformTokenOrThrow,
-  getRequiredParameterOrThrow,
-  platformParameters,
-  platformRequestOrThrow,
-  successMessage,
-} from '../platformUtils'
+import { getOptionalParameter, getRequiredParameterOrThrow } from '../lib/parameters'
+import { requestOrThrow } from '../lib/pdp'
+import { generateConnectionString, getTokenOrThrow, platformParameters, successMessage } from '../lib/utils'
 
 export class Enable implements Command {
   public static new(): Enable {
@@ -23,13 +17,13 @@ export class Enable implements Command {
       '--serviceToken': Boolean,
     })
     if (isError(args)) return args
-    const token = await getPlatformTokenOrThrow(args)
+    const token = await getTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     // const url = getRequiredParameterOrThrow(args, ['--url'])
     // url // todo
     const databaseLinkId = 'todo'
     const withServiceToken = getOptionalParameter(args, ['--serviceToken']) ?? false
-    const { serviceTokenCreate } = await platformRequestOrThrow<
+    const { serviceTokenCreate } = await requestOrThrow<
       {
         accelerateEnable: {}
         serviceTokenCreate?: {
