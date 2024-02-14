@@ -68,8 +68,6 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[]) =
  *
  */
 
-export const successMessage = (message: string) => `${green('Success!')} ${message}`
-
 export const generateConnectionString = (apiKey: string) => {
   const url = new URL(accelerateConnectionStringUrl)
   url.searchParams.set('api_key', apiKey)

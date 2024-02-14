@@ -1,8 +1,9 @@
 import { arg, Command, isError, link } from '@prisma/internals'
 
-import { getOptionalParameter, getRequiredParameterOrThrow } from '../lib/parameters'
-import { requestOrThrow } from '../lib/pdp'
-import { generateConnectionString, getTokenOrThrow, platformParameters, successMessage } from '../lib/utils'
+import { successMessage } from '../_lib/messages'
+import { getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/parameters'
+import { requestOrThrow } from '../_lib/pdp'
+import { generateConnectionString, getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Enable implements Command {
   public static new(): Enable {

@@ -92,6 +92,11 @@ async function main(): Promise<number> {
           logout: Platform.Auth.Logout.new(),
           show: Platform.Auth.Show.new(),
         }),
+        environment: Platform.Environment.$.new({
+          create: Platform.Environment.Create.new(),
+          delete: Platform.Environment.Delete.new(),
+          show: Platform.Environment.Show.new(),
+        }),
         project: Platform.Project.$.new({
           create: Platform.Project.Create.new(),
           delete: Platform.Project.Delete.new(),

@@ -1,6 +1,6 @@
 import { Command } from '@prisma/internals'
 
-import { successMessage } from '../_lib/messages'
+import { messages } from '../_lib/messages'
 import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -12,31 +12,32 @@ export class Create implements Command {
 
   public async parse(argv: string[]) {
     const args = argOrThrow(argv, {
-      ...platformParameters.workspace,
+      ...platformParameters.project,
       '--name': String,
       '-n': '--name',
     })
     const token = await getTokenOrThrow(args)
-    const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
+    const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
-    const { createProject } = await requestOrThrow<
+    const { createEnvironment } = await requestOrThrow<
       {
-        createProject: {
+        createEnvironment: {
+          __typename: string
           id: string
           createdAt: string
           displayName: string
         }
       },
       {
-        workspaceId: string
+        projectId: string
         displayName?: string
       }
     >({
       token,
       body: {
         query: /* graphql */ `
-          mutation ($input: { $workspaceId: ID!, $displayName: String }) {
-            createProject(input: $input) {
+          mutation ($input: { $projectId: ID!, $displayName: String }) {
+            createEnvironment(input: $input) {
               __typename
               ...on Error {
                 message
@@ -51,13 +52,13 @@ export class Create implements Command {
         `,
         variables: {
           input: {
-            workspaceId,
+            projectId,
             displayName,
           },
         },
       },
     })
 
-    return successMessage(`Project ${createProject.displayName} - ${createProject.id} created.`)
+    return messages.resourceCreated(createEnvironment)
   }
 }

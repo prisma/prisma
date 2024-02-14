@@ -1,8 +1,9 @@
 import { Command } from '@prisma/internals'
 
-import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../lib/parameters'
-import { requestOrThrow } from '../lib/pdp'
-import { getTokenOrThrow, platformParameters, successMessage } from '../lib/utils'
+import { successMessage } from '../_lib/messages'
+import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/parameters'
+import { requestOrThrow } from '../_lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Create implements Command {
   public static new(): Create {

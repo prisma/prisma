@@ -1,9 +1,8 @@
 import { Command } from '@prisma/internals'
 
-import { successMessage } from '../_lib/messages'
 import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
-import { getTokenOrThrow, platformParameters } from '../_lib/utils'
+import { getTokenOrThrow, platformParameters, successMessage } from '../_lib/utils'
 
 export class Create implements Command {
   public static new(): Create {
@@ -22,6 +21,7 @@ export class Create implements Command {
     const { createProject } = await requestOrThrow<
       {
         createProject: {
+          __typename: 'Project'
           id: string
           createdAt: string
           displayName: string

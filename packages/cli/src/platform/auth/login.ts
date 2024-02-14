@@ -7,10 +7,10 @@ import { green } from 'kleur/colors'
 import open from 'open'
 
 import { version as PRISMA_CLI_VERSION } from '../../../package.json'
-import { credentialsFile } from '../lib/credentials'
-import { consoleUrl } from '../lib/pdp'
-import { unknownToError } from '../lib/prelude'
-import { successMessage } from '../lib/utils'
+import { credentialsFile } from '../_lib/credentials'
+import { successMessage } from '../_lib/messages'
+import { consoleUrl } from '../_lib/pdp'
+import { unknownToError } from '../_lib/prelude'
 
 interface CallbackData {
   token: string

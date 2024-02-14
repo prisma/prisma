@@ -1,8 +1,9 @@
 import { Command } from '@prisma/internals'
 
-import { argOrThrow, getRequiredParameterOrThrow } from '../lib/parameters'
-import { requestOrThrow } from '../lib/pdp'
-import { getTokenOrThrow, platformParameters, successMessage } from '../lib/utils'
+import { successMessage } from '../_lib/messages'
+import { argOrThrow, getRequiredParameterOrThrow } from '../_lib/parameters'
+import { requestOrThrow } from '../_lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Disable implements Command {
   public static new(): Disable {

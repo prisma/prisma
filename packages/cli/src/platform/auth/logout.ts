@@ -1,8 +1,8 @@
 import { Command, getCommandWithExecutor, isError } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
-import { credentialsFile } from '../lib/credentials'
-import { successMessage } from '../lib/utils'
+import { credentialsFile } from '../_lib/credentials'
+import { successMessage } from '../_lib/messages'
 
 export class Logout implements Command {
   public static new(): Logout {

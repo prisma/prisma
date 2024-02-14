@@ -1,7 +1,7 @@
-import { Command } from '@prisma/internals'
+import { arg, Command, isError } from '@prisma/internals'
 
 import { messages } from '../_lib/messages'
-import { argOrThrow, getRequiredParameterOrThrow } from '../_lib/parameters'
+import { getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
@@ -11,32 +11,37 @@ export class Delete implements Command {
   }
 
   public async parse(argv: string[]) {
-    const args = argOrThrow(argv, {
-      ...platformParameters.serviceToken,
+    const args = arg(argv, {
+      ...platformParameters.project,
     })
+    if (isError(args)) return args
     const token = await getTokenOrThrow(args)
-    const serviceTokenId = getRequiredParameterOrThrow(args, ['--serviceToken', '-s'])
-    const { serviceTokenDelete } = await requestOrThrow<
+    const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
+    const { projectDelete } = await requestOrThrow<
       {
-        serviceTokenDelete: {
+        projectDelete: {
           __typename: string
           id: string
+          createdAt: string
           displayName: string
         }
       },
-      { id: string }
+      {
+        id: string
+      }
     >({
       token,
       body: {
-        query: /* GraphQL */ `
-          mutation ($input: { id: ID! }) {
-            serviceTokenDelete(input: $input) {
+        query: /* graphql */ `
+          mutation ($input: { $id: ID! }) {
+            projectDelete(input: $input) {
               __typename
               ...on Error {
                 message
               }
-              ...on ServiceToken {
+              ...on Project {
                 id
+                createdAt
                 displayName
               }
             }
@@ -44,11 +49,11 @@ export class Delete implements Command {
         `,
         variables: {
           input: {
-            id: serviceTokenId,
+            id: projectId,
           },
         },
       },
     })
-    return messages.resourceDeleted(serviceTokenDelete)
+    return messages.resourceDeleted(projectDelete)
   }
 }

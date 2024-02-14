@@ -1,8 +1,8 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getRequiredParameterOrThrow } from '../lib/parameters'
-import { requestOrThrow } from '../lib/pdp'
-import { getTokenOrThrow, platformParameters } from '../lib/utils'
+import { getRequiredParameterOrThrow } from '../_lib/parameters'
+import { requestOrThrow } from '../_lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Show implements Command {
   public static new(): Show {
