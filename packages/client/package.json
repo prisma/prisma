@@ -148,6 +148,7 @@
     "extension.d.ts"
   ],
   "devDependencies": {
+    "@cloudflare/workers-types": "4.20240208.0",
     "@codspeed/benchmark.js-plugin": "3.1.0",
     "@faker-js/faker": "8.4.1",
     "@fast-check/jest": "1.8.0",
@@ -239,8 +240,7 @@
     "tsd": "0.30.4",
     "typescript": "5.3.3",
     "undici": "5.28.3",
-    "wrangler": "3.28.1",
-    "wrangler-proxy": "2.2.7",
+    "wrangler": "3.28.2",
     "zx": "7.2.3"
   },
   "peerDependencies": {
