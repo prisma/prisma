@@ -14,16 +14,36 @@ import {
 export class Buffer extends Uint8Array implements NodeBuffer {
   readonly _isBuffer = true
 
-  static isBuffer(arg: any): arg is Buffer {
-    return arg && arg._isBuffer
+  static alloc(size: number, fill = 0) {
+    return new Buffer(new Uint8Array(size).fill(fill))
   }
 
-  static from(value: string | ArrayBuffer | Iterable<number> | ArrayLike<number>, encoding: any = 'utf8') {
+  static allocUnsafe(size: number) {
+    return new Buffer(new Uint8Array(size))
+  }
+
+  static isBuffer(arg: any): arg is Buffer {
+    return arg && !!arg._isBuffer
+  }
+
+  static compare(a: Uint8Array, b: Uint8Array) {
+    return compareUint8Arrays(a, b)
+  }
+
+  static from(value: unknown, encoding: any = 'utf8') {
+    if (value && typeof value === 'object' && value['type'] === 'Buffer') {
+      return new Buffer(value['data'])
+    }
+
+    if (typeof value === 'number') {
+      return new Buffer(new Uint8Array(value))
+    }
+
     if (typeof value === 'string' && typeof encoding === 'string') {
       return stringToBuffer(value, encoding ?? 'utf8')
     }
 
-    if (ArrayBuffer.isView(value)) {
+    if (typeof value === 'object' && ArrayBuffer.isView(value)) {
       return new Buffer(value.buffer, value.byteOffset, value.byteLength)
     }
 
@@ -31,9 +51,11 @@ export class Buffer extends Uint8Array implements NodeBuffer {
       Array.isArray(value) ||
       value instanceof Uint8Array ||
       value instanceof ArrayBuffer ||
-      value instanceof SharedArrayBuffer
+      value instanceof SharedArrayBuffer ||
+      (value as any)[Symbol.toStringTag] === 'ArrayBuffer' ||
+      (value as any)[Symbol.toStringTag] === 'SharedArrayBuffer'
     ) {
-      return new Buffer(value)
+      return new Buffer(value as ArrayLike<number>)
     }
 
     throw new TypeError(
@@ -470,7 +492,7 @@ export class Buffer extends Uint8Array implements NodeBuffer {
   }
 
   compare(target: Uint8Array, start = 0, end = target.length, thisStart = 0, thisEnd = this.length) {
-    return compareUint8Arrays(this.slice(thisStart, thisEnd), target.slice(start, end))
+    return Buffer.compare(this.slice(thisStart, thisEnd), target.slice(start, end))
   }
 
   equals(other: Uint8Array) {
@@ -478,10 +500,15 @@ export class Buffer extends Uint8Array implements NodeBuffer {
   }
 
   copy(target: Buffer, targetStart = 0, sourceStart = 0, sourceEnd = this.length) {
-    const data = this.slice(sourceStart, sourceEnd)
-    target.set(data, targetStart)
+    let copiedBytes = 0
+    for (let i = sourceStart; i < sourceEnd; i++) {
+      if (this[i] === undefined) break
 
-    return data.length
+      target[targetStart++] = this[i]
+      copiedBytes++
+    }
+
+    return copiedBytes
   }
 
   write(string: string, encoding?: Encoding): number
@@ -500,18 +527,81 @@ export class Buffer extends Uint8Array implements NodeBuffer {
       offset = 0
     } else if (typeof lengthOrEncoding === 'string') {
       encoding = lengthOrEncoding
-      offset = offsetOrEncoding!
+      offset = offsetOrEncoding
     } else {
       encoding ??= 'utf8'
-      offset = offsetOrEncoding!
-      length = lengthOrEncoding!
+      offset = offsetOrEncoding
+      length = lengthOrEncoding
     }
 
     if (length === undefined) {
-      length = this.length - offset
+      length = this.length - (offset ?? 0)
     }
 
     return stringToBuffer(string, encoding).copy(this, offset, 0, length)
+  }
+
+  fill(value: string | number | Uint8Array, offset?: number, end?: number, encoding?: BufferEncoding) {
+    if (typeof value === 'string') {
+      value = stringToBuffer(value, encoding ?? 'utf8')
+    }
+
+    if (typeof value === 'number') {
+      super.fill(value, offset, end)
+    }
+
+    if (value instanceof Uint8Array) {
+      if (offset === undefined) {
+        offset = 0
+      }
+      if (end === undefined) {
+        end = this.length
+      }
+
+      for (let i = offset; i < end; i++) {
+        this[i] = value[i % value.length]
+      }
+    }
+
+    return this
+  }
+
+  includes(value: string | number | Uint8Array, byteOffset = 0, encoding: BufferEncoding = 'utf-8') {
+    return this.indexOf(value, byteOffset, encoding) !== -1
+  }
+
+  indexOf(
+    value: string | number | Uint8Array,
+    byteOffset = 0,
+    encoding: BufferEncoding = 'utf-8',
+    lastIndexOf = false,
+  ) {
+    let lastIndex = -1
+    let searchBuffer: Uint8Array
+    if (typeof value === 'string') {
+      searchBuffer = stringToBuffer(value, encoding)
+    } else if (typeof value === 'number') {
+      searchBuffer = new Uint8Array([value])
+    } else {
+      searchBuffer = value
+    }
+
+    for (let i = byteOffset; i < this.length; i++) {
+      let match = true
+      for (let j = 0; j < searchBuffer.length; j++) {
+        if (this[i + j] !== searchBuffer[j]) {
+          match = false
+          break
+        }
+      }
+      if (match && lastIndexOf === true) {
+        lastIndex = i
+      }
+      if (match && lastIndexOf === false) {
+        return i
+      }
+    }
+    return searchBuffer.length ? lastIndex : byteOffset
   }
 
   toString(encoding: Encoding = 'utf8', start = 0, end = this.length) {
