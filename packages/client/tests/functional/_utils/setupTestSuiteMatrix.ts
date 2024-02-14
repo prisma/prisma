@@ -108,8 +108,8 @@ function setupTestSuiteMatrix(
         // If using D1 Driver adapter
         // We need to setup wrangler bindings to the D1 db (using miniflare under the hood)
         if (suiteConfig.matrixOptions.driverAdapter === 'js_d1') {
-          const { getBindingsProxy } = require('wrangler') as typeof import('wrangler')
-          const { bindings, dispose } = await getBindingsProxy({
+          const { getPlatformProxy } = require('wrangler') as typeof import('wrangler')
+          const { bindings, dispose } = await getPlatformProxy({
             configPath: path.join(__dirname, './wrangler.toml'),
           })
 

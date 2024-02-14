@@ -15,10 +15,10 @@
     "db": "link:./node_modules/.prisma/client"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20231218.0",
+    "@cloudflare/workers-types": "4.20240208.0",
     "prisma": "../../packages/cli",
     "tsx": "4.7.0",
     "typescript": "5.3.3",
-    "wrangler": "3.28.1"
+    "wrangler": "3.28.2"
   }
 }

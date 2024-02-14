@@ -7,7 +7,7 @@ import fs from 'fs-extra'
 import path from 'path'
 import { match } from 'ts-pattern'
 import { Script } from 'vm'
-import { getBindingsProxy } from 'wrangler'
+import { getPlatformProxy } from 'wrangler'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
@@ -199,7 +199,7 @@ export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatemen
   )
   const sqlStatements = diffResult.stdout
 
-  const { bindings: d1Bindings, dispose: disposeWrangler } = await getBindingsProxy({
+  const { env: d1Bindings, dispose: disposeWrangler } = await getPlatformProxy({
     configPath: path.join(__dirname, './wrangler.toml'),
   })
   const d1Client = d1Bindings.MY_DATABASE as D1Database
@@ -265,7 +265,7 @@ export async function dropTestSuiteDatabase(
 async function prepareD1Database() {
   // The Schema Engine does not know how to use a Driver Adapter at the moment
   // So we cannot use `db push` for D1
-  const { bindings: d1Bindings, dispose: disposeWrangler } = await getBindingsProxy({
+  const { env: d1Bindings, dispose: disposeWrangler } = await getPlatformProxy({
     configPath: path.join(__dirname, './wrangler.toml'),
   })
   const d1Client = d1Bindings.MY_DATABASE as D1Database
