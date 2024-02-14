@@ -701,8 +701,8 @@ importers:
         specifier: 3.2.3
         version: 3.2.3
       memfs:
-        specifier: 4.6.1
-        version: 4.6.1
+        specifier: 4.7.0
+        version: 4.7.0
       mssql:
         specifier: 10.0.2
         version: 10.0.2
@@ -8617,14 +8617,14 @@ packages:
     engines: {node: '>= 0.6'}
     dev: true
 
-  /memfs@4.6.1:
-    resolution: {integrity: sha512-EBR9cb0t/PJjPI7fVx2m9V7iQH8joEgIsrfWW+qam304dK/FvpcTqKdKu3sbcbMmCZMbMwPi76PREoFaGR0Bmw==}
+  /memfs@4.7.0:
+    resolution: {integrity: sha512-FGbf9Yz2gzXCUmpymkKnzAQOitriZQlIMtmnzb2LOcT0FTUdzL6AAwNGQrSOACx/UiW7XQsG65vrIA9+L01Edw==}
     engines: {node: '>= 4.0.0'}
     peerDependencies:
       tslib: '2'
     dependencies:
       json-joy: 11.28.0
-      thingies: 1.12.0
+      thingies: 1.16.0
     transitivePeerDependencies:
       - quill-delta
       - rxjs
@@ -10753,13 +10753,6 @@ packages:
 
   /text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
-    dev: true
-
-  /thingies@1.12.0:
-    resolution: {integrity: sha512-AiGqfYC1jLmJagbzQGuoZRM48JPsr9yB734a7K6wzr34NMhjUPrWSQrkF7ZBybf3yCerCL2Gcr02kMv4NmaZfA==}
-    engines: {node: '>=10.18'}
-    peerDependencies:
-      tslib: ^2
     dev: true
 
   /thingies@1.16.0:
