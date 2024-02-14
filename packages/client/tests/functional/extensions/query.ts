@@ -530,10 +530,12 @@ testMatrix.setupTestSuite(
     )
 
     // TODO: skipped for PlanetScale adapter because of https://github.com/prisma/team-orm/issues/495
+    // TODO: skipped for D1 because there is no transaction API yet https://github.com/prisma/team-orm/issues/873
     testIf(
       provider !== Providers.MONGODB &&
         process.platform !== 'win32' &&
-        driverAdapter !== AdapterProviders.JS_PLANETSCALE,
+        driverAdapter !== AdapterProviders.JS_PLANETSCALE &&
+        driverAdapter !== AdapterProviders.JS_D1,
     )('hijacking a batch transaction into another one with a simple call', async () => {
       const fnEmitter = jest.fn()
 
@@ -589,10 +591,12 @@ testMatrix.setupTestSuite(
     })
 
     // TODO: skipped for PlanetScale adapter because of https://github.com/prisma/team-orm/issues/495
+    // TODO: skipped for D1 because there is no transaction API yet https://github.com/prisma/team-orm/issues/873
     testIf(
       provider !== Providers.MONGODB &&
         process.platform !== 'win32' &&
-        driverAdapter !== AdapterProviders.JS_PLANETSCALE,
+        driverAdapter !== AdapterProviders.JS_PLANETSCALE &&
+        driverAdapter !== AdapterProviders.JS_D1,
     )('hijacking a batch transaction into another one with multiple calls', async () => {
       const fnEmitter = jest.fn()
 

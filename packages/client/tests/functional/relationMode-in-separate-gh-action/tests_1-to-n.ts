@@ -141,6 +141,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
             )
@@ -541,6 +542,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
@@ -633,6 +635,7 @@ testMatrix.setupTestSuite(
                   [Providers.SQLSERVER]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                 },
                 prisma:
                   "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
