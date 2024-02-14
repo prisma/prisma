@@ -7,7 +7,6 @@ import fs from 'fs-extra'
 import path from 'path'
 import { match } from 'ts-pattern'
 import { Script } from 'vm'
-import { getPlatformProxy } from 'wrangler'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
