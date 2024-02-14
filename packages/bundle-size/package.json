@@ -20,6 +20,6 @@
     "@prisma/client": "workspace:*",
     "pg": "8.11.3",
     "prisma": "workspace:*",
-    "wrangler": "3.28.1"
+    "wrangler": "3.28.2"
   }
 }

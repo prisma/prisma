@@ -13,7 +13,6 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
-// import { Mutex } from 'async-mutex'
 import { getColumnTypes } from './conversion'
 
 // TODO? Env var works differently in D1 so `debug` does not work.
@@ -28,8 +27,6 @@ type StdClient = D1Database
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
   readonly provider = 'sqlite'
-
-  // [LOCK_TAG] = new Mutex()
 
   constructor(protected readonly client: ClientT) {}
 
@@ -94,16 +91,14 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const tag = '[js::execute_raw]'
     // console.debug(`${tag} %O`, query)
 
-    // TODO: rows_written or changes? Only rows_written is documented.
-    return (await this.performIO(query)).map(({ meta }) => meta.changes ?? 0)
+    return (await this.performIO(query)).map(({ meta }) => meta.rows_written ?? 0)
   }
 
   private async performIO(query: Query): Promise<Result<PerformIOResult>> {
-    // const release = await this[LOCK_TAG].acquire()
     // console.debug({ query })
 
     try {
-      // Hack for
+      // Hack for booleans, we must convert them to 0/1.
       // ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
       query.args = query.args.map((arg) => {
         if (arg === true) {
@@ -111,6 +106,15 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
         } else if (arg === false) {
           return 0
         }
+        // Temporary unblock for "D1_TYPE_ERROR: Type 'bigint' not supported for value '20'"
+        // For 0-legacy-ports.query-raw tests
+        // https://github.com/prisma/team-orm/issues/878
+        else if (typeof arg === 'bigint') {
+          return Number(arg)
+        } else if (arg instanceof Uint8Array) {
+          return Array.from(arg)
+        }
+
         return arg
       })
 
@@ -126,17 +130,23 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       const error = e as Error
       console.error('Error in performIO: %O', error)
 
-      const rawCode = error['rawCode'] ?? e.cause?.['rawCode']
-      if (typeof rawCode === 'number') {
-        return err({
-          kind: 'Sqlite',
-          extendedCode: rawCode,
-          message: error.message,
-        })
+      // We only get the error message, not the error code.
+      // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
+      // So we try to match some errors and use the generic error code as a fallback.
+      // https://www.sqlite.org/rescode.html
+      // 1 = The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
+      let extendedCode = 1
+      if (error.message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
+        extendedCode = 2067
+      } else if (error.message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
+        extendedCode = 787
       }
-      throw error
-    } finally {
-      // release()
+
+      return err({
+        kind: 'Sqlite',
+        extendedCode,
+        message: error.message,
+      })
     }
   }
 }
