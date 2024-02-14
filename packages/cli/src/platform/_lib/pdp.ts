@@ -1,6 +1,6 @@
 import fetch, { Headers } from 'node-fetch'
 
-import { name as PRISMA_CLI_NAME, version as PRISMA_CLI_VERSION } from '../../../package.json'
+import { getUserAgent } from './userAgent'
 
 const platformAPIEndpoint = new URL('http://localhost:8788/api')
 
@@ -35,12 +35,13 @@ export const requestOrThrow = async <
         variables: { input: $Input }
       }
 }): Promise<$Data> => {
+  const userAgent = await getUserAgent()
   const method = 'POST'
   const headers = new Headers({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${params.token}`,
     // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
-    'User-Agent': `${PRISMA_CLI_NAME}/${PRISMA_CLI_VERSION}`,
+    'User-Agent': userAgent,
   })
   const body = JSON.stringify(params.body)
   const response = await fetch(platformAPIEndpoint.href, { method, headers, body })

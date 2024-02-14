@@ -1,16 +1,15 @@
 import Debug from '@prisma/debug'
 import { Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
-import * as checkpoint from 'checkpoint-client'
 import http from 'http'
 import { green } from 'kleur/colors'
 import open from 'open'
 
-import { version as PRISMA_CLI_VERSION } from '../../../package.json'
 import { credentialsFile } from '../_lib/credentials'
 import { successMessage } from '../_lib/messages'
 import { consoleUrl } from '../_lib/pdp'
 import { unknownToError } from '../_lib/prelude'
+import { getUserAgent } from '../_lib/userAgent'
 
 interface CallbackData {
   token: string
@@ -103,11 +102,9 @@ export class Login implements Command {
 }
 
 const createLoginUrl = async (params: { connection: string; redirectTo: string }) => {
-  const signature = await checkpoint.getSignature().catch(unknownToError)
-  if (isError(signature)) debug(`await checkpoint.getSignature() failed silently with ${signature.message}`) // prettier-ignore
-
+  const userAgent = await getUserAgent()
   const state: State = {
-    client: `${isError(signature) ? 'error' : signature}.${PRISMA_CLI_VERSION}.cli.prisma`,
+    client: userAgent,
     ...params,
   }
   const stateEncoded = encodeState(state)
