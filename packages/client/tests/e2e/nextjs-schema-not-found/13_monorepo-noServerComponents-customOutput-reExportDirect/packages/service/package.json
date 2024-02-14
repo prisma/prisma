@@ -21,7 +21,7 @@
     "next": "13.1.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "4.9.4",
-    "vercel": "28.20.0"
+    "typescript": "4.9.5",
+    "vercel": "33.5.0"
   }
 }

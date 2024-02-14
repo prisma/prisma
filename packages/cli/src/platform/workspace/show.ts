@@ -1,6 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../platformUtils'
 
 export class Show implements Command {
   public static new(): Show {

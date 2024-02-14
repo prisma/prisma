@@ -148,6 +148,7 @@
     "extension.d.ts"
   ],
   "devDependencies": {
+    "@cloudflare/workers-types": "4.20240208.0",
     "@codspeed/benchmark.js-plugin": "3.1.0",
     "@faker-js/faker": "8.4.1",
     "@fast-check/jest": "1.8.0",
@@ -172,7 +173,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421",
+    "@prisma/engines-version": "5.10.0-27.ced8cab49ce5e2ce1c7376d852b5cf8c5846bc9f",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -180,7 +181,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
-    "@prisma/query-engine-wasm": "5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421",
+    "@prisma/query-engine-wasm": "5.10.0-27.ced8cab49ce5e2ce1c7376d852b5cf8c5846bc9f",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.8.0",
     "@swc/core": "1.4.0",
@@ -217,7 +218,7 @@
     "kleur": "4.1.5",
     "klona": "2.0.6",
     "mariadb": "3.2.3",
-    "memfs": "4.6.0",
+    "memfs": "4.7.0",
     "mssql": "10.0.2",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.7.0",
@@ -239,8 +240,7 @@
     "tsd": "0.30.4",
     "typescript": "5.3.3",
     "undici": "5.28.3",
-    "wrangler": "3.28.1",
-    "wrangler-proxy": "2.2.7",
+    "wrangler": "3.28.2",
     "zx": "7.2.3"
   },
   "peerDependencies": {

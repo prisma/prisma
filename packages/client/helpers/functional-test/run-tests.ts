@@ -119,7 +119,6 @@ const args = arg(
 
 async function main(): Promise<number | void> {
   let miniProxyProcess: ExecaChildProcess | undefined
-  let wranglerProcess: ExecaChildProcess | undefined
 
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let jestCli = jestCliBase
@@ -168,26 +167,6 @@ async function main(): Promise<number | void> {
     }
 
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_ADAPTERS: adapterProviders.join(',') })
-
-    // Start wrangler dev server with the `wrangler-proxy` for D1 tests
-    if (adapterProviders.includes(AdapterProviders.JS_D1)) {
-      wranglerProcess = execa(
-        'pnpm',
-        [
-          'wrangler',
-          'dev',
-          '--config=./tests/functional/_utils/wrangler.toml',
-          'node_modules/wrangler-proxy/dist/worker.js',
-        ],
-        {
-          preferLocal: true,
-          stdio: 'inherit',
-          env: {
-            DEBUG: process.env.DEBUG,
-          },
-        },
-      )
-    }
   }
 
   if (args['--engine-type']) {
@@ -270,9 +249,6 @@ async function main(): Promise<number | void> {
   } finally {
     if (miniProxyProcess) {
       miniProxyProcess.kill()
-    }
-    if (wranglerProcess) {
-      wranglerProcess.kill()
     }
   }
 }

@@ -1,7 +1,7 @@
 import { Command, Commands, link } from '@prisma/internals'
 
 import { EarlyAccessFlagError } from '../utils/errors'
-import { createHelp, dispatchToSubCommand } from '../utils/platform'
+import { createHelp, dispatchToSubCommand } from './platformUtils'
 
 export class $ implements Command {
   public static new(commands: Commands): $ {

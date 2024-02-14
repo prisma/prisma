@@ -7,7 +7,7 @@ import {
   platformParameters,
   platformRequestOrThrow,
   successMessage,
-} from '../../utils/platform'
+} from '../platformUtils'
 
 export class Create implements Command {
   public static new(): Create {

@@ -14,3 +14,7 @@ npm run start
 open http://localhost:8787/
 ```
 
+### Remote database
+```
+npx wrangler d1 execute MY_DATABASE --file=./sql/schema.sql
+```
