@@ -34,6 +34,7 @@ export async function setupTestSuiteClient({
   clientMeta,
   skipDb,
   alterStatementCallback,
+  cfWorkerBindings,
 }: {
   cliMeta: CliMeta
   suiteMeta: TestSuiteMeta
@@ -42,22 +43,23 @@ export async function setupTestSuiteClient({
   clientMeta: ClientMeta
   skipDb?: boolean
   alterStatementCallback?: AlterStatementCallback
+  cfWorkerBindings?: Record<string, unknown>
 }) {
-  const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
-  const schema = getTestSuiteSchema(cliMeta, suiteMeta, suiteConfig.matrixOptions)
+  const suiteFolderPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
+  const schema = getTestSuiteSchema({ cliMeta, suiteMeta, matrixOptions: suiteConfig.matrixOptions })
   const previewFeatures = getTestSuitePreviewFeatures(schema)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
 
-  await setupTestSuiteFiles(suiteMeta, suiteConfig)
-  await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
+  await setupTestSuiteFiles({ suiteMeta, suiteConfig })
+  await setupTestSuiteSchema({ suiteMeta, suiteConfig, schema })
 
   process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
   process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
 
   if (skipDb !== true) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
+    await setupTestSuiteDatabase({ suiteMeta, suiteConfig, alterStatementCallback, cfWorkerBindings })
   }
 
   if (clientMeta.dataProxy === true) {
@@ -68,7 +70,7 @@ export async function setupTestSuiteClient({
 
   await generateClient({
     datamodel: schema,
-    schemaPath: getTestSuiteSchemaPath(suiteMeta, suiteConfig),
+    schemaPath: getTestSuiteSchemaPath({ suiteMeta, suiteConfig }),
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: config.datasources,
     outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),

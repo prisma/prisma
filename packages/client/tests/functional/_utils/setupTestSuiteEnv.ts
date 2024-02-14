@@ -22,20 +22,24 @@ const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
 /**
  * Copies the necessary files for the generated test suite folder.
- * @param suiteMeta
- * @param suiteConfig
  */
-export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+export async function setupTestSuiteFiles({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
+  const suiteFolder = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
 
   // we copy the minimum amount of files needed for the test suite
   await fs.copy(path.join(suiteMeta.testRoot, 'prisma'), path.join(suiteFolder, 'prisma'))
   await fs.mkdir(path.join(suiteFolder, suiteMeta.rootRelativeTestDir), { recursive: true })
-  await copyPreprocessed(
-    suiteMeta.testPath,
-    path.join(suiteFolder, suiteMeta.rootRelativeTestPath),
-    suiteConfig.matrixOptions,
-  )
+  await copyPreprocessed({
+    from: suiteMeta.testPath,
+    to: path.join(suiteFolder, suiteMeta.rootRelativeTestPath),
+    suiteConfig: suiteConfig.matrixOptions,
+  })
 }
 
 /**
@@ -45,12 +49,16 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
  * 1. Adjusts relative imports so they'll work from generated subfolder
  * 2. Evaluates @ts-test-if magic comments and replaces them with @ts-expect-error
  * if necessary
- *
- * @param from
- * @param to
- * @param suiteConfig
  */
-async function copyPreprocessed(from: string, to: string, suiteConfig: Record<string, string>): Promise<void> {
+async function copyPreprocessed({
+  from,
+  to,
+  suiteConfig,
+}: {
+  from: string
+  to: string
+  suiteConfig: Record<string, string>
+}): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
   const newContents = contents
@@ -59,7 +67,7 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
     .replace(/'\.\.\/\.\.\/node_modules/g, "'./node_modules")
     .replace(/\/\/\s*@ts-ignore.*/g, '')
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
-      if (!evaluateMagicComment(condition, suiteConfig)) {
+      if (!evaluateMagicComment({ conditionFromComment: condition, suiteConfig })) {
         return '// @ts-expect-error'
       }
       return match
@@ -73,12 +81,14 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
  * a JS expression.
  * All properties from suite config are available as variables
  * within the expression.
- *
- * @param conditionFromComment
- * @param suiteConfig
- * @returns
  */
-function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
+function evaluateMagicComment({
+  conditionFromComment,
+  suiteConfig,
+}: {
+  conditionFromComment: string
+  suiteConfig: Record<string, string>
+}): boolean {
   const script = new Script(`
   ${conditionFromComment}
   `)
@@ -92,37 +102,43 @@ function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<
 
 /**
  * Write the generated test suite schema to the test suite folder.
- * @param suiteMeta
- * @param suiteConfig
- * @param schema
  */
-export async function setupTestSuiteSchema(
-  suiteMeta: TestSuiteMeta,
-  suiteConfig: NamedTestSuiteConfig,
-  schema: string,
-) {
-  const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+export async function setupTestSuiteSchema({
+  suiteMeta,
+  suiteConfig,
+  schema,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+  schema: string
+}) {
+  const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
 
   await fs.writeFile(schemaPath, schema)
 }
 
 /**
  * Create a database for the generated schema of the test suite.
- * @param suiteMeta
- * @param suiteConfig
  */
-export async function setupTestSuiteDatabase(
-  suiteMeta: TestSuiteMeta,
-  suiteConfig: NamedTestSuiteConfig,
-  errors: Error[] = [],
-  alterStatementCallback?: AlterStatementCallback,
-) {
-  const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+export async function setupTestSuiteDatabase({
+  suiteMeta,
+  suiteConfig,
+  errors = [],
+  alterStatementCallback,
+  cfWorkerBindings,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+  errors?: Error[]
+  alterStatementCallback?: AlterStatementCallback
+  cfWorkerBindings?: { [key: string]: unknown }
+}) {
+  const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
   const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
 
   try {
     if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
-      await setupTestSuiteDatabaseD1(schemaPath, alterStatementCallback)
+      await setupTestSuiteDatabaseD1({ schemaPath, cfWorkerBindings: cfWorkerBindings!, alterStatementCallback })
     } else {
       const dbPushParams = ['--schema', schemaPath, '--skip-generate']
 
@@ -173,7 +189,13 @@ export async function setupTestSuiteDatabase(
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
     } else {
-      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+      await setupTestSuiteDatabase({
+        suiteMeta,
+        suiteConfig,
+        errors,
+        alterStatementCallback: undefined,
+        cfWorkerBindings,
+      }) // retry logic
     }
   }
 }
@@ -183,9 +205,17 @@ export async function setupTestSuiteDatabase(
  * The Schema Engine does not know how to use a Driver Adapter at the moment
  * So we cannot use `db push` for D1
  */
-export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatementCallback?: AlterStatementCallback) {
+export async function setupTestSuiteDatabaseD1({
+  schemaPath,
+  cfWorkerBindings,
+  alterStatementCallback,
+}: {
+  schemaPath: string
+  cfWorkerBindings: { [key: string]: unknown }
+  alterStatementCallback?: AlterStatementCallback
+}) {
   // Cleanup the database
-  await prepareD1Database()
+  await prepareD1Database({ cfWorkerBindings })
 
   // Use `migrate diff` to get the DDL statements
   const diffResult = await execa(
@@ -199,10 +229,7 @@ export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatemen
   )
   const sqlStatements = diffResult.stdout
 
-  const { env: d1Bindings, dispose: disposeWrangler } = await getPlatformProxy({
-    configPath: path.join(__dirname, './wrangler.toml'),
-  })
-  const d1Client = d1Bindings.MY_DATABASE as D1Database
+  const d1Client = cfWorkerBindings.MY_DATABASE as D1Database
 
   // Execute the DDL statements
   for (const sqlStatement of sqlStatements.split(';')) {
@@ -226,25 +253,26 @@ export async function setupTestSuiteDatabaseD1(schemaPath: string, alterStatemen
       }
     }
   }
-
-  // we need to dispose of the underlying child process in order for this nodejs script to properly terminate
-  await disposeWrangler()
 }
 
 /**
  * Drop the database for the generated schema of the test suite.
- * @param suiteMeta
- * @param suiteConfig
  */
-export async function dropTestSuiteDatabase(
-  suiteMeta: TestSuiteMeta,
-  suiteConfig: NamedTestSuiteConfig,
-  errors: Error[] = [],
-) {
-  const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+export async function dropTestSuiteDatabase({
+  suiteMeta,
+  suiteConfig,
+  errors = [],
+  cfWorkerBindings,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+  errors?: Error[]
+  cfWorkerBindings?: { [key: string]: unknown }
+}) {
+  const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
 
   if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
-    return await prepareD1Database()
+    return await prepareD1Database({ cfWorkerBindings: cfWorkerBindings! })
   }
 
   try {
@@ -257,18 +285,13 @@ export async function dropTestSuiteDatabase(
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
     } else {
-      await dropTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+      await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors, cfWorkerBindings }) // retry logic
     }
   }
 }
 
-async function prepareD1Database() {
-  // The Schema Engine does not know how to use a Driver Adapter at the moment
-  // So we cannot use `db push` for D1
-  const { env: d1Bindings, dispose: disposeWrangler } = await getPlatformProxy({
-    configPath: path.join(__dirname, './wrangler.toml'),
-  })
-  const d1Client = d1Bindings.MY_DATABASE as D1Database
+async function prepareD1Database({ cfWorkerBindings }: { cfWorkerBindings: { [key: string]: unknown } }) {
+  const d1Client = cfWorkerBindings.MY_DATABASE as D1Database
 
   const existingItems = ((await d1Client.prepare(`PRAGMA main.table_list;`).run()) as D1Result<Record<string, unknown>>)
     .results
@@ -308,9 +331,6 @@ async function prepareD1Database() {
       console.error('Error in batch: %O', batchResult.error)
     }
   }
-
-  // we need to dispose of the underlying child process in order for this nodejs script to properly terminate
-  await disposeWrangler()
 }
 
 export type DatasourceInfo = {
@@ -324,15 +344,14 @@ export type DatasourceInfo = {
  * Generate a random string to be used as a test suite db name, and derive the
  * corresponding database URL and, if required, Mini-Proxy connection string to
  * that database.
- *
- * @param suiteConfig
- * @param clientMeta
- * @returns
  */
-export function setupTestSuiteDbURI(
-  suiteConfig: NamedTestSuiteConfig['matrixOptions'],
-  clientMeta: ClientMeta,
-): DatasourceInfo {
+export function setupTestSuiteDbURI({
+  suiteConfig,
+  clientMeta,
+}: {
+  suiteConfig: NamedTestSuiteConfig['matrixOptions']
+  clientMeta: ClientMeta
+}): DatasourceInfo {
   const { provider, driverAdapter } = suiteConfig
 
   const envVarName = `DATABASE_URI_${provider}`
