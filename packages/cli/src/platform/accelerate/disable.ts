@@ -1,6 +1,6 @@
 import { Command } from '@prisma/internals'
 
-import { successMessage } from '../_lib/messages'
+import { messages } from '../_lib/messages'
 import { argOrThrow, getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -25,7 +25,7 @@ export class Disable implements Command {
       token,
       body: {
         query: /* GraphQL */ `
-          mutation(input: { $environmentId: ID! }) {
+          mutation ($input: MutationAccelerateDisableInput!) {
             accelerateDisable(input: $input) {
               __typename
               ... on Error {
@@ -40,7 +40,7 @@ export class Disable implements Command {
       },
     })
 
-    return successMessage(
+    return messages.success(
       `Accelerate disabled. Prisma clients connected to ${environmentId} will not be able to send queries through Accelerate.`,
     )
   }

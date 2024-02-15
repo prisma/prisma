@@ -33,7 +33,7 @@ export class Delete implements Command {
       token,
       body: {
         query: /* graphql */ `
-          mutation ($input: { $id: ID! }) {
+          mutation ($input: MutationEnvironmentDeleteInput!) {
             environmentDelete(input: $input) {
               __typename
               ...on Error {

@@ -36,7 +36,7 @@ export class Create implements Command {
       token,
       body: {
         query: /* graphql */ `
-          mutation ($input: { $projectId: ID!, $displayName: String }) {
+          mutation ($input: MutationEnvironmentCreateInput!) {
             environmentCreate(input: $input) {
               __typename
               ...on Error {

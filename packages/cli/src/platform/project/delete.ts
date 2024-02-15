@@ -33,13 +33,13 @@ export class Delete implements Command {
       token,
       body: {
         query: /* graphql */ `
-          mutation ($input: { $id: ID! }) {
+          mutation ($input: MutationProjectDeleteInput!) {
             projectDelete(input: $input) {
               __typename
               ...on Error {
                 message
               }
-              ...on Project {
+              ...on ProjectNode {
                 id
                 createdAt
                 displayName

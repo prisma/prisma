@@ -35,7 +35,7 @@ export class Show implements Command {
       token,
       body: {
         query: /* GraphQL */ `
-          query ($input: { $id: ID! }) {
+          query ($input: QueryProjectInput!) {
             project(input: $input) {
               __typename
               ... on Error {

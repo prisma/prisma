@@ -17,43 +17,47 @@ export class Show implements Command {
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
-    const { serviceTokens } = await requestOrThrow<
+    const { environment } = await requestOrThrow<
       {
-        serviceTokens: {
-          __typename: string
-          createdAt: string
-          displayName: string
-          id: string
-        }[]
+        environment: {
+          serviceTokens: {
+            __typename: string
+            createdAt: string
+            displayName: string
+            id: string
+          }[]
+        }
       },
       {
-        environmentId: string
+        id: string
       }
     >({
       token,
       body: {
         query: /* GraphQL */ `
-          query ($input: QueryServiceTokensInput!) {
-            serviceTokens(input: $input) {
+          query ($input: QueryEnvironmentInput!) {
+            environment(input: $input) {
               __typename
               ... on Error {
                 message
               }
-              ... on ServiceToken {
-                id
-                createdAt
-                displayName
+              ... on Environment {
+                serviceTokens {
+                  id
+                  createdAt
+                  displayName
+                }
               }
             }
           }
         `,
         variables: {
           input: {
-            environmentId,
+            id: environmentId,
           },
         },
       },
     })
-    return messages.resourceList(serviceTokens)
+    return messages.resourceList(environment.serviceTokens)
   }
 }

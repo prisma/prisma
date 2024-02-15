@@ -4,3 +4,7 @@ export const unknownToError = (unknown: unknown): Error => {
 }
 
 export const id = <T>(value: T) => value
+
+export type Mapped<T> = { [Key in keyof T]: T[Key] }
+
+export type NoInfer<T> = [T][T extends any ? 0 : never]

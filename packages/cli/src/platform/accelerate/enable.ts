@@ -1,6 +1,6 @@
 import { arg, Command, isError, link } from '@prisma/internals'
 
-import { successMessage } from '../_lib/messages'
+import { messages } from '../_lib/messages'
 import { getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { generateConnectionString, getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -36,8 +36,8 @@ export class Enable implements Command {
       token,
       body: {
         query: /* GraphQL */ `
-          mutation ($input: {environmentId: String!, connectionString: String!}) {
-            databaseLinkCreate(input:$input) {
+          mutation ($input: MutationDatabaseLinkCreateInput!) {
+            databaseLinkCreate(input: $input) {
               __typename
               ... on Error {
                 message
@@ -73,14 +73,18 @@ export class Enable implements Command {
       token,
       body: {
         query: /* GraphQL */ `
-          mutation ($accelerateEnableInput: { databaseLinkId: String! }, $serviceTokenCreateInput: { environmentId: String! }, withServiceToken: Boolean! ) {
-            accelerateEnable(input: { databaseLinkId: $input[''] }) {
+          mutation (
+            $accelerateEnableInput: MutationAccelerateEnableInput!
+            $serviceTokenCreateInput: MutationServiceTokenCreateInput!
+            $withServiceToken: Boolean!
+          ) {
+            accelerateEnable(input: $accelerateEnableInput) {
               __typename
               ... on Error {
                 message
               }
             }
-            serviceTokenCreate(input: $input) @include(if: $withServiceToken) {
+            serviceTokenCreate(input: $serviceTokenCreateInput) @include(if: $withServiceToken) {
               __typename
               ... on Error {
                 message
@@ -102,7 +106,7 @@ export class Enable implements Command {
     const gettingStartedUrl = link('https://pris.ly/d/accelerate-getting-started')
 
     if (serviceTokenCreate) {
-      return successMessage(
+      return messages.success(
         `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests:\n` +
           '\n' +
           `${generateConnectionString(serviceTokenCreate.value)}\n` +
@@ -110,7 +114,7 @@ export class Enable implements Command {
           `For more information, check out the Getting started guide here: ${gettingStartedUrl}`,
       )
     } else {
-      return successMessage(
+      return messages.success(
         `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n` +
           `\n` +
           `For more information, check out the Getting started guide here: ${gettingStartedUrl}`,

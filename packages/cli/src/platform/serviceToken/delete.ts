@@ -35,7 +35,7 @@ export class Delete implements Command {
               ... on Error {
                 message
               }
-              ... on ServiceToken {
+              ... on ServiceTokenNode {
                 id
                 displayName
               }

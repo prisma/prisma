@@ -33,13 +33,13 @@ export class Create implements Command {
       token,
       body: {
         query: /* GraphQL */ `
-          mutation ($input: { displayName: String, environmentId: String!}) {
+          mutation ($input: MutationServiceTokenCreateInput!) {
             serviceTokenCreate(input: $input) {
               __typename
               ... on Error {
                 message
               }
-              ... on ServiceKeyWithValue {
+              ... on ServiceTokenWithValue {
                 value
               }
             }
@@ -54,6 +54,6 @@ export class Create implements Command {
       },
     })
 
-    return successMessage(`New Service Token created: ${serviceTokenCreate.value}`)
+    return successMessage(`New Service Token created:\n\n${serviceTokenCreate.value}`)
   }
 }
