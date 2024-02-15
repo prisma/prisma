@@ -5,7 +5,7 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
-import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { fillPlugin, load } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
@@ -91,6 +91,9 @@ const commonEdgeWasmRuntimeBuildConfig = {
         },
         // these can not be exported anymore
         './warnEnvConflicts': { contents: '' },
+        'decimal.js': {
+          imports: load('big.js'),
+        },
       },
     }),
   ],

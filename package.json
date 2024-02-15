@@ -47,6 +47,7 @@
     "@typescript-eslint/utils": "7.0.1",
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
+    "big.js": "^6.2.1",
     "buffer": "6.0.3",
     "chokidar": "3.6.0",
     "dotenv-cli": "7.3.0",

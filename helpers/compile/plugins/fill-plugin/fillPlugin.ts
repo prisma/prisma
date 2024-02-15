@@ -131,7 +131,7 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
   return fillers[args.path] // inject the contents
 }
 
-const load = loader({})
+export const load = loader({})
 
 const defaultFillersConfig: Fillers = {
   // enabled
