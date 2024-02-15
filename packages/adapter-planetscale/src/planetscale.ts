@@ -97,17 +97,21 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
 }
 
 function parseErrorMessage(message: string) {
-  const match = message.match(
-    /target: (?:.+?) vttablet: (?<message>.+?) \(errno (?<code>\d+)\) \(sqlstate (?<state>.+?)\)/,
-  )
+  const regex = /(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
+  const match = message.match(regex)
 
-  if (!match || !match.groups) {
+  if (match) {
+    const [_, errorMessage, code, sqlstate] = match
+    const originalMessageRegex = /target: .* vttablet: (.*)/
+    const originalMessageMatch = errorMessage.match(originalMessageRegex)
+
+    return {
+      code: Number.parseInt(code, 10),
+      message: originalMessageMatch ? originalMessageMatch[1].trim() : errorMessage,
+      state: sqlstate,
+    }
+  } else {
     return undefined
-  }
-  return {
-    code: Number(match.groups.code),
-    message: match.groups.message,
-    state: match.groups.state,
   }
 }
 
