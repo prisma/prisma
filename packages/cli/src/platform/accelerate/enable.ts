@@ -12,7 +12,6 @@ export class Enable implements Command {
 
   public async parse(argv: string[]) {
     const args = arg(argv, {
-      // todo this is actually databaseLinkId in api right now
       ...platformParameters.environment,
       '--url': String,
       '--serviceToken': Boolean,
@@ -20,10 +19,43 @@ export class Enable implements Command {
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
-    // const url = getRequiredParameterOrThrow(args, ['--url'])
-    // url // todo
-    const databaseLinkId = 'todo'
+    const connectionString = getRequiredParameterOrThrow(args, ['--url'])
     const withServiceToken = getOptionalParameter(args, ['--serviceToken']) ?? false
+    const { databaseLinkCreate } = await requestOrThrow<
+      {
+        databaseLinkCreate: {
+          __typename: string
+          id: string
+        }
+      },
+      {
+        environmentId: string
+        connectionString: string
+      }
+    >({
+      token,
+      body: {
+        query: /* GraphQL */ `
+          mutation ($input: {environmentId: String!, connectionString: String!}) {
+            databaseLinkCreate(input:$input) {
+              __typename
+              ... on Error {
+                message
+              }
+              ... on DatabaseLink {
+                id
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            environmentId,
+            connectionString,
+          },
+        },
+      },
+    })
     const { serviceTokenCreate } = await requestOrThrow<
       {
         accelerateEnable: {}
@@ -61,7 +93,7 @@ export class Enable implements Command {
         `,
         variables: {
           withServiceToken,
-          accelerateEnableInput: { databaseLinkId },
+          accelerateEnableInput: { databaseLinkId: databaseLinkCreate.id },
           serviceTokenCreateInput: { environmentId },
         },
       },
