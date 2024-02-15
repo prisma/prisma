@@ -28,8 +28,6 @@ describe('valid types', () => {
     }
     await generateInFolder({
       projectDir: dir,
-      useLocalRuntime: false,
-      transpile: true,
       packageSource,
     })
 
@@ -60,6 +58,7 @@ describe('valid types', () => {
 async function runTsd(dir: string) {
   const diagnostics = await tsd({
     cwd: dir,
+    typingsFile: 'index.d.ts',
   })
   if (diagnostics && diagnostics.length > 0) {
     throw new Error(formatter(diagnostics))

@@ -106,6 +106,7 @@ export async function getPackages(): Promise<RawPackages> {
 }
 
 interface Package {
+  private?: boolean
   name: string
   path: string
   version: string
@@ -122,6 +123,7 @@ export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>((acc, [name, pkg]) => {
     const usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
     acc[name] = {
+      private: pkg.packageJson.private,
       version: pkg.packageJson.version,
       name,
       path: pkg.path,
@@ -622,17 +624,17 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
       }
 
-      try {
-        await sendSlackMessage({
-          version: prismaVersion,
-          enginesCommitInfo,
-          prismaCommitInfo,
-        })
-      } catch (e) {
-        console.error(e)
-      }
-
       if (!args['--dry-run']) {
+        try {
+          await sendSlackMessage({
+            version: prismaVersion,
+            enginesCommitInfo,
+            prismaCommitInfo,
+          })
+        } catch (e) {
+          console.error(e)
+        }
+
         try {
           await tagEnginesRepo(prismaVersion, enginesCommitHash, patchBranch, dryRun)
         } catch (e) {
@@ -856,7 +858,8 @@ async function publishPackages(
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
 
-      if (pkg.name === '@prisma/integration-tests') {
+      if (pkg.private) {
+        console.log(`Skipping ${magenta(pkg.name)} as it's private`)
         continue
       }
 

@@ -6,14 +6,14 @@ declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ engineType }) => {
+  ({ clientRuntime, driverAdapter }) => {
     test('simple expression', async () => {
       const result = (await prisma.$queryRaw`SELECT 1 + 1`) as Array<Record<string, unknown>>
       expect(Number(Object.values(result[0])[0])).toEqual(2)
     })
 
     // TODO: The buffer binary data does not match the expected one
-    skipTestIf(engineType === 'wasm')('query model with multiple types', async () => {
+    skipTestIf(clientRuntime === 'wasm')('query model with multiple types', async () => {
       await prisma.testModel.create({
         data: {
           id: 1,
@@ -40,12 +40,17 @@ testMatrix.setupTestSuite(
           bInt: expect.anything(),
           float: 0.125,
           bytes: Buffer.from([1, 2, 3]),
-          bool: true,
-          dt: new Date('1900-10-10T01:10:10.001Z'),
-          dec: new Prisma.Decimal('0.0625'),
+          bool: driverAdapter === 'js_d1' ? 1 : true,
+          dt: driverAdapter === 'js_d1' ? '1900-10-10T01:10:10.001+00:00' : new Date('1900-10-10T01:10:10.001Z'),
+          dec: driverAdapter === 'js_d1' ? 0.0625 : new Prisma.Decimal('0.0625'),
         },
       ])
-      expect(testModel![0].bInt === BigInt('12345')).toBe(true)
+      if (driverAdapter === 'js_d1') {
+        expect(testModel![0].bInt === BigInt('12345')).toBe(false)
+        expect(testModel![0].bInt === 12345).toBe(true)
+      } else {
+        expect(testModel![0].bInt === BigInt('12345')).toBe(true)
+      }
     })
   },
   {

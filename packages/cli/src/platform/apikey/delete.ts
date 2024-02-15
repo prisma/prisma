@@ -6,7 +6,7 @@ import {
   platformParameters,
   platformRequestOrThrow,
   successMessage,
-} from '../../utils/platform'
+} from '../platformUtils'
 
 export class Delete implements Command {
   public static new(): Delete {

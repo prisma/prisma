@@ -100,9 +100,11 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(logs[1].query).toContain('User.aggregate')
       expect(logs[2].query).toContain('User.aggregate')
     } else {
-      // Since https://github.com/prisma/prisma-engines/pull/4041
-      // We skip a read when possible, on CockroachDB and PostgreSQL
-      if (['postgresql', 'cockroachdb'].includes(provider)) {
+      // - Since https://github.com/prisma/prisma-engines/pull/4041,
+      //   we skip a read when possible, on CockroachDB and PostgreSQL.
+      // - Since https://github.com/prisma/prisma-engines/pull/4640,
+      //   we also skip a read when possible, on SQLite.
+      if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
         expect(logs).toHaveLength(4)
         expect(logs[0].query).toContain('BEGIN')
         expect(logs[1].query).toContain('INSERT')

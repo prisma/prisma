@@ -1,7 +1,7 @@
 import { defineMatrix } from '../_utils/defineMatrix'
 import { Providers } from '../_utils/providers'
 
-const providerFlavors = [
+const driverAdapters = [
   Providers.POSTGRESQL,
   Providers.COCKROACHDB,
   Providers.SQLSERVER,
@@ -9,7 +9,7 @@ const providerFlavors = [
   Providers.MYSQL, // SetDefault is silently interpreted as NoAction by InnoDB on MySQL 8+
 ] as const
 
-const providersMatrix = providerFlavors.map((provider) => ({
+const providersMatrix = driverAdapters.map((provider) => ({
   provider,
   defaultUserId: 3,
 }))

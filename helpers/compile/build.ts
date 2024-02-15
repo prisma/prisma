@@ -1,6 +1,7 @@
 import { watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
 import { BuildContext } from 'esbuild'
+import { writeFileSync } from 'fs'
 import glob from 'globby'
 import path from 'path'
 
@@ -21,6 +22,7 @@ export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
   name?: string
   emitTypes?: boolean
+  emitMetafile?: boolean
   outbase?: never // we don't support this
 }
 
@@ -114,12 +116,20 @@ function addDefaultOutDir(options: BuildOptions) {
  */
 async function executeEsBuild(options: BuildOptions) {
   if (process.env.WATCH === 'true') {
-    const context = await esbuild.context(omit(options, ['name', 'emitTypes']) as any)
+    const context = await esbuild.context(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
 
     watch(context, options)
   }
 
-  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']) as any)] as const
+  const build = await esbuild.build(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
+  const outdir = options.outdir ?? (options.outfile ? path.dirname(options.outfile) : undefined)
+
+  if (build.metafile && options.emitMetafile) {
+    const metafilePath = `${outdir}/${options.name}.meta.json`
+    writeFileSync(metafilePath, JSON.stringify(build.metafile))
+  }
+
+  return [options, build] as const
 }
 
 /**

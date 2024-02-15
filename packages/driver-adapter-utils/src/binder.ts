@@ -24,7 +24,7 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
   const errorRegistry = new ErrorRegistryInternal()
 
   const startTransaction = wrapAsync(errorRegistry, adapter.startTransaction.bind(adapter))
-  return {
+  const boundAdapter: ErrorCapturingDriverAdapter = {
     errorRegistry,
     queryRaw: wrapAsync(errorRegistry, adapter.queryRaw.bind(adapter)),
     executeRaw: wrapAsync(errorRegistry, adapter.executeRaw.bind(adapter)),
@@ -34,6 +34,12 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
       return result.map((tx) => bindTransaction(errorRegistry, tx))
     },
   }
+
+  if (adapter.getConnectionInfo) {
+    boundAdapter.getConnectionInfo = wrapSync(errorRegistry, adapter.getConnectionInfo.bind(adapter))
+  }
+
+  return boundAdapter
 }
 
 // *.bind(transaction) is required to preserve the `this` context of functions whose
@@ -56,6 +62,20 @@ function wrapAsync<A extends unknown[], R>(
   return async (...args) => {
     try {
       return await fn(...args)
+    } catch (error) {
+      const id = registry.registerNewError(error)
+      return err({ kind: 'GenericJs', id })
+    }
+  }
+}
+
+function wrapSync<A extends unknown[], R>(
+  registry: ErrorRegistryInternal,
+  fn: (...args: A) => Result<R>,
+): (...args: A) => Result<R> {
+  return (...args) => {
+    try {
+      return fn(...args)
     } catch (error) {
       const id = registry.registerNewError(error)
       return err({ kind: 'GenericJs', id })

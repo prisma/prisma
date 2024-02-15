@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryType, download } from '@prisma/fetch-engine'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import path from 'path'
 
 const debug = Debug('prisma:engines')
@@ -44,7 +44,7 @@ export async function ensureBinariesExist() {
     showProgress: true,
     version: enginesVersion,
     failSilent: false,
-    binaryTargets: binaryTargets as Platform[],
+    binaryTargets: binaryTargets as BinaryTarget[],
   })
 }
 

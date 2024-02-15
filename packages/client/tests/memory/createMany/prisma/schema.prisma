@@ -1,10 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
     provider = "postgresql"
     url      = env("TEST_POSTGRES_URI")
-}
-
-generator client {
-    provider = "prisma-client-js"
 }
 
 model User {

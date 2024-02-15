@@ -1,3 +1,7 @@
+const path = require('path')
+
+const project = path.resolve(process.cwd(), 'tsconfig.json')
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -9,7 +13,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./tsconfig.json'],
+    project,
   },
   overrides: [
     {
@@ -74,6 +78,8 @@ module.exports = {
     'jest/valid-title': 'off',
     '@typescript-eslint/no-unnecessary-type-assertion': 'off',
     // low hanging fruits:
+    // to unblock eslint dep update in https://github.com/prisma/prisma/pull/21935
+    '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
     // to unblock eslint dep update in https://github.com/prisma/prisma/pull/9692
     '@typescript-eslint/no-unsafe-argument': 'warn',
     '@typescript-eslint/ban-types': 'off',

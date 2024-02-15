@@ -6,7 +6,7 @@ import {
   platformParameters,
   platformRequestOrThrow,
   successMessage,
-} from '../../utils/platform'
+} from '../platformUtils'
 
 type Payload =
   | {

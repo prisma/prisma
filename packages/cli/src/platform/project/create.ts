@@ -7,7 +7,7 @@ import {
   platformParameters,
   platformRequestOrThrow,
   successMessage,
-} from '../../utils/platform'
+} from '../platformUtils'
 
 type Payload =
   | { data: { id: string; createdAt: string; displayName: string }; error: null }

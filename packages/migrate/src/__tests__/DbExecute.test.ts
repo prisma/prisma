@@ -989,13 +989,13 @@ COMMIT;`,
           '--file=./script.sql',
         ])
       } catch (e) {
-        // It should error with P1001 but code is undefined
-        // Tracked in following issue:
-        // https://github.com/prisma/prisma/issues/11407
-        expect(e.code).toEqual(undefined)
+        expect(e.code).toEqual('P1001')
         expect(e.message).toMatchInlineSnapshot(`
-          Error creating a database connection.
+          P1001
 
+          Can't reach database server at \`doesnotexist\`:\`1433\`
+
+          Please make sure your database server is running at \`doesnotexist\`:\`1433\`.
 
         `)
       }

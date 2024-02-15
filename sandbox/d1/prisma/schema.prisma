@@ -1,0 +1,25 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Customers {
+  customerId  Int     @id @default(autoincrement())
+  companyName String?
+  contactName String?
+}
+
+model Test {
+  id      Int     @id @default(autoincrement())
+  text    String?
+  real    Float?
+  int     Int?
+  boolean Boolean
+  blob    Bytes?
+}

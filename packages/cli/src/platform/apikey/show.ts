@@ -5,7 +5,7 @@ import {
   getRequiredParameter,
   platformParameters,
   platformRequestOrThrow,
-} from '../../utils/platform'
+} from '../platformUtils'
 
 export class Show implements Command {
   public static new(): Show {

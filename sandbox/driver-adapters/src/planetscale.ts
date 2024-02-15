@@ -1,12 +1,12 @@
-import { connect } from '@planetscale/database'
+import { Client } from '@planetscale/database'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { smokeTest } from './test'
 
 async function main() {
-  const connectionString = `${process.env.JS_PLANETSCALE_DATABASE_URL as string}`
+  const connectionString = `${process.env.JS_PLANETSCALE_DATABASE_URL}`
 
-  const connection = connect({ url: connectionString })
-  const adapter = new PrismaPlanetScale(connection)
+  const client = new Client({ url: connectionString })
+  const adapter = new PrismaPlanetScale(client)
 
   await smokeTest(adapter)
 }

@@ -4,7 +4,7 @@ import { getErrorMessageWithLink } from './getErrorMessageWithLink'
 
 test('basic serialization', () => {
   const message = getErrorMessageWithLink({
-    platform: 'darwin',
+    binaryTarget: 'darwin',
     title: 'This is a title',
     version: '1.2.3',
     description: 'This is some crazy description',
