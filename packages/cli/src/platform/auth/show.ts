@@ -1,6 +1,7 @@
-import { Command, formatTable } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
+import { messages } from '../_lib/messages'
 import { argOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -39,11 +40,9 @@ export class Show implements Command {
         `,
       },
     })
-    console.info(`Currently authenticated as ${green(me.user.email)}\n`)
-    return formatTable([
-      ['id', me.user.id],
-      ['email', me.user.email],
-      ['displayName', me.user.displayName],
+    return messages.sections([
+      messages.info(`Currently authenticated as ${green(me.user.email)}`),
+      messages.table(me.user, ['id', 'email', 'displayName']),
     ])
   }
 }

@@ -1,5 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
+import { messages } from '../_lib/messages'
 import { getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -43,7 +44,7 @@ export class Show implements Command {
                 environments {
                   id
                   createdAt
-                  name: displayName
+                  displayName
                 }
               }
             }
@@ -57,7 +58,6 @@ export class Show implements Command {
       },
     })
 
-    console.table(workspace.projects, ['id', 'name', 'createdAt'])
-    return ''
+    return messages.listTables(workspace.projects, ['id', 'displayName', 'createdAt'])
   }
 }

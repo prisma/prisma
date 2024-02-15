@@ -31,7 +31,7 @@ export class Show implements Command {
               __typename
               workspaces {
                 id
-                name: displayName
+                displayName
                 createdAt
               }
             }
@@ -39,7 +39,7 @@ export class Show implements Command {
         `,
       },
     })
-    console.table(me.workspaces, ['id', 'name', 'createdAt'])
+    console.table(me.workspaces, ['id', 'displayName', 'createdAt'])
     return ''
   }
 }

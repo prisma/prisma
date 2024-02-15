@@ -40,7 +40,7 @@ export class Show implements Command {
               ... on ServiceToken {
                 id
                 createdAt
-                name: displayName
+                displayName
               }
             }
           }
@@ -52,7 +52,7 @@ export class Show implements Command {
         },
       },
     })
-    console.table(serviceTokens, ['id', 'name', 'createdAt'])
+    console.table(serviceTokens, ['id', 'displayName', 'createdAt'])
     return ''
   }
 }
