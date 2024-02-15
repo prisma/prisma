@@ -3,8 +3,9 @@ import fetch, { Headers } from 'node-fetch'
 import { getUserAgent } from './userAgent'
 
 // const platformAPIEndpoint = new URL('http://localhost:8788/api')
-const platformAPIEndpoint = new URL('https://console.prisma.io/api')
+// export const consoleUrl = new URL('http://localhost:8788')
 
+const platformAPIEndpoint = new URL('https://console.prisma.io/api')
 export const consoleUrl = new URL('https://console.prisma.io')
 
 /**
@@ -52,8 +53,11 @@ export const requestOrThrow = async <
   const json = JSON.parse(text) as { data: $Data; error: null | object }
   if (json.error) throw new Error(`Error from PDP Platform API: ${text}`)
 
-  const error = Object.values(json).filter(
-    (_): _ is { __typename: string } => typeof _ === 'object' && _ !== null && _['__typename']?.startsWith('Error'),
+  const error = Object.values(json.data).filter(
+    (rootFieldValue): rootFieldValue is { __typename: string } =>
+      typeof rootFieldValue === 'object' &&
+      rootFieldValue !== null &&
+      rootFieldValue['__typename']?.startsWith('Error'),
   )[0]
   if (error) throw errorFromPlatformError({ message: '<message not selected from server>', ...error })
 

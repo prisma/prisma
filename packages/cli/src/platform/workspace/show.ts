@@ -1,5 +1,6 @@
 import { Command } from '@prisma/internals'
 
+import { messages } from '../_lib/messages'
 import { argOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -17,6 +18,7 @@ export class Show implements Command {
     const { me } = await requestOrThrow<{
       me: {
         workspaces: {
+          __typename: string
           id: string
           displayName: string
           createdAt: string
@@ -39,7 +41,6 @@ export class Show implements Command {
         `,
       },
     })
-    console.table(me.workspaces, ['id', 'displayName', 'createdAt'])
-    return ''
+    return messages.resourceList(me.workspaces)
   }
 }

@@ -17,8 +17,8 @@ export class Show implements Command {
     const { me } = await requestOrThrow<{
       me: {
         user: {
+          __typename: string
           id: string
-          handle: string
           email: string
           displayName: string
         }
@@ -31,6 +31,7 @@ export class Show implements Command {
             me {
               __typename
               user {
+                __typename
                 id
                 email
                 displayName
@@ -42,7 +43,7 @@ export class Show implements Command {
     })
     return messages.sections([
       messages.info(`Currently authenticated as ${green(me.user.email)}`),
-      messages.table(me.user, ['id', 'email', 'displayName']),
+      messages.resource(me.user, { email: true }),
     ])
   }
 }

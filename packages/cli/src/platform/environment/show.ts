@@ -17,10 +17,11 @@ export class Show implements Command {
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
     const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
-    const { workspace } = await requestOrThrow<
+    const { project } = await requestOrThrow<
       {
-        workspace: {
-          projects: {
+        project: {
+          environments: {
+            __typename: string
             id: string
             createdAt: string
             displayName: string
@@ -42,6 +43,7 @@ export class Show implements Command {
               }
               ... on Project {
                 environments {
+                  __typename
                   id
                   createdAt
                   displayName
@@ -58,6 +60,6 @@ export class Show implements Command {
       },
     })
 
-    return messages.listTables(workspace.projects, ['id', 'displayName', 'createdAt'])
+    return messages.resourceList(project.environments)
   }
 }

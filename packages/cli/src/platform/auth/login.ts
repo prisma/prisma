@@ -32,7 +32,7 @@ export class Login implements Command {
     if (isError(credentials)) throw credentials
     if (credentials) return `Already authenticated. Run ${green(getCommandWithExecutor('prisma platform auth show --early-access'),)} to see the current user.` // prettier-ignore
 
-    console.info('Authenticating to Prisma Platform CLI via browser')
+    console.info('Authenticating to Prisma Platform CLI via browser.\n')
 
     const server = http.createServer()
     /**

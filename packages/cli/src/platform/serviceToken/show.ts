@@ -1,5 +1,6 @@
 import { arg, Command, isError } from '@prisma/internals'
 
+import { messages } from '../_lib/messages'
 import { getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -19,8 +20,9 @@ export class Show implements Command {
     const { serviceTokens } = await requestOrThrow<
       {
         serviceTokens: {
+          __typename: string
           createdAt: string
-          name: string
+          displayName: string
           id: string
         }[]
       },
@@ -31,7 +33,7 @@ export class Show implements Command {
       token,
       body: {
         query: /* GraphQL */ `
-          query ($input: { environmentId: ID! }) {
+          query ($input: QueryServiceTokensInput!) {
             serviceTokens(input: $input) {
               __typename
               ... on Error {
@@ -52,7 +54,6 @@ export class Show implements Command {
         },
       },
     })
-    console.table(serviceTokens, ['id', 'displayName', 'createdAt'])
-    return ''
+    return messages.resourceList(serviceTokens)
   }
 }

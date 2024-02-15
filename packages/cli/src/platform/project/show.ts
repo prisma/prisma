@@ -21,6 +21,7 @@ export class Show implements Command {
       {
         workspace: {
           projects: {
+            __typename: string
             id: string
             createdAt: string
             displayName: string
@@ -34,7 +35,7 @@ export class Show implements Command {
       token,
       body: {
         query: /* GraphQL */ `
-          query ($input: { $id: ID! }) {
+          query ($input: QueryWorkspaceInput!) {
             workspace(input: $input) {
               __typename
               ... on Error {
@@ -42,6 +43,7 @@ export class Show implements Command {
               }
               ... on Workspace {
                 projects {
+                  __typename
                   id
                   createdAt
                   displayName
@@ -58,6 +60,6 @@ export class Show implements Command {
       },
     })
 
-    return messages.listTables(workspace.projects, ['id', 'displayName', 'createdAt'])
+    return messages.resourceList(workspace.projects)
   }
 }
