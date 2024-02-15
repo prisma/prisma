@@ -36,14 +36,11 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 
     return ioResult.map((data) => {
       const convertedData = this.convertData(data)
-      // console.debug({ convertedData })
       return convertedData
     })
   }
 
   private convertData(ioResult: PerformIOResult): ResultSet {
-    // console.log(ioResult)
-
     if (ioResult.results.length === 0) {
       return {
         columnNames: [],
@@ -56,9 +53,6 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const columnNames = Object.keys(results[0])
     const columnTypes = Object.values(getColumnTypes(columnNames, results))
 
-    // console.log('---- RESULTS ----')
-    // console.log(results)
-    // console.log('---- ROWS ----')
     const rows = ioResult.results.map((value) => mapRow(value as Object, columnTypes))
 
     return {
@@ -85,7 +79,6 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   private async performIO(query: Query): Promise<Result<PerformIOResult>> {
-    // console.debug({ query })
 
     try {
       query.args = query.args.map((arg) => this.cleanArg(arg))
@@ -94,8 +87,6 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       const bind = prep.bind(...query.args)
       const result = await bind.all()
 
-      // console.log('result')
-      // console.log(JSON.stringify(result))
 
       return ok(result)
     } catch (e) {
@@ -123,7 +114,6 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   cleanArg(arg: unknown): unknown {
-    // console.log(typeof arg)
 
     // * Hack for booleans, we must convert them to 0/1.
     // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
@@ -142,13 +132,11 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     // Avoids "D1_TYPE_ERROR: Type 'bigint' not supported for value '20'" when using wasm engine
     // see https://github.com/prisma/team-orm/issues/878
     if (typeof arg === 'bigint') {
-      if (arg <= Number.MAX_SAFE_INTEGER) {
-        return Number(arg)
-      } else {
-        // See docs at https://developers.cloudflare.com/d1/build-databases/query-databases/
-        throw new Error(`D1 supports 64-bit signed INTEGER values internally, however BigInts
-        are not currently supported in the API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER.`)
-      }
+      // See docs at https://developers.cloudflare.com/d1/build-databases/query-databases/
+      // BigInts are not currently supported in the D1 API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER.
+      // TODO if we want
+      // if (absoluteBigint(arg) <= Number.MAX_SAFE_INTEGER) { error? }
+      return Number(arg)
     }
 
     return arg
