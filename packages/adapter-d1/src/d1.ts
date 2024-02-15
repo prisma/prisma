@@ -1,6 +1,6 @@
 import { D1Database, D1Result } from '@cloudflare/workers-types'
 import {
-  // Debug,
+  Debug,
   DriverAdapter,
   err,
   ok,
@@ -15,8 +15,10 @@ import { blue, cyan, red, yellow } from 'kleur/colors'
 
 import { getColumnTypes, mapRow } from './conversion'
 
-// TODO? Env var works differently in D1 so `debug` does not work.
-// const debug = Debug('prisma:driver-adapter:d1')
+const debug = Debug('prisma:driver-adapter:d1')
+
+// Force enable debug logs
+debug.enabled = true
 
 type PerformIOResult = D1Result
 // type ExecIOResult = D1ExecResult
@@ -34,9 +36,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * Execute a query given as SQL, interpolating the given parameters.
    */
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::query_raw]'
-    console.debug(`${tag} %O`, query)
+    debug(`${tag} %O`, query)
 
     const ioResult = await this.performIO(query)
 
@@ -48,7 +49,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   private convertData(ioResult: PerformIOResult): ResultSet {
-    console.log(ioResult)
+    // console.log(ioResult)
 
     if (ioResult.results.length === 0) {
       return {
@@ -84,9 +85,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
   async executeRaw(query: Query): Promise<Result<number>> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::execute_raw]'
-    // console.debug(`${tag} %O`, query)
+    debug(`${tag} %O`, query)
 
     return (await this.performIO(query)).map(({ meta }) => meta.rows_written ?? 0)
   }
@@ -175,14 +175,14 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<Result<void>> {
-    // console.debug(`[js::commit]`)
+    debug(`[js::commit]`)
 
     return ok(undefined)
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<Result<void>> {
-    // console.debug(`[js::rollback]`)
+    debug(`[js::rollback]`)
 
     return ok(undefined)
   }
@@ -226,9 +226,8 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
       usePhantomQuery: true,
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::startTransaction]'
-    // console.debug(`${tag} options: %O`, options)
+    debug(`${tag} options: %O`, options)
 
     this.warnOnce(
       'D1 Transaction',
