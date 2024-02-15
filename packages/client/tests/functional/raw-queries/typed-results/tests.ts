@@ -83,7 +83,7 @@ testMatrix.setupTestSuite(
           //   [Symbol(kIsEncodingSymbol)]: [Function: isEncoding]
           // }
           bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
-          bool: driverAdapter === 'js_d1' || driverAdapter === 'js_planetscale' ? 1 : true,
+          bool: driverAdapter === 'js_d1' || provider === 'mysql' ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: driverAdapter === 'js_d1' ? 0.0625 : new Prisma.Decimal('0.0625'),
         },
@@ -144,7 +144,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
+      if (driverAdapter === 'js_d1') {
         expect(result![0].bInt === 9007199254740991).toBe(true)
       } else {
         expect(result![0].bInt === BigInt('9007199254740991')).toBe(true)
@@ -160,7 +160,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
+      if (driverAdapter === 'js_d1') {
         // It's a number
         expect(result![0].bInt === BigInt('-9007199254740991')).toBe(false)
         expect(result![0].bInt === -9007199254740991).toBe(true)
@@ -174,7 +174,7 @@ testMatrix.setupTestSuite(
     // D1 supports 64-bit signed INTEGER values internally, however BigInts
     // are not currently supported in the API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER
     test('query model with a BigInt = MAX_SAFE_INTEGER + MAX_SAFE_INTEGER', async () => {
-      const create = await prisma.testModel.create({
+      await prisma.testModel.create({
         data: {
           bInt: BigInt('9007199254740991') + BigInt('9007199254740991'),
         },
