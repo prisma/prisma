@@ -18,7 +18,7 @@ export interface Env {
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const adapter = new PrismaD1(env.MY_DATABASE)
+		const adapter = new PrismaD1(env.MY_DATABASE, process.env.DEBUG)
 		const prisma = new PrismaClient({ adapter })
 
 		let tenc = new TextEncoder()

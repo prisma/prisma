@@ -17,10 +17,6 @@ import { getColumnTypes, mapRow } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:d1')
 
-// Force enable debug logs
-// TODO remove later
-debug.enabled = true
-
 type PerformIOResult = D1Result
 type StdClient = D1Database
 
@@ -133,33 +129,27 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
     if (arg === true) {
       return 1
-    } else if (arg === false) {
+    }
+
+    if (arg === false) {
       return 0
     }
-    // Temporary unblock for "D1_TYPE_ERROR: Type 'bigint' not supported for value '20'"
-    // For 0-legacy-ports.query-raw tests
-    // https://github.com/prisma/team-orm/issues/878
-    else if (typeof arg === 'bigint') {
-      return Number(arg)
-    } else if (arg instanceof Uint8Array) {
+
+    if (arg instanceof Uint8Array) {
       return Array.from(arg)
     }
 
-    // // ? Question of correctness:
-    // // ? I'm not entirely sure what we want to do here,
-    // // ? if we just check for typeof bigint or no
-    // // ? D1 API can technically handle `i64` ints
-    // // ? i.e. ""bigints"" but not _actual_ `bigint`
-    // // --
-    // // ? In the case that we do want to explicitly discriminate against bigint values,
-    // // ? How do we want to deal with that? :thinking:
-    // const isGoodBigint = typeof arg === 'bigint' // ? && arg <= Number.MAX_SAFE_INTEGER
-    // // console.log(isGoodBigint)
-    // // console.log(arg)
-
-    // if (isGoodBigint) {
-    //   return Number(arg)
-    // }
+    // Avoids "D1_TYPE_ERROR: Type 'bigint' not supported for value '20'" when using wasm engine
+    // see https://github.com/prisma/team-orm/issues/878
+    if (typeof arg === 'bigint') {
+      if (arg <= Number.MAX_SAFE_INTEGER) {
+        return Number(arg)
+      } else {
+        // See docs at https://developers.cloudflare.com/d1/build-databases/query-databases/
+        throw new Error(`D1 supports 64-bit signed INTEGER values internally, however BigInts
+        are not currently supported in the API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER.`)
+      }
+    }
 
     return arg
   }
@@ -195,8 +185,12 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
 
   alreadyWarned = new Set()
 
-  constructor(client: StdClient) {
+  // TODO: decide what we want to do for "debug"
+  constructor(client: StdClient, debug?: string) {
     super(client)
+    if (debug) {
+      globalThis.DEBUG = debug
+    }
   }
 
   /**

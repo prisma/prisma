@@ -78,9 +78,10 @@ function inferStringType(value: string): ColumnType {
     return ColumnTypeEnum.Boolean
   }
 
-  if (!(value.indexOf('.') == -1) && !isNaN(Number(value))) {
-    return ColumnTypeEnum.Double
-  }
+  // if (!(value.indexOf('.') == -1) && !isNaN(Number(value))) {
+  //   // return ColumnTypeEnum.Double
+  //   return ColumnTypeEnum.Numeric
+  // }
 
   if (isISODate(value)) {
     return ColumnTypeEnum.DateTime
@@ -90,8 +91,11 @@ function inferStringType(value: string): ColumnType {
 }
 
 function inferNumberType(value: number): ColumnType {
-  if (value % 1 !== 0) {
+  if (!Number.isInteger(value)) {
     return ColumnTypeEnum.Float
+    // Note: returning "Numeric" makes is better for our Decimal type
+    // But we can't tell what is a float or a decimal here
+    // return ColumnTypeEnum.Numeric
   }
   // Hack - TODO change this when we have type metadata
   else if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
@@ -147,15 +151,15 @@ export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
     //   continue
     // }
 
-    // if (typeof value === 'bigint') {
-    //   result[i] = value.toString()
-    //   continue
-    // }
-
-    if (typeof value === 'string' && columnTypes[i] === ColumnTypeEnum.Double) {
-      result[i] = Number.parseFloat(value)
+    if (typeof value === 'bigint') {
+      result[i] = value.toString()
       continue
     }
+
+    // if (typeof value === 'string' && columnTypes[i] === ColumnTypeEnum.Double) {
+    //   result[i] = Number.parseFloat(value)
+    //   continue
+    // }
 
     if (columnTypes[i] === ColumnTypeEnum.Boolean) {
       result[i] = JSON.parse(value as any)
