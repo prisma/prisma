@@ -52,7 +52,6 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const results = ioResult.results as Object[]
     const columnNames = Object.keys(results[0])
     const columnTypes = Object.values(getColumnTypes(columnNames, results))
-
     const rows = ioResult.results.map((value) => mapRow(value as Object, columnTypes))
 
     return {
@@ -79,14 +78,14 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   private async performIO(query: Query): Promise<Result<PerformIOResult>> {
-
     try {
       query.args = query.args.map((arg) => this.cleanArg(arg))
 
-      const prep = this.client.prepare(query.sql)
-      const bind = prep.bind(...query.args)
-      const result = await bind.all()
-
+      const result = await this.client
+        .prepare(query.sql)
+        .bind(...query.args)
+        // TODO use .raw({ columnNames: true }) later
+        .all()
 
       return ok(result)
     } catch (e) {
@@ -114,7 +113,6 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   cleanArg(arg: unknown): unknown {
-
     // * Hack for booleans, we must convert them to 0/1.
     // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
     if (arg === true) {

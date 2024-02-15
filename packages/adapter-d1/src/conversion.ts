@@ -19,10 +19,6 @@ export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnTyp
       const candidateValue = rows[rowIndex][columnIndex]
       if (candidateValue !== null) {
         columnTypes[columnIndex] = inferColumnType(candidateValue)
-
-        // console.log(`candidate value: ${candidateValue}`)
-        // console.log(`column index: ${columnTypes[columnIndex]}`)
-
         continue columnLoop
       }
     }
@@ -53,10 +49,6 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
   switch (typeof value) {
     case 'string':
       return inferStringType(value)
-    // case 'bigint':
-    //   return ColumnTypeEnum.Int64
-    // case 'boolean':
-    //   return ColumnTypeEnum.Boolean
     case 'number':
       return inferNumberType(value)
     case 'object':
@@ -67,7 +59,6 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
 }
 
 // See https://stackoverflow.com/a/3143231/1345244
-
 const isoDateRegex = new RegExp(
   /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/,
 )
@@ -79,11 +70,6 @@ function inferStringType(value: string): ColumnType {
   if (['true', 'false'].includes(value)) {
     return ColumnTypeEnum.Boolean
   }
-
-  // if (!(value.indexOf('.') == -1) && !isNaN(Number(value))) {
-  //   // return ColumnTypeEnum.Double
-  //   return ColumnTypeEnum.Numeric
-  // }
 
   if (isISODate(value)) {
     return ColumnTypeEnum.DateTime
@@ -123,16 +109,11 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-// TODO(@druue) This currently mimics mapD1ToRows without the extra type functionality.
-// TODO(@druue) next step is to implement further types.
 export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
   const result: unknown[] = Object.keys(obj).map((k) => obj[k])
 
   for (let i = 0; i < result.length; i++) {
     const value = result[i]
-
-    // console.log(`result : ${value}`)
-    // console.log(`column type ${columnTypes[i]}`)
 
     if (value instanceof ArrayBuffer) {
       result[i] = Array.from(new Uint8Array(value))
@@ -148,20 +129,10 @@ export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
       continue
     }
 
-    // if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
-    //   result[i] = new Date(Number(value)).toISOString()
-    //   continue
-    // }
-
     if (typeof value === 'bigint') {
       result[i] = value.toString()
       continue
     }
-
-    // if (typeof value === 'string' && columnTypes[i] === ColumnTypeEnum.Double) {
-    //   result[i] = Number.parseFloat(value)
-    //   continue
-    // }
 
     if (columnTypes[i] === ColumnTypeEnum.Boolean) {
       result[i] = JSON.parse(value as any)

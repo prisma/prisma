@@ -34,7 +34,7 @@ export default {
 		`
 
 		console.log(qr);
-		
+
 
 		console.log('--------');
 
@@ -87,7 +87,7 @@ export default {
 		// 		real: 9.9,
 		// 	}
 		// })
-		
+
 		// const result = await prisma.prismaTest.create({
 		// 		data: {
 		// 				date: new Date("2019-06-17T14:20:57Z"),
@@ -107,7 +107,7 @@ export default {
     // 		}
     // 	}
     // })
-    
+
 		await prisma.$transaction([
 			prisma.customers.create({
 				data: { customerId: 3, companyName: "The Sith", contactName: "Vader" }
@@ -125,11 +125,11 @@ export default {
 
 		const result = await prisma.customers.findMany()
 		// const result = await prisma.user.findFirst()
-				
+
 		console.log('\u2800');
 		console.log('\u2800');
 		console.log('--- Result from User ----');
-		
+
 		console.log(typeof result.blob)
 		console.log(typeof buffer)
 		console.log({ result })
