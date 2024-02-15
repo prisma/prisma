@@ -18,14 +18,11 @@ import { getColumnTypes, mapRow } from './conversion'
 const debug = Debug('prisma:driver-adapter:d1')
 
 // Force enable debug logs
+// TODO remove later
 debug.enabled = true
 
 type PerformIOResult = D1Result
-// type ExecIOResult = D1ExecResult
-
 type StdClient = D1Database
-
-// const LOCK_TAG = Symbol()
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
   readonly provider = 'sqlite'
@@ -101,8 +98,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       const bind = prep.bind(...query.args)
       const result = await bind.all()
 
-      console.log('result')
-      console.log(JSON.stringify(result))
+      // console.log('result')
+      // console.log(JSON.stringify(result))
 
       return ok(result)
     } catch (e) {
@@ -130,7 +127,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   cleanArg(arg: unknown): unknown {
-    console.log(typeof arg)
+    // console.log(typeof arg)
 
     // * Hack for booleans, we must convert them to 0/1.
     // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'

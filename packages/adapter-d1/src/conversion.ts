@@ -64,17 +64,25 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
   }
 }
 
+// See https://stackoverflow.com/a/3143231/1345244
+
+const isoDateRegex = new RegExp(
+  /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/,
+)
+function isISODate(str) {
+  return isoDateRegex.test(str)
+}
+
 function inferStringType(value: string): ColumnType {
-  // ? :thinking: if this is a good way to do it
-  if (['true', 'false'].includes(value.toLowerCase())) {
+  if (['true', 'false'].includes(value)) {
     return ColumnTypeEnum.Boolean
   }
 
-  if (!(value.indexOf('.') == -1)) {
+  if (!(value.indexOf('.') == -1) && !isNaN(Number(value))) {
     return ColumnTypeEnum.Double
   }
 
-  if (new Date(value).getTime() > 0) {
+  if (isISODate(value)) {
     return ColumnTypeEnum.DateTime
   }
 
@@ -85,15 +93,12 @@ function inferNumberType(value: number): ColumnType {
   if (value % 1 !== 0) {
     return ColumnTypeEnum.Float
   }
-
-  return ColumnTypeEnum.UnknownNumber
-
-  // // Hack - TODO change this when we have type metadata
-  // if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
-  //   return ColumnTypeEnum.Int32
-  // } else {
-  //   return ColumnTypeEnum.UnknownNumber
-  // }
+  // Hack - TODO change this when we have type metadata
+  else if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
+    return ColumnTypeEnum.Int32
+  } else {
+    return ColumnTypeEnum.UnknownNumber
+  }
 }
 
 function inferObjectType(value: Object): ColumnType {
@@ -120,8 +125,8 @@ export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
   for (let i = 0; i < result.length; i++) {
     const value = result[i]
 
-    console.log(`result : ${value}`)
-    console.log(`column type ${columnTypes[i]}`)
+    // console.log(`result : ${value}`)
+    // console.log(`column type ${columnTypes[i]}`)
 
     if (value instanceof ArrayBuffer) {
       result[i] = Array.from(new Uint8Array(value))
