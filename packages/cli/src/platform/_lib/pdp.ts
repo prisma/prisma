@@ -2,9 +2,6 @@ import fetch, { Headers } from 'node-fetch'
 
 import { getUserAgent } from './userAgent'
 
-// const platformAPIEndpoint = new URL('http://localhost:8788/api')
-// export const consoleUrl = new URL('http://localhost:8788')
-
 const platformAPIEndpoint = new URL('https://console.prisma.io/api')
 export const consoleUrl = new URL('https://console.prisma.io')
 
