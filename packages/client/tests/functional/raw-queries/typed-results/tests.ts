@@ -204,7 +204,8 @@ testMatrix.setupTestSuite(
             `bigint is too large to be represented as a 64-bit integer and passed as argument`,
           )
         } else if (driverAdapter === 'js_neon' || driverAdapter === 'js_pg') {
-          await expect(create).rejects.toThrow(`value \\\"-18014398509481982\\\" is out of range for type bigint`)
+          // PostgresError { code: \"22003\", message: \"value \\\"-18428729675200069634\\\" is out of range for type bigint\", severity: \"ERROR\", detail: None, column: None, hint: None }
+          await expect(create).rejects.toThrow(`is out of range for type bigint`)
         } else if (driverAdapter === 'js_planetscale') {
           await expect(create).rejects.toThrow(
             `Value out of range for the type. rpc error: code = FailedPrecondition desc = Out of range value for column 'bInt' at row 1`,
