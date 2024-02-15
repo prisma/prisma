@@ -97,7 +97,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
 }
 
 function parseErrorMessage(message: string) {
-  const regex = /(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
+  const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
   const match = message.match(regex)
 
   if (match) {
