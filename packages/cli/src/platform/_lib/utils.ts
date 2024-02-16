@@ -32,7 +32,7 @@ export const platformParameters = {
 } as const
 
 export const ErrorPlatformUnauthorized = new Error(
-  `No platform credentials found. Run ${green(getCommandWithExecutor('prisma platform login'))} first. Alternatively you can provide a token via the \`--token\` or \`-t\` parameters, or set the 'PRISMA_TOKEN' environment variable with a token.`, // prettier-ignore
+  `No platform credentials found. Run ${green(getCommandWithExecutor('prisma platform auth login --early-access'))} first. Alternatively you can provide a token via the \`--token\` or \`-t\` parameters, or set the 'PRISMA_TOKEN' environment variable with a token.`, // prettier-ignore
 )
 
 export const getTokenOrThrow = async <$Args extends Record<string, unknown>>(args: $Args) => {
