@@ -20,7 +20,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
               Invalid \`prisma.user.findMany()\` invocation in
-              /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+              /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
                 XX describeIf(relationJoinsDisabled)('relationLoadStrategy with no relationJoins preview feature', () => {
                 XX   test('findMany', async () => {
@@ -52,7 +52,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.findFirst()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('findFirst', async () => {
@@ -86,7 +86,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.findFirstOrThrow()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('findFirstOrThrow', async () => {
@@ -120,7 +120,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.findUnique()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('findUnique', async () => {
@@ -149,7 +149,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('findUniqueOrThrow', async () => {
@@ -178,7 +178,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.create()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('create', async () => {
@@ -210,7 +210,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.update()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('update', async () => {
@@ -242,7 +242,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.delete()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('delete', async () => {
@@ -277,7 +277,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.upsert()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('upsert', async () => {
@@ -312,7 +312,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.aggregate()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('aggregate', async () => {
@@ -348,7 +348,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.groupBy()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('groupBy', async () => {
@@ -382,7 +382,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
           Invalid \`prisma.user.createMany()\` invocation in
-          /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
             XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
             XX   await expect(
@@ -415,7 +415,7 @@ testMatrix.setupTestSuite(
           ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.createMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX async () => {
               XX   await expect(
@@ -447,7 +447,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.updateMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('updateMany', async () => {
@@ -474,7 +474,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.deleteMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('deleteMany', async () => {
@@ -498,7 +498,7 @@ testMatrix.setupTestSuite(
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
             Invalid \`prisma.user.count()\` invocation in
-            /client/tests/functional/relation-load-strategy/preview-feature-disabled.ts:0:0
+            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
               XX 
               XX test('count', async () => {
