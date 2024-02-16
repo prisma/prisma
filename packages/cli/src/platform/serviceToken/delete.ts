@@ -6,16 +6,19 @@ import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Delete implements Command {
-  public static new(): Delete {
-    return new Delete()
+  public static new(legacy: boolean = false) {
+    return new Delete(legacy)
   }
+  constructor(private readonly legacy: boolean = false) {}
 
   public async parse(argv: string[]) {
     const args = argOrThrow(argv, {
-      ...platformParameters.serviceToken,
+      ...platformParameters[this.legacy ? 'apikey' : 'serviceToken'],
     })
     const token = await getTokenOrThrow(args)
-    const serviceTokenId = getRequiredParameterOrThrow(args, ['--serviceToken', '-s'])
+    const serviceTokenId = this.legacy
+      ? getRequiredParameterOrThrow(args, ['--apikey'] as any)
+      : getRequiredParameterOrThrow(args, ['--serviceToken', '-s'] as any)
     const { serviceTokenDelete } = await requestOrThrow<
       {
         serviceTokenDelete: {
@@ -49,6 +52,6 @@ export class Delete implements Command {
         },
       },
     })
-    return messages.resourceDeleted(serviceTokenDelete)
+    return messages.resourceDeleted(this.legacy ? { ...serviceTokenDelete, __typename: 'APIKey' } : serviceTokenDelete)
   }
 }

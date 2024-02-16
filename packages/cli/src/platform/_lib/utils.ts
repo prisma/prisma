@@ -29,6 +29,10 @@ export const platformParameters = {
     '--serviceToken': String,
     '-s': '--serviceToken',
   },
+  apikey: {
+    '--token': String,
+    '--apikey': String,
+  },
 } as const
 
 export const ErrorPlatformUnauthorized = new Error(

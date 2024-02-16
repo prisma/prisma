@@ -5,7 +5,7 @@ import { credentialsFile } from '../_lib/credentials'
 import { successMessage } from '../_lib/messages'
 
 export class Logout implements Command {
-  public static new(): Logout {
+  public static new() {
     return new Logout()
   }
 

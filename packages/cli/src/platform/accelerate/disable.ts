@@ -6,7 +6,7 @@ import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Disable implements Command {
-  public static new(): Disable {
+  public static new() {
     return new Disable()
   }
 

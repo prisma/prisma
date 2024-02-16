@@ -111,6 +111,12 @@ async function main(): Promise<number> {
           delete: Platform.ServiceToken.Delete.new(),
           show: Platform.ServiceToken.Show.new(),
         }),
+        // Alias to "serviceToken". This will be removed in a future ORM release.
+        apikey: Platform.ServiceToken.$.new({
+          create: Platform.ServiceToken.Create.new(true),
+          delete: Platform.ServiceToken.Delete.new(true),
+          show: Platform.ServiceToken.Show.new(true),
+        }),
       }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),

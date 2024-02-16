@@ -6,9 +6,10 @@ import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Show implements Command {
-  public static new(): Show {
-    return new Show()
+  public static new(legacy: boolean = false) {
+    return new Show(legacy)
   }
+  constructor(private readonly legacy: boolean = false) {}
 
   public async parse(argv: string[]) {
     const args = arg(argv, {
@@ -58,6 +59,9 @@ export class Show implements Command {
         },
       },
     })
-    return messages.resourceList(environment.serviceTokens)
+    const resources = this.legacy
+      ? environment.serviceTokens.map((serviceToken) => ({ ...serviceToken, __typename: 'APIKey' }))
+      : environment.serviceTokens
+    return messages.resourceList(resources)
   }
 }

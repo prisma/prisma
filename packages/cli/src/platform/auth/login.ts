@@ -23,7 +23,7 @@ interface CallbackData {
 const debug = Debug('prisma:cli:platform:login')
 
 export class Login implements Command {
-  public static new(): Login {
+  public static new() {
     return new Login()
   }
 

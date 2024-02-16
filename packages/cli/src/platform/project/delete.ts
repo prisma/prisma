@@ -6,7 +6,7 @@ import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Delete implements Command {
-  public static new(): Delete {
+  public static new() {
     return new Delete()
   }
 

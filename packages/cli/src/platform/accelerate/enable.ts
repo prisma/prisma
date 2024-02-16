@@ -6,7 +6,7 @@ import { requestOrThrow } from '../_lib/pdp'
 import { generateConnectionString, getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Enable implements Command {
-  public static new(): Enable {
+  public static new() {
     return new Enable()
   }
 

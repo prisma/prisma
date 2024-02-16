@@ -6,7 +6,7 @@ import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Create implements Command {
-  public static new(): Create {
+  public static new() {
     return new Create()
   }
 
