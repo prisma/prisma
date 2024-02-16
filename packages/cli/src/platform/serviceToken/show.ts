@@ -6,25 +6,26 @@ import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Show implements Command {
-  public static new() {
-    return new Show()
+  public static new(legacy: boolean = false) {
+    return new Show(legacy)
   }
+  constructor(private readonly legacy: boolean = false) {}
 
   public async parse(argv: string[]) {
     const args = arg(argv, {
-      ...platformParameters.workspace,
+      ...platformParameters.environment,
     })
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
-    const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
-    const { workspace } = await requestOrThrow<
+    const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
+    const { environment } = await requestOrThrow<
       {
-        workspace: {
-          projects: {
+        environment: {
+          serviceTokens: {
             __typename: string
-            id: string
             createdAt: string
             displayName: string
+            id: string
           }[]
         }
       },
@@ -35,15 +36,14 @@ export class Show implements Command {
       token,
       body: {
         query: /* GraphQL */ `
-          query ($input: QueryWorkspaceInput!) {
-            workspace(input: $input) {
+          query ($input: QueryEnvironmentInput!) {
+            environment(input: $input) {
               __typename
               ... on Error {
                 message
               }
-              ... on Workspace {
-                projects {
-                  __typename
+              ... on Environment {
+                serviceTokens {
                   id
                   createdAt
                   displayName
@@ -54,12 +54,14 @@ export class Show implements Command {
         `,
         variables: {
           input: {
-            id: workspaceId,
+            id: environmentId,
           },
         },
       },
     })
-
-    return messages.resourceList(workspace.projects)
+    const resources = this.legacy
+      ? environment.serviceTokens.map((serviceToken) => ({ ...serviceToken, __typename: 'APIKey' }))
+      : environment.serviceTokens
+    return messages.resourceList(resources)
   }
 }

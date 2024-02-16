@@ -18,15 +18,15 @@ export class Disable implements Command {
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     await requestOrThrow<
       {
-        accelerateDisable: {}
+        pulseDisable: {}
       },
       { environmentId: string }
     >({
       token,
       body: {
         query: /* GraphQL */ `
-          mutation ($input: MutationAccelerateDisableInput!) {
-            accelerateDisable(input: $input) {
+          mutation ($input: MutationPulseDisableInput!) {
+            pulseDisable(input: $input) {
               __typename
               ... on Error {
                 message
@@ -40,8 +40,6 @@ export class Disable implements Command {
       },
     })
 
-    return messages.success(
-      `Accelerate disabled. Prisma clients connected to ${environmentId} will not be able to send queries through Accelerate.`,
-    )
+    return messages.success(`Pulse disabled.`)
   }
 }

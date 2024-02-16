@@ -16,14 +16,12 @@ export class Enable implements Command {
       '--url': String,
       // TODO rename to "serviceToken" in a future release.
       '--apikey': Boolean,
-      '--region': String,
     })
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     const connectionString = getRequiredParameterOrThrow(args, ['--url'])
     const withServiceToken = getOptionalParameter(args, ['--apikey']) ?? false
-    const regionId = getOptionalParameter(args, ['--region'])
     const { databaseLinkCreate } = await requestOrThrow<
       {
         databaseLinkCreate: {
@@ -34,7 +32,6 @@ export class Enable implements Command {
       {
         environmentId: string
         connectionString: string
-        regionId?: string
       }
     >({
       token,
@@ -56,21 +53,20 @@ export class Enable implements Command {
           input: {
             environmentId,
             connectionString,
-            ...(regionId && { regionId }),
           },
         },
       },
     })
     const { serviceTokenCreate } = await requestOrThrow<
       {
-        accelerateEnable: {}
+        pulseEnable: {}
         serviceTokenCreate?: {
           value: string
         }
       },
       null,
       {
-        accelerateEnableInput: { databaseLinkId: string }
+        pulseEnableInput: { databaseLinkId: string }
         serviceTokenCreateInput: { environmentId: string }
         withServiceToken: boolean
       }
@@ -79,11 +75,11 @@ export class Enable implements Command {
       body: {
         query: /* GraphQL */ `
           mutation (
-            $accelerateEnableInput: MutationAccelerateEnableInput!
+            $pulseEnableInput: MutationPulseEnableInput!
             $serviceTokenCreateInput: MutationServiceTokenCreateInput!
             $withServiceToken: Boolean!
           ) {
-            accelerateEnable(input: $accelerateEnableInput) {
+            pulseEnable(input: $pulseEnableInput) {
               __typename
               ... on Error {
                 message
@@ -102,17 +98,17 @@ export class Enable implements Command {
         `,
         variables: {
           withServiceToken,
-          accelerateEnableInput: { databaseLinkId: databaseLinkCreate.id },
+          pulseEnableInput: { databaseLinkId: databaseLinkCreate.id },
           serviceTokenCreateInput: { environmentId },
         },
       },
     })
 
-    const gettingStartedUrl = link('https://pris.ly/d/accelerate-getting-started')
+    const gettingStartedUrl = link('https://pris.ly/d/pulse-getting-started')
 
     if (serviceTokenCreate) {
       return messages.success(
-        `Accelerate enabled. Use this Accelerate connection string to authenticate requests:\n` +
+        `Pulse enabled. Use this Pulse connection string to authenticate requests:\n` +
           '\n' +
           `${generateConnectionString(serviceTokenCreate.value)}\n` +
           '\n' +
@@ -120,7 +116,7 @@ export class Enable implements Command {
       )
     } else {
       return messages.success(
-        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n` +
+        `Pulse enabled. Use your secure API key in your Pulse connection string to authenticate requests.\n` +
           `\n` +
           `For more information, check out the Getting started guide here: ${gettingStartedUrl}`,
       )
