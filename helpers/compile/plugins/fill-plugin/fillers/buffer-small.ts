@@ -344,7 +344,7 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
     encoding: Encoding = 'utf-8',
     lastIndexOf = false,
   ) {
-    const method = lastIndexOf ? 'findLastIndex' : 'findIndex'
+    const method = lastIndexOf ? this.findLastIndex.bind(this) : this.findIndex.bind(this)
     encoding = typeof byteOffsetOrEncoding === 'string' ? byteOffsetOrEncoding : encoding
     const toSearch = Buffer.from(typeof value === 'number' ? [value] : value, encoding)
     let byteOffset = typeof byteOffsetOrEncoding === 'string' ? 0 : byteOffsetOrEncoding
@@ -357,7 +357,7 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
       return (byteOffset >= this.length ? this.length : byteOffset) || this.length
     }
 
-    return this[method]((_, i) => {
+    return method((_, i) => {
       const searchIf = lastIndexOf ? i <= (byteOffset || this.length) : i >= byteOffset
       return searchIf && this[i] === toSearch[0] && toSearch.every((val, j) => this[i + j] === val)
     })
