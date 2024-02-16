@@ -123,7 +123,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       return 0
     }
 
-    if (arg instanceof Uint8Array) {
+    if (ArrayBuffer.isView(arg)) {
       return Array.from(arg)
     }
 
