@@ -18,21 +18,40 @@ export interface Env {
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const adapter = new PrismaD1(env.MY_DATABASE)
+		const adapter = new PrismaD1(env.MY_DATABASE, process.env.DEBUG)
 		const prisma = new PrismaClient({ adapter })
 
-		// const queryRaw = await prisma.$queryRaw`SELECT * from Customers;`
-		// console.log({ queryRaw })
+		let tenc = new TextEncoder()
+		let buffer = tenc.encode("Hello")
 
-		// const create = await prisma.customers.create({
+		// let buffer = Uint8Array.from(['H', 'e', 'l', 'l', 'o'])
+
+		const qr = await prisma.$queryRaw`
+		INSERT INTO "Test"
+			("boolean", "blob")
+			VALUES (true, ${buffer})
+			RETURNING *
+		`
+
+		console.log(qr);
+
+
+		console.log('--------');
+
+		const result = await prisma.test.findUnique({
+			where: {
+				id: qr.re
+			}
+		})
+
+		// const result = await prisma.customers.create({
 		// 	data: {
 		// 		companyName: "Test Company",
 		// 		contactName: "Test Contact",
 		// 	}
 		// })
-		// console.log({ create })
 
-		// const createSelect = await prisma.customers.create({
+		// const result = await prisma.customers.create({
 		// 	data: {
 		// 		companyName: "Test Company",
 		// 		contactName: "Test Contact",
@@ -41,9 +60,8 @@ export default {
 		// 		customerId: true,
 		// 	}
 		// })
-		// console.log({ createSelect })
 
-		// const findMany = await prisma.customers.findMany({
+		// const result = await prisma.customers.findMany({
 		// 	where: {
 		// 		customerId: {
 		// 			equals: 1
@@ -51,9 +69,44 @@ export default {
 		// 	}
 		// })
 
-		// const deleteEx = await prisma.$executeRaw`
+		// const result = await prisma.prismaTest.findFirst()
+
+		// const result = await prisma.test.findFirst()
+
+		// const result = await prisma.$executeRaw`
 		// 	DELETE FROM Customers
 		// `
+
+		// const result = await prisma.test.create({
+		// 	data: {
+		// 		// id: 1,
+		// 		text: "Test name",
+		// 		boolean: true,
+		// 		blob: new Uint8Array([1, 2, 3]) as Buffer,
+		// 		int: 9,
+		// 		real: 9.9,
+		// 	}
+		// })
+
+		// const result = await prisma.prismaTest.create({
+		// 		data: {
+		// 				date: new Date("2019-06-17T14:20:57Z"),
+		// 				bigint: Number.MAX_SAFE_INTEGER + 1,
+		// 				decimal: 121.10299000124800000001
+		// 			}
+		// 		})
+
+    // const result = await prisma.user.create({
+    // 	data: {
+    // 		posts: {
+    // 			create: [
+    // 				{ title: "The fire living beneath your curtains" },
+    // 				{ title: "The ocean breeze beneath your feet" },
+    // 				{ title: "The starlight beaming afore your eyes" },
+    // 			]
+    // 		}
+    // 	}
+    // })
 
 		await prisma.$transaction([
 			prisma.customers.create({
@@ -71,7 +124,15 @@ export default {
 		])
 
 		const result = await prisma.customers.findMany()
+		// const result = await prisma.user.findFirst()
 
+		console.log('\u2800');
+		console.log('\u2800');
+		console.log('--- Result from User ----');
+
+		console.log(typeof result.blob)
+		console.log(typeof buffer)
+		console.log({ result })
 		await prisma.$disconnect()
 
 		return new Response(`Hello World! Result from Prisma Client from D1!:\n${JSON.stringify(result, null, 2)}`);
