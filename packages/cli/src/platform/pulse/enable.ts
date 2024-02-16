@@ -59,14 +59,14 @@ export class Enable implements Command {
     })
     const { serviceTokenCreate } = await requestOrThrow<
       {
-        accelerateEnable: {}
+        pulseEnable: {}
         serviceTokenCreate?: {
           value: string
         }
       },
       null,
       {
-        accelerateEnableInput: { databaseLinkId: string }
+        pulseEnableInput: { databaseLinkId: string }
         serviceTokenCreateInput: { environmentId: string }
         withServiceToken: boolean
       }
@@ -75,11 +75,11 @@ export class Enable implements Command {
       body: {
         query: /* GraphQL */ `
           mutation (
-            $accelerateEnableInput: MutationAccelerateEnableInput!
+            $pulseEnableInput: MutationPulseEnableInput!
             $serviceTokenCreateInput: MutationServiceTokenCreateInput!
             $withServiceToken: Boolean!
           ) {
-            accelerateEnable(input: $accelerateEnableInput) {
+            pulseEnable(input: $pulseEnableInput) {
               __typename
               ... on Error {
                 message
@@ -98,17 +98,17 @@ export class Enable implements Command {
         `,
         variables: {
           withServiceToken,
-          accelerateEnableInput: { databaseLinkId: databaseLinkCreate.id },
+          pulseEnableInput: { databaseLinkId: databaseLinkCreate.id },
           serviceTokenCreateInput: { environmentId },
         },
       },
     })
 
-    const gettingStartedUrl = link('https://pris.ly/d/accelerate-getting-started')
+    const gettingStartedUrl = link('https://www.prisma.io/docs/getting-started')
 
     if (serviceTokenCreate) {
       return messages.success(
-        `Accelerate enabled. Use this Accelerate connection string to authenticate requests:\n` +
+        `Pulse enabled. Use this Pulse connection string to authenticate requests:\n` +
           '\n' +
           `${generateConnectionString(serviceTokenCreate.value)}\n` +
           '\n' +
@@ -116,7 +116,7 @@ export class Enable implements Command {
       )
     } else {
       return messages.success(
-        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n` +
+        `Pulse enabled. Use your secure API key in your Pulse connection string to authenticate requests.\n` +
           `\n` +
           `For more information, check out the Getting started guide here: ${gettingStartedUrl}`,
       )

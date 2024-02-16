@@ -102,6 +102,10 @@ async function main(): Promise<number> {
           delete: Platform.Project.Delete.new(),
           show: Platform.Project.Show.new(),
         }),
+        pulse: Platform.Pulse.$.new({
+          enable: Platform.Pulse.Enable.new(),
+          disable: Platform.Pulse.Disable.new(),
+        }),
         accelerate: Platform.Accelerate.$.new({
           enable: Platform.Accelerate.Enable.new(),
           disable: Platform.Accelerate.Disable.new(),
