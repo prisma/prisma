@@ -1,1 +1,1 @@
-export * as Platform from './*'
+export * as Platform from './_'
