@@ -162,13 +162,7 @@ async function main(): Promise<number | void> {
       // Because we cannot reset the database contents programmatically at the moment,
       // deleting it is the easy way
       // It makes local tests consistently fast and clean
-      try {
-        fs.rmdirSync(path.join(__dirname, '..', '..', '.wrangler'), { recursive: true })
-      } catch (e) {
-        if (e.code !== 'ENOENT') {
-          console.warn('Deleting the .wrangler directory failed with:', e)
-        }
-      }
+      fs.rmSync(path.join(__dirname, '..', '..', '.wrangler'), { recursive: true, force: true })
 
       jestCli = jestCli.withArgs(['--runInBand'])
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
