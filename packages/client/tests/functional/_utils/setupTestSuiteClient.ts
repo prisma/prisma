@@ -1,3 +1,4 @@
+import type { D1Database } from '@cloudflare/workers-types'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
@@ -33,6 +34,7 @@ export async function setupTestSuiteClient({
   clientMeta,
   skipDb,
   alterStatementCallback,
+  cfWorkerBindings,
 }: {
   cliMeta: CliMeta
   suiteMeta: TestSuiteMeta
@@ -41,22 +43,23 @@ export async function setupTestSuiteClient({
   clientMeta: ClientMeta
   skipDb?: boolean
   alterStatementCallback?: AlterStatementCallback
+  cfWorkerBindings?: Record<string, unknown>
 }) {
-  const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
-  const schema = getTestSuiteSchema(cliMeta, suiteMeta, suiteConfig.matrixOptions)
+  const suiteFolderPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
+  const schema = getTestSuiteSchema({ cliMeta, suiteMeta, matrixOptions: suiteConfig.matrixOptions })
   const previewFeatures = getTestSuitePreviewFeatures(schema)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
 
-  await setupTestSuiteFiles(suiteMeta, suiteConfig)
-  await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
+  await setupTestSuiteFiles({ suiteMeta, suiteConfig })
+  await setupTestSuiteSchema({ suiteMeta, suiteConfig, schema })
 
   process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
   process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
 
   if (skipDb !== true) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
+    await setupTestSuiteDatabase({ suiteMeta, suiteConfig, alterStatementCallback, cfWorkerBindings })
   }
 
   if (clientMeta.dataProxy === true) {
@@ -67,7 +70,7 @@ export async function setupTestSuiteClient({
 
   await generateClient({
     datamodel: schema,
-    schemaPath: getTestSuiteSchemaPath(suiteMeta, suiteConfig),
+    schemaPath: getTestSuiteSchemaPath({ suiteMeta, suiteConfig }),
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: config.datasources,
     outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),
@@ -98,10 +101,12 @@ export function setupTestSuiteClientDriverAdapter({
   suiteConfig,
   datasourceInfo,
   clientMeta,
+  cfWorkerBindings,
 }: {
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
+  cfWorkerBindings?: Record<string, unknown>
 }) {
   const driverAdapter = suiteConfig.matrixOptions.driverAdapter
   const provider = suiteConfig.matrixOptions.provider
@@ -121,10 +126,6 @@ export function setupTestSuiteClientDriverAdapter({
           const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
           const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
-          // TODO: cleanup and remove ts-expect-error
-          // Pierre thinks that this is an upstream problem with the type definitions
-          // (provided by TS or @types/node) and will get fixed at some point.
-          // @ts-expect-error (2511) - Cannot create an instance of an abstract class.
           return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
         },
       }
@@ -187,14 +188,11 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_D1) {
-    const { connectD1 } = require('wrangler-proxy') as typeof import('wrangler-proxy')
     const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
 
-    // Note: default hostname is `http://127.0.0.1:8787`
-    // The custom port is set in packages/client/tests/functional/_utils/wrangler.toml
-    const db = connectD1('MY_DATABASE', { hostname: 'http://127.0.0.1:9090' })
+    const d1Client = cfWorkerBindings!.MY_DATABASE as D1Database
 
-    return { adapter: new PrismaD1(db), __internal }
+    return { adapter: new PrismaD1(d1Client), __internal }
   }
 
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)

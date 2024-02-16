@@ -644,5 +644,10 @@ testMatrix.setupTestSuite(
     skip(when, { clientRuntime }) {
       when(clientRuntime === 'wasm', 'Tracing is not supported for wasm engine, many spans are missing')
     },
+    skipDriverAdapter: {
+      from: ['js_d1'],
+      reason:
+        'Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659',
+    },
   },
 )

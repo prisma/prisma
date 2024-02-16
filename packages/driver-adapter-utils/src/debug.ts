@@ -1,5 +1,4 @@
-// importing it this way, rather than `export { debug as Debug } ensures it works for ESM
-// as well as CJS
-import debug from 'debug'
+import { Debug } from '@prisma/debug'
 
-export const Debug = debug.debug
+export { Debug }
+export default Debug
