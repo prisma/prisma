@@ -16,10 +16,12 @@ export class $ implements Command {
       ['auth', 'Manage authentication with your Prisma Data Platform account'],
       ['workspace', 'Manage workspaces'],
       ['project', 'Manage projects'],
+      ['environment', 'Manage environments'],
       // todo replace apikey with serviceToken
       ['apikey', 'Manage API keys'],
       // ['serviceToken', 'Manage service tokens'],
       ['accelerate', 'Manage Prisma Accelerate'],
+      ['pulse', 'Manage Prisma Pulse'],
     ],
     options: [
       ['--early-access', '', 'Enable early access features'],
