@@ -4,14 +4,11 @@ describe('import from browser bundle should error', () => {
   test('Prisma.sql', () => {
     expect(Prisma.sql).toThrow(`sqltag was imported from`)
   })
-  test('Prisma.join', () => {
+  test('Prisma.empty', () => {
     expect(Prisma.empty).toThrow(`empty was imported from`)
   })
   test('Prisma.join', () => {
     expect(Prisma.join).toThrow(`join was imported from`)
-  })
-  test('Prisma.raw', () => {
-    expect(Prisma.raw).toThrow(`raw was imported from`)
   })
   test('Prisma.raw', () => {
     expect(Prisma.raw).toThrow(`raw was imported from`)
