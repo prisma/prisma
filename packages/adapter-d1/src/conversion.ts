@@ -110,7 +110,7 @@ class UnexpectedTypeError extends Error {
 }
 
 export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
-  const result: unknown[] = Object.keys(obj).map((k) => obj[k])
+  const result: unknown[] = Object.values(obj)
 
   for (let i = 0; i < result.length; i++) {
     const value = result[i]
