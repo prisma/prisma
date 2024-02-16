@@ -407,10 +407,10 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
 
   it('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.from([255, 255, 255, 255])
-    // expect(() => buf.readUIntBE(5, 4)).toThrow() ❌
-    // expect(() => buf.readUintBE(5, 4)).toThrow() ❌
-    // expect(() => buf.readUIntLE(5, 4)).toThrow() ❌
-    // expect(() => buf.readUintLE(5, 4)).toThrow() ❌
+    expect(() => buf.readUIntBE(5, 4)).toThrow()
+    expect(() => buf.readUintBE(5, 4)).toThrow()
+    expect(() => buf.readUIntLE(5, 4)).toThrow()
+    expect(() => buf.readUintLE(5, 4)).toThrow()
     expect(() => buf.readUInt8(5)).toThrow()
     expect(() => buf.readUint8(5)).toThrow()
     expect(() => buf.readUInt16BE(5)).toThrow()
@@ -676,10 +676,10 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(() => buf3.writeUInt32LE(4294967295, 5)).toThrow()
     expect(() => buf3.writeUint32LE(4294967295, 5)).toThrow()
     const buf4 = Buffer.alloc(4)
-    // expect(() => buf4.writeUIntBE(4294967295, 5, 4)).toThrow() ❌
-    // expect(() => buf4.writeUintBE(4294967295, 5, 4)).toThrow() ❌
-    // expect(() => buf4.writeUIntLE(4294967295, 5, 4)).toThrow() ❌
-    // expect(() => buf4.writeUintLE(4294967295, 5, 4)).toThrow() ❌
+    expect(() => buf4.writeUIntBE(4294967295, 5, 4)).toThrow()
+    expect(() => buf4.writeUintBE(4294967295, 5, 4)).toThrow()
+    expect(() => buf4.writeUIntLE(4294967295, 5, 4)).toThrow()
+    expect(() => buf4.writeUintLE(4294967295, 5, 4)).toThrow()
   })
 
   it('should throw an error if the value is not an unsigned integer', () => {
@@ -814,7 +814,7 @@ describe('Buffer compare', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, Universe!')
     // expect(() => buf1.compare(buf2, -1)).toThrow() ❌
-    // expect(() => buf1.compare(buf2, 0, 50)).toThrow() ❌
+    // expect(() => buf1.compare(buf2, 0, 50)).toThrow()
   })
 })
 
@@ -952,8 +952,8 @@ describe('Buffer.toString', () => {
 
   it('should handle negative start and end values', () => {
     const buf = Buffer.from('Hello, World!')
-    // expect(buf.toString('utf8', -5)).toEqual('Hello, World!') ❌
-    // expect(buf.toString('utf8', 0, -5)).toEqual('') ❌
+    expect(buf.toString('utf8', -5)).toEqual('Hello, World!')
+    expect(buf.toString('utf8', 0, -5)).toEqual('')
   })
 
   it('should handle start and end values greater than buffer length', () => {
@@ -1236,14 +1236,14 @@ test('Buffer.readUIntBE (example)', () => {
   const buf = Buffer.from([0x12, 0x34, 0x56, 0x78, 0x90, 0xab])
 
   expect(buf.readUIntBE(0, 6).toString(16)).toBe('1234567890ab')
-  // expect(() => buf.readUIntBE(1, 60)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readUIntBE(1, 60)).toThrow()
 })
 
 test('Buffer.readUintBE (example)', () => {
   const buf = Buffer.from([0x12, 0x34, 0x56, 0x78, 0x90, 0xab])
 
   expect(buf.readUintBE(0, 6).toString(16)).toBe('1234567890ab')
-  // expect(() => buf.readUintBE(1, 60)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readUintBE(1, 60)).toThrow()
 })
 
 test('Buffer.readIntLE (example)', () => {
@@ -1256,8 +1256,8 @@ test('Buffer.readIntBE (example)', () => {
   const buf = Buffer.from([0x12, 0x34, 0x56, 0x78, 0x90, 0xab])
 
   expect(buf.readIntBE(0, 6).toString(16)).toBe('1234567890ab')
-  // expect(() => buf.readIntBE(1, 60)).toThrow('ERR_OUT_OF_RANGE') ❌
-  // expect(() => buf.readIntBE(1, 0)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readIntBE(1, 60)).toThrow()
+  expect(() => buf.readIntBE(1, 0)).toThrow()
 })
 
 test('Buffer.readUInt8 (example)', () => {
@@ -1265,7 +1265,7 @@ test('Buffer.readUInt8 (example)', () => {
 
   expect(buf.readUInt8(0)).toBe(1)
   expect(buf.readUInt8(1)).toBe(254)
-  // expect(() => buf.readUInt8(2)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readUInt8(2)).toThrow()
 })
 
 test('Buffer.readUint8 (example)', () => {
@@ -1769,8 +1769,8 @@ test('Buffer slice (node.js repository test)', () => {
     assert.strictEqual(Buffer.compare(buf1, buf2), 0)
   }
 
-  // const utf16Buf = Buffer.from('0123456789', 'utf16le') ❌
-  // assert.deepStrictEqual(utf16Buf.slice(0, 6), Buffer.from('012', 'utf16le')) ❌
+  const utf16Buf = Buffer.from('0123456789', 'utf16le')
+  assert.deepStrictEqual(utf16Buf.slice(0, 6), Buffer.from('012', 'utf16le'))
   // Try to slice a zero length Buffer.
   // See https://github.com/joyent/node/issues/5881
   assert.strictEqual(Buffer.alloc(0).slice(0, 1).length, 0)
@@ -2319,21 +2319,21 @@ test('Buffer fill (node.js repository test)', () => {
   testBufs('Yci0Ysi1Y8i2', 4, 1, 'base64')
   testBufs('Yci0Ysi1Y8i2', 12, 1, 'base64')
 
-  // BASE64URL ❌
-  // testBufs('YWJj', 'base64url')
-  // testBufs('yKJhYQ', 'base64url')
-  // testBufs('Yci0Ysi1Y8i2', 'base64url')
-  // testBufs('YWJj', 4, 'base64url')
-  // testBufs('YWJj', SIZE, 'base64url')
-  // testBufs('yKJhYQ', 2, 'base64url')
-  // testBufs('yKJhYQ', 8, 'base64url')
-  // testBufs('Yci0Ysi1Y8i2', 4, 'base64url')
-  // testBufs('Yci0Ysi1Y8i2', 12, 'base64url')
-  // testBufs('YWJj', 4, 1, 'base64url')
-  // testBufs('YWJj', 5, 1, 'base64url')
-  // testBufs('yKJhYQ', 8, 1, 'base64url')
-  // testBufs('Yci0Ysi1Y8i2', 4, 1, 'base64url')
-  // testBufs('Yci0Ysi1Y8i2', 12, 1, 'base64url')
+  // BASE64URL
+  testBufs('YWJj', 'base64url')
+  testBufs('yKJhYQ', 'base64url')
+  testBufs('Yci0Ysi1Y8i2', 'base64url')
+  testBufs('YWJj', 4, 'base64url')
+  testBufs('YWJj', SIZE, 'base64url')
+  testBufs('yKJhYQ', 2, 'base64url')
+  testBufs('yKJhYQ', 8, 'base64url')
+  testBufs('Yci0Ysi1Y8i2', 4, 'base64url')
+  testBufs('Yci0Ysi1Y8i2', 12, 'base64url')
+  testBufs('YWJj', 4, 1, 'base64url')
+  testBufs('YWJj', 5, 1, 'base64url')
+  testBufs('yKJhYQ', 8, 1, 'base64url')
+  testBufs('Yci0Ysi1Y8i2', 4, 1, 'base64url')
+  testBufs('Yci0Ysi1Y8i2', 12, 1, 'base64url')
 
   // Buffer
   function deepStrictEqualValues(buf, arr) {
@@ -3265,8 +3265,8 @@ test('Buffer includes (node.js repository test)', () => {
   assert(!allCharsBufferUcs2.includes('notfound'))
 
   // Find substrings in Utf8.
-  const lengths = [1, 3, 15] // Single char, simple and complex.
-  const indices = [0x5, 0x60, 0x400, 0x680, 0x7ee, 0xff02, 0x16610, 0x2f77b]
+  let lengths = [1, 3, 15] // Single char, simple and complex.
+  let indices = [0x5, 0x60, 0x400, 0x680, 0x7ee, 0xff02, 0x16610, 0x2f77b]
   for (let lengthIndex = 0; lengthIndex < lengths.length; lengthIndex++) {
     for (let i = 0; i < indices.length; i++) {
       const index = indices[i]
@@ -3295,20 +3295,20 @@ test('Buffer includes (node.js repository test)', () => {
   }
 
   // Find substrings in Usc2. ❌
-  // lengths = [2, 4, 16] // Single char, simple and complex.
-  // indices = [0x5, 0x65, 0x105, 0x205, 0x285, 0x2005, 0x2085, 0xfff0]
-  // for (let lengthIndex = 0; lengthIndex < lengths.length; lengthIndex++) {
-  //   for (let i = 0; i < indices.length; i++) {
-  //     const index = indices[i] * 2
-  //     const length = lengths[lengthIndex]
+  lengths = [2, 4, 16] // Single char, simple and complex.
+  indices = [0x5, 0x65, 0x105, 0x205, 0x285, 0x2005, 0x2085, 0xfff0]
+  for (let lengthIndex = 0; lengthIndex < lengths.length; lengthIndex++) {
+    for (let i = 0; i < indices.length; i++) {
+      const index = indices[i] * 2
+      const length = lengths[lengthIndex]
 
-  //     const patternBufferUcs2 = allCharsBufferUcs2.slice(index, index + length)
-  //     assert.ok(allCharsBufferUcs2.includes(patternBufferUcs2, 0, 'ucs2'))
+      const patternBufferUcs2 = allCharsBufferUcs2.slice(index, index + length)
+      assert.ok(allCharsBufferUcs2.includes(patternBufferUcs2, 0, 'ucs2'))
 
-  //     const patternStringUcs2 = patternBufferUcs2.toString('ucs2')
-  //     assert.ok(allCharsBufferUcs2.includes(patternStringUcs2, 0, 'ucs2'))
-  //   }
-  // }
+      const patternStringUcs2 = patternBufferUcs2.toString('ucs2')
+      assert.ok(allCharsBufferUcs2.includes(patternStringUcs2, 0, 'ucs2'))
+    }
+  }
 
   ;[() => {}, {}, []].forEach((val) => {
     // assert.throws(() => b.includes(val)) ❌
@@ -5308,10 +5308,10 @@ test('Buffer alloc (node.js repository test)', () => {
   {
     // Test that regular and URL-safe base64 both work both ways with padding
     const expected = [0xff, 0xff, 0xbe, 0xff, 0xef, 0xbf, 0xfb, 0xef, 0xff, 0xfb]
-    // assert.deepStrictEqual(Buffer.from('//++/++/++//+w==', 'base64'), Buffer.from(expected)) ❌
-    // assert.deepStrictEqual(Buffer.from('//++/++/++//+w==', 'base64'), Buffer.from(expected)) ❌
-    // assert.deepStrictEqual(Buffer.from('//++/++/++//+w==', 'base64url'), Buffer.from(expected)) ❌
-    // assert.deepStrictEqual(Buffer.from('//++/++/++//+w==', 'base64url'), Buffer.from(expected)) ❌
+    assert.deepStrictEqual(Buffer.from('//++/++/++//+w==', 'base64'), Buffer.from(expected))
+    assert.deepStrictEqual(Buffer.from('//++/++/++//+w==', 'base64'), Buffer.from(expected))
+    assert.deepStrictEqual(Buffer.from('//++/++/++//+w==', 'base64url'), Buffer.from(expected))
+    assert.deepStrictEqual(Buffer.from('//++/++/++//+w==', 'base64url'), Buffer.from(expected))
   }
 
   {
@@ -5434,8 +5434,8 @@ test('Buffer alloc (node.js repository test)', () => {
   // assert.strictEqual(Buffer.from('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg==', 'base64url').length, 31) ❌
   // assert.strictEqual(Buffer.from('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg=', 'base64').length, 31) ❌
   // assert.strictEqual(Buffer.from('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg=', 'base64url').length, 31) ❌
-  // assert.strictEqual(Buffer.from('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg', 'base64').length, 31)
-  // assert.strictEqual(Buffer.from('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg', 'base64url').length, 31) ❌
+  assert.strictEqual(Buffer.from('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg', 'base64').length, 31)
+  assert.strictEqual(Buffer.from('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg', 'base64url').length, 31)
 
   {
     // This string encodes single '.' character in UTF-16
