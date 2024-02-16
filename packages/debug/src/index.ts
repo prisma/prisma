@@ -156,6 +156,8 @@ function safeStringify(value: any, indent = 2) {
         }
 
         cache.add(value)
+      } else if (typeof value === 'bigint') {
+        return value.toString()
       }
 
       return value
