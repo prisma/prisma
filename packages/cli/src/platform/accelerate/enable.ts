@@ -14,13 +14,14 @@ export class Enable implements Command {
     const args = arg(argv, {
       ...platformParameters.environment,
       '--url': String,
-      '--serviceToken': Boolean,
+      // TODO rename to "serviceToken" in a future release.
+      '--apikey': Boolean,
     })
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     const connectionString = getRequiredParameterOrThrow(args, ['--url'])
-    const withServiceToken = getOptionalParameter(args, ['--serviceToken']) ?? false
+    const withServiceToken = getOptionalParameter(args, ['--apikey']) ?? false
     const { databaseLinkCreate } = await requestOrThrow<
       {
         databaseLinkCreate: {
