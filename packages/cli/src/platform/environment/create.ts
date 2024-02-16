@@ -12,16 +12,16 @@ export class Create implements Command {
 
   public async parse(argv: string[]) {
     const args = argOrThrow(argv, {
-      ...platformParameters.workspace,
+      ...platformParameters.project,
       '--name': String,
       '-n': '--name',
     })
     const token = await getTokenOrThrow(args)
-    const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
+    const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
-    const { projectCreate } = await requestOrThrow<
+    const { environmentCreate } = await requestOrThrow<
       {
-        projectCreate: {
+        environmentCreate: {
           __typename: string
           id: string
           createdAt: string
@@ -29,20 +29,20 @@ export class Create implements Command {
         }
       },
       {
-        workspaceId: string
+        projectId: string
         displayName?: string
       }
     >({
       token,
       body: {
         query: /* graphql */ `
-          mutation ($input: MutationProjectCreateInput!) {
-            projectCreate(input: $input) {
+          mutation ($input: MutationEnvironmentCreateInput!) {
+            environmentCreate(input: $input) {
               __typename
               ...on Error {
                 message
               }
-              ...on Project {
+              ...on Environment {
                 id
                 createdAt
                 displayName
@@ -52,13 +52,13 @@ export class Create implements Command {
         `,
         variables: {
           input: {
-            workspaceId,
+            projectId,
             displayName,
           },
         },
       },
     })
 
-    return messages.resourceCreated(projectCreate)
+    return messages.resourceCreated(environmentCreate)
   }
 }

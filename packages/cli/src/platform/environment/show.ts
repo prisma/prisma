@@ -5,9 +5,9 @@ import { messages } from '../_lib/messages'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
-export class Delete implements Command {
+export class Show implements Command {
   public static new() {
-    return new Delete()
+    return new Show()
   }
 
   public async parse(argv: string[]) {
@@ -17,13 +17,15 @@ export class Delete implements Command {
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
     const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
-    const { projectDelete } = await requestOrThrow<
+    const { project } = await requestOrThrow<
       {
-        projectDelete: {
-          __typename: string
-          id: string
-          createdAt: string
-          displayName: string
+        project: {
+          environments: {
+            __typename: string
+            id: string
+            createdAt: string
+            displayName: string
+          }[]
         }
       },
       {
@@ -32,17 +34,20 @@ export class Delete implements Command {
     >({
       token,
       body: {
-        query: /* graphql */ `
-          mutation ($input: MutationProjectDeleteInput!) {
-            projectDelete(input: $input) {
+        query: /* GraphQL */ `
+          query ($input: QueryProjectInput!) {
+            project(input: $input) {
               __typename
-              ...on Error {
+              ... on Error {
                 message
               }
-              ...on ProjectNode {
-                id
-                createdAt
-                displayName
+              ... on Project {
+                environments {
+                  __typename
+                  id
+                  createdAt
+                  displayName
+                }
               }
             }
           }
@@ -54,6 +59,7 @@ export class Delete implements Command {
         },
       },
     })
-    return messages.resourceDeleted(projectDelete)
+
+    return messages.resourceList(project.environments)
   }
 }
