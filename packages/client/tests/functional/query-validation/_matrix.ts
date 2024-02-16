@@ -1,8 +1,8 @@
 import { defineMatrix } from '../_utils/defineMatrix'
-import { providersSupportingRelationJoins } from '../relation-load-strategy/_common'
+import { allProviders } from '../_utils/providers'
 
 export default defineMatrix(() => [
-  providersSupportingRelationJoins.map((provider) => ({ provider })),
+  allProviders,
   [
     {
       previewFeatures: '',
