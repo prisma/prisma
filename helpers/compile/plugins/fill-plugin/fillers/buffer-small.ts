@@ -1,23 +1,90 @@
-import { Buffer as NodeBuffer } from 'buffer'
-import {
-  areUint8ArraysEqual,
-  base64ToUint8Array,
-  compareUint8Arrays,
-  hexToUint8Array,
-  stringToUint8Array,
-  uint8ArrayToBase64,
-  uint8ArrayToHex,
-  uint8ArrayToString,
-} from 'uint8array-extras'
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+export interface Buffer {
+  readBigInt64BE(offset: number): bigint
+  readBigInt64BE(offset: number): bigint
+  readBigInt64LE(offset: number): bigint
+  readBigInt64LE(offset: number): bigint
+  readBigUint64BE(offset: number): bigint
+  readBigUInt64BE(offset: number): bigint
+  readBigUint64LE(offset: number): bigint
+  readBigUInt64LE(offset: number): bigint
+  readDoubleBE(offset: number): number
+  readDoubleLE(offset: number): number
+  readFloatBE(offset: number): number
+  readFloatLE(offset: number): number
+  readInt16BE(offset: number): number
+  readInt16LE(offset: number): number
+  readInt32BE(offset: number): number
+  readInt32LE(offset: number): number
+  readInt8(offset: number): number
+  readIntBE(offset: number, byteLength: number): number
+  readIntLE(offset: number, byteLength: number): number
+  readUint16BE(offset: number): number
+  readUInt16BE(offset: number): number
+  readUint16LE(offset: number): number
+  readUInt16LE(offset: number): number
+  readUint32BE(offset: number): number
+  readUInt32BE(offset: number): number
+  readUint32LE(offset: number): number
+  readUInt32LE(offset: number): number
+  readUint8(offset: number): number
+  readUInt8(offset: number): number
+  readUInt8(offset: number): number
+  readUintBE(offset: number, byteLength: number): number
+  readUIntBE(offset: number, byteLength: number): number
+  readUintLE(offset: number, byteLength: number): number
+  readUIntLE(offset: number, byteLength: number): number
+  writeBigInt64BE(value: bigint, offset: number): void
+  writeBigInt64BE(value: bigint, offset: number): void
+  writeBigInt64LE(value: bigint, offset: number): void
+  writeBigInt64LE(value: bigint, offset: number): void
+  writeBigUint64BE(value: bigint, offset: number): void
+  writeBigUInt64BE(value: bigint, offset: number): void
+  writeBigUint64LE(value: bigint, offset: number): void
+  writeBigUInt64LE(value: bigint, offset: number): void
+  writeDoubleBE(value: number, offset: number): void
+  writeDoubleLE(value: number, offset: number): void
+  writeFloatBE(value: number, offset: number): void
+  writeFloatLE(value: number, offset: number): void
+  writeInt16BE(value: number, offset: number): void
+  writeInt16LE(value: number, offset: number): void
+  writeInt32BE(value: number, offset: number): void
+  writeInt32LE(value: number, offset: number): void
+  writeInt8(value: number, offset: number): void
+  writeIntBE(value: number, offset: number, byteLength: number): void
+  writeIntLE(value: number, offset: number, byteLength: number): void
+  writeUint16BE(value: number, offset: number): void
+  writeUInt16BE(value: number, offset: number): void
+  writeUint16LE(value: number, offset: number): void
+  writeUInt16LE(value: number, offset: number): void
+  writeUint32BE(value: number, offset: number): void
+  writeUInt32BE(value: number, offset: number): void
+  writeUint32LE(value: number, offset: number): void
+  writeUInt32LE(value: number, offset: number): void
+  writeUint8(value: number, offset: number): void
+  writeUInt8(value: number, offset: number): void
+  writeUintBE(value: number, offset: number, byteLength: number): void
+  writeUIntBE(value: number, offset: number, byteLength: number): void
+  writeUintLE(value: number, offset: number, byteLength: number): void
+  writeUIntLE(value: number, offset: number, byteLength: number): void
+}
 
-export class Buffer extends Uint8Array implements NodeBuffer {
+export class Buffer extends Uint8Array /* implements NodeBuffer */ {
   readonly _isBuffer = true
 
-  static alloc(size: number, fill: string | number | Uint8Array = 0) {
-    return Buffer.allocUnsafe(size).fill(fill)
+  get offset() {
+    return this.byteOffset
+  }
+
+  static alloc(size: number, fill: string | number | Uint8Array = 0, encoding?: Encoding) {
+    return Buffer.allocUnsafe(size).fill(fill, encoding)
   }
 
   static allocUnsafe(size: number) {
+    return new Buffer(new Uint8Array(size))
+  }
+
+  static allocUnsafeSlow(size: number) {
     return new Buffer(new Uint8Array(size))
   }
 
@@ -25,11 +92,20 @@ export class Buffer extends Uint8Array implements NodeBuffer {
     return arg && !!arg._isBuffer
   }
 
-  static compare(a: Uint8Array, b: Uint8Array) {
-    return compareUint8Arrays(a, b)
+  static byteLength(string: string, encoding: Encoding = 'utf8') {
+    return Buffer.from(string, encoding).length
   }
 
-  static from(value: unknown, encoding: any = 'utf8') {
+  static compare(a: Uint8Array, b: Uint8Array) {
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] < b[i]) return -1
+      if (a[i] > b[i]) return 1
+    }
+
+    return a.length === b.length ? 0 : a.length > b.length ? 1 : -1
+  }
+
+  static from(value: unknown, encoding: any = 'utf8'): Buffer {
     if (value && typeof value === 'object' && value['type'] === 'Buffer') {
       return new Buffer(value['data'])
     }
@@ -39,44 +115,23 @@ export class Buffer extends Uint8Array implements NodeBuffer {
     }
 
     if (typeof value === 'string' && typeof encoding === 'string') {
-      return stringToBuffer(value, encoding ?? 'utf8')
+      return stringToBuffer(value, encoding)
     }
 
     if (typeof value === 'object' && ArrayBuffer.isView(value)) {
       return new Buffer(value.buffer, value.byteOffset, value.byteLength)
     }
 
-    if (
-      Array.isArray(value) ||
-      value instanceof Uint8Array ||
-      value instanceof ArrayBuffer ||
-      value instanceof SharedArrayBuffer ||
-      (value as any)[Symbol.toStringTag] === 'ArrayBuffer' ||
-      (value as any)[Symbol.toStringTag] === 'SharedArrayBuffer'
-    ) {
-      return new Buffer(value as ArrayLike<number>)
-    }
-
-    throw new TypeError(
-      'The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object.',
-    )
+    return new Buffer(value as ArrayLike<number>)
   }
 
   static concat(list: readonly Uint8Array[], totalLength?: number) {
     if (list.length === 0) return Buffer.alloc(0)
 
-    totalLength ??= list.reduce((acc, { length }) => acc + length, 0)
+    const concat = ([] as number[]).concat(...list.map((item) => [...item]))
+    const result = Buffer.alloc(totalLength !== undefined ? totalLength : concat.length)
 
-    const result = Buffer.alloc(totalLength)
-
-    let offset = 0
-    for (const item of list) {
-      if (offset + item.byteLength > totalLength) {
-        return result
-      }
-      result.set(item, offset)
-      offset += item.byteLength
-    }
+    result.set(totalLength !== undefined ? concat.slice(0, totalLength) : concat)
 
     return result
   }
@@ -95,148 +150,39 @@ export class Buffer extends Uint8Array implements NodeBuffer {
     return this
   }
 
-  readBigInt64BE(offset = 0) {
-    return new DataView(this.buffer).getBigInt64(offset, false)
-  }
-
-  readBigInt64LE(offset = 0) {
-    return new DataView(this.buffer).getBigInt64(offset, true)
-  }
-
-  readBigUInt64BE(offset = 0) {
-    return new DataView(this.buffer).getBigUint64(offset, false)
-  }
-
-  readBigUInt64LE(offset = 0) {
-    return new DataView(this.buffer).getBigUint64(offset, true)
-  }
-
-  readDoubleBE(offset = 0) {
-    return new DataView(this.buffer).getFloat64(offset, false)
-  }
-
-  readDoubleLE(offset = 0) {
-    return new DataView(this.buffer).getFloat64(offset, true)
-  }
-
-  readFloatBE(offset = 0) {
-    return new DataView(this.buffer).getFloat32(offset, false)
-  }
-
-  readFloatLE(offset = 0) {
-    return new DataView(this.buffer).getFloat32(offset, true)
-  }
-
-  readInt8(offset = 0) {
-    return new DataView(this.buffer).getInt8(offset)
-  }
-
-  readInt16BE(offset = 0) {
-    return new DataView(this.buffer).getInt16(offset, false)
-  }
-
-  readInt16LE(offset = 0) {
-    return new DataView(this.buffer).getInt16(offset, true)
-  }
-
-  readInt32BE(offset = 0) {
-    return new DataView(this.buffer).getInt32(offset, false)
-  }
-
-  readInt32LE(offset = 0) {
-    return new DataView(this.buffer).getInt32(offset, true)
-  }
-
-  readUint8(offset = 0) {
-    return this.readUInt8(offset)
-  }
-
-  readUint16BE(offset = 0) {
-    return this.readUInt16BE(offset)
-  }
-
-  readUint16LE(offset = 0) {
-    return this.readUInt16LE(offset)
-  }
-
-  readUint32BE(offset = 0) {
-    return this.readUInt32BE(offset)
-  }
-
-  readUint32LE(offset = 0) {
-    return this.readUInt32LE(offset)
-  }
-
-  readUInt8(offset = 0) {
-    return new DataView(this.buffer).getUint8(offset)
-  }
-
-  readUInt16BE(offset = 0) {
-    return new DataView(this.buffer).getUint16(offset, false)
-  }
-
-  readUInt16LE(offset = 0) {
-    return new DataView(this.buffer).getUint16(offset, true)
-  }
-
-  readUInt32BE(offset = 0) {
-    return new DataView(this.buffer).getUint32(offset, false)
-  }
-
-  readUInt32LE(offset = 0) {
-    return new DataView(this.buffer).getUint32(offset, true)
-  }
-
-  readBigUint64BE(offset = 0) {
-    return this.readBigUInt64BE(offset)
-  }
-
-  readBigUint64LE(offset = 0) {
-    return this.readBigUInt64LE(offset)
-  }
-
   readIntBE(offset: number, byteLength: number) {
-    offset = offset >>> 0
-    byteLength = byteLength >>> 0
-
-    let i = byteLength
-    let mul = 1
-    let val = this[offset + --i]
-    while (i > 0 && (mul *= 0x100)) {
-      val += this[offset + --i] * mul
+    const view = new DataView(this.buffer, offset, byteLength)
+    let val = 0
+    for (let i = 0; i < byteLength; i++) {
+      val = val * 0x100 + view.getUint8(i)
     }
-    mul *= 0x80
 
-    if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+    if (view.getUint8(0) & 0x80) {
+      val -= Math.pow(0x100, byteLength)
+    }
 
     return val
   }
 
   readIntLE(offset: number, byteLength: number) {
-    offset = offset >>> 0
-    byteLength = byteLength >>> 0
-
-    let val = this[offset]
-    let mul = 1
-    let i = 0
-    while (++i < byteLength && (mul *= 0x100)) {
-      val += this[offset + i] * mul
+    const view = new DataView(this.buffer, offset, byteLength)
+    let val = 0
+    for (let i = 0; i < byteLength; i++) {
+      val += view.getUint8(i) * Math.pow(0x100, i)
     }
-    mul *= 0x80
 
-    if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+    if (view.getUint8(byteLength - 1) & 0x80) {
+      val -= Math.pow(0x100, byteLength)
+    }
 
     return val
   }
 
   readUIntBE(offset: number, byteLength: number) {
-    offset = offset >>> 0
-    byteLength = byteLength >>> 0
-
-    let val = this[offset + --byteLength]
-    let mul = 1
-    while (byteLength > 0 && (mul *= 0x100)) {
-      val += this[offset + --byteLength] * mul
+    const view = new DataView(this.buffer, offset, byteLength)
+    let val = 0
+    for (let i = 0; i < byteLength; i++) {
+      val = val * 0x100 + view.getUint8(i)
     }
 
     return val
@@ -247,14 +193,10 @@ export class Buffer extends Uint8Array implements NodeBuffer {
   }
 
   readUIntLE(offset: number, byteLength: number) {
-    offset = offset >>> 0
-    byteLength = byteLength >>> 0
-
-    let val = this[offset]
-    let mul = 1
-    let i = 0
-    while (++i < byteLength && (mul *= 0x100)) {
-      val += this[offset + i] * mul
+    const view = new DataView(this.buffer, offset, byteLength)
+    let val = 0
+    for (let i = 0; i < byteLength; i++) {
+      val += view.getUint8(i) * Math.pow(0x100, i)
     }
 
     return val
@@ -264,160 +206,21 @@ export class Buffer extends Uint8Array implements NodeBuffer {
     return this.readUIntLE(offset, byteLength)
   }
 
-  writeBigInt64BE(value: bigint, offset = 0) {
-    new DataView(this.buffer).setBigInt64(offset, value, false)
-
-    return offset + 8
-  }
-
-  writeBigInt64LE(value: bigint, offset = 0) {
-    new DataView(this.buffer).setBigInt64(offset, value, true)
-
-    return offset + 8
-  }
-
-  writeBigUInt64BE(value: bigint, offset = 0) {
-    new DataView(this.buffer).setBigUint64(offset, value, false)
-
-    return offset + 8
-  }
-
-  writeBigUInt64LE(value: bigint, offset = 0) {
-    new DataView(this.buffer).setBigUint64(offset, value, true)
-
-    return offset + 8
-  }
-
-  writeDoubleBE(value, offset = 0) {
-    new DataView(this.buffer).setFloat64(offset, value, false)
-
-    return offset + 8
-  }
-
-  writeDoubleLE(value, offset = 0) {
-    new DataView(this.buffer).setFloat64(offset, value, true)
-
-    return offset + 8
-  }
-
-  writeFloatBE(value, offset = 0) {
-    new DataView(this.buffer).setFloat32(offset, value, false)
-
-    return offset + 4
-  }
-
-  writeFloatLE(value, offset = 0) {
-    new DataView(this.buffer).setFloat32(offset, value, true)
-
-    return offset + 4
-  }
-
-  writeInt8(value: number, offset = 0) {
-    new DataView(this.buffer).setInt8(offset, value)
-
-    return offset + 1
-  }
-
-  writeInt16BE(value: number, offset = 0) {
-    new DataView(this.buffer).setInt16(offset, value, false)
-
-    return offset + 2
-  }
-
-  writeInt16LE(value: number, offset = 0) {
-    new DataView(this.buffer).setInt16(offset, value, true)
-
-    return offset + 2
-  }
-
-  writeInt32BE(value: number, offset = 0) {
-    new DataView(this.buffer).setInt32(offset, value, false)
-
-    return offset + 4
-  }
-
-  writeInt32LE(value: number, offset = 0) {
-    new DataView(this.buffer).setInt32(offset, value, true)
-
-    return offset + 4
-  }
-
-  writeUInt8(value: number, offset = 0) {
-    new DataView(this.buffer).setUint8(offset, value)
-
-    return offset + 1
-  }
-
-  writeUInt16BE(value: number, offset = 0) {
-    new DataView(this.buffer).setUint16(offset, value, false)
-
-    return offset + 2
-  }
-
-  writeUInt16LE(value: number, offset = 0) {
-    new DataView(this.buffer).setUint16(offset, value, true)
-
-    return offset + 2
-  }
-
-  writeUInt32BE(value: number, offset = 0) {
-    new DataView(this.buffer).setUint32(offset, value, false)
-
-    return offset + 4
-  }
-
-  writeUInt32LE(value: number, offset = 0) {
-    new DataView(this.buffer).setUint32(offset, value, true)
-
-    return offset + 4
-  }
-
   writeIntBE(value: number, offset: number, byteLength: number) {
-    value = +value
-    offset = offset >>> 0
-
-    let i = byteLength - 1
-    let mul = 1
-    let sub = 0
-    this[offset + i] = value & 0xff
-    while (--i >= 0 && (mul *= 0x100)) {
-      if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
-        sub = 1
-      }
-      this[offset + i] = (((value / mul) >> 0) - sub) & 0xff
-    }
-
-    return offset + byteLength
+    value = value < 0 ? value + Math.pow(0x100, byteLength) : value
+    this.writeUIntBE(value, offset, byteLength)
   }
 
   writeIntLE(value: number, offset: number, byteLength: number) {
-    value = +value
-    offset = offset >>> 0
-
-    let i = 0
-    let mul = 1
-    let sub = 0
-    this[offset] = value & 0xff
-    while (++i < byteLength && (mul *= 0x100)) {
-      if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
-        sub = 1
-      }
-      this[offset + i] = (((value / mul) >> 0) - sub) & 0xff
-    }
-
-    return offset + byteLength
+    value = value < 0 ? value + Math.pow(0x100, byteLength) : value
+    this.writeUIntLE(value, offset, byteLength)
   }
 
   writeUIntBE(value: number, offset: number, byteLength: number) {
-    value = +value
-    offset = offset >>> 0
-    byteLength = byteLength >>> 0
-
-    let i = byteLength - 1
-    let mul = 1
-    this[offset + i] = value
-    while (--i >= 0 && (mul *= 0x100)) {
-      this[offset + i] = (value / mul) >>> 0
+    const view = new DataView(this.buffer, offset, byteLength)
+    for (let i = byteLength - 1; i >= 0; i--) {
+      view.setUint8(i, value & 0xff)
+      value = value / 0x100
     }
 
     return offset + byteLength
@@ -428,15 +231,10 @@ export class Buffer extends Uint8Array implements NodeBuffer {
   }
 
   writeUIntLE(value: number, offset: number, byteLength: number) {
-    value = +value
-    offset = offset >>> 0
-    byteLength = byteLength >>> 0
-
-    let mul = 1
-    let i = 0
-    this[offset] = value & 0xff
-    while (++i < byteLength && (mul *= 0x100)) {
-      this[offset + i] = (value / mul) & 0xff
+    const view = new DataView(this.buffer, offset, byteLength)
+    for (let i = 0; i < byteLength; i++) {
+      view.setUint8(i, value & 0xff) // bitwise 0xff is to get the last 8 bits
+      value = value / 0x100 // shift 8 bits to the right to iterate
     }
 
     return offset + byteLength
@@ -446,61 +244,30 @@ export class Buffer extends Uint8Array implements NodeBuffer {
     return this.writeUIntLE(value, offset, byteLength)
   }
 
-  writeBigUint64BE(value: bigint, offset = 0) {
-    return this.writeBigUInt64BE(value, offset)
-  }
-
-  writeBigUint64LE(value: bigint, offset = 0) {
-    return this.writeBigUInt64LE(value, offset)
-  }
-
-  writeUint16BE(value: number, offset = 0) {
-    return this.writeUInt16BE(value, offset)
-  }
-
-  writeUint16LE(value: number, offset = 0) {
-    return this.writeUInt16LE(value, offset)
-  }
-
-  writeUint32BE(value: number, offset = 0) {
-    return this.writeUInt32BE(value, offset)
-  }
-
-  writeUint32LE(value: number, offset = 0) {
-    return this.writeUInt32LE(value, offset)
-  }
-
-  writeUint8(value: number, offset = 0) {
-    return this.writeUInt8(value, offset)
-  }
-
   toJSON() {
     return { type: 'Buffer', data: Array.from(this) } as const
   }
 
   swap16() {
-    const buffer = new DataView(this.buffer)
-    const length = this.length
-    for (let i = 0; i < length; i += 2) {
+    const buffer = new DataView(this.buffer, this.byteOffset, this.byteLength)
+    for (let i = 0; i < this.length; i += 2) {
       buffer.setUint16(i, buffer.getUint16(i, true), false)
     }
     return this
   }
 
   swap32() {
-    const buffer = new DataView(this.buffer)
-    const length = this.length
-    for (let i = 0; i < length; i += 4) {
+    const buffer = new DataView(this.buffer, this.byteOffset, this.byteLength)
+    for (let i = 0; i < this.length; i += 4) {
       buffer.setUint32(i, buffer.getUint32(i, true), false)
     }
     return this
   }
 
   swap64() {
-    const buffer = new DataView(this.buffer)
-    const length = this.length
-    for (let i = 0; i < length; i += 8) {
-      buffer.setBigUint64(i, buffer.getBigUint64(i, true), false)
+    const view = new DataView(this.buffer, this.byteOffset, this.byteLength)
+    for (let i = 0; i < this.length; i += 8) {
+      view.setBigUint64(i, view.getBigUint64(i, true), false)
     }
     return this
   }
@@ -509,8 +276,8 @@ export class Buffer extends Uint8Array implements NodeBuffer {
     return Buffer.compare(this.slice(thisStart, thisEnd), target.slice(start, end))
   }
 
-  equals(other: Uint8Array) {
-    return areUint8ArraysEqual(this, other)
+  equals(target: Uint8Array) {
+    return this.length === target.length && this.every((v, i) => v === target[i])
   }
 
   copy(target: Uint8Array, targetStart = 0, sourceStart = 0, sourceEnd = this.length) {
@@ -531,70 +298,28 @@ export class Buffer extends Uint8Array implements NodeBuffer {
   write(string: string, encoding?: Encoding): number
   write(string: string, offset: number, encoding?: Encoding): number
   write(string: string, offset: number, length: number, encoding?: Encoding): number
-  write(
-    string: string,
-    offsetOrEncoding?: number | Encoding,
-    lengthOrEncoding?: number | Encoding,
-    encoding?: Encoding,
-  ) {
-    let offset: number | undefined
-    let length: number | undefined
-    if (typeof offsetOrEncoding === 'string') {
-      encoding = offsetOrEncoding
-      offset = 0
-    } else if (typeof lengthOrEncoding === 'string') {
-      encoding = lengthOrEncoding
-      offset = offsetOrEncoding
-    } else {
-      encoding ??= 'utf8'
-      offset = offsetOrEncoding
-      length = lengthOrEncoding
-    }
-
-    if (length === undefined) {
-      length = this.length - (offset ?? 0)
-    }
+  write(string: string, offsetEnc?: number | Encoding, lengthEnc?: number | Encoding, encoding: Encoding = 'utf8') {
+    const offset = typeof offsetEnc === 'string' ? 0 : offsetEnc ?? 0
+    const length = typeof lengthEnc === 'string' ? this.length - offset : lengthEnc ?? this.length - offset
+    encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof lengthEnc === 'string' ? lengthEnc : encoding
 
     return stringToBuffer(string, encoding).copy(this, offset, 0, length)
   }
 
   fill(
     value: string | number | Uint8Array,
-    offsetOrEncoding: number | Encoding = 0,
-    endOrEncoding: number | Encoding = this.length,
+    offsetEnc: number | Encoding = 0,
+    endEnc: number | Encoding = this.length,
     encoding: Encoding = 'utf-8',
   ) {
-    let offset: number = 0
-    let end: number = this.length
-    if (typeof offsetOrEncoding === 'string') {
-      encoding = offsetOrEncoding
-    } else {
-      offset = offsetOrEncoding
-    }
-
-    if (typeof endOrEncoding === 'string') {
-      encoding = endOrEncoding
-    } else {
-      end = endOrEncoding
-    }
-
-    if (typeof value === 'string') {
-      value = stringToBuffer(value, encoding ?? 'utf8')
-    }
-
-    if (typeof value === 'number') {
-      super.fill(value, offset, end)
-    }
+    const offset = typeof offsetEnc === 'string' ? 0 : offsetEnc
+    const end = typeof endEnc === 'string' ? this.length : endEnc
+    encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof endEnc === 'string' ? endEnc : encoding
+    value = Buffer.from(typeof value === 'number' ? [value] : value, encoding)
 
     if (value instanceof Uint8Array && value.length) {
-      while (offset < end) {
-        if (value.length + offset >= this.length) {
-          // if we cannot fully fit the repeated value we slice it
-          super.set(value.slice(0, this.length - offset), offset)
-        } else {
-          super.set(value, offset)
-        }
-        offset += value.length
+      for (let i = offset; i < end; i += value.length) {
+        super.set(value.slice(0, value.length + i >= this.length ? this.length - i : value.length), i)
       }
     }
 
@@ -620,65 +345,62 @@ export class Buffer extends Uint8Array implements NodeBuffer {
     lastIndexOf = false,
   ) {
     const method = lastIndexOf ? 'findLastIndex' : 'findIndex'
-
-    let byteOffset: number = 0
-    if (typeof byteOffsetOrEncoding === 'string') {
-      encoding = byteOffsetOrEncoding
-    } else {
-      byteOffset = byteOffsetOrEncoding
-    }
-
-    let toSearch: Uint8Array
-    if (typeof value === 'string') {
-      toSearch = stringToBuffer(value, encoding)
-    } else if (typeof value === 'number') {
-      toSearch = new Uint8Array([value])
-    } else {
-      toSearch = value
-    }
-
-    if (byteOffset < 0) {
-      byteOffset = this.length + byteOffset
-    }
+    encoding = typeof byteOffsetOrEncoding === 'string' ? byteOffsetOrEncoding : encoding
+    const toSearch = Buffer.from(typeof value === 'number' ? [value] : value, encoding)
+    let byteOffset = typeof byteOffsetOrEncoding === 'string' ? 0 : byteOffsetOrEncoding
+    byteOffset = byteOffset < 0 ? this.length + byteOffset : byteOffset
 
     if (toSearch.length === 0 && lastIndexOf === false) {
       return byteOffset >= this.length ? this.length : byteOffset
     }
-
     if (toSearch.length === 0 && lastIndexOf === true) {
-      return (byteOffset > this.length ? this.length : byteOffset) || this.length
+      return (byteOffset >= this.length ? this.length : byteOffset) || this.length
     }
 
-    return super[method]((indexValue, index, obj) => {
-      const searchIf = lastIndexOf ? index <= (byteOffset || this.length) : index >= byteOffset
-
-      if (searchIf && indexValue === toSearch[0]) {
-        for (let i = 1; i < toSearch.length; i++) {
-          if (obj[index + i] !== toSearch[i]) {
-            return false
-          }
-        }
-        return true
-      }
-
-      return false
+    return super[method]((_, i) => {
+      const searchIf = lastIndexOf ? i <= (byteOffset || this.length) : i >= byteOffset
+      return searchIf && this[i] === toSearch[0] && toSearch.every((val, j) => this[i + j] === val)
     })
   }
 
   toString(encoding: Encoding = 'utf8', start = 0, end = this.length) {
-    encoding = encoding.toLowerCase() as Encoding
+    start = start < 0 ? 0 : start
+    encoding = encoding.toString().toLowerCase() as Encoding
+
+    if (end <= 0) return ''
 
     if (encoding === 'utf8' || encoding === 'utf-8') {
-      return uint8ArrayToString(this.slice(start, end))
+      return decoder.decode(this.slice(start, end))
+    }
+    if (encoding === 'base64' || encoding === 'base64url') {
+      const string = btoa(this.reduce((s, v) => s + c2s(v), ''))
+
+      if (encoding === 'base64url') {
+        return string.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+      }
+
+      return string
+    }
+    if (encoding === 'binary' || encoding === 'ascii' || encoding === 'latin1' || encoding === 'latin-1') {
+      return this.slice(start, end).reduce((s, v) => s + c2s(v & (encoding === 'ascii' ? 0x7f : 0xff)), '')
+    }
+    if (encoding === 'ucs2' || encoding === 'ucs-2' || encoding === 'utf16le' || encoding === 'utf-16le') {
+      let string = ''
+      const view = new DataView(this.slice(start, end).buffer)
+      for (let i = 0; i < view.byteLength; i += 2) {
+        string += c2s(view.getUint16(i, true))
+      }
+      return string
     }
     if (encoding === 'hex') {
-      return uint8ArrayToHex(this.slice(start, end))
-    }
-    if (encoding === 'base64') {
-      return uint8ArrayToBase64(this.slice(start, end))
+      return this.slice(start, end).reduce((s, v) => s + v.toString(16).padStart(2, '0'), '')
     }
 
-    throw new Error(`buffer.toString does not support encoding "${encoding}"`)
+    bufferPolyfillDoesNotImplement(`encoding "${encoding}"`)
+  }
+
+  toLocaleString() {
+    return this.toString()
   }
 }
 
@@ -686,16 +408,97 @@ function stringToBuffer(value: string, encoding: string) {
   encoding = encoding.toLowerCase() as Encoding
 
   if (encoding === 'utf8' || encoding === 'utf-8') {
-    return new Buffer(stringToUint8Array(value))
+    return new Buffer(encoder.encode(value))
   }
-  if (encoding === 'base64') {
-    return new Buffer(base64ToUint8Array(value))
+  if (encoding === 'base64' || encoding === 'base64url') {
+    return new Buffer([...atob(value)].map((v) => v.charCodeAt(0)))
+  }
+  if (encoding === 'binary' || encoding === 'ascii' || encoding === 'latin1' || encoding === 'latin-1') {
+    return new Buffer([...value].map((v) => v.charCodeAt(0)))
+  }
+  if (encoding === 'ucs2' || encoding === 'ucs-2' || encoding === 'utf16le' || encoding === 'utf-16le') {
+    const buffer = new Buffer(value.length * 2)
+    const view = new DataView(buffer.buffer)
+    for (let i = 0; i < value.length; i++) {
+      view.setUint16(i * 2, value.charCodeAt(i), true)
+    }
+    return buffer
   }
   if (encoding === 'hex') {
-    return new Buffer(hexToUint8Array(value))
+    const bytes = new Buffer(value.length / 2)
+    for (let byteIndex = 0, i = 0; i < value.length; i += 2, byteIndex++) {
+      bytes[byteIndex] = parseInt(value.slice(i, i + 2), 16)
+    }
+
+    return bytes
   }
 
-  throw new Error(`Buffer polyfill does not support encoding "${encoding}"`)
+  bufferPolyfillDoesNotImplement(`encoding "${encoding}"`)
 }
 
-export type Encoding = 'utf8' | 'utf-8' | 'hex' | 'base64'
+const encoder = new TextEncoder()
+const decoder = new TextDecoder()
+
+export type Encoding =
+  | 'utf8'
+  | 'utf-8'
+  | 'hex'
+  | 'base64'
+  | 'ascii'
+  | 'binary'
+  | 'base64url'
+  | 'ucs2'
+  | 'ucs-2'
+  | 'utf16le'
+  | 'utf-16le'
+  | 'latin1'
+  | 'latin-1'
+
+function initReadMethods(prototype: Buffer) {
+  const dataViewProtoProps = Object.getOwnPropertyNames(DataView.prototype)
+  const dataViewMethods = dataViewProtoProps.filter((m) => m.startsWith('get') || m.startsWith('set'))
+  const bufferBaseMethods = dataViewMethods.map((m) => m.replace('get', 'read').replace('set', 'write'))
+
+  const genericReadMethod = (i: number, littleEndian: boolean) => {
+    return function (this: Buffer, offset = 0) {
+      return new DataView(this.buffer)[dataViewMethods[i]](offset, littleEndian)
+    }
+  }
+
+  const genericWriteMethod = (i: number, littleEndian: boolean) => {
+    return function (this: Buffer, value: any, offset = 0) {
+      new DataView(this.buffer)[dataViewMethods[i]](offset, value, littleEndian)
+      return offset + parseInt(dataViewMethods[i].match(/\d+/)![0]) / 8
+    }
+  }
+
+  const createAlias = (methods: string[]) => {
+    methods.forEach((method) => {
+      if (method.includes('Uint')) prototype[method.replace('Uint', 'UInt')] = prototype[method]
+      if (method.includes('Float64')) prototype[method.replace('Float64', 'Double')] = prototype[method]
+      if (method.includes('Float32')) prototype[method.replace('Float32', 'Float')] = prototype[method]
+    })
+  }
+
+  bufferBaseMethods.forEach((method, i) => {
+    if (method.startsWith('read')) {
+      prototype[method] = genericReadMethod(i, false)
+      prototype[method + 'LE'] = genericReadMethod(i, true)
+      prototype[method + 'BE'] = genericReadMethod(i, false)
+    }
+    if (method.startsWith('write')) {
+      prototype[method] = genericWriteMethod(i, false)
+      prototype[method + 'LE'] = genericWriteMethod(i, true)
+      prototype[method + 'BE'] = genericWriteMethod(i, false)
+    }
+    createAlias([method, method + 'LE', method + 'BE'])
+  })
+}
+
+function bufferPolyfillDoesNotImplement(message: string): never {
+  throw new Error(`Buffer polyfill does not implement "${message}"`)
+}
+
+initReadMethods(Buffer.prototype)
+
+const c2s = String.fromCodePoint
