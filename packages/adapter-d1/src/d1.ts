@@ -127,14 +127,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       return Array.from(arg)
     }
 
-    // Avoids "D1_TYPE_ERROR: Type 'bigint' not supported for value '20'" when using wasm engine
-    // see https://github.com/prisma/team-orm/issues/878
     if (typeof arg === 'bigint') {
-      // See docs at https://developers.cloudflare.com/d1/build-databases/query-databases/
-      // BigInts are not currently supported in the D1 API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER.
-      // TODO if we want
-      // if (absoluteBigint(arg) <= Number.MAX_SAFE_INTEGER) { error? }
-      return Number(arg)
+      return String(arg)
     }
 
     return arg

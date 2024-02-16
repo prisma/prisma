@@ -8,8 +8,6 @@ import {
 
 export type Value = null | string | number | object
 
-export const absoluteBigint = (n) => (n < 0n ? -n : n)
-
 export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnType[] {
   const columnTypes: (ColumnType | null)[] = []
 
