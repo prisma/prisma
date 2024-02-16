@@ -16,12 +16,14 @@ export class Enable implements Command {
       '--url': String,
       // TODO rename to "serviceToken" in a future release.
       '--apikey': Boolean,
+      '--region': String,
     })
     if (isError(args)) return args
     const token = await getTokenOrThrow(args)
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     const connectionString = getRequiredParameterOrThrow(args, ['--url'])
     const withServiceToken = getOptionalParameter(args, ['--apikey']) ?? false
+    const regionId = getOptionalParameter(args, ['--region'])
     const { databaseLinkCreate } = await requestOrThrow<
       {
         databaseLinkCreate: {
@@ -32,6 +34,7 @@ export class Enable implements Command {
       {
         environmentId: string
         connectionString: string
+        regionId?: string
       }
     >({
       token,
@@ -53,6 +56,7 @@ export class Enable implements Command {
           input: {
             environmentId,
             connectionString,
+            ...(regionId && { regionId }),
           },
         },
       },
