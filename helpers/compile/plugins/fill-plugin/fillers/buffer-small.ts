@@ -357,7 +357,7 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
       return (byteOffset >= this.length ? this.length : byteOffset) || this.length
     }
 
-    return super[method]((_, i) => {
+    return this[method]((_, i) => {
       const searchIf = lastIndexOf ? i <= (byteOffset || this.length) : i >= byteOffset
       return searchIf && this[i] === toSearch[0] && toSearch.every((val, j) => this[i + j] === val)
     })
