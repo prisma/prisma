@@ -126,7 +126,9 @@ Prisma.NullTypes = {
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
     return `() => {
-  throw new Error(\`${fnc} is unable to be run \${runtimeDescription}.
+  throw new Error(\`${fnc} was imported from @prisma/client/index-browser.
+It should not be imported from the browser build.
+You can change your import to @prisma/client.
 In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report\`,
 )}`
   return fnc
