@@ -6,7 +6,8 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
-    "test": "tsx src/proxy.ts"
+    "test": "tsx src/proxy.ts",
+    "execute": "npx wrangler d1 execute MY_DATABASE --local --file=./sql/schema.sql"
   },
   "dependencies": {
     "@prisma/adapter-d1": "../../packages/adapter-d1",

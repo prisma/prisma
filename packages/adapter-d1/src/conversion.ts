@@ -28,35 +28,27 @@ export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnTyp
   return columnTypes as ColumnType[]
 }
 
-// JavaScript	D1
-// null	NULL
-// Number	REAL
-// Number 1	INTEGER
-// String	TEXT
-// Boolean 2	INTEGER
-// ArrayBuffer	BLOB
-// undefined	Not supported. Queries with undefined values will return a D1_TYPE_ERROR
-//
-// 1 D1 supports 64-bit signed INTEGER values internally, however BigInts
-// are not currently supported in the API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER
-//
-// 2 Booleans will be cast to an INTEGER type where 1 is TRUE and 0 is FALSE.
-
+/**
+ * Default mapping between JS and D1 types.
+ * | JavaScript       | D1           |
+ * | :--------------: | :---------:  |
+ * | null             | NULL         |
+ * | Number           | REAL         |
+ * | Number¹          | INTEGER      |
+ * | null             | TEXT         |
+ * | Boolean²         | INTEGER      |
+ * | ArrayBuffer      | BLOB         |
+ *
+ * ¹ - D1 supports 64-bit signed INTEGER values internally, however BigInts are not currently supported in the API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER.
+ *
+ * ² - Booleans will be cast to an INTEGER type where 1 is TRUE and 0 is FALSE.
+ */
 function inferColumnType(value: NonNullable<Value>): ColumnType {
   switch (typeof value) {
     case 'string':
-      return ColumnTypeEnum.Text
-    // case 'bigint':
-    //   return ColumnTypeEnum.Int64
-    // case 'boolean':
-    //   return ColumnTypeEnum.Boolean
+      return inferStringType(value)
     case 'number':
-      // Hack - TODO change this when we have type metadata
-      if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
-        return ColumnTypeEnum.Int32
-      } else {
-        return ColumnTypeEnum.UnknownNumber
-      }
+      return inferNumberType(value)
     case 'object':
       return inferObjectType(value)
     default:
@@ -64,7 +56,42 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
   }
 }
 
-function inferObjectType(value: {}): ColumnType {
+// See https://stackoverflow.com/a/3143231/1345244
+const isoDateRegex = new RegExp(
+  /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/,
+)
+function isISODate(str) {
+  return isoDateRegex.test(str)
+}
+
+function inferStringType(value: string): ColumnType {
+  if (['true', 'false'].includes(value)) {
+    return ColumnTypeEnum.Boolean
+  }
+
+  if (isISODate(value)) {
+    return ColumnTypeEnum.DateTime
+  }
+
+  return ColumnTypeEnum.Text
+}
+
+function inferNumberType(value: number): ColumnType {
+  if (!Number.isInteger(value)) {
+    return ColumnTypeEnum.Float
+    // Note: returning "Numeric" makes is better for our Decimal type
+    // But we can't tell what is a float or a decimal here
+    // return ColumnTypeEnum.Numeric
+  }
+  // Hack - TODO change this when we have type metadata
+  else if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
+    return ColumnTypeEnum.Int32
+  } else {
+    return ColumnTypeEnum.UnknownNumber
+  }
+}
+
+function inferObjectType(value: Object): ColumnType {
   if (value instanceof Array) {
     return ColumnTypeEnum.Bytes
   }
@@ -80,48 +107,35 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-// TODO
-// export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
-//   // `Row` doesn't have map, so we copy the array once and modify it in-place
-//   // to avoid allocating and copying twice if we used `Array.from(row).map(...)`.
-//   const result: unknown[] = Array.from(row)
+export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
+  const result: unknown[] = Object.values(obj)
 
-//   for (let i = 0; i < result.length; i++) {
-//     const value = result[i]
+  for (let i = 0; i < result.length; i++) {
+    const value = result[i]
 
-//     // Convert array buffers to arrays of bytes.
-//     // Base64 would've been more efficient but would collide with the existing
-//     // logic that treats string values of type Bytes as raw UTF-8 bytes that was
-//     // implemented for other adapters.
-//     if (value instanceof ArrayBuffer) {
-//       result[i] = Array.from(new Uint8Array(value))
-//       continue
-//     }
+    if (value instanceof ArrayBuffer) {
+      result[i] = Array.from(new Uint8Array(value))
+      continue
+    }
 
-//     // If an integer is required and the current number isn't one,
-//     // discard the fractional part.
-//     if (
-//       typeof value === 'number' &&
-//       (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64) &&
-//       !Number.isInteger(value)
-//     ) {
-//       result[i] = Math.trunc(value)
-//       continue
-//     }
+    if (
+      typeof value === 'number' &&
+      (columnTypes[i] === ColumnTypeEnum.Int32 || columnTypes[i] === ColumnTypeEnum.Int64) &&
+      !Number.isInteger(value)
+    ) {
+      result[i] = Math.trunc(value)
+      continue
+    }
 
-//     // Decode DateTime values saved as numeric timestamps which is the
-//     // format used by the native quaint sqlite connector.
-//     if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
-//       result[i] = new Date(Number(value)).toISOString()
-//       continue
-//     }
+    if (typeof value === 'bigint') {
+      result[i] = value.toString()
+      continue
+    }
 
-//     // Convert bigint to string as we can only use JSON-encodable types here.
-//     if (typeof value === 'bigint') {
-//       result[i] = value.toString()
-//       continue
-//     }
-//   }
+    if (columnTypes[i] === ColumnTypeEnum.Boolean) {
+      result[i] = JSON.parse(value as any)
+    }
+  }
 
-//   return result
-// }
+  return result
+}
