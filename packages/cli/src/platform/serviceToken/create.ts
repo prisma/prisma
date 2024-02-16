@@ -73,9 +73,7 @@ export class Create implements Command {
           __typename: 'APIKey',
         }
       : serviceTokenCreate.serviceToken
-    return messages.sections([
-      messages.success(`New ${resource.__typename} created:\n\n${serviceTokenCreate.value}`),
-      messages.resourceCreated(resource),
-    ])
+
+    return messages.sections([messages.resourceCreated(resource), messages.info(serviceTokenCreate.value)])
   }
 }
