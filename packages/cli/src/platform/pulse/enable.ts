@@ -104,7 +104,7 @@ export class Enable implements Command {
       },
     })
 
-    const gettingStartedUrl = link('https://www.prisma.io/docs/getting-started')
+    const gettingStartedUrl = link('https://pris.ly/d/pulse-getting-started')
 
     if (serviceTokenCreate) {
       return messages.success(
