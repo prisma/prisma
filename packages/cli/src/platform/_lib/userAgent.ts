@@ -10,5 +10,6 @@ const debug = Debug('prisma:cli:platform:_lib:userAgent')
 export const getUserAgent = async () => {
   const signature = await Checkpoint.getSignature().catch(unknownToError)
   if (isError(signature)) debug(`await checkpoint.getSignature() failed silently with ${signature.message}`) // prettier-ignore
-  return `${isError(signature) ? 'unknown' : signature}.${PRISMA_CLI_VERSION}.cli.prisma`
+  const signatureString = isError(signature) ? 'unknown' : signature
+  return `prisma-cli/${PRISMA_CLI_VERSION} (Signature: ${signatureString})`
 }
