@@ -16,7 +16,9 @@ export class $ implements Command {
       ['auth', 'Manage authentication with your Prisma Data Platform account'],
       ['workspace', 'Manage workspaces'],
       ['project', 'Manage projects'],
-      ['serviceToken', 'Manage service tokens'],
+      // todo replace apikey with serviceToken
+      ['apikey', 'Manage API keys'],
+      // ['serviceToken', 'Manage service tokens'],
       ['accelerate', 'Manage Prisma Accelerate'],
     ],
     options: [
