@@ -107,7 +107,7 @@ export class Enable implements Command {
 
     if (serviceTokenCreate) {
       return messages.success(
-        `Accelerate enabled. Use this generated API key in your Accelerate connection string to authenticate requests:\n` +
+        `Accelerate enabled. Use this Accelerate connection string to authenticate requests:\n` +
           '\n' +
           `${generateConnectionString(serviceTokenCreate.value)}\n` +
           '\n' +
