@@ -1,7 +1,7 @@
 import { arg, Command, isError } from '@prisma/internals'
 
+import { getRequiredParameterOrThrow } from '../_lib/cli/parameters'
 import { messages } from '../_lib/messages'
-import { getRequiredParameterOrThrow } from '../_lib/parameters'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 

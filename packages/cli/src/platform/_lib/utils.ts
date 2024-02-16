@@ -1,8 +1,8 @@
-import { Commands, getCommandWithExecutor, HelpError, isError, link } from '@prisma/internals'
+import { getCommandWithExecutor, isError } from '@prisma/internals'
 import { bold, green } from 'kleur/colors'
 
+import { getOptionalParameter } from './cli/parameters'
 import { credentialsFile } from './credentials'
-import { getOptionalParameter } from './parameters'
 
 export const platformParameters = {
   global: {
@@ -51,20 +51,6 @@ export const getTokenOrThrow = async <$Args extends Record<string, unknown>>(arg
 }
 
 const accelerateConnectionStringUrl = 'prisma://accelerate.prisma-data.net'
-
-export const dispatchToSubCommand = async (commands: Commands, argv: string[]) => {
-  const commandName = argv[0]
-  if (!commandName) return new HelpError(`Unknown command.`)
-  const command = commands[commandName]
-  if (!command) return new HelpError(`Unknown command or parameter "${commandName}"`)
-
-  // Temporary text until it's added properly in each sub command
-  const hasHelpFlag = Boolean(argv.find((it) => ['-h', '--help'].includes(it)))
-  if (hasHelpFlag) return `Help output for this command will be available soon. In the meantime, visit ${link('https://pris.ly/cli/platform-docs')} for more information.` // prettier-ignore
-
-  const result = await command.parse(argv.slice(1))
-  return result
-}
 
 /**
  *
