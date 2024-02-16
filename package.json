@@ -47,6 +47,7 @@
     "@typescript-eslint/utils": "7.0.1",
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
+    "buffer": "^6.0.3",
     "chokidar": "3.6.0",
     "dotenv-cli": "7.3.0",
     "esbuild": "0.20.0",
@@ -87,7 +88,6 @@
     "ts-toolbelt": "9.6.0",
     "tsx": "4.7.1",
     "typescript": "5.3.3",
-    "uint8array-extras": "1.1.0",
     "zx": "7.2.3"
   },
   "pnpm": {
