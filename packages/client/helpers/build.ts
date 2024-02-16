@@ -5,7 +5,7 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
-import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { fillPlugin, smallBuffer } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
@@ -69,6 +69,21 @@ const browserBuildConfig: BuildOptions = {
   sourcemap: 'linked',
 }
 
+const commonEdgeWasmFillerOverrides = {
+  // we remove eval and Function for vercel
+  eval: { define: 'undefined' },
+  Function: {
+    define: 'fn',
+    globals: functionPolyfillPath,
+  },
+  // we shim WeakRef, it does not exist on CF
+  WeakRef: {
+    globals: weakrefPolyfillPath,
+  },
+  // these can not be exported anymore
+  './warnEnvConflicts': { contents: '' },
+}
+
 const commonEdgeWasmRuntimeBuildConfig = {
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
@@ -76,24 +91,6 @@ const commonEdgeWasmRuntimeBuildConfig = {
   minify: true,
   sourcemap: 'linked',
   emitTypes: false,
-  plugins: [
-    fillPlugin({
-      fillerOverrides: {
-        // we remove eval and Function for vercel
-        eval: { define: 'undefined' },
-        Function: {
-          define: 'fn',
-          globals: functionPolyfillPath,
-        },
-        // we shim WeakRef, it does not exist on CF
-        WeakRef: {
-          globals: weakrefPolyfillPath,
-        },
-        // these can not be exported anymore
-        './warnEnvConflicts': { contents: '' },
-      },
-    }),
-  ],
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
@@ -115,6 +112,11 @@ const edgeRuntimeBuildConfig: BuildOptions = {
     // tree shake the Library and Binary engines out
     TARGET_BUILD_TYPE: '"edge"',
   },
+  plugins: [
+    fillPlugin({
+      fillerOverrides: commonEdgeWasmFillerOverrides,
+    }),
+  ],
 }
 
 // we define the config for wasm
@@ -128,7 +130,10 @@ const wasmRuntimeBuildConfig: BuildOptions = {
     TARGET_BUILD_TYPE: '"wasm"',
   },
   plugins: [
-    ...commonEdgeWasmRuntimeBuildConfig.plugins,
+    fillPlugin({
+      // not yet enabled in edge build while driverAdapters is not GA
+      fillerOverrides: { ...commonEdgeWasmFillerOverrides, ...smallBuffer },
+    }),
     copyFilePlugin(
       DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
         from: path.join(wasmEngineDir, provider, 'query_engine_bg.wasm'),

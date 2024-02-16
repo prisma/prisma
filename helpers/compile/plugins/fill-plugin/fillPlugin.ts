@@ -182,8 +182,8 @@ const defaultFillersConfig: Fillers = {
 
   // globals
   buffer: {
-    imports: path.join(__dirname, 'fillers', 'buffer-small.ts'),
-    globals: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+    imports: load('buffer'),
+    globals: path.join(__dirname, 'fillers', 'buffer.ts'),
   },
   process: {
     globals: path.join(__dirname, 'fillers', 'process.ts'),
@@ -196,6 +196,13 @@ const defaultFillersConfig: Fillers = {
   __filename: { define: '"index.js"' },
 }
 
+export const smallBuffer = {
+  buffer: {
+    imports: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+    globals: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+  },
+}
+
 /**
  * Provides a simple way to use esbuild's injection capabilities while providing
  * sensible defaults for node polyfills.
@@ -204,27 +211,17 @@ const defaultFillersConfig: Fillers = {
  * @param fillerOverrides override default fillers
  * @returns
  */
-const fillPlugin = ({
-  fillerOverrides,
-  defaultFillers = true,
-  triggerPredicate = () => true,
-}: FillPluginOptions): esbuild.Plugin => ({
+const fillPlugin = ({ fillerOverrides, defaultFillers = true }: FillPluginOptions): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
     const uid = Math.random().toString(36).substring(7) + ''
     const namespace = `fill-plugin-${uid}`
-
-    // in some cases, we just want to run this once (eg. on esm)
-    if (triggerPredicate(build.initialOptions) === false) return
 
     // overrides
     const fillers = {
       ...(defaultFillers ? defaultFillersConfig : {}),
       ...fillerOverrides,
     }
-
-    // in some cases, we just want to run this once (eg. on esm)
-    if (triggerPredicate(build.initialOptions) === false) return
 
     // our first step is to update options with basic injections
     setInjectionsAndDefinitions(fillers, build.initialOptions)
