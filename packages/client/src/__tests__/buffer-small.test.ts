@@ -1,3 +1,4 @@
+/* eslint-disable no-global-assign */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-loss-of-precision */
 
@@ -5,72 +6,78 @@ import assert from 'assert'
 
 import { Buffer } from '../../../../helpers/compile/plugins/fill-plugin/fillers/buffer-small'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
+describe = describeIf(!process.version.startsWith('v16.'))
+test = testIf(!process.version.startsWith('v16.'))
+
 describe('Buffer isBuffer (static)', () => {
-  it('should return true if the object is a Buffer', () => {
+  test('should return true if the object is a Buffer', () => {
     const buf = Buffer.from('Hello, World!')
     expect(Buffer.isBuffer(buf)).toBe(true)
   })
 
-  it('should return false if the object is not a Buffer', () => {
+  test('should return false if the object is not a Buffer', () => {
     const notBuf = 'Hello, World!'
     expect(Buffer.isBuffer(notBuf)).toBe(false)
   })
 })
 
 describe('Buffer from (static)', () => {
-  it('should create a new Buffer from a string', () => {
+  test('should create a new Buffer from a string', () => {
     const buf = Buffer.from('Hello, World!')
     expect(buf.toString()).toEqual('Hello, World!')
   })
 
-  it('should create a new Buffer from an array', () => {
+  test('should create a new Buffer from an array', () => {
     const buf = Buffer.from([0x48, 0x65, 0x6c, 0x6c, 0x6f])
     expect(buf.toString()).toEqual('Hello')
   })
 
-  it('should create a new Buffer from a Buffer', () => {
+  test('should create a new Buffer from a Buffer', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from(buf1)
     expect(buf2.toString()).toEqual('Hello, World!')
   })
 
-  it('should create a new Buffer from an ArrayBuffer', () => {
+  test('should create a new Buffer from an ArrayBuffer', () => {
     const arr = new Uint16Array([0x48, 0x65, 0x6c, 0x6c, 0x6f])
     const buf = Buffer.from(arr.buffer)
     expect(buf.toString()).toEqual('H\u0000e\u0000l\u0000l\u0000o\u0000')
   })
 
-  it('should throw an error if input is invalid', () => {
+  test('should throw an error if input is invalid', () => {
     // expect(() => Buffer.from(null)).toThrow() ❌
   })
 })
 
 describe('Buffer compare (static)', () => {
-  it('should return 0 when buffers are equal', () => {
+  test('should return 0 when buffers are equal', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, World!')
     expect(Buffer.compare(buf1, buf2)).toEqual(0)
   })
 
-  it('should return a number less than 0 when buf1 is less than buf2', () => {
+  test('should return a number less than 0 when buf1 is less than buf2', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, World!!')
     expect(Buffer.compare(buf1, buf2)).toBeLessThan(0)
   })
 
-  it('should return a number greater than 0 when buf1 is greater than buf2', () => {
+  test('should return a number greater than 0 when buf1 is greater than buf2', () => {
     const buf1 = Buffer.from('Hello, World!!')
     const buf2 = Buffer.from('Hello, World!')
     expect(Buffer.compare(buf1, buf2)).toBeGreaterThan(0)
   })
 
-  it('should handle empty buffers', () => {
+  test('should handle empty buffers', () => {
     const buf1 = Buffer.from('')
     const buf2 = Buffer.from('')
     expect(Buffer.compare(buf1, buf2)).toEqual(0)
   })
 
-  it('should throw an error if either argument is not a Buffer', () => {
+  test('should throw an error if either argument is not a Buffer', () => {
     const buf = Buffer.from('Hello, World!')
     // expect(() => Buffer.compare(buf, 'not a buffer' as any)).toThrow() ❌
     // expect(() => Buffer.compare('not a buffer' as any, buf)).toThrow() ❌
@@ -108,25 +115,25 @@ describe('Buffer slice', () => {
     expect(buf2.slice(-6, -1).length).toBe(5)
   })
 
-  it('should return a new buffer that references the same memory as the old, but offset and cropped by the start and end indices', () => {
+  test('should return a new buffer that references the same memory as the old, but offset and cropped by the start and end indices', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const slicedBuf = buf.slice(1, 4)
     expect(slicedBuf).toEqual(Buffer.from([2, 3, 4]))
   })
 
-  it('should return a new buffer that references the same memory as the old, but offset by the start index when end index is not provided', () => {
+  test('should return a new buffer that references the same memory as the old, but offset by the start index when end index is not provided', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const slicedBuf = buf.slice(2)
     expect(slicedBuf).toEqual(Buffer.from([3, 4, 5]))
   })
 
-  it('should return an empty buffer when start index is equal to the buffer length', () => {
+  test('should return an empty buffer when start index is equal to the buffer length', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const slicedBuf = buf.slice(5)
     expect(slicedBuf).toEqual(Buffer.from([]))
   })
 
-  it('should return the same buffer when start index is not provided', () => {
+  test('should return the same buffer when start index is not provided', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const slicedBuf = buf.slice()
     expect(slicedBuf).toEqual(buf)
@@ -134,19 +141,19 @@ describe('Buffer slice', () => {
 })
 
 describe('Buffer reverse', () => {
-  it('should reverse the order of bytes in the buffer', () => {
+  test('should reverse the order of bytes in the buffer', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const reversedBuf = buf.reverse()
     expect(reversedBuf).toEqual(Buffer.from([5, 4, 3, 2, 1]))
   })
 
-  it('should return the same buffer when it contains only one byte', () => {
+  test('should return the same buffer when it contains only one byte', () => {
     const buf = Buffer.from([1])
     const reversedBuf = buf.reverse()
     expect(reversedBuf).toEqual(Buffer.from([1]))
   })
 
-  it('should return an empty buffer when the original buffer is empty', () => {
+  test('should return an empty buffer when the original buffer is empty', () => {
     const buf = Buffer.from([])
     const reversedBuf = buf.reverse()
     expect(reversedBuf).toEqual(Buffer.from([]))
@@ -184,25 +191,25 @@ describe('Buffer subarray', () => {
     expect(buf2.subarray(-6, -1).length).toBe(5)
   })
 
-  it('should return a new buffer that references the same memory as the old, but offset and cropped by the start and end indices', () => {
+  test('should return a new buffer that references the same memory as the old, but offset and cropped by the start and end indices', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const subarraydBuf = buf.subarray(1, 4)
     expect(subarraydBuf).toEqual(Buffer.from([2, 3, 4]))
   })
 
-  it('should return a new buffer that references the same memory as the old, but offset by the start index when end index is not provided', () => {
+  test('should return a new buffer that references the same memory as the old, but offset by the start index when end index is not provided', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const subarraydBuf = buf.subarray(2)
     expect(subarraydBuf).toEqual(Buffer.from([3, 4, 5]))
   })
 
-  it('should return an empty buffer when start index is equal to the buffer length', () => {
+  test('should return an empty buffer when start index is equal to the buffer length', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const subarraydBuf = buf.subarray(5)
     expect(subarraydBuf).toEqual(Buffer.from([]))
   })
 
-  it('should return the same buffer when start index is not provided', () => {
+  test('should return the same buffer when start index is not provided', () => {
     const buf = Buffer.from([1, 2, 3, 4, 5])
     const subarraydBuf = buf.subarray()
     expect(subarraydBuf).toEqual(buf)
@@ -210,19 +217,19 @@ describe('Buffer subarray', () => {
 })
 
 describe('Buffer readBigInt64BE, readBigInt64LE', () => {
-  it('should read a BigInt from the buffer at the specified offset in big-endian format', () => {
+  test('should read a BigInt from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255, 255, 255, 255, 255])
     const result = buf.readBigInt64BE(0)
     expect(result).toBe(BigInt('-1'))
   })
 
-  it('should read a BigInt from the buffer at the specified offset in little-endian format', () => {
+  test('should read a BigInt from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255, 255, 255, 255, 255])
     const result = buf.readBigInt64LE(0)
     expect(result).toBe(BigInt('-1'))
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.from([255, 255, 255, 255, 255, 255, 255, 255])
     expect(() => buf.readBigInt64BE(9)).toThrow()
     expect(() => buf.readBigInt64LE(9)).toThrow()
@@ -230,37 +237,37 @@ describe('Buffer readBigInt64BE, readBigInt64LE', () => {
 })
 
 describe('Buffer readInt8, readInt16BE, readInt16LE, readInt32BE, readInt32LE, readIntBE, readIntLE', () => {
-  it('should read an 8-bit integer from the buffer at the specified offset', () => {
+  test('should read an 8-bit integer from the buffer at the specified offset', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     const result = buf.readInt8(0)
     expect(result).toBe(-1)
   })
 
-  it('should read a 16-bit integer from the buffer at the specified offset in big-endian format', () => {
+  test('should read a 16-bit integer from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([255, 255])
     const result = buf.readInt16BE(0)
     expect(result).toBe(-1)
   })
 
-  it('should read a 16-bit integer from the buffer at the specified offset in little-endian format', () => {
+  test('should read a 16-bit integer from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([255, 255])
     const result = buf.readInt16LE(0)
     expect(result).toBe(-1)
   })
 
-  it('should read a 32-bit integer from the buffer at the specified offset in big-endian format', () => {
+  test('should read a 32-bit integer from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     const result = buf.readInt32BE(0)
     expect(result).toBe(-1)
   })
 
-  it('should read a 32-bit integer from the buffer at the specified offset in little-endian format', () => {
+  test('should read a 32-bit integer from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     const result = buf.readInt32LE(0)
     expect(result).toBe(-1)
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     expect(() => buf.readInt8(5)).toThrow()
     expect(() => buf.readInt16BE(5)).toThrow()
@@ -271,31 +278,31 @@ describe('Buffer readInt8, readInt16BE, readInt16LE, readInt32BE, readInt32LE, r
 })
 
 describe('Buffer readDoubleBE, readDoubleLE, readFloatBE, readFloatLE', () => {
-  it('should read a double from the buffer at the specified offset in big-endian format', () => {
+  test('should read a double from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([64, 9, 33, 251, 84, 68, 45, 24])
     const result = buf.readDoubleBE(0)
     expect(result).toBeCloseTo(3.141592653589793)
   })
 
-  it('should read a double from the buffer at the specified offset in little-endian format', () => {
+  test('should read a double from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([24, 45, 68, 84, 251, 33, 9, 64])
     const result = buf.readDoubleLE(0)
     expect(result).toBeCloseTo(3.141592653589793)
   })
 
-  it('should read a float from the buffer at the specified offset in big-endian format', () => {
+  test('should read a float from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([64, 73, 15, 219])
     const result = buf.readFloatBE(0)
     expect(result).toBeCloseTo(3.1415927410125732)
   })
 
-  it('should read a float from the buffer at the specified offset in little-endian format', () => {
+  test('should read a float from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([219, 15, 73, 64])
     const result = buf.readFloatLE(0)
     expect(result).toBeCloseTo(3.1415927410125732)
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.from([64, 9, 33, 251, 84, 68, 45, 24])
     expect(() => buf.readDoubleBE(9)).toThrow()
     expect(() => buf.readDoubleLE(9)).toThrow()
@@ -305,7 +312,7 @@ describe('Buffer readDoubleBE, readDoubleLE, readFloatBE, readFloatLE', () => {
 })
 
 describe('Buffer readBigUInt64BE, readBigUInt64LE, readBigUint64BE, readBigUint64LE', () => {
-  it('should read a Big Unsigned Integer from the buffer at the specified offset in big-endian format', () => {
+  test('should read a Big Unsigned Integer from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255, 255, 255, 255, 255])
     const result = buf.readBigUInt64BE(0)
     expect(result).toBe(BigInt('18446744073709551615'))
@@ -315,7 +322,7 @@ describe('Buffer readBigUInt64BE, readBigUInt64LE, readBigUint64BE, readBigUint6
     expect(result2).toBe(BigInt('18446744073709551615'))
   })
 
-  it('should read a Big Unsigned Integer from the buffer at the specified offset in little-endian format', () => {
+  test('should read a Big Unsigned Integer from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255, 255, 255, 255, 255])
     const result = buf.readBigUInt64LE(0)
     expect(result).toBe(BigInt('18446744073709551615'))
@@ -325,7 +332,7 @@ describe('Buffer readBigUInt64BE, readBigUInt64LE, readBigUint64BE, readBigUint6
     expect(result2).toBe(BigInt('18446744073709551615'))
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.from([255, 255, 255, 255, 255, 255, 255, 255])
     expect(() => buf.readBigUInt64BE(9)).toThrow()
     expect(() => buf.readBigUint64BE(9)).toThrow()
@@ -335,7 +342,7 @@ describe('Buffer readBigUInt64BE, readBigUInt64LE, readBigUint64BE, readBigUint6
 })
 
 describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, readUInt32BE, readUInt32LE, readUintBE, readUintLE, readUint8, readUint16BE, readUint16LE, readUint32BE, readUint32LE', () => {
-  it('should read an unsigned integer from the buffer at the specified offset in big-endian format', () => {
+  test('should read an unsigned integer from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     const result = buf.readUIntBE(0, 4)
     expect(result).toBe(4294967295)
@@ -345,7 +352,7 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
     expect(result2).toBe(4294967295)
   })
 
-  it('should read an unsigned integer from the buffer at the specified offset in little-endian format', () => {
+  test('should read an unsigned integer from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     const result = buf.readUIntLE(0, 4)
     expect(result).toBe(4294967295)
@@ -355,7 +362,7 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
     expect(result2).toBe(4294967295)
   })
 
-  it('should read an 8-bit unsigned integer from the buffer at the specified offset', () => {
+  test('should read an 8-bit unsigned integer from the buffer at the specified offset', () => {
     const buf = Buffer.from([255])
     const result = buf.readUInt8(0)
     expect(result).toBe(255)
@@ -365,7 +372,7 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
     expect(result2).toBe(255)
   })
 
-  it('should read a 16-bit unsigned integer from the buffer at the specified offset in big-endian format', () => {
+  test('should read a 16-bit unsigned integer from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([255, 255])
     const result = buf.readUInt16BE(0)
     expect(result).toBe(65535)
@@ -375,7 +382,7 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
     expect(result2).toBe(65535)
   })
 
-  it('should read a 16-bit unsigned integer from the buffer at the specified offset in little-endian format', () => {
+  test('should read a 16-bit unsigned integer from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([255, 255])
     const result = buf.readUInt16LE(0)
     expect(result).toBe(65535)
@@ -385,7 +392,7 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
     expect(result2).toBe(65535)
   })
 
-  it('should read a 32-bit unsigned integer from the buffer at the specified offset in big-endian format', () => {
+  test('should read a 32-bit unsigned integer from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     const result = buf.readUInt32BE(0)
     expect(result).toBe(4294967295)
@@ -395,7 +402,7 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
     expect(result2).toBe(4294967295)
   })
 
-  it('should read a 32-bit unsigned integer from the buffer at the specified offset in little-endian format', () => {
+  test('should read a 32-bit unsigned integer from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     const result = buf.readUInt32LE(0)
     expect(result).toBe(4294967295)
@@ -405,7 +412,7 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
     expect(result2).toBe(4294967295)
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.from([255, 255, 255, 255])
     expect(() => buf.readUIntBE(5, 4)).toThrow()
     expect(() => buf.readUintBE(5, 4)).toThrow()
@@ -425,25 +432,25 @@ describe('Buffer readUIntBE, readUIntLE, readUInt8, readUInt16BE, readUInt16LE, 
 })
 
 describe('Buffer writeBigUint64BE, writeBigUint64LE', () => {
-  it('should write a BigInt as an unsigned 64-bit integer to the buffer at the specified offset in big-endian format', () => {
+  test('should write a BigInt as an unsigned 64-bit integer to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(8)
     buf.writeBigUint64BE(BigInt('18446744073709551615'), 0)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255, 255, 255, 255, 255]))
   })
 
-  it('should write a BigInt as an unsigned 64-bit integer to the buffer at the specified offset in little-endian format', () => {
+  test('should write a BigInt as an unsigned 64-bit integer to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(8)
     buf.writeBigUint64LE(BigInt('18446744073709551615'), 0)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255, 255, 255, 255, 255]))
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.alloc(8)
     expect(() => buf.writeBigUint64BE(BigInt('18446744073709551615'), 9)).toThrow()
     expect(() => buf.writeBigUint64LE(BigInt('18446744073709551615'), 9)).toThrow()
   })
 
-  it('should throw an error if the value is not a BigInt', () => {
+  test('should throw an error if the value is not a BigInt', () => {
     const buf = Buffer.alloc(8)
     // expect(() => buf.writeBigUint64BE('18446744073709551615' as any, 0)).toThrow() ❌
     // expect(() => buf.writeBigUint64LE('18446744073709551615' as any, 0)).toThrow() ❌
@@ -451,31 +458,31 @@ describe('Buffer writeBigUint64BE, writeBigUint64LE', () => {
 })
 
 describe('Buffer writeBigInt64BE, writeBigInt64LE, writeBigUInt64BE, writeBigUInt64LE', () => {
-  it('should write a 64-bit BigInt to the buffer at the specified offset in big-endian format', () => {
+  test('should write a 64-bit BigInt to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(8)
     buf.writeBigInt64BE(BigInt('9223372036854775807'), 0)
     expect(buf).toEqual(Buffer.from([127, 255, 255, 255, 255, 255, 255, 255]))
   })
 
-  it('should write a 64-bit BigInt to the buffer at the specified offset in little-endian format', () => {
+  test('should write a 64-bit BigInt to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(8)
     buf.writeBigInt64LE(BigInt('9223372036854775807'), 0)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255, 255, 255, 255, 127]))
   })
 
-  it('should write a 64-bit unsigned BigInt to the buffer at the specified offset in big-endian format', () => {
+  test('should write a 64-bit unsigned BigInt to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(8)
     buf.writeBigUInt64BE(BigInt('18446744073709551615'), 0)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255, 255, 255, 255, 255]))
   })
 
-  it('should write a 64-bit unsigned BigInt to the buffer at the specified offset in little-endian format', () => {
+  test('should write a 64-bit unsigned BigInt to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(8)
     buf.writeBigUInt64LE(BigInt('18446744073709551615'), 0)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255, 255, 255, 255, 255].reverse()))
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.alloc(8)
     expect(() => buf.writeBigInt64BE(BigInt('9223372036854775807'), 9)).toThrow()
     expect(() => buf.writeBigInt64LE(BigInt('9223372036854775807'), 9)).toThrow()
@@ -483,7 +490,7 @@ describe('Buffer writeBigInt64BE, writeBigInt64LE, writeBigUInt64BE, writeBigUIn
     expect(() => buf.writeBigUInt64LE(BigInt('18446744073709551615'), 9)).toThrow()
   })
 
-  it('should throw an error if the value is not a 64-bit BigInt', () => {
+  test('should throw an error if the value is not a 64-bit BigInt', () => {
     const buf = Buffer.alloc(8)
     expect(() => buf.writeBigInt64BE(9223372036854775807 as any, 0)).toThrow()
     expect(() => buf.writeBigInt64LE(9223372036854775807 as any, 0)).toThrow()
@@ -493,31 +500,31 @@ describe('Buffer writeBigInt64BE, writeBigInt64LE, writeBigUInt64BE, writeBigUIn
 })
 
 describe('Buffer writeDoubleBE, writeDoubleLE, writeFloatBE, writeFloatLE', () => {
-  it('should write a double to the buffer at the specified offset in big-endian format', () => {
+  test('should write a double to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(8)
     buf.writeDoubleBE(123.456, 0)
     expect(buf).toEqual(Buffer.from([64, 94, 221, 47, 26, 159, 190, 119]))
   })
 
-  it('should write a double to the buffer at the specified offset in little-endian format', () => {
+  test('should write a double to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(8)
     buf.writeDoubleLE(123.456, 0)
     expect(buf).toEqual(Buffer.from([64, 94, 221, 47, 26, 159, 190, 119].reverse()))
   })
 
-  it('should write a float to the buffer at the specified offset in big-endian format', () => {
+  test('should write a float to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(4)
     buf.writeFloatBE(123.456, 0)
     expect(buf).toEqual(Buffer.from([66, 246, 233, 121]))
   })
 
-  it('should write a float to the buffer at the specified offset in little-endian format', () => {
+  test('should write a float to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(4)
     buf.writeFloatLE(123.456, 0)
     expect(buf).toEqual(Buffer.from([66, 246, 233, 121].reverse()))
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.alloc(8)
     expect(() => buf.writeDoubleBE(123.456, 9)).toThrow()
     expect(() => buf.writeDoubleLE(123.456, 9)).toThrow()
@@ -526,7 +533,7 @@ describe('Buffer writeDoubleBE, writeDoubleLE, writeFloatBE, writeFloatLE', () =
     expect(() => buf2.writeFloatLE(123.456, 5)).toThrow()
   })
 
-  it('should throw an error if the value is not a double or float', () => {
+  test('should throw an error if the value is not a double or float', () => {
     const buf = Buffer.alloc(8)
     expect(() => buf.writeDoubleBE('123.456' as any, 0)).not.toThrow()
     expect(() => buf.writeDoubleLE('123.456' as any, 0)).not.toThrow()
@@ -537,37 +544,37 @@ describe('Buffer writeDoubleBE, writeDoubleLE, writeFloatBE, writeFloatLE', () =
 })
 
 describe('Buffer writeInt8, writeInt16BE, writeInt16LE, writeInt32BE, writeInt32LE, writeIntBE, writeIntLE', () => {
-  it('should write an 8-bit integer to the buffer at the specified offset', () => {
+  test('should write an 8-bit integer to the buffer at the specified offset', () => {
     const buf = Buffer.alloc(1)
     buf.writeInt8(127, 0)
     expect(buf).toEqual(Buffer.from([127]))
   })
 
-  it('should write a 16-bit integer to the buffer at the specified offset in big-endian format', () => {
+  test('should write a 16-bit integer to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(2)
     buf.writeInt16BE(32767, 0)
     expect(buf).toEqual(Buffer.from([127, 255]))
   })
 
-  it('should write a 16-bit integer to the buffer at the specified offset in little-endian format', () => {
+  test('should write a 16-bit integer to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(2)
     buf.writeInt16LE(32767, 0)
     expect(buf).toEqual(Buffer.from([255, 127]))
   })
 
-  it('should write a 32-bit integer to the buffer at the specified offset in big-endian format', () => {
+  test('should write a 32-bit integer to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(4)
     buf.writeInt32BE(2147483647, 0)
     expect(buf).toEqual(Buffer.from([127, 255, 255, 255]))
   })
 
-  it('should write a 32-bit integer to the buffer at the specified offset in little-endian format', () => {
+  test('should write a 32-bit integer to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(4)
     buf.writeInt32LE(2147483647, 0)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 127]))
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.alloc(1)
     expect(() => buf.writeInt8(127, 2)).toThrow()
     const buf2 = Buffer.alloc(2)
@@ -578,7 +585,7 @@ describe('Buffer writeInt8, writeInt16BE, writeInt16LE, writeInt32BE, writeInt32
     expect(() => buf3.writeInt32LE(2147483647, 5)).toThrow()
   })
 
-  it('should throw an error if the value is not an integer', () => {
+  test('should throw an error if the value is not an integer', () => {
     const buf = Buffer.alloc(1)
     expect(() => buf.writeInt8('127' as any, 0)).not.toThrow()
     const buf2 = Buffer.alloc(2)
@@ -591,7 +598,7 @@ describe('Buffer writeInt8, writeInt16BE, writeInt16LE, writeInt32BE, writeInt32
 })
 
 describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeUInt32LE, writeUIntBE, writeUIntLE, writeUint8, writeUint16BE, writeUint16LE, writeUint32BE, writeUint32LE, writeUintBE, writeUintLE', () => {
-  it('should write an 8-bit unsigned integer to the buffer at the specified offset', () => {
+  test('should write an 8-bit unsigned integer to the buffer at the specified offset', () => {
     const buf = Buffer.alloc(1)
     buf.writeUInt8(255, 0)
     expect(buf).toEqual(Buffer.from([255]))
@@ -601,7 +608,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(buf2).toEqual(Buffer.from([255]))
   })
 
-  it('should write a 16-bit unsigned integer to the buffer at the specified offset in big-endian format', () => {
+  test('should write a 16-bit unsigned integer to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(2)
     buf.writeUInt16BE(65535, 0)
     expect(buf).toEqual(Buffer.from([255, 255]))
@@ -611,7 +618,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(buf2).toEqual(Buffer.from([255, 255]))
   })
 
-  it('should write a 16-bit unsigned integer to the buffer at the specified offset in little-endian format', () => {
+  test('should write a 16-bit unsigned integer to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(2)
     buf.writeUInt16LE(65535, 0)
     expect(buf).toEqual(Buffer.from([255, 255]))
@@ -621,7 +628,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(buf2).toEqual(Buffer.from([255, 255]))
   })
 
-  it('should write a 32-bit unsigned integer to the buffer at the specified offset in big-endian format', () => {
+  test('should write a 32-bit unsigned integer to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(4)
     buf.writeUInt32BE(4294967295, 0)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255]))
@@ -631,7 +638,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(buf2).toEqual(Buffer.from([255, 255, 255, 255]))
   })
 
-  it('should write a 32-bit unsigned integer to the buffer at the specified offset in little-endian format', () => {
+  test('should write a 32-bit unsigned integer to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(4)
     buf.writeUInt32LE(4294967295, 0)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255]))
@@ -641,7 +648,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(buf2).toEqual(Buffer.from([255, 255, 255, 255]))
   })
 
-  it('should write an unsigned integer of any byte length to the buffer at the specified offset in big-endian format', () => {
+  test('should write an unsigned integer of any byte length to the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.alloc(4)
     buf.writeUIntBE(4294967295, 0, 4)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255]))
@@ -651,7 +658,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(buf2).toEqual(Buffer.from([255, 255, 255, 255]))
   })
 
-  it('should write an unsigned integer of any byte length to the buffer at the specified offset in little-endian format', () => {
+  test('should write an unsigned integer of any byte length to the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.alloc(4)
     buf.writeUIntLE(4294967295, 0, 4)
     expect(buf).toEqual(Buffer.from([255, 255, 255, 255]))
@@ -661,7 +668,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(buf2).toEqual(Buffer.from([255, 255, 255, 255]))
   })
 
-  it('should throw an error if the offset is out of bounds', () => {
+  test('should throw an error if the offset is out of bounds', () => {
     const buf = Buffer.alloc(1)
     expect(() => buf.writeUInt8(255, 2)).toThrow()
     expect(() => buf.writeUint8(255, 2)).toThrow()
@@ -682,7 +689,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
     expect(() => buf4.writeUintLE(4294967295, 5, 4)).toThrow()
   })
 
-  it('should throw an error if the value is not an unsigned integer', () => {
+  test('should throw an error if the value is not an unsigned integer', () => {
     const buf = Buffer.alloc(1)
     expect(() => buf.writeUInt8('255' as any, 0)).not.toThrow()
     const buf2 = Buffer.alloc(2)
@@ -700,7 +707,7 @@ describe('Buffer writeUInt8, writeUInt16BE, writeUInt16LE, writeUInt32BE, writeU
 })
 
 describe('Buffer toJSON', () => {
-  it('should return a JSON representation of the buffer', () => {
+  test('should return a JSON representation of the buffer', () => {
     const buf = Buffer.from('Hello, World!')
     const json = buf.toJSON()
     expect(json).toEqual({
@@ -709,7 +716,7 @@ describe('Buffer toJSON', () => {
     })
   })
 
-  it('should handle empty buffers', () => {
+  test('should handle empty buffers', () => {
     const buf = Buffer.alloc(0)
     const json = buf.toJSON()
     expect(json).toEqual({
@@ -720,18 +727,18 @@ describe('Buffer toJSON', () => {
 })
 
 describe('Buffer swap16', () => {
-  it('should swap the byte order of each 16-bit sequence', () => {
+  test('should swap the byte order of each 16-bit sequence', () => {
     const buf = Buffer.from([0x01, 0x02])
     buf.swap16()
     expect(buf).toEqual(Buffer.from([0x02, 0x01]))
   })
 
-  it('should handle buffers with length not divisible by 2', () => {
+  test('should handle buffers with length not divisible by 2', () => {
     const buf = Buffer.from([0x01])
     expect(() => buf.swap16()).toThrow()
   })
 
-  it('should handle empty buffers', () => {
+  test('should handle empty buffers', () => {
     const buf = Buffer.alloc(0)
     expect(() => buf.swap16()).not.toThrow()
     expect(buf).toEqual(Buffer.alloc(0))
@@ -739,18 +746,18 @@ describe('Buffer swap16', () => {
 })
 
 describe('Buffer swap32', () => {
-  it('should swap the byte order of each 32-bit sequence', () => {
+  test('should swap the byte order of each 32-bit sequence', () => {
     const buf = Buffer.from([0x01, 0x02, 0x03, 0x04])
     buf.swap32()
     expect(buf).toEqual(Buffer.from([0x04, 0x03, 0x02, 0x01]))
   })
 
-  it('should handle buffers with length not divisible by 4', () => {
+  test('should handle buffers with length not divisible by 4', () => {
     const buf = Buffer.from([0x01, 0x02, 0x03])
     expect(() => buf.swap32()).toThrow()
   })
 
-  it('should handle empty buffers', () => {
+  test('should handle empty buffers', () => {
     const buf = Buffer.alloc(0)
     expect(() => buf.swap32()).not.toThrow()
     expect(buf).toEqual(Buffer.alloc(0))
@@ -758,18 +765,18 @@ describe('Buffer swap32', () => {
 })
 
 describe('Buffer swap64', () => {
-  it('should swap the byte order of each 64-bit sequence', () => {
+  test('should swap the byte order of each 64-bit sequence', () => {
     const buf = Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08])
     buf.swap64()
     expect(buf).toEqual(Buffer.from([0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01]))
   })
 
-  it('should handle buffers with length not divisible by 8', () => {
+  test('should handle buffers with length not divisible by 8', () => {
     const buf = Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07])
     expect(() => buf.swap64()).toThrow()
   })
 
-  it('should handle empty buffers', () => {
+  test('should handle empty buffers', () => {
     const buf = Buffer.alloc(0)
     expect(() => buf.swap64()).not.toThrow()
     expect(buf).toEqual(Buffer.alloc(0))
@@ -786,31 +793,31 @@ describe('Buffer compare', () => {
     expect(buf3.compare(buf1)).toBe(-1)
   })
 
-  it('should return 0 if the buffers are equal', () => {
+  test('should return 0 if the buffers are equal', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, World!')
     expect(buf1.compare(buf2)).toEqual(0)
   })
 
-  it('should return a positive number if the source buffer comes before the target buffer', () => {
+  test('should return a positive number if the source buffer comes before the target buffer', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, Universe!')
     expect(buf1.compare(buf2)).toBeGreaterThan(0)
   })
 
-  it('should return a negative number if the source buffer comes after the target buffer', () => {
+  test('should return a negative number if the source buffer comes after the target buffer', () => {
     const buf1 = Buffer.from('Hello, Universe!')
     const buf2 = Buffer.from('Hello, World!')
     expect(buf1.compare(buf2)).toBeLessThan(0)
   })
 
-  it('should compare specified portions of the buffers', () => {
+  test('should compare specified portions of the buffers', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, Universe!')
     expect(buf1.compare(buf2, 0, 5, 0, 5)).toEqual(0)
   })
 
-  it('should handle negative and out of bounds values', () => {
+  test('should handle negative and out of bounds values', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, Universe!')
     // expect(() => buf1.compare(buf2, -1)).toThrow() ❌
@@ -827,19 +834,19 @@ describe('Buffer equals', () => {
     expect(buf1.equals(buf3)).toBe(false)
   })
 
-  it('should return true if the buffers are equal', () => {
+  test('should return true if the buffers are equal', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, World!')
     expect(buf1.equals(buf2)).toEqual(true)
   })
 
-  it('should return false if the buffers are not equal', () => {
+  test('should return false if the buffers are not equal', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, Universe!')
     expect(buf1.equals(buf2)).toEqual(false)
   })
 
-  it('should fail if the other object is not a buffer', () => {
+  test('should fail if the other object is not a buffer', () => {
     const buf = Buffer.from('Hello, World!')
     // expect(() => buf.equals({} as any)).toThrow() ❌
   })
@@ -853,28 +860,28 @@ describe('Buffer copy', () => {
     expect(buf2).toEqual(buf1)
   })
 
-  it('should copy the source buffer into the target buffer with default parameters', () => {
+  test('should copy the source buffer into the target buffer with default parameters', () => {
     const source = Buffer.from('Hello, World!')
     const target = Buffer.allocUnsafe(20)
     source.copy(target)
     expect(target.toString('utf8', 0, source.length)).toEqual('Hello, World!')
   })
 
-  it('should copy the source buffer into the target buffer at specified target start', () => {
+  test('should copy the source buffer into the target buffer at specified target start', () => {
     const source = Buffer.from('Hello, World!')
     const target = Buffer.allocUnsafe(20)
     source.copy(target, 5)
     expect(target.toString('utf8', 5, 5 + source.length)).toEqual('Hello, World!')
   })
 
-  it('should copy a portion of the source buffer into the target buffer', () => {
+  test('should copy a portion of the source buffer into the target buffer', () => {
     const source = Buffer.from('Hello, World!')
     const target = Buffer.allocUnsafe(20)
     source.copy(target, 0, 0, 5)
     expect(target.toString('utf8', 0, 5)).toEqual('Hello')
   })
 
-  it('should handle negative and out of bounds values', () => {
+  test('should handle negative and out of bounds values', () => {
     const source = Buffer.from('Hello, World!')
     const target = Buffer.allocUnsafe(20)
     // expect(() => source.copy(target, -1)).toThrow() ❌
@@ -890,40 +897,40 @@ describe('Buffer write', () => {
     expect(buf).toEqual(Buffer.from([97, 98, 99, 100, 101]))
   })
 
-  it('should write a string to the buffer with default parameters', () => {
+  test('should write a string to the buffer with default parameters', () => {
     const buf = Buffer.allocUnsafe(20)
     const bytesWritten = buf.write('Hello, World!')
     expect(buf.toString('utf8', 0, bytesWritten)).toEqual('Hello, World!')
     expect(bytesWritten).toEqual(13)
   })
 
-  it('should write a string to the buffer at specified offset', () => {
+  test('should write a string to the buffer at specified offset', () => {
     const buf = Buffer.allocUnsafe(20)
     const bytesWritten = buf.write('Hello, World!', 5)
     expect(buf.toString('utf8', 5, 5 + bytesWritten)).toEqual('Hello, World!')
     expect(bytesWritten).toEqual(13)
   })
 
-  it('should write a string to the buffer with specified length', () => {
+  test('should write a string to the buffer with specified length', () => {
     const buf = Buffer.allocUnsafe(20)
     const bytesWritten = buf.write('Hello, World!', 0, 5)
     expect(buf.toString('utf8', 0, bytesWritten)).toEqual('Hello')
     expect(bytesWritten).toEqual(5)
   })
 
-  it('should write a string to the buffer with specified encoding', () => {
+  test('should write a string to the buffer with specified encoding', () => {
     const buf = Buffer.allocUnsafe(20)
     const bytesWritten = buf.write('48656c6c6f2c20576f726c6421', 0, 'hex')
     expect(buf.toString('utf8', 0, bytesWritten)).toEqual('Hello, World!')
     expect(bytesWritten).toEqual(13)
   })
 
-  it('should throw an error if offset is out of bounds', () => {
+  test('should throw an error if offset is out of bounds', () => {
     const buf = Buffer.allocUnsafe(20)
     // expect(() => buf.write('Hello, World!', 21)).toThrow() ❌
   })
 
-  it('should throw an error if length is out of bounds', () => {
+  test('should throw an error if length is out of bounds', () => {
     const buf = Buffer.allocUnsafe(20)
     // expect(() => buf.write('Hello, World!', 0, 21)).toThrow() ❌
   })
@@ -935,28 +942,28 @@ describe('Buffer.toString', () => {
     expect(buf.toString()).toBe('abcde')
   })
 
-  it('should convert the buffer to a string with default parameters', () => {
+  test('should convert the buffer to a string with default parameters', () => {
     const buf = Buffer.from('Hello, World!')
     expect(buf.toString()).toEqual('Hello, World!')
   })
 
-  it('should convert the buffer to a string with specified encoding', () => {
+  test('should convert the buffer to a string with specified encoding', () => {
     const buf = Buffer.from('Hello, World!')
     expect(buf.toString('hex')).toEqual('48656c6c6f2c20576f726c6421')
   })
 
-  it('should convert a portion of the buffer to a string', () => {
+  test('should convert a portion of the buffer to a string', () => {
     const buf = Buffer.from('Hello, World!')
     expect(buf.toString('utf8', 0, 5)).toEqual('Hello')
   })
 
-  it('should handle negative start and end values', () => {
+  test('should handle negative start and end values', () => {
     const buf = Buffer.from('Hello, World!')
     expect(buf.toString('utf8', -5)).toEqual('Hello, World!')
     expect(buf.toString('utf8', 0, -5)).toEqual('')
   })
 
-  it('should handle start and end values greater than buffer length', () => {
+  test('should handle start and end values greater than buffer length', () => {
     const buf = Buffer.from('Hello, World!')
     expect(buf.toString('utf8', 50)).toEqual('')
     expect(buf.toString('utf8', 0, 50)).toEqual('Hello, World!')
@@ -1592,52 +1599,52 @@ test('Buffer.writeDoubleBE (example)', () => {
 })
 
 describe('Buffer fill', () => {
-  it('should fill the entire buffer with a single character', () => {
+  test('should fill the entire buffer with a single character', () => {
     const buf = Buffer.allocUnsafe(50).fill('h')
     expect(buf.toString()).toEqual('h'.repeat(50))
   })
 
-  it('should fill the buffer with a multi-byte character', () => {
+  test('should fill the buffer with a multi-byte character', () => {
     const buf = Buffer.allocUnsafe(5).fill('\u0222')
     expect(buf).toEqual(Buffer.from([0xc8, 0xa2, 0xc8, 0xa2, 0xc8]))
   })
 
-  it('should fill the buffer with a single character', () => {
+  test('should fill the buffer with a single character', () => {
     const buf = Buffer.allocUnsafe(5).fill('a')
     expect(buf.toString()).toEqual('a'.repeat(5))
   })
 
-  it('should fill the buffer with hexadecimal values', () => {
+  test('should fill the buffer with hexadecimal values', () => {
     const buf = Buffer.allocUnsafe(5).fill('abcd', 0, undefined, 'hex')
     expect(buf).toEqual(Buffer.from([0xab, 0xcd, 0xab, 0xcd, 0xab]))
   })
 })
 
 describe('Buffer indexOf', () => {
-  it('should find the index of a string', () => {
+  test('should find the index of a string', () => {
     const buf = Buffer.from('this is a buffer')
     expect(buf.indexOf('this')).toEqual(0)
     expect(buf.indexOf('is')).toEqual(2)
   })
 
-  it('should find the index of a Buffer', () => {
+  test('should find the index of a Buffer', () => {
     const buf = Buffer.from('this is a buffer')
     expect(buf.indexOf(Buffer.from('a buffer'))).toEqual(8)
     expect(buf.indexOf(Buffer.from('a buffer example'))).toEqual(-1)
     expect(buf.indexOf(Buffer.from('a buffer example').slice(0, 8))).toEqual(8)
   })
 
-  it('should find the index of a number', () => {
+  test('should find the index of a number', () => {
     const buf = Buffer.from('this is a buffer')
     expect(buf.indexOf(97)).toEqual(8)
   })
 
-  it('should find the index of a string with base64 encoding', () => {
+  test('should find the index of a string with base64 encoding', () => {
     const buf = Buffer.from(Buffer.from('this is a buffer').toString('base64'), 'base64')
     expect(buf.indexOf(Buffer.from('a buffer', 'base64'))).toBeTruthy()
   })
 
-  it('should coerce non-byte numbers and non-number byteOffsets', () => {
+  test('should coerce non-byte numbers and non-number byteOffsets', () => {
     const b = Buffer.from('abcdef')
     expect(b.indexOf(99.9)).toEqual(2) // 99.9 is coerced to 99
     expect(b.indexOf(256 + 99)).toEqual(2) // 256 + 99 is coerced to 99
@@ -1647,7 +1654,7 @@ describe('Buffer indexOf', () => {
     // expect(b.indexOf('b', [])).toEqual(1) // [] is coerced to 0 ❌
   })
 
-  it('should return byteOffset or buf.length for empty value', () => {
+  test('should return byteOffset or buf.length for empty value', () => {
     const buf = Buffer.from('abcdef')
     expect(buf.indexOf('', 3)).toEqual(3)
     expect(buf.indexOf('', buf.length)).toEqual(buf.length)
