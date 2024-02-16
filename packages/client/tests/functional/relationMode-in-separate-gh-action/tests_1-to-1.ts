@@ -125,6 +125,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
             )
@@ -510,6 +511,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
@@ -883,6 +885,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
@@ -948,6 +951,7 @@ testMatrix.setupTestSuite(
                     [Providers.SQLSERVER]:
                       'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                     [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                   },
                   prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683 ',
                 })
