@@ -33,7 +33,7 @@ export const defaultSchema = (props?: {
     output = defaultOutput,
   } = props || {}
 
-  const aboutAccelerate = `\n// Speed up your queries with caching and easily deploy serverless or edge functions with connection pooling. 
+  const aboutAccelerate = `\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n`
 
   const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
