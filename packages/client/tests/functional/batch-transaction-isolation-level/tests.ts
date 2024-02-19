@@ -72,7 +72,6 @@ testMatrix.setupTestSuite(
       expect(queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))).toBeUndefined()
     })
 
-    // TODO: skipped on edge client because of error snapshot
     test('invalid level generates run- and compile- time error', async () => {
       // @ts-expect-error
       const result = prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
