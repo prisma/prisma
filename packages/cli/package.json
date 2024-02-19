@@ -117,6 +117,8 @@
   },
   "scripts": {
     "prisma": "tsx src/bin.ts",
+    "platform": "tsx src/bin.ts platform --early-access",
+    "pm": "tsx src/bin.ts platform --early-access",
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "test": "dotenv -e ../../.db.env -- tsx helpers/run-tests.ts",
@@ -126,7 +128,8 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "workspace:*"
+    "@prisma/engines": "workspace:*",
+    "jose": "^5.2.2"
   },
   "sideEffects": false
 }

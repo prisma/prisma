@@ -354,6 +354,9 @@ importers:
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
+      jose:
+        specifier: ^5.2.2
+        version: 5.2.2
     devDependencies:
       '@prisma/client':
         specifier: workspace:*
@@ -8170,6 +8173,10 @@ packages:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
     dev: true
 
+  /jose@5.2.2:
+    resolution: {integrity: sha512-/WByRr4jDcsKlvMd1dRJnPfS1GVO3WuKyaurJ/vvXcOaUQO8rnNObCQMlv/5uCceVQIq5Q4WLF44ohsdiTohdg==}
+    dev: false
+
   /js-base64@3.7.5:
     resolution: {integrity: sha512-3MEt5DTINKqfScXKfJFrRbxkrnk2AxPWGBL/ycjz4dK8iqiSJ06UxD8jh8xuh6p10TX4t2+7FsBYVxxQbMg+qA==}
 
@@ -10430,6 +10437,9 @@ packages:
   /sqlite3@5.1.2:
     resolution: {integrity: sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==}
     requiresBuild: true
+    peerDependenciesMeta:
+      node-gyp:
+        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.10
       node-addon-api: 4.3.0
