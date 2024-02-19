@@ -1,16 +1,10 @@
 import { Command, getCommandWithExecutor, isError } from '@prisma/internals'
-import { decodeJwt } from 'jose'
 import { green } from 'kleur/colors'
 
 import { credentialsFile } from '../_lib/credentials'
+import { decodeJwt } from '../_lib/jwt'
 import { successMessage } from '../_lib/messages'
 import { requestOrThrow } from '../_lib/pdp'
-
-interface JWT {
-  jti: string
-  sub: string
-  iat: number
-}
 
 export class Logout implements Command {
   public static new() {
@@ -23,14 +17,9 @@ export class Logout implements Command {
     if (!credentials) return `You are not currently logged in. Run ${green(getCommandWithExecutor('prisma platform auth login --early-access'))} to log in.` // prettier-ignore
 
     if (credentials.token) {
-      let tokenDecoded: null | JWT = null
-      try {
-        tokenDecoded = decodeJwt(credentials.token)
-        if (!tokenDecoded || !(tokenDecoded.jti && tokenDecoded.sub && tokenDecoded.iat)) {
-          throw new Error('Token invalid')
-        }
-      } catch {}
-      if (tokenDecoded && tokenDecoded.jti) {
+      const jwt = decodeJwt(credentials.token)
+      if (!isError(jwt) && jwt.jti) {
+        console.log(jwt)
         await requestOrThrow<
           {
             managementTokenDelete: {
@@ -55,7 +44,7 @@ export class Logout implements Command {
             `,
             variables: {
               input: {
-                id: tokenDecoded.jti,
+                id: jwt.jti,
               },
             },
           },

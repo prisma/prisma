@@ -128,8 +128,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "workspace:*",
-    "jose": "^5.2.2"
+    "@prisma/engines": "workspace:*"
   },
   "sideEffects": false
 }
