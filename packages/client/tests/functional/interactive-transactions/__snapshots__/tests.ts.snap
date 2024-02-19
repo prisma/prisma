@@ -121,7 +121,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX })
   XX 
 → XX await prisma.user.create(
-Unique constraint failed on the (not available)
+Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) batching raw rollback 1`] = `
