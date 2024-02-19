@@ -121,7 +121,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX })
   XX 
 → XX await prisma.user.create(
-Unique constraint failed on the constraint: \`User_email_key\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) batching raw rollback 1`] = `
@@ -141,7 +141,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX   },
   XX }),
 → XX prisma.user.create(
-Unique constraint failed on the constraint: \`User_email_key\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) batching rollback within callback 1`] = `
@@ -153,7 +153,7 @@ Invalid \`tx.user.create()\` invocation in
   XX ])
   XX 
 → XX await tx.user.create(
-Unique constraint failed on the constraint: \`User_email_key\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) rollback query 1`] = `
