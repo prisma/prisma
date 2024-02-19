@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite((_1, _2, clientMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({
       data: {
@@ -207,8 +207,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid min', async () => {
+  test('invalid min', async () => {
     const result = prisma.user.aggregate({
       _min: {
         // @ts-expect-error
@@ -221,9 +220,9 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid min', async () => {
+        XX test('invalid min', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _min: {
@@ -243,8 +242,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid max', async () => {
+  test('invalid max', async () => {
     const result = prisma.user.aggregate({
       _max: {
         // @ts-expect-error
@@ -257,9 +255,9 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid max', async () => {
+        XX test('invalid max', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _max: {
@@ -279,8 +277,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid sum', async () => {
+  test('invalid sum', async () => {
     const result = prisma.user.aggregate({
       _sum: {
         // @ts-expect-error
@@ -293,9 +290,9 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid sum', async () => {
+        XX test('invalid sum', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _sum: {
@@ -312,8 +309,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid count', async () => {
+  test('invalid count', async () => {
     const result = prisma.user.aggregate({
       _count: {
         // @ts-expect-error
@@ -326,9 +322,9 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid count', async () => {
+        XX test('invalid count', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _count: {
@@ -349,8 +345,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid avg', async () => {
+  test('invalid avg', async () => {
     const result = prisma.user.aggregate({
       _avg: {
         // @ts-expect-error
@@ -363,9 +358,9 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid avg', async () => {
+        XX test('invalid avg', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _avg: {

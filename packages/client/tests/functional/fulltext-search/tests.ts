@@ -5,7 +5,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ andQuery, orQuery, notQuery, noResultsQuery, badQuery }, _suiteMeta, clientMeta) => {
+  ({ andQuery, orQuery, notQuery, noResultsQuery, badQuery }, _suiteMeta, _clientMeta) => {
     beforeAll(async () => {
       await prisma.user.createMany({
         data: [
@@ -80,7 +80,7 @@ testMatrix.setupTestSuite(
 
     // TODO: Windows: why is this test skipped?
     // TODO: Edge: skipped because of the error snapshot
-    testIf(process.platform !== 'win32' && clientMeta.runtime !== 'edge')('bad query', async () => {
+    testIf(process.platform !== 'win32')('bad query', async () => {
       const result = prisma.user
         .findMany({
           where: {
