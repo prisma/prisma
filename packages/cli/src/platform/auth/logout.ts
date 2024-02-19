@@ -19,7 +19,6 @@ export class Logout implements Command {
     if (credentials.token) {
       const jwt = decodeJwt(credentials.token)
       if (!isError(jwt) && jwt.jti) {
-        console.log(jwt)
         await requestOrThrow<
           {
             managementTokenDelete: {
