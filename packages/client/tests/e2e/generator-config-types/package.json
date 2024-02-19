@@ -7,7 +7,7 @@
     "@prisma/generator-helper": "/tmp/prisma-generator-helper-0.0.0.tgz"
   },
   "devDependencies": {
-    "@types/node": "16.18.80",
+    "@types/node": "16.18.82",
     "expect-type": "0.17.3",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   }

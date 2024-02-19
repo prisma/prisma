@@ -46,6 +46,9 @@ async function main() {
     } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/cli/'))) {
       jobsToRun.push('-cli-')
       jobsToRun.push('-client-e2e-')
+      if (filesChanged.some((fileChanged) => fileChanged.startsWith('packages/cli/src/platform/'))) {
+        jobsToRun.push('-cli-platform-')
+      }
     } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/client/'))) {
       jobsToRun.push('-client-')
       jobsToRun.push('-integration-tests-')
