@@ -1,22 +1,19 @@
 import { Command, getCommandWithExecutor, isError } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
-import { deleteAuthConfig, readAuthConfig, successMessage } from '../../utils/platform'
+import { credentialsFile } from '../_lib/credentials'
+import { successMessage } from '../_lib/messages'
 
 export class Logout implements Command {
-  public static new(): Logout {
+  public static new() {
     return new Logout()
   }
 
   public async parse() {
-    const authJson = await readAuthConfig()
-    if (isError(authJson)) throw authJson
-    if (!authJson.token) {
-      return `You are not currently logged in. Run ${green(
-        getCommandWithExecutor('prisma platform auth login --early-access'),
-      )} to log in.`
-    }
-    await deleteAuthConfig()
+    const credentials = await credentialsFile.load()
+    if (isError(credentials)) throw credentials
+    if (!credentials) return `You are not currently logged in. Run ${green(getCommandWithExecutor('prisma platform auth login --early-access'))} to log in.` // prettier-ignore
+    await credentialsFile.delete()
     // TODO: Add oauth logout
     return successMessage('You have logged out')
   }

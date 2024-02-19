@@ -6,6 +6,7 @@ import fs from 'fs'
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
+import path from 'path'
 
 const allProviders = new Set(Object.values(Providers))
 const allAdapterProviders = new Set(Object.values(AdapterProviders))
@@ -119,7 +120,6 @@ const args = arg(
 
 async function main(): Promise<number | void> {
   let miniProxyProcess: ExecaChildProcess | undefined
-  let wranglerProcess: ExecaChildProcess | undefined
 
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let jestCli = jestCliBase
@@ -158,6 +158,12 @@ async function main(): Promise<number | void> {
     }
 
     if (adapterProviders.some(isDriverAdapterProviderLabel)) {
+      // Locally, running D1 tests accumulates a lot of data in the .wrangler directory.
+      // Because we cannot reset the database contents programmatically at the moment,
+      // deleting it is the easy way
+      // It makes local tests consistently fast and clean
+      fs.rmSync(path.join(__dirname, '..', '..', '.wrangler'), { recursive: true, force: true })
+
       jestCli = jestCli.withArgs(['--runInBand'])
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
@@ -168,26 +174,6 @@ async function main(): Promise<number | void> {
     }
 
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_ADAPTERS: adapterProviders.join(',') })
-
-    // Start wrangler dev server with the `wrangler-proxy` for D1 tests
-    if (adapterProviders.includes(AdapterProviders.JS_D1)) {
-      wranglerProcess = execa(
-        'pnpm',
-        [
-          'wrangler',
-          'dev',
-          '--config=./tests/functional/_utils/wrangler.toml',
-          'node_modules/wrangler-proxy/dist/worker.js',
-        ],
-        {
-          preferLocal: true,
-          // stdio: 'inherit',
-          env: {
-            DEBUG: process.env.DEBUG,
-          },
-        },
-      )
-    }
   }
 
   if (args['--engine-type']) {
@@ -270,9 +256,6 @@ async function main(): Promise<number | void> {
   } finally {
     if (miniProxyProcess) {
       miniProxyProcess.kill()
-    }
-    if (wranglerProcess) {
-      wranglerProcess.kill()
     }
   }
 }

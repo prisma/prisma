@@ -13,7 +13,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 
-import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:neon')
 
@@ -83,7 +83,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     const { sql, args: values } = query
 
     try {
-      return ok(await this.client.query({ text: sql, values, rowMode: 'array' }))
+      return ok(await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' }))
     } catch (e) {
       debug('Error in performIO: %O', e)
       if (e && e.code) {
