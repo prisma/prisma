@@ -31,7 +31,7 @@ function getKnownErrorMessage(userFacingError: RequestError['user_facing_error']
     userFacingError.error_code === TOO_MANY_CONNECTIONS_ERROR
   ) {
     message +=
-      '\nPrisma Accelerate comes with a connection pooler and can help you to avoid such errors: https://pris.ly/client/error-accelerate'
+      '\nPrisma Accelerate has built-in connection pooling to prevent such errors: https://pris.ly/client/error-accelerate'
   }
 
   return message
