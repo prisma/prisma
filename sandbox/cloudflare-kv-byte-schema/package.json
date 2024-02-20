@@ -1,0 +1,26 @@
+{
+  "name": "cloudflare-kv-byte-schema",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "../../packages/adapter-pg",
+    "@prisma/client": "../../packages/client",
+    "pg": "link:../../packages/adapter-pg/node_modules/pg",
+    "prisma-client": "link:./prisma/client"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20231218.0",
+    "@orama/cloudflare-api": "^0.2.0",
+    "@types/pg": "8.10.9",
+    "prisma": "../../packages/cli",
+    "sha256-uint8array": "^0.10.7",
+    "typescript": "^5.0.4",
+    "wrangler": "^3.22.5"
+  }
+}
