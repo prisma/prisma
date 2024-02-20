@@ -335,7 +335,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
     return batchResult.map((result) => {
       if ('errors' in result && result.errors.length > 0) {
-        return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
+        return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
       }
       return {
         data: result as T,
@@ -389,7 +389,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
         if (json.errors) {
           if (json.errors.length === 1) {
-            throw prismaGraphQLToJSError(json.errors[0], this.config.clientVersion!)
+            throw prismaGraphQLToJSError(json.errors[0], this.config.clientVersion!, this.config.activeProvider!)
           } else {
             throw new PrismaClientUnknownRequestError(json.errors, { clientVersion: this.config.clientVersion! })
           }
