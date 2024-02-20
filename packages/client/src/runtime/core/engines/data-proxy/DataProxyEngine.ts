@@ -26,6 +26,7 @@ import { NotImplementedYetError } from './errors/NotImplementedYetError'
 import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
+import { toBase64 } from './utils/base64'
 import { checkForbiddenMetrics } from './utils/checkForbiddenMetrics'
 import { dateFromEngineTimestamp, EngineTimestamp } from './utils/EngineTimestamp'
 import { getClientVersion } from './utils/getClientVersion'
@@ -165,7 +166,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     this.config = config
     this.env = { ...config.env, ...(typeof process !== 'undefined' ? process.env : {}) }
     // TODO (perf) schema should be uploaded as-is
-    this.inlineSchema = btoa(config.inlineSchema)
+    this.inlineSchema = toBase64(config.inlineSchema)
     this.inlineDatasources = config.inlineDatasources
     this.inlineSchemaHash = config.inlineSchemaHash
     this.clientVersion = config.clientVersion
