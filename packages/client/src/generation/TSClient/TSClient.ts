@@ -153,7 +153,7 @@ ${new Enum(
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-${buildSerializedSchema(wasm)}
+${buildSerializedSchema(wasm || (runtimeNameJs && Boolean(process.env.PRISMA_CLIENT_FORCE_WASM)))}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}

@@ -1,4 +1,4 @@
-import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
+import { getConfig, getDMMF, parseEnvValue, serializeSchemaToBytes } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
@@ -94,11 +94,13 @@ export async function setupTestSuiteClient({
 /**
  * Automatically loads the driver adapter for the test suite client.
  */
-export function setupTestSuiteClientDriverAdapter({
+export async function setupTestSuiteClientDriverAdapter({
+  suiteMeta,
   suiteConfig,
   datasourceInfo,
   clientMeta,
 }: {
+  suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
@@ -113,8 +115,13 @@ export function setupTestSuiteClientDriverAdapter({
     throw new Error(`Missing Driver Adapter`)
   }
 
+  const datamodelPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+  const datamodel = await readFile(datamodelPath, 'utf-8')
+  const serializedSchema = serializeSchemaToBytes({ datamodel, datamodelPath })
+
   if (clientMeta.runtime === 'wasm') {
     __internal.configOverride = (config) => {
+      config.serializedSchema = serializedSchema
       config.engineWasm = {
         getRuntime: () => require(path.join(runtimeBase, `query_engine_bg.${provider}.js`)),
         getQueryEngineWasmModule: async () => {
