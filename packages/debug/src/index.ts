@@ -1,88 +1,202 @@
-import debug from 'debug'
+/* eslint-disable no-var */
+import * as kleur from 'kleur/colors'
+import { bold } from 'kleur/colors'
 
-import { Debug, Debugger } from './types'
+const MAX_ARGS_HISTORY = 100
+const COLORS = ['green', 'yellow', 'blue', 'magenta', 'cyan', 'red']
 
-const MAX_LOGS = 100
+const argsHistory: [namespace: string, ...unknown[]][] = []
+let lastTimestamp = Date.now()
+let lastColor = 0
 
-const debugArgsHistory: any[] = []
+globalThis.DEBUG ??= process.env.DEBUG ?? ''
+globalThis.DEBUG_COLORS ??= process.env.DEBUG_COLORS ? process.env.DEBUG_COLORS === 'true' : true
 
-// Patch the Node.js logger to use `console.debug` or `console.log` (similar to
-// the browser logger) in the Edge Client.
-if (typeof process !== 'undefined' && typeof process.stderr?.write !== 'function') {
-  debug.log = console.debug ?? console.log
+/**
+ * Top-level utilities to configure the debug module.
+ *
+ * @example
+ * ```ts
+ * import Debug from '@prisma/debug'
+ * Debug.enable('prisma:client')
+ * const debug = Debug('prisma:client')
+ * debug('Hello World')
+ * ```
+ */
+const topProps = {
+  enable(namespace: any) {
+    if (typeof namespace === 'string') {
+      globalThis.DEBUG = namespace
+    }
+  },
+  disable() {
+    const prev = globalThis.DEBUG
+    globalThis.DEBUG = ''
+    return prev
+  },
+  // this is the core logic to check if logging should happen or not
+  enabled(namespace: string) {
+    // these are the namespaces that we are listening to in DEBUG=...
+    const listenedNamespaces: string[] = globalThis.DEBUG.split(',').map((s: string) => {
+      return s.replace(/[.+?^${}()|[\]\\]/g, '\\$&') // escape regex except "*"
+    })
+
+    // we take incoming namespaces and check then against listened
+    const isListened = listenedNamespaces.some((listenedNamespace) => {
+      if (listenedNamespace === '' || listenedNamespace[0] === '-') return false
+
+      return namespace.match(RegExp(listenedNamespace.split('*').join('.*') + '$'))
+    })
+
+    // we take incoming namespaces and check then against excluded
+    const isExcluded = listenedNamespaces.some((listenedNamespace) => {
+      if (listenedNamespace === '' || listenedNamespace[0] !== '-') return false
+
+      return namespace.match(RegExp(listenedNamespace.slice(1).split('*').join('.*') + '$'))
+    })
+
+    return isListened && !isExcluded
+  },
+  log: (...args: string[]) => {
+    const [namespace, format, ...rest] = args
+    let logger: (...args: unknown[]) => void
+
+    if (
+      typeof require === 'function' &&
+      typeof process !== 'undefined' &&
+      typeof process.stderr !== 'undefined' &&
+      typeof process.stderr.write === 'function'
+    ) {
+      logger = (...args: unknown[]) => {
+        const util = require(`${'util'}`)
+        process.stderr.write(util.format(...args) + '\n')
+      }
+    } else {
+      logger = console.warn ?? console.log
+    }
+
+    // console only formats first arg, concat ns+format
+    logger(`${namespace} ${format}`, ...rest)
+  },
+  formatters: {}, // not implemented
 }
 
 /**
- * Wrapper on top of the original `Debug` to keep a history of the all last
- * {@link MAX_LOGS}. This is then used by {@link getLogs} to generate an error
- * report url (forGitHub) in the case where the something has crashed.
- * @param namespace
- * @returns
+ * Create a new debug instance with the given namespace.
+ *
+ * @example
+ * ```ts
+ * import Debug from '@prisma/debug'
+ * const debug = Debug('prisma:client')
+ * debug('Hello World')
+ * ```
  */
-function debugCall(namespace: string) {
-  const debugNamespace = debug(namespace)
+function debugCreate(namespace: string) {
+  const instanceProps = {
+    color: COLORS[lastColor++ % COLORS.length],
+    enabled: topProps.enabled(namespace),
+    namespace: namespace,
+    log: topProps.log,
+    extend: () => {}, // not implemented
+  }
 
-  // we take over the `debugNamespace` function
-  const call = Object.assign((...args: any[]) => {
-    // debug only calls log if you implement it
-    debugNamespace.log = (call as any).log
+  const debugCall = (...args: any[]) => {
+    const { enabled, namespace, color, log } = instanceProps
 
     // we push the args to our history of args
     if (args.length !== 0) {
-      debugArgsHistory.push([namespace, ...args])
+      argsHistory.push([namespace, ...args])
     }
 
     // if it is too big, then we remove some
-    if (debugArgsHistory.length > MAX_LOGS) {
-      debugArgsHistory.shift()
+    if (argsHistory.length > MAX_ARGS_HISTORY) {
+      argsHistory.shift()
     }
 
-    // we apply the function with no format
-    return debugNamespace('', ...args)
-  }, debugNamespace)
+    if (topProps.enabled(namespace) || enabled) {
+      const stringArgs = args.map((arg) => {
+        if (typeof arg === 'string') {
+          return arg
+        }
 
-  return call as Debugger
+        return safeStringify(arg)
+      })
+
+      const ms = `+${Date.now() - lastTimestamp}ms`
+      lastTimestamp = Date.now()
+
+      if (globalThis.DEBUG_COLORS) {
+        log(kleur[color](bold(namespace)), ...stringArgs, kleur[color](ms))
+      } else {
+        log(namespace, ...stringArgs, ms)
+      }
+    }
+  }
+
+  return new Proxy(debugCall, {
+    get: (_, prop) => instanceProps[prop],
+    set: (_, prop, value) => (instanceProps[prop] = value),
+  }) as typeof debugCall & typeof instanceProps
+}
+
+const Debug = new Proxy(debugCreate, {
+  get: (_, prop) => topProps[prop],
+  set: (_, prop, value) => (topProps[prop] = value),
+}) as typeof debugCreate & typeof topProps
+
+function safeStringify(value: any, indent = 2) {
+  const cache = new Set<any>()
+
+  return JSON.stringify(
+    value,
+    (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (cache.has(value)) {
+          return `[Circular *]`
+        }
+
+        cache.add(value)
+      } else if (typeof value === 'bigint') {
+        return value.toString()
+      }
+
+      return value
+    },
+    indent,
+  )
 }
 
 /**
- * This essentially mimics the original `debug` api. It is a debug function call
- * that has utility properties on it. We provide our custom {@link debugCall},
- * and expose the original original api as-is.
- */
-const Debug = Object.assign(debugCall, debug as Debug)
-
-/**
- * We can get the logs for all the last {@link MAX_LOGS} ${@link debugCall} that
+ * We can get the logs for all the last {@link MAX_ARGS_HISTORY} ${@link debugCall} that
  * have happened in the different packages. Useful to generate error report links.
  * @see https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
  * @param numChars
  * @returns
  */
 export function getLogs(numChars = 7500): string {
-  // flatmap on text level
-  const output = debugArgsHistory
-    .map((c) =>
-      c
-        .map((item) => {
-          if (typeof item === 'string') {
-            return item
+  const logs = argsHistory
+    .map(([namespace, ...args]) => {
+      return `${namespace} ${args
+        .map((arg) => {
+          if (typeof arg === 'string') {
+            return arg
+          } else {
+            return JSON.stringify(arg)
           }
-
-          return JSON.stringify(item)
         })
-        .join(' '),
-    )
+        .join(' ')}`
+    })
     .join('\n')
 
-  if (output.length < numChars) {
-    return output
+  if (logs.length < numChars) {
+    return logs
   }
 
-  return output.slice(-numChars)
+  return logs.slice(-numChars)
 }
 
 export function clearLogs() {
-  debugArgsHistory.length = 0
+  argsHistory.length = 0
 }
 
 export { Debug }

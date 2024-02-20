@@ -1,7 +1,8 @@
 import { Command, Commands, link } from '@prisma/internals'
 
 import { EarlyAccessFlagError } from '../utils/errors'
-import { createHelp, dispatchToSubCommand } from '../utils/platform'
+import { dispatchToSubCommand } from './_lib/cli/dispatchToSubCommand'
+import { createHelp } from './_lib/help'
 
 export class $ implements Command {
   public static new(commands: Commands): $ {
@@ -15,8 +16,12 @@ export class $ implements Command {
       ['auth', 'Manage authentication with your Prisma Data Platform account'],
       ['workspace', 'Manage workspaces'],
       ['project', 'Manage projects'],
+      ['environment', 'Manage environments'],
+      // todo replace apikey with serviceToken
       ['apikey', 'Manage API keys'],
+      // ['serviceToken', 'Manage service tokens'],
       ['accelerate', 'Manage Prisma Accelerate'],
+      ['pulse', 'Manage Prisma Pulse'],
     ],
     options: [
       ['--early-access', '', 'Enable early access features'],

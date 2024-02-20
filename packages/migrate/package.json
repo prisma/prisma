@@ -18,10 +18,10 @@
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.4.0",
+    "@swc/core": "1.4.1",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.15",
+    "@types/node": "18.19.17",
     "@types/pg": "8.11.0",
     "@types/prompts": "2.4.9",
     "@types/sqlite3": "3.1.11",
@@ -47,7 +47,7 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "tempy": "1.0.1",
-    "ts-pattern": "5.0.6",
+    "ts-pattern": "5.0.8",
     "typescript": "5.3.3"
   },
   "peerDependencies": {
@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.10.0-15.32c59b72145367c5396f346069c130c2a03b3421",
+    "@prisma/engines-version": "5.10.0-34.5a9203d0590c951969e85a7d07215503f4672eb9",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
