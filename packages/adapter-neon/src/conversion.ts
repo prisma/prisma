@@ -409,3 +409,22 @@ function normalizeBit(bit: string): string {
 
 types.setTypeParser(ArrayColumnType.BIT_ARRAY, normalize_array(normalizeBit))
 types.setTypeParser(ArrayColumnType.VARBIT_ARRAY, normalize_array(normalizeBit))
+
+// https://github.com/brianc/node-postgres/pull/2930
+export function fixArrayBufferValues(values: unknown[]) {
+  for (let i = 0; i < values.length; i++) {
+    const list = values[i]
+    if (!Array.isArray(list)) {
+      continue
+    }
+
+    for (let j = 0; j < list.length; j++) {
+      const listItem = list[j]
+      if (ArrayBuffer.isView(listItem)) {
+        list[j] = Buffer.from(listItem.buffer, listItem.byteOffset, listItem.byteLength)
+      }
+    }
+  }
+
+  return values
+}

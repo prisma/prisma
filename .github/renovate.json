@@ -46,13 +46,15 @@
         "@prisma/studio",
         "@prisma/studio-server",
         "checkpoint-client"
-      ]
+      ],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "dependencies patch (non-major)",
       "matchDepTypes": ["dependencies"],
       "matchUpdateTypes": ["patch"],
-      "excludePackageNames": ["checkpoint-client"]
+      "excludePackageNames": ["checkpoint-client"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "ESM devDependencies & dependencies (patch & minor)",
@@ -90,7 +92,8 @@
         "strip-indent",
         "tempy",
         "terminal-link"
-      ]
+      ],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "ESM devDependencies & dependencies (major)",
@@ -128,7 +131,8 @@
         "strip-indent",
         "tempy",
         "terminal-link"
-      ]
+      ],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "Node.js Major upgrades",
@@ -139,12 +143,14 @@
       "groupName": "definitelyTyped",
       "automerge": true,
       "matchPackagePatterns": ["^@types/"],
-      "matchUpdateTypes": ["patch", "minor"]
+      "matchUpdateTypes": ["patch", "minor"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "Jest",
       "automerge": true,
-      "matchPackagePatterns": [".*jest.*"]
+      "matchPackagePatterns": [".*jest.*"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "sql-template-tag",
@@ -154,7 +160,8 @@
     {
       "groupName": "node-fetch",
       "ignoreUnstable": false,
-      "matchPackageNames": ["node-fetch"]
+      "matchPackageNames": ["node-fetch"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "tsd",
@@ -162,34 +169,41 @@
     },
     {
       "groupName": "npm-packlist",
-      "matchPackageNames": ["npm-packlist"]
+      "matchPackageNames": ["npm-packlist"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "@swc/core for internals",
       "matchFileNames": ["packages/internals/**"],
-      "matchPackageNames": ["@swc/core"]
+      "matchPackageNames": ["@swc/core"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "opentelemetry packages",
-      "matchPackagePatterns": ["^@opentelemetry/"]
+      "matchPackagePatterns": ["^@opentelemetry/"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "esbuild packages",
-      "matchPackagePatterns": ["^esbuild"]
+      "matchPackagePatterns": ["^esbuild"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "e2e tests",
+      "excludePackageNames": ["typescript", "prisma", "@prisma/client"],
+      "matchFileNames": ["packages/client/tests/e2e/**"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "e2e ts-version tests",
       "excludePackageNames": ["typescript"],
-      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
-    },
-    {
-      "groupName": "e2e tests",
-      "excludePackageNames": ["prisma", "@prisma/client"],
-      "matchFileNames": ["packages/client/tests/e2e/**"]
+      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "Weekly vitess docker image version update",
-      "matchPackageNames": ["vitess/vttestserver"]
+      "matchPackageNames": ["vitess/vttestserver"],
+      "schedule": ["before 7am on Wednesday"]
     }
   ]
 }

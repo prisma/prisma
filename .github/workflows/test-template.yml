@@ -257,7 +257,7 @@ jobs:
       fail-fast: false
       matrix:
         clientRuntime: ['node', 'wasm']
-        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale'] # 'js_d1'
+        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
         previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
@@ -718,7 +718,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate cockroachdb
 
       - name: Set CLI Engine Type
         run: |
@@ -798,6 +798,47 @@ jobs:
           files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
           name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
+
+  #
+  # CLI-PLATFORM-COMMANDS (only)
+  #
+  cli-platform-commands:
+    name: CLI platform
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-cli-platform-')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [16, 18, 20]
+        include:
+          - os: windows-latest
+            version: 16
+          - os: macos-latest
+            version: 16
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test:platform
+        working-directory: packages/cli
+
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/cli/src/__tests__/coverage/clover.xml
+          flags: cli-platform,${{ matrix.os }}
+          name: cli-platform-${{ matrix.os }}
 
   #
   # All the other packages!
