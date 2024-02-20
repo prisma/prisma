@@ -135,7 +135,8 @@ ${bold('Examples')}
     const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
-    let hasJsClient
+    let hasJsClient: boolean = false
+
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
     try {

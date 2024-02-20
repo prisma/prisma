@@ -10,6 +10,7 @@ const knownProperties = [
   'datasourceUrl',
   'errorFormat',
   'adapter',
+  'serializedSchema',
   'log',
   'transactionOptions',
   '__internal',
@@ -67,6 +68,19 @@ It should have this form: { url: "CONNECTION_STRING" }`,
           }
         }
       }
+    }
+  },
+  serializedSchema: (serializedSchema, config) => {
+    // For the time being, assume this prop is only passed on Wasm Query Engines.
+    if (serializedSchema === null) {
+      return
+    }
+
+    const previewFeatures = getPreviewFeatures(config)
+    if (!previewFeatures.includes('driverAdapters')) {
+      throw new PrismaClientConstructorValidationError(
+        '"serializedSchema" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.',
+      )
     }
   },
   adapter: (adapter, config) => {

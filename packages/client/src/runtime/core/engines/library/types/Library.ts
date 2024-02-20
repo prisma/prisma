@@ -24,6 +24,7 @@ export interface QueryEngineConstructor {
     config: QueryEngineConfig,
     logger: (log: string) => void,
     adapter?: ErrorCapturingDriverAdapter,
+    serializedSchema?: Uint8Array,
   ): QueryEngineInstance
 }
 

@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.10.0-34.5a9203d0590c951969e85a7d07215503f4672eb9",
+    "@prisma/engines-version": "5.10.0-13.feat-qe-specific-psl-performance-b9f77ddd4b02a49b324c20b050de9087e29da4ed",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

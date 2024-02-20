@@ -2,11 +2,11 @@ import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/inte
 import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
+import path from 'path'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
-import path from 'path'
 
 const allProviders = new Set(Object.values(Providers))
 const allAdapterProviders = new Set(Object.values(AdapterProviders))

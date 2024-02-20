@@ -9,10 +9,12 @@ import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlu
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
+const wasmSchemaDir = path.dirname(require.resolve('@prisma/prisma-schema-wasm/package.json'))
 const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
+const generatorBuildDir = path.resolve(__dirname, '..', 'generator-build')
 
 const DRIVER_ADAPTER_SUPPORTED_PROVIDERS = ['postgresql', 'sqlite', 'mysql'] as const
 
@@ -153,6 +155,14 @@ const generatorBuildConfig: BuildOptions = {
   outfile: 'generator-build/index',
   bundle: true,
   emitTypes: false,
+  plugins: [
+    copyFilePlugin([
+      {
+        from: path.join(wasmSchemaDir, 'src', 'prisma_schema_build_bg.wasm'),
+        to: path.join(generatorBuildDir, 'prisma_schema_build_bg.wasm'),
+      },
+    ]),
+  ],
 }
 
 // default-index.js file in scripts

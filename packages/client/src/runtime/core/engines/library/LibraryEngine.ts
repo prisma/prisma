@@ -261,6 +261,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             weakThis.deref()?.logger(log)
           },
           adapter,
+          this.config.serializedSchema,
         )
         engineInstanceCount++
       } catch (_e) {

@@ -1,7 +1,14 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, ConnectorType, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
+import {
+  assertNever,
+  ClientEngineType,
+  getClientEngineType,
+  pathToPosix,
+  serializeSchemaToBytes,
+  setClassName,
+} from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
@@ -162,6 +169,16 @@ export async function buildClient({
       fileMap['index.js'] = await JS(nodeWarnTsClient)
       fileMap['index.d.ts'] = await TS(nodeWarnTsClient)
     }
+
+    const serializedSchema = serializeSchemaToBytes({
+      datamodel,
+      datamodelPath: schemaPath,
+    })
+
+    // We store the serialized schema in the fileMap for others to use it,
+    // but we don't ever require it in the generated client.
+    // @ts-ignore
+    fileMap['schema.bin'] = serializedSchema
 
     const wasmClient = new TSClient({
       ...baseClientOptions,

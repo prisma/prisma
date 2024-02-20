@@ -120,17 +120,12 @@ function setupTestSuiteMatrix(
         })
 
         const newDriverAdapter = () =>
-          setupTestSuiteClientDriverAdapter({
-            suiteConfig,
-            clientMeta,
-            datasourceInfo,
-            cfWorkerBindings,
-          })
+          setupTestSuiteClientDriverAdapter({ suiteMeta, suiteConfig, clientMeta, datasourceInfo, cfWorkerBindings })
 
-        globalThis['newPrismaClient'] = (args: any) => {
+        globalThis['newPrismaClient'] = async (args: any) => {
           const { PrismaClient, Prisma } = globalThis['loaded']
 
-          const options = { ...newDriverAdapter(), ...args }
+          const options = { ...(await newDriverAdapter()), ...args }
           const client = new PrismaClient(options)
 
           globalThis['Prisma'] = Prisma
@@ -140,7 +135,7 @@ function setupTestSuiteMatrix(
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']() as Client
+          globalThis['prisma'] = (await globalThis['newPrismaClient']()) as Client
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']

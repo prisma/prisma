@@ -1,0 +1,25 @@
+# Create a new Cloudflare Token with the "Edit Cloudflare Workers" permission, and paste it here.
+export CLOUDFLARE_API_TOKEN="<CLOUDFLARE_API_TOKEN>"
+
+# Retrieve your Cloudflare Account ID by running `pnpm wrangler whoami`
+export CLOUDFLARE_ACCOUNT_ID="<CLOUDFLARE_ACCOUNT_ID>"
+
+# ❯ npx wrangler kv:namespace create PRISMA_KV
+#  ⛅️ wrangler 3.22.5 (update available 3.28.3)
+# -------------------------------------------------------
+# 🌀 Creating namespace with title "cloudflare-kv-byte-schema-PRISMA_KV"
+# ✨ Success!
+# Add the following to your configuration file in your kv_namespaces array:
+# { binding = "PRISMA_KV", id = "<CLOUDFLARE_KV_NAMESPACE_ID>" }
+export CLOUDFLARE_KV_NAMESPACE_ID="<CLOUDFLARE_KV_NAMESPACE_ID>"
+
+# ❯ npx wrangler kv:namespace create PRISMA_KV --preview
+#  ⛅️ wrangler 3.22.5 (update available 3.28.3)
+# -------------------------------------------------------
+# 🌀 Creating namespace with title "cloudflare-kv-byte-schema-PRISMA_KV_preview"
+# ✨ Success!
+# Add the following to your configuration file in your kv_namespaces array:
+# { binding = "PRISMA_KV", preview_id = "<CLOUDFLARE_KV_PREVIEW_NAMESPACE_ID>" }
+export CLOUDFLARE_KV_PREVIEW_NAMESPACE_ID="<CLOUDFLARE_KV_PREVIEW_NAMESPACE_ID>"
+
+export DATABASE_URL="postgresql://..."
