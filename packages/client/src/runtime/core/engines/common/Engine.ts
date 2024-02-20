@@ -3,6 +3,11 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
 import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'
+import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
+import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
+import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
+import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
+import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import { Fetch } from '../data-proxy/utils/request'
 import { QueryEngineConstructor } from '../library/types/Library'
 import type { LogEmitter } from './types/Events'
@@ -10,6 +15,7 @@ import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineResult } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
+import type { getBatchRequestPayload } from './utils/getBatchRequestPayload'
 
 export type BatchTransactionOptions = {
   isolationLevel?: Transaction.IsolationLevel
@@ -54,38 +60,35 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
 
 export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
 
-// TODO Move shared logic in here
-export abstract class Engine<InteractiveTransactionPayload = unknown> {
-  abstract onBeforeExit(callback: () => Promise<void>): void
-  abstract start(): Promise<void>
-  abstract stop(): Promise<void>
-  abstract version(forceRun?: boolean): Promise<string> | string
-  abstract request<T>(
-    query: JsonQuery,
-    options: RequestOptions<InteractiveTransactionPayload>,
-  ): Promise<QueryEngineResult<T>>
-  abstract requestBatch<T>(
+export interface Engine<InteractiveTransactionPayload = unknown> {
+  /** The name of the engine. This is meant to be consumed externally */
+  readonly name: string
+  onBeforeExit(callback: () => Promise<void>): void
+  start(): Promise<void>
+  stop(): Promise<void>
+  version(forceRun?: boolean): Promise<string> | string
+  request<T>(query: JsonQuery, options: RequestOptions<InteractiveTransactionPayload>): Promise<QueryEngineResult<T>>
+  requestBatch<T>(
     queries: JsonQuery[],
     options: RequestBatchOptions<InteractiveTransactionPayload>,
   ): Promise<BatchQueryEngineResult<T>[]>
-  abstract transaction(
+  transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,
-    options?: Transaction.Options,
+    options: Transaction.Options,
   ): Promise<Transaction.InteractiveTransactionInfo<unknown>>
-  abstract transaction(
+  transaction(
     action: 'commit',
     headers: Transaction.TransactionHeaders,
     info: Transaction.InteractiveTransactionInfo<unknown>,
   ): Promise<void>
-  abstract transaction(
+  transaction(
     action: 'rollback',
     headers: Transaction.TransactionHeaders,
     info: Transaction.InteractiveTransactionInfo<unknown>,
   ): Promise<void>
-
-  abstract metrics(options: MetricsOptionsJson): Promise<Metrics>
-  abstract metrics(options: MetricsOptionsPrometheus): Promise<string>
+  metrics(options: MetricsOptionsJson): Promise<Metrics>
+  metrics(options: MetricsOptionsPrometheus): Promise<string>
 }
 
 export interface EngineConfig {
@@ -108,6 +111,7 @@ export interface EngineConfig {
   engineEndpoint?: string
   activeProvider?: string
   logEmitter: LogEmitter
+  transactionOptions: Transaction.Options
 
   /**
    * The metadata of the schema binary encoded into bytes
@@ -158,6 +162,22 @@ export interface EngineConfig {
    * Web Assembly module loading configuration
    */
   engineWasm?: WasmLoadingConfig
+
+  /**
+   * Allows Accelerate to use runtime utilities from the client. These are
+   * necessary for the AccelerateEngine to function correctly.
+   */
+  accelerateUtils?: {
+    resolveDatasourceUrl: typeof resolveDatasourceUrl
+    getBatchRequestPayload: typeof getBatchRequestPayload
+    prismaGraphQLToJSError: typeof prismaGraphQLToJSError
+    PrismaClientUnknownRequestError: typeof PrismaClientUnknownRequestError
+    PrismaClientInitializationError: typeof PrismaClientInitializationError
+    PrismaClientKnownRequestError: typeof PrismaClientKnownRequestError
+    debug: (...args: any[]) => void
+    engineVersion: string
+    clientVersion: string
+  }
 }
 
 export type WasmLoadingConfig = {

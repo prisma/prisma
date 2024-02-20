@@ -1,15 +1,12 @@
 'use strict'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
-const isBuildkiteCI = Boolean(process.env.BUILDKITE)
 
 module.exports = () => {
   // Default
   let testTimeout = 30_000
   if (isMacOrWindowsCI) {
     testTimeout = 100_000
-  } else if (isBuildkiteCI) {
-    testTimeout = 50_000
   }
 
   const configCommon = {
