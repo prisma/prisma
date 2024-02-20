@@ -22,7 +22,7 @@ import type { O } from 'ts-toolbelt'
 import { exports as clientPackageExports, name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
-import { BrowserJS, JS, jsifyUint8Array, TS, TSClient } from './TSClient'
+import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
 import type { Dictionary } from './utils/common'
 
@@ -175,8 +175,10 @@ export async function buildClient({
       datamodelPath: schemaPath,
     })
 
-    // we store the serialized binary schema as `export const serializedSchema = new Uint8Array([...])`
-    fileMap['schema.bin.js'] = jsifyUint8Array(serializedSchema, 'serializedSchema')
+    // We store the serialized schema in the fileMap for others to use it,
+    // but we don't ever require it in the generated client.
+    // @ts-ignore
+    fileMap['schema.bin'] = serializedSchema
 
     const wasmClient = new TSClient({
       ...baseClientOptions,

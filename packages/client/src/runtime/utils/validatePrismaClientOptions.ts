@@ -5,7 +5,15 @@ import { PrismaClientConstructorValidationError } from '../core/errors/PrismaCli
 import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
 import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'adapter', 'log', '__internal']
+const knownProperties = [
+  'datasources',
+  'datasourceUrl',
+  'errorFormat',
+  'adapter',
+  'serializedSchema',
+  'log',
+  '__internal',
+]
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -59,6 +67,19 @@ It should have this form: { url: "CONNECTION_STRING" }`,
           }
         }
       }
+    }
+  },
+  serializedSchema: (serializedSchema, config) => {
+    // For the time being, assume this prop is only passed on Wasm Query Engines.
+    if (serializedSchema === null) {
+      return
+    }
+
+    const previewFeatures = getPreviewFeatures(config)
+    if (!previewFeatures.includes('driverAdapters')) {
+      throw new PrismaClientConstructorValidationError(
+        '"serializedSchema" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.',
+      )
     }
   },
   adapter: (adapter, config) => {

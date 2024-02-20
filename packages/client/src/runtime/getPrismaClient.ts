@@ -89,6 +89,11 @@ export type PrismaClientOptions = {
   adapter?: DriverAdapter | null
 
   /**
+   * Byte-serialized Prisma schema, used for Wasm Query Engine.
+   */
+  serializedSchema?: Uint8Array
+
+  /**
    * Overwrites the datasource url from your schema.prisma file
    */
   datasources?: Datasources
@@ -336,6 +341,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
+      const serializedSchema = optionsArg?.serializedSchema ?? config.serializedSchema
 
       // prevents unhandled error events when users do not explicitly listen to them
       const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
@@ -421,7 +427,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter,
           isBundled: config.isBundled,
-          serializedSchema: config.serializedSchema,
+          serializedSchema,
           adapter,
         }
 
