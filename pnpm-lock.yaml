@@ -506,8 +506,8 @@ importers:
         specifier: 1.8.0
         version: 1.8.0(@jest/globals@29.7.0)
       '@inquirer/prompts':
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.1.0
+        version: 4.1.0
       '@jest/create-cache-key-function':
         specifier: 29.7.0
         version: 29.7.0
@@ -2740,8 +2740,8 @@ packages:
     resolution: {integrity: sha512-dvuCeX5fC9dXgJn9t+X5atfmgQAzUOWqS1254Gh0m6i8wKd10ebXkfNKiRK+1GWi/yTvvLDHpoxLr0xxxeslWw==}
     dev: true
 
-  /@inquirer/checkbox@2.0.0:
-    resolution: {integrity: sha512-z+MRAXQaZCe5jzqwW488jFrRsT8Rbwr3e0wNkbPBhLr5oVeWcSowFidLcCHca+gcLJMHEVMYqAE7J90UtoWyIw==}
+  /@inquirer/checkbox@2.1.0:
+    resolution: {integrity: sha512-DyvMAKFoqJ5BCVBqHqiQELSJvwHTqXaJmV1onATgjxyM3vtp6b8xbfPE5feX1pR9wvH+sso02Pb326S92h6Q/A==}
     engines: {node: '>=18'}
     dependencies:
       '@inquirer/core': 7.0.0
@@ -2815,11 +2815,11 @@ packages:
       ansi-escapes: 4.3.2
     dev: true
 
-  /@inquirer/prompts@4.0.0:
-    resolution: {integrity: sha512-IS4FMj4k+3gxlvKCL1ibSEc3mMnpZ4eFeKlv0ZOo0AMWFxLSvCUT3xOw72N+UTeARK7cbwXxpt7KHcZ5q/RV0Q==}
+  /@inquirer/prompts@4.1.0:
+    resolution: {integrity: sha512-HUVJ5yLjDUEq61LQiujs26qqFrKIaZOnpzDRmnYT67bsXUD8gxPmLg+DJq2ENniiDSQyBK33qVQIbeeAdR3ZlQ==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/checkbox': 2.0.0
+      '@inquirer/checkbox': 2.1.0
       '@inquirer/confirm': 3.0.0
       '@inquirer/core': 7.0.0
       '@inquirer/editor': 2.0.0
