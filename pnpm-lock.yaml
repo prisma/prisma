@@ -686,8 +686,8 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
       jest-serializer-ansi-escapes:
-        specifier: 2.0.1
-        version: 2.0.1
+        specifier: 3.0.0
+        version: 3.0.0
       jest-snapshot:
         specifier: 29.7.0
         version: 29.7.0
@@ -8034,9 +8034,11 @@ packages:
       - supports-color
     dev: true
 
-  /jest-serializer-ansi-escapes@2.0.1:
-    resolution: {integrity: sha512-+BuVKZQutcejSuODTleG/CV+8OVONZSOSrtrQRG8isTLu367JVKK+/yaG2jGs5O6MPBZ88WNy5jg8hqhd/p6pw==}
-    engines: {node: '>=14'}
+  /jest-serializer-ansi-escapes@3.0.0:
+    resolution: {integrity: sha512-dyj/uFvD45xeUw8U1XPU2Fu0KVjslp3iG/ucpB7x69rLyoaxFWelIV/NfrPzJavjcGJ1tF2LNSlv9tylwhfliA==}
+    engines: {node: '>=16'}
+    dependencies:
+      pretty-ansi: 2.0.0
     dev: true
 
   /jest-snapshot@29.7.0:
@@ -9684,6 +9686,11 @@ packages:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
     engines: {node: '>=10.13.0'}
     hasBin: true
+    dev: true
+
+  /pretty-ansi@2.0.0:
+    resolution: {integrity: sha512-AN74nXfCper9y7CuktdWuJT5zwqVfST0LOBZMbEsDKIZ/QulzecDqDF4j+lQbzdKHKbAQU7UyqUVJBocisVjNw==}
+    engines: {node: '>=16'}
     dev: true
 
   /pretty-format@29.7.0:
