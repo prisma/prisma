@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
-export interface Buffer {
+export interface BufferClass {
   readBigInt64BE(offset: number): bigint
   readBigInt64BE(offset: number): bigint
   readBigInt64LE(offset: number): bigint
@@ -34,42 +34,42 @@ export interface Buffer {
   readUIntBE(offset: number, byteLength: number): number
   readUintLE(offset: number, byteLength: number): number
   readUIntLE(offset: number, byteLength: number): number
-  writeBigInt64BE(value: bigint, offset: number): void
-  writeBigInt64BE(value: bigint, offset: number): void
-  writeBigInt64LE(value: bigint, offset: number): void
-  writeBigInt64LE(value: bigint, offset: number): void
-  writeBigUint64BE(value: bigint, offset: number): void
-  writeBigUInt64BE(value: bigint, offset: number): void
-  writeBigUint64LE(value: bigint, offset: number): void
-  writeBigUInt64LE(value: bigint, offset: number): void
-  writeDoubleBE(value: number, offset: number): void
-  writeDoubleLE(value: number, offset: number): void
-  writeFloatBE(value: number, offset: number): void
-  writeFloatLE(value: number, offset: number): void
-  writeInt16BE(value: number, offset: number): void
-  writeInt16LE(value: number, offset: number): void
-  writeInt32BE(value: number, offset: number): void
-  writeInt32LE(value: number, offset: number): void
-  writeInt8(value: number, offset: number): void
-  writeIntBE(value: number, offset: number, byteLength: number): void
-  writeIntLE(value: number, offset: number, byteLength: number): void
-  writeUint16BE(value: number, offset: number): void
-  writeUInt16BE(value: number, offset: number): void
-  writeUint16LE(value: number, offset: number): void
-  writeUInt16LE(value: number, offset: number): void
-  writeUint32BE(value: number, offset: number): void
-  writeUInt32BE(value: number, offset: number): void
-  writeUint32LE(value: number, offset: number): void
-  writeUInt32LE(value: number, offset: number): void
-  writeUint8(value: number, offset: number): void
-  writeUInt8(value: number, offset: number): void
-  writeUintBE(value: number, offset: number, byteLength: number): void
-  writeUIntBE(value: number, offset: number, byteLength: number): void
-  writeUintLE(value: number, offset: number, byteLength: number): void
-  writeUIntLE(value: number, offset: number, byteLength: number): void
+  writeBigInt64BE(value: bigint, offset: number): number
+  writeBigInt64BE(value: bigint, offset: number): number
+  writeBigInt64LE(value: bigint, offset: number): number
+  writeBigInt64LE(value: bigint, offset: number): number
+  writeBigUint64BE(value: bigint, offset: number): number
+  writeBigUInt64BE(value: bigint, offset: number): number
+  writeBigUint64LE(value: bigint, offset: number): number
+  writeBigUInt64LE(value: bigint, offset: number): number
+  writeDoubleBE(value: number, offset: number): number
+  writeDoubleLE(value: number, offset: number): number
+  writeFloatBE(value: number, offset: number): number
+  writeFloatLE(value: number, offset: number): number
+  writeInt16BE(value: number, offset: number): number
+  writeInt16LE(value: number, offset: number): number
+  writeInt32BE(value: number, offset: number): number
+  writeInt32LE(value: number, offset: number): number
+  writeInt8(value: number, offset: number): number
+  writeIntBE(value: number, offset: number, byteLength: number): number
+  writeIntLE(value: number, offset: number, byteLength: number): number
+  writeUint16BE(value: number, offset: number): number
+  writeUInt16BE(value: number, offset: number): number
+  writeUint16LE(value: number, offset: number): number
+  writeUInt16LE(value: number, offset: number): number
+  writeUint32BE(value: number, offset: number): number
+  writeUInt32BE(value: number, offset: number): number
+  writeUint32LE(value: number, offset: number): number
+  writeUInt32LE(value: number, offset: number): number
+  writeUint8(value: number, offset: number): number
+  writeUInt8(value: number, offset: number): number
+  writeUintBE(value: number, offset: number, byteLength: number): number
+  writeUIntBE(value: number, offset: number, byteLength: number): number
+  writeUintLE(value: number, offset: number, byteLength: number): number
+  writeUIntLE(value: number, offset: number, byteLength: number): number
 }
 
-export class Buffer extends Uint8Array /* implements NodeBuffer */ {
+export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   readonly _isBuffer = true
 
   get offset() {
@@ -77,59 +77,66 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
   }
 
   static alloc(size: number, fill: string | number | Uint8Array = 0, encoding?: Encoding) {
-    return Buffer.allocUnsafe(size).fill(fill, encoding)
+    return BufferClass.allocUnsafe(size).fill(fill, encoding)
   }
 
   static allocUnsafe(size: number) {
-    return new Buffer(new Uint8Array(size))
+    return BufferClass.from(new Uint8Array(size))
   }
 
   static allocUnsafeSlow(size: number) {
-    return new Buffer(new Uint8Array(size))
+    return BufferClass.from(new Uint8Array(size))
   }
 
-  static isBuffer(arg: any): arg is Buffer {
+  static isBuffer(arg: any): arg is BufferClass {
     return arg && !!arg._isBuffer
   }
 
-  static byteLength(string: string, encoding: Encoding = 'utf8') {
-    return Buffer.from(string, encoding).length
+  static byteLength(value: unknown, encoding: Encoding = 'utf8') {
+    return BufferClass.from(value, encoding).length
   }
 
-  static compare(a: Uint8Array, b: Uint8Array) {
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] < b[i]) return -1
-      if (a[i] > b[i]) return 1
+  static compare(buff1: Uint8Array, buff2: Uint8Array) {
+    assertUint8Array(buff1, 'buff1')
+    assertUint8Array(buff2, 'buff2')
+
+    for (let i = 0; i < buff1.length; i++) {
+      if (buff1[i] < buff2[i]) return -1
+      if (buff1[i] > buff2[i]) return 1
     }
 
-    return a.length === b.length ? 0 : a.length > b.length ? 1 : -1
+    return buff1.length === buff2.length ? 0 : buff1.length > buff2.length ? 1 : -1
   }
 
-  static from(value: unknown, encoding: any = 'utf8'): Buffer {
+  static from(value: unknown, encoding: any = 'utf8'): BufferClass {
     if (value && typeof value === 'object' && value['type'] === 'Buffer') {
-      return new Buffer(value['data'])
+      return new BufferClass(value['data'])
     }
 
     if (typeof value === 'number') {
-      return new Buffer(new Uint8Array(value))
+      return new BufferClass(new Uint8Array(value))
     }
 
-    if (typeof value === 'string' && typeof encoding === 'string') {
+    if (typeof value === 'string') {
       return stringToBuffer(value, encoding)
     }
 
-    if (typeof value === 'object' && ArrayBuffer.isView(value)) {
-      return new Buffer(value.buffer, value.byteOffset, value.byteLength)
+    if (ArrayBuffer.isView(value)) {
+      return new BufferClass(value.buffer, value.byteOffset, value.byteLength)
     }
 
-    return new Buffer(value as ArrayLike<number>)
+    if (value && typeof value === 'object' && ('length' in value || 'byteLength' in value || 'buffer' in value)) {
+      return new BufferClass(value as ArrayLike<number>)
+    }
+
+    throw new TypeError('First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.')
   }
 
   static concat(list: readonly Uint8Array[], totalLength?: number) {
-    if (list.length === 0) return Buffer.alloc(0)
+    if (list.length === 0) return BufferClass.alloc(0)
 
     const concat = ([] as number[]).concat(...list.map((item) => [...item]))
-    const result = Buffer.alloc(totalLength !== undefined ? totalLength : concat.length)
+    const result = BufferClass.alloc(totalLength !== undefined ? totalLength : concat.length)
 
     result.set(totalLength !== undefined ? concat.slice(0, totalLength) : concat)
 
@@ -141,7 +148,7 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
   }
 
   subarray(start = 0, end = this.length) {
-    return Object.setPrototypeOf(super.subarray(start, end), Buffer.prototype) as Buffer
+    return Object.setPrototypeOf(super.subarray(start, end), BufferClass.prototype) as BufferClass
   }
 
   reverse() {
@@ -208,12 +215,12 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
 
   writeIntBE(value: number, offset: number, byteLength: number) {
     value = value < 0 ? value + Math.pow(0x100, byteLength) : value
-    this.writeUIntBE(value, offset, byteLength)
+    return this.writeUIntBE(value, offset, byteLength)
   }
 
   writeIntLE(value: number, offset: number, byteLength: number) {
     value = value < 0 ? value + Math.pow(0x100, byteLength) : value
-    this.writeUIntLE(value, offset, byteLength)
+    return this.writeUIntLE(value, offset, byteLength)
   }
 
   writeUIntBE(value: number, offset: number, byteLength: number) {
@@ -272,15 +279,35 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
     return this
   }
 
-  compare(target: Uint8Array, start = 0, end = target.length, thisStart = 0, thisEnd = this.length) {
-    return Buffer.compare(this.slice(thisStart, thisEnd), target.slice(start, end))
+  compare(target: Uint8Array, targetStart = 0, targetEnd = target.length, sourceStart = 0, sourceEnd = this.length) {
+    assertUint8Array(target, 'target')
+    assertNumber(targetStart, 'targetStart')
+    assertNumber(targetEnd, 'targetEnd')
+    assertNumber(sourceStart, 'sourceStart')
+    assertNumber(sourceEnd, 'sourceEnd')
+    assertUnsigned(targetStart, 'targetStart')
+    assertUnsigned(targetEnd, 'targetEnd', target.length)
+    assertUnsigned(sourceStart, 'sourceStart')
+    assertUnsigned(sourceEnd, 'sourceEnd', this.length)
+
+    return BufferClass.compare(this.slice(sourceStart, sourceEnd), target.slice(targetStart, targetEnd))
   }
 
-  equals(target: Uint8Array) {
-    return this.length === target.length && this.every((v, i) => v === target[i])
+  equals(otherBuffer: Uint8Array) {
+    assertUint8Array(otherBuffer, 'otherBuffer')
+
+    return this.length === otherBuffer.length && this.every((v, i) => v === otherBuffer[i])
   }
 
   copy(target: Uint8Array, targetStart = 0, sourceStart = 0, sourceEnd = this.length) {
+    assertUnsigned(targetStart, 'targetStart')
+    assertUnsigned(sourceStart, 'sourceStart', this.length)
+    assertUnsigned(sourceEnd, 'sourceEnd')
+
+    targetStart >>>= 0
+    sourceStart >>>= 0
+    sourceEnd >>>= 0
+
     let copiedBytes = 0
     while (sourceStart < sourceEnd) {
       if (this[sourceStart] === undefined) break
@@ -303,11 +330,14 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
     const length = typeof lengthEnc === 'string' ? this.length - offset : lengthEnc ?? this.length - offset
     encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof lengthEnc === 'string' ? lengthEnc : encoding
 
+    assertUnsigned(offset, 'offset', this.length)
+    assertUnsigned(length, 'length', this.length)
+
     return stringToBuffer(string, encoding).copy(this, offset, 0, length)
   }
 
   fill(
-    value: string | number | Uint8Array,
+    value: string | number | Uint8Array = 0,
     offsetEnc: number | Encoding = 0,
     endEnc: number | Encoding = this.length,
     encoding: Encoding = 'utf-8',
@@ -315,9 +345,12 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
     const offset = typeof offsetEnc === 'string' ? 0 : offsetEnc
     const end = typeof endEnc === 'string' ? this.length : endEnc
     encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof endEnc === 'string' ? endEnc : encoding
-    value = Buffer.from(typeof value === 'number' ? [value] : value, encoding)
+    value = BufferClass.from(typeof value === 'number' ? [value] : value ?? [], encoding)
 
-    if (value instanceof Uint8Array && value.length) {
+    assertUnsigned(offset, 'offset', this.length)
+    assertUnsigned(end, 'end', this.length)
+
+    if (value.length !== 0) {
       for (let i = offset; i < end; i += value.length) {
         super.set(value.slice(0, value.length + i >= this.length ? this.length - i : value.length), i)
       }
@@ -346,9 +379,10 @@ export class Buffer extends Uint8Array /* implements NodeBuffer */ {
   ) {
     const method = lastIndexOf ? this.findLastIndex.bind(this) : this.findIndex.bind(this)
     encoding = typeof byteOffsetOrEncoding === 'string' ? byteOffsetOrEncoding : encoding
-    const toSearch = Buffer.from(typeof value === 'number' ? [value] : value, encoding)
+    const toSearch = BufferClass.from(typeof value === 'number' ? [value] : value, encoding)
     let byteOffset = typeof byteOffsetOrEncoding === 'string' ? 0 : byteOffsetOrEncoding
     byteOffset = byteOffset < 0 ? this.length + byteOffset : byteOffset
+    byteOffset = typeof byteOffsetOrEncoding !== 'number' ? 0 : byteOffset || 0
 
     if (toSearch.length === 0 && lastIndexOf === false) {
       return byteOffset >= this.length ? this.length : byteOffset
@@ -408,16 +442,16 @@ function stringToBuffer(value: string, encoding: string) {
   encoding = encoding.toLowerCase() as Encoding
 
   if (encoding === 'utf8' || encoding === 'utf-8') {
-    return new Buffer(encoder.encode(value))
+    return new BufferClass(encoder.encode(value))
   }
   if (encoding === 'base64' || encoding === 'base64url') {
-    return new Buffer([...atob(value)].map((v) => v.charCodeAt(0)))
+    return new BufferClass([...atob(value)].map((v) => v.charCodeAt(0)))
   }
   if (encoding === 'binary' || encoding === 'ascii' || encoding === 'latin1' || encoding === 'latin-1') {
-    return new Buffer([...value].map((v) => v.charCodeAt(0)))
+    return new BufferClass([...value].map((v) => v.charCodeAt(0)))
   }
   if (encoding === 'ucs2' || encoding === 'ucs-2' || encoding === 'utf16le' || encoding === 'utf-16le') {
-    const buffer = new Buffer(value.length * 2)
+    const buffer = new BufferClass(value.length * 2)
     const view = new DataView(buffer.buffer)
     for (let i = 0; i < value.length; i++) {
       view.setUint16(i * 2, value.charCodeAt(i), true)
@@ -425,7 +459,7 @@ function stringToBuffer(value: string, encoding: string) {
     return buffer
   }
   if (encoding === 'hex') {
-    const bytes = new Buffer(value.length / 2)
+    const bytes = new BufferClass(value.length / 2)
     for (let byteIndex = 0, i = 0; i < value.length; i += 2, byteIndex++) {
       bytes[byteIndex] = parseInt(value.slice(i, i + 2), 16)
     }
@@ -454,19 +488,20 @@ export type Encoding =
   | 'latin1'
   | 'latin-1'
 
-function initReadMethods(prototype: Buffer) {
+function initReadMethods(prototype: BufferClass) {
   const dataViewProtoProps = Object.getOwnPropertyNames(DataView.prototype)
   const dataViewMethods = dataViewProtoProps.filter((m) => m.startsWith('get') || m.startsWith('set'))
   const bufferBaseMethods = dataViewMethods.map((m) => m.replace('get', 'read').replace('set', 'write'))
 
   const genericReadMethod = (i: number, littleEndian: boolean) => {
-    return function (this: Buffer, offset = 0) {
+    return function (this: BufferClass, offset = 0) {
+      assertUnsigned(offset, 'offset', this.length - 1)
       return new DataView(this.buffer)[dataViewMethods[i]](offset, littleEndian)
     }
   }
 
   const genericWriteMethod = (i: number, littleEndian: boolean) => {
-    return function (this: Buffer, value: any, offset = 0) {
+    return function (this: BufferClass, value: any, offset = 0) {
       new DataView(this.buffer)[dataViewMethods[i]](offset, value, littleEndian)
       return offset + parseInt(dataViewMethods[i].match(/\d+/)![0]) / 8
     }
@@ -499,6 +534,39 @@ function bufferPolyfillDoesNotImplement(message: string): never {
   throw new Error(`Buffer polyfill does not implement "${message}"`)
 }
 
-initReadMethods(Buffer.prototype)
+function assertUint8Array(value: any, argName: string): asserts value is Uint8Array {
+  if (!(value instanceof Uint8Array)) {
+    throw new TypeError(`The "${argName}" argument must be an instance of Buffer or Uint8Array`)
+  }
+}
+
+function assertUnsigned(value: number, argName: string, maxValue = MAX_UNSIGNED_32_BIT + 1) {
+  if (value < 0 || value > maxValue) {
+    throw new RangeError(`The value of "${argName}" is out of range. It must be >= 0 && <= ${maxValue}`)
+  }
+}
+
+function assertNumber(value: any, argName: string): asserts value is number {
+  if (typeof value !== 'number') {
+    throw new TypeError(`The "${argName}" argument must be of type number`)
+  }
+}
+
+const MAX_UNSIGNED_32_BIT = 0xffffffff
+
+initReadMethods(BufferClass.prototype)
+
+function $Buffer(value: unknown, encoding: any = 'utf8') {
+  return BufferClass.from(value, encoding)
+}
+
+export const Buffer = new Proxy($Buffer, {
+  construct(_, [value, encoding]) {
+    return BufferClass.from(value, encoding)
+  },
+  get(_, prop) {
+    return BufferClass[prop]
+  },
+}) as typeof $Buffer & typeof BufferClass
 
 const c2s = String.fromCodePoint

@@ -4,6 +4,7 @@
 
 import assert from 'assert'
 
+// import { BufferClass as Buffer } from '../../../../helpers/compile/plugins/fill-plugin/fillers/buffer-small'
 import { Buffer } from '../../../../helpers/compile/plugins/fill-plugin/fillers/buffer-small'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -48,7 +49,7 @@ describe('Buffer from (static)', () => {
   })
 
   test('should throw an error if input is invalid', () => {
-    // expect(() => Buffer.from(null)).toThrow() ❌
+    expect(() => Buffer.from(null)).toThrow()
   })
 })
 
@@ -79,8 +80,8 @@ describe('Buffer compare (static)', () => {
 
   test('should throw an error if either argument is not a Buffer', () => {
     const buf = Buffer.from('Hello, World!')
-    // expect(() => Buffer.compare(buf, 'not a buffer' as any)).toThrow() ❌
-    // expect(() => Buffer.compare('not a buffer' as any, buf)).toThrow() ❌
+    expect(() => Buffer.compare(buf, 'not a buffer' as any)).toThrow()
+    expect(() => Buffer.compare('not a buffer' as any, buf)).toThrow()
   })
 })
 
@@ -820,8 +821,8 @@ describe('Buffer compare', () => {
   test('should handle negative and out of bounds values', () => {
     const buf1 = Buffer.from('Hello, World!')
     const buf2 = Buffer.from('Hello, Universe!')
-    // expect(() => buf1.compare(buf2, -1)).toThrow() ❌
-    // expect(() => buf1.compare(buf2, 0, 50)).toThrow()
+    expect(() => buf1.compare(buf2, -1)).toThrow()
+    expect(() => buf1.compare(buf2, 0, 50)).toThrow()
   })
 })
 
@@ -848,7 +849,7 @@ describe('Buffer equals', () => {
 
   test('should fail if the other object is not a buffer', () => {
     const buf = Buffer.from('Hello, World!')
-    // expect(() => buf.equals({} as any)).toThrow() ❌
+    expect(() => buf.equals({} as any)).toThrow()
   })
 })
 
@@ -884,8 +885,8 @@ describe('Buffer copy', () => {
   test('should handle negative and out of bounds values', () => {
     const source = Buffer.from('Hello, World!')
     const target = Buffer.allocUnsafe(20)
-    // expect(() => source.copy(target, -1)).toThrow() ❌
-    // expect(() => source.copy(target, 0, -1)).toThrow() ❌
+    expect(() => source.copy(target, -1)).toThrow()
+    expect(() => source.copy(target, 0, -1)).toThrow()
     expect(() => source.copy(target, 0, 0, 50)).not.toThrow()
   })
 })
@@ -927,12 +928,12 @@ describe('Buffer write', () => {
 
   test('should throw an error if offset is out of bounds', () => {
     const buf = Buffer.allocUnsafe(20)
-    // expect(() => buf.write('Hello, World!', 21)).toThrow() ❌
+    expect(() => buf.write('Hello, World!', 21)).toThrow()
   })
 
   test('should throw an error if length is out of bounds', () => {
     const buf = Buffer.allocUnsafe(20)
-    // expect(() => buf.write('Hello, World!', 0, 21)).toThrow() ❌
+    expect(() => buf.write('Hello, World!', 0, 21)).toThrow()
   })
 })
 
@@ -1280,7 +1281,7 @@ test('Buffer.readUint8 (example)', () => {
 
   expect(buf.readUint8(0)).toBe(1)
   expect(buf.readUint8(1)).toBe(254)
-  // expect(() => buf.readUint8(2)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readUint8(2)).toThrow()
 })
 
 test('Buffer.readUInt16LE (example)', () => {
@@ -1288,7 +1289,7 @@ test('Buffer.readUInt16LE (example)', () => {
 
   expect(buf.readUInt16LE(0).toString(16)).toBe('3412')
   expect(buf.readUInt16LE(1).toString(16)).toBe('5634')
-  // expect(() => buf.readUInt16LE(2)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readUInt16LE(2)).toThrow()
 })
 
 test('Buffer.readUint16LE (example)', () => {
@@ -1296,7 +1297,7 @@ test('Buffer.readUint16LE (example)', () => {
 
   expect(buf.readUint16LE(0).toString(16)).toBe('3412')
   expect(buf.readUint16LE(1).toString(16)).toBe('5634')
-  // expect(() => buf.readUint16LE(2)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readUint16LE(2)).toThrow()
 })
 
 test('Buffer.readUInt16BE (example)', () => {
@@ -1304,6 +1305,7 @@ test('Buffer.readUInt16BE (example)', () => {
 
   expect(buf.readUInt16BE(0).toString(16)).toBe('1234')
   expect(buf.readUInt16BE(1).toString(16)).toBe('3456')
+  expect(() => buf.readUint16BE(2)).toThrow()
 })
 
 test('Buffer.readUint16BE (example)', () => {
@@ -1311,32 +1313,35 @@ test('Buffer.readUint16BE (example)', () => {
 
   expect(buf.readUint16BE(0).toString(16)).toBe('1234')
   expect(buf.readUint16BE(1).toString(16)).toBe('3456')
+  expect(() => buf.readUint16BE(2)).toThrow()
 })
 
 test('Buffer.readUInt32LE (example)', () => {
   const buf = Buffer.from([0x12, 0x34, 0x56, 0x78])
 
   expect(buf.readUInt32LE(0).toString(16)).toBe('78563412')
-  // expect(() => buf.readUInt32LE(1)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readUInt32LE(1)).toThrow()
 })
 
 test('Buffer.readUint32LE (example)', () => {
   const buf = Buffer.from([0x12, 0x34, 0x56, 0x78])
 
   expect(buf.readUint32LE(0).toString(16)).toBe('78563412')
-  // expect(() => buf.readUint32LE(1)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readUint32LE(1)).toThrow()
 })
 
 test('Buffer.readUInt32BE (example)', () => {
   const buf = Buffer.from([0x12, 0x34, 0x56, 0x78])
 
   expect(buf.readUInt32BE(0).toString(16)).toBe('12345678')
+  expect(() => buf.readUInt32BE(1)).toThrow()
 })
 
 test('Buffer.readUint32BE (example)', () => {
   const buf = Buffer.from([0x12, 0x34, 0x56, 0x78])
 
   expect(buf.readUint32BE(0).toString(16)).toBe('12345678')
+  expect(() => buf.readUint32BE(1)).toThrow()
 })
 
 test('Buffer.readInt8 (example)', () => {
@@ -1344,59 +1349,63 @@ test('Buffer.readInt8 (example)', () => {
 
   expect(buf.readInt8(0)).toBe(-1)
   expect(buf.readInt8(1)).toBe(5)
-  // expect(() => buf.readInt8(2)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readInt8(2)).toThrow()
 })
 
 test('Buffer.readInt16LE (example)', () => {
   const buf = Buffer.from([0, 5])
 
   expect(buf.readInt16LE(0)).toBe(1280)
-  // expect(() => buf.readInt16LE(1)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readInt16LE(1)).toThrow()
 })
 
 test('Buffer.readInt16BE (example)', () => {
   const buf = Buffer.from([0, 5])
 
   expect(buf.readInt16BE(0)).toBe(5)
+  expect(() => buf.readInt16BE(1)).toThrow()
 })
 
 test('Buffer.readInt32LE (example)', () => {
   const buf = Buffer.from([0, 0, 0, 5])
 
   expect(buf.readInt32LE(0)).toBe(83886080)
-  // expect(() => buf.readInt32LE(1)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readInt32LE(1)).toThrow()
 })
 
 test('Buffer.readInt32BE (example)', () => {
   const buf = Buffer.from([0, 0, 0, 5])
 
   expect(buf.readInt32BE(0)).toBe(5)
+  expect(() => buf.readInt32BE(1)).toThrow()
 })
 
 test('Buffer.readFloatLE (example)', () => {
   const buf = Buffer.from([1, 2, 3, 4])
 
   expect(buf.readFloatLE(0)).toBe(1.539989614439558e-36)
-  // expect(() => buf.readFloatLE(1)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readFloatLE(1)).toThrow()
 })
 
 test('Buffer.readFloatBE (example)', () => {
   const buf = Buffer.from([1, 2, 3, 4])
 
   expect(buf.readFloatBE(0)).toBe(2.387939260590663e-38)
+  expect(() => buf.readFloatBE(1)).toThrow()
 })
 
 test('Buffer.readDoubleLE (example)', () => {
   const buf = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8])
 
   expect(buf.readDoubleLE(0)).toBe(5.447603722011605e-270)
-  // expect(() => buf.readDoubleLE(1)).toThrow('ERR_OUT_OF_RANGE') ❌
+  expect(() => buf.readDoubleLE(1)).toThrow()
 })
 
 test('Buffer.readDoubleBE (example)', () => {
   const buf = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8])
 
   expect(buf.readDoubleBE(0)).toBe(8.20788039913184e-304)
+  expect(() => buf.readDoubleBE(1)).toThrow()
 })
 
 test('Buffer.swap16 (example)', () => {
@@ -1649,9 +1658,9 @@ describe('Buffer indexOf', () => {
     expect(b.indexOf(99.9)).toEqual(2) // 99.9 is coerced to 99
     expect(b.indexOf(256 + 99)).toEqual(2) // 256 + 99 is coerced to 99
     expect(b.indexOf('b', undefined)).toEqual(1) // undefined is coerced to 0
-    // expect(b.indexOf('b', {})).toEqual(1) // {} is coerced to 0 ❌
-    // expect(b.indexOf('b', null)).toEqual(1) // null is coerced to 0 ❌
-    // expect(b.indexOf('b', [])).toEqual(1) // [] is coerced to 0 ❌
+    expect(b.indexOf('b', {} as any)).toEqual(1) // {} is coerced to 0
+    expect(b.indexOf('b', null as any)).toEqual(1) // null is coerced to 0
+    expect(b.indexOf('b', [] as any)).toEqual(1) // [] is coerced to 0
   })
 
   test('should return byteOffset or buf.length for empty value', () => {
@@ -1726,7 +1735,7 @@ test('Buffer.values (example)', () => {
 
 test('Buffer slice (node.js repository test)', () => {
   assert.strictEqual(Buffer.from('hello', 'utf8').slice(0, 0).length, 0)
-  // assert.strictEqual(Buffer('hello', 'utf8').slice(0, 0).length, 0) ❌
+  assert.strictEqual(Buffer('hello', 'utf8').slice(0, 0).length, 0)
 
   const buf = Buffer.from('0123456789', 'utf8')
   const expectedSameBufs = [
@@ -1848,9 +1857,9 @@ test('Buffer compare (node.js repository test)', () => {
   assert.strictEqual(Buffer.compare(Buffer.alloc(0), Buffer.alloc(1)), -1)
   assert.strictEqual(Buffer.compare(Buffer.alloc(1), Buffer.alloc(0)), 1)
 
-  // assert.throws(() => Buffer.compare(Buffer.alloc(1), 'abc')) ❌
-  // assert.throws(() => Buffer.compare('abc', Buffer.alloc(1))) ❌
-  // assert.throws(() => Buffer.alloc(1).compare('abc')) ❌
+  assert.throws(() => Buffer.compare(Buffer.alloc(1), 'abc' as any))
+  assert.throws(() => Buffer.compare('abc' as any, Buffer.alloc(1)))
+  assert.throws(() => Buffer.alloc(1).compare('abc' as any))
 })
 
 test('Buffer compare (offset) (node.js repository test)', () => {
@@ -1861,7 +1870,7 @@ test('Buffer compare (offset) (node.js repository test)', () => {
 
   // Equivalent to a.compare(b).
   assert.strictEqual(a.compare(b, 0), -1)
-  // assert.throws(() => a.compare(b, '0')) ❌
+  assert.throws(() => a.compare(b, '0' as any))
   assert.strictEqual(a.compare(b, undefined), -1)
 
   // Equivalent to a.compare(b).
@@ -1869,7 +1878,7 @@ test('Buffer compare (offset) (node.js repository test)', () => {
 
   // Zero-length target, return 1
   assert.strictEqual(a.compare(b, 0, 0, 0), 1)
-  // assert.throws(() => a.compare(b, 0, '0', '0')) ❌
+  // assert.throws(() => a.compare(b, 0, '0', '0'))
 
   // Equivalent to Buffer.compare(a, b.slice(6, 10))
   assert.strictEqual(a.compare(b, 6, 10), 1)
@@ -1897,26 +1906,26 @@ test('Buffer compare (offset) (node.js repository test)', () => {
   assert.strictEqual(a.compare(b, 0, 7, 4, 6), -1)
 
   // Null is ambiguous.
-  // assert.throws(() => a.compare(b, 0, null)) ❌
+  assert.throws(() => a.compare(b, 0, null as any))
 
   // Values do not get coerced.
-  // assert.throws(() => a.compare(b, 0, { valueOf: () => 5 })) ❌
+  assert.throws(() => a.compare(b, 0, { valueOf: () => 5 } as any))
 
   // Infinity should not be coerced.
-  // assert.throws(() => a.compare(b, Infinity, -Infinity)) ❌
+  assert.throws(() => a.compare(b, Infinity, -Infinity))
 
   // Zero length target because default for targetEnd <= targetSource
   assert.strictEqual(a.compare(b, 0xff), 1)
 
-  // assert.throws(() => a.compare(b, '0xff')) ❌
-  // assert.throws(() => a.compare(b, 0, '0xff')) ❌
+  assert.throws(() => a.compare(b, '0xff' as any))
+  assert.throws(() => a.compare(b, 0, '0xff' as any))
 
-  // assert.throws(() => a.compare(b, 0, 100, 0)) ❌
-  // assert.throws(() => a.compare(b, 0, 1, 0, 100)) ❌
-  // assert.throws(() => a.compare(b, -1)) ❌
-  // assert.throws(() => a.compare(b, 0, Infinity)) ❌
-  // assert.throws(() => a.compare(b, 0, 1, -1)) ❌
-  // assert.throws(() => a.compare(b, -Infinity, Infinity)) ❌
+  assert.throws(() => a.compare(b, 0, 100, 0))
+  assert.throws(() => a.compare(b, 0, 1, 0, 100))
+  assert.throws(() => a.compare(b, -1))
+  assert.throws(() => a.compare(b, 0, Infinity))
+  assert.throws(() => a.compare(b, 0, 1, -1))
+  assert.throws(() => a.compare(b, -Infinity, Infinity))
   // @ts-expect-error
   assert.throws(() => a.compare())
 })
@@ -2003,7 +2012,7 @@ test('Buffer copy (node.js repository test)', () => {
     b.fill(++cntr)
     c.fill(++cntr)
     const copied = b.copy(c, 0, 0, 512.5)
-    // assert.strictEqual(copied, 512) ❌
+    assert.strictEqual(copied, 512)
     for (let i = 0; i < c.length; i++) {
       assert.strictEqual(c[i], b[i])
     }
@@ -2101,13 +2110,13 @@ test('Buffer copy (node.js repository test)', () => {
   // assert.throws(() => Buffer.prototype.copy.call(0)) ❌
 
   // Copy throws at negative targetStart
-  // assert.throws(() => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), -1, 0)) ❌
+  assert.throws(() => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), -1, 0))
 
   // Copy throws at negative sourceStart
-  // assert.throws(() => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), 0, -1)) ❌
+  assert.throws(() => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), 0, -1))
 
   // Copy throws if sourceStart is greater than length of source
-  // assert.throws(() => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), 0, 100)) ❌
+  assert.throws(() => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), 0, 100))
 
   {
     // Check sourceEnd resets to targetEnd if former is greater than the latter
@@ -2120,7 +2129,7 @@ test('Buffer copy (node.js repository test)', () => {
   }
 
   // Throw with negative sourceEnd
-  // assert.throws(() => b.copy(c, 0, 0, -1)) ❌
+  assert.throws(() => b.copy(c, 0, 0, -1))
 
   // When sourceStart is greater than sourceEnd, zero copied
   assert.strictEqual(b.copy(c, 0, 100, 10), 0)
@@ -2160,7 +2169,7 @@ test('Buffer copy (node.js repository test)', () => {
     // @ts-expect-error
     b.copy(c, 'not a valid offset')
     // Make sure this acted like a regular copy with `0` offset.
-    // assert.deepStrictEqual(c, b.slice(0, c.length)) ❌
+    assert.deepStrictEqual(c, b.slice(0, c.length))
   }
 
   {
@@ -2190,7 +2199,7 @@ test('Buffer equals (node.js repository test)', () => {
   assert.ok(d.equals(d))
   assert.ok(d.equals(new Uint8Array([0x61, 0x62, 0x63, 0x64, 0x65])))
 
-  // assert.throws(() => Buffer.alloc(1).equals('abc')) ❌
+  assert.throws(() => Buffer.alloc(1).equals('abc' as any))
 })
 
 test('Buffer fill (node.js repository test)', () => {
@@ -2368,7 +2377,7 @@ test('Buffer fill (node.js repository test)', () => {
     ['', 0, buf1.length + 1],
     ['', 1, -1],
   ].forEach((args) => {
-    // assert.throws(() => buf1.fill(...args)) ❌
+    assert.throws(() => buf1.fill(...args))
   })
 
   // @ts-expect-error
@@ -2377,7 +2386,8 @@ test('Buffer fill (node.js repository test)', () => {
     ['a', 0, 0, NaN],
     ['a', 0, 0, false],
   ].forEach((args) => {
-    // assert.throws(() => buf1.fill(...args)) ❌
+    // @ts-expect-error
+    assert.throws(() => buf1.fill(...args))
   })
 
   // @ts-expect-error
@@ -2447,7 +2457,7 @@ test('Buffer fill (node.js repository test)', () => {
 
   // Make sure these throw.
   assert.throws(() => Buffer.allocUnsafe(8).fill('a', -1))
-  // assert.throws(() => Buffer.allocUnsafe(8).fill('a', 0, 9)) ❌
+  assert.throws(() => Buffer.allocUnsafe(8).fill('a', 0, 9))
 
   // Make sure this doesn't hang indefinitely.
   Buffer.allocUnsafe(8).fill('')
@@ -2467,7 +2477,7 @@ test('Buffer fill (node.js repository test)', () => {
     buf.fill(0)
     for (let i = 0; i < buf.length; i++) assert.strictEqual(buf[i], 0)
 
-    // buf.fill(null) ❌
+    buf.fill(null as any)
     for (let i = 0; i < buf.length; i++) assert.strictEqual(buf[i], 0)
 
     buf.fill(1, 16, 32)
@@ -2570,7 +2580,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.indexOf('a', -1), -1)
   assert.strictEqual(b.indexOf('a', -4), -1)
   assert.strictEqual(b.indexOf('a', -b.length), 0)
-  // assert.strictEqual(b.indexOf('a', NaN), 0) ❌
+  assert.strictEqual(b.indexOf('a', NaN), 0)
   assert.strictEqual(b.indexOf('a', -Infinity), 0)
   assert.strictEqual(b.indexOf('a', Infinity), -1)
   assert.strictEqual(b.indexOf('bc'), 1)
@@ -2578,7 +2588,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.indexOf('bc', -1), -1)
   assert.strictEqual(b.indexOf('bc', -3), -1)
   assert.strictEqual(b.indexOf('bc', -5), 1)
-  // assert.strictEqual(b.indexOf('bc', NaN), 1) ❌
+  assert.strictEqual(b.indexOf('bc', NaN), 1)
   assert.strictEqual(b.indexOf('bc', -Infinity), 1)
   assert.strictEqual(b.indexOf('bc', Infinity), -1)
   assert.strictEqual(b.indexOf('f'), b.length - 1)
@@ -2592,7 +2602,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.indexOf(buf_a, -1), -1)
   assert.strictEqual(b.indexOf(buf_a, -4), -1)
   assert.strictEqual(b.indexOf(buf_a, -b.length), 0)
-  // assert.strictEqual(b.indexOf(buf_a, NaN), 0) ❌
+  assert.strictEqual(b.indexOf(buf_a, NaN), 0)
   assert.strictEqual(b.indexOf(buf_a, -Infinity), 0)
   assert.strictEqual(b.indexOf(buf_a, Infinity), -1)
   assert.strictEqual(b.indexOf(buf_bc), 1)
@@ -2600,7 +2610,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.indexOf(buf_bc, -1), -1)
   assert.strictEqual(b.indexOf(buf_bc, -3), -1)
   assert.strictEqual(b.indexOf(buf_bc, -5), 1)
-  // assert.strictEqual(b.indexOf(buf_bc, NaN), 1) ❌
+  assert.strictEqual(b.indexOf(buf_bc, NaN), 1)
   assert.strictEqual(b.indexOf(buf_bc, -Infinity), 1)
   assert.strictEqual(b.indexOf(buf_bc, Infinity), -1)
   assert.strictEqual(b.indexOf(buf_f), b.length - 1)
@@ -2614,7 +2624,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.indexOf(0x61, -1), -1)
   assert.strictEqual(b.indexOf(0x61, -4), -1)
   assert.strictEqual(b.indexOf(0x61, -b.length), 0)
-  // assert.strictEqual(b.indexOf(0x61, NaN), 0) ❌
+  assert.strictEqual(b.indexOf(0x61, NaN), 0)
   assert.strictEqual(b.indexOf(0x61, -Infinity), 0)
   assert.strictEqual(b.indexOf(0x61, Infinity), -1)
   assert.strictEqual(b.indexOf(0x0), -1)
@@ -2847,20 +2857,20 @@ test('Buffer indexOf (node.js repository test)', () => {
   // Test weird offset arguments.
   // The following offsets coerce to NaN or 0, searching the whole Buffer
   assert.strictEqual(b.indexOf('b', undefined), 1)
-  // assert.strictEqual(b.indexOf('b', {}), 1) ❌
+  assert.strictEqual(b.indexOf('b', {} as any), 1)
   assert.strictEqual(b.indexOf('b', 0), 1)
-  // assert.strictEqual(b.indexOf('b', null), 1) ❌
-  // assert.strictEqual(b.indexOf('b', []), 1)  ❌
+  assert.strictEqual(b.indexOf('b', null as any), 1)
+  assert.strictEqual(b.indexOf('b', [] as any), 1)
 
   // The following offset coerces to 2, in other words +[2] === 2
   // assert.strictEqual(b.indexOf('b', [2]), -1) ❌
 
   // Behavior should match String.indexOf()
   assert.strictEqual(b.indexOf('b', undefined), s.indexOf('b', undefined))
-  // assert.strictEqual(b.indexOf('b', {}), s.indexOf('b', {})) ❌
+  assert.strictEqual(b.indexOf('b', {} as any), s.indexOf('b', {} as any))
   assert.strictEqual(b.indexOf('b', 0), s.indexOf('b', 0))
-  // assert.strictEqual(b.indexOf('b', null), s.indexOf('b', null)) ❌
-  // assert.strictEqual(b.indexOf('b', []), s.indexOf('b', [])) ❌
+  assert.strictEqual(b.indexOf('b', null as any), s.indexOf('b', null as any))
+  assert.strictEqual(b.indexOf('b', [] as any), s.indexOf('b', [] as any))
   // assert.strictEqual(b.indexOf('b', [2]), s.indexOf('b', [2])) ❌
 
   // All code for handling encodings is shared between Buffer.indexOf and
@@ -2876,7 +2886,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf('a', -4), 0)
   assert.strictEqual(b.lastIndexOf('a', -b.length), 0)
   assert.strictEqual(b.lastIndexOf('a', -b.length - 1), -1)
-  // assert.strictEqual(b.lastIndexOf('a', NaN), 0) ❌
+  assert.strictEqual(b.lastIndexOf('a', NaN), 0)
   assert.strictEqual(b.lastIndexOf('a', -Infinity), -1)
   assert.strictEqual(b.lastIndexOf('a', Infinity), 0)
   // lastIndexOf Buffer:
@@ -2886,7 +2896,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf(buf_a, -4), 0)
   assert.strictEqual(b.lastIndexOf(buf_a, -b.length), 0)
   assert.strictEqual(b.lastIndexOf(buf_a, -b.length - 1), -1)
-  // assert.strictEqual(b.lastIndexOf(buf_a, NaN), 0) ❌
+  assert.strictEqual(b.lastIndexOf(buf_a, NaN), 0)
   assert.strictEqual(b.lastIndexOf(buf_a, -Infinity), -1)
   assert.strictEqual(b.lastIndexOf(buf_a, Infinity), 0)
   assert.strictEqual(b.lastIndexOf(buf_bc), 1)
@@ -2895,7 +2905,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf(buf_bc, -3), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -5), 1)
   // assert.strictEqual(b.lastIndexOf(buf_bc, -6), -1) ❌
-  // assert.strictEqual(b.lastIndexOf(buf_bc, NaN), 1) ❌
+  assert.strictEqual(b.lastIndexOf(buf_bc, NaN), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -Infinity), -1)
   assert.strictEqual(b.lastIndexOf(buf_bc, Infinity), 1)
   assert.strictEqual(b.lastIndexOf(buf_f), b.length - 1)
@@ -2911,7 +2921,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf(0x61, -4), 0)
   assert.strictEqual(b.lastIndexOf(0x61, -b.length), 0)
   assert.strictEqual(b.lastIndexOf(0x61, -b.length - 1), -1)
-  // assert.strictEqual(b.lastIndexOf(0x61, NaN), 0) ❌
+  assert.strictEqual(b.lastIndexOf(0x61, NaN), 0)
   assert.strictEqual(b.lastIndexOf(0x61, -Infinity), -1)
   assert.strictEqual(b.lastIndexOf(0x61, Infinity), 0)
   assert.strictEqual(b.lastIndexOf(0x0), -1)
@@ -2919,7 +2929,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   // Test weird offset arguments.
   // The following offsets coerce to NaN, searching the whole Buffer
   assert.strictEqual(b.lastIndexOf('b', undefined), 1)
-  // assert.strictEqual(b.lastIndexOf('b', {}), 1) ❌
+  assert.strictEqual(b.lastIndexOf('b', {} as any), 1)
 
   // The following offsets coerce to 0
   // assert.strictEqual(b.lastIndexOf('b', 0), -1) ❌🔍 TODO investigate
@@ -2931,8 +2941,8 @@ test('Buffer indexOf (node.js repository test)', () => {
 
   // Behavior should match String.lastIndexOf()
   assert.strictEqual(b.lastIndexOf('b', undefined), s.lastIndexOf('b', undefined))
-  // assert.strictEqual(b.lastIndexOf('b', {}), s.lastIndexOf('b', {})) ❌
-  // assert.strictEqual(b.lastIndexOf('b', 0), s.lastIndexOf('b', 0)) ❌
+  assert.strictEqual(b.lastIndexOf('b', {} as any), s.lastIndexOf('b', {} as any))
+  // assert.strictEqual(b.lastIndexOf('b', 0), s.lastIndexOf('b', 0)) ❌🔍 TODO investigate
   // assert.strictEqual(b.lastIndexOf('b', null), s.lastIndexOf('b', null)) ❌
   // assert.strictEqual(b.lastIndexOf('b', []), s.lastIndexOf('b', [])) ❌
   // assert.strictEqual(b.lastIndexOf('b', [2]), s.lastIndexOf('b', [2])) ❌
@@ -3096,7 +3106,7 @@ test('Buffer includes (node.js repository test)', () => {
   assert(!b.includes('a', -1))
   assert(!b.includes('a', -4))
   assert(b.includes('a', -b.length))
-  // assert(b.includes('a', NaN)) ❌
+  assert(b.includes('a', NaN))
   assert(b.includes('a', -Infinity))
   assert(!b.includes('a', Infinity))
   assert(b.includes('bc'))
@@ -3104,7 +3114,7 @@ test('Buffer includes (node.js repository test)', () => {
   assert(!b.includes('bc', -1))
   assert(!b.includes('bc', -3))
   assert(b.includes('bc', -5))
-  // assert(b.includes('bc', NaN)) ❌
+  assert(b.includes('bc', NaN))
   assert(b.includes('bc', -Infinity))
   assert(!b.includes('bc', Infinity))
   // @ts-expect-error
@@ -3119,7 +3129,7 @@ test('Buffer includes (node.js repository test)', () => {
   assert(!b.includes(buf_a, -1))
   assert(!b.includes(buf_a, -4))
   assert(b.includes(buf_a, -b.length))
-  // assert(b.includes(buf_a, NaN)) ❌
+  assert(b.includes(buf_a, NaN))
   assert(b.includes(buf_a, -Infinity))
   assert(!b.includes(buf_a, Infinity))
   assert(b.includes(buf_bc))
@@ -3127,7 +3137,7 @@ test('Buffer includes (node.js repository test)', () => {
   assert(!b.includes(buf_bc, -1))
   assert(!b.includes(buf_bc, -3))
   assert(b.includes(buf_bc, -5))
-  // assert(b.includes(buf_bc, NaN)) ❌
+  assert(b.includes(buf_bc, NaN))
   assert(b.includes(buf_bc, -Infinity))
   assert(!b.includes(buf_bc, Infinity))
   // @ts-expect-error
@@ -3142,7 +3152,7 @@ test('Buffer includes (node.js repository test)', () => {
   assert(!b.includes(0x61, -1))
   assert(!b.includes(0x61, -4))
   assert(b.includes(0x61, -b.length))
-  // assert(b.includes(0x61, NaN)) ❌
+  assert(b.includes(0x61, NaN))
   assert(b.includes(0x61, -Infinity))
   assert(!b.includes(0x61, Infinity))
   assert(!b.includes(0x0))
@@ -3301,7 +3311,7 @@ test('Buffer includes (node.js repository test)', () => {
     }
   }
 
-  // Find substrings in Usc2. ❌
+  // Find substrings in Usc2
   lengths = [2, 4, 16] // Single char, simple and complex.
   indices = [0x5, 0x65, 0x105, 0x205, 0x285, 0x2005, 0x2085, 0xfff0]
   for (let lengthIndex = 0; lengthIndex < lengths.length; lengthIndex++) {
@@ -3912,7 +3922,7 @@ test('Buffer SharedArrayBuffer (node.js repository test)', () => {
   assert.deepStrictEqual(arr_buf, ar_buf)
 
   // Checks for calling Buffer.byteLength on a SharedArrayBuffer.
-  // assert.strictEqual(Buffer.byteLength(sab), sab.byteLength) ❌
+  assert.strictEqual(Buffer.byteLength(sab), sab.byteLength)
 
   Buffer.from({ buffer: sab }) // Should not throw.
 })
@@ -4926,17 +4936,17 @@ test('Buffer write uint (node.js repository test)', () => {
   ]) {
     const p = Buffer.prototype
     const lowerFn = fn.replace(/UInt/, 'Uint')
-    // assert.strictEqual(p[`write${fn}`], p[`write${lowerFn}`]) ❌
-    // assert.strictEqual(p[`read${fn}`], p[`read${lowerFn}`]) ❌
+    // assert.strictEqual(p[`write${fn}`], p[`write${lowerFn}`])
+    // assert.strictEqual(p[`read${fn}`], p[`read${lowerFn}`])
   }
 })
 
 test('Buffer zero fill (node.js repository test)', () => {
   // Tests deprecated Buffer API on purpose
-  // const buf1 = Buffer(100) ❌
-  // const buf2 = new Buffer(100)
-  // for (let n = 0; n < buf1.length; n++) assert.strictEqual(buf1[n], 0)
-  // for (let n = 0; n < buf2.length; n++) assert.strictEqual(buf2[n], 0)
+  const buf1 = Buffer(100)
+  const buf2 = new Buffer(100)
+  for (let n = 0; n < buf1.length; n++) assert.strictEqual(buf1[n], 0)
+  for (let n = 0; n < buf2.length; n++) assert.strictEqual(buf2[n], 0)
 })
 
 test('Buffer bigint64 (node.js repository test)', () => {
@@ -5077,11 +5087,15 @@ test('Buffer alloc (node.js repository test)', () => {
   Buffer.from('', 'latin1')
   Buffer.alloc(0)
   Buffer.allocUnsafe(0)
-  // new Buffer('') ❌
-  // new Buffer('', 'ascii') ❌
-  // new Buffer('', 'latin1') ❌
-  // new Buffer('', 'binary') ❌
-  // Buffer(0) ❌
+  // @ts-expect-error
+  new Buffer('')
+  // @ts-expect-error
+  new Buffer('', 'ascii')
+  // @ts-expect-error
+  new Buffer('', 'latin1')
+  // @ts-expect-error
+  new Buffer('', 'binary')
+  Buffer(0)
 
   const outOfRangeError = {
     code: 'ERR_OUT_OF_RANGE',
@@ -5780,10 +5794,8 @@ test('Buffer alloc (node.js repository test)', () => {
   // https://github.com/joyent/node/issues/1758
 
   // Call .fill() first, stops valgrind warning about uninitialized memory reads.
-  // @ts-expect-error
   Buffer.allocUnsafe(3.3).fill().toString()
   // Throws bad argument error in commit 43cb4ec
-  // @ts-expect-error
   Buffer.alloc(3.3).fill().toString()
   assert.strictEqual(Buffer.allocUnsafe(3.3).length, 3)
   assert.strictEqual(Buffer.from({ length: 3.3 }).length, 3)
