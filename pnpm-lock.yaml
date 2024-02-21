@@ -328,8 +328,8 @@ importers:
         specifier: workspace:*
         version: link:../cli
       wrangler:
-        specifier: 3.28.2
-        version: 3.28.2(@cloudflare/workers-types@4.20240208.0)
+        specifier: 3.28.4
+        version: 3.28.4
 
   packages/bundled-js-drivers:
     dependencies:
@@ -8759,6 +8759,30 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: true
+
+  /miniflare@3.20240129.3:
+    resolution: {integrity: sha512-PCmLJ+UvtbpPj/fgNzTGbd+U5QBkt3akRNcdks9RBJU2SH+gUCp7iahsaI4GA344NX5MIbC6ctw1A6TfcA+aFA==}
+    engines: {node: '>=16.13'}
+    hasBin: true
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      acorn: 8.9.0
+      acorn-walk: 8.2.0
+      capnp-ts: 0.7.0
+      exit-hook: 2.2.1
+      glob-to-regexp: 0.4.1
+      stoppable: 1.1.0
+      undici: 5.28.3
+      workerd: 1.20240129.0
+      ws: 8.14.2
+      youch: 3.3.3
+      zod: 3.22.4
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: false
 
   /minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
@@ -11452,6 +11476,39 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: true
+
+  /wrangler@3.28.4:
+    resolution: {integrity: sha512-LDwW4KhplRhIEfQaZry8AMZIOTpkYZXLWjg1MDSC3a12BXSY37pXACmFxbZeg2TzcOi30j+KqwLfv15vCavIyA==}
+    engines: {node: '>=16.17.0'}
+    hasBin: true
+    peerDependencies:
+      '@cloudflare/workers-types': ^4.20230914.0
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.3.1
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      chokidar: 3.6.0
+      esbuild: 0.17.19
+      miniflare: 3.20240129.3
+      nanoid: 3.3.7
+      path-to-regexp: 6.2.1
+      resolve: 1.22.8
+      resolve.exports: 2.0.2
+      selfsigned: 2.4.1
+      source-map: 0.6.1
+      xxhash-wasm: 1.0.2
+    optionalDependencies:
+      fsevents: 2.3.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: false
 
   /wrap-ansi@6.2.0:
     resolution: {integrity: sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==}
