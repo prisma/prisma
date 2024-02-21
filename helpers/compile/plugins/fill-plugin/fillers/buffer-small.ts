@@ -76,24 +76,35 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     return this.byteOffset
   }
 
-  static alloc(size: number, fill: string | number | Uint8Array = 0, encoding?: Encoding) {
+  static alloc(size: number, fill: string | number | Uint8Array = 0, encoding: Encoding = 'utf8') {
+    assertString(encoding, 'encoding')
+
     return BufferClass.allocUnsafe(size).fill(fill, encoding)
   }
 
   static allocUnsafe(size: number) {
-    return BufferClass.from(new Uint8Array(size))
+    return BufferClass.from(size)
   }
 
   static allocUnsafeSlow(size: number) {
-    return BufferClass.from(new Uint8Array(size))
+    return BufferClass.from(size)
   }
 
   static isBuffer(arg: any): arg is BufferClass {
     return arg && !!arg._isBuffer
   }
 
-  static byteLength(value: unknown, encoding: Encoding = 'utf8') {
-    return BufferClass.from(value, encoding).length
+  static byteLength(string: unknown, encoding: Encoding = 'utf8') {
+    if (typeof string === 'string') return stringToBuffer(string, encoding).byteLength
+    if (string && string['byteLength']) return string['byteLength']
+
+    const e = new TypeError('The "string" argument must be of type string or an instance of Buffer or ArrayBuffer.')
+    e['code'] = 'ERR_INVALID_ARG_TYPE'
+    throw e
+  }
+
+  static isEncoding(encoding: string): encoding is Encoding {
+    return Encodings.includes(encoding as any)
   }
 
   static compare(buff1: Uint8Array, buff2: Uint8Array) {
@@ -122,7 +133,17 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     }
 
     if (ArrayBuffer.isView(value)) {
-      return new BufferClass(value.buffer, value.byteOffset, value.byteLength)
+      const { byteOffset, byteLength, buffer } = value
+
+      if ('map' in value && typeof value.map === 'function') {
+        return new BufferClass(
+          value.map((v) => v % 256),
+          byteOffset,
+          byteLength,
+        )
+      }
+
+      return new BufferClass(buffer, byteOffset, byteLength)
     }
 
     if (value && typeof value === 'object' && ('length' in value || 'byteLength' in value || 'buffer' in value)) {
@@ -158,6 +179,12 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   }
 
   readIntBE(offset: number, byteLength: number) {
+    assertNumber(offset, 'offset')
+    assertInteger(offset, 'offset')
+    assertUnsigned(offset, 'offset', this.length - 1)
+    assertNumber(byteLength, 'byteLength')
+    assertInteger(byteLength, 'byteLength')
+
     const view = new DataView(this.buffer, offset, byteLength)
     let val = 0
     for (let i = 0; i < byteLength; i++) {
@@ -172,6 +199,12 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   }
 
   readIntLE(offset: number, byteLength: number) {
+    assertNumber(offset, 'offset')
+    assertInteger(offset, 'offset')
+    assertUnsigned(offset, 'offset', this.length - 1)
+    assertNumber(byteLength, 'byteLength')
+    assertInteger(byteLength, 'byteLength')
+
     const view = new DataView(this.buffer, offset, byteLength)
     let val = 0
     for (let i = 0; i < byteLength; i++) {
@@ -186,6 +219,12 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   }
 
   readUIntBE(offset: number, byteLength: number) {
+    assertNumber(offset, 'offset')
+    assertInteger(offset, 'offset')
+    assertUnsigned(offset, 'offset', this.length - 1)
+    assertNumber(byteLength, 'byteLength')
+    assertInteger(byteLength, 'byteLength')
+
     const view = new DataView(this.buffer, offset, byteLength)
     let val = 0
     for (let i = 0; i < byteLength; i++) {
@@ -200,6 +239,12 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   }
 
   readUIntLE(offset: number, byteLength: number) {
+    assertNumber(offset, 'offset')
+    assertInteger(offset, 'offset')
+    assertUnsigned(offset, 'offset', this.length - 1)
+    assertNumber(byteLength, 'byteLength')
+    assertInteger(byteLength, 'byteLength')
+
     const view = new DataView(this.buffer, offset, byteLength)
     let val = 0
     for (let i = 0; i < byteLength; i++) {
@@ -224,6 +269,12 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   }
 
   writeUIntBE(value: number, offset: number, byteLength: number) {
+    assertNumber(offset, 'offset')
+    assertInteger(offset, 'offset')
+    assertUnsigned(offset, 'offset', this.length - 1)
+    assertNumber(byteLength, 'byteLength')
+    assertInteger(byteLength, 'byteLength')
+
     const view = new DataView(this.buffer, offset, byteLength)
     for (let i = byteLength - 1; i >= 0; i--) {
       view.setUint8(i, value & 0xff)
@@ -238,6 +289,12 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   }
 
   writeUIntLE(value: number, offset: number, byteLength: number) {
+    assertNumber(offset, 'offset')
+    assertInteger(offset, 'offset')
+    assertUnsigned(offset, 'offset', this.length - 1)
+    assertNumber(byteLength, 'byteLength')
+    assertInteger(byteLength, 'byteLength')
+
     const view = new DataView(this.buffer, offset, byteLength)
     for (let i = 0; i < byteLength; i++) {
       view.setUint8(i, value & 0xff) // bitwise 0xff is to get the last 8 bits
@@ -330,6 +387,8 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     const length = typeof lengthEnc === 'string' ? this.length - offset : lengthEnc ?? this.length - offset
     encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof lengthEnc === 'string' ? lengthEnc : encoding
 
+    assertNumber(offset, 'offset')
+    assertNumber(length, 'length')
     assertUnsigned(offset, 'offset', this.length)
     assertUnsigned(length, 'length', this.length)
 
@@ -347,6 +406,7 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof endEnc === 'string' ? endEnc : encoding
     value = BufferClass.from(typeof value === 'number' ? [value] : value ?? [], encoding)
 
+    assertString(encoding, 'encoding')
     assertUnsigned(offset, 'offset', this.length)
     assertUnsigned(end, 'end', this.length)
 
@@ -436,6 +496,13 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   toLocaleString() {
     return this.toString()
   }
+
+  inspect() {
+    const hex = this.toString('hex')
+    const byteHex = hex.match(/.{1,2}/g)!.join(' ')
+
+    return `<Buffer ${byteHex}>`
+  }
 }
 
 function stringToBuffer(value: string, encoding: string) {
@@ -445,6 +512,9 @@ function stringToBuffer(value: string, encoding: string) {
     return new BufferClass(encoder.encode(value))
   }
   if (encoding === 'base64' || encoding === 'base64url') {
+    value = value.replace(/-/g, '+').replace(/_/g, '/')
+    value = value.replace(/[^A-Za-z0-9+/]/g, '')
+
     return new BufferClass([...atob(value)].map((v) => v.charCodeAt(0)))
   }
   if (encoding === 'binary' || encoding === 'ascii' || encoding === 'latin1' || encoding === 'latin-1') {
@@ -470,24 +540,6 @@ function stringToBuffer(value: string, encoding: string) {
   bufferPolyfillDoesNotImplement(`encoding "${encoding}"`)
 }
 
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
-
-export type Encoding =
-  | 'utf8'
-  | 'utf-8'
-  | 'hex'
-  | 'base64'
-  | 'ascii'
-  | 'binary'
-  | 'base64url'
-  | 'ucs2'
-  | 'ucs-2'
-  | 'utf16le'
-  | 'utf-16le'
-  | 'latin1'
-  | 'latin-1'
-
 function initReadMethods(prototype: BufferClass) {
   const dataViewProtoProps = Object.getOwnPropertyNames(DataView.prototype)
   const dataViewMethods = dataViewProtoProps.filter((m) => m.startsWith('get') || m.startsWith('set'))
@@ -495,6 +547,8 @@ function initReadMethods(prototype: BufferClass) {
 
   const genericReadMethod = (i: number, littleEndian: boolean) => {
     return function (this: BufferClass, offset = 0) {
+      assertNumber(offset, 'offset')
+      assertInteger(offset, 'offset')
       assertUnsigned(offset, 'offset', this.length - 1)
       return new DataView(this.buffer)[dataViewMethods[i]](offset, littleEndian)
     }
@@ -502,6 +556,13 @@ function initReadMethods(prototype: BufferClass) {
 
   const genericWriteMethod = (i: number, littleEndian: boolean) => {
     return function (this: BufferClass, value: any, offset = 0) {
+      const boundKey = dataViewMethods[i].match(/set(\w+\d+)/)![1].toLowerCase()
+      const bound = bounds[boundKey as keyof typeof bounds]
+
+      assertNumber(offset, 'offset')
+      assertInteger(offset, 'offset')
+      assertUnsigned(offset, 'offset', this.length - 1)
+      assertBounds(value, 'value', bound[0], bound[1])
       new DataView(this.buffer)[dataViewMethods[i]](offset, value, littleEndian)
       return offset + parseInt(dataViewMethods[i].match(/\d+/)![0]) / 8
     }
@@ -542,15 +603,81 @@ function assertUint8Array(value: any, argName: string): asserts value is Uint8Ar
 
 function assertUnsigned(value: number, argName: string, maxValue = MAX_UNSIGNED_32_BIT + 1) {
   if (value < 0 || value > maxValue) {
-    throw new RangeError(`The value of "${argName}" is out of range. It must be >= 0 && <= ${maxValue}`)
+    const e = new RangeError(
+      `The value of "${argName}" is out of range. It must be >= 0 && <= ${maxValue}. Received ${value}`,
+    )
+    e['code'] = 'ERR_OUT_OF_RANGE'
+    throw e
   }
 }
 
 function assertNumber(value: any, argName: string): asserts value is number {
   if (typeof value !== 'number') {
-    throw new TypeError(`The "${argName}" argument must be of type number`)
+    const e = new TypeError(`The "${argName}" argument must be of type number. Received type ${typeof value}.`)
+    e['code'] = 'ERR_INVALID_ARG_TYPE'
+    throw e
   }
 }
+
+function assertInteger(value: any, argName: string): asserts value is number {
+  if (!Number.isInteger(value) || Number.isNaN(value)) {
+    const e = new RangeError(`The value of "${argName}" is out of range. It must be an integer. Received ${value}`)
+    e['code'] = 'ERR_OUT_OF_RANGE'
+    throw e
+  }
+}
+
+function assertBounds(value: number, argName: string, min: any, max: any) {
+  if (value < min || value > max) {
+    const e = new RangeError(
+      `The value of "${argName}" is out of range. It must be >= ${min} and <= ${max}. Received ${value}`,
+    )
+    e['code'] = 'ERR_OUT_OF_RANGE'
+    throw e
+  }
+}
+
+function assertString(value: any, argName: string): asserts value is string {
+  if (typeof value !== 'string') {
+    const e = new TypeError(`The "${argName}" argument must be of type string. Received type ${typeof value}`)
+    e['code'] = 'ERR_INVALID_ARG_TYPE'
+    throw e
+  }
+}
+
+const bounds = {
+  int8: [-0x80, 0x7f],
+  int16: [-0x8000, 0x7fff],
+  int32: [-0x80000000, 0x7fffffff],
+  uint8: [0, 0xff],
+  uint16: [0, 0xffff],
+  uint32: [0, 0xffffffff],
+  float32: [-Infinity, Infinity],
+  float64: [-Infinity, Infinity],
+  bigint64: [-0x8000000000000000n, 0x7fffffffffffffffn],
+  biguint64: [0n, 0xffffffffffffffffn],
+} as const
+
+const encoder = new TextEncoder()
+const decoder = new TextDecoder()
+
+export type Encoding = (typeof Encodings)[number]
+
+const Encodings = [
+  'utf8',
+  'utf-8',
+  'hex',
+  'base64',
+  'ascii',
+  'binary',
+  'base64url',
+  'ucs2',
+  'ucs-2',
+  'utf16le',
+  'utf-16le',
+  'latin1',
+  'latin-1',
+] as const
 
 const MAX_UNSIGNED_32_BIT = 0xffffffff
 
