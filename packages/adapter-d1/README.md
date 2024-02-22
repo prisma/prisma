@@ -57,7 +57,7 @@ export default {
 }
 ```
 
-> **Note**: Make sure your D1 database is setup in your `wrangler.toml`. Refer to [Neon's docs](https://neon.tech/docs/connect/connect-from-any-app) to learn how to retrieve your database's connection string.
+> **Note**: Make sure your D1 database is setup in your `wrangler.toml`. Refer to [Cloudflare's docs](https://developers.cloudflare.com/d1/get-started/#3-create-a-database) to learn how to set up your database binding.
 >
 > ```toml
 > [[d1_databases]]
