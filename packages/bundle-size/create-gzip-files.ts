@@ -21,7 +21,7 @@ void (async () => {
 
   for (const project of projects) {
     // `--node-compat` is only needed when using `pg`
-    const nodeCompat = project.includes('pg') ? '--node-compat' : ''
+    const nodeCompat = project.includes('pg') ? '--compatibility-flags nodejs_compat' : ''
     const projectDir = `${__dirname}/${project}`
 
     // Install deps & copy schema & generate Prisma Client
