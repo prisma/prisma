@@ -13,6 +13,32 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 describe = describeIf(!process.version.startsWith('v16.'))
 test = testIf(!process.version.startsWith('v16.'))
 
+describe('tests that Buffer and NodeBuffer are compatible', () => {
+  test('Buffer can be created from NodeBuffer', () => {
+    const nodeBuffer = NodeBuffer.from('Hello, World!')
+    const buffer = Buffer.from(nodeBuffer)
+    expect(buffer.values()).toEqual(nodeBuffer.values())
+  })
+
+  test('NodeBuffer can be created from Buffer', () => {
+    const buffer = Buffer.from('Hello, World!')
+    const nodeBuffer = NodeBuffer.from(buffer)
+    expect(nodeBuffer.values()).toEqual(buffer.values())
+  })
+
+  test('NodeBuffer can be created from Buffer with offset and length', () => {
+    const buffer = Buffer.from('Hello, World!')
+    const nodeBuffer = NodeBuffer.from(buffer).subarray(0, 5)
+    expect(nodeBuffer.values()).toEqual(NodeBuffer.from('Hello').values())
+  })
+
+  test('Buffer can be created from NodeBuffer with offset and length', () => {
+    const nodeBuffer = NodeBuffer.from('Hello, World!')
+    const buffer = Buffer.from(nodeBuffer.subarray(0, 5))
+    expect(buffer.values()).toEqual(Buffer.from('Hello').values())
+  })
+})
+
 describe('Buffer isBuffer (static)', () => {
   test('should return true if the object is a Buffer', () => {
     const buf = Buffer.from('Hello, World!')
