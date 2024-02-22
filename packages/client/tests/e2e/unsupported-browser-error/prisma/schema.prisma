@@ -6,16 +6,17 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./db"
+  provider = "postgresql"
+  url      = env("TEST_E2E_POSTGRES_URI")
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  posts     Post[]
-  profile   Profile?
+  id          Int         @id @default(autoincrement())
+  email       String      @unique
+  name        String?
+  posts       Post[]
+  profile     Profile?
+  accountType AccountType @default(Free)
 }
 
 model Post {
@@ -32,4 +33,10 @@ model Profile {
   bio    String?
   user   User    @relation(fields: [userId], references: [id])
   userId Int     @unique
+}
+
+enum AccountType {
+    Free
+    Paid
+    Enterprise
 }
