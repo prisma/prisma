@@ -123,12 +123,6 @@ function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs, namespace: str
  * @param args from esbuild
  */
 function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResult {
-  if (fillers[args.path] === undefined) {
-    console.log('fillers', fillers[args.path])
-    console.log('args', args)
-    process.exit(1)
-  }
-
   // display useful info if no shim has been found
   if (fillers[args.path].contents === undefined) {
     throw `no shim for "${args.path}" imported by "${args.pluginData}"`
