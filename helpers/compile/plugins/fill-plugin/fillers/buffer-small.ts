@@ -702,7 +702,3 @@ export const Buffer = new Proxy($Buffer, {
 }) as typeof $Buffer & typeof BufferClass
 
 const c2s = String.fromCodePoint
-
-const b = Buffer.from('abcdef')
-
-console.log(b.lastIndexOf(Buffer.from('bc')))
