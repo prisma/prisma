@@ -1,5 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
+import { Pool } from '@prisma/pg-worker'
 
 import { PrismaClient } from './client/wasm'
 
