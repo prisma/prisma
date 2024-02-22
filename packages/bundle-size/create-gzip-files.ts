@@ -1,9 +1,9 @@
 import { $ } from 'zx'
 
 void (async () => {
-  const postgresProjects = ['da-workers-neon', 'da-workers-pg', 'da-workers-pg-worker']
-  const sqliteProjects = ['da-workers-libsql', 'da-workers-d1']
-  const mysqlProjects = ['da-workers-planetscale']
+  const postgresProjects = ['da-workers-pg-worker']
+  const sqliteProjects = []
+  const mysqlProjects = []
 
   const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects]
 
@@ -34,6 +34,7 @@ void (async () => {
     if (project === 'da-workers-pg-worker') {
       // 1. copy the adapter, 2. swap pg with pg-worker (see test file for more info)
       await $`cp -rL ${__dirname}/../adapter-pg ${__dirname}/node_modules/@prisma/adapter-pg-worker`
+      await $`rm -fr ${__dirname}/node_modules/@prisma/adapter-pg-worker/node_modules/pg`
       await $`ln -s ${__dirname}/../pg-worker ${__dirname}/node_modules/@prisma/adapter-pg-worker/node_modules/pg`
     }
 
