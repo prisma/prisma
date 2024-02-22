@@ -3,9 +3,8 @@
 /* eslint-disable @typescript-eslint/no-loss-of-precision */
 
 import assert from 'assert'
-import { Buffer as NOdeBuffer } from 'buffer'
+import { Buffer as NodeBuffer } from 'buffer'
 
-// import { BufferClass as Buffer } from '../../../../helpers/compile/plugins/fill-plugin/fillers/buffer-small'
 import { Buffer } from '../../../../helpers/compile/plugins/fill-plugin/fillers/buffer-small'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -1716,23 +1715,22 @@ test('Buffer.values (example)', () => {
   expect(values).toEqual([98, 117, 102, 102, 101, 114])
 })
 
-// TODO
-// test('Buffer.lastIndexOf (example)', () => {
-//   const buf = Buffer.from('this buffer is a buffer')
+test('Buffer.lastIndexOf (example)', () => {
+  const buf = Buffer.from('this buffer is a buffer')
 
-//   // expect(buf.lastIndexOf('this')).toBe(0)
-//   expect(buf.lastIndexOf('buffer')).toBe(17)
-//   expect(buf.lastIndexOf(Buffer.from('buffer'))).toBe(17)
-//   expect(buf.lastIndexOf(97)).toBe(15)
-//   expect(buf.lastIndexOf(Buffer.from('yolo'))).toBe(-1)
-//   expect(buf.lastIndexOf('buffer', 5)).toBe(5)
-//   expect(buf.lastIndexOf('buffer', 4)).toBe(-1)
+  // expect(buf.lastIndexOf('this')).toBe(0)
+  expect(buf.lastIndexOf('buffer')).toBe(17)
+  expect(buf.lastIndexOf(Buffer.from('buffer'))).toBe(17)
+  expect(buf.lastIndexOf(97)).toBe(15)
+  expect(buf.lastIndexOf(Buffer.from('yolo'))).toBe(-1)
+  expect(buf.lastIndexOf('buffer', 5)).toBe(5)
+  expect(buf.lastIndexOf('buffer', 4)).toBe(-1)
 
-//   const utf16Buffer = Buffer.from('\u039a\u0391\u03a3\u03a3\u0395', 'utf16le')
+  const utf16Buffer = Buffer.from('\u039a\u0391\u03a3\u03a3\u0395', 'utf16le')
 
-//   expect(utf16Buffer.lastIndexOf('\u03a3', undefined, 'utf16le')).toBe(6)
-//   expect(utf16Buffer.lastIndexOf('\u03a3', -5, 'utf16le')).toBe(4)
-// })
+  expect(utf16Buffer.lastIndexOf('\u03a3', undefined, 'utf16le')).toBe(6)
+  expect(utf16Buffer.lastIndexOf('\u03a3', -5, 'utf16le')).toBe(4)
+})
 
 test('Buffer slice (node.js repository test)', () => {
   assert.strictEqual(Buffer.from('hello', 'utf8').slice(0, 0).length, 0)
@@ -2641,7 +2639,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.indexOf(Buffer.from('f'), -1), 5)
   assert.strictEqual(b.indexOf(Buffer.from('f'), 6), -1)
 
-  // assert.strictEqual(Buffer.from('ff').indexOf(Buffer.from('f'), 1, 'ucs2'), -1) ❌
+  // assert.strictEqual(Buffer.from('ff').indexOf(Buffer.from('f'), 1, 'ucs2'), -1)
 
   // Test invalid and uppercase encoding
   assert.strictEqual(b.indexOf('b', 'utf8'), 1)
@@ -2905,7 +2903,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf(buf_bc, -1), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -3), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -5), 1)
-  // assert.strictEqual(b.lastIndexOf(buf_bc, -6), -1) ❌
+  assert.strictEqual(b.lastIndexOf(buf_bc, -6), -1)
   assert.strictEqual(b.lastIndexOf(buf_bc, NaN), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -Infinity), -1)
   assert.strictEqual(b.lastIndexOf(buf_bc, Infinity), 1)
@@ -2933,9 +2931,9 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf('b', {} as any), 1)
 
   // The following offsets coerce to 0
-  // assert.strictEqual(b.lastIndexOf('b', 0), -1) ❌🔍 TODO investigate
+  assert.strictEqual(b.lastIndexOf('b', 0), -1)
   // assert.strictEqual(b.lastIndexOf('b', null), -1) ❌
-  // assert.strictEqual(b.lastIndexOf('b', []), -1) ❌
+  // assert.strictEqual(b.lastIndexOf('b', []), -1)
 
   // The following offset coerces to 2, in other words +[2] === 2
   // assert.strictEqual(b.lastIndexOf('b', [2]), 1) ❌
@@ -2943,7 +2941,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   // Behavior should match String.lastIndexOf()
   assert.strictEqual(b.lastIndexOf('b', undefined), s.lastIndexOf('b', undefined))
   assert.strictEqual(b.lastIndexOf('b', {} as any), s.lastIndexOf('b', {} as any))
-  // assert.strictEqual(b.lastIndexOf('b', 0), s.lastIndexOf('b', 0)) ❌🔍 TODO investigate
+  assert.strictEqual(b.lastIndexOf('b', 0), s.lastIndexOf('b', 0))
   // assert.strictEqual(b.lastIndexOf('b', null), s.lastIndexOf('b', null)) ❌
   // assert.strictEqual(b.lastIndexOf('b', []), s.lastIndexOf('b', [])) ❌
   // assert.strictEqual(b.lastIndexOf('b', [2]), s.lastIndexOf('b', [2])) ❌
@@ -2986,7 +2984,7 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(bufferString.lastIndexOf('a ', 12), 6)
   assert.strictEqual(bufferString.lastIndexOf('a ', 5), 0)
   assert.strictEqual(bufferString.lastIndexOf('a ', -1), 13)
-  // assert.strictEqual(bufferString.lastIndexOf('a ', -27), 0) ❌
+  assert.strictEqual(bufferString.lastIndexOf('a ', -27), 0)
   assert.strictEqual(-1, bufferString.lastIndexOf('a ', -28))
 
   // Test lastIndexOf for the case that the first character can be found,
@@ -4324,14 +4322,14 @@ test('Buffer write (node.js repository test)', () => {
 
   // Should not write any data when there is no space for 16-bit chars
   const z = Buffer.alloc(4, 0)
-  // assert.strictEqual(z.write('\u0001', 3, 'ucs2'), 0) ❌
+  // assert.strictEqual(z.write('\u0001', 3, 'ucs2'), 0)
   assert.strictEqual(Buffer.compare(z, Buffer.alloc(4, 0)), 0)
   // Make sure longer strings are written up to the buffer end.
   assert.strictEqual(z.write('abcd', 2), 2)
   assert.deepStrictEqual([...z], [0, 0, 0x61, 0x62])
 
   // Large overrun could corrupt the process
-  // assert.strictEqual(Buffer.alloc(4).write('ыыыыыы'.repeat(100), 3, 'utf16le'), 0) ❌
+  // assert.strictEqual(Buffer.alloc(4).write('ыыыыыы'.repeat(100), 3, 'utf16le'), 0)
 
   {
     // .write() does not affect the byte after the written-to slice of the Buffer.
@@ -5280,13 +5278,13 @@ test('Buffer alloc (node.js repository test)', () => {
       assert.strictEqual(f.toString(encoding as any), 'привет')
     }
 
-    // { ❌
-    //   const f = Buffer.from([0, 0, 0, 0, 0])
-    //   assert.strictEqual(f.length, 5)
-    //   const size = f.write('あいうえお', encoding)
-    //   assert.strictEqual(size, 4)
-    //   assert.deepStrictEqual(f, Buffer.from([0x42, 0x30, 0x44, 0x30, 0x00]))
-    // }
+    {
+      const f = Buffer.from([0, 0, 0, 0, 0])
+      assert.strictEqual(f.length, 5)
+      const size = f.write('あいうえお', encoding as any)
+      assert.strictEqual(size, 4)
+      assert.deepStrictEqual(f, Buffer.from([0x42, 0x30, 0x44, 0x30, 0x00]))
+    }
   })
 
   {
@@ -5642,11 +5640,11 @@ test('Buffer alloc (node.js repository test)', () => {
     b.write('あいうえお', encoding)
     assert.strictEqual(b.toString(encoding), 'あいうえお')
   })
-  // ;['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach((encoding) => { ❌
-  //   const b = Buffer.allocUnsafe(11)
-  //   b.write('あいうえお', 1, encoding)
-  //   assert.strictEqual(b.toString(encoding, 1), 'あいうえお')
-  // })
+  ;['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach((encoding) => {
+    const b = Buffer.allocUnsafe(11)
+    b.write('あいうえお', 1, encoding as any)
+    assert.strictEqual(b.toString(encoding as any, 1), 'あいうえお')
+  })
 
   {
     // latin1 encoding should write only one byte per character.
@@ -6159,8 +6157,8 @@ test('Buffer bytelength (node.js repository test)', () => {
   // Without an encoding, utf8 should be assumed
   assert.strictEqual(Buffer.byteLength('hey there'), 9)
   assert.strictEqual(Buffer.byteLength('𠱸挶νξ#xx :)'), 17)
+  // It should also be assumed with unrecognized encodings
   // assert.strictEqual(Buffer.byteLength('hello world', ''), 11) ❌
-  // It should also be assumed with unrecognized encoding
   // assert.strictEqual(Buffer.byteLength('hello world', 'abc'), 11) ❌
   // assert.strictEqual(Buffer.byteLength('ßœ∑≈', 'unkn0wn enc0ding'), 10) ❌
 

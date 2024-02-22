@@ -384,13 +384,17 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   write(string: string, offset: number, length: number, encoding?: Encoding): number
   write(string: string, offsetEnc?: number | Encoding, lengthEnc?: number | Encoding, encoding: Encoding = 'utf8') {
     const offset = typeof offsetEnc === 'string' ? 0 : offsetEnc ?? 0
-    const length = typeof lengthEnc === 'string' ? this.length - offset : lengthEnc ?? this.length - offset
+    let length = typeof lengthEnc === 'string' ? this.length - offset : lengthEnc ?? this.length - offset
     encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof lengthEnc === 'string' ? lengthEnc : encoding
 
     assertNumber(offset, 'offset')
     assertNumber(length, 'length')
     assertUnsigned(offset, 'offset', this.length)
     assertUnsigned(length, 'length', this.length)
+
+    if (encoding === 'ucs2' || encoding === 'ucs-2' || encoding === 'utf16le' || encoding === 'utf-16le') {
+      length = length - (length % 2)
+    }
 
     return stringToBuffer(string, encoding).copy(this, offset, 0, length)
   }
@@ -419,13 +423,13 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     return this
   }
 
-  includes(value: string | number | Uint8Array, byteOffset = 0, encoding: Encoding = 'utf-8') {
+  includes(value: string | number | Uint8Array, byteOffset: number | null = null, encoding: Encoding = 'utf-8') {
     return this.indexOf(value, byteOffset, encoding) !== -1
   }
 
   lastIndexOf(
     value: string | number | Uint8Array,
-    byteOffsetOrEncoding: number | Encoding = 0,
+    byteOffsetOrEncoding: number | Encoding | null = null,
     encoding: Encoding = 'utf-8',
   ) {
     return this.indexOf(value, byteOffsetOrEncoding, encoding, true)
@@ -433,7 +437,7 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
 
   indexOf(
     value: string | number | Uint8Array,
-    byteOffsetOrEncoding: number | Encoding = 0,
+    byteOffsetOrEncoding: number | Encoding | null = null,
     encoding: Encoding = 'utf-8',
     lastIndexOf = false,
   ) {
@@ -441,8 +445,10 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     encoding = typeof byteOffsetOrEncoding === 'string' ? byteOffsetOrEncoding : encoding
     const toSearch = BufferClass.from(typeof value === 'number' ? [value] : value, encoding)
     let byteOffset = typeof byteOffsetOrEncoding === 'string' ? 0 : byteOffsetOrEncoding
+    byteOffset = typeof byteOffsetOrEncoding === 'number' ? byteOffset : null
+    byteOffset = Number.isNaN(byteOffset) ? null : byteOffset
+    byteOffset ??= lastIndexOf ? this.length : 0
     byteOffset = byteOffset < 0 ? this.length + byteOffset : byteOffset
-    byteOffset = typeof byteOffsetOrEncoding !== 'number' ? 0 : byteOffset || 0
 
     if (toSearch.length === 0 && lastIndexOf === false) {
       return byteOffset >= this.length ? this.length : byteOffset
@@ -452,7 +458,7 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     }
 
     return method((_, i) => {
-      const searchIf = lastIndexOf ? i <= (byteOffset || this.length) : i >= byteOffset
+      const searchIf = lastIndexOf ? i <= byteOffset! : i >= byteOffset!
       return searchIf && this[i] === toSearch[0] && toSearch.every((val, j) => this[i + j] === val)
     })
   }
@@ -479,12 +485,11 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
       return this.slice(start, end).reduce((s, v) => s + c2s(v & (encoding === 'ascii' ? 0x7f : 0xff)), '')
     }
     if (encoding === 'ucs2' || encoding === 'ucs-2' || encoding === 'utf16le' || encoding === 'utf-16le') {
-      let string = ''
-      const view = new DataView(this.slice(start, end).buffer)
-      for (let i = 0; i < view.byteLength; i += 2) {
-        string += c2s(view.getUint16(i, true))
-      }
-      return string
+      const view = new DataView(this.buffer.slice(start, end))
+      return Array.from({ length: view.byteLength / 2 }, (_, i) => {
+        // if the byte length is odd, the last character will be ignored
+        return i * 2 + 1 < view.byteLength ? c2s(view.getUint16(i * 2, true)) : ''
+      }).join('')
     }
     if (encoding === 'hex') {
       return this.slice(start, end).reduce((s, v) => s + v.toString(16).padStart(2, '0'), '')
@@ -697,3 +702,7 @@ export const Buffer = new Proxy($Buffer, {
 }) as typeof $Buffer & typeof BufferClass
 
 const c2s = String.fromCodePoint
+
+const b = Buffer.from('abcdef')
+
+console.log(b.lastIndexOf(Buffer.from('bc')))
