@@ -1,0 +1,21 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
+    "@prisma/extension-accelerate": "0.6.3",
+    "@prisma/extension-read-replicas": "0.3.0",
+    "db": "link:custom"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.12",
+    "@types/node": "16.18.82",
+    "jest": "29.7.0",
+    "prisma": "/tmp/prisma-0.0.0.tgz",
+    "typescript": "5.3.3"
+  }
+}

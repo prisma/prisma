@@ -60,7 +60,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
     inlineDatasources: { db: { url: config.datasources[0].url } },
-    inlineSchema: btoa(datamodel),
+    inlineSchema: datamodel,
     inlineSchemaHash: '',
   }
 
@@ -94,9 +94,6 @@ export async function generateTestClient({ projectDir, engineType }: GenerateTes
 
   await generateInFolder({
     projectDir,
-    useLocalRuntime: false,
-    transpile: true,
-    useBuiltRuntime: false,
     overrideEngineType: engineType,
   })
 }

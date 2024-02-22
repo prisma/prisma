@@ -203,7 +203,7 @@ class SmokeTest {
   }
 
   private async testFindManyTypeTestPostgres() {
-    if (this.flavour !== 'postgres') {
+    if (this.provider !== 'postgres') {
       return
     }
 

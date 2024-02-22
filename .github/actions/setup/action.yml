@@ -22,7 +22,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v2.4.0
+    - uses: pnpm/action-setup@v3.0.0
       with:
         version: ${{ inputs.pnpm-version }}
 
@@ -44,7 +44,7 @@ runs:
 
     - name: Download custom engines
       id: custom-engine
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       with:
         key: ${{ runner.os }}-engine-${{ inputs.engine-hash }}-${{ github.event.number }}
         path: |

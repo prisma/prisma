@@ -9,6 +9,7 @@ import {
   JsonQueryAction,
   JsonSelectionSet,
   OutputTypeDescription,
+  RawTaggedValue,
 } from '../engines'
 import { throwValidationException } from '../errorRendering/throwValidationException'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
@@ -250,9 +251,9 @@ function serializeArgumentsValue(
 function serializeArgumentsObject(
   object: Record<string, JsInputValue>,
   context: SerializeContext,
-): Record<string, JsonArgumentValue> {
+): Record<string, JsonArgumentValue> | RawTaggedValue {
   if (object['$type']) {
-    return { $type: 'Json', value: JSON.stringify(object) }
+    return { $type: 'Raw', value: object }
   }
   const result: Record<string, JsonArgumentValue> = {}
   for (const key in object) {

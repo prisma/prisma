@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import type neon from '@neondatabase/serverless'
+import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
   ConnectionInfo,
@@ -13,7 +13,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 
-import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:neon')
 
@@ -83,7 +83,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     const { sql, args: values } = query
 
     try {
-      return ok(await this.client.query({ text: sql, values, rowMode: 'array' }))
+      return ok(await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' }))
     } catch (e) {
       debug('Error in performIO: %O', e)
       if (e && e.code) {
@@ -130,6 +130,13 @@ export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdap
   private isRunning = true
 
   constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
+    if (!(pool instanceof neon.Pool)) {
+      throw new TypeError(`PrismaNeon must be initialized with an instance of Pool:
+import { Pool } from '@neondatabase/serverless'
+const pool = new Pool({ connectionString: url })
+const adapter = new PrismaNeon(pool)
+`)
+    }
     super(pool)
   }
 

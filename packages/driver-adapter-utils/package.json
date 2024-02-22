@@ -23,8 +23,8 @@
     "directory": "packages/driver-adapter-utils"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts"
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts"
   },
   "files": [
     "dist",
@@ -35,9 +35,6 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "debug": "4.3.4"
-  },
-  "devDependencies": {
-    "@types/debug": "4.1.12"
+    "@prisma/debug": "workspace:*"
   }
 }

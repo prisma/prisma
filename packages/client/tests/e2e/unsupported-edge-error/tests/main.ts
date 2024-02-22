@@ -23,7 +23,7 @@ test('proper error is shown when importing the browser build from cloudflare wor
 
   expect(message).toMatchInlineSnapshot(`
 "PrismaClient is unable to run in Cloudflare Workers. As an alternative, try Accelerate: https://pris.ly/d/accelerate.
-If this is unexpected, please open an issue: https://github.com/prisma/prisma/issues"
+If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report"
 `)
 })
 

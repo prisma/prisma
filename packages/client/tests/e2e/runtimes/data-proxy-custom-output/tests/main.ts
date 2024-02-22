@@ -69,6 +69,7 @@ test('runtime files exists', async () => {
   "index-browser.js",
   "library.d.ts",
   "library.js",
+  "wasm.js",
 ]
 `)
 })

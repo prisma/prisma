@@ -25,7 +25,7 @@ export type DistroInfo = {
   originalDistro?: string
 
   /**
-   * The family distro is the Linux distro name that is used to determine Linux flavors based on the same base distro, and likely using the same package manager.
+   * The family distro is the Linux distro name that is used to determine Linux families based on the same base distro, and likely using the same package manager.
    * E.g., both Ubuntu and Debian belong to the `debian` family of distros, and thus rely on the same package manager (`apt`).
    */
   familyDistro?: string
@@ -34,7 +34,17 @@ export type DistroInfo = {
    * The target distro is the Linux distro associated with the Prisma Engines.
    * E.g., on Arch Linux, Debian, and Ubuntu, the target distro is `debian`. On Linux Alpine, the target distro is `musl`.
    */
-  targetDistro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13' | 'freebsd14'
+  targetDistro?:
+    | 'rhel'
+    | 'debian'
+    | 'musl'
+    | 'arm'
+    | 'nixos'
+    | 'freebsd11'
+    | 'freebsd12'
+    | 'freebsd13'
+    | 'freebsd14'
+    | 'freebsd15'
 }
 type GetOsResultLinux = {
   platform: 'linux'

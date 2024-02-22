@@ -61,7 +61,13 @@ testMatrix.setupTestSuite(() => {
               expect(client).toHaveProperty('_runtimeDataModel')
               expect((client as any)._runtimeDataModel).toHaveProperty('models')
               expect((client as any)._runtimeDataModel.models).toHaveProperty('User')
+              expect((client as any)._runtimeDataModel.models.User).toHaveProperty('dbName')
               expect((client as any)._runtimeDataModel.models.User).toHaveProperty('fields')
+              expect((client as any)._runtimeDataModel.models.User.fields[3]).toHaveProperty('name')
+              expect((client as any)._runtimeDataModel.models.User.fields[3]).toHaveProperty('kind')
+              expect((client as any)._runtimeDataModel.models.User.fields[3]).toHaveProperty('type')
+              expect((client as any)._runtimeDataModel.models.User.fields[4]).toHaveProperty('relationName')
+              expect((client as any)._runtimeDataModel.models.User.fields[3]).toHaveProperty('dbName')
             },
           },
         },

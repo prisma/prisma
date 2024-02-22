@@ -4,6 +4,7 @@ import { expectTypeOf } from 'expect-type'
 import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
+import { providersSupportingRelationJoins } from '../relation-load-strategy/_common'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -13,7 +14,7 @@ let prisma: PrismaClient
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     beforeEach(() => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -319,18 +320,34 @@ testMatrix.setupTestSuite(
         })
       })
 
-      await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
+      if (cliMeta.previewFeatures.includes('relationJoins') && providersSupportingRelationJoins.includes(provider)) {
+        await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-        Invalid \`prisma.user.findUnique()\` invocation:
+          Invalid \`prisma.user.findUnique()\` invocation:
 
-        {
-          badInput: true,
-          ~~~~~~~~
-        ? where?: UserWhereUniqueInput
-        }
+          {
+            badInput: true,
+            ~~~~~~~~
+          ? where?: UserWhereUniqueInput,
+          ? relationLoadStrategy?: RelationLoadStrategy
+          }
 
-        Unknown argument \`badInput\`. Available options are marked with ?.
-      `)
+          Unknown argument \`badInput\`. Available options are marked with ?.
+        `)
+      } else {
+        await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+          Invalid \`prisma.user.findUnique()\` invocation:
+
+          {
+            badInput: true,
+            ~~~~~~~~
+          ? where?: UserWhereUniqueInput
+          }
+
+          Unknown argument \`badInput\`. Available options are marked with ?.
+        `)
+      }
     })
 
     testIf(provider !== Providers.MONGODB && process.platform !== 'win32')(

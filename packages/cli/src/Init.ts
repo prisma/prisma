@@ -32,9 +32,15 @@ export const defaultSchema = (props?: {
     previewFeatures = defaultPreviewFeatures,
     output = defaultOutput,
   } = props || {}
+
+  const aboutAccelerate = `\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n`
+
+  const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
+
   return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+${isProviderCompatibleWithAccelerate ? aboutAccelerate : ''}
 generator client {
   provider = "${generatorProvider}"
 ${
@@ -92,8 +98,6 @@ export const defaultURL = (provider: ConnectorType, port = defaultPort(provider)
       return `mysql://johndoe:randompassword@localhost:${port}/mydb`
     case 'sqlserver':
       return `sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
-    case 'jdbc:sqlserver':
-      return `jdbc:sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
     case 'mongodb':
       return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
     case 'sqlite':

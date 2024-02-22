@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, ClientEngineType, EngineSpanEvent, getClientEngineType } from '@prisma/internals'
+import { assertAlways, EngineSpanEvent } from '@prisma/internals'
 import { bold, green, red, yellow } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -26,7 +26,7 @@ import type {
 import { RequestError } from '../common/types/RequestError'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
-import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
+import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
@@ -49,18 +49,19 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 let engineInstanceCount = 0
 
-export class LibraryEngine extends Engine<undefined> {
-  private engine?: QueryEngineInstance
-  private libraryInstantiationPromise?: Promise<void>
-  private libraryStartingPromise?: Promise<void>
-  private libraryStoppingPromise?: Promise<void>
-  private libraryStarted: boolean
-  private executingQueryPromise?: Promise<any>
-  private config: EngineConfig
-  private QueryEngineConstructor?: QueryEngineConstructor
-  private libraryLoader: LibraryLoader
-  private library?: Library
-  private logEmitter: LogEmitter
+export class LibraryEngine implements Engine<undefined> {
+  name = 'LibraryEngine' as const
+  engine?: QueryEngineInstance
+  libraryInstantiationPromise?: Promise<void>
+  libraryStartingPromise?: Promise<void>
+  libraryStoppingPromise?: Promise<void>
+  libraryStarted: boolean
+  executingQueryPromise?: Promise<any>
+  config: EngineConfig
+  QueryEngineConstructor?: QueryEngineConstructor
+  libraryLoader: LibraryLoader
+  library?: Library
+  logEmitter: LogEmitter
   libQueryEnginePath?: string
   binaryTarget?: BinaryTarget
   datasourceOverrides?: Record<string, string>
@@ -76,20 +77,17 @@ export class LibraryEngine extends Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
-    super()
-
-    const engineType = getClientEngineType(config.generator!)
-
     if (TARGET_BUILD_TYPE === 'library') {
-      // for "library" builds, we can use both the wasm and native engines
-      if (engineType === ClientEngineType.Wasm) {
+      this.libraryLoader = libraryLoader ?? defaultLibraryLoader
+
+      // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
+      if (config.engineWasm !== undefined) {
         this.libraryLoader = libraryLoader ?? wasmLibraryLoader
-      } else {
-        this.libraryLoader = libraryLoader ?? defaultLibraryLoader
       }
-    } else {
-      // any other build using LibraryEngine, only wasm engine can be used
+    } else if (TARGET_BUILD_TYPE === 'wasm') {
       this.libraryLoader = libraryLoader ?? wasmLibraryLoader
+    } else {
+      throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
     }
 
     this.config = config
@@ -97,7 +95,7 @@ export class LibraryEngine extends Engine<undefined> {
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = config.logEmitter
-    this.datamodel = atob(config.inlineSchema)
+    this.datamodel = config.inlineSchema
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -128,7 +126,7 @@ export class LibraryEngine extends Engine<undefined> {
   async transaction(
     action: 'start',
     headers: Tx.TransactionHeaders,
-    options?: Tx.Options,
+    options: Tx.Options,
   ): Promise<Tx.InteractiveTransactionInfo<undefined>>
   async transaction(
     action: 'commit',
@@ -148,9 +146,9 @@ export class LibraryEngine extends Engine<undefined> {
     let result: string | undefined
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-        isolation_level: arg?.isolationLevel,
+        max_wait: arg.maxWait,
+        timeout: arg.timeout,
+        isolation_level: arg.isolationLevel,
       })
 
       result = await this.engine?.startTransaction(jsonOptions, headerStr)
@@ -296,10 +294,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         duration: Number(event.duration_ms),
         target: event.module_path,
       })
-    } else if (isPanicEvent(event)) {
+    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm') {
       // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
-        this.getErrorMessageWithLink(
+        getErrorMessageWithLink(
+          this,
           `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
         ),
         this.config.clientVersion!,
@@ -311,17 +310,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         target: event.module_path,
       })
     }
-  }
-
-  private getErrorMessageWithLink(title: string) {
-    return getErrorMessageWithLink({
-      binaryTarget: this.binaryTarget,
-      title,
-      version: this.config.clientVersion!,
-      engineVersion: this.versionInfo?.commit,
-      database: this.config.activeProvider as any,
-      query: this.lastQuery!,
-    })
   }
 
   private parseInitError(str: string): SyncRustError | string {
@@ -344,7 +332,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return str
   }
 
-  override onBeforeExit() {
+  onBeforeExit() {
     throw new Error(
       '"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.',
     )
@@ -474,8 +462,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (e instanceof PrismaClientInitializationError) {
         throw e
       }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:')) {
-        throw new PrismaClientRustPanicError(this.getErrorMessageWithLink(e.message), this.config.clientVersion!)
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
+        throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
       }
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
@@ -535,16 +523,18 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private buildQueryError(error: RequestError) {
-    if (error.user_facing_error.is_panic) {
+    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm') {
       return new PrismaClientRustPanicError(
-        this.getErrorMessageWithLink(error.user_facing_error.message),
+        getErrorMessageWithLink(this, error.user_facing_error.message),
         this.config.clientVersion!,
       )
     }
 
     const externalError = this.getExternalAdapterError(error.user_facing_error)
 
-    return externalError ? externalError.error : prismaGraphQLToJSError(error, this.config.clientVersion!)
+    return externalError
+      ? externalError.error
+      : prismaGraphQLToJSError(error, this.config.clientVersion!, this.config.activeProvider!)
   }
 
   private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {
@@ -572,4 +562,15 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
 function isUserFacingError(e: unknown): e is RequestError['user_facing_error'] {
   return typeof e === 'object' && e !== null && e['error_code'] !== undefined
+}
+
+function getErrorMessageWithLink(engine: LibraryEngine, title: string) {
+  return genericGetErrorMessageWithLink({
+    binaryTarget: engine.binaryTarget,
+    title,
+    version: engine.config.clientVersion!,
+    engineVersion: engine.versionInfo?.commit,
+    database: engine.config.activeProvider as any,
+    query: engine.lastQuery!,
+  })
 }

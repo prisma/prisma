@@ -3,7 +3,7 @@
  * @param arr Array
  */
 
-export function uniqueBy<T>(arr: T[], callee: (element: T) => string): T[] {
+export function uniqueBy<T>(arr: readonly T[], callee: (element: T) => string): T[] {
   const result: { [key: string]: T } = {}
 
   for (const value of arr) {

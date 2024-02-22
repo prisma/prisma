@@ -32,7 +32,7 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skipProviderFlavor: {
+    skipDriverAdapter: {
       from: ['js_pg'],
       reason: `
       Fails with:

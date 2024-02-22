@@ -11,15 +11,16 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
-import type pg from '@prisma/pg-worker'
+import pg from '@prisma/pg-worker'
 
-import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:pg')
 
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly provider = 'postgres'
 
@@ -83,7 +84,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const { sql, args: values } = query
 
     try {
-      const result = await this.client.query({ text: sql, values, rowMode: 'array' })
+      const result = await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' })
       return ok(result)
     } catch (e) {
       const error = e as Error
@@ -130,6 +131,13 @@ export type PrismaPgOptions = {
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
   constructor(client: pg.Pool, private options?: PrismaPgOptions) {
+    if (!(client instanceof pg.Pool)) {
+      throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
+import { Pool } from 'pg'
+const pool = new Pool({ connectionString: url })
+const adapter = new PrismaPg(pool)
+`)
+    }
     super(client)
   }
 

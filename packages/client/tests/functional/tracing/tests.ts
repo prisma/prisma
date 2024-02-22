@@ -85,11 +85,13 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor, relationMode, engineType }, _suiteMeta, clientMeta) => {
+  ({ provider, driverAdapter, relationMode, engineType }, _suiteMeta, clientMeta) => {
     const isMongoDb = provider === Providers.MONGODB
+    const isMySql = provider === Providers.MYSQL
+    const isSqlServer = provider === Providers.SQLSERVER
 
     const usesSyntheticTxQueries =
-      providerFlavor !== undefined && ['js_libsql', 'js_planetscale'].includes(providerFlavor)
+      driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale'].includes(driverAdapter)
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -225,9 +227,10 @@ testMatrix.setupTestSuite(
         ]
       }
 
-      if (['postgresql', 'cockroachdb'].includes(provider)) {
+      if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
         return [dbQuery(expect.stringContaining('INSERT'))]
       }
+
       const dbQueries: Tree[] = []
       if (tx) {
         dbQueries.push(txBegin())
@@ -296,7 +299,7 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('db.User.updateMany(*)')),
             dbQuery(expect.stringContaining('db.User.findOne(*)')),
           ]
-        } else if (['postgresql', 'cockroachdb'].includes(provider)) {
+        } else if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
           expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
         } else {
           expectedDbQueries = [
@@ -326,18 +329,16 @@ testMatrix.setupTestSuite(
         let expectedDbQueries: Tree[]
 
         if (isMongoDb) {
-          expectedDbQueries = [
-            dbQuery(expect.stringContaining('db.User.findOne(*)')),
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
-          ]
-        } else {
+          expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify(*)'))]
+        } else if (isMySql || isSqlServer) {
           expectedDbQueries = [
             txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
+        } else {
+          expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'))]
         }
         await waitForSpanTree(
           operation('User', 'delete', [
@@ -638,10 +639,15 @@ testMatrix.setupTestSuite(
       })
     })
   },
+
   {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Tracing is not supported for wasm engine, many spans are missing',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', 'Tracing is not supported for wasm engine, many spans are missing')
+    },
+    skipDriverAdapter: {
+      from: ['js_d1'],
+      reason:
+        'Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659',
     },
   },
 )
