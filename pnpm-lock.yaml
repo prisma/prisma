@@ -248,9 +248,6 @@ importers:
         specifier: 3.0.2
         version: 3.0.2
     devDependencies:
-      '@prisma/pg-worker':
-        specifier: workspace:*
-        version: link:../pg-worker
       '@swc/core':
         specifier: 1.4.1
         version: 1.4.1
@@ -266,6 +263,9 @@ importers:
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
+      pg:
+        specifier: 8.11.3
+        version: 8.11.3
 
   packages/adapter-planetscale:
     dependencies:
