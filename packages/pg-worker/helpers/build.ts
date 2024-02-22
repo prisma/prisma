@@ -22,7 +22,6 @@ void build([
           diagnostics_channel: { contents: 'export * from "node:diagnostics_channel"' },
           events: { contents: 'export * from "node:events"' },
           path: { contents: 'export * from "node:path"' },
-          process: { contents: 'export * from "node:process"' },
           stream: { contents: 'export * from "node:stream"' },
           string_decoder: { contents: 'export * from "node:string_decoder"' },
           util: { contents: 'export * from "node:util"' },
