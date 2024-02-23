@@ -2,7 +2,7 @@
 
 Prisma driver adapter for [Cloudflare's Serverless Driver D1](https://developers.cloudflare.com/d1/).
 
-<!-- Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
+<!-- TODO Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
 
 > **Note**: Support for Cloudflare D1 is available in [Early Access](https://www.prisma.io/docs/about/prisma/releases#early-access) from Prisma versions [TODO](https://github.com/prisma/prisma/releases/tag/TODO) and later.
 
