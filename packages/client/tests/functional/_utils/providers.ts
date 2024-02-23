@@ -9,7 +9,6 @@ export enum Providers {
 
 export enum AdapterProviders {
   JS_PG = 'js_pg',
-  JS_PG_WORKER = 'js_pg_worker',
   JS_PLANETSCALE = 'js_planetscale',
   JS_NEON = 'js_neon',
   JS_LIBSQL = 'js_libsql',
@@ -25,7 +24,7 @@ export enum RelationModes {
 }
 
 export const adaptersForProvider = {
-  [Providers.POSTGRESQL]: [AdapterProviders.JS_PG, AdapterProviders.JS_PG_WORKER, AdapterProviders.JS_NEON],
+  [Providers.POSTGRESQL]: [AdapterProviders.JS_PG, AdapterProviders.JS_NEON],
   [Providers.MYSQL]: [AdapterProviders.JS_PLANETSCALE],
   [Providers.SQLITE]: [AdapterProviders.JS_LIBSQL, AdapterProviders.JS_D1],
   [Providers.MONGODB]: [],
@@ -35,7 +34,6 @@ export const adaptersForProvider = {
 
 export const relationModesForAdapter = {
   [AdapterProviders.JS_PG]: undefined,
-  [AdapterProviders.JS_PG_WORKER]: undefined,
   [AdapterProviders.JS_PLANETSCALE]: RelationModes.PRISMA,
   [AdapterProviders.JS_NEON]: undefined,
   [AdapterProviders.JS_LIBSQL]: undefined,
