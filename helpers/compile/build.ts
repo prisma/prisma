@@ -41,7 +41,7 @@ const DEFAULT_BUILD_OPTIONS = {
 const applyDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
-  outExtension: { '.js': options.format === 'esm' ? '.mjs' : '.js' },
+  outExtension: { '.js': '.js' },
   resolveExtensions: ['.ts', '.js', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],

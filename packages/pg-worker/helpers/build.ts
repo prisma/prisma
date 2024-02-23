@@ -35,6 +35,6 @@ const buildOptions: BuildOptions = {
 }
 
 void build([
-  { ...buildOptions, format: 'cjs' },
-  { ...buildOptions, format: 'esm' },
+  { ...buildOptions, format: 'cjs', outExtension: { '.js': '.js' } },
+  { ...buildOptions, format: 'esm', outExtension: { '.js': '.mjs' } },
 ])

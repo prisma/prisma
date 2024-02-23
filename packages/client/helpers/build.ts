@@ -149,7 +149,6 @@ const edgeEsmRuntimeBuildConfig: BuildOptions = {
   name: 'edge-esm',
   outfile: 'runtime/edge-esm',
   format: 'esm',
-  outExtension: { '.js': '.js' },
 }
 
 // we define the config for generator
