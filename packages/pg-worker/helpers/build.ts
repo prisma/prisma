@@ -1,3 +1,5 @@
+import path from 'path'
+
 import { build, BuildOptions } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 
@@ -16,6 +18,7 @@ const buildOptions: BuildOptions = {
         assert: { contents: 'export * from "node:assert"' },
         async_hooks: { contents: 'export * from "node:async_hooks"' },
         buffer: { contents: 'export * from "node:buffer"' },
+        Buffer: { globals: path.join(__dirname, 'buffer.ts') },
         crypto: { contents: 'export * from "node:crypto"' },
         diagnostics_channel: { contents: 'export * from "node:diagnostics_channel"' },
         events: { contents: 'export * from "node:events"' },
