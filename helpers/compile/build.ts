@@ -52,9 +52,9 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
   plugins: [
-    ...(options.plugins ?? []),
     resolvePathsPlugin,
     fixImportsPlugin,
+    ...(options.plugins ?? []),
     tscPlugin(options.emitTypes),
     onErrorPlugin,
   ],
