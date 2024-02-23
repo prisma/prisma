@@ -7,7 +7,6 @@ export const adapterConfig: BuildOptions[] = [
     bundle: true,
     entryPoints: ['src/index.ts'],
     outfile: 'dist/index',
-    outExtension: { '.js': '.js' },
     emitTypes: true,
   },
   {
@@ -16,7 +15,6 @@ export const adapterConfig: BuildOptions[] = [
     bundle: true,
     entryPoints: ['src/index.ts'],
     outfile: 'dist/index',
-    outExtension: { '.js': '.mjs' },
     emitTypes: true,
   },
 ]
