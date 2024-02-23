@@ -4,9 +4,8 @@ services:
     environment:
       - MYSQL_URL=mysql://root:root@mysql/tests
     depends_on:
-      - mysql
-    links:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   mysql:
     image: mysql:8.0
