@@ -32,4 +32,24 @@ testMatrix.setupTestSuite(() => {
     const user = await xprisma.user.findFirstOrThrow({ select: { computedField: true, email: true } })
     expect(inspect(user)).toMatchInlineSnapshot(`{ email: 'user@example.com', computedField: 'HELLO!!!' }`)
   })
+
+  test('depth option is respected', async () => {
+    const xprisma = prisma.$extends({
+      result: {
+        user: {
+          computedField: {
+            needs: [],
+            compute() {
+              return { deeply: { nested: { value: 123 } } }
+            },
+          },
+        },
+      },
+    })
+
+    const user = await xprisma.user.findFirstOrThrow({ select: { computedField: true, email: true } })
+    expect(inspect(user, { depth: 1 })).toMatchInlineSnapshot(
+      `{ email: 'user@example.com', computedField: { deeply: [Object] } }`,
+    )
+  })
 })
