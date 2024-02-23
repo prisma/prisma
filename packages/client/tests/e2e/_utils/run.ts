@@ -117,8 +117,9 @@ async function main() {
       composeFileArgs.push('-f', localComposePath)
     }
 
+    const projectName = testPath.replaceAll('/', '-')
     return async () =>
-      await $`docker compose ${composeFileArgs} -p ${testPath} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+      await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
   })
 
   const jobResults: (ProcessOutput & { name: string })[] = []
