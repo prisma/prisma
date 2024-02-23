@@ -587,6 +587,9 @@ importers:
       '@prisma/adapter-pg':
         specifier: workspace:*
         version: link:../adapter-pg
+      '@prisma/adapter-pg-worker':
+        specifier: workspace:*
+        version: link:../adapter-pg-worker
       '@prisma/adapter-planetscale':
         specifier: workspace:*
         version: link:../adapter-planetscale
@@ -623,6 +626,9 @@ importers:
       '@prisma/mini-proxy':
         specifier: 0.9.5
         version: 0.9.5
+      '@prisma/pg-worker':
+        specifier: workspace:*
+        version: link:../pg-worker
       '@prisma/query-engine-wasm':
         specifier: 5.11.0-1.af6ceee5db79017870b8793ce19ab0440083dacd
         version: 5.11.0-1.af6ceee5db79017870b8793ce19ab0440083dacd
