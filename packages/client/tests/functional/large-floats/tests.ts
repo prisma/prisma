@@ -33,7 +33,7 @@ testMatrix.setupTestSuite(
   },
   {
     skipDriverAdapter: {
-      from: ['js_pg'],
+      from: ['js_pg', 'js_pg_worker'],
       reason: `
       Fails with:
         Expected: 9007199254740991 Received: 9007199254740990

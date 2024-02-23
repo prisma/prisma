@@ -199,6 +199,7 @@ const excludeEnvToProviderMap = {
 const excludeEnvToProviderFlavorMap = {
   TEST_SKIP_VITESS: AdapterProviders.VITESS_8,
   TEST_SKIP_PG: AdapterProviders.JS_PG,
+  TEST_SKIP_PG_WORKER: AdapterProviders.JS_PG_WORKER,
   TEST_SKIP_NEON: AdapterProviders.JS_NEON,
   TEST_SKIP_PLANETSCALE: AdapterProviders.JS_PLANETSCALE,
   TEST_SKIP_LIBSQL: AdapterProviders.JS_LIBSQL,

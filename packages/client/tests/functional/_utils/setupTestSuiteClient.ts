@@ -144,6 +144,17 @@ export function setupTestSuiteClientDriverAdapter({
     return { adapter: new PrismaPg(pool), __internal }
   }
 
+  if (driverAdapter === AdapterProviders.JS_PG_WORKER) {
+    const { Pool } = require('@prisma/pg-worker') as typeof import('@prisma/pg-worker')
+    const { PrismaPg } = require('@prisma/adapter-pg-worker') as typeof import('@prisma/adapter-pg-worker')
+
+    const pool = new Pool({
+      connectionString: datasourceInfo.databaseUrl,
+    })
+
+    return { adapter: new PrismaPg(pool), __internal }
+  }
+
   if (driverAdapter === AdapterProviders.JS_NEON) {
     const { neonConfig, Pool } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
     const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
