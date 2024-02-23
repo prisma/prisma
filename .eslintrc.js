@@ -1,6 +1,6 @@
 const path = require('path')
 
-const project = path.resolve(process.cwd(), 'tsconfig.json')
+const project = path.resolve(__dirname, 'tsconfig.json')
 
 module.exports = {
   root: true,

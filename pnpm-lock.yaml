@@ -267,6 +267,31 @@ importers:
         specifier: 8.11.3
         version: 8.11.3
 
+  packages/adapter-pg-worker:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      postgres-array:
+        specifier: 3.0.2
+        version: 3.0.2
+    devDependencies:
+      '@prisma/pg-worker':
+        specifier: workspace:*
+        version: link:../pg-worker
+      '@swc/core':
+        specifier: 1.4.1
+        version: 1.4.1
+      '@swc/jest':
+        specifier: 0.2.36
+        version: 0.2.36(@swc/core@1.4.1)
+      jest:
+        specifier: 29.7.0
+        version: 29.7.0(@types/node@20.11.19)(ts-node@10.9.2)
+      jest-junit:
+        specifier: 16.0.0
+        version: 16.0.0
+
   packages/adapter-planetscale:
     dependencies:
       '@prisma/driver-adapter-utils':
@@ -314,7 +339,7 @@ importers:
         version: link:../adapter-neon
       '@prisma/adapter-pg':
         specifier: workspace:*
-        version: link:../adapter-pg
+        version: link:../adapter-pg-worker
       '@prisma/adapter-planetscale':
         specifier: workspace:*
         version: link:../adapter-planetscale
@@ -558,7 +583,7 @@ importers:
         version: link:../adapter-neon
       '@prisma/adapter-pg':
         specifier: workspace:*
-        version: link:../adapter-pg
+        version: link:../adapter-pg-worker
       '@prisma/adapter-planetscale':
         specifier: workspace:*
         version: link:../adapter-planetscale
@@ -4404,11 +4429,6 @@ packages:
       undici-types: 5.26.5
     dev: true
 
-  /@types/node@20.11.16:
-    resolution: {integrity: sha512-gKb0enTmRCzXSSUJDq6/sPcqrfCv2mkkG6Jt/clpn5eiCbKTY+SgZUxo+p8ZKMof5dCp9vHQUAB7wOUTod22wQ==}
-    dependencies:
-      undici-types: 5.26.5
-
   /@types/node@20.11.19:
     resolution: {integrity: sha512-7xMnVEcZFu0DikYjWOlRq7NTPETrm7teqUT2WkQjrTIkEgUyyGdWsj/Zg8bEJt5TNklzbPD1X3fqfsHw3SpapQ==}
     dependencies:
@@ -4429,7 +4449,7 @@ packages:
   /@types/pg@8.11.0:
     resolution: {integrity: sha512-sDAlRiBNthGjNFfvt0k6mtotoVYVQ63pA8R4EMWka7crawSR60waVYR0HAgmPRs/e2YaeJTD/43OoZ3PFw80pw==}
     dependencies:
-      '@types/node': 20.11.16
+      '@types/node': 20.11.19
       pg-protocol: 1.6.0
       pg-types: 4.0.1
 
