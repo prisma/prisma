@@ -118,7 +118,7 @@ async function main() {
     }
 
     return async () =>
-      await $`docker compose ${composeFileArgs} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+      await $`docker compose ${composeFileArgs} -p ${testPath} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
   })
 
   const jobResults: (ProcessOutput & { name: string })[] = []
