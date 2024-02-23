@@ -6,7 +6,6 @@ import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { BinaryTarget } from './binaryTargets'
-import { link } from './link'
 import { warn } from './logger'
 
 const exec = promisify(cp.exec)
@@ -507,10 +506,7 @@ ${additionalMessage}`,
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && targetDistro === undefined) {
     warn(
-      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".
-Please report your experience by creating an issue at ${link(
-        'https://github.com/prisma/prisma/issues',
-      )} so we can add your distro to the list of known supported distros.`,
+      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".`,
     )
   }
 
