@@ -34,7 +34,7 @@ void (async () => {
     await $`rm -rf ${projectDir}/output.tgz`
 
     // Use wrangler to generate the function output
-    await $`pnpm wrangler deploy ${projectDir}/index.js --dry-run --outdir=${projectDir}/output --compatibility-date 2024-01-26 --name ${project} ${nodeCompat}`
+    await $`pnpm wrangler deploy ${projectDir}/index.js --dry-run --outdir=${projectDir}/output --compatibility-date 2024-01-26 --name ${project} ${nodeCompat} --tsconfig ${__dirname}/tsconfig.json`
 
     // Delete *.js.map & Markdown files
     await $`rm ${projectDir}/output/*.js.map`
