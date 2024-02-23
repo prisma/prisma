@@ -1,5 +1,5 @@
 {
-  "name": "@prisma/adapter-pg",
+  "name": "@prisma/adapter-pg-worker",
   "version": "0.0.0",
   "description": "Prisma's driver adapter for \"@prisma/pg-worker\"",
   "main": "dist/index.js",

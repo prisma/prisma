@@ -339,6 +339,9 @@ importers:
         version: link:../adapter-neon
       '@prisma/adapter-pg':
         specifier: workspace:*
+        version: link:../adapter-pg
+      '@prisma/adapter-pg-worker':
+        specifier: workspace:*
         version: link:../adapter-pg-worker
       '@prisma/adapter-planetscale':
         specifier: workspace:*
@@ -583,7 +586,7 @@ importers:
         version: link:../adapter-neon
       '@prisma/adapter-pg':
         specifier: workspace:*
-        version: link:../adapter-pg-worker
+        version: link:../adapter-pg
       '@prisma/adapter-planetscale':
         specifier: workspace:*
         version: link:../adapter-planetscale

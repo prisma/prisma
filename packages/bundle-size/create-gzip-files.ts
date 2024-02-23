@@ -29,15 +29,6 @@ void (async () => {
     await $`cp ${getSchemaFile(project)} ${projectDir}/schema.prisma`
     await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`
 
-    // this is because we can not override peerDependencies in a symlinked workspace
-    // basically emulates adding `"pg": "npm:@prisma/pg-worker"` to your package.json
-    if (project === 'da-workers-pg-worker') {
-      // 1. copy the adapter, 2. swap pg with pg-worker (see test file for more info)
-      await $`cp -rL ${__dirname}/../adapter-pg ${__dirname}/node_modules/@prisma/adapter-pg-worker`
-      await $`rm -fr ${__dirname}/node_modules/@prisma/adapter-pg-worker/node_modules/pg`
-      await $`ln -s ${__dirname}/../pg-worker ${__dirname}/node_modules/@prisma/adapter-pg-worker/node_modules/pg`
-    }
-
     // Delete existing output (if it exists)
     await $`rm -rf ${projectDir}/output`
     await $`rm -rf ${projectDir}/output.tgz`
