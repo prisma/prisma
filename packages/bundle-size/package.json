@@ -10,14 +10,14 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@libsql/client": "0.4.3",
-    "@neondatabase/serverless": "0.8.1",
     "@planetscale/database": "1.16.0",
+    "@prisma/adapter-d1": "workspace:*",
+    "@prisma/adapter-libsql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
-    "@prisma/adapter-libsql": "workspace:*",
-    "@prisma/adapter-d1": "workspace:*",
     "@prisma/client": "workspace:*",
+    "@vercel/postgres": "^0.7.2",
     "pg": "8.11.3",
     "prisma": "workspace:*",
     "wrangler": "3.28.2"

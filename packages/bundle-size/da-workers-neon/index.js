@@ -1,12 +1,12 @@
-import { Pool } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
+import { createPool } from '@vercel/postgres'
 
 import { PrismaClient } from './client/wasm'
 
 export default {
   async fetch(request, env) {
-    const neon = new Pool({ connectionString: env.DATABASE_URL })
-    const adapter = new PrismaNeon(neon)
+    const pool = createPool({ connectionString: env.DATABASE_URL })
+    const adapter = new PrismaNeon(pool)
     const prisma = new PrismaClient({ adapter })
 
     const users = await prisma.user.findMany()
