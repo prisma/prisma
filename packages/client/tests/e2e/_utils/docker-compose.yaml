@@ -1,0 +1,7 @@
+version: '3.7'
+services:
+  test-e2e: 
+    build:
+      context: .
+      dockerfile: ./standard.dockerfile
+

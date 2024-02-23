@@ -1,4 +1,5 @@
 import { arg } from '@prisma/internals'
+import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import glob from 'globby'
 import path from 'path'
@@ -97,13 +98,27 @@ async function main() {
     `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,
     `${(await $`pnpm store path`.quiet()).stdout.trim()}:/root/.local/share/pnpm/store/v3`,
   ]
-  const dockerVolumeArgs = dockerVolumes.map((v) => `-v ${v}`).join(' ')
+  const dockerVolumeArgs = dockerVolumes.flatMap((v) => ['-v', v])
 
-  await $`docker build -f ${__dirname}/standard.dockerfile -t prisma-e2e-test-runner .`
+  await $`docker compose -f ${__dirname}/docker-compose.yaml build test-e2e`
 
-  const dockerJobs = e2eTestNames.map((path) => {
+  const dockerJobs = e2eTestNames.map((testPath) => {
+    const composeFileArgs = ['-f', `${__dirname}/docker-compose.yaml`]
+    const localComposePath = path.join(
+      monorepoRoot,
+      'packages',
+      'client',
+      'tests',
+      'e2e',
+      testPath,
+      'docker-compose.yaml',
+    )
+    if (existsSync(localComposePath)) {
+      composeFileArgs.push('-f', localComposePath)
+    }
+
     return async () =>
-      await $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
+      await $`docker compose ${composeFileArgs} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
   })
 
   const jobResults: (ProcessOutput & { name: string })[] = []
