@@ -1416,8 +1416,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       mongoose:
-        specifier: 8.1.2
-        version: 8.1.2
+        specifier: 8.2.0
+        version: 8.2.0
       mssql:
         specifier: 10.0.2
         version: 10.0.2
@@ -8921,8 +8921,8 @@ packages:
       mongodb-connection-string-url: 3.0.0
     dev: true
 
-  /mongoose@8.1.2:
-    resolution: {integrity: sha512-5KMq7k6KmFCIB8/YMKMFsWdsdNkBwuARDRHDRpp5GKC78eT0LwHIaMEKo6gDUg3zBuMoy9OdcM/6f4dkW06C/A==}
+  /mongoose@8.2.0:
+    resolution: {integrity: sha512-la93n6zCYRbPS+c5N9oTDAktvREy5OT9OCljp1Tah0y3+p8UPMTAoabWaLZMdzYruOtF9/9GRf6MasaZjiZP1A==}
     engines: {node: '>=16.20.1'}
     dependencies:
       bson: 6.2.0
@@ -10430,9 +10430,6 @@ packages:
   /sqlite3@5.1.2:
     resolution: {integrity: sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.10
       node-addon-api: 4.3.0
