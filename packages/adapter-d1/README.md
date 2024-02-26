@@ -72,7 +72,20 @@ export default {
 
 ### Transactions
 
-...
+Cloudflare D1 currently only supports sequential transactions in the form of `batch([...queries])`. This means that when using Prisma's D1 adapter, both explicit and implicit transactions - queries such as `create` on `1:m` - will be ignored.
+
+> ```ts
+> prisma.post.create({
+>     data: {
+>      title: "title",
+>      categories: {
+>        create: [ { name: "c1" }, { name: "c2"  ],
+>      },
+>    },
+>  });
+> ```
+
+Queries will be ran individually and as such ACID properties cannot be guaranteed.
 
 <!-- ## Feedback
 TODO Leave this till preview
