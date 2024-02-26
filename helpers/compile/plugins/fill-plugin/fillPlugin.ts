@@ -201,7 +201,7 @@ export const smallBuffer = {
 }
 
 export const smallDecimal = {
-  buffer: {
+  'decimal.js': {
     imports: path.join(__dirname, 'fillers', 'decimal-small.ts'),
     globals: path.join(__dirname, 'fillers', 'decimal-small.ts'),
   },
