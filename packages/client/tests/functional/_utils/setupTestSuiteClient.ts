@@ -191,8 +191,7 @@ export function setupTestSuiteClientDriverAdapter({
     const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
 
     const d1Client = cfWorkerBindings!.MY_DATABASE as D1Database
-
-    return { adapter: new PrismaD1(d1Client), __internal }
+    return { adapter: new PrismaD1(d1Client, process.env.DEBUG), __internal }
   }
 
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)

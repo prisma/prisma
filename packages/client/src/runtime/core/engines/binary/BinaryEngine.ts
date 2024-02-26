@@ -698,7 +698,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
@@ -760,7 +760,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors && result.errors.length > 0) {
-              return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
+              return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
             }
             return {
               data: result,
@@ -768,7 +768,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
           })
         } else {
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
         }
       })
       .catch(async (e) => {

@@ -1,3 +1,4 @@
+import { providersSupportingRelationJoins } from '../relation-load-strategy/_common'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -5,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
+  (suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
     test('include and select are used at the same time', async () => {
       // @ts-expect-error
       const result = prisma.user.findMany({
@@ -15,21 +16,21 @@ testMatrix.setupTestSuite(
 
       await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-                Invalid \`prisma.user.findMany()\` invocation in
-                /client/tests/functional/query-validation/tests.ts:0:0
+        Invalid \`prisma.user.findMany()\` invocation in
+        /client/tests/functional/query-validation/tests.ts:0:0
 
-                   XX (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
-                   XX   test('include and select are used at the same time', async () => {
-                  XX     // @ts-expect-error
-                → XX     const result = prisma.user.findMany({
-                           select: {},
-                           ~~~~~~
-                           include: {}
-                           ~~~~~~~
-                         })
+           XX (suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
+          XX   test('include and select are used at the same time', async () => {
+          XX     // @ts-expect-error
+        → XX     const result = prisma.user.findMany({
+                   select: {},
+                   ~~~~~~
+                   include: {}
+                   ~~~~~~~
+                 })
 
-                Please either use \`include\` or \`select\`, but not both at the same time.
-            `)
+        Please either use \`include\` or \`select\`, but not both at the same time.
+      `)
     })
 
     test('include used on scalar field', async () => {
@@ -158,7 +159,10 @@ testMatrix.setupTestSuite(
         notAnArgument: 123,
       })
 
-      if (cliMeta.previewFeatures.includes('relationJoins')) {
+      if (
+        cliMeta.previewFeatures.includes('relationJoins') &&
+        providersSupportingRelationJoins.includes(suiteConfig.provider)
+      ) {
         await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
               Invalid \`prisma.user.findMany()\` invocation in

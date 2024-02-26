@@ -26,6 +26,7 @@ import { NotImplementedYetError } from './errors/NotImplementedYetError'
 import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
+import { toBase64 } from './utils/base64'
 import { checkForbiddenMetrics } from './utils/checkForbiddenMetrics'
 import { dateFromEngineTimestamp, EngineTimestamp } from './utils/EngineTimestamp'
 import { getClientVersion } from './utils/getClientVersion'
@@ -165,7 +166,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     this.config = config
     this.env = { ...config.env, ...(typeof process !== 'undefined' ? process.env : {}) }
     // TODO (perf) schema should be uploaded as-is
-    this.inlineSchema = btoa(config.inlineSchema)
+    this.inlineSchema = toBase64(config.inlineSchema)
     this.inlineDatasources = config.inlineDatasources
     this.inlineSchemaHash = config.inlineSchemaHash
     this.clientVersion = config.clientVersion
@@ -335,7 +336,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
     return batchResult.map((result) => {
       if ('errors' in result && result.errors.length > 0) {
-        return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
+        return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
       }
       return {
         data: result as T,
@@ -389,7 +390,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
         if (json.errors) {
           if (json.errors.length === 1) {
-            throw prismaGraphQLToJSError(json.errors[0], this.config.clientVersion!)
+            throw prismaGraphQLToJSError(json.errors[0], this.config.clientVersion!, this.config.activeProvider!)
           } else {
             throw new PrismaClientUnknownRequestError(json.errors, { clientVersion: this.config.clientVersion! })
           }

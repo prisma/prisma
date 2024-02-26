@@ -2,6 +2,7 @@ import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/inte
 import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
+import path from 'path'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'
@@ -157,6 +158,12 @@ async function main(): Promise<number | void> {
     }
 
     if (adapterProviders.some(isDriverAdapterProviderLabel)) {
+      // Locally, running D1 tests accumulates a lot of data in the .wrangler directory.
+      // Because we cannot reset the database contents programmatically at the moment,
+      // deleting it is the easy way
+      // It makes local tests consistently fast and clean
+      fs.rmSync(path.join(__dirname, '..', '..', '.wrangler'), { recursive: true, force: true })
+
       jestCli = jestCli.withArgs(['--runInBand'])
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
