@@ -188,6 +188,10 @@ const defaultFillersConfig: Fillers = {
   },
   __dirname: { define: '"/"' },
   __filename: { define: '"index.js"' },
+
+  global: {
+    define: 'globalThis',
+  },
 }
 
 export const smallBuffer = {
