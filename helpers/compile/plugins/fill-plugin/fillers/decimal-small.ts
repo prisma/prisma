@@ -151,7 +151,7 @@
 // import light from 'big.js/big.mjs'
 import DecimalLight from 'decimal.js-light/decimal.mjs'
 
-export default class Decimal extends DecimalLight {
+class Decimal extends DecimalLight {
   static isDecimal(value: any): boolean {
     return value instanceof DecimalLight
   }
@@ -169,4 +169,5 @@ export default class Decimal extends DecimalLight {
   static set = DecimalLight.config
 }
 
-// export default light
+export default Decimal
+export { Decimal }
