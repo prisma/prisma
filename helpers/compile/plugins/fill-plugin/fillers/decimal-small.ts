@@ -148,14 +148,10 @@
 // //   precision: 200000,
 // // })
 
-// // const c = new Decimal('1e-500')
-
-// // console.log(c.toString())
-
 // import light from 'big.js/big.mjs'
 import DecimalLight from 'decimal.js-light/decimal.mjs'
 
-export class Decimal extends DecimalLight {
+export default class Decimal extends DecimalLight {
   static isDecimal(value: any): boolean {
     return value instanceof DecimalLight
   }
