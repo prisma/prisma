@@ -169,6 +169,8 @@
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
+    "@prisma/adapter-pg-worker": "workspace:*",
+    "@prisma/pg-worker": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
