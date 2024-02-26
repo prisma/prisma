@@ -1,6 +1,6 @@
 # Prisma driver adapter for Cloudflare D1
 
-Prisma driver adapter for [Cloudflare's Serverless Driver D1](https://developers.cloudflare.com/d1/).
+Prisma driver adapter for [Cloudflare D1](https://developers.cloudflare.com/d1/).
 
 <!-- TODO Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
 
@@ -29,7 +29,7 @@ Generate Prisma Client:
 npx prisma generate
 ```
 
-Install the Prisma adapter for Cloudflare's D1 serverless driver and Cloudflare's workers types packages:
+Install the Prisma adapter for Cloudflare D1 and Cloudflare's workers types packages:
 
 ```sh
 npm install @prisma/adapter-d1
@@ -74,8 +74,8 @@ export default {
 
 ...
 
-## Feedback
-
+<!-- ## Feedback
+TODO Leave this till preview
 We encourage you to create an issue if you find something missing or run into a bug.
 
-If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/TODO).
+If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/TODO). -->
