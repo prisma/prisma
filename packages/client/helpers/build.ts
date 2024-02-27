@@ -129,6 +129,8 @@ const wasmRuntimeBuildConfig: BuildOptions = {
     ...commonEdgeWasmRuntimeBuildConfig.define,
     TARGET_BUILD_TYPE: '"wasm"',
   },
+  mangleProps: /_.*/,
+  mangleQuoted: true,
   plugins: [
     fillPlugin({
       // not yet enabled in edge build while driverAdapters is not GA
