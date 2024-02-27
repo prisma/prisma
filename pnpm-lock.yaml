@@ -26,9 +26,6 @@ importers:
       '@types/benchmark':
         specifier: 2.1.5
         version: 2.1.5
-      '@types/big.js':
-        specifier: ^6.2.2
-        version: 6.2.2
       '@types/fs-extra':
         specifier: 9.0.13
         version: 9.0.13
@@ -62,18 +59,12 @@ importers:
       batching-toposort:
         specifier: 1.2.0
         version: 1.2.0
-      big.js:
-        specifier: ^6.2.1
-        version: 6.2.1
       buffer:
         specifier: 6.0.3
         version: 6.0.3
       chokidar:
         specifier: 3.6.0
         version: 3.6.0
-      decimal.js:
-        specifier: 10.4.3
-        version: 10.4.3
       decimal.js-light:
         specifier: 2.5.1
         version: 2.5.1
@@ -4283,10 +4274,6 @@ packages:
     resolution: {integrity: sha512-cKio2eFB3v7qmKcvIHLUMw/dIx/8bhWPuzpzRT4unCPRTD8VdA9Zb0afxpcxOqR4PixRS7yT42FqGS8BYL8g1w==}
     dev: true
 
-  /@types/big.js@6.2.2:
-    resolution: {integrity: sha512-e2cOW9YlVzFY2iScnGBBkplKsrn2CsObHQ2Hiw4V1sSyiGbgWL8IyqE3zFi1Pt5o1pdAtYkDAIsF3KKUPjdzaA==}
-    dev: true
-
   /@types/cross-spawn@6.0.6:
     resolution: {integrity: sha512-fXRhhUkG4H3TQk5dBhQ7m/JDdSNHKwR2BBia62lhwEIq9xGiQKLxd6LymNhn47SjXhsUEPmxi+PKw2OkW4LLjA==}
     dependencies:
@@ -5337,10 +5324,6 @@ packages:
     dependencies:
       lodash: 4.17.21
       platform: 1.3.6
-    dev: true
-
-  /big.js@6.2.1:
-    resolution: {integrity: sha512-bCtHMwL9LeDIozFn+oNhhFoq+yQ3BNdnsLSASUxLciOb1vgvpHsIO1dsENiGMgbb4SkP5TrzWzRiLddn8ahVOQ==}
     dev: true
 
   /binary-extensions@2.2.0:
