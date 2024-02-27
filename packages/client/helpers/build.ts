@@ -5,7 +5,7 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
-import { fillPlugin, smallBuffer } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { fillPlugin, smallBuffer, smallDecimal } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
@@ -132,7 +132,7 @@ const wasmRuntimeBuildConfig: BuildOptions = {
   plugins: [
     fillPlugin({
       // not yet enabled in edge build while driverAdapters is not GA
-      fillerOverrides: { ...commonEdgeWasmFillerOverrides, ...smallBuffer },
+      fillerOverrides: { ...commonEdgeWasmFillerOverrides, ...smallBuffer, ...smallDecimal },
     }),
     copyFilePlugin(
       DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({

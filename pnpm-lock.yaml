@@ -65,6 +65,9 @@ importers:
       chokidar:
         specifier: 3.6.0
         version: 3.6.0
+      decimal.js-light:
+        specifier: 2.5.1
+        version: 2.5.1
       dotenv-cli:
         specifier: 7.3.0
         version: 7.3.0
@@ -5970,6 +5973,10 @@ packages:
   /decamelize@1.2.0:
     resolution: {integrity: sha512-z2S+W9X73hAUUki+N+9Za2lBlun89zigOyGrsax+KUQ6wKW4ZoWpEYBkGhQjwAjjDCkWxhY0VKEhk8wzY7F5cA==}
     engines: {node: '>=0.10.0'}
+    dev: true
+
+  /decimal.js-light@2.5.1:
+    resolution: {integrity: sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==}
     dev: true
 
   /decimal.js@10.4.3:
