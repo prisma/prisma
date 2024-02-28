@@ -96,6 +96,7 @@ testMatrix.setupTestSuite(
             .replace(/line: Some\(\d+\)/, 'line: Some(0)')
             // Align "`User`.[column]" with "t1.[column]"
             .replace(/`User`\./g, 't1.')
+            .replace(' as t1', '')
           throw error
         })
 
