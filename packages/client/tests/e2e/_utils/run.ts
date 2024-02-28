@@ -110,7 +110,7 @@ async function main() {
       composeFileArgs.push('-f', localComposePath)
     }
 
-    const projectName = testPath.replaceAll('/', '-')
+    const projectName = testPath.toLocaleLowerCase().replace(/[^0-9a-z_-]/g, '-')
     return async () => {
       const result =
         await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
