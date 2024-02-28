@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   ({ driverAdapter, fieldType }) => {
     test('should return a descriptive error', async () => {
-      await prisma.$executeRaw`INSERT INTO "TestModel" ("id", "field") VALUES ("1", 1.84467440724388e+19)`
+      await prisma.$executeRaw`INSERT INTO "TestModel" ("id", "field") VALUES (1, 1.84467440724388e+19)`
 
       if (driverAdapter === undefined || driverAdapter === 'js_d1') {
         await expect(prisma.testModel.findMany()).rejects.toThrow(
