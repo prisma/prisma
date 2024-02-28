@@ -109,6 +109,7 @@ export class CLI implements Command {
               format   Format your Prisma schema
              version   Displays Prisma version info
                debug   Displays Prisma debug info
+        decode-error   Decodes an error message from Prisma Client
 
     ${bold('Flags')}
 
@@ -146,5 +147,8 @@ export class CLI implements Command {
 
       Display Prisma debug info
       ${dim('$')} prisma debug
+
+      Decodes an error message from Prisma Client
+      ${dim('$')} prisma decode-error <base64-encoded-error>
   `)
 }

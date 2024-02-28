@@ -1,7 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
-import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
@@ -77,6 +76,8 @@ declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
   const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm'
+  const CLIENT_VERSION: string
+  const ENGINES_VERSION: string
 }
 
 // used by esbuild for tree-shaking
@@ -452,7 +453,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             PrismaClientInitializationError,
             PrismaClientKnownRequestError,
             debug: Debug('prisma:client:accelerateEngine'),
-            engineVersion: enginesVersion,
+            engineVersion: ENGINES_VERSION,
             clientVersion: config.clientVersion,
           },
         }

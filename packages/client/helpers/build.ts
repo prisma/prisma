@@ -1,3 +1,4 @@
+import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
@@ -7,6 +8,7 @@ import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin, smallBuffer } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
+import { version as clientVersion } from '../package.json'
 
 const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
 const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
@@ -31,6 +33,8 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
     define: {
       NODE_CLIENT: 'true',
       TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
+      ENGINES_VERSION: JSON.stringify(enginesVersion),
+      CLIENT_VERSION: JSON.stringify(clientVersion),
       // that fixes an issue with lz-string umd builds
       'define.amd': 'false',
     },
@@ -94,6 +98,8 @@ const commonEdgeWasmRuntimeBuildConfig = {
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
+    ENGINES_VERSION: JSON.stringify(enginesVersion),
+    CLIENT_VERSION: JSON.stringify(clientVersion),
     'globalThis.DEBUG_COLORS': 'false',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',

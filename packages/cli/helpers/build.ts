@@ -62,6 +62,11 @@ const cliBuildConfig: BuildOptions = {
   bundle: true,
   emitTypes: false,
   minify: true,
+  define: {
+    // needed for some client internals
+    NODE_CLIENT: 'true',
+    TARGET_BUILD_TYPE: "'library'",
+  },
 }
 
 // we define the config for preinstall

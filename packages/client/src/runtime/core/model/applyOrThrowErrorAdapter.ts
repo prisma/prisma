@@ -1,10 +1,8 @@
 import { DMMF } from '@prisma/generator-helper'
 
 import { InternalRequestParams } from '../../getPrismaClient'
-import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
 import { NotFoundError } from '../errors/NotFoundError'
 import { PrismaClientKnownRequestError } from '../errors/PrismaClientKnownRequestError'
-import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 
 type RequestCallback = (requestParams: InternalRequestParams) => Promise<unknown>
 
@@ -43,14 +41,6 @@ function applyOrThrowWrapper(
   requestCallback: RequestCallback,
 ): RequestCallback {
   return async (requestParams) => {
-    if ('rejectOnNotFound' in requestParams.args) {
-      const message = createErrorMessageWithContext({
-        originalMethod: requestParams.clientMethod,
-        callsite: requestParams.callsite,
-        message: "'rejectOnNotFound' option is not supported",
-      })
-      throw new PrismaClientValidationError(message, { clientVersion })
-    }
     const result = await requestCallback(requestParams).catch((e) => {
       if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
         throw new NotFoundError(`No ${dmmfModelName} found`, clientVersion)

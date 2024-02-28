@@ -7,7 +7,11 @@ export function prettyPrintArguments(args?: JsArgs): string {
   if (args === undefined) {
     return ''
   }
-  const tree = buildArgumentsRenderingTree(args)
-  const writer = new Writer(0, { colors: inactiveColors })
-  return writer.write(tree).toString()
+  if (TARGET_BUILD_TYPE === 'wasm') {
+    return JSON.stringify(args, null, 2)
+  } else {
+    const tree = buildArgumentsRenderingTree(args)
+    const writer = new Writer(0, { colors: inactiveColors })
+    return writer.write(tree).toString()
+  }
 }

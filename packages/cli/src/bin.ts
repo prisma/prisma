@@ -24,6 +24,7 @@ import path from 'path'
 
 import { CLI } from './CLI'
 import { DebugInfo } from './DebugInfo'
+import { DecodeError } from './DecodeError'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
@@ -148,6 +149,7 @@ async function main(): Promise<number> {
       format: Format.new(),
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
+      'decode-error': DecodeError.new(),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )

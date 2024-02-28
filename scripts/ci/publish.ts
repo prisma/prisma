@@ -906,6 +906,13 @@ async function publishPackages(
       }
 
       if (!isSkipped(pkgName)) {
+        const pkgJson = require(path.join(`${pkgDir}/package.json`))
+
+        if (pkgJson?.scripts?.prepublishOnly === undefined) {
+          // we want this so that we have the versions at build time
+          throw new Error(`Missing prepublishOnly script in ${pkgName}`)
+        }
+
         /*
          *  About `--no-git-checks`
          *  By default, `pnpm publish` will make some checks before actually publishing a new version of your package.

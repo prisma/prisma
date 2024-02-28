@@ -171,11 +171,11 @@ function stringifyErrorMessage(
     lines.push(colors.red(`Invalid ${colors.bold(`\`${functionName}\``)} invocation${introSuffix}`))
   }
 
-  if (location) {
+  if (location && TARGET_BUILD_TYPE !== 'wasm') {
     lines.push(colors.underline(stringifyLocationInFile(location)))
   }
 
-  if (contextLines) {
+  if (contextLines && TARGET_BUILD_TYPE !== 'wasm') {
     lines.push('')
 
     const contextLineParts = [contextLines.toString()]
