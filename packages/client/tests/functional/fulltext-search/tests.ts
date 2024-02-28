@@ -94,8 +94,8 @@ testMatrix.setupTestSuite(
           error.message = error.message
             // Remove `tsquery.c` line number to make error snapshots portable across PostgreSQL versions.
             .replace(/line: Some\(\d+\)/, 'line: Some(0)')
-            // Align "`User`.[column]" with "t1.[column]"
-            .replace(/`User`\./g, 't1.')
+            // Align Rust / Driver Adapters divergences: "t1.[column]" -> "`User`.[column]"
+            .replace(/t1\./g, '`User`.')
             .replace(' as t1', '')
           throw error
         })
