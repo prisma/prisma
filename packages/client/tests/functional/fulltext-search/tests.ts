@@ -89,9 +89,13 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        .catch((error) => {
-          // Remove `tsquery.c` line number to make error snapshots portable across PostgreSQL versions.
-          error.message = error.message.replace(/line: Some\(\d+\)/, 'line: Some(0)')
+        .catch((e) => {
+          const error = e as Error
+          error.message = error.message
+            // Remove `tsquery.c` line number to make error snapshots portable across PostgreSQL versions.
+            .replace(/line: Some\(\d+\)/, 'line: Some(0)')
+            // Align "`User`.[column]" with "t1.[column]"
+            .replace(/`User`\./g, 't1.')
           throw error
         })
 
