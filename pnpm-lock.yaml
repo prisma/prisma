@@ -801,8 +801,8 @@ importers:
         specifier: 5.0.8
         version: 5.0.8
       tsd:
-        specifier: 0.30.4
-        version: 0.30.4
+        specifier: 0.30.7
+        version: 0.30.7
       typescript:
         specifier: 5.3.3
         version: 5.3.3
@@ -11397,8 +11397,8 @@ packages:
       strip-bom: 3.0.0
     dev: true
 
-  /tsd@0.30.4:
-    resolution: {integrity: sha512-ncC4SwAeUk0OTcXt5h8l0/gOLHJSp9ogosvOADT6QYzrl0ITm398B3wkz8YESqefIsEEwvYAU8bvo7/rcN/M0Q==}
+  /tsd@0.30.7:
+    resolution: {integrity: sha512-oTiJ28D6B/KXoU3ww/Eji+xqHJojiuPVMwA12g4KYX1O72N93Nb6P3P3h2OAhhf92Xl8NIhb/xFmBZd5zw/xUw==}
     engines: {node: '>=14.16'}
     hasBin: true
     dependencies:
