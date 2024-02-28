@@ -636,8 +636,8 @@ importers:
         specifier: 5.11.0-4.09cb2c4b7f5ee2525bb7512bf48fc31167eebdf4
         version: 5.11.0-4.09cb2c4b7f5ee2525bb7512bf48fc31167eebdf4
       '@snaplet/copycat':
-        specifier: 0.17.3
-        version: 0.17.3
+        specifier: 5.0.0
+        version: 5.0.0
       '@swc-node/register':
         specifier: 1.8.0
         version: 1.8.0(@swc/core@1.4.1)(typescript@5.3.3)
@@ -3858,11 +3858,12 @@ packages:
       - debug
     dev: true
 
-  /@snaplet/copycat@0.17.3:
-    resolution: {integrity: sha512-cwX6zphBd1KNuOPmILggXkddLf+juIrXsFhfOz0nMDIIAkWyoFQAqwt4pn5lS2RNMJTzT7IZRKplnFt/D2t8zw==}
+  /@snaplet/copycat@5.0.0:
+    resolution: {integrity: sha512-qapZN1mwVO5v1GmUW66gXoZ8qtpsqJk+tPUb3lGtyzwYtAPifHA0uymsi/Pjv6SVvl9SQhD2Af6Bb8Eime856g==}
     dependencies:
       '@faker-js/faker': 8.4.1
-      fictional: 0.8.4
+      fictional: 2.0.0
+      string-argv: 0.3.2
       uuid: 8.3.2
     dev: true
 
@@ -6928,8 +6929,8 @@ packages:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.2.1
 
-  /fictional@0.8.4:
-    resolution: {integrity: sha512-wSYTdLJkQ/h4NOMI6FCp9xxjMzEcCxwSjIK4f5zZveOKFUPAxi4/sAb3pyjaiz3fCSA2PGEGLY6ZWQplRl7ygQ==}
+  /fictional@2.0.0:
+    resolution: {integrity: sha512-uK8lBK3Xdk1y36wLj30ftvt8F7DPFBolTN/739eM71w36eCwhraFl//Udpiu9s1CIYZ2qywbPpi5aHh/i+zA1A==}
     dependencies:
       decimal.js: 10.4.3
       fast-json-stable-stringify: 2.1.0
