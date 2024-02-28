@@ -9,8 +9,8 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
-    "@types/node": "16.18.82",
-    "expect-type": "0.17.3",
+    "@types/node": "16.18.84",
+    "expect-type": "0.18.0",
     "prisma": "/tmp/prisma-0.0.0.tgz",
     "typescript": "4.9.5"
   }
