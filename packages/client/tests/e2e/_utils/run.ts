@@ -111,12 +111,13 @@ async function main() {
     }
 
     const projectName = testPath.toLocaleLowerCase().replace(/[^0-9a-z_-]/g, '-')
+    const networkName = `${projectName}_default`
     return async () => {
       const result =
         await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
       await $`docker compose ${composeFileArgs} -p ${projectName} stop`
       await $`docker compose ${composeFileArgs} -p ${projectName} rm -f`
-      await $`docker network prune -f`
+      await $`docker network rm -f ${networkName}`
       return result
     }
   })
