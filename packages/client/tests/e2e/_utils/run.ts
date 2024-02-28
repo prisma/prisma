@@ -116,7 +116,7 @@ async function main() {
         await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
       await $`docker compose ${composeFileArgs} -p ${projectName} stop`
       await $`docker compose ${composeFileArgs} -p ${projectName} rm -f`
-      await $`docker network prune`
+      await $`docker network prune -f`
       return result
     }
   })

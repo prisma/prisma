@@ -356,7 +356,7 @@ packages:
     dev: true
 
   file:../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-0DL99axhGwWadeI5dKH/cDylg53M0nduidXTjF5MoOPSQ8ufX/Jhyg9nwfRKnMskXFYW3ub/gICjv5QDeeD+HQ==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-wl5+6ei8CbNi3lh1mUfHLQI6P4lae3JeXXyiFSyLGXoPbYmFbhOzNerQwe9GRdafTEzJ+65Kst3Ap88EwovWpg==, tarball: file:../../tmp/prisma-0.0.0.tgz}
     name: prisma
     version: 0.0.0
     engines: {node: '>=16.13'}
@@ -366,7 +366,7 @@ packages:
       '@prisma/engines': file:../../tmp/prisma-engines-0.0.0.tgz
 
   file:../../tmp/prisma-client-0.0.0.tgz(prisma@0.0.0):
-    resolution: {integrity: sha512-qxql5yHixxmznJcH6LD0dBKZSy4amJBMDovvzmTVj2LNan04jVHvPdCZe7tIC45GgVieE12FBty54cSXjKy7TA==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-9msAC40kJv/H8DFMYEsVORBsS0V1a7q5XIwVSpQ6KzWoJPvdWYQsAQMYyYe7+UkCv6ceOhZlrxl93VBaTbVBnQ==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
     id: file:../../tmp/prisma-client-0.0.0.tgz
     name: '@prisma/client'
     version: 0.0.0
