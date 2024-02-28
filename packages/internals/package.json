@@ -32,7 +32,7 @@
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.15",
+    "@types/node": "18.19.17",
     "@types/node-fetch": "2.6.11",
     "@types/resolve": "1.20.6",
     "archiver": "6.0.1",
@@ -71,7 +71,7 @@
     "terminal-link": "2.1.1",
     "tmp": "0.2.1",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.0.6",
+    "ts-pattern": "5.0.8",
     "typescript": "5.3.3",
     "yarn": "1.22.21"
   },
@@ -81,7 +81,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.10.0-28.58fef65a004e8cdbe4a2e3cd0847738ab8b6e331",
+    "@prisma/prisma-schema-wasm": "5.11.0-4.09cb2c4b7f5ee2525bb7512bf48fc31167eebdf4",
     "arg": "5.0.2",
     "prompts": "2.4.2"
   },

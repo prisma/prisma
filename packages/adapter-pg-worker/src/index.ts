@@ -1,0 +1,1 @@
+export { PrismaPg } from './pg'

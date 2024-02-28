@@ -532,7 +532,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     const externalError = this.getExternalAdapterError(error.user_facing_error)
 
-    return externalError ? externalError.error : prismaGraphQLToJSError(error, this.config.clientVersion!)
+    return externalError
+      ? externalError.error
+      : prismaGraphQLToJSError(error, this.config.clientVersion!, this.config.activeProvider!)
   }
 
   private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {

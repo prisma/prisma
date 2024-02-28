@@ -1,6 +1,6 @@
 import { D1Database, D1Result } from '@cloudflare/workers-types'
 import {
-  // Debug,
+  Debug,
   DriverAdapter,
   err,
   ok,
@@ -13,17 +13,12 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
-import { getColumnTypes } from './conversion'
+import { getColumnTypes, mapRow } from './conversion'
 
-// TODO? Env var works differently in D1 so `debug` does not work.
-// const debug = Debug('prisma:driver-adapter:d1')
+const debug = Debug('prisma:driver-adapter:d1')
 
 type PerformIOResult = D1Result
-// type ExecIOResult = D1ExecResult
-
 type StdClient = D1Database
-
-// const LOCK_TAG = Symbol()
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
   readonly provider = 'sqlite'
@@ -34,15 +29,13 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * Execute a query given as SQL, interpolating the given parameters.
    */
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::query_raw]'
-    // console.debug(`${tag} %O`, query)
+    debug(`${tag} %O`, query)
 
     const ioResult = await this.performIO(query)
 
     return ioResult.map((data) => {
       const convertedData = this.convertData(data)
-      // console.debug({ convertedData })
       return convertedData
     })
   }
@@ -58,27 +51,18 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 
     const results = ioResult.results as Object[]
     const columnNames = Object.keys(results[0])
-    const columnTypes = getColumnTypes(columnNames, results)
-    const rows = this.mapD1ToRows(results)
+    const columnTypes = Object.values(getColumnTypes(columnNames, results))
+    const rows = ioResult.results.map((value) => mapRow(value as Object, columnTypes))
 
     return {
       columnNames,
-      // Note: without Object.values the array looks like
-      // columnTypes: [ id: 128 ],
-      // and errors with:
-      // ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
-      columnTypes: Object.values(columnTypes),
+      // * Note: without Object.values the array looks like
+      // * columnTypes: [ id: 128 ],
+      // * and errors with:
+      // * ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
+      columnTypes,
       rows,
     }
-  }
-
-  private mapD1ToRows(results: any) {
-    const rows: unknown[][] = []
-    for (const row of results) {
-      const entry = Object.keys(row).map((k) => row[k])
-      rows.push(entry)
-    }
-    return rows
   }
 
   /**
@@ -87,43 +71,21 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
   async executeRaw(query: Query): Promise<Result<number>> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::execute_raw]'
-    // console.debug(`${tag} %O`, query)
+    debug(`${tag} %O`, query)
 
     return (await this.performIO(query)).map(({ meta }) => meta.rows_written ?? 0)
   }
 
   private async performIO(query: Query): Promise<Result<PerformIOResult>> {
-    // console.debug({ query })
-
     try {
-      // Hack for booleans, we must convert them to 0/1.
-      // ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
-      query.args = query.args.map((arg) => {
-        if (arg === true) {
-          return 1
-        } else if (arg === false) {
-          return 0
-        }
-        // Temporary unblock for "D1_TYPE_ERROR: Type 'bigint' not supported for value '20'"
-        // For 0-legacy-ports.query-raw tests
-        // https://github.com/prisma/team-orm/issues/878
-        else if (typeof arg === 'bigint') {
-          return Number(arg)
-        } else if (arg instanceof Uint8Array) {
-          return Array.from(arg)
-        }
-
-        return arg
-      })
+      query.args = query.args.map((arg) => this.cleanArg(arg))
 
       const result = await this.client
         .prepare(query.sql)
         .bind(...query.args)
+        // TODO use .raw({ columnNames: true }) later
         .all()
-
-      // console.debug({ result })
 
       return ok(result)
     } catch (e) {
@@ -149,6 +111,28 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       })
     }
   }
+
+  cleanArg(arg: unknown): unknown {
+    // * Hack for booleans, we must convert them to 0/1.
+    // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
+    if (arg === true) {
+      return 1
+    }
+
+    if (arg === false) {
+      return 0
+    }
+
+    if (arg instanceof Uint8Array) {
+      return Array.from(arg)
+    }
+
+    if (typeof arg === 'bigint') {
+      return String(arg)
+    }
+
+    return arg
+  }
 }
 
 class D1Transaction extends D1Queryable<StdClient> implements Transaction {
@@ -158,14 +142,14 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<Result<void>> {
-    // console.debug(`[js::commit]`)
+    debug(`[js::commit]`)
 
     return ok(undefined)
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<Result<void>> {
-    // console.debug(`[js::rollback]`)
+    debug(`[js::rollback]`)
 
     return ok(undefined)
   }
@@ -181,8 +165,12 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
 
   alreadyWarned = new Set()
 
-  constructor(client: StdClient) {
+  // TODO: decide what we want to do for "debug"
+  constructor(client: StdClient, debug?: string) {
     super(client)
+    if (debug) {
+      globalThis.DEBUG = debug
+    }
   }
 
   /**
@@ -209,9 +197,8 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
       usePhantomQuery: true,
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::startTransaction]'
-    // console.debug(`${tag} options: %O`, options)
+    debug(`${tag} options: %O`, options)
 
     this.warnOnce(
       'D1 Transaction',
