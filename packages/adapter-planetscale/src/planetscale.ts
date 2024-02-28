@@ -101,7 +101,7 @@ function parseErrorMessage(message: string) {
   const match = message.match(regex)
 
   if (match) {
-    const [_, errorMessage, code, sqlstate] = match
+    const [, errorMessage, code, sqlstate] = match
     const originalMessageRegex = /target: .* vttablet: (.*)/
     const originalMessageMatch = errorMessage.match(originalMessageRegex)
 

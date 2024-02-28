@@ -61,8 +61,6 @@ module.exports = {
         ignoreRestSiblings: true,
         // for functions, allow to have unused arguments if they start with _. We need to do this from time to time to test type inference within the tests
         argsIgnorePattern: '^_',
-        // allow to have unused variables if they start with _. We need to do this from time to time when e.g. destructuring a tuple
-        varsIgnorePattern: '^_',
       },
     ],
     'eslint-comments/no-unlimited-disable': 'off',
