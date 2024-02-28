@@ -6,6 +6,7 @@ import path from 'path'
 import { $, ProcessOutput, sleep } from 'zx'
 
 const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
+const e2eRoot = path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')
 
 const args = arg(
   process.argv.slice(2),
@@ -94,8 +95,8 @@ async function main() {
     ...allPackageFolderNames.map((p) => `/tmp/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
     `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
-    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
-    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,
+    `${e2eRoot}:/e2e`,
+    `${path.join(e2eRoot, '.cache')}:/root/.cache`,
     `${(await $`pnpm store path`.quiet()).stdout.trim()}:/root/.local/share/pnpm/store/v3`,
   ]
   const dockerVolumeArgs = dockerVolumes.flatMap((v) => ['-v', v])
@@ -104,22 +105,18 @@ async function main() {
 
   const dockerJobs = e2eTestNames.map((testPath) => {
     const composeFileArgs = ['-f', `${__dirname}/docker-compose.yaml`]
-    const localComposePath = path.join(
-      monorepoRoot,
-      'packages',
-      'client',
-      'tests',
-      'e2e',
-      testPath,
-      'docker-compose.yaml',
-    )
+    const localComposePath = path.join(e2eRoot, testPath, 'docker-compose.yaml')
     if (existsSync(localComposePath)) {
       composeFileArgs.push('-f', localComposePath)
     }
 
     const projectName = testPath.replaceAll('/', '-')
-    return async () =>
-      await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+    return async () => {
+      const result =
+        await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+      await $`docker compose ${composeFileArgs} -p ${projectName} rm`
+      return result
+    }
   })
 
   const jobResults: (ProcessOutput & { name: string })[] = []
