@@ -34,6 +34,7 @@ Install the Prisma adapter for Cloudflare D1 and Cloudflare's workers types pack
 ```sh
 npm install @prisma/adapter-d1
 npm install @cloudflare/workers-types
+npm install wrangler
 ```
 
 Update your Prisma Client instance to use the Cloudflare D1 serverless driver:
