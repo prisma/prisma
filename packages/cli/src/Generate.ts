@@ -294,7 +294,7 @@ More information: https://pris.ly/d/client`
 ${bold('Start using Prisma Client')}
 ${dim('```')}
 ${highlightTS(`\
-import { PrismaClient } from ${importPath}
+import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
 ${dim('```')}
 
