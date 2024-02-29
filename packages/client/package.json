@@ -35,10 +35,22 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./default.d.ts",
-      "browser": "./default.js",
-      "require": "./default.js",
-      "import": "./default.js",
+      "require": {
+        "types": "./default.d.ts",
+        "node": "./default.js",
+        "edge-light": "./default.js",
+        "workerd": "./default.js",
+        "worker": "./default.js",
+        "browser": "./index-browser.js"
+      },
+      "import": {
+        "types": "./default.d.ts",
+        "node": "./default.js",
+        "edge-light": "./default.js",
+        "workerd": "./default.js",
+        "worker": "./default.js",
+        "browser": "./index-browser.js"
+      },
       "default": "./default.js"
     },
     "./edge": {
