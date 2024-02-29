@@ -29,16 +29,16 @@
     "SQLServer",
     "MongoDB"
   ],
-  "main": "index.js",
-  "browser": "index.js",
+  "main": "default.js",
   "types": "default.d.ts",
+  "browser": "index-browser.js",
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./index.d.ts",
-      "require": "./index.js",
-      "import": "./index.js",
-      "default": "./index.js"
+      "types": "./default.d.ts",
+      "require": "./default.js",
+      "import": "./default.js",
+      "default": "./default.js"
     },
     "./edge": {
       "types": "./edge.d.ts",

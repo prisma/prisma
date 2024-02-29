@@ -97,7 +97,7 @@ export async function buildClient({
     deno: false,
     edge: false,
     wasm: false,
-    importWarning: false,
+    trampoline: false,
   }
 
   const nodeClientOptions = {
@@ -124,6 +124,13 @@ export async function buildClient({
     edge: true,
   })
 
+  const trampolineTsClient = new TSClient({
+    ...nodeClientOptions,
+    reusedTs: 'default',
+    reusedJs: 'default',
+    trampoline: true,
+  })
+
   const pkgJson = {
     name: getUniquePackageName(datamodel),
     main: 'index.js',
@@ -141,13 +148,17 @@ export async function buildClient({
   fileMap['default.js'] = await JS(defaultClient)
   fileMap['default.d.ts'] = await TS(defaultClient)
   fileMap['index-browser.js'] = await BrowserJS(nodeClient)
-  fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
   fileMap['edge.js'] = await JS(edgeClient)
   fileMap['edge.d.ts'] = await TS(edgeClient)
 
   if (generator.previewFeatures.includes('driverAdapters')) {
-    fileMap['wasm-worker-loader.js'] = `export default (await import('./query-engine.wasm')).default`
-    fileMap['wasm-edge-light-loader.js'] = `export default (await import('./query-engine.wasm?module')).default`
+    // the trampoline client is used to point to #main-entry-point, see below
+    // we use `imports` sort of like an `exports` map to ensure correct imports
+    fileMap['default.js'] = await JS(trampolineTsClient)
+    fileMap['default.d.ts'] = await JS(trampolineTsClient)
+    fileMap['wasm-worker-loader.js'] = `export default (await import('./query_engine_bg.wasm')).default`
+    fileMap['wasm-edge-light-loader.js'] = `export default (await import('./query_engine_bg.wasm?module')).default`
+    pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
     pkgJson['imports'] = {
       '#wasm-engine-loader': {
         'edge-light': './wasm-edge-light-loader.js',
@@ -156,27 +167,13 @@ export async function buildClient({
         default: './wasm-worker-loader.js',
       },
       '#main-entry-point': {
-        node: './default.js',
+        node: './index.js',
+        'edge-light': './wasm.js',
         workerd: './wasm.js',
-        'index-browser': './index-browser.js',
+        worker: './wasm.js',
+        browser: './index-browser.js',
+        default: './index.js',
       },
-    }
-
-    // in custom outputs, `index` shows a warning. if it is loaded, it means
-    // that the export map is not working for the user so we display them an
-    // `importWarning`. If the exports map works, `default` will be loaded.
-    if (generator.isCustomOutput === true) {
-      const nodeWarnTsClient = new TSClient({
-        ...nodeClientOptions,
-        reusedTs: 'default',
-        reusedJs: 'default',
-        importWarning: true,
-      })
-
-      fileMap['default.js'] = fileMap['index.js']
-      fileMap['default.d.ts'] = fileMap['index.d.ts']
-      fileMap['index.js'] = await JS(nodeWarnTsClient)
-      fileMap['index.d.ts'] = await TS(nodeWarnTsClient)
     }
 
     const wasmClient = new TSClient({
@@ -214,6 +211,8 @@ import './polyfill.js'
 export * from './edge.js'`
     fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
   }
+
+  fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
 
   return {
     fileMap, // a map of file names to their contents

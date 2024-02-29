@@ -25,9 +25,12 @@ export function buildQueryEngineWasmModule(
   // so we use a dynamic import which is compatible with both cjs and esm
   // additionally we need to append ?module to the import path for vercel
   // this is incompatible with cloudflare, so we hide it in a template
-  if (wasm === true) {
-    return `config.getQueryEngineWasmModule = async () => {
-  return (await import('#wasm-engine-loader')).default
+  if (copyEngine && wasm === true) {
+    return `config.engineWasm = {
+  getRuntime: () => require('./query_engine_bg.js'),
+  getQueryEngineWasmModule: async () => {
+    return (await import('#wasm-engine-loader')).default
+  }
 }`
   }
 

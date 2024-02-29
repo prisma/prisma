@@ -32,7 +32,6 @@ import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
-import { invalidImportWarningJs, invalidImportWarningTs } from './utils/invalidImportWarning'
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
@@ -45,8 +44,8 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   deno: boolean
   /** When we are generating an /edge client */
   edge: boolean
-  /** When user is not optimally importing client @see {buildClient} */
-  importWarning: boolean
+  /** The "trampoline" index bounces the import to other entrypoints */
+  trampoline: boolean
   /** When we are generating a /wasm client */
   wasm: boolean
   /** When types don't need to be regenerated */
@@ -77,15 +76,12 @@ export class TSClient implements Generatable {
       datasources,
       deno,
       copyEngine = true,
-      importWarning,
+      trampoline,
       reusedJs,
     } = this.options
 
-    if (reusedJs && importWarning) {
-      const topExports = `module.exports = { ...require('./${reusedJs}.js') }`
-      const warning = `console.warn('${invalidImportWarningJs.join('\\n')}')`
-
-      return `${[topExports, warning].join('\n\n')}`
+    if (trampoline) {
+      return `module.exports = { ...require('#main-entry-point') }`
     }
 
     if (reusedJs) {
@@ -169,42 +165,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
     return code
   }
   public toTS(): string {
-    const { reusedTs, importWarning } = this.options
-
-    if (reusedTs && importWarning) {
-      const topExports = ts.moduleExportFrom('*', `./${reusedTs}`)
-      const topImports = ts.moduleImport(['PrismaClient as $PrismaClient', 'Prisma'], `./${reusedTs}`)
-      const prismaClientClass = ts.classDeclaration('PrismaClient')
-
-      const deprecationComment = ts.docComment(`@deprecated`)
-      deprecationComment.addText(invalidImportWarningTs.join('\n'))
-
-      const prismaClientClassGenericParams = ts.genericParameter('T')
-      prismaClientClassGenericParams.extends(ts.namedType('Prisma.PrismaClientOptions'))
-      prismaClientClassGenericParams.default(ts.namedType('Prisma.PrismaClientOptions'))
-      prismaClientClass.addGenericParameter(prismaClientClassGenericParams)
-
-      const prismaClientClassExtends = ts.namedType('$PrismaClient')
-      prismaClientClassExtends.addGenericArgument(ts.namedType('T'))
-      prismaClientClass.extends(prismaClientClassExtends)
-
-      const prismaClientClassConstructor = ts.method('constructor')
-      prismaClientClassConstructor.setDocComment(deprecationComment)
-
-      const prismaClientClassConstructorArgType = ts.namedType('Prisma.Subset')
-      prismaClientClassConstructorArgType.addGenericArgument(ts.namedType('T'))
-      prismaClientClassConstructorArgType.addGenericArgument(ts.namedType('Prisma.PrismaClientOptions'))
-
-      const prismaClientClassConstructorArg = ts.parameter('optionsArg', prismaClientClassConstructorArgType)
-      prismaClientClassConstructor.addParameter(prismaClientClassConstructorArg.optional())
-
-      prismaClientClass.add(prismaClientClassConstructor)
-
-      const prismaClientClassExport = ts.moduleExport(prismaClientClass)
-      prismaClientClassExport.setDocComment(deprecationComment)
-
-      return [topExports, topImports, prismaClientClassExport].map((v) => ts.stringify(v)).join('\n\n')
-    }
+    const { reusedTs } = this.options
 
     // in some cases, we just re-export the existing types
     if (reusedTs) {
