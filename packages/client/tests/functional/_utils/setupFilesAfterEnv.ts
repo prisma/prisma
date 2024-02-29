@@ -1,9 +1,11 @@
 // add all jest-extended matchers
 // see https://jest-extended.jestcommunity.dev/docs/matchers/
-import fs from 'fs-extra'
 import * as matchers from 'jest-extended'
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
 import stripAnsi from 'strip-ansi'
+
+import { EnabledCallSite } from '../../../src/runtime/utils/CallSite'
+import { getTemplateParameters } from '../../../src/runtime/utils/createErrorMessageWithContext'
 
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
 expect.extend(matchers)
@@ -82,8 +84,12 @@ globalThis.skipTestIf = (condition: boolean) => (condition || process.env.TEST_G
 globalThis.describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 globalThis.testRepeat = testRepeat
 
-// @ts-ignore, a global fs variable that is injected by us to make our snapshots
+// @ts-ignore, a global variable that is injected by us to make our snapshots
 // work in clients that cannot read from disk (e.g. wasm or edge clients)
-globalThis.$fs = fs
+globalThis.$getTemplateParameters = getTemplateParameters
+
+// @ts-ignore, a global variable that is injected by us to make our snapshots
+// work in clients that cannot read from disk (e.g. wasm or edge clients)
+globalThis.$EnabledCallSite = EnabledCallSite
 
 export {}

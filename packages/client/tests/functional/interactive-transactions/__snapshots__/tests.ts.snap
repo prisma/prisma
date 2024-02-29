@@ -129,7 +129,7 @@ exports[`interactive-transactions (provider=mysql, js_planetscale) batching raw 
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`1062\`. Message: \`rpc error: code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY'\`
+Raw query failed. Code: \`1062\`. Message: \`rpc error: code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"1\\""vtg2: "type:VARCHAR value:\\"user_1@website.com\\""}\`
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) batching rollback 1`] = `
@@ -141,7 +141,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX   },
   XX }),
 → XX prisma.user.create(
-Unique constraint failed on the constraint: \`User_email_key\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) batching rollback within callback 1`] = `
@@ -153,7 +153,7 @@ Invalid \`tx.user.create()\` invocation in
   XX ])
   XX 
 → XX await tx.user.create(
-Unique constraint failed on the constraint: \`User_email_key\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) rollback query 1`] = `
@@ -165,7 +165,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX })
   XX 
 → XX await prisma.user.create(
-Unique constraint failed on the constraint: \`User_email_key\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=postgresql) batching raw rollback 1`] = `

@@ -11,9 +11,9 @@ void executeSteps({
   test: async () => {
     await $`pnpm test`
 
-    await $`node -r esbuild-register src/default.ts`.quiet()
-    await $`node -r esbuild-register src/dep.ts`.quiet()
-    await $`node -r esbuild-register src/no-dep.ts`.quiet()
+    await $`tsx src/default.ts`.quiet()
+    await $`tsx src/dep.ts`.quiet()
+    await $`tsx src/no-dep.ts`.quiet()
   },
   finish: async () => {
     await $`echo "done"`

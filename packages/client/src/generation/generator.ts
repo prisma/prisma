@@ -46,7 +46,7 @@ if (process.argv[1] === __filename) {
         clientVersion,
         activeProvider: options.datasources[0]?.activeProvider,
         postinstall: options.postinstall,
-        noEngine: options.noEngine,
+        copyEngine: !options.noEngine,
       })
     },
   })
