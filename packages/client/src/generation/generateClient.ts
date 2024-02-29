@@ -126,8 +126,8 @@ export async function buildClient({
 
   const trampolineTsClient = new TSClient({
     ...nodeClientOptions,
-    reusedTs: 'default',
-    reusedJs: 'default',
+    reusedTs: 'index',
+    reusedJs: 'index',
     trampoline: true,
   })
 
@@ -155,7 +155,7 @@ export async function buildClient({
     // the trampoline client is used to point to #main-entry-point, see below
     // we use `imports` sort of like an `exports` map to ensure correct imports
     fileMap['default.js'] = await JS(trampolineTsClient)
-    fileMap['default.d.ts'] = await JS(trampolineTsClient)
+    fileMap['default.d.ts'] = await TS(trampolineTsClient)
     fileMap['wasm-worker-loader.js'] = `export default (await import('./query_engine_bg.wasm')).default`
     fileMap['wasm-edge-light-loader.js'] = `export default (await import('./query_engine_bg.wasm?module')).default`
     pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
