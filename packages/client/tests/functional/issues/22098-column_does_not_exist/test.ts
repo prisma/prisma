@@ -6,7 +6,6 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   test('does not throw error', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     await expect(prisma.test.findFirst()).resolves.not.toThrow()
   })
 })
