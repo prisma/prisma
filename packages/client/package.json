@@ -36,6 +36,7 @@
     "./package.json": "./package.json",
     ".": {
       "types": "./default.d.ts",
+      "browser": "./index-browser.js",
       "require": "./default.js",
       "import": "./default.js",
       "default": "./default.js"
