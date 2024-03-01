@@ -139,11 +139,9 @@ export async function buildClient({
   }
 
   const exportsMapDefault = {
-    '.': {
-      require: exportsMapBase,
-      import: exportsMapBase,
-      default: exportsMapBase.default,
-    },
+    require: exportsMapBase,
+    import: exportsMapBase,
+    default: exportsMapBase.default,
   }
 
   const pkgJson = {
@@ -153,7 +151,7 @@ export async function buildClient({
     browser: 'index-browser.js',
     exports: {
       ...clientPkg.exports,
-      ...exportsMapDefault,
+      ...{ '.': exportsMapDefault },
     },
     version: clientVersion,
     sideEffects: false,
@@ -196,14 +194,7 @@ export async function buildClient({
         default: './wasm-worker-loader.js',
       },
       // when `require('#main-entry-point')` is called, it will be resolved to the correct file
-      '#main-entry-point': {
-        node: './index.js',
-        'edge-light': './wasm.js',
-        workerd: './wasm.js',
-        worker: './wasm.js',
-        browser: './index-browser.js',
-        default: './index.js',
-      },
+      '#main-entry-point': exportsMapDefault,
     }
 
     const wasmClient = new TSClient({
