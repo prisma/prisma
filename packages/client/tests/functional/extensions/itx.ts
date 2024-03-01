@@ -14,7 +14,7 @@ declare let Prisma: typeof PrismaNamespace
 const email = faker.internet.email()
 
 testMatrix.setupTestSuite(
-  ({ provider }, _, clientMeta) => {
+  ({ provider }, _suiteMeta, _clientMeta) => {
     beforeEach(async () => {
       await prisma.post.deleteMany()
       await prisma.user.deleteMany()
@@ -55,7 +55,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    testIf(clientMeta.runtime !== 'edge')('extended client in itx can rollback via normal call', async () => {
+    test('extended client in itx can rollback via normal call', async () => {
       const xprisma = prisma.$extends({
         result: {
           user: {
@@ -129,7 +129,7 @@ testMatrix.setupTestSuite(
       expect(users).toHaveLength(1)
     })
 
-    testIf(clientMeta.runtime !== 'edge')('extended client in itx can rollback via custom call', async () => {
+    test('extended client in itx can rollback via custom call', async () => {
       const xprisma = prisma
         .$extends({
           result: {

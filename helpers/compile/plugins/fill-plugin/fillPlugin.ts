@@ -131,8 +131,7 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
   return fillers[args.path] // inject the contents
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const load = loader({}) // could be useful later
+export const load = loader({})
 
 const defaultFillersConfig: Fillers = {
   // enabled
@@ -198,6 +197,13 @@ export const smallBuffer = {
   buffer: {
     imports: path.join(__dirname, 'fillers', 'buffer-small.ts'),
     globals: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+  },
+}
+
+export const smallDecimal = {
+  'decimal.js': {
+    imports: path.join(__dirname, 'fillers', 'decimal-small.ts'),
+    globals: path.join(__dirname, 'fillers', 'decimal-small.ts'),
   },
 }
 
