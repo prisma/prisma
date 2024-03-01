@@ -12,7 +12,7 @@ import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
-import { exports as clientPackageExports, name as clientPackageName } from '../../package.json'
+import clientPkg from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
@@ -112,7 +112,7 @@ export async function buildClient({
   const defaultClient = new TSClient({
     ...nodeClientOptions,
     reusedTs: 'index',
-    reusedJs: 'index',
+    reusedJs: '.',
   })
 
   // we create a client that is fit for edge runtimes
@@ -131,12 +131,32 @@ export async function buildClient({
     trampoline: true,
   })
 
+  const exportsMapBase = {
+    node: './index.js',
+    'edge-light': './wasm.js',
+    workerd: './wasm.js',
+    worker: './wasm.js',
+    browser: './index-browser.js',
+    default: './index.js',
+  }
+
+  const exportsMapDefault = {
+    '.': {
+      require: exportsMapBase,
+      import: exportsMapBase,
+      default: exportsMapBase.default,
+    },
+  }
+
   const pkgJson = {
     name: getUniquePackageName(datamodel),
     main: 'index.js',
     types: 'index.d.ts',
     browser: 'index-browser.js',
-    exports: clientPackageExports,
+    exports: {
+      ...clientPkg.exports,
+      ...exportsMapDefault,
+    },
     version: clientVersion,
     sideEffects: false,
   }
@@ -152,8 +172,18 @@ export async function buildClient({
   fileMap['edge.d.ts'] = await TS(edgeClient)
 
   if (generator.previewFeatures.includes('driverAdapters')) {
-    // the trampoline client is used to point to #main-entry-point, see below
-    // we use `imports` sort of like an `exports` map to ensure correct imports
+    // The trampoline client points to #main-entry-point (see below).
+    // We use imports similar to an exports map to ensure correct imports.
+    // ❗ Before going GA, please notify @millsp as some things can be cleaned up:
+    // - defaultClient can be deleted because trampolineTsClient will replace it.
+    //   - Special handling of . paths in TSClient.ts can also be removed.
+    // - The main @prisma/client exports map can be simplified:
+    //   - Everything can point to `default.js`, including browser fields.
+    //   - The exports map's `.` entry can be compacted like the ones below `.` (e.g. `./edge`).
+    // - exportsMapDefault can be deleted as it is only needed for the old defaultClient:
+    //   - #main-entry-point can handle all the heavy lifting on its own.
+    //   - Pointing everything to #main-entry-point is kept for GA, which is a slight breaking change.
+    // In summary, a lot can be simplified and cleaned up, but this can only happen in GA/Prisma 6.
     fileMap['default.js'] = await JS(trampolineTsClient)
     fileMap['default.d.ts'] = await TS(trampolineTsClient)
     fileMap['wasm-worker-loader.js'] = `export default (await import('./query_engine_bg.wasm')).default`
@@ -532,18 +562,18 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
     throw e
   }
   const { name } = JSON.parse(content)
-  if (name === clientPackageName) {
+  if (name === clientPkg.name) {
     const message = [`Generating client into ${bold(directory)} is not allowed.`]
     message.push('This package is used by `prisma generate` and overwriting its content is dangerous.')
     message.push('')
     message.push('Suggestion:')
     const outputDeclaration = findOutputPathDeclaration(datamodel)
 
-    if (outputDeclaration && outputDeclaration.content.includes(clientPackageName)) {
+    if (outputDeclaration && outputDeclaration.content.includes(clientPkg.name)) {
       const outputLine = outputDeclaration.content
       message.push(`In ${bold(schemaPath)} replace:`)
       message.push('')
-      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPackageName))}`)
+      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPkg.name))}`)
       message.push('with')
 
       message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, green('.prisma/client'))}`)
@@ -560,7 +590,7 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
 }
 
 function replacePackageName(directoryPath: string, replacement: string): string {
-  return directoryPath.replace(clientPackageName, replacement)
+  return directoryPath.replace(clientPkg.name, replacement)
 }
 
 function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null {

@@ -85,7 +85,11 @@ export class TSClient implements Generatable {
     }
 
     if (reusedJs) {
-      return `module.exports = { ...require('./${reusedJs}.js') }`
+      if (reusedJs === '.') {
+        return `module.exports = { ...require('.') }`
+      } else {
+        return `module.exports = { ...require('./${reusedJs}.js') }`
+      }
     }
 
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
