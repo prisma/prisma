@@ -179,6 +179,7 @@ export async function buildClient({
     // - exportsMapDefault can be deleted as it's only needed for defaultClient:
     //   - #main-entry-point can handle all the heavy lifting on its own.
     //   - Always using #main-entry-point is kept for GA (small breaking change).
+    //   - exportsMapDefault can be inlined down below and removed everywhere else.
     // In short: A lot can be simplified, but can only happen in GA & P6.
     fileMap['default.js'] = await JS(trampolineTsClient)
     fileMap['default.d.ts'] = await TS(trampolineTsClient)
