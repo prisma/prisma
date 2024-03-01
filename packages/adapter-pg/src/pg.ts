@@ -20,6 +20,7 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly provider = 'postgres'
 

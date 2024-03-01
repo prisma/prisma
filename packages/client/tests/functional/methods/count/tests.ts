@@ -4,7 +4,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: 'user-1@email.com', age: 111, name: 'some-name-1' } })
     await prisma.user.create({ data: { email: 'user-2@email.com', age: 222, name: 'some-name-2' } })
@@ -106,7 +106,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     `)
   })
 
-  testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
+  test('bad prop', async () => {
     const err = prisma.user.count({
       select: {
         _all: true,
@@ -125,7 +125,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
 
         XX })
         XX 
-        XX testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
+        XX test('bad prop', async () => {
       → XX   const err = prisma.user.count({
                 select: {
                   _count: {
