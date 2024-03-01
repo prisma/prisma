@@ -4,7 +4,7 @@ Prisma driver adapter for [Cloudflare D1](https://developers.cloudflare.com/d1/)
 
 <!-- TODO Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
 
-> **Note**: Support for Cloudflare D1 is available in [Early Access](https://www.prisma.io/docs/about/prisma/releases#early-access) from Prisma versions [TODO](https://github.com/prisma/prisma/releases/tag/TODO) and later.
+<!-- > **Note**: Support for Cloudflare D1 is available in [Early Access](https://www.prisma.io/docs/about/prisma/releases#early-access) from Prisma versions [TODO](https://github.com/prisma/prisma/releases/tag/TODO) and later. -->
 
 ## Getting started
 
@@ -29,7 +29,7 @@ Generate Prisma Client:
 npx prisma generate
 ```
 
-Install the Prisma adapter for Cloudflare D1 and Cloudflare's workers types packages:
+Install the Prisma adapter for Cloudflare D1, Cloudflare's workers types and Wrangler packages:
 
 ```sh
 npm install @prisma/adapter-d1
@@ -37,7 +37,7 @@ npm install @cloudflare/workers-types
 npm install wrangler
 ```
 
-Update your Prisma Client instance to use the Cloudflare D1 serverless driver:
+Update your Prisma Client instance to use the Cloudflare D1:
 
 ```ts
 // Import needed packages
@@ -52,7 +52,7 @@ export interface Env {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Init prisma client
-    const adapter = new PrismaD1(env.MY_DATABASE, process.env.DEBUG)
+    const adapter = new PrismaD1(env.MY_DATABASE)
     const prisma = new PrismaClient({ adapter })
 
     // Use Prisma Client as normal
@@ -71,22 +71,6 @@ export default {
 
 <!-- TODO Refer to our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1#how-to-manage-schema-changes) to learn how to manage schema changes when using Prisma and Cloudflare D1. -->
 
-### Transactions
-
-Cloudflare D1 currently only supports sequential transactions in the form of `batch([...queries])`. This means that when using Prisma's D1 adapter, both explicit and implicit transactions - queries such as `create` on `1:m` - will be ignored.
-
-> ```ts
-> prisma.post.create({
->     data: {
->      title: "title",
->      categories: {
->        create: [ { name: "c1" }, { name: "c2"  ],
->      },
->    },
->  });
-> ```
-
-Queries will be ran individually and as such ACID properties cannot be guaranteed.
 
 <!-- ## Feedback
 TODO Leave this till preview
