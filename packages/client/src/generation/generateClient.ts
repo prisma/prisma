@@ -97,7 +97,6 @@ export async function buildClient({
     deno: false,
     edge: false,
     wasm: false,
-    trampoline: false,
   }
 
   const nodeClientOptions = {
@@ -127,8 +126,7 @@ export async function buildClient({
   const trampolineTsClient = new TSClient({
     ...nodeClientOptions,
     reusedTs: 'index',
-    reusedJs: 'index',
-    trampoline: true,
+    reusedJs: '#main-entry-point',
   })
 
   const exportsMapBase = {
@@ -172,30 +170,33 @@ export async function buildClient({
   fileMap['edge.d.ts'] = await TS(edgeClient)
 
   if (generator.previewFeatures.includes('driverAdapters')) {
-    // The trampoline client points to #main-entry-point (see below).
-    // We use imports similar to an exports map to ensure correct imports.
-    // ❗ Before going GA, please notify @millsp as some things can be cleaned up:
-    // - defaultClient can be deleted because trampolineTsClient will replace it.
+    // The trampoline client points to #main-entry-point (see below).  We use
+    // imports similar to an exports map to ensure correct imports.❗ Before
+    // going GA, please notify @millsp as some things can be cleaned up:
+    // - defaultClient can be deleted since trampolineTsClient will replace it.
     //   - Special handling of . paths in TSClient.ts can also be removed.
     // - The main @prisma/client exports map can be simplified:
     //   - Everything can point to `default.js`, including browser fields.
-    //   - The exports map's `.` entry can be compacted like the ones below `.` (e.g. `./edge`).
-    // - exportsMapDefault can be deleted as it is only needed for the old defaultClient:
+    //   - Exports map's `.` entry can be made like the others (e.g. `./edge`).
+    // - exportsMapDefault can be deleted as it's only needed for defaultClient:
     //   - #main-entry-point can handle all the heavy lifting on its own.
-    //   - Pointing everything to #main-entry-point is kept for GA, which is a slight breaking change.
-    // In summary, a lot can be simplified and cleaned up, but this can only happen in GA/Prisma 6.
+    //   - Pointing everything to #main-entry-point is kept for GA, which is a
+    //     slight breaking change.
+    // In short: A lot can be simplified, but can only happen in GA & P6.
     fileMap['default.js'] = await JS(trampolineTsClient)
     fileMap['default.d.ts'] = await TS(trampolineTsClient)
     fileMap['wasm-worker-loader.js'] = `export default (await import('./query_engine_bg.wasm')).default`
     fileMap['wasm-edge-light-loader.js'] = `export default (await import('./query_engine_bg.wasm?module')).default`
     pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
     pkgJson['imports'] = {
+      // when `import('#wasm-engine-loader')` is called, it will be resolved to the correct file
       '#wasm-engine-loader': {
         'edge-light': './wasm-edge-light-loader.js',
         workerd: './wasm-worker-loader.js',
         worker: './wasm-worker-loader.js',
         default: './wasm-worker-loader.js',
       },
+      // when `require('#main-entry-point')` is called, it will be resolved to the correct file
       '#main-entry-point': {
         node: './index.js',
         'edge-light': './wasm.js',

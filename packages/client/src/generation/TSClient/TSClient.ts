@@ -44,8 +44,6 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   deno: boolean
   /** When we are generating an /edge client */
   edge: boolean
-  /** The "trampoline" index bounces the import to other entrypoints */
-  trampoline: boolean
   /** When we are generating a /wasm client */
   wasm: boolean
   /** When types don't need to be regenerated */
@@ -76,17 +74,13 @@ export class TSClient implements Generatable {
       datasources,
       deno,
       copyEngine = true,
-      trampoline,
       reusedJs,
     } = this.options
 
-    if (trampoline) {
-      return `module.exports = { ...require('#main-entry-point') }`
-    }
-
     if (reusedJs) {
-      if (reusedJs === '.') {
-        return `module.exports = { ...require('.') }`
+      // if it does not start with a letter, it's a special path
+      if (!/^[a-zA-Z]/.test(reusedJs)) {
+        return `module.exports = { ...require('${reusedJs}') }`
       } else {
         return `module.exports = { ...require('./${reusedJs}.js') }`
       }
