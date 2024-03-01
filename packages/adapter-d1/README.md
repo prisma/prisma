@@ -71,7 +71,6 @@ export default {
 
 <!-- TODO Refer to our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1#how-to-manage-schema-changes) to learn how to manage schema changes when using Prisma and Cloudflare D1. -->
 
-
 <!-- ## Feedback
 TODO Leave this till preview
 We encourage you to create an issue if you find something missing or run into a bug.
