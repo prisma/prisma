@@ -134,8 +134,8 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_PG) {
-    const { Pool } = require('pg') as typeof import('pg')
-    const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
+    const { Pool } = require('@prisma/pg-worker') as typeof import('@prisma/pg-worker')
+    const { PrismaPg } = require('@prisma/adapter-pg-worker') as typeof import('@prisma/adapter-pg-worker')
 
     const pool = new Pool({
       connectionString: datasourceInfo.databaseUrl,
