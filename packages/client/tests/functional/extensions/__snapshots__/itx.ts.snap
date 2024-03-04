@@ -65,7 +65,7 @@ exports[`extensions.itx (provider=mysql, js_planetscale) extended client in itx 
 Invalid \`prisma.user.create()\` invocation:
 
 
-Unique constraint failed on the constraint: \`User_email_key\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`extensions.itx (provider=mysql, js_planetscale) extended client in itx can rollback via normal call 1`] = `
@@ -77,7 +77,7 @@ Invalid \`tx.user.create()\` invocation in
   XX })
   XX 
 → XX await tx.user.create(
-Unique constraint failed on the constraint: \`User_email_key\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`extensions.itx (provider=postgresql) extended client in itx can rollback via custom call 1`] = `
