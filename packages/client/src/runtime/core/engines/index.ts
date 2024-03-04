@@ -1,7 +1,7 @@
 export { BinaryEngine } from './binary/BinaryEngine'
 export {
   type BatchTransactionOptions,
-  Engine,
+  type Engine,
   type EngineConfig,
   type GraphQLQuery,
   type InteractiveTransactionOptions,

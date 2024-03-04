@@ -1,31 +1,12 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import {
-  getPlatformTokenOrThrow,
-  getRequiredParameter,
-  platformParameters,
-  platformRequestOrThrow,
-  successMessage,
-} from '../../utils/platform'
+import { getRequiredParameterOrThrow } from '../_lib/cli/parameters'
+import { messages } from '../_lib/messages'
+import { requestOrThrow } from '../_lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
-type Payload =
-  | {
-      data: {
-        id: string
-        createdAt: string
-        displayName: string
-      }
-      error: null
-    }
-  | {
-      data: null
-      error: {
-        name: string
-        message: string
-      }
-    }
 export class Delete implements Command {
-  public static new(): Delete {
+  public static new() {
     return new Delete()
   }
 
@@ -34,24 +15,45 @@ export class Delete implements Command {
       ...platformParameters.project,
     })
     if (isError(args)) return args
-    const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-
-    const project = getRequiredParameter(args, ['--project', '-p'])
-    if (isError(project)) return project
-
-    const payload = await platformRequestOrThrow<Payload>({
+    const token = await getTokenOrThrow(args)
+    const projectId = getRequiredParameterOrThrow(args, ['--project', '-p'])
+    const { projectDelete } = await requestOrThrow<
+      {
+        projectDelete: {
+          __typename: string
+          id: string
+          createdAt: string
+          displayName: string
+        }
+      },
+      {
+        id: string
+      }
+    >({
       token,
-      path: `/${workspace}/${project}/settings/general`,
-      route: '_app.$organizationId_.$projectId.settings.general',
-      payload: {
-        intent: 'delete',
+      body: {
+        query: /* graphql */ `
+          mutation ($input: MutationProjectDeleteInput!) {
+            projectDelete(input: $input) {
+              __typename
+              ...on Error {
+                message
+              }
+              ...on ProjectNode {
+                id
+                createdAt
+                displayName
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id: projectId,
+          },
+        },
       },
     })
-    if (payload.error) throw new Error(`${payload.error.name}: ${payload.error.message}`)
-
-    return successMessage(`Project ${payload.data.displayName} - ${payload.data.id} deleted.`)
+    return messages.resourceDeleted(projectDelete)
   }
 }

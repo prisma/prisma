@@ -6,7 +6,13 @@ import { DatasourceInfo } from './setupTestSuiteEnv'
 
 const debug = Debug('prisma:test:stop-engine')
 
-export async function stopMiniProxyQueryEngine(client: Client, datasourceInfo: DatasourceInfo): Promise<void> {
+export async function stopMiniProxyQueryEngine({
+  client,
+  datasourceInfo,
+}: {
+  client: Client
+  datasourceInfo: DatasourceInfo
+}): Promise<void> {
   const schemaHash = client._engineConfig.inlineSchemaHash
   const url = new URL(datasourceInfo.dataProxyUrl!)
 

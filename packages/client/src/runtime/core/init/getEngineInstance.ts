@@ -3,6 +3,7 @@ import { detectRuntime } from 'detect-runtime'
 
 import { GetPrismaClientConfig } from '../../getPrismaClient'
 import { BinaryEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
+import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
 
@@ -14,7 +15,7 @@ import { resolveDatasourceUrl } from './resolveDatasourceUrl'
  * @param engineConfig
  * @returns
  */
-export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineConfig: EngineConfig) {
+export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, engineConfig: EngineConfig) {
   let url: string | undefined
 
   try {
@@ -29,7 +30,7 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
     // means we can't use the DataProxyEngine and will default to LibraryEngine
   }
 
-  if (clientConfig.noEngine !== true && url?.startsWith('prisma://')) {
+  if (copyEngine && url?.startsWith('prisma://')) {
     warnOnce(
       'recommend--no-engine',
       'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
@@ -38,7 +39,7 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
 
   const engineType = getClientEngineType(engineConfig.generator!)
 
-  const accelerateConfigured = Boolean(url?.startsWith('prisma://') || clientConfig.noEngine)
+  const accelerateConfigured = Boolean(url?.startsWith('prisma://') || !copyEngine)
   const driverAdapterConfigured = Boolean(engineConfig.adapter)
   const libraryEngineConfigured = engineType === ClientEngineType.Library
   const binaryEngineConfigured = engineType === ClientEngineType.Binary
@@ -51,7 +52,7 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
         `Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.`,
         `Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor.`,
       ]
-    } else if (clientConfig.noEngine) {
+    } else if (!copyEngine) {
       message = [
         `Prisma Client was configured to use the \`adapter\` option but \`prisma generate\` was run with \`--no-engine\`.`,
         `Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma Client with the adapter.`,
@@ -69,10 +70,16 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
   }
 
   // TODO: one day we may want to completely deprecate `@prisma/client/edge` in favor of wasm build
-  if (accelerateConfigured || TARGET_BUILD_TYPE === 'edge') return new DataProxyEngine(engineConfig)
+  // TODO: After having moved the DataProxyEngine to Accelerate
+  // - Replace DataProxyEngine with AccelerateEngine via `@prisma/extension-accelerate`
+  // - Delete DataProxyEngine and all related files
+  // - Update the DataProxy tests to use the /wasm endpoint, but keep ecosystem-tests as they are
+
+  if (accelerateConfigured && TARGET_BUILD_TYPE !== 'wasm') return new DataProxyEngine(engineConfig)
   else if (driverAdapterConfigured && TARGET_BUILD_TYPE === 'wasm') return new LibraryEngine(engineConfig)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
+  else if (accelerateConfigured && TARGET_BUILD_TYPE === 'wasm') return new AccelerateEngine(engineConfig)
 
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
   if (TARGET_BUILD_TYPE === 'wasm') {

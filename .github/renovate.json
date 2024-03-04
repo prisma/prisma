@@ -135,6 +135,11 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
+      "groupName": "Node.js Major upgrades",
+      "matchPackageNames": ["node", "@types/node"],
+      "matchUpdateTypes": ["major"]
+    },
+    {
       "groupName": "definitelyTyped",
       "automerge": true,
       "matchPackagePatterns": ["^@types/"],
@@ -150,8 +155,7 @@
     {
       "groupName": "sql-template-tag",
       "matchPackageNames": ["sql-template-tag"],
-      "matchUpdateTypes": ["patch", "minor"],
-      "schedule": ["before 7am on Wednesday"]
+      "matchUpdateTypes": ["patch", "minor"]
     },
     {
       "groupName": "node-fetch",
@@ -161,8 +165,7 @@
     },
     {
       "groupName": "tsd",
-      "matchPackageNames": ["tsd"],
-      "schedule": ["before 7am on Wednesday"]
+      "matchPackageNames": ["tsd"]
     },
     {
       "groupName": "npm-packlist",
@@ -186,9 +189,16 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
+      "groupName": "e2e tests",
+      "excludePackageNames": ["typescript", "prisma", "@prisma/client"],
+      "matchFileNames": ["packages/client/tests/e2e/**"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
       "groupName": "e2e ts-version tests",
-      "ignoreDeps": ["typescript"],
-      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
+      "excludePackageNames": ["typescript"],
+      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "Weekly vitess docker image version update",

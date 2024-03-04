@@ -7,10 +7,10 @@
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
   },
   "devDependencies": {
-    "@types/jest": "29.5.11",
-    "@types/node": "16.18.65",
-    "esbuild": "0.19.10",
+    "@types/jest": "29.5.12",
+    "@types/node": "16.18.82",
+    "esbuild": "0.20.0",
     "prisma": "/tmp/prisma-0.0.0.tgz",
-    "wrangler": "3.5.1"
+    "wrangler": "3.28.2"
   }
 }

@@ -6,7 +6,6 @@ import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { BinaryTarget } from './binaryTargets'
-import { link } from './link'
 import { warn } from './logger'
 
 const exec = promisify(cp.exec)
@@ -34,7 +33,17 @@ export type DistroInfo = {
    * The target distro is the Linux distro associated with the Prisma Engines.
    * E.g., on Arch Linux, Debian, and Ubuntu, the target distro is `debian`. On Linux Alpine, the target distro is `musl`.
    */
-  targetDistro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13' | 'freebsd14'
+  targetDistro?:
+    | 'rhel'
+    | 'debian'
+    | 'musl'
+    | 'arm'
+    | 'nixos'
+    | 'freebsd11'
+    | 'freebsd12'
+    | 'freebsd13'
+    | 'freebsd14'
+    | 'freebsd15'
 }
 type GetOsResultLinux = {
   platform: 'linux'
@@ -497,10 +506,7 @@ ${additionalMessage}`,
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && targetDistro === undefined) {
     warn(
-      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".
-Please report your experience by creating an issue at ${link(
-        'https://github.com/prisma/prisma/issues',
-      )} so we can add your distro to the list of known supported distros.`,
+      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".`,
     )
   }
 

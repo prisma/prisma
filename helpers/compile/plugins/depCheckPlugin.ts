@@ -30,10 +30,6 @@ const unusedIgnore = [
 
   // these are indirectly used by build
   'buffer',
-  'eventemitter3',
-  'path-browserify',
-  'tty-browserify',
-  'util',
 ]
 
 // packages that aren't missing but are detected

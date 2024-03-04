@@ -23,8 +23,8 @@
     "directory": "packages/adapter-libsql"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts"
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts"
   },
   "files": [
     "dist",
@@ -36,12 +36,12 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "async-mutex": "0.4.0"
+    "async-mutex": "0.4.1"
   },
   "devDependencies": {
-    "@libsql/client": "0.4.0"
+    "@libsql/client": "0.5.2"
   },
   "peerDependencies": {
-    "@libsql/client": "^0.3.5 || ^0.4.0"
+    "@libsql/client": "^0.3.5 || ^0.4.0 || ^0.5.0"
   }
 }
