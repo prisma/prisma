@@ -1,5 +1,5 @@
 import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
-import pg from 'pg'
+import * as pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
 const types = pg.types
