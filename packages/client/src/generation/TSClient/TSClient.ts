@@ -417,11 +417,14 @@ class PrismaClient {
           'edge-light': 'Vercel Edge Functions or Edge Middleware',
         }[runtime]
 
-        let message = 'PrismaClient is unable to run in '
+        let message
         if (edgeRuntimeName !== undefined) {
-          message += edgeRuntimeName + '. As an alternative, try Accelerate: https://pris.ly/d/accelerate.'
+          message = 'PrismaClient is not configured to run in '
+          message += edgeRuntimeName + '. In order to run Prisma Client on edge runtime, either:\\n'
+          message += '- Use Prisma Accelerate: https://pris.ly/d/accelerate\\n'
+          message += '- Use Driver Adapters: https://pris.ly/d/driver-adapters\\n'
         } else {
-          message += 'this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
+          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
         }
         
         message += \`
