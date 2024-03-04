@@ -328,12 +328,12 @@ class PrismaClient {
 
         let message
         if (edgeRuntimeName !== undefined) {
-          message = 'PrismaClient is note configured to run in '
-          message += edgeRuntimeName + '. In order to run Prisma Client on edge runtime, either:'
-          message += '- Use Prisma Accelerate: https://pris.ly/d/accelerate'
-          message += '- Use Driver Adapters: https://pris.ly/d/driver-adapters'
+          message = 'PrismaClient is not configured to run in '
+          message += edgeRuntimeName + '. In order to run Prisma Client on edge runtime, either:\\n'
+          message += '- Use Prisma Accelerate: https://pris.ly/d/accelerate\\n'
+          message += '- Use Driver Adapters: https://pris.ly/d/driver-adapters\\n'
         } else {
-          message += 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
+          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
         }
         
         message += \`
