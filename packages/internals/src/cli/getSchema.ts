@@ -2,8 +2,7 @@ import execa from 'execa'
 import fs from 'fs'
 import { bold, green } from 'kleur/colors'
 import path from 'path'
-import type { NormalizedPackageJson } from 'read-pkg-up'
-import readPkgUp from 'read-pkg-up'
+import { PackageJson, readPackageUp, readPackageUpSync } from 'read-package-up'
 import { promisify } from 'util'
 
 const exists = promisify(fs.exists)
@@ -65,7 +64,7 @@ export type PrismaConfig = {
 }
 
 export async function getPrismaConfigFromPackageJson(cwd: string) {
-  const pkgJson = await readPkgUp({ cwd })
+  const pkgJson = await readPackageUp({ cwd, normalize: false })
   const prismaPropertyFromPkgJson = pkgJson?.packageJson?.prisma as PrismaConfig | undefined
 
   if (!pkgJson) {
@@ -303,8 +302,8 @@ export function getSchemaPathSyncInternal(
 }
 
 export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
-  const pkgJson = readPkgUp.sync({ cwd })
-  const schemaPathFromPkgJson: string | undefined = pkgJson?.packageJson?.prisma?.schema
+  const pkgJson = readPackageUpSync({ cwd, normalize: false })
+  const schemaPathFromPkgJson: string | undefined = pkgJson?.packageJson?.prisma?.['schema']
 
   if (!schemaPathFromPkgJson || !pkgJson) {
     return null
@@ -366,7 +365,7 @@ function getJson(stdout: string): any {
   return JSON.parse(sliced)
 }
 
-function isPkgJsonWorkspaceRoot(pkgJson: NormalizedPackageJson) {
+function isPkgJsonWorkspaceRoot(pkgJson: PackageJson) {
   const workspaces = pkgJson.workspaces
 
   if (!workspaces) {
@@ -377,7 +376,7 @@ function isPkgJsonWorkspaceRoot(pkgJson: NormalizedPackageJson) {
 }
 
 async function isNearestPkgJsonWorkspaceRoot(cwd: string) {
-  const pkgJson = await readPkgUp({ cwd })
+  const pkgJson = await readPackageUp({ cwd, normalize: false })
 
   if (!pkgJson) {
     return null
@@ -390,7 +389,7 @@ async function isNearestPkgJsonWorkspaceRoot(cwd: string) {
 }
 
 function isNearestPkgJsonWorkspaceRootSync(cwd: string) {
-  const pkgJson = readPkgUp.sync({ cwd })
+  const pkgJson = readPackageUpSync({ cwd, normalize: false })
 
   if (!pkgJson) {
     return null
