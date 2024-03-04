@@ -1,7 +1,7 @@
 import fs from 'fs'
 import packlist from 'npm-packlist'
 import path from 'path'
-import readPkgUp from 'read-pkg-up'
+import { readPackageUpSync } from 'read-package-up'
 import tempy from 'tempy'
 
 import { resolvePkg } from './get-generators/generatorResolvers/prisma-client-js/check-dependencies/resolve'
@@ -11,8 +11,9 @@ export async function getPackedPackage(name: string, target?: string, packageDir
     packageDir || (await resolvePkg(name, { basedir: process.cwd() })) || (await resolvePkg(name, { basedir: target }))
 
   if (!packageDir) {
-    const pkg = readPkgUp.sync({
+    const pkg = readPackageUpSync({
       cwd: target,
+      normalize: false,
     })
     if (pkg && pkg.packageJson.name === name) {
       packageDir = path.dirname(pkg.path)
