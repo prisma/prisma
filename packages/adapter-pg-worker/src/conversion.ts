@@ -1,8 +1,8 @@
 import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
-import { builtins, getTypeParser, setTypeParser } from 'pg-types'
+import { types } from '@prisma/pg-worker'
 import { parse as parseArray } from 'postgres-array'
 
-const ScalarColumnType = builtins
+const { builtins: ScalarColumnType, getTypeParser, setTypeParser } = types
 
 /**
  * PostgreSQL array column types (not defined in ScalarColumnType).
