@@ -10,7 +10,7 @@ import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
-import type { O } from 'ts-toolbelt'
+import { type O } from 'ts-toolbelt'
 
 import { exports as clientPackageExports, name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
