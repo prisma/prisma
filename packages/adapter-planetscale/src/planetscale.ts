@@ -101,13 +101,12 @@ function parseErrorMessage(message: string) {
   const match = message.match(regex)
 
   if (match) {
-    const [, errorMessage, code, sqlstate] = match
-    const originalMessageRegex = /target: .* vttablet: (.*)/
-    const originalMessageMatch = errorMessage.match(originalMessageRegex)
+    const [, message, codeAsString, sqlstate] = match
+    const code = Number.parseInt(codeAsString, 10)
 
     return {
-      code: Number.parseInt(code, 10),
-      message: originalMessageMatch ? originalMessageMatch[1].trim() : errorMessage,
+      message,
+      code,
       state: sqlstate,
     }
   } else {
