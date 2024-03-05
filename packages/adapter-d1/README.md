@@ -1,5 +1,9 @@
 # Prisma driver adapter for Cloudflare D1
 
+> [!IMPORTANT] 
+> This is currently is Early Access, we are looking for feedback before moving to Preview. 
+> We do not recommend using it in a production environment yet.
+
 Prisma driver adapter for [Cloudflare D1](https://developers.cloudflare.com/d1/).
 
 <!-- TODO Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
@@ -23,28 +27,29 @@ datasource db {
 }
 ```
 
+Install Prisma Client, Prisma adapter for Cloudflare D1, Cloudflare's workers types and Wrangler packages:
+
+```sh
+npm install @prisma/client
+npm install @prisma/adapter-d1
+npm install --save-dev @cloudflare/workers-types
+npm install --save-dev wrangler
+```
+
 Generate Prisma Client:
 
 ```sh
 npx prisma generate
 ```
 
-Install the Prisma adapter for Cloudflare D1, Cloudflare's workers types and Wrangler packages:
-
-```sh
-npm install @prisma/adapter-d1
-npm install @cloudflare/workers-types
-npm install wrangler
-```
-
-Update your Prisma Client instance to use the Cloudflare D1:
+Update your Prisma Client instance to use `PrismaD1`:
 
 ```ts
 // Import needed packages
-import { PrismaClient } from 'db'
+import { PrismaClient } from 'db' // todo 
 import { PrismaD1 } from '@prisma/adapter-d1'
 
-// Setup
+// Extra type for TypeScript users
 export interface Env {
   MY_DATABASE: D1Database
 }
@@ -55,10 +60,35 @@ export default {
     const adapter = new PrismaD1(env.MY_DATABASE)
     const prisma = new PrismaClient({ adapter })
 
-    // Use Prisma Client as normal
-  },
+    const usersCount = await prisma.user.count()
+
+    const result = JSON.stringify(usersCount)
+    return new Response(result);
+  }
 }
 ```
+
+<details>
+  <summary>For JavaScript users</summary>
+  ```js
+  // Import needed packages
+  import { PrismaClient } from 'db' // todo 
+  import { PrismaD1 } from '@prisma/adapter-d1'
+  
+  export default {
+    async fetch(request, env, ctx) {
+      // Init prisma client
+      const adapter = new PrismaD1(env.MY_DATABASE)
+      const prisma = new PrismaClient({ adapter })
+  
+      const usersCount = await prisma.user.count()
+      
+      const result = JSON.stringify(usersCount)
+      return new Response(result);
+    }
+  }
+  ```
+</details>
 
 > **Note**: Make sure your D1 database is setup in your `wrangler.toml`. Refer to [Cloudflare's docs](https://developers.cloudflare.com/d1/get-started/#3-create-a-database) to learn how to set up your database binding.
 >
