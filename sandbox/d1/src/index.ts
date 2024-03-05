@@ -15,10 +15,15 @@ export interface Env {
 	MY_DATABASE: D1Database;
 }
 
+declare global {
+  var DEBUG: undefined | string
+}
+
+globalThis.DEBUG = '*'
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const adapter = new PrismaD1(env.MY_DATABASE, process.env.DEBUG)
+		const adapter = new PrismaD1(env.MY_DATABASE)
 		const prisma = new PrismaClient({ adapter })
 
 		let tenc = new TextEncoder()
@@ -32,17 +37,15 @@ export default {
 			VALUES (true, ${buffer})
 			RETURNING *
 		`
-
-		console.log(qr);
-
+		console.log({qr});
 
 		console.log('--------');
 
-		const result = await prisma.test.findUnique({
-			where: {
-				id: qr.re
-			}
-		})
+		// const result = await prisma.test.findUnique({
+		// 	where: {
+		// 		id: qr.re
+		// 	}
+		// })
 
 		// const result = await prisma.customers.create({
 		// 	data: {
@@ -108,32 +111,32 @@ export default {
     // 	}
     // })
 
-		await prisma.$transaction([
-			prisma.customers.create({
-				data: { customerId: 3, companyName: "The Sith", contactName: "Vader" }
-			}),
-			prisma.customers.create({
-				data: { customerId: 508, companyName: "Blaze Away", contactName: "LonDone" }
-			}),
-		])
+		// await prisma.$transaction([
+		// 	prisma.customers.create({
+		// 		data: { customerId: 3, companyName: "The Sith", contactName: "Vader" }
+		// 	}),
+		// 	prisma.customers.create({
+		// 		data: { customerId: 508, companyName: "Blaze Away", contactName: "LonDone" }
+		// 	}),
+		// ])
 
-		await prisma.$transaction([
-			prisma.customers.create({
-				data: { customerId: 420, companyName: "Sky High", contactName: "Bush" }
-			})
-		])
+		// await prisma.$transaction([
+		// 	prisma.customers.create({
+		// 		data: { customerId: 420, companyName: "Sky High", contactName: "Bush" }
+		// 	})
+		// ])
 
-		const result = await prisma.customers.findMany()
-		// const result = await prisma.user.findFirst()
+		// const result = await prisma.customers.findMany()
+		// // const result = await prisma.user.findFirst()
 
-		console.log('\u2800');
-		console.log('\u2800');
-		console.log('--- Result from User ----');
+		// console.log('\u2800');
+		// console.log('\u2800');
+		// console.log('--- Result from User ----');
 
-		console.log(typeof result.blob)
-		console.log(typeof buffer)
-		console.log({ result })
-		await prisma.$disconnect()
+		// console.log(typeof result.blob)
+		// console.log(typeof buffer)
+		// console.log({ result })
+		// await prisma.$disconnect()
 
 		return new Response(`Hello World! Result from Prisma Client from D1!:\n${JSON.stringify(result, null, 2)}`);
 	},
