@@ -2,9 +2,9 @@
 
 Prisma driver adapter for [Cloudflare D1](https://developers.cloudflare.com/d1/).
 
-> [!IMPORTANT] 
+> [!IMPORTANT]
 > We do not recommend using the adapter in a production environment yet.
-> The adapter is currently in [Early Access](https://www.prisma.io/docs/orm/more/releases#early-access), we are looking for feedback before moving to Preview. 
+> The adapter is currently in [Early Access](https://www.prisma.io/docs/orm/more/releases#early-access), we are looking for feedback before moving to Preview.
 
 <!-- TODO Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
 
@@ -65,31 +65,33 @@ export default {
 
     // Return result
     return new Response(usersCount)
-  }
+  },
 }
 ```
 
 <details>
   <summary>For JavaScript users</summary>
-  ```js
-  // Import needed packages
-  import { PrismaClient } from '@prisma/client'
-  import { PrismaD1 } from '@prisma/adapter-d1'
   
-  export default {
-    async fetch(request, env, ctx) {
-      // Setup Prisma Client with the adapter
-      const adapter = new PrismaD1(env.MY_DATABASE)
-      const prisma = new PrismaClient({ adapter })
-  
-      // Execute a Prisma Client query
-      const usersCount = await prisma.user.count()
+    ```js
+    // Import needed packages
+    import { PrismaClient } from '@prisma/client'
+    import { PrismaD1 } from '@prisma/adapter-d1'
+    
+    export default {
+      async fetch(request, env, ctx) {
+        // Setup Prisma Client with the adapter
+        const adapter = new PrismaD1(env.MY_DATABASE)
+        const prisma = new PrismaClient({ adapter })
+    
+        // Execute a Prisma Client query
+        const usersCount = await prisma.user.count()
 
-      // Return result
-      return new Response(usersCount)
+        // Return result
+        return new Response(usersCount)
+      }
     }
-  }
-  ```
+    ```
+
 </details>
 
 > **Note**: Make sure your D1 database is setup in your `wrangler.toml`. Refer to [Cloudflare's docs](https://developers.cloudflare.com/d1/get-started/#3-create-a-database) to learn how to set up your database binding.
