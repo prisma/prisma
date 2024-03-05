@@ -16,8 +16,7 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "emitDeclarationOnly": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "resolveJsonModule": true
   },
   "exclude": [
     "**/tests",
