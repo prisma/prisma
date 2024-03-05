@@ -129,7 +129,7 @@ exports[`interactive-transactions (provider=mysql, js_planetscale) batching raw 
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`1062\`. Message: \`rpc error: code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"1\\""vtg2: "type:VARCHAR value:\\"user_1@website.com\\""}\`
+Raw query failed. Code: \`1062\`. Message: \`target: test-0000-00000000.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"1\\""vtg2: "type:VARCHAR value:\\"user_1@website.com\\""}\`
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) batching rollback 1`] = `
