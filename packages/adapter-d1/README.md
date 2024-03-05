@@ -30,9 +30,9 @@ datasource db {
 Install Prisma Client, Prisma adapter for Cloudflare D1, Prisma CLI, Cloudflare's workers types and Wrangler CLI packages:
 
 ```sh
-npm install @prisma/client
-npm install @prisma/adapter-d1
-npm install --save-dev prisma
+npm install @prisma/client@early-access
+npm install @prisma/adapter-d1@early-access
+npm install --save-dev prisma@early-access
 npm install --save-dev @cloudflare/workers-types
 npm install --save-dev wrangler
 ```
