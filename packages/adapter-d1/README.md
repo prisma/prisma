@@ -1,10 +1,10 @@
 # Prisma driver adapter for Cloudflare D1
 
-> [!IMPORTANT] 
-> The adapter is currently is Early Access, we are looking for feedback before moving to Preview. 
-> We do not recommend using it in a production environment yet.
-
 Prisma driver adapter for [Cloudflare D1](https://developers.cloudflare.com/d1/).
+
+> [!IMPORTANT] 
+> We do not recommend using the adapter in a production environment yet.
+> The adapter is currently in [Early Access](https://www.prisma.io/docs/orm/more/releases#early-access), we are looking for feedback before moving to Preview. 
 
 <!-- TODO Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
 
