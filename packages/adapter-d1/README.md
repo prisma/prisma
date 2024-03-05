@@ -1,7 +1,7 @@
 # Prisma driver adapter for Cloudflare D1
 
 > [!IMPORTANT] 
-> This is currently is Early Access, we are looking for feedback before moving to Preview. 
+> The adapter is currently is Early Access, we are looking for feedback before moving to Preview. 
 > We do not recommend using it in a production environment yet.
 
 Prisma driver adapter for [Cloudflare D1](https://developers.cloudflare.com/d1/).
@@ -27,11 +27,12 @@ datasource db {
 }
 ```
 
-Install Prisma Client, Prisma adapter for Cloudflare D1, Cloudflare's workers types and Wrangler packages:
+Install Prisma Client, Prisma adapter for Cloudflare D1, Prisma CLI, Cloudflare's workers types and Wrangler CLI packages:
 
 ```sh
 npm install @prisma/client
 npm install @prisma/adapter-d1
+npm install --save-dev prisma
 npm install --save-dev @cloudflare/workers-types
 npm install --save-dev wrangler
 ```
@@ -46,24 +47,24 @@ Update your Prisma Client instance to use `PrismaD1`:
 
 ```ts
 // Import needed packages
-import { PrismaClient } from 'db' // todo 
+import { PrismaClient } from '@prisma/client'
 import { PrismaD1 } from '@prisma/adapter-d1'
 
-// Extra type for TypeScript users
 export interface Env {
   MY_DATABASE: D1Database
 }
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // Init prisma client
+    // Setup Prisma Client with the adapter
     const adapter = new PrismaD1(env.MY_DATABASE)
     const prisma = new PrismaClient({ adapter })
 
+    // Execute a Prisma Client query
     const usersCount = await prisma.user.count()
 
-    const result = JSON.stringify(usersCount)
-    return new Response(result);
+    // Return result
+    return new Response(usersCount)
   }
 }
 ```
@@ -72,19 +73,20 @@ export default {
   <summary>For JavaScript users</summary>
   ```js
   // Import needed packages
-  import { PrismaClient } from 'db' // todo 
+  import { PrismaClient } from '@prisma/client'
   import { PrismaD1 } from '@prisma/adapter-d1'
   
   export default {
     async fetch(request, env, ctx) {
-      // Init prisma client
+      // Setup Prisma Client with the adapter
       const adapter = new PrismaD1(env.MY_DATABASE)
       const prisma = new PrismaClient({ adapter })
   
+      // Execute a Prisma Client query
       const usersCount = await prisma.user.count()
-      
-      const result = JSON.stringify(usersCount)
-      return new Response(result);
+
+      // Return result
+      return new Response(usersCount)
     }
   }
   ```
