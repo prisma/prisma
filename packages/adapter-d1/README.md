@@ -71,26 +71,27 @@ export default {
 
 <details>
   <summary>For JavaScript users</summary>
-  
-    ```js
-    // Import needed packages
-    import { PrismaClient } from '@prisma/client'
-    import { PrismaD1 } from '@prisma/adapter-d1'
-    
-    export default {
-      async fetch(request, env, ctx) {
-        // Setup Prisma Client with the adapter
-        const adapter = new PrismaD1(env.MY_DATABASE)
-        const prisma = new PrismaClient({ adapter })
-    
-        // Execute a Prisma Client query
-        const usersCount = await prisma.user.count()
 
-        // Return result
-        return new Response(usersCount)
-      }
-    }
-    ```
+<!-- prettier-ignore -->
+  ```js
+  // Import needed packages
+  import { PrismaClient } from '@prisma/client'
+  import { PrismaD1 } from '@prisma/adapter-d1'
+
+  export default {
+    async fetch(request, env, ctx) {
+      // Setup Prisma Client with the adapter
+      const adapter = new PrismaD1(env.MY_DATABASE)
+      const prisma = new PrismaClient({ adapter })
+
+      // Execute a Prisma Client query
+      const usersCount = await prisma.user.count()
+
+      // Return result
+      return new Response(usersCount)
+    },
+  }
+  ```
 
 </details>
 
