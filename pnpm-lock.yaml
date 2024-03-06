@@ -1084,13 +1084,13 @@ importers:
   packages/instrumentation:
     dependencies:
       '@opentelemetry/api':
-        specifier: 1.8.0
+        specifier: ^1.8
         version: 1.8.0
       '@opentelemetry/instrumentation':
-        specifier: 0.49.1
+        specifier: ^0.49
         version: 0.49.1(@opentelemetry/api@1.8.0)
       '@opentelemetry/sdk-trace-base':
-        specifier: 1.22.0
+        specifier: ^1.22
         version: 1.22.0(@opentelemetry/api@1.8.0)
     devDependencies:
       '@prisma/internals':
@@ -10554,6 +10554,9 @@ packages:
   /sqlite3@5.1.2:
     resolution: {integrity: sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==}
     requiresBuild: true
+    peerDependenciesMeta:
+      node-gyp:
+        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.10
       node-addon-api: 4.3.0
