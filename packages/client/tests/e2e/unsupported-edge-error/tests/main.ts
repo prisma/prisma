@@ -5,24 +5,13 @@ afterEach(() => {
 })
 
 test('proper error is shown when importing the browser build from cloudflare workers', async () => {
-  globalThis.navigator = { userAgent: 'Cloudflare-Workers' } as any
-
-  const { PrismaClient } = require('@prisma/client/index-browser')
-
-  const prisma = new PrismaClient()
-
-  let message = ''
-  try {
-    await prisma.user.findMany()
-  } catch (e: any) {
-    message = e.message
-  }
-
-  // TODO: re-enable wrangler when https://github.com/cloudflare/workers-sdk/issues/3631 is fixed
-  // const message = await (await fetch('http://localhost:8787')).text()
+  const message = await (await fetch('http://localhost:8787')).text()
 
   expect(message).toMatchInlineSnapshot(`
-"PrismaClient is unable to run in Cloudflare Workers. As an alternative, try Accelerate: https://pris.ly/d/accelerate.
+"PrismaClient is not configured to run in Cloudflare Workers. In order to run Prisma Client on edge runtime, either:
+- Use Prisma Accelerate: https://pris.ly/d/accelerate
+- Use Driver Adapters: https://pris.ly/d/driver-adapters
+
 If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report"
 `)
 })

@@ -165,12 +165,8 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
 
   alreadyWarned = new Set()
 
-  // TODO: decide what we want to do for "debug"
-  constructor(client: StdClient, debug?: string) {
+  constructor(client: StdClient) {
     super(client)
-    if (debug) {
-      globalThis.DEBUG = debug
-    }
   }
 
   /**
