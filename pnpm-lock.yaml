@@ -1087,11 +1087,11 @@ importers:
         specifier: 1.8.0
         version: 1.8.0
       '@opentelemetry/instrumentation':
-        specifier: 0.50.0
+        specifier: ^0.49 || ^0.50
         version: 0.50.0(@opentelemetry/api@1.8.0)
       '@opentelemetry/sdk-trace-base':
-        specifier: 1.23.0
-        version: 1.23.0(@opentelemetry/api@1.8.0)
+        specifier: ^1.22
+        version: 1.22.0(@opentelemetry/api@1.8.0)
     devDependencies:
       '@prisma/internals':
         specifier: workspace:*
@@ -2854,30 +2854,31 @@ packages:
     resolution: {integrity: sha512-6EwiSjwWYP7pTckG6I5eyFANjPhmPjUX9JRLUSfNPC7FX7zK9gyZAfUEaECL6ALTpGX5AjnBq3C9XmVWPitNpw==}
     dev: true
 
-  /@inquirer/checkbox@2.2.1:
-    resolution: {integrity: sha512-eYdhZWZMOaliMBPOL/AO3uId58lp+zMyrJdoZ2xw9hfUY4IYJlIMvgW80RJdvCY3q9fGMUyZI5GwguH2tO51ew==}
+  /@inquirer/checkbox@2.3.0:
+    resolution: {integrity: sha512-QE8k4cC00gQQghyRGz9DJ59hOqZ4YpCpr6p8o9H3H+WIxjEEi/3BsYSGWkYGel4v2VKLjph4ork9HGPoNcURKg==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/core': 7.1.1
-      '@inquirer/type': 1.2.1
+      '@inquirer/core': 8.0.0
+      '@inquirer/figures': 1.0.0
+      '@inquirer/type': 1.3.0
       ansi-escapes: 4.3.2
       chalk: 4.1.2
-      figures: 3.2.0
     dev: true
 
-  /@inquirer/confirm@3.1.1:
-    resolution: {integrity: sha512-epf2RVHJJxX5qF85U41PBq9qq2KTJW9sKNLx6+bb2/i2rjXgeoHVGUm8kJxZHavrESgXgBLKCABcfOJYIso8cQ==}
+  /@inquirer/confirm@3.1.4:
+    resolution: {integrity: sha512-2z2RC0JyQCmggQfRxFnQitGp8YZgdM/AqcOuLaUtL0dZHFByk5jgtzxECX4z5MsH8aq2WzdLPI2AHmHOkh8eRA==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/core': 7.1.1
-      '@inquirer/type': 1.2.1
+      '@inquirer/core': 8.0.0
+      '@inquirer/type': 1.3.0
     dev: true
 
-  /@inquirer/core@7.1.1:
-    resolution: {integrity: sha512-rD1UI3eARN9qJBcLRXPOaZu++Bg+xsk0Tuz1EUOXEW+UbYif1sGjr0Tw7lKejHzKD9IbXE1CEtZ+xR/DrNlQGQ==}
+  /@inquirer/core@7.1.3:
+    resolution: {integrity: sha512-MbHUe32W0DRtuw3Hlt+vLWy3c0Vw7wVHSJyYZ16IGVXyxs31BTyo2MOFKzNnzBBAWhsqn+iHO1r84FXIzs39HQ==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/type': 1.2.1
+      '@inquirer/figures': 1.0.0
+      '@inquirer/type': 1.3.0
       '@types/mute-stream': 0.0.4
       '@types/node': 20.12.7
       '@types/wrap-ansi': 3.0.0
@@ -2885,45 +2886,68 @@ packages:
       chalk: 4.1.2
       cli-spinners: 2.9.2
       cli-width: 4.1.0
-      figures: 3.2.0
       mute-stream: 1.0.0
       signal-exit: 4.1.0
       strip-ansi: 6.0.1
       wrap-ansi: 6.2.0
     dev: true
 
-  /@inquirer/editor@2.1.1:
-    resolution: {integrity: sha512-SGVAmSKY2tt62+5KUySYFeMwJEXX866Ws5MyjwbrbB+WqC8iZAtPcK0pz8KVsO0ak/DB3/vCZw0k2nl7TifV5g==}
+  /@inquirer/core@8.0.0:
+    resolution: {integrity: sha512-RAszmjXj+grbT9yQ9B+me40LskytwBYPhyl6yHI8h+J5BmL0gNI3pdvBBFD6S9LV0lzhzfCRMBMH5UvuUPYzZQ==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/core': 7.1.1
-      '@inquirer/type': 1.2.1
+      '@inquirer/figures': 1.0.0
+      '@inquirer/type': 1.3.0
+      '@types/mute-stream': 0.0.4
+      '@types/node': 20.12.7
+      '@types/wrap-ansi': 3.0.0
+      ansi-escapes: 4.3.2
+      chalk: 4.1.2
+      cli-spinners: 2.9.2
+      cli-width: 4.1.0
+      mute-stream: 1.0.0
+      signal-exit: 4.1.0
+      strip-ansi: 6.0.1
+      wrap-ansi: 6.2.0
+    dev: true
+
+  /@inquirer/editor@2.1.4:
+    resolution: {integrity: sha512-bZ/YDEWNzQaKPhwyspy77Hntk9UjqXmQPMc3I3Cqn1pPBlPzliylgJDhgErxyIMFMtd92FpbDoOk5WWlaVpBMQ==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@inquirer/core': 8.0.0
+      '@inquirer/type': 1.3.0
       external-editor: 3.1.0
     dev: true
 
-  /@inquirer/expand@2.1.1:
-    resolution: {integrity: sha512-FTHf56CgE24CtweB+3sF4mOFa6Q7H8NfTO+SvYio3CgQwhIWylSNueEeJ7sYBnWaXHNUfiX883akgvSbWqSBoQ==}
+  /@inquirer/expand@2.1.4:
+    resolution: {integrity: sha512-dQeTV54ffbkR6epoue2NlbX8R62gS3M8e3OpXlzl3KxueSSQwlO5o3pAASzBnYje1rkTJ3lhX7fhS8Np0HDofA==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/core': 7.1.1
-      '@inquirer/type': 1.2.1
+      '@inquirer/core': 8.0.0
+      '@inquirer/type': 1.3.0
       chalk: 4.1.2
     dev: true
 
-  /@inquirer/input@2.1.1:
-    resolution: {integrity: sha512-Ag5PDh3/V3B68WGD/5LKXDqbdWKlF7zyfPAlstzu0NoZcZGBbZFjfgXlZIcb6Gs+AfdSi7wNf7soVAaMGH7moQ==}
+  /@inquirer/figures@1.0.0:
+    resolution: {integrity: sha512-3fw+7+77/duTnMJTeSS44wneszghI4tkr0m0xdIJabbYRe36ElzmsqyboMZ1nFRon6sT+ckVvYDVjwapKv+2sw==}
     engines: {node: '>=18'}
-    dependencies:
-      '@inquirer/core': 7.1.1
-      '@inquirer/type': 1.2.1
     dev: true
 
-  /@inquirer/password@2.1.1:
-    resolution: {integrity: sha512-R5R6NVXDKXEjAOGBqgRGrchFlfdZIx/qiDvH63m1u1NQVOQFUMfHth9VzVwuTZ2LHzbb9UrYpBumh2YytFE9iQ==}
+  /@inquirer/input@2.1.4:
+    resolution: {integrity: sha512-FnskIUMM0ogcYu9zHIuIx8McSnXC69CMm5qzBSo27joFATe/dbK2SXrq9/i/y2dCGFfETSaiYI6q5Rp7jhDbWg==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/core': 7.1.1
-      '@inquirer/type': 1.2.1
+      '@inquirer/core': 8.0.0
+      '@inquirer/type': 1.3.0
+    dev: true
+
+  /@inquirer/password@2.1.4:
+    resolution: {integrity: sha512-FK14dvubrLZi4B/OCelmtZngLIKe4AX3Iqwwp48YW1ciEDamoxirMrwV9WzhWnfannPfZFnPLZuqIoqhF9sglg==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@inquirer/core': 8.0.0
+      '@inquirer/type': 1.3.0
       ansi-escapes: 4.3.2
     dev: true
 
@@ -2931,39 +2955,39 @@ packages:
     resolution: {integrity: sha512-FI8jhVm3GRJ/z40qf7YZnSP0TfPKDPdIYZT9W6hmiYuaSmAXL66YMXqonKyysE5DwtKQBhIqt0oSoTKp7FCvQQ==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/checkbox': 2.2.1
-      '@inquirer/confirm': 3.1.1
-      '@inquirer/core': 7.1.1
-      '@inquirer/editor': 2.1.1
-      '@inquirer/expand': 2.1.1
-      '@inquirer/input': 2.1.1
-      '@inquirer/password': 2.1.1
-      '@inquirer/rawlist': 2.1.1
-      '@inquirer/select': 2.2.1
+      '@inquirer/checkbox': 2.3.0
+      '@inquirer/confirm': 3.1.4
+      '@inquirer/core': 7.1.3
+      '@inquirer/editor': 2.1.4
+      '@inquirer/expand': 2.1.4
+      '@inquirer/input': 2.1.4
+      '@inquirer/password': 2.1.4
+      '@inquirer/rawlist': 2.1.4
+      '@inquirer/select': 2.3.0
     dev: true
 
-  /@inquirer/rawlist@2.1.1:
-    resolution: {integrity: sha512-PIpJdNqVhjnl2bDz8iUKqMmgGdspN4s7EZiuNPnNrqZLP+LRUDDHVyd7X7xjiEMulBt3lt2id4SjTbra+v/Ajg==}
+  /@inquirer/rawlist@2.1.4:
+    resolution: {integrity: sha512-XtG9e/OYzGedsKsXfUw4tf26aNBN7o2gcYjYdYi7FuE4cOAg1fcFoIn2h0qRMr/+xLsJf4F+Hh+sRnC6yk3yxg==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/core': 7.1.1
-      '@inquirer/type': 1.2.1
+      '@inquirer/core': 8.0.0
+      '@inquirer/type': 1.3.0
       chalk: 4.1.2
     dev: true
 
-  /@inquirer/select@2.2.1:
-    resolution: {integrity: sha512-JR4FeHvuxPSPWQy8DzkIvoIsJ4SWtSFb4xVLvLto84dL+jkv12lm8ILtuax4bMHvg5MBj3wYUF6Tk9izJ07gdw==}
+  /@inquirer/select@2.3.0:
+    resolution: {integrity: sha512-FHZkDUIfGfENxzH/M4tskSWUgRnszKUXb/qlrqbvjwUeFFFSOaWztMkAg4sLwnw2nbT+bdi+WlBn98C/j0NOlQ==}
     engines: {node: '>=18'}
     dependencies:
-      '@inquirer/core': 7.1.1
-      '@inquirer/type': 1.2.1
+      '@inquirer/core': 8.0.0
+      '@inquirer/figures': 1.0.0
+      '@inquirer/type': 1.3.0
       ansi-escapes: 4.3.2
       chalk: 4.1.2
-      figures: 3.2.0
     dev: true
 
-  /@inquirer/type@1.2.1:
-    resolution: {integrity: sha512-xwMfkPAxeo8Ji/IxfUSqzRi0/+F2GIqJmpc5/thelgMGsjNZcjDDRBO9TLXT1s/hdx/mK5QbVIvgoLIFgXhTMQ==}
+  /@inquirer/type@1.3.0:
+    resolution: {integrity: sha512-RW4Zf6RCTnInRaOZuRHTqAUl+v6VJuQGglir7nW2BkT3OXOphMhkIFhvFRjorBx2l0VwtC/M4No8vYR65TdN9Q==}
     engines: {node: '>=18'}
     dev: true
 
@@ -3116,7 +3140,7 @@ packages:
       collect-v8-coverage: 1.0.1
       exit: 0.1.2
       glob: 7.2.3
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       istanbul-lib-coverage: 3.2.0
       istanbul-lib-instrument: 6.0.0
       istanbul-lib-report: 3.0.0
@@ -3146,7 +3170,7 @@ packages:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.22
       callsites: 3.1.0
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
     dev: true
 
   /@jest/test-result@29.7.0:
@@ -3180,7 +3204,7 @@ packages:
       chalk: 4.1.2
       convert-source-map: 2.0.0
       fast-json-stable-stringify: 2.1.0
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-haste-map: 29.7.0
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
@@ -3263,7 +3287,7 @@ packages:
       '@libsql/core': 0.6.0
       '@libsql/hrana-client': 0.6.0
       js-base64: 3.7.5
-      libsql: 0.3.10
+      libsql: 0.3.12
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -3273,15 +3297,15 @@ packages:
     dependencies:
       js-base64: 3.7.5
 
-  /@libsql/darwin-arm64@0.3.10:
-    resolution: {integrity: sha512-RaexEFfPAFogd6dJlqkpCkTxdr6K14Z0286lodIJ8Ny77mWuWyBkWKxf70OYWXXAMxMJFUW+6al1F3/Osf/pTg==}
+  /@libsql/darwin-arm64@0.3.12:
+    resolution: {integrity: sha512-rBiMebxLgsShSEg73CibeuenlUMKXnaW/XoUk3tii1C1U7141w6k5VuF6/jnNl/cS7PMK/vy+2V5N/k++yvb9A==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     optional: true
 
-  /@libsql/darwin-x64@0.3.10:
-    resolution: {integrity: sha512-SNVN6n4qNUdMW1fJMFmx4qn4n5RnXsxjFbczpkzG/V7m/5VeTFt1chhGcrahTHCr3+K6eRJWJUEQHRGqjBwPkw==}
+  /@libsql/darwin-x64@0.3.12:
+    resolution: {integrity: sha512-T1yXSG1WukLq41hEWTU3G1kuV9TVoc+90KFs1KGluLrGvpj5l1QIff35hQlWWi6c1tfPsdlydR6qIO6AZdUwNg==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
@@ -3310,36 +3334,36 @@ packages:
       - bufferutil
       - utf-8-validate
 
-  /@libsql/linux-arm64-gnu@0.3.10:
-    resolution: {integrity: sha512-2uXpi9d8qtyIOr7pyG4a88j6YXgemyIHEs2Wbp+PPletlCIPsFS+E7IQHbz8VwTohchOzcokGUm1Bc5QC+A7wg==}
+  /@libsql/linux-arm64-gnu@0.3.12:
+    resolution: {integrity: sha512-1tmLuj02vySklkadwYEjvXFhyipyNr7oufe55tJK0hqvjQEcqfzBqAD3AHvPo41ug0qlrB2GRpiBlJtcIu2dMQ==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
     optional: true
 
-  /@libsql/linux-arm64-musl@0.3.10:
-    resolution: {integrity: sha512-72SN1FUavLvzHddCS861ynSpQndcW5oLGKA3U8CyMfgIZIwJAPc7+48Uj1plW00htXBx4GBpcntFp68KKIx3YQ==}
+  /@libsql/linux-arm64-musl@0.3.12:
+    resolution: {integrity: sha512-sM2NJTYe1FiixpJbebTllfV6uuSB1WIOfgQVHb7cJP0Jik5Kyq5F9n4reF6QKRivbPAn3kk6f5uRZKHBE6rvXw==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
     optional: true
 
-  /@libsql/linux-x64-gnu@0.3.10:
-    resolution: {integrity: sha512-hXyNqVRi7ONuyWZ1SX6setxL0QaQ7InyS3bHLupsi9s7NpOGD5vcpTaYicJOqmIIm+6kt8vJfmo7ZxlarIHy7Q==}
+  /@libsql/linux-x64-gnu@0.3.12:
+    resolution: {integrity: sha512-x8+Qo09osyOWs0/+D48Ml+CMlU33yCXznv4PYfQJc1NWA0dcQkSK353raYebH+cJhNIv0RcEz3ltTT3ME+HwAQ==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     optional: true
 
-  /@libsql/linux-x64-musl@0.3.10:
-    resolution: {integrity: sha512-kNmIRxomVwt9S+cLyYS497F/3gXFF4r8wW12YSBQgxG75JYft07AHVd8J7HINg+oqRkLzT0s+mVX5dM6nk68EQ==}
+  /@libsql/linux-x64-musl@0.3.12:
+    resolution: {integrity: sha512-wY5G8zx727wvg5n/qB4oK357u3HQlz84oNG0XTrKnJVCxqR91Yg6bU+fKsGrvyaGFEqLmZ/Ft0K0pi6Mn/k4vQ==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     optional: true
 
-  /@libsql/win32-x64-msvc@0.3.10:
-    resolution: {integrity: sha512-c/6rjdtGULKrJkLgfLobFefObfOtxjXGmCfPxv6pr0epPCeUEssfDbDIeEH9fQUgzogIMWEHwT8so52UJ/iT1Q==}
+  /@libsql/win32-x64-msvc@0.3.12:
+    resolution: {integrity: sha512-ko9Ph0ssQk2rUiNXfbquZ4fXXKb/E47GE6+caA4gNt4+rgFc1ksaffekYwym24Zk4VDYsvAQNOpwgd9baIBzLA==}
     cpu: [x64]
     os: [win32]
     requiresBuild: true
@@ -3482,6 +3506,16 @@ packages:
       '@opentelemetry/api': 1.8.0
     dev: true
 
+  /@opentelemetry/core@1.22.0(@opentelemetry/api@1.8.0):
+    resolution: {integrity: sha512-0VoAlT6x+Xzik1v9goJ3pZ2ppi6+xd3aUfg4brfrLkDBHRIVjMP0eBHrKrhB+NKcDyMAg8fAbGL3Npg/F6AwWA==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.9.0'
+    dependencies:
+      '@opentelemetry/api': 1.8.0
+      '@opentelemetry/semantic-conventions': 1.22.0
+    dev: false
+
   /@opentelemetry/core@1.23.0(@opentelemetry/api@1.8.0):
     resolution: {integrity: sha512-hdQ/a9TMzMQF/BO8Cz1juA43/L5YGtCSiKoOHmrTEf7VMDAZgy8ucpWx3eQTnQ3gBloRcWtzvcrMZABC3PTSKQ==}
     engines: {node: '>=14'}
@@ -3490,6 +3524,7 @@ packages:
     dependencies:
       '@opentelemetry/api': 1.8.0
       '@opentelemetry/semantic-conventions': 1.23.0
+    dev: true
 
   /@opentelemetry/instrumentation@0.50.0(@opentelemetry/api@1.8.0):
     resolution: {integrity: sha512-bhGhbJiZKpuu7wTaSak4hyZcFPlnDeuSF/2vglze8B4w2LubcSbbOnkVTzTs5SXtzh4Xz8eRjaNnAm+u2GYufQ==}
@@ -3507,6 +3542,17 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
+  /@opentelemetry/resources@1.22.0(@opentelemetry/api@1.8.0):
+    resolution: {integrity: sha512-+vNeIFPH2hfcNL0AJk/ykJXoUCtR1YaDUZM+p3wZNU4Hq98gzq+7b43xbkXjadD9VhWIUQqEwXyY64q6msPj6A==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.9.0'
+    dependencies:
+      '@opentelemetry/api': 1.8.0
+      '@opentelemetry/core': 1.22.0(@opentelemetry/api@1.8.0)
+      '@opentelemetry/semantic-conventions': 1.22.0
+    dev: false
+
   /@opentelemetry/resources@1.23.0(@opentelemetry/api@1.8.0):
     resolution: {integrity: sha512-iPRLfVfcEQynYGo7e4Di+ti+YQTAY0h5mQEUJcHlU9JOqpb4x965O6PZ+wMcwYVY63G96KtdS86YCM1BF1vQZg==}
     engines: {node: '>=14'}
@@ -3516,6 +3562,19 @@ packages:
       '@opentelemetry/api': 1.8.0
       '@opentelemetry/core': 1.23.0(@opentelemetry/api@1.8.0)
       '@opentelemetry/semantic-conventions': 1.23.0
+    dev: true
+
+  /@opentelemetry/sdk-trace-base@1.22.0(@opentelemetry/api@1.8.0):
+    resolution: {integrity: sha512-pfTuSIpCKONC6vkTpv6VmACxD+P1woZf4q0K46nSUvXFvOFqjBYKFaAMkKD3M1mlKUUh0Oajwj35qNjMl80m1Q==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.9.0'
+    dependencies:
+      '@opentelemetry/api': 1.8.0
+      '@opentelemetry/core': 1.22.0(@opentelemetry/api@1.8.0)
+      '@opentelemetry/resources': 1.22.0(@opentelemetry/api@1.8.0)
+      '@opentelemetry/semantic-conventions': 1.22.0
+    dev: false
 
   /@opentelemetry/sdk-trace-base@1.23.0(@opentelemetry/api@1.8.0):
     resolution: {integrity: sha512-PzBmZM8hBomUqvCddF/5Olyyviayka44O5nDWq673np3ctnvwMOvNrsUORZjKja1zJbwEuD9niAGbnVrz3jwRQ==}
@@ -3527,10 +3586,17 @@ packages:
       '@opentelemetry/core': 1.23.0(@opentelemetry/api@1.8.0)
       '@opentelemetry/resources': 1.23.0(@opentelemetry/api@1.8.0)
       '@opentelemetry/semantic-conventions': 1.23.0
+    dev: true
+
+  /@opentelemetry/semantic-conventions@1.22.0:
+    resolution: {integrity: sha512-CAOgFOKLybd02uj/GhCdEeeBjOS0yeoDeo/CA7ASBSmenpZHAKGB3iDm/rv3BQLcabb/OprDEsSQ1y0P8A7Siw==}
+    engines: {node: '>=14'}
+    dev: false
 
   /@opentelemetry/semantic-conventions@1.23.0:
     resolution: {integrity: sha512-MiqFvfOzfR31t8cc74CTP1OZfz7MbqpAnLCra8NqQoaHJX6ncIRTdYOQYBDQ2uFISDq0WY8Y9dDTWvsgzzBYRg==}
     engines: {node: '>=14'}
+    dev: true
 
   /@planetscale/database@1.16.0:
     resolution: {integrity: sha512-HNUrTqrd8aTRZYMDcsoZ62s36sIWkMMmKZBOehoCWR2WrfNPKq+Q1yQef5okl3pSVlldFnu2h/dbHjOsDTHXug==}
@@ -4080,8 +4146,8 @@ packages:
     resolution: {integrity: sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==}
     dev: true
 
-  /@tsd/typescript@5.4.3:
-    resolution: {integrity: sha512-htCVCSQP58wZcLfQaT7ikW9hSjJN7ntIe0HzAfYpBauI0tYoIM0ow4XEZGFwYN266qEsJoOHhlnkNvz/gLrx4Q==}
+  /@tsd/typescript@5.4.5:
+    resolution: {integrity: sha512-saiCxzHRhUrRxQV2JhH580aQUZiKQUXI38FcAcikcfOomAil4G4lxT0RfrrKywoAYP/rqAdYXYmNRLppcd+hQQ==}
     engines: {node: '>=14.17'}
     dev: true
 
@@ -4289,14 +4355,14 @@ packages:
     resolution: {integrity: sha512-2xMjVviMxneZHDHX5p5S6tsRRs7TpDHeeK7kTTMe/kAC/mRRNjWHjZg0rkiY+e17jXSZV3zJYDxXV8Cy72/Vuw==}
     dependencies:
       '@types/node': 20.12.7
-      pg-protocol: 1.6.1
+      pg-protocol: 1.6.0
       pg-types: 4.0.2
 
   /@types/pg@8.6.6:
     resolution: {integrity: sha512-O2xNmXebtwVekJDD+02udOncjVcMZQuTEQEMpKJ0ZRf5E7/9JJX3izhKUcUifBkyKpljyUM6BTgy2trmviKlpw==}
     dependencies:
       '@types/node': 20.12.7
-      pg-protocol: 1.6.1
+      pg-protocol: 1.6.0
       pg-types: 2.2.0
 
   /@types/progress@2.0.7:
@@ -4335,6 +4401,10 @@ packages:
     dependencies:
       '@types/glob': 8.0.0
       '@types/node': 20.12.7
+    dev: true
+
+  /@types/semver@7.5.3:
+    resolution: {integrity: sha512-OxepLK9EuNEIPxWNME+C6WwbRAOOI2o2BaQEGzz5Lu2e4Z5eDnEo+/aVEDMIXywoJitJ7xWd641wrGLZdtwRyw==}
     dev: true
 
   /@types/semver@7.5.8:
@@ -4505,7 +4575,7 @@ packages:
       is-glob: 4.0.3
       minimatch: 9.0.3
       semver: 7.6.0
-      ts-api-utils: 1.3.0(typescript@5.3.3)
+      ts-api-utils: 1.0.3(typescript@5.3.3)
       typescript: 5.3.3
     transitivePeerDependencies:
       - supports-color
@@ -4540,8 +4610,8 @@ packages:
       eslint: ^7.0.0 || ^8.0.0
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.0)
-      '@types/json-schema': 7.0.15
-      '@types/semver': 7.5.8
+      '@types/json-schema': 7.0.13
+      '@types/semver': 7.5.3
       '@typescript-eslint/scope-manager': 6.21.0
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.3.3)
@@ -4869,7 +4939,7 @@ packages:
     engines: {node: '>= 12.0.0'}
     dependencies:
       glob: 8.1.0
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       lazystream: 1.0.1
       lodash: 4.17.21
       normalize-path: 3.0.0
@@ -5074,7 +5144,7 @@ packages:
       babel-plugin-istanbul: 6.1.1
       babel-preset-jest: 29.6.3(@babel/core@7.21.8)
       chalk: 4.1.2
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       slash: 3.0.0
     transitivePeerDependencies:
       - supports-color
@@ -5650,7 +5720,7 @@ packages:
       '@jest/types': 29.6.3
       chalk: 4.1.2
       exit: 0.1.2
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-config: 29.7.0(@types/node@18.19.31)(ts-node@10.9.2)
       jest-util: 29.7.0
       prompts: 2.4.2
@@ -5669,7 +5739,7 @@ packages:
       '@jest/types': 29.6.3
       chalk: 4.1.2
       exit: 0.1.2
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-config: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2)
       jest-util: 29.7.0
       prompts: 2.4.2
@@ -6692,13 +6762,6 @@ packages:
       siphash: 1.1.0
     dev: true
 
-  /figures@3.2.0:
-    resolution: {integrity: sha512-yaduQFRKLXYOGgEn6AZau90j3ggSOyiqXU0F9JZfeXYhNa+Jk4X+s45A2zg5jns87GAFa34BBm2kXw4XpNcbdg==}
-    engines: {node: '>=8'}
-    dependencies:
-      escape-string-regexp: 1.0.5
-    dev: true
-
   /file-entry-cache@6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
     engines: {node: ^10.12.0 || >=12.0.0}
@@ -6856,7 +6919,7 @@ packages:
     resolution: {integrity: sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw==}
     engines: {node: '>=6 <7 || >=8'}
     dependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jsonfile: 4.0.0
       universalify: 0.1.2
     dev: true
@@ -7852,7 +7915,7 @@ packages:
       ci-info: 3.9.0
       deepmerge: 4.2.2
       glob: 7.2.3
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-circus: 29.7.0
       jest-environment-node: 29.7.0
       jest-get-type: 29.6.3
@@ -7893,7 +7956,7 @@ packages:
       ci-info: 3.9.0
       deepmerge: 4.2.2
       glob: 7.2.3
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-circus: 29.7.0
       jest-environment-node: 29.7.0
       jest-get-type: 29.6.3
@@ -7981,7 +8044,7 @@ packages:
       '@types/node': 20.12.7
       anymatch: 3.1.3
       fb-watchman: 2.0.2
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
       jest-worker: 29.7.0
@@ -8027,7 +8090,7 @@ packages:
       '@jest/types': 29.6.3
       '@types/stack-utils': 2.0.1
       chalk: 4.1.2
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       micromatch: 4.0.5
       pretty-format: 29.7.0
       slash: 3.0.0
@@ -8075,7 +8138,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       chalk: 4.1.2
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-haste-map: 29.7.0
       jest-pnp-resolver: 1.2.2(jest-resolve@29.7.0)
       jest-util: 29.7.0
@@ -8097,7 +8160,7 @@ packages:
       '@types/node': 20.12.7
       chalk: 4.1.2
       emittery: 0.13.1
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-docblock: 29.7.0
       jest-environment-node: 29.7.0
       jest-haste-map: 29.7.0
@@ -8130,7 +8193,7 @@ packages:
       cjs-module-lexer: 1.2.2
       collect-v8-coverage: 1.0.1
       glob: 7.2.3
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-mock: 29.7.0
@@ -8187,7 +8250,7 @@ packages:
       '@types/node': 20.12.7
       chalk: 4.1.2
       ci-info: 3.9.0
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       picomatch: 2.3.1
     dev: true
 
@@ -8354,7 +8417,7 @@ packages:
   /jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
     optionalDependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
     dev: true
 
   /jsonfile@6.1.0:
@@ -8454,21 +8517,21 @@ packages:
       type-check: 0.4.0
     dev: true
 
-  /libsql@0.3.10:
-    resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
+  /libsql@0.3.12:
+    resolution: {integrity: sha512-to30hj8O3DjS97wpbKN6ERZ8k66MN1IaOfFLR6oHqd25GMiPJ/ZX0VaZ7w+TsPmxcFS3p71qArj/hiedCyvXCg==}
     cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
     dependencies:
       '@neon-rs/load': 0.0.4
       detect-libc: 2.0.2
     optionalDependencies:
-      '@libsql/darwin-arm64': 0.3.10
-      '@libsql/darwin-x64': 0.3.10
-      '@libsql/linux-arm64-gnu': 0.3.10
-      '@libsql/linux-arm64-musl': 0.3.10
-      '@libsql/linux-x64-gnu': 0.3.10
-      '@libsql/linux-x64-musl': 0.3.10
-      '@libsql/win32-x64-msvc': 0.3.10
+      '@libsql/darwin-arm64': 0.3.12
+      '@libsql/darwin-x64': 0.3.12
+      '@libsql/linux-arm64-gnu': 0.3.12
+      '@libsql/linux-arm64-musl': 0.3.12
+      '@libsql/linux-x64-gnu': 0.3.12
+      '@libsql/linux-x64-musl': 0.3.12
+      '@libsql/win32-x64-msvc': 0.3.12
 
   /lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
@@ -9190,7 +9253,7 @@ packages:
     dependencies:
       env-paths: 2.2.1
       glob: 7.2.3
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       make-fetch-happen: 9.1.0
       nopt: 5.0.0
       npmlog: 6.0.2
@@ -9637,6 +9700,9 @@ packages:
       pg: '>=8.0'
     dependencies:
       pg: 8.11.5
+
+  /pg-protocol@1.6.0:
+    resolution: {integrity: sha512-M+PDm637OY5WM307051+bsDia5Xej6d9IR4GwJse1qA1DIhiKlksvrneZOYQq42OM+spubpcNYEo2FcKQrDk+Q==}
 
   /pg-protocol@1.6.1:
     resolution: {integrity: sha512-jPIlvgoD63hrEuihvIg+tJhoGjUsLPn6poJY9N5CnlPd91c2T18T/9zBtLxZSb1EhYxBRoZJtzScCaWlYLtktg==}
@@ -10245,7 +10311,7 @@ packages:
     resolution: {integrity: sha512-pN/yOAvcC+5rQ5nERGuwrjLlYvLTbCibnZ1I7B1LaiAz9BRBlE9GMgE/eqV30P7aJQUf7Ddimy/RsbYO/GrVGg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/json-schema': 7.0.15
+      '@types/json-schema': 7.0.13
       ajv: 6.12.6
       ajv-keywords: 3.5.2(ajv@6.12.6)
     dev: true
@@ -10566,6 +10632,9 @@ packages:
   /sqlite3@5.1.2:
     resolution: {integrity: sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==}
     requiresBuild: true
+    peerDependenciesMeta:
+      node-gyp:
+        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.10
       node-addon-api: 4.3.0
@@ -10970,6 +11039,15 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /ts-api-utils@1.0.3(typescript@5.3.3):
+    resolution: {integrity: sha512-wNMeqtMz5NtwpT/UZGY5alT+VoKdSsOOP/kqHFcUW1P/VRhH2wJ48+DN2WwUliNbQ976ETwDL0Ifd2VVvgonvg==}
+    engines: {node: '>=16.13.0'}
+    peerDependencies:
+      typescript: '>=4.2.0'
+    dependencies:
+      typescript: 5.3.3
+    dev: true
+
   /ts-api-utils@1.3.0(typescript@5.3.3):
     resolution: {integrity: sha512-UQMIo7pb8WRomKR1/+MFVLTroIvDVtMX3K6OUir8ynLyzB8Jeriont2bTAtmNPa1ekAgN7YPDyf6V+ygrdU+eQ==}
     engines: {node: '>=16'}
@@ -10990,7 +11068,7 @@ packages:
       json5: 2.2.3
       normalize-path: 3.0.0
       safe-stable-stringify: 2.4.3
-      typescript: 5.4.2
+      typescript: 5.4.5
 
   /ts-node@10.9.2(@swc/core@1.2.204)(@types/node@18.19.31)(typescript@5.3.3):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
@@ -11109,7 +11187,7 @@ packages:
     engines: {node: '>=14.16'}
     hasBin: true
     dependencies:
-      '@tsd/typescript': 5.4.3
+      '@tsd/typescript': 5.4.5
       eslint-formatter-pretty: 4.1.0
       globby: 11.1.0
       jest-diff: 29.7.0
@@ -11249,6 +11327,12 @@ packages:
 
   /typescript@5.4.2:
     resolution: {integrity: sha512-+2/g0Fds1ERlP6JsakQQDXjZdZMM+rqpamFZJEKh4kwTIn3iDkgKtby0CeNd5ATNZ4Ry1ax15TMx0W2V+miizQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true
+
+  /typescript@5.4.5:
+    resolution: {integrity: sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
