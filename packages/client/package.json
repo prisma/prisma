@@ -30,25 +30,25 @@
     "MongoDB"
   ],
   "main": "default.js",
-  "browser": "index-browser.js",
   "types": "default.d.ts",
+  "browser": "index-browser.js",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "require": {
         "types": "./default.d.ts",
         "node": "./default.js",
-        "edge-light": "./wasm.js",
-        "workerd": "./wasm.js",
-        "worker": "./wasm.js",
+        "edge-light": "./default.js",
+        "workerd": "./default.js",
+        "worker": "./default.js",
         "browser": "./index-browser.js"
       },
       "import": {
         "types": "./default.d.ts",
         "node": "./default.js",
-        "edge-light": "./wasm.js",
-        "workerd": "./wasm.js",
-        "worker": "./wasm.js",
+        "edge-light": "./default.js",
+        "workerd": "./default.js",
+        "worker": "./default.js",
         "browser": "./index-browser.js"
       },
       "default": "./default.js"
@@ -66,16 +66,16 @@
       "default": "./extension.js"
     },
     "./index-browser": {
-      "types": "./default.d.ts",
+      "types": "./index.d.ts",
       "require": "./index-browser.js",
       "import": "./index-browser.js",
       "default": "./index-browser.js"
     },
     "./index": {
-      "types": "./default.d.ts",
-      "require": "./default.js",
-      "import": "./default.js",
-      "default": "./default.js"
+      "types": "./index.d.ts",
+      "require": "./index.js",
+      "import": "./index.js",
+      "default": "./index.js"
     },
     "./wasm": {
       "types": "./wasm.d.ts",

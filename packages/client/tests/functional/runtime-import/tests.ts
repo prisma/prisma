@@ -9,7 +9,7 @@ const binaryRuntime = 'runtime/binary'
 const edgeRuntime = 'runtime/edge'
 const wasmRuntime = 'runtime/wasm'
 const nftAnnotation = '// file annotations for bundling tools'
-const wasmFileUsage = '.wasm'
+const wasmFileUsage = '#wasm-engine-loader'
 
 testMatrix.setupTestSuite(
   ({ engineType, clientRuntime }, suiteMeta, clientMeta) => {

@@ -9,8 +9,10 @@ const argsHistory: [namespace: string, ...unknown[]][] = []
 let lastTimestamp = Date.now()
 let lastColor = 0
 
-globalThis.DEBUG ??= process.env.DEBUG ?? ''
-globalThis.DEBUG_COLORS ??= process.env.DEBUG_COLORS ? process.env.DEBUG_COLORS === 'true' : true
+const processEnv = typeof process !== 'undefined' ? process.env : {}
+
+globalThis.DEBUG ??= processEnv.DEBUG ?? ''
+globalThis.DEBUG_COLORS ??= processEnv.DEBUG_COLORS ? processEnv.DEBUG_COLORS === 'true' : true
 
 /**
  * Top-level utilities to configure the debug module.
