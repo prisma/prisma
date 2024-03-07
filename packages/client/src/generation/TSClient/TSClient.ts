@@ -78,12 +78,7 @@ export class TSClient implements Generatable {
     } = this.options
 
     if (reusedJs) {
-      // if it does not start with a letter, it's a special path
-      if (!/^[a-zA-Z]/.test(reusedJs)) {
-        return `module.exports = { ...require('${reusedJs}') }`
-      } else {
-        return `module.exports = { ...require('./${reusedJs}.js') }`
-      }
+      return `module.exports = { ...require('${reusedJs}') }`
     }
 
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })

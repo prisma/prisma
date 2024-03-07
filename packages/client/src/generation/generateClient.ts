@@ -129,6 +129,9 @@ export async function buildClient({
     reusedJs: '#main-entry-point',
   })
 
+  // order of keys is important here. bundler/runtime will
+  // match the first one they recognize, so it is important
+  // to go from more specific to more generic.
   const exportsMapBase = {
     node: './index.js',
     'edge-light': './wasm.js',
@@ -151,6 +154,7 @@ export async function buildClient({
     browser: 'index-browser.js',
     exports: {
       ...clientPkg.exports,
+      // TODO: remove on DA ga
       ...{ '.': exportsMapDefault },
     },
     version: clientVersion,
