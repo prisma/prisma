@@ -1,4 +1,4 @@
-import { D1Database, D1Result } from '@cloudflare/workers-types'
+import { D1Database } from '@cloudflare/workers-types'
 import {
   Debug,
   DriverAdapter,
@@ -17,7 +17,7 @@ import { getColumnTypes, mapRow } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:d1')
 
-type PerformIOResult = D1Result
+type PerformIOResult = [string[], unknown[][]]
 type StdClient = D1Database
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
@@ -41,7 +41,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   private convertData(ioResult: PerformIOResult): ResultSet {
-    if (ioResult.results.length === 0) {
+    if (ioResult[1].length === 0) {
       return {
         columnNames: [],
         columnTypes: [],
@@ -49,17 +49,14 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       }
     }
 
-    const results = ioResult.results as Object[]
-    const columnNames = Object.keys(results[0])
+    const results = ioResult[1]
+    debug(results)
+    const columnNames = ioResult[0]
     const columnTypes = Object.values(getColumnTypes(columnNames, results))
-    const rows = ioResult.results.map((value) => mapRow(value as Object, columnTypes))
+    const rows = results.map((value) => mapRow(value, columnTypes))
 
     return {
       columnNames,
-      // * Note: without Object.values the array looks like
-      // * columnTypes: [ id: 128 ],
-      // * and errors with:
-      // * ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
       columnTypes,
       rows,
     }
@@ -74,20 +71,20 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    return (await this.performIO(query)).map(({ meta }) => meta.rows_written ?? 0)
+    // ? return (await this.performIO(query)).map(({}) => meta.rows_written ?? 0)
+    return (await this.performIO(query)).map((value) => value[1].length)
   }
 
   private async performIO(query: Query): Promise<Result<PerformIOResult>> {
     try {
       query.args = query.args.map((arg) => this.cleanArg(arg))
 
-      const result = await this.client
+      const [columnNames, ...rows] = await this.client
         .prepare(query.sql)
         .bind(...query.args)
-        // TODO use .raw({ columnNames: true }) later
-        .all()
+        .raw({ columnNames: true })
 
-      return ok(result)
+      return ok([columnNames, rows])
     } catch (e) {
       const error = e as Error
       console.error('Error in performIO: %O', error)

@@ -1,22 +1,18 @@
-import {
-  ColumnType,
-  ColumnTypeEnum,
-  // Debug
-} from '@prisma/driver-adapter-utils'
+import { ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
 // const debug = Debug('prisma:driver-adapter:d1:conversion')
 
 export type Value = null | string | number | object
 
-export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnType[] {
+export function getColumnTypes(columnNames: string[], rows: unknown[][]): ColumnType[] {
   const columnTypes: (ColumnType | null)[] = []
 
-  columnLoop: for (const columnIndex of columnNames) {
+  columnLoop: for (let columnIndex = 0; columnIndex < columnNames.length; columnIndex++) {
     // No declared column type in db schema, infer using first non-null value
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       const candidateValue = rows[rowIndex][columnIndex]
       if (candidateValue !== null) {
-        columnTypes[columnIndex] = inferColumnType(candidateValue)
+        columnTypes[columnIndex] = inferColumnType(candidateValue as NonNullable<Value>)
         continue columnLoop
       }
     }
@@ -107,9 +103,7 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
-  const result: unknown[] = Object.values(obj)
-
+export function mapRow(result: unknown[], columnTypes: ColumnType[]): unknown[] {
   for (let i = 0; i < result.length; i++) {
     const value = result[i]
 
