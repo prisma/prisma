@@ -58,6 +58,10 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 
     return {
       columnNames,
+      // * Note: without Object.values the array looks like
+      // * columnTypes: [ id: 128 ],
+      // * and errors with:
+      // * ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
       columnTypes,
       rows,
     }
