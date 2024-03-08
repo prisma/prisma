@@ -30,25 +30,25 @@
     "MongoDB"
   ],
   "main": "default.js",
-  "browser": "index-browser.js",
   "types": "default.d.ts",
+  "browser": "index-browser.js",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "require": {
         "types": "./default.d.ts",
         "node": "./default.js",
-        "edge-light": "./wasm.js",
-        "workerd": "./wasm.js",
-        "worker": "./wasm.js",
+        "edge-light": "./default.js",
+        "workerd": "./default.js",
+        "worker": "./default.js",
         "browser": "./index-browser.js"
       },
       "import": {
         "types": "./default.d.ts",
         "node": "./default.js",
-        "edge-light": "./wasm.js",
-        "workerd": "./wasm.js",
-        "worker": "./wasm.js",
+        "edge-light": "./default.js",
+        "workerd": "./default.js",
+        "worker": "./default.js",
         "browser": "./index-browser.js"
       },
       "default": "./default.js"
@@ -66,16 +66,16 @@
       "default": "./extension.js"
     },
     "./index-browser": {
-      "types": "./default.d.ts",
+      "types": "./index.d.ts",
       "require": "./index-browser.js",
       "import": "./index-browser.js",
       "default": "./index-browser.js"
     },
     "./index": {
-      "types": "./default.d.ts",
-      "require": "./default.js",
-      "import": "./default.js",
-      "default": "./default.js"
+      "types": "./index.d.ts",
+      "require": "./index.js",
+      "import": "./index.js",
+      "default": "./index.js"
     },
     "./wasm": {
       "types": "./wasm.d.ts",
@@ -158,12 +158,12 @@
     "@jest/test-sequencer": "29.7.0",
     "@libsql/client": "0.5.2",
     "@neondatabase/serverless": "0.9.0",
-    "@opentelemetry/api": "1.7.0",
-    "@opentelemetry/context-async-hooks": "1.21.0",
-    "@opentelemetry/instrumentation": "0.48.0",
-    "@opentelemetry/resources": "1.21.0",
-    "@opentelemetry/sdk-trace-base": "1.21.0",
-    "@opentelemetry/semantic-conventions": "1.21.0",
+    "@opentelemetry/api": "1.8.0",
+    "@opentelemetry/context-async-hooks": "1.22.0",
+    "@opentelemetry/instrumentation": "0.49.1",
+    "@opentelemetry/resources": "1.22.0",
+    "@opentelemetry/sdk-trace-base": "1.22.0",
+    "@opentelemetry/semantic-conventions": "1.22.0",
     "@planetscale/database": "1.16.0",
     "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-libsql": "workspace:*",
@@ -174,7 +174,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.11.0-5.4308b705cc0694626ff407996f3145ddef0ad1c6",
+    "@prisma/engines-version": "5.11.0-7.ea1d441684437cb0347ae41a974507fb424a3faf",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -183,10 +183,10 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
-    "@prisma/query-engine-wasm": "5.11.0-5.4308b705cc0694626ff407996f3145ddef0ad1c6",
+    "@prisma/query-engine-wasm": "5.11.0-7.ea1d441684437cb0347ae41a974507fb424a3faf",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.9.0",
-    "@swc/core": "1.4.2",
+    "@swc/core": "1.4.4",
     "@swc/jest": "0.2.36",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.12",
@@ -242,7 +242,7 @@
     "tsd": "0.30.7",
     "typescript": "5.3.3",
     "undici": "5.28.3",
-    "wrangler": "3.30.1",
+    "wrangler": "3.31.0",
     "zx": "7.2.3"
   },
   "peerDependencies": {
