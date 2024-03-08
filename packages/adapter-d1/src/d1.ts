@@ -1,4 +1,4 @@
-import { D1Database } from '@cloudflare/workers-types'
+import { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
   Debug,
   DriverAdapter,
@@ -17,7 +17,8 @@ import { getColumnTypes, mapRow } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:d1')
 
-type PerformIOResult = [string[], unknown[][]]
+type D1ResultsWithColumnNames = [string[], unknown[][]]
+type PerformIOResult = D1ResultsWithColumnNames | D1Response
 type StdClient = D1Database
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
@@ -35,12 +36,12 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const ioResult = await this.performIO(query)
 
     return ioResult.map((data) => {
-      const convertedData = this.convertData(data)
+      const convertedData = this.convertData(data as D1ResultsWithColumnNames)
       return convertedData
     })
   }
 
-  private convertData(ioResult: PerformIOResult): ResultSet {
+  private convertData(ioResult: D1ResultsWithColumnNames): ResultSet {
     if (ioResult[1].length === 0) {
       return {
         columnNames: [],
@@ -71,20 +72,22 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    // ? return (await this.performIO(query)).map(({}) => meta.rows_written ?? 0)
-    return (await this.performIO(query)).map((value) => value[1].length)
+    const res = await this.performIO(query, true)
+    return res.map((result) => (result as D1Response).meta.rows_written ?? 0)
   }
 
-  private async performIO(query: Query): Promise<Result<PerformIOResult>> {
+  private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
     try {
       query.args = query.args.map((arg) => this.cleanArg(arg))
 
-      const [columnNames, ...rows] = await this.client
-        .prepare(query.sql)
-        .bind(...query.args)
-        .raw({ columnNames: true })
+      const stmt = this.client.prepare(query.sql).bind(...query.args)
 
-      return ok([columnNames, rows])
+      if (executeRaw) {
+        return ok(await stmt.run())
+      } else {
+        const [columnNames, ...rows] = await stmt.raw({ columnNames: true })
+        return ok([columnNames, rows])
+      }
     } catch (e) {
       const error = e as Error
       console.error('Error in performIO: %O', error)
