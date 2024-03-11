@@ -30,7 +30,7 @@
     "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.40.1",
+    "@microsoft/api-extractor": "7.42.3",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "9.0.0",
@@ -39,24 +39,25 @@
     "@types/fs-extra": "9.0.13",
     "@types/graphviz": "0.0.39",
     "@types/jest": "29.5.12",
-    "@types/node": "20.11.19",
+    "@types/node": "20.11.24",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.6",
-    "@typescript-eslint/eslint-plugin": "7.0.1",
-    "@typescript-eslint/parser": "7.0.1",
-    "@typescript-eslint/utils": "7.0.1",
+    "@typescript-eslint/eslint-plugin": "7.1.1",
+    "@typescript-eslint/parser": "7.1.1",
+    "@typescript-eslint/utils": "7.1.1",
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
     "buffer": "6.0.3",
     "chokidar": "3.6.0",
+    "decimal.js-light": "2.5.1",
     "dotenv-cli": "7.3.0",
-    "esbuild": "0.20.0",
+    "esbuild": "0.20.1",
     "esbuild-register": "3.5.0",
-    "eslint": "8.56.0",
+    "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.29.1",
-    "eslint-plugin-jest": "27.8.0",
+    "eslint-plugin-jest": "27.9.0",
     "eslint-plugin-local-rules": "2.0.1",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-simple-import-sort": "12.0.0",
@@ -162,6 +163,10 @@
     },
     {
       "path": "packages/bundle-size/da-workers-pg/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-pg-worker/output.tgz",
       "gzip": false
     },
     {

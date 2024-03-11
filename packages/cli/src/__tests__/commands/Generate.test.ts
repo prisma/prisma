@@ -96,19 +96,9 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Prisma Client has been generated to a custom path:
-
-        1. Make it a dependency of your project
+        Start using Prisma Client
         \`\`\`
-        # adapt this relative path if needed
-        yarn add db@link:./generated/client
-        \`\`\`
-
-        More information: https://pris.ly/d/custom-output
-
-        2. Start using Prisma Client
-        \`\`\`
-        import { PrismaClient } from 'db'
+        import { PrismaClient } from './generated/client'
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -138,19 +128,9 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Prisma Client has been generated to a custom path:
-
-        1. Make it a dependency of your project
+        Start using Prisma Client
         \`\`\`
-        # adapt this relative path if needed
-        npm i db@./generated/client
-        \`\`\`
-
-        More information: https://pris.ly/d/custom-output
-
-        2. Start using Prisma Client
-        \`\`\`
-        import { PrismaClient } from 'db'
+        import { PrismaClient } from './generated/client'
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -180,19 +160,9 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Prisma Client has been generated to a custom path:
-
-        1. Make it a dependency of your project
+        Start using Prisma Client
         \`\`\`
-        # adapt this relative path if needed
-        pnpm add db@link:./generated/client
-        \`\`\`
-
-        More information: https://pris.ly/d/custom-output
-
-        2. Start using Prisma Client
-        \`\`\`
-        import { PrismaClient } from 'db'
+        import { PrismaClient } from './generated/client'
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -228,7 +198,7 @@ describe('using cli', () => {
 
         Start using Prisma Client
         \`\`\`
-        import { PrismaClient } from @prisma/client
+        import { PrismaClient } from '@prisma/client'
         const prisma = new PrismaClient()
         \`\`\`
 
@@ -614,32 +584,7 @@ describe('--schema from project directory', () => {
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
 
-                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
-
-                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                        \`\`\`
-                                        import { PrismaClient } from './@prisma/client'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                        \`\`\`
-                                        import { PrismaClient } from './@prisma/client/edge'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-
-                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
-
-                                        ┌─────────────────────────────────────────────────────────────┐
-                                        │  Deploying your app to serverless or edge functions?        │
-                                        │  Try Prisma Accelerate for connection pooling and caching.  │
-                                        │  https://pris.ly/cli/accelerate                             │
-                                        └─────────────────────────────────────────────────────────────┘
-
-                              `)
-    } else {
-      expect(result).toMatchInlineSnapshot(`
-
-                                                ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
+                                                ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
 
                                                 Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
                                                 \`\`\`
@@ -661,6 +606,31 @@ describe('--schema from project directory', () => {
                                                 └─────────────────────────────────────────────────────────────┘
 
                                     `)
+    } else {
+      expect(result).toMatchInlineSnapshot(`
+
+                                                        ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
+
+                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './@prisma/client'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './@prisma/client/edge'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+
+                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+                                                        ┌─────────────────────────────────────────────────────────────┐
+                                                        │  Deploying your app to serverless or edge functions?        │
+                                                        │  Try Prisma Accelerate for connection pooling and caching.  │
+                                                        │  https://pris.ly/cli/accelerate                             │
+                                                        └─────────────────────────────────────────────────────────────┘
+
+                                          `)
     }
   })
 
@@ -680,32 +650,7 @@ describe('--schema from project directory', () => {
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(output).toMatchInlineSnapshot(`
 
-                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
-
-                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                        \`\`\`
-                                        import { PrismaClient } from './@prisma/client'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                        \`\`\`
-                                        import { PrismaClient } from './@prisma/client/edge'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-
-                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
-
-                                        ┌─────────────────────────────────────────────────────────────┐
-                                        │  Deploying your app to serverless or edge functions?        │
-                                        │  Try Prisma Accelerate for connection pooling and caching.  │
-                                        │  https://pris.ly/cli/accelerate                             │
-                                        └─────────────────────────────────────────────────────────────┘
-
-                              `)
-    } else {
-      expect(output).toMatchInlineSnapshot(`
-
-                                                ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
+                                                ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
 
                                                 Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
                                                 \`\`\`
@@ -727,6 +672,31 @@ describe('--schema from project directory', () => {
                                                 └─────────────────────────────────────────────────────────────┘
 
                                     `)
+    } else {
+      expect(output).toMatchInlineSnapshot(`
+
+                                                        ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
+
+                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './@prisma/client'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './@prisma/client/edge'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+
+                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+                                                        ┌─────────────────────────────────────────────────────────────┐
+                                                        │  Deploying your app to serverless or edge functions?        │
+                                                        │  Try Prisma Accelerate for connection pooling and caching.  │
+                                                        │  https://pris.ly/cli/accelerate                             │
+                                                        └─────────────────────────────────────────────────────────────┘
+
+                                          `)
     }
   })
 
@@ -747,32 +717,7 @@ describe('--schema from parent directory', () => {
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
 
-                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
-
-                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                        \`\`\`
-                                        import { PrismaClient } from './subdirectory/@prisma/client'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                        \`\`\`
-                                        import { PrismaClient } from './subdirectory/@prisma/client/edge'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-
-                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
-
-                                        ┌─────────────────────────────────────────────────────────────┐
-                                        │  Deploying your app to serverless or edge functions?        │
-                                        │  Try Prisma Accelerate for connection pooling and caching.  │
-                                        │  https://pris.ly/cli/accelerate                             │
-                                        └─────────────────────────────────────────────────────────────┘
-
-                              `)
-    } else {
-      expect(result).toMatchInlineSnapshot(`
-
-                                                ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
+                                                ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
 
                                                 Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
                                                 \`\`\`
@@ -794,6 +739,31 @@ describe('--schema from parent directory', () => {
                                                 └─────────────────────────────────────────────────────────────┘
 
                                     `)
+    } else {
+      expect(result).toMatchInlineSnapshot(`
+
+                                                        ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
+
+                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './subdirectory/@prisma/client'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './subdirectory/@prisma/client/edge'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+
+                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+                                                        ┌─────────────────────────────────────────────────────────────┐
+                                                        │  Deploying your app to serverless or edge functions?        │
+                                                        │  Try Prisma Accelerate for connection pooling and caching.  │
+                                                        │  https://pris.ly/cli/accelerate                             │
+                                                        └─────────────────────────────────────────────────────────────┘
+
+                                          `)
     }
   })
 
@@ -815,32 +785,7 @@ describe('--schema from parent directory', () => {
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
 
-                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
-
-                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                        \`\`\`
-                                        import { PrismaClient } from './subdirectory/@prisma/client'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                        \`\`\`
-                                        import { PrismaClient } from './subdirectory/@prisma/client/edge'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-
-                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
-
-                                        ┌─────────────────────────────────────────────────────────────┐
-                                        │  Deploying your app to serverless or edge functions?        │
-                                        │  Try Prisma Accelerate for connection pooling and caching.  │
-                                        │  https://pris.ly/cli/accelerate                             │
-                                        └─────────────────────────────────────────────────────────────┘
-
-                              `)
-    } else {
-      expect(result).toMatchInlineSnapshot(`
-
-                                                ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
+                                                ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
 
                                                 Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
                                                 \`\`\`
@@ -862,6 +807,31 @@ describe('--schema from parent directory', () => {
                                                 └─────────────────────────────────────────────────────────────┘
 
                                     `)
+    } else {
+      expect(result).toMatchInlineSnapshot(`
+
+                                                        ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
+
+                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './subdirectory/@prisma/client'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './subdirectory/@prisma/client/edge'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+
+                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+                                                        ┌─────────────────────────────────────────────────────────────┐
+                                                        │  Deploying your app to serverless or edge functions?        │
+                                                        │  Try Prisma Accelerate for connection pooling and caching.  │
+                                                        │  https://pris.ly/cli/accelerate                             │
+                                                        └─────────────────────────────────────────────────────────────┘
+
+                                          `)
     }
   })
 
@@ -884,36 +854,9 @@ describe('--schema from parent directory', () => {
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
 
-                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+                                                ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
 
-                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client_3 in XXXms
-
-                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                        \`\`\`
-                                        import { PrismaClient } from './generated/client'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                        \`\`\`
-                                        import { PrismaClient } from './generated/client/edge'
-                                        const prisma = new PrismaClient()
-                                        \`\`\`
-
-                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
-
-                                        ┌─────────────────────────────────────────────────────────────┐
-                                        │  Deploying your app to serverless or edge functions?        │
-                                        │  Try Prisma Accelerate for connection pooling and caching.  │
-                                        │  https://pris.ly/cli/accelerate                             │
-                                        └─────────────────────────────────────────────────────────────┘
-
-                              `)
-    } else {
-      expect(result).toMatchInlineSnapshot(`
-
-                                                ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-
-                                                ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
+                                                ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client_3 in XXXms
 
                                                 Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
                                                 \`\`\`
@@ -935,6 +878,33 @@ describe('--schema from parent directory', () => {
                                                 └─────────────────────────────────────────────────────────────┘
 
                                     `)
+    } else {
+      expect(result).toMatchInlineSnapshot(`
+
+                                                        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+
+                                                        ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
+
+                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './generated/client'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+                                                        \`\`\`
+                                                        import { PrismaClient } from './generated/client/edge'
+                                                        const prisma = new PrismaClient()
+                                                        \`\`\`
+
+                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
+                                                        ┌─────────────────────────────────────────────────────────────┐
+                                                        │  Deploying your app to serverless or edge functions?        │
+                                                        │  Try Prisma Accelerate for connection pooling and caching.  │
+                                                        │  https://pris.ly/cli/accelerate                             │
+                                                        └─────────────────────────────────────────────────────────────┘
+
+                                          `)
     }
   })
 

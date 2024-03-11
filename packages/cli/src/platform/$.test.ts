@@ -45,8 +45,10 @@ describe('--early-access flag', () => {
                  auth   Manage authentication with your Prisma Data Platform account
             workspace   Manage workspaces
               project   Manage projects
+          environment   Manage environments
                apikey   Manage API keys
            accelerate   Manage Prisma Accelerate
+                pulse   Manage Prisma Pulse
 
       Options
 

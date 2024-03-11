@@ -11,6 +11,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+// @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
 
 import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
@@ -20,6 +21,7 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly provider = 'postgres'
 

@@ -27,15 +27,11 @@ export function buildQueryEngineWasmModule(
   // this is incompatible with cloudflare, so we hide it in a template
   if (copyEngine && wasm === true) {
     return `config.engineWasm = {
-      getRuntime: () => require('./query_engine_bg.js'),
-      getQueryEngineWasmModule: async () => {
-        if (detectRuntime() === 'edge-light') {
-          return (await import(\`./query_engine_bg.wasm\${'?module'}\`)).default
-        } else {
-          return (await import(\`./query_engine_bg.wasm\`)).default
-        }
-      }
-    }`
+  getRuntime: () => require('./query_engine_bg.js'),
+  getQueryEngineWasmModule: async () => {
+    return (await import('#wasm-engine-loader')).default
+  }
+}`
   }
 
   return `config.engineWasm = undefined`

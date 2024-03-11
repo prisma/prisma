@@ -1,7 +1,7 @@
 import { $ } from 'zx'
 
 void (async () => {
-  const postgresProjects = ['da-workers-neon', 'da-workers-pg']
+  const postgresProjects = ['da-workers-neon', 'da-workers-pg', 'da-workers-pg-worker']
   const sqliteProjects = ['da-workers-libsql', 'da-workers-d1']
   const mysqlProjects = ['da-workers-planetscale']
 
@@ -20,12 +20,12 @@ void (async () => {
   await $`pnpm install` // needs this for `pnpm prisma`
 
   for (const project of projects) {
-    // `--node-compat` is only needed when using `pg`
-    const nodeCompat = project.includes('pg') ? '--node-compat' : ''
+    // `nodejs_compat` is only needed when using `pg`
+    const compatFlags = project === 'da-workers-pg-worker' ? 'nodejs_compat' : ''
+    const nodeCompat = project === 'da-workers-pg' ? '--node-compat' : ''
     const projectDir = `${__dirname}/${project}`
 
     // Install deps & copy schema & generate Prisma Client
-    await $`cd ${projectDir}`
     await $`cp ${getSchemaFile(project)} ${projectDir}/schema.prisma`
     await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`
 
@@ -34,7 +34,7 @@ void (async () => {
     await $`rm -rf ${projectDir}/output.tgz`
 
     // Use wrangler to generate the function output
-    await $`pnpm wrangler deploy ${projectDir}/index.js --dry-run --outdir=${projectDir}/output --compatibility-date 2024-01-26 --name ${project} ${nodeCompat}`
+    await $`pnpm wrangler deploy ${projectDir}/index.js --dry-run --outdir=${projectDir}/output --compatibility-date 2024-01-26 --compatibility-flags [${compatFlags}] ${nodeCompat} --name ${project} --tsconfig ${__dirname}/tsconfig.json`
 
     // Delete *.js.map & Markdown files
     await $`rm ${projectDir}/output/*.js.map`
