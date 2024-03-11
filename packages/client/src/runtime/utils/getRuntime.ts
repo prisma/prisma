@@ -8,13 +8,13 @@ const runtimesPrettyNames = {
   'edge-light': 'Vercel Edge Functions or Edge Middleware',
 } as const
 
-type GetRuntimesNamesOutput = {
+type GetRuntimeOutput = {
   id: Runtime
   prettyName: string
   isEdge: boolean
 }
 
-export function getRuntime(): GetRuntimesNamesOutput {
+export function getRuntime(): GetRuntimeOutput {
   const runtimeId = detectRuntime()
 
   return {
