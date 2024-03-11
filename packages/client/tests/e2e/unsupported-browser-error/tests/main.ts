@@ -2,7 +2,7 @@ test('proper error is shown when the client is bundled into a frontend', async (
   const message = await require('../dist/new-client.js').call()
 
   expect(message).toMatchInlineSnapshot(`
-"PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`node\`).
+"PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`Node.js\`).
 If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report"
 `)
 })

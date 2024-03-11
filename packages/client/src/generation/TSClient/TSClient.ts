@@ -371,7 +371,7 @@ class PrismaClient {
 - Use Driver Adapters: https://pris.ly/d/driver-adapters
 \`;
         } else {
-          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
+          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime.prettyName + '\`).'
         }
         
         message += \`
