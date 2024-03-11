@@ -134,9 +134,9 @@ export async function buildClient({
   // to go from more specific to more generic.
   const exportsMapBase = {
     node: './index.js',
-    'edge-light': './wasm.js',
     workerd: './wasm.js',
     worker: './wasm.js',
+    'edge-light': './wasm.js',
     browser: './index-browser.js',
     default: './index.js',
   }
@@ -193,9 +193,9 @@ export async function buildClient({
     pkgJson['imports'] = {
       // when `import('#wasm-engine-loader')` is called, it will be resolved to the correct file
       '#wasm-engine-loader': {
-        'edge-light': './wasm-edge-light-loader.js',
         workerd: './wasm-worker-loader.js',
         worker: './wasm-worker-loader.js',
+        'edge-light': './wasm-edge-light-loader.js',
         default: './wasm-worker-loader.js',
       },
       // when `require('#main-entry-point')` is called, it will be resolved to the correct file
