@@ -34,7 +34,7 @@ import {
   Extensions,
   defineDmmfProperty,
   Public,
-  getRuntimeName,
+  getRuntime,
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
@@ -43,7 +43,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
-  getRuntimeName,
+  getRuntime,
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
@@ -67,7 +67,7 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
-  getRuntimeName
+  getRuntime
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
@@ -126,7 +126,7 @@ Prisma.NullTypes = {
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser) {
     return `() => {
-  const runtimeName = getRuntimeName();
+  const runtimeName = getRuntime().prettyName;
   throw new Error(\`${fnc} is unable to run in this browser environment, or has been bundled for the browser (running in \${runtimeName}).
 In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report\`,
 )}`

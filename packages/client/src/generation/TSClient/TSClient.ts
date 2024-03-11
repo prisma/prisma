@@ -363,9 +363,9 @@ class PrismaClient {
   constructor() {
     return new Proxy(this, {
       get(target, prop) {
-        const runtimeName = getRuntimeName();
-        if (edgeRuntimeName !== undefined) {
-          message = \`PrismaClient is not configured to run in \${edgeRuntimeName}. In order to run Prisma Client on edge runtime, either:
+        const runtime = getRuntime();
+        if (!runtime.isEdge) {
+          message = \`PrismaClient is not configured to run in \${runtime.prettyName}. In order to run Prisma Client on edge runtime, either:
 - Use Prisma Accelerate: https://pris.ly/d/accelerate
 - Use Driver Adapters: https://pris.ly/d/driver-adapters
 \`;
