@@ -1,4 +1,4 @@
-import { D1Database, D1Result } from '@cloudflare/workers-types'
+import { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
   Debug,
   DriverAdapter,
@@ -17,7 +17,8 @@ import { getColumnTypes, mapRow } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:d1')
 
-type PerformIOResult = D1Result
+type D1ResultsWithColumnNames = [string[], unknown[][]]
+type PerformIOResult = D1ResultsWithColumnNames | D1Response
 type StdClient = D1Database
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
@@ -35,13 +36,16 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const ioResult = await this.performIO(query)
 
     return ioResult.map((data) => {
-      const convertedData = this.convertData(data)
+      const convertedData = this.convertData(data as D1ResultsWithColumnNames)
       return convertedData
     })
   }
 
-  private convertData(ioResult: PerformIOResult): ResultSet {
-    if (ioResult.results.length === 0) {
+  private convertData(ioResult: D1ResultsWithColumnNames): ResultSet {
+    const columnNames = ioResult[0]
+    const results = ioResult[1]
+
+    if (results.length === 0) {
       return {
         columnNames: [],
         columnTypes: [],
@@ -49,10 +53,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       }
     }
 
-    const results = ioResult.results as Object[]
-    const columnNames = Object.keys(results[0])
     const columnTypes = Object.values(getColumnTypes(columnNames, results))
-    const rows = ioResult.results.map((value) => mapRow(value as Object, columnTypes))
+    const rows = results.map((value) => mapRow(value, columnTypes))
 
     return {
       columnNames,
@@ -74,20 +76,22 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    return (await this.performIO(query)).map(({ meta }) => meta.rows_written ?? 0)
+    const res = await this.performIO(query, true)
+    return res.map((result) => (result as D1Response).meta.rows_written ?? 0)
   }
 
-  private async performIO(query: Query): Promise<Result<PerformIOResult>> {
+  private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
     try {
       query.args = query.args.map((arg) => this.cleanArg(arg))
 
-      const result = await this.client
-        .prepare(query.sql)
-        .bind(...query.args)
-        // TODO use .raw({ columnNames: true }) later
-        .all()
+      const stmt = this.client.prepare(query.sql).bind(...query.args)
 
-      return ok(result)
+      if (executeRaw) {
+        return ok(await stmt.run())
+      } else {
+        const [columnNames, ...rows] = await stmt.raw({ columnNames: true })
+        return ok([columnNames, rows])
+      }
     } catch (e) {
       const error = e as Error
       console.error('Error in performIO: %O', error)
