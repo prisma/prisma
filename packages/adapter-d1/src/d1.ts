@@ -42,7 +42,10 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 
   private convertData(ioResult: D1ResultsWithColumnNames): ResultSet {
-    if (ioResult[1].length === 0) {
+    const columnNames = ioResult[0]
+    const results = ioResult[1]
+
+    if (results.length === 0) {
       return {
         columnNames: [],
         columnTypes: [],
@@ -50,9 +53,6 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       }
     }
 
-    const results = ioResult[1]
-    debug(results)
-    const columnNames = ioResult[0]
     const columnTypes = Object.values(getColumnTypes(columnNames, results))
     const rows = results.map((value) => mapRow(value, columnTypes))
 
