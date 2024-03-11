@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.11.0-9.3d9a0d64e7107d8985df64fce153a82e7821aeea",
+    "@prisma/engines-version": "5.11.0-10.integration-joins-distinct-inmemory-3883dc47506913af0d7d8a4c82377011eb68c968",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
