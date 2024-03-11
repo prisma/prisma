@@ -10,9 +10,9 @@ export function getColumnTypes(columnNames: string[], rows: unknown[][]): Column
   columnLoop: for (let columnIndex = 0; columnIndex < columnNames.length; columnIndex++) {
     // No declared column type in db schema, infer using first non-null value
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-      const candidateValue = rows[rowIndex][columnIndex]
+      const candidateValue = rows[rowIndex][columnIndex] as Value
       if (candidateValue !== null) {
-        columnTypes[columnIndex] = inferColumnType(candidateValue as NonNullable<Value>)
+        columnTypes[columnIndex] = inferColumnType(candidateValue)
         continue columnLoop
       }
     }
