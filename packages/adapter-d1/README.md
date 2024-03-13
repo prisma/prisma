@@ -27,7 +27,7 @@ datasource db {
 }
 ```
 
-Install the Prisma Client, the Prisma adapter for Cloudflare D1, the Prisma CLI, the TypeScript types for Cloudflare Workers, and Wrangler CLI packages:
+Install Prisma CLI, Prisma Client, the Prisma adapter for Cloudflare D1, the TypeScript types for Cloudflare Workers, and Wrangler CLI packages:
 
 ```sh
 npm install @prisma/client@early-access
@@ -37,7 +37,7 @@ npm install --save-dev @cloudflare/workers-types
 npm install --save-dev wrangler
 ```
 
-Generate the Prisma Client:
+Generate Prisma Client:
 
 ```sh
 npx prisma generate
@@ -57,7 +57,7 @@ export interface Env {
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // Initialize the Prisma Client with the D1 adapter
+    // Initialize Prisma Client with the D1 adapter
     const adapter = new PrismaD1(env.MY_DATABASE)
     const prisma = new PrismaClient({ adapter })
 
