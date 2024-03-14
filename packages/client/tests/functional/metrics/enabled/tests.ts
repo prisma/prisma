@@ -257,10 +257,12 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_client_queries_wait',
               labels: {},
-              // Our test suite shows that the value can be -1 sometimes
-              // Last seen in `Tests / Client func&legacy-notypes (4/5, library, 20, relationJoins)` run for SQLite
-              // And also for Postgres, see below
-              // https://github.com/prisma/prisma/issues/13579#issuecomment-1794323813
+              // Our test suite shows that the value can be 0 sometimes
+              // Last seen in `Tests / Client func&legacy-notypes (4/5, library, 20, relationJoins)` run for SQLite, but also happens for other providers.
+              // Tracking issue: https://github.com/prisma/team-orm/issues/1024
+              //
+              // The following line is tracked in https://github.com/prisma/team-orm/issues/1025
+              // @ts-expect-error - needed to make typechecking pass when running the test at the moment
               value: expect.toBeOneOf([-1, 0]),
               description: 'The number of datasource queries currently waiting for a free connection',
             },
@@ -476,9 +478,10 @@ testMatrix.setupTestSuite(
         expect((metrics.match(/prisma_client_queries_active \d/g) || []).length).toBe(1)
 
         // Our test suite shows that the value can be 0 sometimes
-        // Last seen in `Tests / Client func&legacy-notypes (4/5, library, 20, relationJoins)` run for SQLite
-        // And also for Postgres, see below
-        // https://github.com/prisma/prisma/issues/13579#issuecomment-1794323813
+        // Last seen in `Tests / Client func&legacy-notypes (4/5, library, 20, relationJoins)` run for SQLite, but also happens for other providers.
+        // Tracking issue: https://github.com/prisma/team-orm/issues/1024
+        //
+        // The following line is tracked in https://github.com/prisma/team-orm/issues/1025
         // @ts-expect-error - needed to make typechecking pass when running the test at the moment
         expect((metrics.match(/prisma_client_queries_wait \d/g) || []).length).toBeOneOf([0, 1])
 
