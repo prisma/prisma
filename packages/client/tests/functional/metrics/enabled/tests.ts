@@ -479,6 +479,7 @@ testMatrix.setupTestSuite(
         // Last seen in `Tests / Client func&legacy-notypes (4/5, library, 20, relationJoins)` run for SQLite
         // And also for Postgres, see below
         // https://github.com/prisma/prisma/issues/13579#issuecomment-1794323813
+        // @ts-expect-error - needed to make typechecking pass when running the test at the moment
         expect((metrics.match(/prisma_client_queries_wait \d/g) || []).length).toBeOneOf([0, 1])
 
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_bucket/g) || []).length).toBe(11)
