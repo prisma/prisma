@@ -786,7 +786,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       let callback: () => Promise<any>
 
       if (typeof input === 'function') {
-        callback = () => this._transactionWithCallback({ callback: input, options })
+        // TODO: we need to check that the adapter is `adapter-d1`
+        if (this._engineConfig.adapter?.provider === 'sqlite') {
+          callback = () => {
+            throw new Error('D1 does not support interactive transactions.')
+          }
+        } else {
+          callback = () => this._transactionWithCallback({ callback: input, options })
+        }
       } else {
         callback = () => this._transactionWithArray({ promises: input, options })
       }
