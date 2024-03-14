@@ -363,22 +363,15 @@ class PrismaClient {
   constructor() {
     return new Proxy(this, {
       get(target, prop) {
-        const runtime = detectRuntime()
-        const edgeRuntimeName = {
-          'workerd': 'Cloudflare Workers',
-          'deno': 'Deno and Deno Deploy',
-          'netlify': 'Netlify Edge Functions',
-          'edge-light': 'Vercel Edge Functions or Edge Middleware',
-        }[runtime]
-
         let message
-        if (edgeRuntimeName !== undefined) {
-          message = \`PrismaClient is not configured to run in \${edgeRuntimeName}. In order to run Prisma Client on edge runtime, either:
+        const runtime = getRuntime()
+        if (runtime.isEdge) {
+          message = \`PrismaClient is not configured to run in \${runtime.prettyName}. In order to run Prisma Client on edge runtime, either:
 - Use Prisma Accelerate: https://pris.ly/d/accelerate
 - Use Driver Adapters: https://pris.ly/d/driver-adapters
 \`;
         } else {
-          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
+          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime.prettyName + '\`).'
         }
         
         message += \`

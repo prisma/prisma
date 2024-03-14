@@ -1,6 +1,6 @@
 # Prisma driver adapter for Cloudflare D1
 
-Prisma driver adapter for [Cloudflare D1](https://developers.cloudflare.com/d1/).
+Prisma driver adapter for [Cloudflare's D1 database](https://developers.cloudflare.com/d1/).
 
 > [!IMPORTANT]
 > We do not recommend using the adapter in a production environment yet.
@@ -27,7 +27,7 @@ datasource db {
 }
 ```
 
-Install Prisma Client, Prisma adapter for Cloudflare D1, Prisma CLI, Cloudflare's workers types and Wrangler CLI packages:
+Install Prisma CLI, Prisma Client, the Prisma adapter for Cloudflare D1, the TypeScript types for Cloudflare Workers, and Wrangler CLI packages:
 
 ```sh
 npm install @prisma/client@early-access
@@ -51,12 +51,13 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaD1 } from '@prisma/adapter-d1'
 
 export interface Env {
+  // This must match the binding name defined in your wrangler.toml configuration
   MY_DATABASE: D1Database
 }
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // Setup Prisma Client with the adapter
+    // Initialize Prisma Client with the D1 adapter
     const adapter = new PrismaD1(env.MY_DATABASE)
     const prisma = new PrismaClient({ adapter })
 

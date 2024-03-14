@@ -166,9 +166,7 @@ describe('getBinaryTargetForCurrentPlatformInternal', () => {
         }),
       ).toBe('debian-openssl-3.0.x')
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(
-        `prisma:warn Prisma doesn't know which engines to download for the Linux distro "unknown". Falling back to Prisma engines built "debian".`,
-      )
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
@@ -188,7 +186,6 @@ describe('getBinaryTargetForCurrentPlatformInternal', () => {
       expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
         prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
         Please manually install OpenSSL and try installing Prisma again.
-        prisma:warn Prisma doesn't know which engines to download for the Linux distro "unknown". Falling back to Prisma engines built "debian".
       `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })

@@ -505,9 +505,7 @@ ${additionalMessage}`,
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && targetDistro === undefined) {
-    warn(
-      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".`,
-    )
+    debug(`Distro is "${originalDistro}". Falling back to Prisma engines built for "${defaultDistro}".`)
   }
 
   // Apple Silicon (M1)
