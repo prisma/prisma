@@ -86,7 +86,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
       return ok(await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' }))
     } catch (e) {
       debug('Error in performIO: %O', e)
-      if (e && e.code) {
+      if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
         return err({
           kind: 'Postgres',
           code: e.code,

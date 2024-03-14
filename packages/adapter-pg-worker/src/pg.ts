@@ -89,7 +89,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     } catch (e) {
       const error = e as Error
       debug('Error in performIO: %O', error)
-      if (e && e.code) {
+      if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
         return err({
           kind: 'Postgres',
           code: e.code,
