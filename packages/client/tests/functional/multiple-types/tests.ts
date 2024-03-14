@@ -98,7 +98,7 @@ testMatrix.setupTestSuite(
           // testModel![0].bytes.constructor shows different things
           // see client/tests/functional/raw-queries/typed-results/tests.ts
           bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
-          bool: isD1 || provider === 'mysql' ? 1 : true,
+          bool: isD1 || provider === Providers.MYSQL ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: isD1 ? 0.0625 : new Prisma.Decimal('0.0625'),
         },
@@ -125,7 +125,7 @@ testMatrix.setupTestSuite(
         },
       ])
 
-      if (isD1 || provider === 'mysql') {
+      if (isD1 || provider === Providers.MYSQL) {
         expect(resultFromQueryRaw).not.toEqual(resultFromFindMany)
       } else {
         expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
@@ -202,13 +202,13 @@ testMatrix.setupTestSuite(
           // testModel![0].bytes.constructor shows different things
           // see client/tests/functional/raw-queries/typed-results/tests.ts
           bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
-          bool: isD1 || provider === 'mysql' ? 1 : true,
+          bool: isD1 || provider === Providers.MYSQL ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: isD1 ? 0.0625 : new Prisma.Decimal('0.0625'),
         },
       ])
       // TODO?
-      if (isD1 || provider === 'mysql') {
+      if (isD1 || provider === Providers.MYSQL) {
         expect(resultFromQueryRaw).not.toEqual(resultFromFindMany)
       } else {
         expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
