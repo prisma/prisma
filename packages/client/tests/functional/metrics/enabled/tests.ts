@@ -480,10 +480,8 @@ testMatrix.setupTestSuite(
         // Our test suite shows that the value can be one too few (=> 0) sometimes
         // Last seen in `Tests / Client func&legacy-notypes (4/5, library, 20, relationJoins)` run for SQLite, but also happens for other providers.
         // Tracking issue: https://github.com/prisma/team-orm/issues/1024
-        //
-        // The following line is tracked in https://github.com/prisma/team-orm/issues/1025
-        // @ts-expect-error - needed to make typechecking pass when running the test at the moment
-        expect((metrics.match(/prisma_client_queries_wait \d/g) || []).length).toBeOneOf([0, 1])
+        const prisma_client_queries_wait_length = (metrics.match(/prisma_client_queries_wait \d/g) || []).length
+        expect(prisma_client_queries_wait_length === 0 || prisma_client_queries_wait_length === 1).toBeTrue()
 
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_bucket/g) || []).length).toBe(11)
         expect((metrics.match(/prisma_client_queries_duration_histogram_ms_sum .*/g) || []).length).toBe(1)
