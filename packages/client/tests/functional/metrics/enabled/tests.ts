@@ -257,7 +257,7 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_client_queries_wait',
               labels: {},
-              // Our test suite shows that the value can be 0 sometimes
+              // Our test suite shows that the value can be one too few (=> -1) sometimes
               // Last seen in `Tests / Client func&legacy-notypes (4/5, library, 20, relationJoins)` run for SQLite, but also happens for other providers.
               // Tracking issue: https://github.com/prisma/team-orm/issues/1024
               //
@@ -477,7 +477,7 @@ testMatrix.setupTestSuite(
         expect((metrics.match(/prisma_client_queries_total \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_client_queries_active \d/g) || []).length).toBe(1)
 
-        // Our test suite shows that the value can be 0 sometimes
+        // Our test suite shows that the value can be one too few (=> 0) sometimes
         // Last seen in `Tests / Client func&legacy-notypes (4/5, library, 20, relationJoins)` run for SQLite, but also happens for other providers.
         // Tracking issue: https://github.com/prisma/team-orm/issues/1024
         //
