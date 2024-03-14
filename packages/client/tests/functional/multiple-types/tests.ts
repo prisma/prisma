@@ -6,8 +6,12 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@pr
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
+// Note: Test inspired by ./raw-queries/typed-results/tests.ts
+
 testMatrix.setupTestSuite(
   ({ clientRuntime, driverAdapter, provider }) => {
+    const isD1 = driverAdapter === 'js_d1'
+
     beforeEach(async () => {
       await prisma.testModel.deleteMany()
     })
@@ -36,7 +40,6 @@ testMatrix.setupTestSuite(
       const resultFromQueryRaw = await getAllEntries()
       const resultFromFindMany = await prisma.testModel.findMany()
 
-      expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
       expect(resultFromQueryRaw).toStrictEqual([
         {
           id: expect.anything(),
@@ -61,6 +64,7 @@ testMatrix.setupTestSuite(
           string: 'false',
         },
       ])
+      expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
     })
 
     test('shows differences between queryRaw and findMany', async () => {
@@ -80,7 +84,6 @@ testMatrix.setupTestSuite(
       const resultFromQueryRaw = await getAllEntries()
       const resultFromFindMany = await prisma.testModel.findMany()
 
-      expect(resultFromQueryRaw).not.toEqual(resultFromFindMany)
       expect(resultFromQueryRaw).toStrictEqual([
         {
           id: expect.anything(),
@@ -95,12 +98,11 @@ testMatrix.setupTestSuite(
           // testModel![0].bytes.constructor shows different things
           // see client/tests/functional/raw-queries/typed-results/tests.ts
           bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
-          bool: driverAdapter === 'js_d1' || provider === 'mysql' ? 1 : true,
+          bool: isD1 || provider === 'mysql' ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
-          dec: driverAdapter === 'js_d1' ? 0.0625 : new Prisma.Decimal('0.0625'),
+          dec: isD1 ? 0.0625 : new Prisma.Decimal('0.0625'),
         },
       ])
-
       expect(resultFromFindMany).toStrictEqual([
         {
           id: expect.anything(),
@@ -122,6 +124,12 @@ testMatrix.setupTestSuite(
           dec: new Prisma.Decimal('0.0625'),
         },
       ])
+
+      if (isD1 || provider === 'mysql') {
+        expect(resultFromQueryRaw).not.toEqual(resultFromFindMany)
+      } else {
+        expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
+      }
     })
 
     test('a record with all fields set to null should succeed', async () => {
@@ -132,7 +140,6 @@ testMatrix.setupTestSuite(
       const resultFromQueryRaw = await getAllEntries()
       const resultFromFindMany = await prisma.testModel.findMany()
 
-      expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
       expect(resultFromQueryRaw).toStrictEqual([
         {
           id: expect.anything(),
@@ -146,6 +153,7 @@ testMatrix.setupTestSuite(
           string: null,
         },
       ])
+      expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
     })
 
     test('2 records, 1st with null, 2nd with values should succeed', async () => {
@@ -169,7 +177,6 @@ testMatrix.setupTestSuite(
       const resultFromQueryRaw = await getAllEntries()
       const resultFromFindMany = await prisma.testModel.findMany()
 
-      expect(resultFromQueryRaw).not.toEqual(resultFromFindMany)
       expect(resultFromQueryRaw).toStrictEqual([
         {
           id: expect.anything(),
@@ -195,11 +202,17 @@ testMatrix.setupTestSuite(
           // testModel![0].bytes.constructor shows different things
           // see client/tests/functional/raw-queries/typed-results/tests.ts
           bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
-          bool: driverAdapter === 'js_d1' || provider === 'mysql' ? 1 : true,
+          bool: isD1 || provider === 'mysql' ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
-          dec: driverAdapter === 'js_d1' ? 0.0625 : new Prisma.Decimal('0.0625'),
+          dec: isD1 ? 0.0625 : new Prisma.Decimal('0.0625'),
         },
       ])
+      // TODO?
+      if (isD1 || provider === 'mysql') {
+        expect(resultFromQueryRaw).not.toEqual(resultFromFindMany)
+      } else {
+        expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
+      }
     })
 
     test('all fields are null', async () => {
@@ -210,7 +223,6 @@ testMatrix.setupTestSuite(
       const resultFromQueryRaw = await getAllEntries()
       const resultFromFindMany = await prisma.testModel.findMany()
 
-      expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
       expect(resultFromQueryRaw).toStrictEqual([
         {
           id: expect.anything(),
@@ -224,6 +236,7 @@ testMatrix.setupTestSuite(
           string: null,
         },
       ])
+      expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
     })
   },
   {
