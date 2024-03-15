@@ -141,6 +141,8 @@
     "wasm.d.ts",
     "index.js",
     "index.d.ts",
+    "rn.js",
+    "rn.d.ts",
     "default.js",
     "default.d.ts",
     "index-browser.js",

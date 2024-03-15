@@ -123,6 +123,13 @@ export async function buildClient({
     edge: true,
   })
 
+  // we create a client that is fit for react native runtimes
+  const rnTsClient = new TSClient({
+    ...baseClientOptions,
+    runtimeNameJs: 'rn',
+    runtimeNameTs: 'rn',
+  })
+
   const trampolineTsClient = new TSClient({
     ...nodeClientOptions,
     reusedTs: 'index',
@@ -170,6 +177,8 @@ export async function buildClient({
   fileMap['index-browser.js'] = await BrowserJS(nodeClient)
   fileMap['edge.js'] = await JS(edgeClient)
   fileMap['edge.d.ts'] = await TS(edgeClient)
+  fileMap['rn.js'] = await JS(rnTsClient)
+  fileMap['rn.d.ts'] = await TS(rnTsClient)
 
   if (generator.previewFeatures.includes('driverAdapters')) {
     // The trampoline client points to #main-entry-point (see below).  We use
@@ -629,6 +638,7 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'index-browser.d.ts',
     'edge.js',
     'edge-esm.js',
+    'rn.js',
     'wasm.js',
   ]
 

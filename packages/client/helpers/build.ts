@@ -143,6 +143,46 @@ const wasmRuntimeBuildConfig: BuildOptions = {
   ],
 }
 
+// we define the config for react native
+// react native is simmilar to edge in the sense it doesn't have the node API/libraries
+// and also not all the browser APIs
+const rnRuntimeBuildConfig: BuildOptions = {
+  name: 'rn',
+  target: 'ES2018',
+  entryPoints: ['src/runtime/index.ts'],
+  outfile: 'runtime/rn',
+  bundle: true,
+  minify: false,
+  sourcemap: 'linked',
+  legalComments: 'none',
+  emitTypes: false,
+  define: {
+    // that helps us to tree-shake unused things out
+    NODE_CLIENT: 'false',
+    // tree shake the Library and Binary engines out
+    TARGET_BUILD_TYPE: '"rn"',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
+  },
+  plugins: [
+    fillPlugin({
+      // we remove eval and Function for vercel
+      eval: { define: 'undefined' },
+      Function: {
+        define: 'fn',
+        globals: functionPolyfillPath,
+      },
+      // we shim WeakRef, it does not exist on CF
+      WeakRef: {
+        globals: weakrefPolyfillPath,
+      },
+      // these can not be exported anymore
+      './warnEnvConflicts': { contents: '' },
+    }),
+  ],
+  logLevel: 'error',
+}
+
 // we define the config for edge in esm format (used by deno)
 const edgeEsmRuntimeBuildConfig: BuildOptions = {
   ...edgeRuntimeBuildConfig,
@@ -194,6 +234,7 @@ void build([
   wasmBindgenRuntimeConfig('mysql'),
   wasmBindgenRuntimeConfig('sqlite'),
   defaultIndexConfig,
+  rnRuntimeBuildConfig,
   accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')

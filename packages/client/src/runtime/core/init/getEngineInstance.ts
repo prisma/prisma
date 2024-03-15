@@ -75,7 +75,8 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   // - Delete DataProxyEngine and all related files
   // - Update the DataProxy tests to use the /wasm endpoint, but keep ecosystem-tests as they are
 
-  if (accelerateConfigured && TARGET_BUILD_TYPE !== 'wasm') return new DataProxyEngine(engineConfig)
+  if (TARGET_BUILD_TYPE === 'rn') return new LibraryEngine(engineConfig)
+  else if (accelerateConfigured && TARGET_BUILD_TYPE !== 'wasm') return new DataProxyEngine(engineConfig)
   else if (driverAdapterConfigured && TARGET_BUILD_TYPE === 'wasm') return new LibraryEngine(engineConfig)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)

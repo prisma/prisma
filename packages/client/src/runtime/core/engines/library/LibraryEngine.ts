@@ -77,7 +77,16 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
-    if (TARGET_BUILD_TYPE === 'library') {
+    if (TARGET_BUILD_TYPE === 'rn') {
+      // dummy library, should never be called
+      this.libraryLoader = {
+        loadLibrary() {
+          throw new Error(
+            'React Native bindings cannot be loaded from inside this library, import react-native-prisma on user code',
+          )
+        },
+      }
+    } else if (TARGET_BUILD_TYPE === 'library') {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
       // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
@@ -123,6 +132,27 @@ export class LibraryEngine implements Engine<undefined> {
     }
   }
 
+  async applyPendingMigrations(): Promise<void> {
+    if (TARGET_BUILD_TYPE === 'rn') {
+      await this.start()
+      // TODO handle the throw error gracefully? Not sure need to ask pierre
+      // @ts-ignore
+      __PrismaProxy.applyPendingMigrations(this.engine, this.datamodel)
+    } else {
+      throw new Error('Cannot call this method from this type of engine instance')
+    }
+  }
+
+  async pushSchema(): Promise<void> {
+    if (TARGET_BUILD_TYPE === 'rn') {
+      await this.start()
+      // @ts-ignore
+      __PrismaProxy.pushSchema(this.engine, this.datamodel)
+    } else {
+      throw new Error('Cannot call this method from this type of engine instance')
+    }
+  }
+
   async transaction(
     action: 'start',
     headers: Tx.TransactionHeaders,
@@ -151,11 +181,14 @@ export class LibraryEngine implements Engine<undefined> {
         isolation_level: arg.isolationLevel,
       })
 
-      result = await this.engine?.startTransaction(jsonOptions, headerStr)
+      // @ts-ignore
+      result = await __PrismaProxy.startTransaction(this.engine, jsonOptions, headerStr)
     } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, headerStr)
+      // @ts-ignore
+      result = await __PrismaProxy.commitTransaction(this.engine, arg.id, headerStr)
     } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, headerStr)
+      // @ts-ignore
+      result = await __PrismaProxy.rollbackTransaction(this.engine, arg.id, headerStr)
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
@@ -230,6 +263,33 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   private async loadEngine(): Promise<void> {
     if (!this.engine) {
+      if (TARGET_BUILD_TYPE === 'rn') {
+        const weakThis = new WeakRef(this)
+
+        // @ts-expect-error
+        if (!__PrismaProxy) {
+          throw new PrismaClientInitializationError(
+            '__PrismaProxy not detected make sure rn bindings are installed',
+            this.config.clientVersion!,
+          )
+        }
+        // @ts-ignore
+        this.engine = __PrismaProxy.create({
+          datamodel: this.datamodel,
+          env: process.env,
+          ignoreEnvVarErrors: true,
+          datasourceOverrides: this.datasourceOverrides ?? {},
+          logLevel: this.logLevel,
+          logQueries: this.config.logQueries ?? false,
+          logCallback: (log: string) => {
+            weakThis.deref()?.logger(log)
+          },
+        })
+
+        engineInstanceCount++
+        return
+      }
+
       if (!this.QueryEngineConstructor) {
         this.library = await this.libraryLoader.loadLibrary(this.config)
         this.QueryEngineConstructor = this.library.QueryEngine
@@ -359,7 +419,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           traceparent: this.config.tracingHelper.getTraceParent(),
         }
 
-        await this.engine?.connect(JSON.stringify(headers))
+        if (TARGET_BUILD_TYPE === 'rn') {
+          // @ts-ignore
+          __PrismaProxy.connect(this.engine, JSON.stringify(headers))
+        } else {
+          await this.engine?.connect(JSON.stringify(headers))
+        }
 
         this.libraryStarted = true
 
@@ -406,7 +471,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         traceparent: this.config.tracingHelper.getTraceParent(),
       }
 
-      await this.engine?.disconnect(JSON.stringify(headers))
+      if (TARGET_BUILD_TYPE === 'rn') {
+        // @ts-ignore
+        __PrismaProxy.disconnect(this.engine, JSON.stringify(headers))
+      } else {
+        await this.engine?.disconnect(JSON.stringify(headers))
+      }
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
@@ -440,7 +510,17 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     try {
       await this.start()
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
+      if (TARGET_BUILD_TYPE === 'rn') {
+        //@ts-ignore
+        this.executingQueryPromise = __PrismaProxy.execute(
+          this.engine,
+          queryStr,
+          headerStr,
+          interactiveTransaction?.id,
+        ) as Promise<string>
+      } else {
+        this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
+      }
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
@@ -485,11 +565,21 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
-    this.executingQueryPromise = this.engine!.query(
-      this.lastQuery,
-      JSON.stringify({ traceparent }),
-      getInteractiveTransactionId(transaction),
-    )
+    if (TARGET_BUILD_TYPE === 'rn') {
+      // @ts-ignore
+      this.executingQueryPromise = __PrismaProxy.execute(
+        this.engine,
+        this.lastQuery,
+        JSON.stringify({ traceparent }),
+        getInteractiveTransactionId(transaction),
+      )
+    } else {
+      this.executingQueryPromise = this.engine!.query(
+        this.lastQuery,
+        JSON.stringify({ traceparent }),
+        getInteractiveTransactionId(transaction),
+      )
+    }
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 
