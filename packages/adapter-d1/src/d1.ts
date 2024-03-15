@@ -107,7 +107,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       } else if (error.message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
         extendedCode = 787
       } else if (error.message.startsWith('D1_ERROR: NOT NULL constraint failed')) {
-        extendedCode = 2011
+        extendedCode = 1299
       }
       // TODO: more?
 
