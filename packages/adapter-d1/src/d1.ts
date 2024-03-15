@@ -106,7 +106,10 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
         extendedCode = 2067
       } else if (error.message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
         extendedCode = 787
+      } else if (error.message.startsWith('D1_ERROR: NOT NULL constraint failed')) {
+        extendedCode = 2011
       }
+      // TODO: more?
 
       return err({
         kind: 'Sqlite',
