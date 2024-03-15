@@ -93,8 +93,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
         return ok([columnNames, rows])
       }
     } catch (e) {
-      console.error('Error in performIO: %O', error)
-      const { message } = error
+      console.error('Error in performIO: %O', e)
+      const { message } = e
 
       // We only get the error message, not the error code.
       // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
