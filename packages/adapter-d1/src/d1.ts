@@ -123,7 +123,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       return err({
         kind: 'Sqlite',
         extendedCode,
-        message: error.message,
+        message,
       })
     }
   }
