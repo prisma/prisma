@@ -606,8 +606,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
-        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        specifier: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
+        version: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -633,8 +633,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
-        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        specifier: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
+        version: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -855,8 +855,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
-        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        specifier: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
+        version: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -892,8 +892,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
-        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        specifier: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
+        version: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1217,8 +1217,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
-        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        specifier: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
+        version: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1374,8 +1374,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
-        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        specifier: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
+        version: 5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3525,8 +3525,8 @@ packages:
     resolution: {integrity: sha512-HNUrTqrd8aTRZYMDcsoZ62s36sIWkMMmKZBOehoCWR2WrfNPKq+Q1yQef5okl3pSVlldFnu2h/dbHjOsDTHXug==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357:
-    resolution: {integrity: sha512-l8sUSwZpcwqKVhs8wiOLXi7cYYUk43Ds7ngQUdYrTrU1Tw77uszLEtEiKDZb6posF0AoLTKUJQT+v/QE8LhioA==}
+  /@prisma/engines-version@5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a:
+    resolution: {integrity: sha512-0D4M6mrFvHmdzOlDGOfj/a1eghLvhT9ETd/TEzlshRrQqQaoN79xVWESfy7IKoUKq//hGGbGiEl6oDR7PebB1g==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3534,12 +3534,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357:
-    resolution: {integrity: sha512-TBXaN+u2ItCJzcnQLoCPzPsMQ5gEho25ZU4gNpvYLLZi8C6GRq9KSI55tjYznQwvpW1OruPoLYxYK6Ns8a5e/w==}
+  /@prisma/prisma-schema-wasm@5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a:
+    resolution: {integrity: sha512-r54DKekPNGh4grPUynjeUZIaNyv+wVyhZuQC7gl4nAz0W+p6gflzU2Ap0TGrmaiQe7bct5Yo1MTSm+24Q9ZCww==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357:
-    resolution: {integrity: sha512-KI7YCJo/MGADQZnNx6x2XOCfCXSgHR+3qPOpALNRkrwJibDqFZD5+eisSEJw9KkdBUPiP38cVwn9tAIcvJEWWw==}
+  /@prisma/query-engine-wasm@5.12.0-2.integration-sql-nested-transactions-50096754c4d3646683538e723f41441a2e4c3b8a:
+    resolution: {integrity: sha512-COcIxxzCFLD014DAWzWZAHS+hKypoeB6Eb254JnrYOUIzZFOy1ae8k/pw0QD2GnalXgwD0LCkxxMCkoLCfH98g==}
     dev: true
 
   /@prisma/studio-common@0.499.0:
