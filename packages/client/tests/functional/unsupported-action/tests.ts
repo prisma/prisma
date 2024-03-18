@@ -16,7 +16,7 @@ testMatrix.setupTestSuite(
         /client/tests/functional/unsupported-action/tests.ts:0:0
 
            XX () => {
-           XX   test('unsupported method', async () => {
+          XX   test('unsupported method', async () => {
           XX     // @ts-expect-error
         → XX     const result = prisma.user.aggregateRaw(
         Operation 'aggregateRaw' for model 'User' does not match any query.
