@@ -42,6 +42,7 @@ export interface GeneratorConfig {
     binaryTargets?: never
     /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
     previewFeatures?: never
+  } & {
     [key: string]: string | string[]
   }
   binaryTargets: BinaryTargetsEnvValue[]
