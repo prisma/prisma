@@ -82,7 +82,7 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Test uses raw SQL queries',
     },
   },

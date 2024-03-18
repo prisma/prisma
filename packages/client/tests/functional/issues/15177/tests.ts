@@ -44,7 +44,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Mongodb dont have tables or columns',
     },
   },

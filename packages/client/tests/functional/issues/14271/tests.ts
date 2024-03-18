@@ -131,7 +131,14 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [
+        Providers.MONGODB,
+        Providers.SQLSERVER,
+        Providers.MYSQL,
+        Providers.POSTGRESQL,
+        Providers.COCKROACHDB,
+        Providers.SQLITE,
+      ],
       reason: 'Only testing postgresql',
     },
   },

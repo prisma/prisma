@@ -67,7 +67,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Mongodb connector does not support the Decimal type.',
     },
   },

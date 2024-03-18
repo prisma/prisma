@@ -37,7 +37,7 @@ testMatrix.setupTestSuite(
       `,
     },
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'First query does not fail even when database does not exist.',
     },
   },

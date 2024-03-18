@@ -49,5 +49,5 @@ testMatrix.setupTestSuite(
       expect(response).toMatchObject({ _count: 1 })
     })
   },
-  { optOut: { from: ['mongodb'], reason: 'Implicit relations are not supported in MongoDB' } },
+  { optOut: { from: [Providers.MONGODB], reason: 'Implicit relations are not supported in MongoDB' } },
 )

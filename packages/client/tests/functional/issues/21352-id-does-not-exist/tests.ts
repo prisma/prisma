@@ -38,7 +38,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Only SQL databases were affected by regression #21352',
     },
   },

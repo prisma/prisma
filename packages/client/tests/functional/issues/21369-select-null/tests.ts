@@ -13,7 +13,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Raw SQL query requires an SQL database',
     },
   },

@@ -154,7 +154,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Orderby Null not supported on mongodb',
     },
   },

@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -65,7 +66,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['cockroachdb', 'sqlserver', 'sqlite', 'mysql', 'postgresql'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.SQLITE],
       reason: 'Currently, only MongoDB strictly validates the id fields.',
     },
   },

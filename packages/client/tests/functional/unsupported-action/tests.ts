@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
       reason: 'Error rendering is different for edge client',
     },
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Test uses aggregateRaw as an example of unsupported method for SQL databases, it exists on mongo',
     },
   },

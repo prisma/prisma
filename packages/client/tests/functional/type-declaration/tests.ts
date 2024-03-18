@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 
 import testMatrix from './_matrix'
+import { Providers } from '../_utils/providers'
 
 const dtsFile = path.resolve(__dirname, '..', '..', '..', 'runtime', 'library.d.ts')
 const dtsContents = fs.readFileSync(dtsFile, 'utf8')
@@ -20,7 +21,7 @@ testMatrix.setupTestSuite(
     skipDb: true,
     skipDefaultClientInstance: true,
     optOut: {
-      from: ['postgresql', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.MONGODB],
       reason: 'Test checks runtime file that is statically build and does not depend on  provider',
     },
   },
