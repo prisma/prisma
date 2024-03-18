@@ -36,6 +36,12 @@ export interface GeneratorConfig {
   config: {
     /** `output` is a reserved name and will only be available directly at `generator.output` */
     output: never
+    /** `provider` is a reserved name and will only be available directly at `generator.provider` */
+    provider: never
+    /** `binaryTargets` is a reserved name and will only be available directly at `generator.binaryTargets` */
+    binaryTargets: never
+    /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
+    previewFeatures: never
     [key: string]: string | string[]
   }
   binaryTargets: BinaryTargetsEnvValue[]
