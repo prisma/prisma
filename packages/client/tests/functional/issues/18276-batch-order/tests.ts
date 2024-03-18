@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
@@ -82,7 +83,7 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Test uses raw SQL queries',
     },
   },
