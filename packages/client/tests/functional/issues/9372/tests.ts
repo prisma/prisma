@@ -1,6 +1,7 @@
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 
 declare let prisma: PrismaClient
@@ -28,7 +29,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['postgresql', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.MONGODB],
       reason: `
         This test is fairly slow and the issue it is testing is not provider-dependent.
         Just for the sake of keeping test times acceptable, we are testing it only on sqlite

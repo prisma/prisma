@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import { MatrixOptions } from '../../_utils/types'
 
 /**
@@ -5,7 +6,7 @@ import { MatrixOptions } from '../../_utils/types'
  * (to avoid the error about missing providers in the test suite matrix).
  */
 export const optOutFromProvidersWithNoMatchingDriverAdapters: MatrixOptions['optOut'] = {
-  from: ['cockroachdb', 'sqlserver', 'mongodb'],
+  from: [Providers.COCKROACHDB, Providers.SQLSERVER, Providers.MONGODB],
   reason: 'no availability of a Driver Adapter with these providers yet',
 }
 
