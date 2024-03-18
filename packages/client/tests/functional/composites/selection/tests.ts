@@ -3,6 +3,7 @@ import { expectTypeOf } from 'expect-type'
 import testMatrix from './_matrix'
 // @ts-ignore
 import { PrismaClient, Profile, User } from './node_modules/@prisma/client'
+import { Providers } from '../../_utils/providers'
 
 declare let prisma: PrismaClient
 
