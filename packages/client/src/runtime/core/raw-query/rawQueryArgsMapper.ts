@@ -1,5 +1,4 @@
 import Debug from '@prisma/debug'
-import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Sql } from 'sql-template-tag'
 
 import { MiddlewareArgsMapper } from '../../getPrismaClient'
@@ -32,18 +31,11 @@ More Information: https://pris.ly/d/execute-raw
 type RawQueryArgsMapperInput = {
   clientMethod: string
   activeProvider: string
-  activeProviderFlavour?: ErrorCapturingDriverAdapter['flavour']
 }
 
 export const rawQueryArgsMapper =
-  ({ clientMethod, activeProvider, activeProviderFlavour }: RawQueryArgsMapperInput) =>
+  ({ clientMethod, activeProvider }: RawQueryArgsMapperInput) =>
   (args: RawQueryArgs) => {
-    if (activeProviderFlavour !== undefined) {
-      // When using the driver adapter, we need to use the flavour of the adapter,
-      // in order to avoid enumerating all the possible `@prisma/*` provider names.
-      activeProvider = activeProviderFlavour
-    }
-
     // TODO Clean up types
     let queryString = ''
     let parameters: { values: string; __prismaRawParameters__: true } | undefined

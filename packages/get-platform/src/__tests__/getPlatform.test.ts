@@ -1,11 +1,11 @@
 import stripAnsi from 'strip-ansi'
 
-import { getPlatformInfoMemoized, getPlatformInternal } from '../getPlatform'
+import { getBinaryTargetForCurrentPlatformInternal, getPlatformInfoMemoized } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describe('getPlatformMemoized', () => {
+describe('getPlatformInfoMemoized', () => {
   it('repeated invocations are idempotent and memoized', async () => {
     const platformFirst = await getPlatformInfoMemoized()
     const platformSecond = await getPlatformInfoMemoized()
@@ -18,7 +18,7 @@ describe('getPlatformMemoized', () => {
   })
 })
 
-describe('getPlatformInternal', () => {
+describe('getBinaryTargetForCurrentPlatformInternal', () => {
   describe('linux', () => {
     const platform = 'linux'
 
@@ -26,7 +26,7 @@ describe('getPlatformInternal', () => {
 
     it('debian (debian), amd64 (x86_64), openssl-1.1.x', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: '1.1.x',
           arch: 'x64',
@@ -43,7 +43,7 @@ describe('getPlatformInternal', () => {
 
     it('opensuse (suse), amd64 (x86_64), openssl-1.1.x', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: '1.1.x',
           arch: 'x64',
@@ -60,7 +60,7 @@ describe('getPlatformInternal', () => {
 
     it('alpine (alpine), amd64 (x86_64), openssl-3.0.x', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: '3.0.x',
           arch: 'x64',
@@ -77,7 +77,7 @@ describe('getPlatformInternal', () => {
 
     it('alpine (alpine), arm64 (aarch64), openssl-3.0.x', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: '3.0.x',
           arch: 'arm64',
@@ -94,7 +94,7 @@ describe('getPlatformInternal', () => {
 
     it('alpine (alpine), arm (armv7l), openssl-3.0.x', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: '3.0.x',
           arch: 'arm',
@@ -115,7 +115,7 @@ describe('getPlatformInternal', () => {
 
     it('ubuntu (debian), amd64 (x86_64), openssl-undefined', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: undefined,
           arch: 'x64',
@@ -135,7 +135,7 @@ describe('getPlatformInternal', () => {
 
     it('arch (arch), amd64 (x86_64), openssl-undefined', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: undefined,
           arch: 'x64',
@@ -155,7 +155,7 @@ describe('getPlatformInternal', () => {
 
     it('unknown (unknown), amd64 (x86_64), openssl-3.0.x', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: '3.0.x',
           arch: 'x64',
@@ -166,16 +166,13 @@ describe('getPlatformInternal', () => {
         }),
       ).toBe('debian-openssl-3.0.x')
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        prisma:warn Prisma doesn't know which engines to download for the Linux distro "unknown". Falling back to Prisma engines built "debian".
-        Please report your experience by creating an issue at https://github.com/prisma/prisma/issues so we can add your distro to the list of known supported distros.
-      `)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     it('unknown (unknown), amd64 (x86_64), openssl-undefined', () => {
       expect(
-        getPlatformInternal({
+        getBinaryTargetForCurrentPlatformInternal({
           platform,
           libssl: undefined,
           arch: 'x64',
@@ -189,8 +186,6 @@ describe('getPlatformInternal', () => {
       expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
         prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
         Please manually install OpenSSL and try installing Prisma again.
-        prisma:warn Prisma doesn't know which engines to download for the Linux distro "unknown". Falling back to Prisma engines built "debian".
-        Please report your experience by creating an issue at https://github.com/prisma/prisma/issues so we can add your distro to the list of known supported distros.
       `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })

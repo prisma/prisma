@@ -1,7 +1,7 @@
 import { bold, dim } from 'kleur/colors'
 import path from 'path'
 
-import { getClientEngineType } from '../client/getClientEngineType'
+import { ClientEngineType, getClientEngineType } from '../client/getClientEngineType'
 import type { Generator } from '../Generator'
 import { formatms } from '../utils/formatms'
 import { parseEnvValue } from '../utils/parseEnvValue'
@@ -27,9 +27,9 @@ function formatVersion(generator: Generator): string | undefined {
     let engineHint = ''
     if (generator.options?.noEngine) {
       engineHint = ', engine=none'
-    } else if (engineType === 'binary') {
+    } else if (engineType === ClientEngineType.Binary) {
       engineHint = ', engine=binary'
-    } else if (engineType === 'library') {
+    } else if (engineType === ClientEngineType.Library) {
       engineHint = ''
     }
 

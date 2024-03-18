@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta, clientMeta) => {
+  ({ provider, driverAdapter }, suiteMeta, clientMeta) => {
     const OLD_ENV = process.env
 
     beforeEach(() => {
@@ -21,7 +21,7 @@ testMatrix.setupTestSuite(
       testIf(clientMeta.dataProxy /** = --no-engine */)(
         '--no-engine prevents from using the other engines',
         async () => {
-          process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'postgresql://postgres:password@localhost:5432/db'
+          process.env[`DATABASE_URI_${provider}`] = 'postgresql://postgres:password@localhost:5432/db'
 
           const prisma = newPrismaClient()
           const promise = prisma.$connect()
@@ -33,18 +33,21 @@ testMatrix.setupTestSuite(
         },
       )
 
-      // test that we can pass a prisma:// url when the tests is not run as a dataproxy
-      testIf(!clientMeta.dataProxy)('prisma:// url works as expected even when --no-engine is not used', async () => {
-        process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'prisma://localhost:5432/db'
+      // driver adapters cannot be used along with accelerate
+      skipTestIf(clientMeta.dataProxy || Boolean(driverAdapter))(
+        'prisma:// url works as expected even when --no-engine is not used',
+        async () => {
+          process.env[`DATABASE_URI_${provider}`] = 'prisma://localhost:5432/db'
 
-        const prisma = newPrismaClient()
-        const promise = prisma.$connect()
+          const prisma = newPrismaClient()
+          const promise = prisma.$connect()
 
-        // proof that the correct engine is used
-        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-          `Error validating datasource \`db\`: the URL must contain a valid API key`,
-        )
-      })
+          // proof that the correct engine is used
+          await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
+            `Error validating datasource \`db\`: the URL must contain a valid API key`,
+          )
+        },
+      )
     })
 
     describe('via url override', () => {
@@ -67,22 +70,25 @@ testMatrix.setupTestSuite(
         },
       )
 
-      // test that we can pass a prisma:// url when the tests is not run as a dataproxy
-      testIf(!clientMeta.dataProxy)('prisma:// url works as expected even when --no-engine is not used', async () => {
-        const prisma = newPrismaClient({
-          datasources: {
-            db: {
-              url: 'prisma://localhost:5432/db',
+      // driver adapters cannot be used along with accelerate
+      skipTestIf(clientMeta.dataProxy || Boolean(driverAdapter))(
+        'prisma:// url works as expected even when --no-engine is not used',
+        async () => {
+          const prisma = newPrismaClient({
+            datasources: {
+              db: {
+                url: 'prisma://localhost:5432/db',
+              },
             },
-          },
-        })
-        const promise = prisma.$connect()
+          })
+          const promise = prisma.$connect()
 
-        // proof that the correct engine is used
-        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-          `Error validating datasource \`db\`: the URL must contain a valid API key`,
-        )
-      })
+          // proof that the correct engine is used
+          await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
+            `Error validating datasource \`db\`: the URL must contain a valid API key`,
+          )
+        },
+      )
     })
   },
   {

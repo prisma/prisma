@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
@@ -17,7 +17,7 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', 'foreignKeys' as const)
 
@@ -157,11 +157,11 @@ testMatrix.setupTestSuite(
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                [ProviderFlavors.JS_NEON]:
+                [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
+                [AdapterProviders.JS_NEON]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [ProviderFlavors.JS_PG]:
-                  'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_userId_fkey"',
-                [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
+                [AdapterProviders.JS_PG]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
               },
             }),
           )
@@ -237,11 +237,11 @@ testMatrix.setupTestSuite(
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
                 [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                [ProviderFlavors.JS_NEON]:
+                [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
+                [AdapterProviders.JS_NEON]:
                   'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [ProviderFlavors.JS_PG]:
-                  'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_userId_fkey"',
-                [ProviderFlavors.JS_LIBSQL]: ': FOREIGN KEY constraint failed',
+                [AdapterProviders.JS_PG]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
               },
             }),
           )
@@ -256,7 +256,7 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: 'Only testing relational databases using foreign keys.',
     },
-    skipProviderFlavor: {
+    skipDriverAdapter: {
       from: ['js_planetscale'],
       reason: 'Only testing relational databases using foreign keys.',
     },

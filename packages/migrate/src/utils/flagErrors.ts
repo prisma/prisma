@@ -1,4 +1,4 @@
-import { setClassName } from '@prisma/internals/dist/utils/setClassName'
+import { setClassName } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
 export class ExperimentalFlagError extends Error {
@@ -23,7 +23,7 @@ export class EarlyAccessFlagError extends Error {
   constructor() {
     super(
       `This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
-Please provide the ${green('--early-access-feature')} flag to use this command.`,
+Please provide the ${green('--early-access')} flag to use this command.`,
     )
   }
 }

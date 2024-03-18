@@ -115,3 +115,23 @@ it('should read data from Prisma schema', async () => {
     }
   `)
 })
+
+it('should redact token from Platform commands', () => {
+  expect(redactCommandArray(['platform', '--token="foo"'])).toMatchInlineSnapshot(`
+    [
+      platform,
+      --token=[redacted],
+    ]
+  `)
+})
+
+it('should redact a database url from Platform accelerate enable command', () => {
+  expect(redactCommandArray(['platform', 'accelerate', 'enable', '--url="foo"'])).toMatchInlineSnapshot(`
+    [
+      platform,
+      accelerate,
+      enable,
+      --url=[redacted],
+    ]
+  `)
+})

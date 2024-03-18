@@ -1,11 +1,11 @@
 node_modules
 
 yarn-error.log
+declaration
 dist
 build
 tmp
 pnpm-debug.log
-sandbox
 .DS_Store
 
 query-engine*
@@ -32,13 +32,15 @@ coverage
 .pnpm-debug.log
 
 esm
-reproductions/*
-!reproductions/basic-sqlite
-!reproductions/tracing
-!reproductions/pnpm-workspace.yaml
 
 dev.db
 junit.xml
 /output.txt
 
 .envrc.local
+
+.idea/
+
+package.copy.json
+
+*.tgz

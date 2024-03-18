@@ -181,7 +181,7 @@ describe('postgresql-multischema', () => {
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      P4001 The introspected database was empty: postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql
+      P4001 The introspected database was empty:
 
       prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
@@ -276,7 +276,6 @@ describe('postgresql-multischema', () => {
 
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     const introspect = new DbPull()
-    // postgres://prisma:prisma@localhost:5432/tests-migrate?schema=does-not-exist
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).rejects.toThrow(`P4001`)
@@ -289,7 +288,6 @@ describe('postgresql-multischema', () => {
 
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
-    // postgres://prisma:prisma@localhost:5432/tests-migrate?schema=base
     const connectionString = `${setupParams.connectionString}?schema=base`
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)

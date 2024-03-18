@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { getNodeAPIName, getPlatform, Platform } from '@prisma/get-platform'
+import { BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { chmodPlusX, ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
@@ -16,7 +16,7 @@ import { toolingHasTamperedWithEngineCopy } from './errors/engine-not-found/tool
 const debug = Debug('prisma:client:engines:resolveEnginePath')
 
 // this name will be injected by esbuild when we build/bundle the runtime
-const runtimeFileRegex = () => new RegExp(`runtime[\\\\/]${TARGET_ENGINE_TYPE}\\.m?js$`)
+const runtimeFileRegex = () => new RegExp(`runtime[\\\\/]${TARGET_BUILD_TYPE}\\.m?js$`)
 
 /**
  * Resolves the path of a given engine type (binary or library) and config. If
@@ -42,11 +42,11 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
   debug('enginePath', enginePath)
 
   // if we find it, we apply +x chmod to the binary, cache, and return
-  if (enginePath !== undefined && engineType === 'binary') chmodPlusX(enginePath)
+  if (enginePath !== undefined && engineType === ClientEngineType.Binary) chmodPlusX(enginePath)
   if (enginePath !== undefined) return (config.prismaPath = enginePath)
 
   // if we don't find it, then we will throw helpful error messages
-  const binaryTarget = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const generatorBinaryTargets = config.generator?.binaryTargets ?? []
   const hasNativeBinaryTarget = generatorBinaryTargets.some((bt) => bt.native)
   const hasMissingBinaryTarget = !generatorBinaryTargets.some((bt) => bt.value === binaryTarget)
@@ -59,6 +59,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
     runtimeBinaryTarget: binaryTarget,
     queryEngineName: getQueryEngineName(engineType, binaryTarget),
     expectedLocation: path.relative(process.cwd(), config.dirname), // TODO pathToPosix
+    errorStack: new Error().stack,
   }
 
   let errorMessage: string
@@ -83,7 +84,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
  * @returns
  */
 async function findEnginePath(engineType: ClientEngineType, config: EngineConfig) {
-  const binaryTarget = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const searchedLocations: string[] = []
 
   const dirname = eval('__dirname') as string
@@ -120,8 +121,8 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
  * @param binaryTarget
  * @returns
  */
-export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: Platform) {
-  if (engineType === 'library') {
+export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: BinaryTarget) {
+  if (engineType === ClientEngineType.Library) {
     return getNodeAPIName(binaryTarget, 'fs')
   } else {
     return `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`

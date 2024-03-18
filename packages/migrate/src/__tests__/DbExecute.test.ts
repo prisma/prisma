@@ -190,7 +190,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -390,7 +390,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -609,7 +609,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -769,7 +769,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -972,7 +972,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
         `)
       }
@@ -989,13 +989,13 @@ COMMIT;`,
           '--file=./script.sql',
         ])
       } catch (e) {
-        // It should error with P1001 but code is undefined
-        // Tracked in following issue:
-        // https://github.com/prisma/prisma/issues/11407
-        expect(e.code).toEqual(undefined)
+        expect(e.code).toEqual('P1001')
         expect(e.message).toMatchInlineSnapshot(`
-          Error creating a database connection.
+          P1001
 
+          Can't reach database server at \`doesnotexist\`:\`1433\`
+
+          Please make sure your database server is running at \`doesnotexist\`:\`1433\`.
 
         `)
       }

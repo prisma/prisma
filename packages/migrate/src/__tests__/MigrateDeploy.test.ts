@@ -45,7 +45,7 @@ describe('sqlite', () => {
 
     const result = MigrateDeploy.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
-            The following migration have been applied:
+            The following migration(s) have been applied:
 
             migrations/
               └─ 20201231000000_init/

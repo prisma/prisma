@@ -1,3 +1,4 @@
+import { Providers, RelationModes } from '../../_utils/providers'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -6,13 +7,15 @@ import testMatrix from './_matrix'
 declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  ({ provider, relationMode }, suiteMeta) => {
+    const isMySql = provider === Providers.MYSQL
+
     describe('issue 16390', () => {
       afterEach(async () => {
         // Start from a clean state
         await prisma.item.deleteMany({})
         await prisma.category.deleteMany({})
-        if (suiteConfig.provider === 'mysql') {
+        if (isMySql) {
           await prisma.$executeRaw`TRUNCATE TABLE \`_CategoryToItem\`;`
         } else {
           await prisma.$executeRaw`TRUNCATE TABLE "_CategoryToItem";`
@@ -56,7 +59,7 @@ testMatrix.setupTestSuite(
 
         // Check the pivot table entries
         let pivotTable
-        if (suiteConfig.provider === 'mysql') {
+        if (isMySql) {
           pivotTable = await prisma.$queryRaw`SELECT * FROM \`_CategoryToItem\`;`
         } else {
           pivotTable = await prisma.$queryRaw`SELECT * FROM "_CategoryToItem";`
@@ -117,7 +120,7 @@ testMatrix.setupTestSuite(
 
         // Check the pivot table entries
         let pivotTableAfterDelete
-        if (suiteConfig.provider === 'mysql') {
+        if (isMySql) {
           pivotTableAfterDelete = await prisma.$queryRaw`SELECT * FROM \`_CategoryToItem\`;`
         } else {
           pivotTableAfterDelete = await prisma.$queryRaw`SELECT * FROM "_CategoryToItem";`
@@ -125,7 +128,7 @@ testMatrix.setupTestSuite(
 
         // ... the pivot table entry is still there!
         // This is a bug in the relationMode="prisma" emulation
-        if (suiteConfig.relationMode === 'prisma') {
+        if (relationMode === RelationModes.PRISMA) {
           expect(pivotTableAfterDelete).toStrictEqual([
             {
               A: 1,
@@ -173,7 +176,7 @@ testMatrix.setupTestSuite(
 
       // Check the pivot table entries
       let pivotTable
-      if (suiteConfig.provider === 'mysql') {
+      if (isMySql) {
         pivotTable = await prisma.$queryRaw`SELECT * FROM \`_CategoryToItem\`;`
       } else {
         pivotTable = await prisma.$queryRaw`SELECT * FROM "_CategoryToItem";`
@@ -234,7 +237,7 @@ testMatrix.setupTestSuite(
 
       // Check the pivot table entries
       let pivotTableAfterDelete
-      if (suiteConfig.provider === 'mysql') {
+      if (isMySql) {
         pivotTableAfterDelete = await prisma.$queryRaw`SELECT * FROM \`_CategoryToItem\`;`
       } else {
         pivotTableAfterDelete = await prisma.$queryRaw`SELECT * FROM "_CategoryToItem";`
@@ -245,7 +248,7 @@ testMatrix.setupTestSuite(
       //
       // TODO once the bug is fixed: remove conditional
       // pivot table should be empty
-      if (suiteConfig.relationMode === 'prisma') {
+      if (relationMode === RelationModes.PRISMA) {
         expect(pivotTableAfterDelete).toStrictEqual([
           {
             A: 2,

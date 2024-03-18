@@ -59,7 +59,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
@@ -104,11 +104,13 @@ ${bold('Examples')}
     if (migrationIds.length === 0) {
       return green(`No pending migrations to apply.`)
     } else {
-      return `The following migration${
-        migrationIds.length > 1 ? 's' : ''
-      } have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
-        'migration.sql': '',
-      })}
+      return `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
+        'migrations',
+        migrationIds,
+        {
+          'migration.sql': '',
+        },
+      )}
       
 ${green('All migrations have been successfully applied.')}`
     }

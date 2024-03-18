@@ -1,6 +1,6 @@
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
-import { getPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { engineEnvVarMap } from '@prisma/internals'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
@@ -9,17 +9,21 @@ import packageJson from '../../../package.json'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary
+const runLibraryTest =
+  getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary && !process.env.PRISMA_QUERY_ENGINE_LIBRARY
+
+const runBinaryTest =
+  getCliQueryEngineBinaryType() === BinaryType.QueryEngineBinary && !process.env.PRISMA_QUERY_ENGINE_BINARY
 
 describe('version', () => {
   // Node-API Tests
 
-  testIf(useNodeAPI)('basic version (Node-API)', async () => {
+  testIf(runLibraryTest)('basic version (Node-API)', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  testIf(useNodeAPI)(
+  testIf(runLibraryTest)(
     'version with custom binaries (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
@@ -35,12 +39,11 @@ describe('version', () => {
       // This Omits query-engine from the map
       const { ['query-engine']: qe, ...envVarMap } = engineEnvVarMap
 
-      const platform = await getPlatform()
+      const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
-        process.env[envVar] = binaryPaths[engine][platform]
-        // console.debug(`Setting ${envVar} to ${binaryPaths[engine][platform]}`)
+        process.env[envVar] = binaryPaths[engine][binaryTarget]
       }
 
       const data = await ctx.cli('--version')
@@ -57,7 +60,7 @@ describe('version', () => {
 
   // Binary Tests
 
-  testIf(!useNodeAPI)(
+  testIf(runBinaryTest)(
     'basic version',
     async () => {
       const data = await ctx.cli('--version')
@@ -66,7 +69,7 @@ describe('version', () => {
     10_000,
   )
 
-  testIf(!useNodeAPI)(
+  testIf(runBinaryTest)(
     'version with custom binaries',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
@@ -80,12 +83,11 @@ describe('version', () => {
         failSilent: false,
       })
 
-      const platform = await getPlatform()
+      const binaryTarget = await getBinaryTargetForCurrentPlatform()
       const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
-        process.env[envVar] = binaryPaths[engine][platform]
-        // console.debug(`Setting ${envVar} to ${binaryPaths[engine][platform]}`)
+        process.env[envVar] = binaryPaths[engine][binaryTarget]
       }
 
       const data = await ctx.cli('--version')
@@ -120,7 +122,10 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   const currentEngineVersion = versionOverride ?? enginesVersion
   str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp('(Operating System\\s+:).*', 'g'), '$1 OS')
+  str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
   str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
 
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')

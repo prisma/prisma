@@ -4,9 +4,9 @@
   "license": "MIT",
   "type": "module",
   "devDependencies": {
-    "@types/node": "16.18.11",
-    "ts-node": "10",
-    "typescript": "5.2.2"
+    "@types/node": "16.18.88",
+    "ts-node": "10.9.2",
+    "typescript": "5.3.3"
   },
   "prisma": {
     "seed": "node --loader ts-node/esm prisma/seed.ts"

@@ -190,8 +190,7 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile(args['--from-schema-datasource'], false)
-
+      loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
       from = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--from-schema-datasource']),
@@ -220,8 +219,7 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile(args['--to-schema-datasource'], false)
-
+      loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
       to = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--to-schema-datasource']),
@@ -259,13 +257,16 @@ ${bold('Examples')}
       migrate.stop()
     }
 
-    debug(result)
+    // Note: only contains the exitCode
+    debug({ migrateDiffOutput: result })
 
     if (args['--exit-code'] && result.exitCode) {
       process.exit(result.exitCode)
     }
 
     // Return nothing
+    // See below for where the printing to stdout happens
+    // [console.info(result.params.content)](https://github.com/prisma/prisma/blob/e6d2bc01af44cec35cb2bda35a5c93e13dc4ba4e/packages/migrate/src/SchemaEngine.ts#L303)
     return ``
   }
 

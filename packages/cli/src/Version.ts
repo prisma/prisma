@@ -1,5 +1,5 @@
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
 import {
   arg,
@@ -16,6 +16,7 @@ import {
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
+import os from 'os'
 import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
@@ -62,9 +63,9 @@ export class Version implements Command {
       return this.help()
     }
 
-    loadEnvFile(undefined, true)
+    loadEnvFile({ printMessage: true })
 
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
     const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
@@ -91,7 +92,10 @@ export class Version implements Command {
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
-      ['Current platform', platform],
+      ['Computed binaryTarget', binaryTarget],
+      ['Operating System', os.platform()],
+      ['Architecture', os.arch()],
+      ['Node.js', process.version],
 
       ...enginesRows,
       ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
@@ -111,7 +115,6 @@ export class Version implements Command {
 
     const schemaPath = await getSchemaPath()
     const featureFlags = await this.getFeatureFlags(schemaPath)
-
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }

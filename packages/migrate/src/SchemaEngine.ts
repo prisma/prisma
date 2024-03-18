@@ -298,6 +298,8 @@ export class SchemaEngine {
         // This is a request.
         if (result.id !== undefined) {
           if (result.method === 'print' && result.params?.content !== undefined) {
+            // Here we print the content from the Schema Engine to stdout directly
+            // (it is not returned to the caller)
             console.info(result.params.content)
 
             // Send an empty response back as ACK.
@@ -458,7 +460,7 @@ export class SchemaEngine {
     await this.init()
 
     if (this.child?.killed) {
-      throw new Error(`Can't execute ${JSON.stringify(request)} because Schema engine  already exited.`)
+      throw new Error(`Can't execute ${JSON.stringify(request)} because Schema engine already exited.`)
     }
 
     return new Promise((resolve, reject) => {
@@ -530,7 +532,7 @@ export class SchemaEngine {
     })
   }
 
-  private getRPCPayload(method: string, params: unknown | undefined): RPCPayload {
+  private getRPCPayload(method: string, params: unknown): RPCPayload {
     return {
       id: messageId++,
       jsonrpc: '2.0',

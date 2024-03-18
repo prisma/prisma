@@ -4,8 +4,8 @@ import { TAB_SIZE } from './constants'
 import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
-  runtimeDir,
-  runtimeName,
+  runtimeBase,
+  runtimeNameJs,
   browser,
   clientVersion,
   engineVersion,
@@ -34,7 +34,8 @@ import {
   Extensions,
   defineDmmfProperty,
   Public,
-} from '${runtimeDir}/edge-esm.js'`
+  getRuntime,
+} from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
 const {
@@ -42,8 +43,8 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
-  detectRuntime,
-} = require('${runtimeDir}/${runtimeName}')
+  getRuntime,
+} = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
 const {
@@ -66,7 +67,8 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
-} = require('${runtimeDir}/${runtimeName}')
+  getRuntime
+} = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
 
@@ -122,16 +124,18 @@ Prisma.NullTypes = {
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
-  if (browser)
+  if (browser) {
     return `() => {
-  throw new Error(\`${fnc} is unable to be run \${runtimeDescription}.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(\`${fnc} is unable to run in this browser environment, or has been bundled for the browser (running in \${runtimeName}).
+In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report\`,
 )}`
+  }
   return fnc
 }
 
-export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
+export const commonCodeTS = ({ runtimeBase, runtimeNameTs, clientVersion, engineVersion }: TSClientOptions) => ({
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils

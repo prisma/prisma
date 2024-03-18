@@ -2,6 +2,7 @@ import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
 
+import type { Client } from '../../../src/runtime/getPrismaClient'
 import { checkMissingProviders } from './checkMissingProviders'
 import {
   getTestSuiteClientMeta,
@@ -14,7 +15,7 @@ import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
-import { ClientMeta, MatrixOptions } from './types'
+import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
@@ -51,14 +52,19 @@ export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestCallbackSuiteMeta, clientMeta: ClientMeta) => void,
+  tests: (
+    suiteConfig: Record<string, string>,
+    suiteMeta: TestCallbackSuiteMeta,
+    clientMeta: ClientMeta,
+    cliMeta: CliMeta,
+  ) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteCliMeta = getTestSuiteCliMeta()
+  const cliMeta = getTestSuiteCliMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, suiteCliMeta, options)
+  const testPlan = getTestSuitePlan(cliMeta, suiteMeta, suiteConfigs, options)
 
   if (originalEnv.TEST_GENERATE_ONLY === 'true') {
     options = options ?? {}
@@ -73,51 +79,89 @@ function setupTestSuiteMatrix(
   })
 
   for (const { name, suiteConfig, skip } of testPlan) {
-    const clientMeta = getTestSuiteClientMeta(suiteConfig.matrixOptions)
-    const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+    const clientMeta = getTestSuiteClientMeta({ suiteConfig: suiteConfig.matrixOptions })
+    const generatedFolder = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
     const describeFn = skip ? describe.skip : describe
+
+    let disposeWrangler: (() => Promise<void>) | undefined
+    let cfWorkerBindings: Record<string, unknown> | undefined
 
     describeFn(name, () => {
       const clients = [] as any[]
 
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-        const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
+        const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions, clientMeta })
 
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
+        // If using D1 Driver adapter
+        // We need to setup wrangler bindings to the D1 db (using miniflare under the hood)
+        if (suiteConfig.matrixOptions.driverAdapter === 'js_d1') {
+          const { getPlatformProxy } = require('wrangler') as typeof import('wrangler')
+          const { env, dispose } = await getPlatformProxy({
+            configPath: path.join(__dirname, './wrangler.toml'),
+          })
+
+          // Expose the bindings to the test suite
+          disposeWrangler = dispose
+          cfWorkerBindings = env
+        }
+
         globalThis['loaded'] = await setupTestSuiteClient({
+          cliMeta,
           suiteMeta,
           suiteConfig,
           datasourceInfo,
           clientMeta,
           skipDb: options?.skipDb,
           alterStatementCallback: options?.alterStatementCallback,
+          cfWorkerBindings,
         })
 
-        const driverAdapter = setupTestSuiteClientDriverAdapter({ suiteConfig, clientMeta, datasourceInfo })
+        const newDriverAdapter = () =>
+          setupTestSuiteClientDriverAdapter({
+            suiteConfig,
+            clientMeta,
+            datasourceInfo,
+            cfWorkerBindings,
+          })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const client = new globalThis['loaded']['PrismaClient']({ ...driverAdapter, ...args })
+          const { PrismaClient, Prisma } = globalThis['loaded']
+
+          const options = { ...newDriverAdapter(), ...args }
+          const client = new PrismaClient(options)
+
+          globalThis['Prisma'] = Prisma
           clients.push(client)
-          return client
+
+          return client as Client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']({ ...driverAdapter })
+          globalThis['prisma'] = globalThis['newPrismaClient']() as Client
         }
 
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
 
         globalThis['db'] = {
-          setupDb: () => setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback),
-          dropDb: () => dropTestSuiteDatabase(suiteMeta, suiteConfig).catch(() => {}),
+          setupDb: () =>
+            setupTestSuiteDatabase({
+              suiteMeta,
+              suiteConfig,
+              alterStatementCallback: options?.alterStatementCallback,
+              cfWorkerBindings,
+            }),
+          dropDb: () => dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings }).catch(() => {}),
         }
       })
 
       // for better type dx, copy a client into the test suite root node_modules
       // this is so that we can have intellisense for the client in the test suite
       beforeAll(() => {
+        if (process.env.CI === 'true') return // don't copy in CI (it's slow)
+
         const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
 
         // reserve the node_modules so that parallel tests suites don't conflict
@@ -125,7 +169,7 @@ function setupTestSuiteMatrix(
           if (error !== null && error.code !== 'EEXIST') throw error // unknown error
           if (error !== null && error.code === 'EEXIST') return // already reserved
 
-          const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+          const suiteFolderPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
           const suiteNodeModuleFolderPath = path.join(suiteFolderPath, 'node_modules')
 
           await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true })
@@ -133,23 +177,31 @@ function setupTestSuiteMatrix(
       })
 
       afterAll(async () => {
+        if (disposeWrangler) {
+          await disposeWrangler()
+        }
+
         for (const client of clients) {
           await client.$disconnect().catch(() => {
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
+
           if (clientMeta.dataProxy) {
-            await stopMiniProxyQueryEngine(client, globalThis['datasourceInfo'])
+            await stopMiniProxyQueryEngine({
+              client: client as Client,
+              datasourceInfo: globalThis['datasourceInfo'] as DatasourceInfo,
+            })
           }
         }
         clients.length = 0
-        // CI=false: Only drop the db if not skipped, and if the db does not need to be reused. 
+        // CI=false: Only drop the db if not skipped, and if the db does not need to be reused.
         // CI=true always skip to save time
         if (options?.skipDb !== true && process.env.TEST_REUSE_DATABASE !== 'true' && process.env.CI !== 'true') {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
-          await dropTestSuiteDatabase(suiteMeta, suiteConfig)
+          await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings })
         }
         process.env = originalEnv
         delete globalThis['datasourceInfo']
@@ -166,7 +218,7 @@ function setupTestSuiteMatrix(
         test('generate only', () => {})
       }
 
-      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta)
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, cliMeta)
     })
   }
 }

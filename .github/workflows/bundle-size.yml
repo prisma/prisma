@@ -2,6 +2,22 @@ name: Bundle size
 
 on:
   pull_request:
+    paths-ignore:
+      # Any update here needs to be done for
+      # all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
+      - '*.md'
+      - '*.bench.ts'
+      - 'LICENSE'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'graphs/**'
+      - 'sandbox/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,4 +41,4 @@ jobs:
       - uses: andresz1/size-limit-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          skip_step: install
+          build_script: bundle-size
