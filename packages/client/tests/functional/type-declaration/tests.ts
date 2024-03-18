@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 
-import testMatrix from './_matrix'
 import { Providers } from '../_utils/providers'
+import testMatrix from './_matrix'
 
 const dtsFile = path.resolve(__dirname, '..', '..', '..', 'runtime', 'library.d.ts')
 const dtsContents = fs.readFileSync(dtsFile, 'utf8')

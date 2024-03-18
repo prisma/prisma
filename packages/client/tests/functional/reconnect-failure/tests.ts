@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import { Db, NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
