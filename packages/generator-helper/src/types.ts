@@ -35,13 +35,13 @@ export interface GeneratorConfig {
   provider: EnvValue
   config: {
     /** `output` is a reserved name and will only be available directly at `generator.output` */
-    output: never
+    output?: never
     /** `provider` is a reserved name and will only be available directly at `generator.provider` */
-    provider: never
+    provider?: never
     /** `binaryTargets` is a reserved name and will only be available directly at `generator.binaryTargets` */
-    binaryTargets: never
+    binaryTargets?: never
     /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
-    previewFeatures: never
+    previewFeatures?: never
     [key: string]: string | string[]
   }
   binaryTargets: BinaryTargetsEnvValue[]
