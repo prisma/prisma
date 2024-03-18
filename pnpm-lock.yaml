@@ -198,8 +198,8 @@ importers:
   packages/adapter-d1:
     dependencies:
       '@cloudflare/workers-types':
-        specifier: 4.20240312.0
-        version: 4.20240312.0
+        specifier: 4.20240314.0
+        version: 4.20240314.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -362,8 +362,8 @@ importers:
         specifier: workspace:*
         version: link:../cli
       wrangler:
-        specifier: 3.33.0
-        version: 3.33.0(@cloudflare/workers-types@4.20240312.0)
+        specifier: 3.34.2
+        version: 3.34.2(@cloudflare/workers-types@4.20240314.0)
 
   packages/bundled-js-drivers:
     dependencies:
@@ -528,8 +528,8 @@ importers:
   packages/client:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: 4.20240312.0
-        version: 4.20240312.0
+        specifier: 4.20240314.0
+        version: 4.20240314.0
       '@codspeed/benchmark.js-plugin':
         specifier: 3.1.0
         version: 3.1.0(benchmark@2.1.4)
@@ -606,8 +606,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
-        version: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
+        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -633,8 +633,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
-        version: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
+        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -810,8 +810,8 @@ importers:
         specifier: 5.28.3
         version: 5.28.3
       wrangler:
-        specifier: 3.33.0
-        version: 3.33.0(@cloudflare/workers-types@4.20240312.0)
+        specifier: 3.34.2
+        version: 3.34.2(@cloudflare/workers-types@4.20240314.0)
       zx:
         specifier: 7.2.3
         version: 7.2.3
@@ -855,8 +855,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
-        version: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
+        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -892,8 +892,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
-        version: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
+        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1217,8 +1217,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
-        version: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
+        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1374,8 +1374,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
-        version: 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
+        specifier: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
+        version: 5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -2106,8 +2106,8 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@cloudflare/workers-types@4.20240312.0:
-    resolution: {integrity: sha512-tpBNfijiXR/DSZkcUZHxP+80nIvKUWbGO2u4FBLudmJLGPhzgfoQ3tql+FeIhxYslSituMcVQNnJmWTF7FjURg==}
+  /@cloudflare/workers-types@4.20240314.0:
+    resolution: {integrity: sha512-eg2dK/tYSiFvQu3sexjB32WEGi3GEmY6pLRF4nrV9Rwi2F2965o6f6604jQY8whhrmNdEoWErSjhuuUld6xgKQ==}
 
   /@codspeed/benchmark.js-plugin@3.1.0(benchmark@2.1.4):
     resolution: {integrity: sha512-PHF/QJ3WzTEX9nyhq6EHPA/pkHfMCW0FtfmJvl1qQSt0yIqpM4f0iBIfowua1AzbyD+Pd6iOPvlLHqO7ziLc+Q==}
@@ -3525,8 +3525,8 @@ packages:
     resolution: {integrity: sha512-HNUrTqrd8aTRZYMDcsoZ62s36sIWkMMmKZBOehoCWR2WrfNPKq+Q1yQef5okl3pSVlldFnu2h/dbHjOsDTHXug==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102:
-    resolution: {integrity: sha512-WXCuyoymvrS4zLz4wQagSsc3/nE6CHy8znyiMv8RKazKymOMd5o9FP5RGwGHAtgoxd+aB/BWqxuP/Ckfu7/3MA==}
+  /@prisma/engines-version@5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357:
+    resolution: {integrity: sha512-l8sUSwZpcwqKVhs8wiOLXi7cYYUk43Ds7ngQUdYrTrU1Tw77uszLEtEiKDZb6posF0AoLTKUJQT+v/QE8LhioA==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3534,12 +3534,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102:
-    resolution: {integrity: sha512-1VdfJ7fIM9X0opDyuNIrHLeynRdjIqI2waepLpi42ARiztPyD3getsgOtntiqMg3jGVwvnNdshUKuwHBFbv5Fg==}
+  /@prisma/prisma-schema-wasm@5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357:
+    resolution: {integrity: sha512-TBXaN+u2ItCJzcnQLoCPzPsMQ5gEho25ZU4gNpvYLLZi8C6GRq9KSI55tjYznQwvpW1OruPoLYxYK6Ns8a5e/w==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102:
-    resolution: {integrity: sha512-VVQ96lVIjnHYzhZs27Bzavf4HhUx4cTphjIqJQ4uQarA7XPtMJvl1ny68iAdRzUc6rcVlAOiUOt3W3cf23vkCw==}
+  /@prisma/query-engine-wasm@5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357:
+    resolution: {integrity: sha512-KI7YCJo/MGADQZnNx6x2XOCfCXSgHR+3qPOpALNRkrwJibDqFZD5+eisSEJw9KkdBUPiP38cVwn9tAIcvJEWWw==}
     dev: true
 
   /@prisma/studio-common@0.499.0:
@@ -8820,8 +8820,8 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /miniflare@3.20240304.1:
-    resolution: {integrity: sha512-U9Br62mV//dI5IiNxGX3qOf6/3tVGsWe94TF+Hy23F5w41AwF+cIgbGW4/JAQQI1rY5uNNmMoS9jqIyoSdw06Q==}
+  /miniflare@3.20240304.2:
+    resolution: {integrity: sha512-yQ5TBKv7TlvF8khFvvH+1WWk8cBnaLgNzcbJ5DLQOdecxdDxUCVlN38HThd6Nhcz6EY+ckDkww8FkugUbSSpIQ==}
     engines: {node: '>=16.13'}
     hasBin: true
     dependencies:
@@ -11533,8 +11533,8 @@ packages:
       '@cloudflare/workerd-linux-arm64': 1.20240304.0
       '@cloudflare/workerd-windows-64': 1.20240304.0
 
-  /wrangler@3.33.0(@cloudflare/workers-types@4.20240312.0):
-    resolution: {integrity: sha512-1A8frPJSUQjkWAN4XhbykpEtqmfDYdTWPKlc4rTchNrERLwqHF87aCYblP4m5Wm43w4eVL+H4hGUgE2TySk9MA==}
+  /wrangler@3.34.2(@cloudflare/workers-types@4.20240314.0):
+    resolution: {integrity: sha512-j580WXlOe0GtYdcREym7FLcaaZq9+RZEBuzOtKXx74KKUlEC8cglgf5WWa2C2OpEtJCcrAieEHsNXe7mhy9knA==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -11544,13 +11544,13 @@ packages:
         optional: true
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.1
-      '@cloudflare/workers-types': 4.20240312.0
+      '@cloudflare/workers-types': 4.20240314.0
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5
       chokidar: 3.6.0
       esbuild: 0.17.19
-      miniflare: 3.20240304.1
+      miniflare: 3.20240304.2
       nanoid: 3.3.7
       path-to-regexp: 6.2.1
       resolve: 1.22.8

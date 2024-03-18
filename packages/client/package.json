@@ -148,7 +148,7 @@
     "extension.d.ts"
   ],
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20240312.0",
+    "@cloudflare/workers-types": "4.20240314.0",
     "@codspeed/benchmark.js-plugin": "3.1.0",
     "@faker-js/faker": "8.4.1",
     "@fast-check/jest": "1.8.0",
@@ -174,7 +174,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102",
+    "@prisma/engines-version": "5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -183,7 +183,7 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
-    "@prisma/query-engine-wasm": "5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102",
+    "@prisma/query-engine-wasm": "5.12.0-1.93f79ec1ca7867558f10130d8db84fb7bf150357",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.9.0",
     "@swc/core": "1.4.6",
@@ -242,7 +242,7 @@
     "tsd": "0.30.7",
     "typescript": "5.3.3",
     "undici": "5.28.3",
-    "wrangler": "3.33.0",
+    "wrangler": "3.34.2",
     "zx": "7.2.3"
   },
   "peerDependencies": {
