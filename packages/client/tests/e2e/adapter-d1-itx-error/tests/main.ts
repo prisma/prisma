@@ -10,7 +10,7 @@ const prisma = new PrismaClient({
 
 test('errors when iTx is used', async () => {
   try {
-    prisma.$transaction(async (prisma) => {
+    await prisma.$transaction(async (prisma) => {
       console.debug('iTx ...')
       await prisma.user.create({
         data: {
