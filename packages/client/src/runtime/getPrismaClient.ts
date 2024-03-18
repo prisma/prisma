@@ -785,16 +785,19 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     $transaction(input: any, options?: any) {
       let callback: () => Promise<any>
 
+      // iTx - Interactive transaction
       if (typeof input === 'function') {
-        // TODO: we need to check that the adapter is `adapter-d1`
-        if (this._engineConfig.adapter?.provider === 'sqlite') {
+        if (this._engineConfig.adapter?.adapterName === '@prisma/adapter-d1') {
           callback = () => {
-            throw new Error('D1 does not support interactive transactions.')
+            throw new Error(
+              'Cloudflare D1 does not support interactive transactions. We recommend you to refactor your queries with that limitation in mind, and use batch transactions with `prisma.$transactions([])` where applicable.',
+            )
           }
         } else {
           callback = () => this._transactionWithCallback({ callback: input, options })
         }
       } else {
+        // Batch transaction
         callback = () => this._transactionWithArray({ promises: input, options })
       }
 

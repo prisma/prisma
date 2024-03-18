@@ -14,6 +14,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 
+import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
 
@@ -32,6 +33,8 @@ class RollbackError extends Error {
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
   readonly provider = 'mysql'
+  readonly adapterName = packageName
+
   constructor(protected client: ClientT) {}
 
   /**
