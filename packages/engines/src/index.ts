@@ -1,26 +1,26 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryType, download } from '@prisma/fetch-engine'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import path from 'path'
 
 const debug = Debug('prisma:engines')
 export function getEnginesPath() {
   return path.join(__dirname, '../')
 }
-export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.libqueryEngine // TODO: name not clear
+export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.QueryEngineLibrary
 /**
  * Checks if the env override `PRISMA_CLI_QUERY_ENGINE_TYPE` is set to `library` or `binary`
  * Otherwise returns the default
  */
-export function getCliQueryEngineBinaryType(): BinaryType.libqueryEngine | BinaryType.queryEngine {
+export function getCliQueryEngineBinaryType(): BinaryType {
   const envCliQueryEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
   if (envCliQueryEngineType) {
     if (envCliQueryEngineType === 'binary') {
-      return BinaryType.queryEngine
+      return BinaryType.QueryEngineBinary
     }
     if (envCliQueryEngineType === 'library') {
-      return BinaryType.libqueryEngine
+      return BinaryType.QueryEngineLibrary
     }
   }
   return DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE
@@ -36,9 +36,7 @@ export async function ensureBinariesExist() {
 
   const binaries = {
     [cliQueryEngineBinaryType]: binaryDir,
-    [BinaryType.migrationEngine]: binaryDir,
-    [BinaryType.introspectionEngine]: binaryDir,
-    [BinaryType.prismaFmt]: binaryDir,
+    [BinaryType.SchemaEngineBinary]: binaryDir,
   }
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
   await download({
@@ -46,7 +44,7 @@ export async function ensureBinariesExist() {
     showProgress: true,
     version: enginesVersion,
     failSilent: false,
-    binaryTargets: binaryTargets as Platform[],
+    binaryTargets: binaryTargets as BinaryTarget[],
   })
 }
 
@@ -60,36 +58,15 @@ export { enginesVersion } from '@prisma/engines-version'
  */
 
 path.join(__dirname, '../query-engine-darwin')
-path.join(__dirname, '../introspection-engine-darwin')
-path.join(__dirname, '../prisma-fmt-darwin')
-
 path.join(__dirname, '../query-engine-darwin-arm64')
-path.join(__dirname, '../introspection-engine-darwin-arm64')
-path.join(__dirname, '../prisma-fmt-darwin-arm64')
-
 path.join(__dirname, '../query-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../introspection-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../prisma-fmt-debian-openssl-1.0.x')
-
 path.join(__dirname, '../query-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../introspection-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../prisma-fmt-debian-openssl-1.1.x')
-
 path.join(__dirname, '../query-engine-debian-openssl-3.0.x')
-path.join(__dirname, '../introspection-engine-debian-openssl-3.0.x')
-path.join(__dirname, '../prisma-fmt-debian-openssl-3.0.x')
-
+path.join(__dirname, '../query-engine-linux-static-x64')
+path.join(__dirname, '../query-engine-linux-static-arm64')
 path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../prisma-fmt-rhel-openssl-1.0.x')
-
 path.join(__dirname, '../query-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../introspection-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../prisma-fmt-rhel-openssl-1.1.x')
-
 path.join(__dirname, '../query-engine-rhel-openssl-3.0.x')
-path.join(__dirname, '../introspection-engine-rhel-openssl-3.0.x')
-path.join(__dirname, '../prisma-fmt-rhel-openssl-3.0.x')
 
 // Node API
 path.join(__dirname, '../libquery_engine-darwin.dylib.node')
@@ -101,6 +78,7 @@ path.join(__dirname, '../libquery_engine-linux-arm64-openssl-1.0.x.so.node')
 path.join(__dirname, '../libquery_engine-linux-arm64-openssl-1.1.x.so.node')
 path.join(__dirname, '../libquery_engine-linux-arm64-openssl-3.0.x.so.node')
 path.join(__dirname, '../libquery_engine-linux-musl.so.node')
+path.join(__dirname, '../libquery_engine-linux-musl-openssl-3.0.x.so.node')
 path.join(__dirname, '../libquery_engine-rhel-openssl-1.0.x.so.node')
 path.join(__dirname, '../libquery_engine-rhel-openssl-1.1.x.so.node')
 path.join(__dirname, '../libquery_engine-rhel-openssl-3.0.x.so.node')

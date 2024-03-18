@@ -8,10 +8,9 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 /* eslint-disable @typescript-eslint/require-await */
 
 beforeAll(async () => {
-  process.env.TEST_POSTGRES_URI += '-wrong-native-types-tests'
-  await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+  process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-wrong-native-types-tests')
+  await tearDownPostgres(process.env.DATABASE_URL)
   await migrateDb({
-    connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })
@@ -43,11 +42,29 @@ test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSer
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Argument int: Got invalid value '' on prisma.createOneA. Provided String, expected Int.
-          Argument sInt: Got invalid value '' on prisma.createOneA. Provided String, expected Int.
-          Argument bInt: Got invalid value 12312312.123 on prisma.createOneA. Provided Float, expected BigInt.
 
-        `)
+    Invalid \`prisma.a.create()\` invocation:
+
+    {
+      data: {
+        email: "a@a.de",
+        name: "Bob",
+        int: "",
+             ~~
+        sInt: "",
+        bInt: 12312312.123
+      },
+      select: {
+        email: true,
+        name: true,
+        int: true,
+        sInt: true,
+        bInt: true
+      }
+    }
+
+    Argument \`int\`: Invalid value provided. Expected Int, provided String.
+  `)
 
   await prisma.$disconnect()
 })
@@ -77,11 +94,27 @@ test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', a
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Argument float: Got invalid value '1.23' on prisma.createOneB. Provided String, expected Float.
-          Argument dFloat: Got invalid value '5.2' on prisma.createOneB. Provided String, expected Float.
-          Argument decFloat: Got invalid value 'hello' on prisma.createOneB. Provided String, expected Decimal.
 
-        `)
+    Invalid \`prisma.b.create()\` invocation:
+
+    {
+      data: {
+        float: "1.23",
+               ~~~~~~
+        dFloat: "5.2",
+        decFloat: "hello",
+        numFloat: "1.1"
+      },
+      select: {
+        float: true,
+        dFloat: true,
+        decFloat: true,
+        numFloat: true
+      }
+    }
+
+    Argument \`float\`: Invalid value provided. Expected Float, provided String.
+  `)
 
   await prisma.$disconnect()
 })
@@ -115,9 +148,13 @@ test('wrong-native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', as
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Error occurred during query execution:
-          ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: ToSql(4), cause: Some(Error { kind: ConversionError("Unexpected character for bits input. Expected only 1 and 0."), original_code: None, original_message: None }) }) })
-        `)
+
+              Invalid \`prisma.c.create()\` invocation:
+
+
+              Error occurred during query execution:
+              ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: ToSql(4), cause: Some(Error { kind: ConversionError("Unexpected character for bits input. Expected only 1 and 0."), original_code: None, original_message: None }) }), transient: false })
+          `)
 
   await prisma.$disconnect()
 })
@@ -150,11 +187,33 @@ test('wrong-native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Argument bool: Got invalid value 'true' on prisma.createOneD. Provided String, expected Boolean.
-          Argument byteA: Got invalid value 'hello prisma ⚡️🚀' on prisma.createOneD. Provided String, expected Bytes.
-          Argument xml: Got invalid value 123 on prisma.createOneD. Provided Int, expected String.
 
-        `)
+    Invalid \`prisma.d.create()\` invocation:
+
+    {
+      data: {
+        bool: "true",
+              ~~~~~~
+        byteA: "hello prisma ⚡️🚀",
+        json: {
+          hello: "world"
+        },
+        jsonb: {
+          hello: "world"
+        },
+        xml: 123
+      },
+      select: {
+        bool: true,
+        byteA: true,
+        json: true,
+        jsonb: true,
+        xml: true
+      }
+    }
+
+    Argument \`bool\`: Invalid value provided. Expected Boolean, provided String.
+  `)
 
   await prisma.$disconnect()
 })
@@ -182,11 +241,25 @@ test('wrong-native-types-postgres E: Date, Time, Timestamp', async () => {
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Argument date: Got invalid value '2020-05-05T1628:33.983+03:0012312' on prisma.createOneE. Provided String, expected DateTime.
-          Argument time: Got invalid value '8020-05-05T16:28:33.983+03:0012312' on prisma.createOneE. Provided String, expected DateTime.
-          Argument ts: Got invalid value '22020-05-05T16:28:33.983+03:00' on prisma.createOneE. Provided String, expected DateTime.
 
-        `)
+    Invalid \`prisma.e.create()\` invocation:
+
+    {
+      data: {
+        date: "2020-05-05T1628:33.983+03:0012312",
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        time: "8020-05-05T16:28:33.983+03:0012312",
+        ts: "22020-05-05T16:28:33.983+03:00"
+      },
+      select: {
+        date: true,
+        time: true,
+        ts: true
+      }
+    }
+
+    Invalid value for argument \`date\`: input contains invalid characters. Expected ISO-8601 DateTime.
+  `)
 
   await prisma.$disconnect()
 })

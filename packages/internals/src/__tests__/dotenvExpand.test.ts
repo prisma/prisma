@@ -24,8 +24,8 @@ describe('dotenvExpand', () => {
       },
     }
     expect(dotenvExpand(config)).toMatchInlineSnapshot(`
-      Object {
-        "parsed": Object {
+      {
+        "parsed": {
           "MYSQL1": "mysql://user:password@serv$er.host:5432/$database",
           "MYSQL2": "mysql://user:password@server.host:5432/d$atabase",
           "POSTGRES1": "postgres://user:password@server.host:5432/database?ssl=1&schema=schema$1234",
@@ -52,8 +52,8 @@ describe('dotenvExpand', () => {
       },
     }
     expect(dotenvExpand(config)).toMatchInlineSnapshot(`
-      Object {
-        "parsed": Object {
+      {
+        "parsed": {
           "DOTENV_PRISMA_EXPAND_DATABASE_URL": "postgres://user:password@server.host:5432/database",
           "DOTENV_PRISMA_EXPAND_DATABASE_URL_WITH_SCHEMA": "postgres://user:password@server.host:5432/database?ssl=1&schema=schema$1234",
         },
@@ -84,7 +84,7 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
+      {
         "BASIC": "basic",
         "BASIC_EXPAND": "basic",
         "BASIC_EXPAND_SIMPLE": "$BASIC",
@@ -103,7 +103,7 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
+      {
         "MACHINE_EXPAND": "machine",
         "MACHINE_EXPAND_SIMPLE": "$MACHINE",
       }
@@ -119,7 +119,7 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
+      {
         "UNDEFINED_EXPAND": "$UNDEFINED_ENV_KEY",
       }
     `)
@@ -136,7 +136,7 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
+      {
         "MACHINE": "machine",
         "MACHINE_EXPAND": "machine",
       }
@@ -152,8 +152,8 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
-        "ESCAPED_EXPAND": "\\\\$ESCAPED",
+      {
+        "ESCAPED_EXPAND": "\\$ESCAPED",
       }
     `)
   })
@@ -167,8 +167,8 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
-        "INLINE_ESCAPED_EXPAND": "pa\\\\$\\\\$word",
+      {
+        "INLINE_ESCAPED_EXPAND": "pa\\$\\$word",
       }
     `)
   })
@@ -183,7 +183,7 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
+      {
         "SOME_ENV": "production",
       }
     `)
@@ -198,8 +198,8 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
-        "INLINE_ESCAPED_EXPAND_BCRYPT": "\\\\$2b\\\\$10\\\\$OMZ69gxxsmRgwAt945WHSujpr/u8ZMx.xwtxWOCMkeMW7p3XqKYca",
+      {
+        "INLINE_ESCAPED_EXPAND_BCRYPT": "\\$2b\\$10\\$OMZ69gxxsmRgwAt945WHSujpr/u8ZMx.xwtxWOCMkeMW7p3XqKYca",
       }
     `)
   })
@@ -214,8 +214,8 @@ describe('dotenvExpand', () => {
     const obj = dotenvExpand(dotenv).parsed
 
     expect(obj).toMatchInlineSnapshot(`
-      Object {
-        "MIXED_VALUES": "\\\\$this$PARAM1\\\\$is42",
+      {
+        "MIXED_VALUES": "\\$this$PARAM1\\$is42",
         "PARAM1": "42",
       }
     `)

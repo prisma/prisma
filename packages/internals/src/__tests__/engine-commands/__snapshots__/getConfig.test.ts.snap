@@ -1,90 +1,95 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`getConfig datasource with env var - ignoreEnvVarErrors 1`] = `
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "postgresql",
+"{
+  "generators": [],
+  "datasources": [
+    {
       "name": "db",
       "provider": "postgresql",
-      "url": Object {
+      "activeProvider": "postgresql",
+      "url": {
         "fromEnvVar": "SOMETHING-SOMETHING-1234",
-        "value": null,
+        "value": null
       },
-    },
+      "schemas": []
+    }
   ],
-  "generators": Array [],
-  "warnings": Array [],
-}
+  "warnings": []
+}"
 `;
 
 exports[`getConfig datasource with env var 1`] = `
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "postgresql",
+"{
+  "generators": [],
+  "datasources": [
+    {
       "name": "db",
       "provider": "postgresql",
-      "url": Object {
+      "activeProvider": "postgresql",
+      "url": {
         "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
-        "value": "postgres://user:password@something:5432/db",
+        "value": "postgres://user:password@something:5432/db"
       },
-    },
+      "schemas": []
+    }
   ],
-  "generators": Array [],
-  "warnings": Array [],
-}
+  "warnings": []
+}"
 `;
 
 exports[`getConfig empty config 1`] = `
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "sqlite",
+"{
+  "generators": [],
+  "datasources": [
+    {
       "name": "db",
       "provider": "sqlite",
-      "url": Object {
+      "activeProvider": "sqlite",
+      "url": {
         "fromEnvVar": null,
-        "value": "file:../hello.db",
+        "value": "file:../hello.db"
       },
-    },
+      "schemas": []
+    }
   ],
-  "generators": Array [],
-  "warnings": Array [],
-}
+  "warnings": []
+}"
 `;
 
 exports[`getConfig with generator and datasource 1`] = `
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "sqlite",
+"{
+  "generators": [
+    {
+      "name": "gen",
+      "provider": {
+        "fromEnvVar": null,
+        "value": "fancy-provider"
+      },
+      "output": null,
+      "config": {},
+      "binaryTargets": [
+        {
+          "fromEnvVar": null,
+          "value": "TEST_PLATFORM",
+          "native": true
+        }
+      ],
+      "previewFeatures": []
+    }
+  ],
+  "datasources": [
+    {
       "name": "db",
       "provider": "sqlite",
-      "url": Object {
+      "activeProvider": "sqlite",
+      "url": {
         "fromEnvVar": null,
-        "value": "file:dev.db",
+        "value": "file:dev.db"
       },
-    },
+      "schemas": []
+    }
   ],
-  "generators": Array [
-    Object {
-      "binaryTargets": Array [
-        Object {
-          "fromEnvVar": null,
-          "value": "native",
-        },
-      ],
-      "config": Object {},
-      "name": "gen",
-      "output": null,
-      "previewFeatures": Array [],
-      "provider": Object {
-        "fromEnvVar": null,
-        "value": "fancy-provider",
-      },
-    },
-  ],
-  "warnings": Array [],
-}
+  "warnings": []
+}"
 `;

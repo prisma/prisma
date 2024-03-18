@@ -1,0 +1,19 @@
+# Ignore everything
+*
+
+# Exceptions
+!pnpm-workspace.yaml
+!.gitignore
+!README.md
+
+!basic-sqlite
+!basic-sqlite/**
+!tracing
+!tracing/**
+!driver-adapters
+!driver-adapters/**
+!d1
+!d1/**
+
+# Ignore node_modules
+**/node_modules

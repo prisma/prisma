@@ -1,11 +1,11 @@
-import chalk from 'chalk'
+import { bold, cyan } from 'kleur/colors'
 
 export function printMigrationId(migrationId: string): string {
   const words = migrationId.split('_')
   if (words.length === 1) {
-    return chalk.cyan.bold(migrationId)
+    return cyan(bold(migrationId))
   }
-  return `${words[0]}_${chalk.cyan.bold(words.slice(1).join('_'))}`
+  return `${words[0]}_${cyan(bold(words.slice(1).join('_')))}`
 }
 
 export function printMigrationIds(migrationIds: string[]): string {

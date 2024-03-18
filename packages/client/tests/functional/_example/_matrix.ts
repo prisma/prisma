@@ -1,41 +1,42 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 
 export default defineMatrix(() => [
   [
     {
-      provider: 'sqlite',
+      provider: Providers.SQLITE,
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'mysql',
+      provider: Providers.MYSQL,
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'sqlserver',
+      provider: Providers.SQLSERVER,
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'cockroachdb',
+      provider: Providers.COCKROACHDB,
       id: 'BigInt @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
-      provider: 'mongodb',
+      provider: Providers.MONGODB,
       id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
       providerFeatures: '"mongoDb", ',
     },
   ],
   [
     {
-      previewFeatures: '"interactiveTransactions"',
+      previewFeatures: '"tracing"',
     },
     {
       previewFeatures: '"referentialIntegrity"',
@@ -51,25 +52,25 @@ export default defineMatrix(() => [
       'provider': 'sqlite',
       'id': 'Int @id @default(autoincrement())',
       'providerFeatures': '',
-      'previewFeatures': '"interactiveTransactions"',
+      'previewFeatures': '"previewFeatureFlag1"',
     },
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
       'providerFeatures': '"mongoDb", ',
-      'previewFeatures': '"interactiveTransactions"',
+      'previewFeatures': '"previewFeatureFlag1"',
     },
     {
       'provider': 'sqlite',
       'id': 'Int @id @default(autoincrement())',
       'providerFeatures': '',
-      'previewFeatures': '"referentialIntegrity"',
+      'previewFeatures': '"previewFeatureFlag2"',
     },
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
       'providerFeatures': '"mongoDb", ',
-      'previewFeatures': '"referentialIntegrity"',
+      'previewFeatures': '"previewFeatureFlag2"',
     },
   ]
 */

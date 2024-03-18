@@ -1,8 +1,8 @@
 import arg from 'arg'
-import chalk from 'chalk'
 import execa from 'execa'
 import { promises as fs } from 'fs'
 import globby from 'globby'
+import { blue, bold, dim, red, underline } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
@@ -58,10 +58,10 @@ async function main() {
   Object.entries(packageCache).forEach(([key, value]) => {
     let out = '\n'
     if (value.length > 1) {
-      out += chalk.bold.red(`Version mismatch`) + ` for ${chalk.bold.blue(key)}\n`
+      out += bold(red(`Version mismatch`)) + ` for ${bold(blue(key))}\n`
       value.forEach((v) => {
-        out += `${tab}${chalk.underline(v.path).padEnd(60)}${v.version.padEnd(20)} ${
-          v.dev ? chalk.dim('dependency') : chalk.dim('devDependency')
+        out += `${tab}${underline(v.path).padEnd(60)}${v.version.padEnd(20)} ${
+          v.dev ? dim('dependency') : dim('devDependency')
         }\n`
       })
       console.error(out)
@@ -88,7 +88,7 @@ async function main() {
           return
         }
         const latestVersion = await runResult('.', `npm info ${packageName} version`)
-        console.log(`\nSetting ${chalk.blue(`${packageName}@${latestVersion}`)}`)
+        console.log(`\nSetting ${blue(`${packageName}@${latestVersion}`)}`)
         await pMap(
           packageUsers,
           async (u) => {
@@ -112,24 +112,18 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
     })
     return result.stdout
   } catch (e) {
-    throw new Error(
-      chalk.bold.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) +
-        (e.stderr || e.stack || e.message),
-    )
+    throw new Error(bold(red(`Error running ${bold(cmd)} in ${underline(cwd)}:`) + (e.stderr || e.stack || e.message)))
   }
 }
 
 async function run(cwd: string, cmd: string): Promise<void> {
-  console.log(chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd))
+  console.log(underline('./' + cwd).padEnd(20), bold(cmd))
   try {
     await execa.command(cmd, {
       cwd,
       stdio: 'inherit',
     })
   } catch (e) {
-    throw new Error(
-      chalk.bold.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) +
-        (e.stderr || e.stack || e.message),
-    )
+    throw new Error(bold(red(`Error running ${bold(cmd)} in ${underline(cwd)}:`) + (e.stderr || e.stack || e.message)))
   }
 }

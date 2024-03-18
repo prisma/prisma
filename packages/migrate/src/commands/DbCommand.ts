@@ -1,6 +1,6 @@
 import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, red } from 'kleur/colors'
 
 export class DbCommand implements Command {
   public static new(cmds: Commands): DbCommand {
@@ -8,36 +8,36 @@ export class DbCommand implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : chalk.bold('🏋️  ')}Manage your database schema and lifecycle during development.
+${process.platform === 'win32' ? '' : '🏋️  '}Manage your database schema and lifecycle during development.
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma db [command] [options]
+  ${dim('$')} prisma db [command] [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
-${chalk.bold('Commands')}
+${bold('Commands')}
      pull   Pull the state from the database to the Prisma schema using introspection
      push   Push the state from Prisma schema to the database during prototyping
      seed   Seed your database
   execute   Execute native commands to your database
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Run \`prisma db pull\`
-  ${chalk.dim('$')} prisma db pull
+  ${dim('$')} prisma db pull
 
   Run \`prisma db push\`
-  ${chalk.dim('$')} prisma db push
+  ${dim('$')} prisma db push
 
   Run \`prisma db seed\`
-  ${chalk.dim('$')} prisma db seed
+  ${dim('$')} prisma db seed
 
   Run \`prisma db execute\`
-  ${chalk.dim('$')} prisma db execute
+  ${dim('$')} prisma db execute
 `)
 
   private constructor(private readonly cmds: Commands) {}
@@ -72,7 +72,7 @@ ${chalk.bold('Examples')}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbCommand.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbCommand.help}`)
     }
     return DbCommand.help
   }

@@ -1,47 +1,52 @@
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('custom engine binary path (internal API)', async () => {
-  await generateTestClient()
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY_ENGINE_BINARY)(
+  'custom engine binary path (internal API)',
+  async () => {
+    await generateTestClient()
 
-  const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
-  let binaryFileName =
-    getClientEngineType() === ClientEngineType.Library ? getNodeAPIName(platform, 'fs') : `query-engine-${platform}`
+    let binaryFileName =
+      getClientEngineType() === ClientEngineType.Library
+        ? getNodeAPIName(binaryTarget, 'fs')
+        : `query-engine-${binaryTarget}`
 
-  if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {
-    binaryFileName += '.exe'
-  }
+    if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {
+      binaryFileName += '.exe'
+    }
 
-  const defaultBinaryPath = path.join(__dirname, 'node_modules/.prisma/client', binaryFileName)
-  const customBinaryPath = path.join(__dirname, binaryFileName)
+    const defaultBinaryPath = path.join(__dirname, 'node_modules/.prisma/client', binaryFileName)
+    const customBinaryPath = path.join(__dirname, binaryFileName)
 
-  fs.copyFileSync(defaultBinaryPath, customBinaryPath)
-  fs.unlinkSync(defaultBinaryPath)
+    fs.copyFileSync(defaultBinaryPath, customBinaryPath)
+    fs.unlinkSync(defaultBinaryPath)
 
-  const { PrismaClient } = require('./node_modules/@prisma/client')
+    const { PrismaClient } = require('./node_modules/@prisma/client')
 
-  const prisma = new PrismaClient({
-    __internal: {
-      engine: {
-        binaryPath: customBinaryPath,
+    const prisma = new PrismaClient({
+      __internal: {
+        engine: {
+          binaryPath: customBinaryPath,
+        },
       },
-    },
-  })
+    })
 
-  expect(prisma._engineConfig.prismaPath).toBe(customBinaryPath)
+    expect(prisma._engineConfig.prismaPath).toBe(customBinaryPath)
 
-  if (getClientEngineType() === ClientEngineType.Binary) {
-    expect(prisma._engine.prismaPath).toBe(customBinaryPath)
-    expect(await prisma._engine.getPrismaPath()).toBe(customBinaryPath)
-  }
+    if (getClientEngineType() === ClientEngineType.Binary) {
+      expect(prisma._engine.config.prismaPath).toBe(customBinaryPath)
+    }
 
-  const users = await prisma.user.findMany()
-  expect(users).toEqual([])
+    const users = await prisma.user.findMany()
+    expect(users).toEqual([])
 
-  prisma.$disconnect()
-})
+    prisma.$disconnect()
+  },
+)

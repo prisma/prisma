@@ -1,10 +1,12 @@
 import * as path from 'path'
 
 import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
@@ -14,12 +16,12 @@ testMatrix.setupTestSuite(
     })
 
     test('suiteConfig', () => {
-      /* 
+      /*
       {
-        provider: 'sqlite',
+        provider: Providers.SQLITE
         id: 'Int @id @default(autoincrement())',
         providerFeatures: '',
-        previewFeatures: '"interactiveTransactions"'
+        previewFeatures: '"tracing"'
       }
     */
 
@@ -27,7 +29,7 @@ testMatrix.setupTestSuite(
     })
 
     test('suiteMeta', () => {
-      /* 
+      /*
       {
         testName: '_example',
         testPath: '/code/prisma/packages/client/tests/functional/_example/tests.ts',
@@ -45,16 +47,25 @@ testMatrix.setupTestSuite(
       expect(suiteMeta.testFileName).toEqual(path.basename(__filename))
     })
 
-    test('getTestSuiteSchema', async () => {
-      const schemaString = await getTestSuiteSchema(suiteMeta, suiteConfig)
+    test('getTestSuiteSchema', () => {
+      const schemaString = getTestSuiteSchema({
+        cliMeta: {
+          dataProxy: false,
+          engineType: 'library',
+          runtime: 'node',
+          previewFeatures: [],
+        },
+        suiteMeta,
+        matrixOptions: suiteConfig,
+      })
 
       expect(schemaString).toContain('generator')
       expect(schemaString).toContain('datasource')
       expect(schemaString).toContain('model')
     })
 
-    testIf(suiteConfig.provider !== 'mongodb')('conditional @ts-test-if', async () => {
-      // @ts-test-if: provider !== 'mongodb'
+    testIf(suiteConfig.provider !== Providers.MONGODB)('conditional @ts-test-if', async () => {
+      // @ts-test-if: provider !== Providers.MONGODB
       await prisma.$queryRaw`SELECT 1;`
     })
   },
@@ -66,4 +77,9 @@ testMatrix.setupTestSuite(
   //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
   //   },
   // },
+  {
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', `Tracing preview feature creates a panic in the wasm engine`)
+    },
+  },
 )

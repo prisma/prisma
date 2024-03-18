@@ -1,27 +1,7 @@
 import { assertNever } from '@prisma/internals'
-import indent from 'indent-string'
-import path from 'path'
 
-import { ClientModelAction } from '../runtime/clientActions'
-import type { DMMFHelper } from '../runtime/dmmf'
-import { DMMF } from '../runtime/dmmf-types'
-
-export enum Projection {
-  select = 'select',
-  include = 'include',
-}
-
-export function getScalarsName(modelName: string): string {
-  return `${modelName}Scalars`
-}
-
-export function getPayloadName(modelName: string): string {
-  return `${modelName}GetPayload`
-}
-
-// export function getExtractName(modelName: string, projection: Projection) {
-//   return `Extract${modelName}${capitalize(projection)}`
-// }
+import { DMMF } from './dmmf-types'
+import * as ts from './ts-builders'
 
 export function getSelectName(modelName: string): string {
   return `${modelName}Select`
@@ -64,7 +44,7 @@ export function getAggregateInputType(aggregateOutputType: string): string {
 }
 
 export function getGroupByArgsName(modelName: string): string {
-  return `${capitalize(modelName)}GroupByArgs`
+  return `${modelName}GroupByArgs`
 }
 
 export function getGroupByPayloadName(modelName: string): string {
@@ -87,35 +67,40 @@ export function getIncludeName(modelName: string): string {
   return `${modelName}Include`
 }
 
-export function getDefaultName(modelName: string): string {
-  return `${modelName}Default`
-}
-
-export function getFieldArgName(field: DMMF.SchemaField, findMany = true): string {
-  return getArgName((field.outputType.type as DMMF.OutputType).name, findMany && field.outputType.isList)
-}
-
-export function getArgName(name: string, findMany: boolean): string {
-  if (!findMany) {
-    return `${name}Args`
+export function getFieldArgName(field: DMMF.SchemaField, modelName: string): string {
+  if (field.args.length) {
+    return getModelFieldArgsName(field, modelName)
   }
+  return getModelArgName(field.outputType.type)
+}
 
-  return `${name}FindManyArgs`
+export function getModelFieldArgsName(field: DMMF.SchemaField, modelName: string) {
+  // Example: User$postsArgs
+  // So it doesn't conflict with the generated type, like UserPostsArgs
+  return `${modelName}$${field.name}Args`
+}
+
+export function getLegacyModelArgName(modelName: string) {
+  return `${modelName}Args`
 }
 
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
-export function getModelArgName(modelName: string, action?: ClientModelAction): string {
+export function getModelArgName(modelName: string, action?: DMMF.ModelAction): string {
   if (!action) {
-    return `${modelName}Args`
+    return `${modelName}DefaultArgs`
   }
   switch (action) {
     case DMMF.ModelAction.findMany:
       return `${modelName}FindManyArgs`
     case DMMF.ModelAction.findUnique:
       return `${modelName}FindUniqueArgs`
+    case DMMF.ModelAction.findUniqueOrThrow:
+      return `${modelName}FindUniqueOrThrowArgs`
     case DMMF.ModelAction.findFirst:
       return `${modelName}FindFirstArgs`
+    case DMMF.ModelAction.findFirstOrThrow:
+      return `${modelName}FindFirstOrThrowArgs`
     case DMMF.ModelAction.upsert:
       return `${modelName}UpsertArgs`
     case DMMF.ModelAction.update:
@@ -131,7 +116,7 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
     case DMMF.ModelAction.groupBy:
-      return `${modelName}GroupByArgs`
+      return getGroupByArgsName(modelName)
     case DMMF.ModelAction.aggregate:
       return getAggregateArgsName(modelName)
     case DMMF.ModelAction.count:
@@ -140,79 +125,34 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
       return `${modelName}FindRawArgs`
     case DMMF.ModelAction.aggregateRaw:
       return `${modelName}AggregateRawArgs`
-    case 'findFirstOrThrow':
-      return `${modelName}FindFirstOrThrowArgs`
-    case 'findUniqueOrThrow':
-      return `${modelName}FindUniqueOrThrowArgs`
     default:
       assertNever(action, 'Unknown action')
   }
 }
 
-export function getDefaultArgName(dmmf: DMMFHelper, modelName: string, action: DMMF.ModelAction): string {
-  const mapping = dmmf.mappings.modelOperations.find((m) => m.model === modelName)!
-
-  const fieldName = mapping[action]
-  const operation = getOperation(action)
-  const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
-  const field = queryType.fields.find((f) => f.name === fieldName)!
-  return (field.args[0].inputTypes[0].type as DMMF.InputType).name
-}
-
-export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
-  if (action === DMMF.ModelAction.findMany || action === DMMF.ModelAction.findUnique) {
-    return 'query'
+export function getPayloadName(modelName, namespace = true) {
+  if (namespace) {
+    return `Prisma.${getPayloadName(modelName, false)}`
   }
-  return 'mutation'
+  return `$${modelName}Payload`
 }
 
-/**
- * Used to render the initial client args
- * @param modelName
- * @param fieldName
- * @param mapping
- */
-export function renderInitialClientArgs( // TODO: dead code
-  actionName: DMMF.ModelAction,
-  fieldName: string,
-  mapping: DMMF.ModelMapping,
-): string {
-  return `
-  dmmf,
-  fetcher,
-  '${getOperation(actionName)}',
-  '${fieldName}',
-  '${mapping.plural}.${actionName}',
-  args || {},
-  [],
-  errorFormat,
-  measurePerformance\n`
-}
-
-export function getFieldTypeName(field: DMMF.SchemaField): string {
-  if (typeof field.outputType.type === 'string') {
-    return field.outputType.type
-  }
-
-  return field.outputType.type.name
+export function getFieldRefsTypeName(name: string) {
+  return `${name}FieldRefs`
 }
 
 export function getType(name: string, isList: boolean, isOptional?: boolean): string {
   return name + (isList ? '[]' : '') + (isOptional ? ' | null' : '')
 }
 
-export function getFieldType(field: DMMF.SchemaField): string {
-  return getType(getFieldTypeName(field), field.outputType.isList)
-}
-
 interface SelectReturnTypeOptions {
   name: string
-  actionName: ClientModelAction
+  actionName: DMMF.ModelAction
   renderPromise?: boolean
   hideCondition?: boolean
-  isField?: boolean
+  isChaining?: boolean
   fieldName?: string
-  projection: Projection
+  isNullable?: boolean
 }
 
 /**
@@ -225,122 +165,81 @@ export function getReturnType({
   actionName,
   renderPromise = true,
   hideCondition = false,
-  isField = false, // eslint-disable-line @typescript-eslint/no-unused-vars
+  isChaining = false,
+  isNullable = false,
 }: SelectReturnTypeOptions): string {
-  if (actionName === 'count') {
+  if (actionName === DMMF.ModelAction.count) {
     return `Promise<number>`
   }
-  if (actionName === 'aggregate') return `Promise<${getAggregateGetName(name)}<T>>`
+  if (actionName === DMMF.ModelAction.aggregate) return `Promise<${getAggregateGetName(name)}<T>>`
 
-  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
-    return `PrismaPromise<JsonObject>`
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
+    return `Prisma.PrismaPromise<JsonObject>`
   }
 
   const isList = actionName === DMMF.ModelAction.findMany
 
-  if (actionName === 'deleteMany' || actionName === 'updateMany' || actionName === 'createMany') {
-    return `PrismaPromise<BatchPayload>`
+  if (
+    actionName === DMMF.ModelAction.deleteMany ||
+    actionName === DMMF.ModelAction.updateMany ||
+    actionName === DMMF.ModelAction.createMany
+  ) {
+    return `Prisma.PrismaPromise<BatchPayload>`
   }
 
   /**
    * Important: We handle findMany or isList special, as we don't want chaining from there
    */
   if (isList || hideCondition) {
-    const listOpen = isList ? 'Array<' : ''
-    const listClose = isList ? '>' : ''
-    const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
+    const promiseOpen = renderPromise ? 'Prisma.PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(
-      name,
-    )}<T>${listClose}${promiseClose}>`
+    return `${promiseOpen}$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>${
+      isChaining ? ' | Null' : ''
+    }${promiseClose}`
   }
 
-  if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
-    return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
+  if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
+    return `Prisma__${name}Client<${getType(
+      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
-    )}>>`
+    )} | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
   }
-  if (actionName === 'findFirst' || actionName === 'findUnique') {
-    if (isField) {
-      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null >, Prisma__${name}Client<${getType(
-        getPayloadName(name) + '<T>',
-        isList,
-      )} | null >>`
-    }
-    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
-      name,
+
+  if (actionName === DMMF.ModelAction.findFirstOrThrow || actionName === DMMF.ModelAction.findUniqueOrThrow) {
+    return `Prisma__${name}Client<${getType(
+      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
-    )}>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
-      isList,
-    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null >, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
-      isList,
-    )} | null >>`
+    )}, never, ExtArgs>`
   }
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
-    getPayloadName(name) + '<T>',
+
+  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
+    return `Prisma__${name}Client<${getType(
+      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+      isList,
+    )} | null, null, ExtArgs>`
+  }
+
+  return `Prisma__${name}Client<${getType(
+    `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
     isList,
-  )}>>`
-}
-
-export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {
-  if (!(action in DMMF.ModelAction)) {
-    return false
-  }
-  const result = action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findMany
-  return operation === 'query' ? result : !result
+  )}, never, ExtArgs>`
 }
 
 export function capitalize(str: string): string {
   return str[0].toUpperCase() + str.slice(1)
 }
 
-export function indentAllButFirstLine(str: string, indentation: number): string {
-  const lines = str.split('\n')
-
-  return lines[0] + '\n' + indent(lines.slice(1).join('\n'), indentation)
-}
-
-export function getRelativePathResolveStatement(outputDir: string, cwd?: string): string {
-  if (!cwd) {
-    return 'undefined'
-  }
-  return `path.resolve(__dirname, ${JSON.stringify(path.relative(outputDir, cwd))})`
-}
-
-function flatten(array): any[] {
-  return Array.prototype.concat.apply([], array)
-}
-
-export function flatMap<T, U>(
-  array: T[],
-  callbackFn: (value: T, index: number, array: T[]) => U[],
-  thisArg?: any,
-): U[] {
-  return flatten(array.map(callbackFn, thisArg))
-}
-
-/**
- * Returns unique elements of array
- * @param arr Array
- */
-
-export function unique<T>(arr: T[]): T[] {
-  const { length } = arr
-  const result: T[] = []
-  const seen = new Set() // just a cache
-
-  loop: for (let i = 0; i < length; i++) {
-    const value = arr[i]
-    if (seen.has(value)) {
-      continue loop
-    }
-    seen.add(value)
-    result.push(value)
+export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
+  let typeName = type.type
+  if (type.isList) {
+    typeName += '[]'
   }
 
-  return result
+  return `'${typeName}'`
 }
+
+export const extArgsParam = ts
+  .genericParameter('ExtArgs')
+  .extends(ts.namedType('$Extensions.InternalArgs'))
+  .default(ts.namedType('$Extensions.DefaultArgs'))

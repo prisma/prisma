@@ -1,0 +1,16 @@
+name: Lint GitHub Actions workflows
+on:
+  pull_request:
+    paths:
+      - '.github/**'
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # see https://github.com/rhysd/actionlint/blob/main/docs/usage.md
+      - name: Check workflow files
+        # https://hub.docker.com/r/rhysd/actionlint/tags
+        uses: docker://rhysd/actionlint:1.6.27

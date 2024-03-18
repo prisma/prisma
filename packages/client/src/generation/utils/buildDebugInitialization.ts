@@ -7,7 +7,7 @@ import { getRuntimeEdgeEnvVar } from './buildInjectableEdgeEnv'
  * if it's defined, but the code in the runtime bundle doesn't. Furthermore, in
  * some environments `DEBUG` may be defined as a global variable rather than
  * available in `process.env`. The entry point fetches the value of `DEBUG` and
- * passes in to the `debug` package.
+ * passes into the `debug` package.
  *
  * @param edge Whether the edge runtime is used
  */

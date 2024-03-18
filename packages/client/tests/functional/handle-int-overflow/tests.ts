@@ -1,7 +1,8 @@
 import testMatrix from './_matrix'
-
 // @ts-ignore
-declare let prisma: import('@prisma/client').PrismaClient
+import type { PrismaClient } from './node_modules/@prisma/client'
+
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   test('integer overflow', async () => {
@@ -11,9 +12,7 @@ testMatrix.setupTestSuite(() => {
           int: 1e20,
         },
       }),
-    ).rejects.toThrowError(
-      /A number used in the query does not fit into a 64 bit signed integer. Consider using `BigInt` as field type if you're trying to store large integers./,
-    )
+    ).rejects.toThrow(/Unable to fit value 100000000000000000000 into a 64-bit signed integer for field `int`/)
   })
 
   test('big float in exponent notation', async () => {
@@ -23,8 +22,6 @@ testMatrix.setupTestSuite(() => {
           int: Number.MAX_VALUE,
         },
       }),
-    ).rejects.toThrowError(
-      /Unable to fit float value \(or large JS integer serialized in exponent notation\) '\d+' into a 64 Bit signed integer for field 'int'. If you're trying to store large integers, consider using `BigInt`./,
-    )
+    ).rejects.toThrow(/Unable to fit value [\d\.e\+]+ into a 64-bit signed integer for field `int`/)
   })
 })

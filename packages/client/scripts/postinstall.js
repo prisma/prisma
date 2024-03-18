@@ -6,9 +6,6 @@ const path = require('path')
 const c = require('./colors')
 
 const exec = promisify(childProcess.exec)
-const copyFile = promisify(fs.copyFile)
-const mkdir = promisify(fs.mkdir)
-const stat = promisify(fs.stat)
 
 function debug(message, ...optionalParams) {
   if (process.env.DEBUG && process.env.DEBUG === 'prisma:postinstall') {
@@ -26,7 +23,7 @@ function addPackageJSON(pth) {
 
 /**
  * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
- * @param {string} startPath - Path to Start At
+ * @param {string | null} startPath - Path to Start At
  * @param {number} limit - Find Up limit
  * @returns {string | null}
  */
@@ -179,11 +176,11 @@ function run(cmd, params, cwd = process.cwd()) {
 
   return new Promise((resolve, reject) => {
     child.on('close', () => {
-      resolve()
+      resolve(undefined)
     })
     child.on('exit', (code) => {
       if (code === 0) {
-        resolve()
+        resolve(undefined)
       } else {
         reject(code)
       }
@@ -204,31 +201,46 @@ function run(cmd, params, cwd = process.cwd()) {
 async function createDefaultGeneratedThrowFiles() {
   try {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
-    const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
-    const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
-    const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
-    const defaultEdgeIndexPath = path.join(dotPrismaClientDir, 'edge.js')
-    const defaultEdgeIndexDtsPath = path.join(dotPrismaClientDir, 'edge.d.ts')
+    const denoPrismaClientDir = path.join(__dirname, '../../../.prisma/client/deno')
+
     await makeDir(dotPrismaClientDir)
+    await makeDir(denoPrismaClientDir)
 
-    if (!fs.existsSync(defaultNodeIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
+    const defaultFileConfig = {
+      js: path.join(__dirname, 'default-index.js'),
+      ts: path.join(__dirname, 'default-index.d.ts'),
     }
 
-    if (!fs.existsSync(defaultBrowserIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
+    /**
+     * @type {Record<string, { js?: string; ts?: string } | undefined>}
+     */
+    const defaultFiles = {
+      index: defaultFileConfig,
+      edge: defaultFileConfig,
+      default: defaultFileConfig,
+      wasm: defaultFileConfig,
+      'index-browser': {
+        js: path.join(__dirname, 'default-index.js'),
+        ts: undefined,
+      },
+      'deno/edge': {
+        js: undefined,
+        ts: path.join(__dirname, 'default-deno-edge.ts'),
+      },
     }
 
-    if (!fs.existsSync(defaultNodeIndexDtsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
-    }
+    for (const file of Object.keys(defaultFiles)) {
+      const { js, ts } = defaultFiles[file] ?? {}
+      const dotPrismaJsFilePath = path.join(dotPrismaClientDir, `${file}.js`)
+      const dotPrismaTsFilePath = path.join(dotPrismaClientDir, `${file}.d.ts`)
 
-    if (!fs.existsSync(defaultEdgeIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
-    }
+      if (js && !fs.existsSync(dotPrismaJsFilePath) && fs.existsSync(js)) {
+        await fs.promises.copyFile(js, dotPrismaJsFilePath)
+      }
 
-    if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
+      if (ts && !fs.existsSync(dotPrismaTsFilePath) && fs.existsSync(ts)) {
+        await fs.promises.copyFile(ts, dotPrismaTsFilePath)
+      }
     }
   } catch (e) {
     console.error(e)
@@ -239,7 +251,7 @@ async function createDefaultGeneratedThrowFiles() {
 function makeDir(input) {
   const make = async (pth) => {
     try {
-      await mkdir(pth)
+      await fs.promises.mkdir(pth)
 
       return pth
     } catch (error) {
@@ -262,7 +274,7 @@ function makeDir(input) {
       }
 
       try {
-        const stats = await stat(pth)
+        const stats = await fs.promises.stat(pth)
         if (!stats.isDirectory()) {
           throw new Error('The path is not a directory')
         }
@@ -282,7 +294,7 @@ function makeDir(input) {
  * an error while attempting to get this value then the string constant
  * 'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER' is returned.
  * This information is just necessary for telemetry.
- * This get's passed in to Generate, which then automatically get's propagated to telemetry.
+ * This is passed to `prisma generate` as a string like `--postinstall value`.
  */
 function getPostInstallTrigger() {
   /*

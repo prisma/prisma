@@ -1,27 +1,31 @@
-import type { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { isNodeAPISupported } from '@prisma/get-platform'
+import { assertNodeAPISupported, getPlatformInfo } from '@prisma/get-platform'
 import execa from 'execa'
 import * as TE from 'fp-ts/TaskEither'
 
 import { resolveBinary } from '../resolveBinary'
-import { load } from '../utils/load'
+import { loadLibrary } from '../utils/load'
+
+type NodeAPILibrary = {
+  version(): { commit: string }
+}
 
 export async function getEngineVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
   if (!binaryName) {
     binaryName = getCliQueryEngineBinaryType()
   }
   enginePath = await resolveBinary(binaryName, enginePath)
-  if (binaryName === BinaryType.libqueryEngine) {
-    await isNodeAPISupported()
 
-    const QE = load<NodeAPILibraryTypes.Library>(enginePath)
-    return `${BinaryType.libqueryEngine} ${QE.version().commit}`
+  const platformInfo = await getPlatformInfo()
+  if (binaryName === BinaryType.QueryEngineLibrary) {
+    assertNodeAPISupported()
+
+    const QE = loadLibrary<NodeAPILibrary>(enginePath, platformInfo)
+    return `${BinaryType.QueryEngineLibrary} ${QE.version().commit}`
   } else {
-    const result = await execa(enginePath, ['--version'])
-
-    return result.stdout
+    const { stdout } = await execa(enginePath, ['--version'])
+    return stdout
   }
 }
 

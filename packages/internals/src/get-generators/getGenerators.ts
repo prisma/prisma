@@ -1,32 +1,32 @@
 import Debug from '@prisma/debug'
-import { fixBinaryTargets, getOriginalBinaryTargetsValue, printGeneratorConfig } from '@prisma/engine-core'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import type { DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
 import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/get-platform'
-import { getPlatform, platforms } from '@prisma/get-platform'
-import chalk from 'chalk'
+import type { BinaryTarget } from '@prisma/get-platform'
+import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import fs from 'fs'
+import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF } from '..'
+import { getConfig, getDMMF, vercelPkgPathRegex } from '..'
 import { Generator } from '../Generator'
-import type { GeneratorPaths } from '../predefinedGeneratorResolvers'
-import { predefinedGeneratorResolvers } from '../predefinedGeneratorResolvers'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
-import { mapPreviewFeatures } from '../utils/mapPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
 import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
 import { pick } from '../utils/pick'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
+import type { GeneratorPaths } from './generatorResolvers/generatorResolvers'
+import { generatorResolvers } from './generatorResolvers/generatorResolvers'
 import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
+import { fixBinaryTargets } from './utils/fixBinaryTargets'
 import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
 import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
+import { getOriginalBinaryTargetsValue, printGeneratorConfig } from './utils/printGeneratorConfig'
 
 const debug = Debug('prisma:getGenerators')
 
@@ -50,7 +50,9 @@ export type GetGeneratorOptions = {
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
-  dataProxy: boolean
+  generatorNames?: string[]
+  postinstall?: boolean
+  noEngine?: boolean
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -70,7 +72,9 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     overrideGenerators,
     skipDownload,
     binaryPathsOverride,
-    dataProxy,
+    generatorNames = [],
+    postinstall,
+    noEngine,
   } = options
 
   if (!schemaPath) {
@@ -80,7 +84,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
   }
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
   const queryEngineBinaryType = getCliQueryEngineBinaryType()
 
@@ -91,19 +95,19 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   if (version && !prismaPath) {
     const potentialPath = eval(`require('path').join(__dirname, '..')`)
     // for pkg we need to make an exception
-    if (!potentialPath.startsWith('/snapshot/')) {
+    if (!potentialPath.match(vercelPkgPathRegex)) {
       const downloadParams: DownloadOptions = {
         binaries: {
           [queryEngineBinaryType]: potentialPath,
         },
-        binaryTargets: [platform],
+        binaryTargets: [binaryTarget],
         showProgress: false,
         version,
         skipDownload,
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      prismaPath = binaryPathsWithEngineType[queryEngineBinaryType]![platform]
+      prismaPath = binaryPathsWithEngineType[queryEngineBinaryType]![binaryTarget]
     }
   }
 
@@ -122,8 +126,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   printConfigWarnings(config.warnings)
 
-  // TODO: This needs a better abstraction, but we don't have any better right now
-  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = extractPreviewFeatures(config)
 
   const dmmf = await getDMMF({
     datamodel,
@@ -143,7 +146,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   checkFeatureFlags(config, options)
 
-  const generatorConfigs = overrideGenerators || config.generators
+  const generatorConfigs = filterGenerators(overrideGenerators || config.generators, generatorNames)
 
   await validateGenerators(generatorConfigs)
 
@@ -161,8 +164,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
         if (aliases && aliases[providerValue]) {
           generatorPath = aliases[providerValue].generatorPath
           paths = aliases[providerValue]
-        } else if (predefinedGeneratorResolvers[providerValue]) {
-          paths = await predefinedGeneratorResolvers[providerValue](baseDir, cliVersion)
+        } else if (generatorResolvers[providerValue]) {
+          paths = await generatorResolvers[providerValue](baseDir, cliVersion)
           generatorPath = paths.generatorPath
         }
 
@@ -185,8 +188,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
         } else {
           if (!generatorInstance.manifest || !generatorInstance.manifest.defaultOutput) {
             throw new Error(
-              `Can't resolve output dir for generator ${chalk.bold(generator.name)} with provider ${chalk.bold(
-                generator.provider,
+              `Can't resolve output dir for generator ${bold(generator.name)} with provider ${bold(
+                generator.provider.value!,
               )}.
 The generator needs to either define the \`defaultOutput\` path in the manifest or you need to define \`output\` in the datamodel.prisma file.`,
             )
@@ -209,7 +212,8 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
-          dataProxy,
+          postinstall,
+          noEngine,
         }
 
         // we set the options here a bit later after instantiating the Generator,
@@ -271,37 +275,7 @@ generator gen {
         const generatorBinaryTargets = g.options?.generator?.binaryTargets
 
         if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
-          const binaryTarget0 = generatorBinaryTargets[0]
-          // If set from env var, there is only one item
-          // and we need to read the env var
-          if (binaryTarget0.fromEnvVar !== null) {
-            const parsedBinaryTargetsEnvValue = parseBinaryTargetsEnvValue(binaryTarget0)
-
-            // remove item and replace with parsed values
-            // value is an array
-            // so we create one new iteam for each element in the array
-            generatorBinaryTargets.shift()
-
-            if (Array.isArray(parsedBinaryTargetsEnvValue)) {
-              for (const platformName of parsedBinaryTargetsEnvValue) {
-                generatorBinaryTargets.push({
-                  fromEnvVar: binaryTarget0.fromEnvVar,
-                  value: platformName,
-                })
-              }
-            } else {
-              generatorBinaryTargets.push({
-                fromEnvVar: binaryTarget0.fromEnvVar,
-                value: parsedBinaryTargetsEnvValue,
-              })
-            }
-          }
-
           for (const binaryTarget of generatorBinaryTargets) {
-            if (binaryTarget.value === 'native') {
-              binaryTarget.value = platform
-            }
-
             if (!neededVersions[neededVersion].binaryTargets.find((object) => object.value === binaryTarget.value)) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
             }
@@ -312,7 +286,7 @@ generator gen {
     debug('neededVersions', JSON.stringify(neededVersions, null, 2))
     const binaryPathsByVersion = await getBinaryPathsByVersion({
       neededVersions,
-      platform,
+      binaryTarget,
       version,
       printDownloadProgress,
       skipDownload,
@@ -328,18 +302,18 @@ generator gen {
         generator.setBinaryPaths(generatorBinaryPaths)
 
         // in case cli engine version !== client engine version
-        // we need to re-generate the dmmf and pass it in to the generator
+        // we need to re-generate the dmmf and pass it into the generator
         if (
           engineVersion !== version &&
           generator.options &&
           generator.manifest.requiresEngines.includes(queryEngineType) &&
           generatorBinaryPaths[queryEngineType] &&
-          generatorBinaryPaths[queryEngineType]?.[platform]
+          generatorBinaryPaths[queryEngineType]?.[binaryTarget]
         ) {
           const customDmmf = await getDMMF({
             datamodel,
             datamodelPath: schemaPath,
-            prismaPath: generatorBinaryPaths[queryEngineType]?.[platform],
+            prismaPath: generatorBinaryPaths[queryEngineType]?.[binaryTarget],
             previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
@@ -368,7 +342,7 @@ type NeededVersions = {
 
 export type GetBinaryPathsByVersionInput = {
   neededVersions: NeededVersions
-  platform: Platform
+  binaryTarget: BinaryTarget
   version?: string
   printDownloadProgress?: boolean
   skipDownload?: boolean
@@ -391,7 +365,7 @@ export function skipIndex<T = any>(arr: T[], index: number): T[] {
   return [...arr.slice(0, index), ...arr.slice(index + 1)]
 }
 
-export const knownBinaryTargets: Platform[] = [...platforms, 'native']
+export const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 
 const oldToNewBinaryTargetsMapping = {
   'linux-glibc-libssl1.0.1': 'debian-openssl-1.0.x',
@@ -400,24 +374,9 @@ const oldToNewBinaryTargetsMapping = {
 }
 
 async function validateGenerators(generators: GeneratorConfig[]): Promise<void> {
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
   for (const generator of generators) {
-    if (parseEnvValue(generator.provider) === 'photonjs') {
-      throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
-  1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
-        'provider = "prisma-client-js"',
-      )} in your ${chalk.bold('schema.prisma')} file.
-  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red('@prisma/photon')} dependency to ${chalk.green(
-        '@prisma/client',
-      )}
-  3. Replace ${chalk.red("import { Photon } from '@prisma/photon'")} with ${chalk.green(
-        "import { PrismaClient } from '@prisma/client'",
-      )} in your code.
-  4. Run ${chalk.green('prisma generate')} again.
-      `)
-    }
-
     if (generator.config.platforms) {
       throw new Error(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
@@ -439,59 +398,68 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
 
       const resolvedBinaryTargets: string[] = binaryTargets
         .flatMap((object) => parseBinaryTargetsEnvValue(object))
-        .map((p) => (p === 'native' ? platform : p))
+        .map((p) => (p === 'native' ? binaryTarget : p))
 
       for (const resolvedBinaryTarget of resolvedBinaryTargets) {
         if (oldToNewBinaryTargetsMapping[resolvedBinaryTarget]) {
           throw new Error(
-            `Binary target ${chalk.red.bold(resolvedBinaryTarget)} is deprecated. Please use ${chalk.green.bold(
-              oldToNewBinaryTargetsMapping[resolvedBinaryTarget],
+            `Binary target ${red(bold(resolvedBinaryTarget))} is deprecated. Please use ${green(
+              bold(oldToNewBinaryTargetsMapping[resolvedBinaryTarget]),
             )} instead.`,
           )
         }
-        if (!knownBinaryTargets.includes(resolvedBinaryTarget as Platform)) {
+        if (!knownBinaryTargets.includes(resolvedBinaryTarget as BinaryTarget)) {
           throw new Error(
-            `Unknown binary target ${chalk.red(resolvedBinaryTarget)} in generator ${chalk.bold(generator.name)}.
-Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
+            `Unknown binary target ${red(resolvedBinaryTarget)} in generator ${bold(generator.name)}.
+Possible binaryTargets: ${green(knownBinaryTargets.join(', '))}`,
           )
         }
       }
 
       // Only show warning if resolvedBinaryTargets
       // is missing current platform
-      if (!resolvedBinaryTargets.includes(platform)) {
+      if (!resolvedBinaryTargets.includes(binaryTarget)) {
         const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(generator.binaryTargets)
 
-        if (generator) {
-          console.log(`${chalk.yellow('Warning:')} Your current platform \`${chalk.bold(
-            platform,
-          )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
-            originalBinaryTargetsConfig,
-          )}.
-To fix it, use this generator config in your ${chalk.bold('schema.prisma')}:
-${chalk.greenBright(
+        console.log(`${yellow('Warning:')} Your current platform \`${bold(
+          binaryTarget,
+        )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
+          originalBinaryTargetsConfig,
+        )}.
+To fix it, use this generator config in your ${bold('schema.prisma')}:
+${green(
   printGeneratorConfig({
     ...generator,
-    binaryTargets: fixBinaryTargets(generator.binaryTargets, platform),
+    binaryTargets: fixBinaryTargets(generator.binaryTargets, binaryTarget),
   }),
 )}
-${chalk.gray(
-  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
-Read more about deploying Prisma Client: ${chalk.underline(
-    'https://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md',
+${gray(
+  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${binaryTarget}\`.
+Read more about deploying Prisma Client: ${underline(
+    'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
   )}`,
 )}\n`)
-        } else {
-          console.log(
-            `${chalk.yellow('Warning')} The binaryTargets ${JSON.stringify(
-              originalBinaryTargetsConfig,
-            )} don't include your local platform ${platform}, which you can also point to with \`native\`.
-In case you want to fix this, you can provide ${chalk.greenBright(
-              `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
-            )} in the schema.prisma file.`,
-          )
-        }
       }
     }
   }
+}
+
+function filterGenerators(generators: GeneratorConfig[], generatorNames: string[]) {
+  if (generatorNames.length < 1) {
+    return generators
+  }
+
+  const filtered = generators.filter((generator) => generatorNames.includes(generator.name))
+
+  if (filtered.length !== generatorNames.length) {
+    const missings = generatorNames.filter((name) => filtered.find((generator) => generator.name === name) == null)
+    const isSingular = missings.length <= 1
+    throw new Error(
+      `The ${isSingular ? 'generator' : 'generators'} ${bold(missings.join(', '))} specified via ${bold(
+        '--generator',
+      )} ${isSingular ? 'does' : 'do'} not exist in your Prisma schema`,
+    )
+  }
+
+  return filtered
 }

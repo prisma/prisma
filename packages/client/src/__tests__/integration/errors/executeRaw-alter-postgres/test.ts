@@ -8,10 +8,9 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 let prisma
 
 beforeAll(async () => {
-  process.env.TEST_POSTGRES_URI += '-execute-raw-alter'
-  await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+  process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-execute-raw-alter')
+  await tearDownPostgres(process.env.DATABASE_URL)
   await migrateDb({
-    connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
   const PrismaClient = await getTestClient()

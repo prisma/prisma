@@ -1,7 +1,8 @@
 import testMatrix from './_matrix'
-
 // @ts-ignore
-declare let prisma: import('@prisma/client').PrismaClient
+import type { PrismaClient } from './node_modules/@prisma/client'
+
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
@@ -31,6 +32,25 @@ testMatrix.setupTestSuite(
       })
       expect(result).toMatchObject({
         json: {},
+      })
+    })
+
+    // regression test for https://github.com/prisma/prisma/issues/20192
+    test('object with .toJSON method', async () => {
+      const value = {
+        toJSON: () => 'some value',
+      }
+      const url = new URL('http://example.com/')
+
+      const result = await prisma.entry.create({
+        data: { json: { value, url } },
+      })
+
+      expect(result).toMatchObject({
+        json: {
+          value: 'some value',
+          url: 'http://example.com/',
+        },
       })
     })
   },

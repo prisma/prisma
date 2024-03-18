@@ -17,6 +17,10 @@ export interface CreateErrorReportInput {
   kind: ErrorKind
   liftRequest?: string
   operatingSystem: string
+  // We wanted to rename this to `binaryTarget` but we had to skip the rename here
+  // because we didn't want to create more work
+  // as the error handling backend would need to be updated and re-deployed
+  // https://github.com/prisma/error-handling-backend
   platform: string
   rustStackTrace: string
   schemaFile?: string
@@ -28,7 +32,7 @@ export interface CreateErrorReportInput {
 export async function uploadZip(zip: Buffer, url: string): Promise<any> {
   return await fetch(url, {
     method: 'PUT',
-    agent: getProxyAgent(url) as any,
+    agent: getProxyAgent(url),
     headers: {
       'Content-Length': String(zip.byteLength),
     },
@@ -62,20 +66,26 @@ async function request(query: string, variables: any): Promise<any> {
     query,
     variables,
   })
+
   return await fetch(url, {
     method: 'POST',
-    agent: getProxyAgent(url) as any,
+    agent: getProxyAgent(url),
     body,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
   })
-    .then((res) => res.json())
-    .then((res) => {
-      if (res.errors) {
-        throw new Error(JSON.stringify(res.errors))
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Error during request: ${response.status} ${response.statusText} - Query: ${query}`)
       }
-      return res.data
+      return response.json()
+    })
+    .then((responseAsJson) => {
+      if (responseAsJson.errors) {
+        throw new Error(JSON.stringify(responseAsJson.errors))
+      }
+      return responseAsJson.data
     })
 }

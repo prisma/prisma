@@ -1,0 +1,83 @@
+name: Setup
+description: Boilerplate steps needed by most jobs.
+
+inputs:
+  node-version:
+    description: 'Version of Node.js to use.'
+    required: true
+  pnpm-version:
+    description: 'Version of pnpm to use.'
+    required: true
+  skip-tsc:
+    description: 'Skip type checking.'
+    required: true
+  skip-build:
+    description: 'Skip build (Default: false).'
+    required: false
+    default: 'false'
+  engine-hash:
+    description: 'Pick up custom built engine from cache'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v3.0.0
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: Use Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'pnpm'
+        # This makes it possible to publish to npm later
+        # The NPM_TOKEN secret needs to be defined in the job
+        registry-url: 'https://registry.npmjs.org'
+
+    - run: pnpm install
+      shell: bash
+
+    - run: pnpm -r run dev
+      if: inputs.skip-tsc == 'true' && inputs.skip-build != 'true'
+      shell: bash
+
+    - name: Download custom engines
+      id: custom-engine
+      uses: actions/cache/restore@v4
+      with:
+        key: ${{ runner.os }}-engine-${{ inputs.engine-hash }}-${{ github.event.number }}
+        path: |
+          target/release/schema-engine
+          target/release/schema-engine.exe
+          target/release/query-engine
+          target/release/query-engine.exe
+          target/release/libquery_engine.so
+          target/release/libquery_engine.dylib
+          target/release/query_engine.dll
+    - name: Set environment variables for custom engine
+      if: steps.custom-engine.outputs.cache-hit == 'true'
+      run: |
+        RELEASE_DIR="$(pwd)/target/release"
+        if [ -f "$RELEASE_DIR/libquery_engine.so" ]; then
+          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.so" >> $GITHUB_ENV
+          echo "PRISMA_QUERY_ENGINE_BINARY=$RELEASE_DIR/query-engine" >> $GITHUB_ENV
+          echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
+        elif [ -f "$RELEASE_DIR/query_engine.dll" ]; then
+          WIN_RELEASE_DIR=$(cygpath -w $RELEASE_DIR)
+          echo "PRISMA_QUERY_ENGINE_LIBRARY=$WIN_RELEASE_DIR\\\query_engine.dll" >> $GITHUB_ENV
+          echo "PRISMA_QUERY_ENGINE_BINARY=$WIN_RELEASE_DIR\\\query-engine.exe" >> $GITHUB_ENV
+          echo "PRISMA_SCHEMA_ENGINE_BINARY=$WIN_RELEASE_DIR\\\schema-engine.exe" >> $GITHUB_ENV
+        elif [ -f "$RELEASE_DIR/libquery_engine.dylib" ]; then
+          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.dylib" >> $GITHUB_ENV
+          echo "PRISMA_QUERY_ENGINE_BINARY=$RELEASE_DIR/query-engine" >> $GITHUB_ENV
+          echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
+        else
+          echo "Something went wrong. Build cache for engines exists, but no binaries for current OS found"
+          ls -la "$RELEASE_DIR"
+          exit 1
+        fi
+      shell: bash
+    - run: pnpm run build
+      if: inputs.skip-tsc == 'false' && inputs.skip-build != 'true'
+      shell: bash

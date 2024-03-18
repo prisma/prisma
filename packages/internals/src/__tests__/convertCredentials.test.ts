@@ -9,6 +9,13 @@ const uris = [
   'file:../../parent-parent-dev.db',
   'postgresql://localhost:5433?schema=production',
   'postgresql://other@localhost/otherdb?schema=my_schema&connect_timeout=10&application_name=myapp',
+  'postgresql://',
+  'postgresql://localhost',
+  'postgresql://localhost:5433',
+  'postgresql://localhost/mydb',
+  'postgresql://user@localhost',
+  'postgresql://user:secret@localhost',
+  'postgresql://user:secret@localhost?sslmode=prefer',
   'mysql://user:password@localhost:3333',
   'mysql://user@localhost:3333',
   'mysql://user@localhost:3333/dbname',
@@ -29,18 +36,11 @@ for (const uri of uris) {
   })
 }
 
-// Because we add ?schema=public for default
 const notIdenticalUris = [
-  'postgresql://',
-  'postgresql://localhost',
-  'postgresql://localhost:5433',
-  'postgresql://localhost/mydb',
-  'postgresql://user@localhost',
-  'postgresql://user:secret@localhost',
-  'postgresql://user:secret@localhost?sslmode=prefer',
   'postgresql://root:prisma@localhost/prisma?host=/var/run/postgresql/',
   'mysql://root@localhost/db?socket=/private/tmp/mysql.sock',
   'mysql://user:specialatchar@password@localhost:3333',
+  'mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority',
 ]
 
 for (const uri of notIdenticalUris) {

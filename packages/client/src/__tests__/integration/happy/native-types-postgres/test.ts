@@ -6,10 +6,9 @@ import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 beforeAll(async () => {
-  process.env.TEST_POSTGRES_URI += '-native-types-tests'
-  await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+  process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-native-types-tests')
+  await tearDownPostgres(process.env.DATABASE_URL)
   await migrateDb({
-    connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })
@@ -158,7 +157,7 @@ test('native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', async ()
   })
 
   expect(c).toMatchInlineSnapshot(`
-    Object {
+    {
       bit: 1001,
       char: hello     ,
       text: a text,
@@ -229,7 +228,7 @@ test('native-types-postgres E: Date, Time, Timestamp', async () => {
   })
 
   expect(e).toMatchInlineSnapshot(`
-    Object {
+    {
       date: 2020-05-05T00:00:00.000Z,
       time: 1970-01-01T16:28:33.983Z,
       ts: 2020-05-05T13:28:33.983Z,
