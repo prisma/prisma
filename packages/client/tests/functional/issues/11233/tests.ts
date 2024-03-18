@@ -85,7 +85,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: '$raw methods not allowed when using mongodb',
     },
   },

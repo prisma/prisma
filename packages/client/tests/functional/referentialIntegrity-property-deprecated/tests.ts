@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -52,7 +53,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.MONGODB],
       reason: 'Only testing SQLite, as this is just for testing the deprecated property',
     },
   },
