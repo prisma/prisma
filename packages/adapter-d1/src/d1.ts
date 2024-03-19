@@ -67,6 +67,38 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     }
   }
 
+  // When we receive the result, we only get the error message, not the error code.
+  // Example:
+  // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
+  // So we try to match some errors and use the generic error code as a fallback.
+  // https://www.sqlite.org/rescode.html
+  //
+  // 1 = The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
+  // See quaint https://github.com/prisma/prisma-engines/blob/main/quaint/src/connector/sqlite/error.rs
+  // some errors are matched by the extended code and others by the message there.
+  private matchSQLiteErrorCode(message: string): number {
+    let extendedCode = 1
+    if (!message) return extendedCode
+
+    if (message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
+      extendedCode = 2067
+    } else if (message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
+      extendedCode = 787
+    } else if (message.startsWith('D1_ERROR: NOT NULL constraint failed')) {
+      extendedCode = 1299
+    }
+    // These below were added based on
+    // https://github.com/prisma/prisma-engines/blob/main/quaint/src/connector/sqlite/error.rs
+    // https://github.com/prisma/prisma-engines/blob/main/quaint/src/connector/sqlite/ffi.rs
+    else if (message.startsWith('D1_ERROR: CHECK constraint failed')) {
+      extendedCode = 1811
+    } else if (message.startsWith('D1_ERROR: PRIMARY KEY constraint failed')) {
+      extendedCode = 1555
+    }
+
+    return extendedCode
+  }
+
   /**
    * Execute a query given as SQL, interpolating the given parameters and
    * returning the number of affected rows.
@@ -96,33 +128,9 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       console.error('Error in performIO: %O', e)
       const { message } = e
 
-      // We only get the error message, not the error code.
-      // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
-      // So we try to match some errors and use the generic error code as a fallback.
-      // https://www.sqlite.org/rescode.html
-      // 1 = The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
-      // See quaint https://github.com/prisma/prisma-engines/blob/main/quaint/src/connector/sqlite/error.rs
-      // some errors are matched by the extended code and others by the message there.
-      let extendedCode = 1
-      if (message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
-        extendedCode = 2067
-      } else if (message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
-        extendedCode = 787
-      } else if (message.startsWith('D1_ERROR: NOT NULL constraint failed')) {
-        extendedCode = 1299
-      }
-      // These below were added based on
-      // https://github.com/prisma/prisma-engines/blob/main/quaint/src/connector/sqlite/error.rs
-      // https://github.com/prisma/prisma-engines/blob/main/quaint/src/connector/sqlite/ffi.rs
-      else if (message.startsWith('D1_ERROR: CHECK constraint failed')) {
-        extendedCode = 1811
-      } else if (message.startsWith('D1_ERROR: PRIMARY KEY constraint failed')) {
-        extendedCode = 1555
-      }
-
       return err({
         kind: 'Sqlite',
-        extendedCode,
+        extendedCode: this.matchSQLiteErrorCode(message),
         message,
       })
     }
