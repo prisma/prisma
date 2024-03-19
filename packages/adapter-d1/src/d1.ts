@@ -13,6 +13,7 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
+import { name as packageName } from '../package.json'
 import { getColumnTypes, mapRow } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:d1')
@@ -23,6 +24,7 @@ type StdClient = D1Database
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
   readonly provider = 'sqlite'
+  readonly adapterName = packageName
 
   constructor(protected readonly client: ClientT) {}
 
