@@ -61,10 +61,6 @@ function isISODate(str) {
 }
 
 function inferStringType(value: string): ColumnType {
-  if (['true', 'false'].includes(value)) {
-    return ColumnTypeEnum.Boolean
-  }
-
   if (isISODate(value)) {
     return ColumnTypeEnum.DateTime
   }
