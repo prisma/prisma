@@ -529,6 +529,93 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
+  # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
+  # Example: pnpm run test:functional:code --preview-features=driverAdapters --adapter=js_d1 --runInBand --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
+  #
+  client-relationmode-driveradapters:
+    name: Client (func/relationModeAdapters)
+    timeout-minutes: ${{ inputs.jobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        relationMode: ['', 'foreignKeys', 'prisma']
+        clientRuntime: ['node', 'wasm']
+        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1']
+        node: [20]
+        previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
+        exclude:
+          # Exclude relationJoins tests with WASM because the WASM engine does not include the necessary changes yet.
+          - clientRuntime: 'wasm'
+            previewFeatures: 'driverAdapters,relationJoins'
+    env:
+      NODE_OPTIONS: '--max-old-space-size=8096'
+      JEST_JUNIT_SUITE_NAME: 'client/functional'
+      JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+      PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+      NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set RELATION_MODE custom test env var
+        run: |
+          echo "RELATION_MODE=${{ matrix.relationMode }}"
+          if [ -n "${{ matrix.relationMode }}" ]; 
+            then echo "RELATION_MODE=${{ matrix.relationMode }}" >> "$GITHUB_ENV";
+          fi
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      # shouldn't take more than 15 minutes
+      - name: 1 to 1
+        run: pnpm run test:functional:code --silent --adapter ${{ matrix.flavor }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
+        working-directory: packages/client
+
+      # shouldn't take more than 15 minutes
+      - name: 1 to n
+        run: pnpm run test:functional:code --silent --adapter ${{ matrix.flavor }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
+        working-directory: packages/client
+
+      # shouldn't take more than 15 minutes
+      - name: m to n (SQL databases)
+        run: pnpm run test:functional:code --silent --adapter ${{ matrix.flavor }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
+        working-directory: packages/client
+
+      - name: m to n (MongoDB)
+        run: pnpm run test:functional:code --silent --adapter ${{ matrix.flavor }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
+        working-directory: packages/client
+
+      # - name: Upload test results to BuildPulse for flaky test detection
+      #   # Only run this step for branches where we have access to secrets.
+      #   # Run this step even when the tests fail. Skip if the workflow is cancelled.
+      #   if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+      #   uses: buildpulse/buildpulse-action@v0.11.0
+      #   with:
+      #     account: 17219288
+      #     repository: 192925833
+      #     path: packages/*/junit*.xml
+      #     key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+      #     secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
   # CLIENT (legacy types tests only)
   #
   client-legacy-types:
