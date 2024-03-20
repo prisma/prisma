@@ -43,7 +43,7 @@ export interface GeneratorConfig {
     /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
     previewFeatures?: never
   } & {
-    [key: string]: string | string[]
+    [key: string]: string | string[] | undefined
   }
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
