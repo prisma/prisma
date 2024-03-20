@@ -744,8 +744,8 @@ importers:
         specifier: 3.2.3
         version: 3.2.3
       memfs:
-        specifier: 4.7.7
-        version: 4.7.7
+        specifier: 4.8.0
+        version: 4.8.0
       mssql:
         specifier: 10.0.2
         version: 10.0.2
@@ -8728,8 +8728,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: true
 
-  /memfs@4.7.7:
-    resolution: {integrity: sha512-x9qc6k88J/VVwnfTkJV8pRRswJ2156Rc4w5rciRqKceFDZ0y1MqsNL9pkg5sE0GOcDzZYbonreALhaHzg1siFw==}
+  /memfs@4.8.0:
+    resolution: {integrity: sha512-fcs7trFxZlOMadmTw5nyfOwS3il9pr3y+6xzLfXNwmuR/D0i4wz6rJURxArAbcJDGalbpbMvQ/IFI0NojRZgRg==}
     engines: {node: '>= 4.0.0'}
     dependencies:
       tslib: 2.6.2
