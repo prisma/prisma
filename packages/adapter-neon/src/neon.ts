@@ -13,6 +13,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 
+import { name as packageName } from '../package.json'
 import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:neon')
@@ -26,6 +27,7 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
  */
 abstract class NeonQueryable implements Queryable {
   readonly provider = 'postgres'
+  readonly adapterName = packageName
 
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
     const tag = '[js::query_raw]'
