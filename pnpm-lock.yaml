@@ -474,8 +474,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       global-dirs:
-        specifier: 3.0.1
-        version: 3.0.1
+        specifier: 4.0.0
+        version: 4.0.0
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@18.19.23)(ts-node@10.9.2)
@@ -1284,8 +1284,8 @@ importers:
         specifier: 5.1.0
         version: 5.1.0
       global-dirs:
-        specifier: 3.0.1
-        version: 3.0.1
+        specifier: 4.0.0
+        version: 4.0.0
       globby:
         specifier: 11.1.0
         version: 11.1.0
@@ -7042,9 +7042,10 @@ packages:
       once: 1.4.0
     dev: true
 
-  /global-dirs@3.0.1:
-    resolution: {integrity: sha512-NBcGGFbBA9s1VzD41QXDG+3++t9Mn5t1FpLdhESY6oKY4gYTFpX4wO3sqGUa0Srjtbfj3szX0RnemmrVRUdULA==}
+  /global-dirs@4.0.0:
+    resolution: {integrity: sha512-PJ0OjGf/kVuu9gh5IPgAyssfJne5PsU9+ICxfWiRYDUnYq8ob+Y2nSWAEUNEHRj+gowyzI+wg5/nWkvcjcyLwg==}
     engines: {node: '>=10'}
+    deprecated: Renamed to global-directory
     dependencies:
       ini: 2.0.0
     dev: true
