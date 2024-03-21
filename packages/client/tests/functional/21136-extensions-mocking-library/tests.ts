@@ -2,6 +2,7 @@
 
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -237,7 +238,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['postgresql', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.MONGODB],
       reason: 'this is a type-level only test',
     },
     skipDb: true,

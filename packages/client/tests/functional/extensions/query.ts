@@ -530,7 +530,7 @@ testMatrix.setupTestSuite(
     )
 
     // TODO: skipped for PlanetScale adapter because of https://github.com/prisma/team-orm/issues/495
-    // TODO: skipped for D1 because there is no transaction API yet https://github.com/prisma/team-orm/issues/873
+    // TODO: skipped for D1 - unskip once https://github.com/prisma/team-orm/issues/997 is done
     testIf(
       provider !== Providers.MONGODB &&
         process.platform !== 'win32' &&
@@ -591,7 +591,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO: skipped for PlanetScale adapter because of https://github.com/prisma/team-orm/issues/495
-    // TODO: skipped for D1 because there is no transaction API yet https://github.com/prisma/team-orm/issues/873
+    // TODO: skipped for D1 - unskip once https://github.com/prisma/team-orm/issues/997 is done
     testIf(
       provider !== Providers.MONGODB &&
         process.platform !== 'win32' &&

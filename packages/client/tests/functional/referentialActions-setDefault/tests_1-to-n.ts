@@ -253,7 +253,7 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Only testing relational databases using foreign keys.',
     },
     skipDriverAdapter: {

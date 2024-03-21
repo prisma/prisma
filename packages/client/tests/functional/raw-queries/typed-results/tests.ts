@@ -83,7 +83,7 @@ testMatrix.setupTestSuite(
           //   [Symbol(kIsEncodingSymbol)]: [Function: isEncoding]
           // }
           bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
-          bool: driverAdapter === 'js_d1' || provider === 'mysql' ? 1 : true,
+          bool: driverAdapter === 'js_d1' || provider === Providers.MYSQL ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: driverAdapter === 'js_d1' ? 0.0625 : new Prisma.Decimal('0.0625'),
         },
@@ -229,7 +229,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: `
         $queryRaw only works on SQL based providers
       `,
