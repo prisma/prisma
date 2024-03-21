@@ -198,8 +198,8 @@ importers:
   packages/adapter-d1:
     dependencies:
       '@cloudflare/workers-types':
-        specifier: 4.20240314.0
-        version: 4.20240314.0
+        specifier: 4.20240320.1
+        version: 4.20240320.1
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -363,7 +363,7 @@ importers:
         version: link:../cli
       wrangler:
         specifier: 3.35.0
-        version: 3.35.0(@cloudflare/workers-types@4.20240314.0)
+        version: 3.35.0(@cloudflare/workers-types@4.20240320.1)
 
   packages/bundled-js-drivers:
     dependencies:
@@ -528,8 +528,8 @@ importers:
   packages/client:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: 4.20240314.0
-        version: 4.20240314.0
+        specifier: 4.20240320.1
+        version: 4.20240320.1
       '@codspeed/benchmark.js-plugin':
         specifier: 3.1.0
         version: 3.1.0(benchmark@2.1.4)
@@ -811,7 +811,7 @@ importers:
         version: 5.28.3
       wrangler:
         specifier: 3.35.0
-        version: 3.35.0(@cloudflare/workers-types@4.20240314.0)
+        version: 3.35.0(@cloudflare/workers-types@4.20240320.1)
       zx:
         specifier: 7.2.3
         version: 7.2.3
@@ -2106,8 +2106,8 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@cloudflare/workers-types@4.20240314.0:
-    resolution: {integrity: sha512-eg2dK/tYSiFvQu3sexjB32WEGi3GEmY6pLRF4nrV9Rwi2F2965o6f6604jQY8whhrmNdEoWErSjhuuUld6xgKQ==}
+  /@cloudflare/workers-types@4.20240320.1:
+    resolution: {integrity: sha512-CiYtVpQURPgQqtBKkmOAnfPElVZuD7Xyf1IxKtKp2B4aB9gnooapwJhzeY8c4Ls4u17SgMS0MprOkrgYwzZ6xg==}
 
   /@codspeed/benchmark.js-plugin@3.1.0(benchmark@2.1.4):
     resolution: {integrity: sha512-PHF/QJ3WzTEX9nyhq6EHPA/pkHfMCW0FtfmJvl1qQSt0yIqpM4f0iBIfowua1AzbyD+Pd6iOPvlLHqO7ziLc+Q==}
@@ -11539,7 +11539,7 @@ packages:
       '@cloudflare/workerd-linux-arm64': 1.20240314.0
       '@cloudflare/workerd-windows-64': 1.20240314.0
 
-  /wrangler@3.35.0(@cloudflare/workers-types@4.20240314.0):
+  /wrangler@3.35.0(@cloudflare/workers-types@4.20240320.1):
     resolution: {integrity: sha512-8k0BZQTq5wkLvkvrwMMiilAqemllDN9ro/Vstz83S5kVPeIRqjlvCpoEypGDjH9BGZEeRcDyqZKM3mgI/x6/gw==}
     engines: {node: '>=16.17.0'}
     hasBin: true
@@ -11550,7 +11550,7 @@ packages:
         optional: true
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.1
-      '@cloudflare/workers-types': 4.20240314.0
+      '@cloudflare/workers-types': 4.20240320.1
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5
