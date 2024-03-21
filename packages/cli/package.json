@@ -86,7 +86,7 @@
     "@types/jest": "29.5.12",
     "@types/node": "18.19.23",
     "@types/node-fetch": "2.6.11",
-    "@types/rimraf": "3.0.2",
+    "@types/rimraf": "4.0.5",
     "async-listen": "3.0.1",
     "checkpoint-client": "1.1.33",
     "debug": "4.3.4",
