@@ -231,26 +231,12 @@ export async function setupTestSuiteDatabaseD1({
   const d1Client = cfWorkerBindings.MY_DATABASE as D1Database
 
   // Execute the DDL statements
-  for (const sqlStatement of sqlStatements.split(';')) {
-    if (sqlStatement.includes('CREATE ')) {
-      await d1Client.prepare(sqlStatement).run()
-    } else if (sqlStatement === '\n') {
-      // Ignore
-    } else {
-      console.debug(`Skipping ${sqlStatement} as it is not a CREATE statement`)
-    }
-  }
+  await d1Client.exec(sqlStatements)
 
   if (alterStatementCallback) {
     const alterSqlStatements = alterStatementCallback(Providers.SQLITE)
     // Execute the DDL statements
-    for (const alterSqlStatement of alterSqlStatements.split(';')) {
-      if (alterSqlStatement === '\n') {
-        // Ignore
-      } else {
-        await d1Client.prepare(alterSqlStatement).run()
-      }
-    }
+    await d1Client.exec(alterSqlStatements)
   }
 }
 
