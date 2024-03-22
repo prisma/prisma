@@ -24,6 +24,49 @@ testMatrix.setupTestSuite(
       }
     }
 
+    test('Bool field: true or false should succeed', async () => {
+      await prisma.testModel.create({
+        data: {
+          bool: true,
+        },
+      })
+
+      await prisma.testModel.create({
+        data: {
+          bool: false,
+        },
+      })
+
+      const resultFromQueryRaw = await getAllEntries()
+      const resultFromFindMany = await prisma.testModel.findMany()
+
+      expect(resultFromQueryRaw).toStrictEqual([
+        {
+          id: expect.anything(),
+          bInt: null,
+          bool: true,
+          bytes: null,
+          dec: null,
+          dt: null,
+          float: null,
+          int: null,
+          string: null,
+        },
+        {
+          id: expect.anything(),
+          bInt: null,
+          bool: false,
+          bytes: null,
+          dec: null,
+          dt: null,
+          float: null,
+          int: null,
+          string: null,
+        },
+      ])
+      expect(resultFromQueryRaw).toStrictEqual(resultFromFindMany)
+    })
+
     test('String field: true or false as string should succeed', async () => {
       await prisma.testModel.create({
         data: {
