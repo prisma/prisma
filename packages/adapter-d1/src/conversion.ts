@@ -68,19 +68,8 @@ function inferStringType(value: string): ColumnType {
   return ColumnTypeEnum.Text
 }
 
-function inferNumberType(value: number): ColumnType {
-  if (!Number.isInteger(value)) {
-    return ColumnTypeEnum.Float
-    // Note: returning "Numeric" makes is better for our Decimal type
-    // But we can't tell what is a float or a decimal here
-    // return ColumnTypeEnum.Numeric
-  }
-  // Hack - TODO change this when we have type metadata
-  else if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
-    return ColumnTypeEnum.Int32
-  } else {
-    return ColumnTypeEnum.UnknownNumber
-  }
+function inferNumberType(_: number): ColumnType {
+  return ColumnTypeEnum.Double
 }
 
 function inferObjectType(value: Object): ColumnType {

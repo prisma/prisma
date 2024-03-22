@@ -144,7 +144,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
+      if (driverAdapter === 'js_d1') {
         expect(result![0].bInt === 9007199254740991).toBe(true)
       } else {
         expect(result![0].bInt === BigInt('9007199254740991')).toBe(true)
@@ -160,9 +160,8 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
+      if (driverAdapter === 'js_d1') {
         // It's a number
-        expect(result![0].bInt === BigInt('-9007199254740991')).toBe(false)
         expect(result![0].bInt === -9007199254740991).toBe(true)
       } else {
         // It's a bigint
