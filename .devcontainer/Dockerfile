@@ -1,16 +1,22 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.187.0/containers/typescript-node/.devcontainer/base.Dockerfile
+# Original from https://github.com/microsoft/vscode-dev-containers/blob/main/containers/codespaces-linux/.devcontainer/Dockerfile
+# More info https://github.com/microsoft/vscode-dev-containers/tree/main/containers/codespaces-linux
+# Docker https://hub.docker.com/_/microsoft-vscode-devcontainers
+# All tags https://mcr.microsoft.com/v2/vscode/devcontainers/universal/tags/list
 
-# [Choice] Node.js version: 16, 18, 20
-ARG VARIANT="16-buster"
-FROM mcr.microsoft.com/vscode/devcontainers/typescript-node:0-${VARIANT}
+FROM mcr.microsoft.com/vscode/devcontainers/universal
+
+USER root
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
 
-# [Optional] Uncomment if you want to install an additional version of node using nvm
-# ARG EXTRA_NODE_VERSION=10
-# RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
+USER codespace
 
-# To install more global node packages
-RUN su node -c "npm install -g pnpm@7 ts-node"
+# RUN npm install -g pnpm@6 ts-node
+
+# From https://pnpm.io/installation
+RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+# To install npm global packages as non root user
+RUN pnpm install -g ts-node
