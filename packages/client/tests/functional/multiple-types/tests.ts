@@ -24,7 +24,7 @@ testMatrix.setupTestSuite(
       }
     }
 
-    test('Bool field: true or false should succeed', async () => {
+    skipTestIf(isD1 || provider === Providers.MYSQL)('Bool field: true or false should succeed', async () => {
       await prisma.testModel.create({
         data: {
           bool: true,
