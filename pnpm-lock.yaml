@@ -606,8 +606,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
-        version: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
+        specifier: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
+        version: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -633,8 +633,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
-        version: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
+        specifier: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
+        version: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -741,8 +741,8 @@ importers:
         specifier: 2.0.6
         version: 2.0.6
       mariadb:
-        specifier: 3.2.3
-        version: 3.2.3
+        specifier: 3.3.0
+        version: 3.3.0
       memfs:
         specifier: 4.8.0
         version: 4.8.0
@@ -855,8 +855,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
-        version: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
+        specifier: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
+        version: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -892,8 +892,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
-        version: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
+        specifier: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
+        version: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1169,8 +1169,8 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
       mariadb:
-        specifier: 3.2.3
-        version: 3.2.3
+        specifier: 3.3.0
+        version: 3.3.0
       mssql:
         specifier: 10.0.2
         version: 10.0.2
@@ -1217,8 +1217,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
-        version: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
+        specifier: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
+        version: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1374,8 +1374,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
-        version: 5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b
+        specifier: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
+        version: 5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1450,8 +1450,8 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
       mariadb:
-        specifier: 3.2.3
-        version: 3.2.3
+        specifier: 3.3.0
+        version: 3.3.0
       mock-stdin:
         specifier: 1.0.0
         version: 1.0.0
@@ -3525,8 +3525,8 @@ packages:
     resolution: {integrity: sha512-HNUrTqrd8aTRZYMDcsoZ62s36sIWkMMmKZBOehoCWR2WrfNPKq+Q1yQef5okl3pSVlldFnu2h/dbHjOsDTHXug==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b:
-    resolution: {integrity: sha512-7RaTy6An99KxdaplEslfiGGy9uxk6Jcmr6O3AXM6I4dLn/hd+LwGZRI/9Go2h2kaASSdt49vN/9l/KyomDgQsQ==}
+  /@prisma/engines-version@5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1:
+    resolution: {integrity: sha512-x8zdZowzqbhiUhEmvfVckx0pnktippLljAX7BNB4otSXbmsIPoqgM6yzzCQMKIJ8c5AbImc9uZCNas59qYasdw==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3534,12 +3534,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b:
-    resolution: {integrity: sha512-1kU6rmBiCI5EEfg1h2mmasZxlmXCpjkMBwaaJ65nJHWPd2bC/8QBECmbaC4ufpBw46ZZNZ19EaqVDSY2BjFoNg==}
+  /@prisma/prisma-schema-wasm@5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1:
+    resolution: {integrity: sha512-hX187jAFBBMCBi0lUjAWRop/ConMNFKN0GpKtIvbc+7sScZocbtpsQPdxciS7vDovzS9KikAnkahlPt9lrrBrQ==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.12.0-5.dedf0b7df5b0fd0efaa125d5b9cc35f2703ff32b:
-    resolution: {integrity: sha512-AIfF2AEIN6uYvUg9F7OQWNr3HZFZ1MVtNw3oMq0nA6N5GBox2Wy+NKlQ8bwwpiQhyU1HaZN01bzcRh2am6t7AA==}
+  /@prisma/query-engine-wasm@5.12.0-10.integration-jkomyno-d1-boolean-904260f081dd153649eb6e22e36baeb9cb0a0da1:
+    resolution: {integrity: sha512-3VU+VhZoXWe9IDrPrqktXFYiGJtL8/WrnWDxLTPQMGskmIlnDzTZNjW+VSPS5vdyDM+8lj3bpYFYg7/yAurQAQ==}
     dev: true
 
   /@prisma/studio-common@0.499.0:
@@ -4154,8 +4154,8 @@ packages:
       '@types/node': 20.11.26
     dev: true
 
-  /@types/geojson@7946.0.10:
-    resolution: {integrity: sha512-Nmh0K3iWQJzniTuPRcJn5hxXkfB1T1pgB89SBig5PlJQU5yocazeu4jATJlaA0GYFKWMqDdvYemoSnF2pXgLVA==}
+  /@types/geojson@7946.0.14:
+    resolution: {integrity: sha512-WCfD5Ht3ZesJUsONdhvm84dmzWOiOzOAqOncN0++w0lBw1o8OuDNJF2McvvCef/yBqb/HYRahp1BYtODFQ8bRg==}
     dev: true
 
   /@types/glob@8.0.0:
@@ -4254,10 +4254,6 @@ packages:
     resolution: {integrity: sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==}
     dependencies:
       '@types/node': 20.11.26
-
-  /@types/node@17.0.45:
-    resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
-    dev: true
 
   /@types/node@18.19.23:
     resolution: {integrity: sha512-wtE3d0OUfNKtZYAqZb8HAWGxxXsImJcPUAgZNw+dWFxO6s5tIwIjyKnY76tsTatsNCLJPkVYwUpq15D38ng9Aw==}
@@ -4867,7 +4863,7 @@ packages:
     engines: {node: '>= 12.0.0'}
     dependencies:
       glob: 8.1.0
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
       lazystream: 1.0.1
       lodash: 4.17.21
       normalize-path: 3.0.0
@@ -5648,7 +5644,7 @@ packages:
       '@jest/types': 29.6.3
       chalk: 4.1.2
       exit: 0.1.2
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
       jest-config: 29.7.0(@types/node@18.19.23)(ts-node@10.9.2)
       jest-util: 29.7.0
       prompts: 2.4.2
@@ -5667,7 +5663,7 @@ packages:
       '@jest/types': 29.6.3
       chalk: 4.1.2
       exit: 0.1.2
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
       jest-config: 29.7.0(@types/node@20.11.26)(ts-node@10.9.2)
       jest-util: 29.7.0
       prompts: 2.4.2
@@ -7977,7 +7973,7 @@ packages:
       '@types/node': 20.11.26
       anymatch: 3.1.3
       fb-watchman: 2.0.2
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
       jest-worker: 29.7.0
@@ -8359,7 +8355,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
     dev: true
 
   /jsonwebtoken@8.5.1:
@@ -8634,6 +8630,11 @@ packages:
     engines: {node: 14 || >=16.14}
     dev: true
 
+  /lru-cache@10.2.0:
+    resolution: {integrity: sha512-2bIM8x+VAf6JT4bKAljS1qUWgMsqZRPGJS6FSahIMPVvctcNhyVp7AJu7quxOW9jwkryBReKZY5tY5JYv2n/7Q==}
+    engines: {node: 14 || >=16.14}
+    dev: true
+
   /lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
     dependencies:
@@ -8716,15 +8717,15 @@ packages:
     resolution: {integrity: sha512-CkYQrPYZfWnu/DAmVCpTSX/xHpKZ80eKh2lAkyA6AJTef6bW+6JpbQZN5rofum7da+SyN1bi5ctTm+lTfcCW3g==}
     dev: true
 
-  /mariadb@3.2.3:
-    resolution: {integrity: sha512-Hyc1ehdUJwzvvzcLU2juZS528wJ6oE8pUlpgY0BAOdpKWcdN1motuugi5lC3jkpCkFpyNknHG7Yg66KASl3aPg==}
-    engines: {node: '>= 12'}
+  /mariadb@3.3.0:
+    resolution: {integrity: sha512-sAL4bJgbfCAtXcE8bXI+NAMzVaPNkIU8hRZUXYfgNFoWB9U57G3XQiMeCx/A6IrS6y7kGwBLylrwgsZQ8kUYlw==}
+    engines: {node: '>= 14'}
     dependencies:
-      '@types/geojson': 7946.0.10
-      '@types/node': 17.0.45
+      '@types/geojson': 7946.0.14
+      '@types/node': 20.11.26
       denque: 2.1.0
       iconv-lite: 0.6.3
-      lru-cache: 10.0.1
+      lru-cache: 10.2.0
     dev: true
 
   /media-typer@0.3.0:
