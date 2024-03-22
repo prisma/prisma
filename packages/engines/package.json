@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.12.0-7.8aaab7465dbd6bfad9ace6942845cf1cacb39a7a",
+    "@prisma/engines-version": "5.12.0-9.integration-sql-nested-transactions-3a8bf350548bafdbabbd4a7a6824e64f59ef979f",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
