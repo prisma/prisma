@@ -90,7 +90,7 @@
     "async-listen": "3.0.1",
     "checkpoint-client": "1.1.33",
     "debug": "4.3.4",
-    "dotenv": "16.0.3",
+    "dotenv": "16.4.5",
     "esbuild": "0.20.1",
     "execa": "5.1.1",
     "fast-glob": "3.3.2",
