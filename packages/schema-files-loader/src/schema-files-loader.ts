@@ -19,8 +19,10 @@ type InternalValidatedEntry =
  * @param folderPath
  */
 export async function loadSchemaFiles(folderPath: string): Promise<LoadedFile[]> {
-  const dirEntries = await fs.readdir(folderPath, { withFileTypes: true })
-  const validatedList = await Promise.all(dirEntries.map(validateEntry))
+  const dirEntries = await fs.readdir(folderPath)
+  const validatedList = await Promise.all(
+    dirEntries.map((filePath) => validateFilePath(path.join(folderPath, filePath))),
+  )
   return validatedList.reduce((acc, entry) => {
     if (entry.valid) {
       acc.push([entry.fullPath, entry.content])
@@ -29,18 +31,19 @@ export async function loadSchemaFiles(folderPath: string): Promise<LoadedFile[]>
   }, [] as LoadedFile[])
 }
 
-async function validateEntry(entry: fs.Dirent): Promise<InternalValidatedEntry> {
-  if (path.extname(entry.name) !== '.prisma') {
+async function validateFilePath(fullPath: string): Promise<InternalValidatedEntry> {
+  if (path.extname(fullPath) !== '.prisma') {
     return { valid: false }
   }
-  const fullPath = path.join(entry.path, entry.name)
-  if (entry.isFile()) {
+  const stat = await fs.lstat(fullPath)
+
+  if (stat.isFile()) {
     return { valid: true, fullPath, content: await fs.readFile(fullPath, 'utf8') }
   }
-  if (entry.isSymbolicLink()) {
-    const realPath = await fs.realpath(path.join(entry.path, entry.name))
-    const stat = await fs.stat(realPath)
-    if (stat.isFile()) {
+  if (stat.isSymbolicLink()) {
+    const realPath = await fs.realpath(fullPath)
+    const realPathStat = await fs.stat(realPath)
+    if (realPathStat.isFile()) {
       return { valid: true, fullPath: realPath, content: await fs.readFile(realPath, 'utf8') }
     }
     return { valid: false }
