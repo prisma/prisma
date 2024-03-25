@@ -261,10 +261,6 @@ jobs:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
         previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
-        exclude:
-          # Exclude relationJoins tests with WASM because the WASM engine does not include the necessary changes yet.
-          - clientRuntime: 'wasm'
-            previewFeatures: 'driverAdapters,relationJoins'
     steps:
       - uses: actions/checkout@v4
 
