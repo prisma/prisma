@@ -945,6 +945,17 @@ jobs:
           flags: instrumentation,${{ matrix.os }},library,binary
           name: instrumentation-${{ matrix.os }}
 
+      - run: pnpm run test
+        name: 'schema-files-loader'
+        working-directory: packages/schema-files-loader
+
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/schema-files-loader/src/__tests__/coverage/clover.xml
+          flags: schema-files-loader,${{ matrix.os }},library,binary
+          name: schema-files-loader-${{ matrix.os }}
+
   #
   # Run all tests on macOS and Windows.
   #

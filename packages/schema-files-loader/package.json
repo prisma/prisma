@@ -14,6 +14,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
+    "test": "jest",
     "prepublishOnly": "pnpm run build"
   },
   "files": [
