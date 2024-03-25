@@ -97,6 +97,7 @@ Set composite types introspection depth to 2 levels
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
+      '--local-d1': Boolean, // For adapter-d1 Preview
     })
 
     const spinnerFactory = createSpinner(!args['--print'])
@@ -110,6 +111,9 @@ Set composite types introspection depth to 2 levels
     if (args['--help']) {
       return this.help()
     }
+
+    //
+    const fromD1: boolean | undefined = args['--local-d1']
 
     const url: string | undefined = args['--url']
     // getSchemaPathAndPrint is not flexible enough for this use case
@@ -144,9 +148,9 @@ Set composite types introspection depth to 2 levels
      *
      * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
      */
-    const { firstDatasource, schema } = await match({ url, schemaPath })
+    const { firstDatasource, schema } = await match({ url, schemaPath, fromD1 })
       .when(
-        (input): input is { url: string | undefined; schemaPath: string } => input.schemaPath !== null,
+        (input): input is { url: string | undefined; schemaPath: string; fromD1: boolean } => input.schemaPath !== null,
         async (input) => {
           const rawSchema = fs.readFileSync(input.schemaPath, 'utf-8')
           const config = await getConfig({
@@ -187,6 +191,43 @@ Set composite types introspection depth to 2 levels
             }
 
             return { firstDatasource, schema }
+          } else if (input.fromD1) {
+            const providerFromSchema = firstDatasource?.provider
+            if (providerFromSchema && providerFromSchema !== 'sqlite') {
+              throw new Error(
+                `When using the --local-d1 flag, the database provider in your Prisma schema must be "sqlite". Current provider: ${providerFromSchema}.`,
+              )
+            }
+
+            const defaultD1DirPath = '.wrangler/state/v3/d1/miniflare-D1DatabaseObject'
+            const currentDirContents = fs.readdirSync(process.cwd())
+
+            // const sqlitePath = path.join(process.cwd(), defaultD1DirPath)
+            let sqliteFilename: string | undefined
+            if (currentDirContents && currentDirContents.includes('.wrangler')) {
+              const miniflareDirContents = fs.readdirSync(defaultD1DirPath)
+              sqliteFilename = miniflareDirContents.find((filename) => filename.endsWith('.sqlite'))
+              if (!sqliteFilename) {
+                // TODO, better error message
+                // We could tell the user to run `wrangler dev` to generate the sqlite file?
+                // And check their wrangler.toml file?
+                throw new Error(`No .sqlite file found in ${defaultD1DirPath}`)
+              }
+            } else {
+              // TODO, better error message
+              // We could tell the user to run `wrangler dev` to generate the sqlite file?
+              throw new Error('No .wrangler directory found in current directory.')
+            }
+
+            const pathToSQLiteFile = path.relative(
+              path.dirname(input.schemaPath),
+              path.join(process.cwd(), defaultD1DirPath, sqliteFilename),
+            )
+
+            const schema = `${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}\n\n${removeDatasource(
+              rawSchema,
+            )}`
+            return { firstDatasource, schema }
           } else {
             // Use getConfig with ignoreEnvVarErrors
             // It will  throw an error if the env var is not set or if it is invalid
@@ -200,7 +241,7 @@ Set composite types introspection depth to 2 levels
         },
       )
       .when(
-        (input): input is { url: string; schemaPath: null } => input.url !== undefined,
+        (input): input is { url: string; schemaPath: null; fromD1: boolean } => input.url !== undefined,
         async (input) => {
           // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
           // TODO: better error handling with better error message
