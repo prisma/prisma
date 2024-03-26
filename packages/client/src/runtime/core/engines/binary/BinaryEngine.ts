@@ -977,7 +977,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  applyPendingMigrations(): void {
+  applyPendingMigrations(): Promise<void> {
     throw new Error('Method not implemented.')
   }
 }

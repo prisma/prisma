@@ -135,7 +135,6 @@ export class LibraryEngine implements Engine<undefined> {
   async applyPendingMigrations(): Promise<void> {
     if (TARGET_BUILD_TYPE === 'rn') {
       await this.start()
-      // TODO handle the throw error gracefully? Not sure need to ask pierre
       // @ts-ignore
       __PrismaProxy.applyPendingMigrations(this.engine, this.datamodel)
     } else {

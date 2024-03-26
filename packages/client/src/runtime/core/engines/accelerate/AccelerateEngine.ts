@@ -74,7 +74,7 @@ export class AccelerateEngine implements Engine<any> {
   engineVersion = this.config.accelerateUtils?.engineVersion!
   clientVersion = this.config.accelerateUtils?.clientVersion!
 
-  applyPendingMigrations(): void {
+  applyPendingMigrations(): Promise<void> {
     throw new PrismaClientInitializationError(ERROR_MESSAGE, this.config.clientVersion)
   }
 }

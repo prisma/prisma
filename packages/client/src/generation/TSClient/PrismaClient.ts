@@ -308,8 +308,7 @@ function runCommandRawDefinition(this: PrismaClientClass) {
 }
 
 function applyPendingMigrationsDefinition(this: PrismaClientClass) {
-  const method = ts.method('$applyPendingMigrations')
-  // console.log('✅', this.runtimeName)
+  const method = ts.method('$applyPendingMigrations').setReturnType(ts.prismaPromise(ts.voidType))
 
   if (this.runtimeNameTs !== 'rn') {
     method.setDocComment(ts.docComment`

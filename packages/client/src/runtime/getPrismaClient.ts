@@ -993,7 +993,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return !!this._engineConfig.previewFeatures?.includes(feature)
     }
 
-    $applyPendingMigrations() {
+    $applyPendingMigrations(): Promise<void> {
       return this._engine.applyPendingMigrations()
     }
 
