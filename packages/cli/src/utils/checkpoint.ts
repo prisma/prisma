@@ -27,6 +27,11 @@ export async function runCheckpointClientCheck({
   telemetryInformation: string
   schemaPath?: string
 }): Promise<Check.Result | 0> {
+  if (process.env['CHECKPOINT_DISABLE']) {
+    // TODO: this breaks checkpoint-client abstraction, ideally it would export a reusable isGloballyDisabled() function
+    debug('runCheckpointClientCheck() disabled by env var')
+    return 0
+  }
   try {
     const [projectPathHash, { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders }] = await Promise.all([
       // SHA256 identifier for the project based on the Prisma schema path
