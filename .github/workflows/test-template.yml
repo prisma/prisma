@@ -945,6 +945,17 @@ jobs:
           flags: instrumentation,${{ matrix.os }},library,binary
           name: instrumentation-${{ matrix.os }}
 
+      - run: pnpm run test
+        name: 'schema-files-loader'
+        working-directory: packages/schema-files-loader
+
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/schema-files-loader/src/__tests__/coverage/clover.xml
+          flags: schema-files-loader,${{ matrix.os }},library,binary
+          name: schema-files-loader-${{ matrix.os }}
+
   #
   # Run all tests on macOS and Windows.
   #
@@ -1212,6 +1223,22 @@ jobs:
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}
+
+      - name: Test packages/schema-files-loader
+        if: contains(inputs.jobsToRun, '-all-')
+        run: pnpm run test
+        working-directory: packages/schema-files-loader
+        env:
+          JEST_JUNIT_SUITE_NAME: 'schema-files-loader'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - uses: codecov/codecov-action@v3
+        if: contains(inputs.jobsToRun, '-all-')
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/engines/src/__tests__/coverage/clover.xml
+          flags: schema-files-loader,${{ matrix.os }},library,binary
+          name: schema-files-loader-${{ matrix.os }}
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
