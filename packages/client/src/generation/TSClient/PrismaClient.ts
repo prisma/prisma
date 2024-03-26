@@ -407,7 +407,6 @@ ${[
   runCommandRawDefinition.bind(this)(),
   metricDefinition.bind(this)(),
   applyPendingMigrationsDefinition.bind(this)(),
-  pushSchemaDefinition.bind(this)(),
   this.clientExtensionsDefinitions.prismaClientDefinitions,
 ]
   .join('\n')

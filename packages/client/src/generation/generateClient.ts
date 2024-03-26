@@ -128,6 +128,7 @@ export async function buildClient({
     ...baseClientOptions,
     runtimeNameJs: 'rn',
     runtimeNameTs: 'rn',
+    edge: true,
   })
 
   const trampolineTsClient = new TSClient({

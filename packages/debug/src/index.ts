@@ -70,8 +70,14 @@ const topProps = {
       typeof process.stderr.write === 'function'
     ) {
       logger = (...args: unknown[]) => {
-        const util = require(`${'util'}`)
-        process.stderr.write(util.format(...args) + '\n')
+        // On react native util is not defined but the entire checks above pass
+        // that's why we need to catch the error
+        try {
+          const util = require(`${'util'}`)
+          process.stderr.write(util.format(...args) + '\n')
+        } catch (e) {
+          logger = console.warn ?? console.log
+        }
       }
     } else {
       logger = console.warn ?? console.log

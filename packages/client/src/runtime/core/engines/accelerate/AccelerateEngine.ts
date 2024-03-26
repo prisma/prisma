@@ -73,6 +73,10 @@ export class AccelerateEngine implements Engine<any> {
   debug = this.config.accelerateUtils?.debug!
   engineVersion = this.config.accelerateUtils?.engineVersion!
   clientVersion = this.config.accelerateUtils?.clientVersion!
+
+  applyPendingMigrations(): void {
+    throw new PrismaClientInitializationError(ERROR_MESSAGE, this.config.clientVersion)
+  }
 }
 
 export type {

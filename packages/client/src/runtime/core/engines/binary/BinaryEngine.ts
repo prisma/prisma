@@ -980,10 +980,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   applyPendingMigrations(): void {
     throw new Error('Method not implemented.')
   }
-
-  pushSchema(): void {
-    throw new Error('Method not implemented.')
-  }
 }
 
 function hookProcess(handler: string, exit = false) {

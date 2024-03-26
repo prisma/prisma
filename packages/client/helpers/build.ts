@@ -148,7 +148,7 @@ const wasmRuntimeBuildConfig: BuildOptions = {
 // and also not all the browser APIs
 const rnRuntimeBuildConfig: BuildOptions = {
   name: 'rn',
-  target: 'ES2018',
+  target: 'ES2022',
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/rn',
   bundle: true,
@@ -157,27 +157,12 @@ const rnRuntimeBuildConfig: BuildOptions = {
   legalComments: 'none',
   emitTypes: false,
   define: {
-    // that helps us to tree-shake unused things out
-    NODE_CLIENT: 'false',
-    // tree shake the Library and Binary engines out
+    ...commonEdgeWasmRuntimeBuildConfig.define,
     TARGET_BUILD_TYPE: '"rn"',
-    // that fixes an issue with lz-string umd builds
-    'define.amd': 'false',
   },
   plugins: [
     fillPlugin({
-      // we remove eval and Function for vercel
-      eval: { define: 'undefined' },
-      Function: {
-        define: 'fn',
-        globals: functionPolyfillPath,
-      },
-      // we shim WeakRef, it does not exist on CF
-      WeakRef: {
-        globals: weakrefPolyfillPath,
-      },
-      // these can not be exported anymore
-      './warnEnvConflicts': { contents: '' },
+      fillerOverrides: { ...commonEdgeWasmFillerOverrides },
     }),
   ],
   logLevel: 'error',
