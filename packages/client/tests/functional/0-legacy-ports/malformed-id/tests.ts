@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -24,7 +25,7 @@ testMatrix.setupTestSuite(
         /client/tests/functional/0-legacy-ports/malformed-id/tests.ts:0:0
 
            XX testMatrix.setupTestSuite(
-           XX   () => {
+          XX   () => {
           XX     test('should throw Malformed ObjectID error: in 2 different fields', async () => {
         → XX       const user = prisma.user.create(
         Inconsistent column data: Malformed ObjectID: provided hex string representation must be exactly 12 bytes, instead got: "something invalid 1", length 19 for the field 'id'.
@@ -65,7 +66,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['cockroachdb', 'sqlserver', 'sqlite', 'mysql', 'postgresql'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.SQLITE],
       reason: 'Currently, only MongoDB strictly validates the id fields.',
     },
   },

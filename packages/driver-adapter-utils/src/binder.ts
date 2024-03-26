@@ -25,6 +25,7 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
 
   const startTransaction = wrapAsync(errorRegistry, adapter.startTransaction.bind(adapter))
   const boundAdapter: ErrorCapturingDriverAdapter = {
+    adapterName: adapter.adapterName,
     errorRegistry,
     queryRaw: wrapAsync(errorRegistry, adapter.queryRaw.bind(adapter)),
     executeRaw: wrapAsync(errorRegistry, adapter.executeRaw.bind(adapter)),
@@ -46,6 +47,7 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
 // execution is delegated to napi.rs.
 const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Transaction): Transaction => {
   return {
+    adapterName: transaction.adapterName,
     provider: transaction.provider,
     options: transaction.options,
     queryRaw: wrapAsync(errorRegistry, transaction.queryRaw.bind(transaction)),

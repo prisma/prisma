@@ -8,7 +8,7 @@ import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(({ provider }) => {
+testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
   const isMongoDb = provider === Providers.MONGODB
 
   let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
@@ -47,7 +47,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     }
   })
 
-  test('should log queries inside a ITX', async () => {
+  // D1: iTx are not available.
+  skipTestIf(driverAdapter === 'js_d1')('should log queries inside a ITX', async () => {
     client = newPrismaClient({
       log: [
         {
@@ -121,7 +122,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     }
   })
 
-  test('should log batched queries inside a ITX', async () => {
+  // D1: iTx are not available.
+  skipTestIf(driverAdapter === 'js_d1')('should log batched queries inside a ITX', async () => {
     client = newPrismaClient({
       log: [
         {

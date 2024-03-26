@@ -276,6 +276,7 @@ export default testMatrix.setupSchema(({ provider }) => {
 `tests.ts` contains actual tests for the suite:
 
 ```ts
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
 // @ts-ignore at the moment this is necessary for typechecks
@@ -298,7 +299,7 @@ testMatrix.setupTestSuite(
     optOut: {
       // if you are skipping tests for certain providers, you
       // have to list them here and specify the reason
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'The test is for SQL databases only',
     },
     skipDataProxy: {
