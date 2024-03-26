@@ -28,14 +28,14 @@ export async function runCheckpointClientCheck({
   schemaPath?: string
 }): Promise<Check.Result | 0> {
   try {
-    // SHA256 identifier for the project based on the Prisma schema path
-    const projectPathHash = await getProjectHash()
+    const [projectPathHash, { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders }] = await Promise.all([
+      // SHA256 identifier for the project based on the Prisma schema path
+      getProjectHash(),
+      // Read schema and extract some data
+      tryToReadDataFromSchema(schemaPath),
+    ])
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
-    // Read schema and extract some data
-    const { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders } = await tryToReadDataFromSchema(
-      schemaPath,
-    )
 
     const data: Check.Input = {
       // Name of the product
