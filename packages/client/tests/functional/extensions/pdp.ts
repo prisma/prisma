@@ -118,6 +118,35 @@ testMatrix.setupTestSuite(() => {
     },
   )
 
+  testIf(process.env.TEST_DATA_PROXY !== undefined)('Preserves errors, thrown in customDataProxyFetch', async () => {
+    const CustomError = class extends Error {}
+
+    const xprisma = prisma.$extends({
+      query: {
+        $allModels: {
+          findUnique(operation) {
+            const { __internalParams, query, args } = operation as any as {
+              query: (...args: any[]) => Promise<any>
+              __internalParams: any
+              args: any
+            }
+
+            __internalParams.customDataProxyFetch = () => {
+              return () => {
+                throw new CustomError('Hello')
+              }
+            }
+
+            return query(args, __internalParams)
+          },
+        },
+      },
+    })
+
+    const result = xprisma.user.findUnique({ where: { id: randomId1 } })
+    await expect(result).rejects.toBeInstanceOf(CustomError)
+  })
+
   testIf(process.env.TEST_DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
     const xprisma = prisma.$extends({
       query: {
