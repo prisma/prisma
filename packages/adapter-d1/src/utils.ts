@@ -14,7 +14,10 @@ export function cleanArg(arg: unknown): unknown {
   }
 
   if (typeof arg === 'bigint') {
-    return String(arg)
+    // this will lose precision, but we can't convert it to string - it
+    // will break some of the ordering functionality in the client, since 0
+    // is ordered differently than '0'
+    return Number(arg)
   }
 
   return arg
