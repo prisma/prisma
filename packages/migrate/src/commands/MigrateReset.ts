@@ -34,16 +34,20 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-       -h, --help   Display this help message
-         --schema   Custom path to your Prisma schema
-  --skip-generate   Skip triggering generators (e.g. Prisma Client)
-      --skip-seed   Skip triggering seed
-      -f, --force   Skip the confirmation prompt
+        -h, --help   Display this help message
+          --schema   Custom path to your Prisma schema
+   --skip-generate   Skip triggering generators (e.g. Prisma Client)
+       --skip-seed   Skip triggering seed
+       -f, --force   Skip the confirmation prompt
+ --allow-seed-args   Allows custom arguments for seed (like -- arg in prisma db seed)
 
 ${bold('Examples')}
 
   Reset your database and apply all migrations, all data will be lost
   ${dim('$')} prisma migrate reset
+
+  Specify custom arguments for seed (--allow-seed-args is manditory to pick up custom args)
+  ${dim('$')} prisma migrate reset --allow-seed-args --environment developement
 
   Specify a schema
   ${dim('$')} prisma migrate reset --schema=./schema.prisma 
@@ -53,7 +57,11 @@ ${bold('Examples')}
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
-    const args = arg(argv, {
+    /**
+     * Need to remove the user defined arguments before constructing
+     * `arg` to avoid errors.
+     */
+    const argDataMap = {
       '--help': Boolean,
       '-h': '--help',
       '--force': Boolean,
@@ -62,11 +70,32 @@ ${bold('Examples')}
       '--skip-seed': Boolean,
       '--schema': String,
       '--telemetry-information': String,
-    })
+      '--allow-seed-args': Boolean,
+    }
+
+    const userPassedArgList: string[] = []
+    const receivedSystemDefinedArgList: string[] = []
+
+    /**
+     * We need to split the received argv[] to prevent
+     * passing non system defined args to `arg()` as well
+     * as `executeSeedCommand()`
+     */
+    const argDataMapKeys = Object.keys(argDataMap)
+
+    /**
+     * Assuming that any key that doesn't fit
+     * with argv[] is user passed.
+     */
+    argv.forEach((a) => (argDataMapKeys.includes(a) ? receivedSystemDefinedArgList.push(a) : userPassedArgList.push(a)))
+
+    const args = arg(receivedSystemDefinedArgList, argDataMap)
 
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    if (!args['--allow-seed-args'] && userPassedArgList.length) return this.help()
 
     await checkUnsupportedDataProxy('migrate reset', args, true)
 
@@ -145,7 +174,11 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
 
       if (seedCommandFromPkgJson) {
         console.info() // empty line
-        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
+
+        const successfulSeeding = await executeSeedCommand({
+          commandFromConfig: seedCommandFromPkgJson,
+          extraArgs: args['--allow-seed-args'] && userPassedArgList.length ? userPassedArgList.join(' ') : undefined,
+        })
         if (successfulSeeding) {
           console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
         } else {
