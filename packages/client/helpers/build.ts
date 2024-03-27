@@ -143,9 +143,8 @@ const wasmRuntimeBuildConfig: BuildOptions = {
   ],
 }
 
-// we define the config for react native
-// react native is simmilar to edge in the sense it doesn't have the node API/libraries
-// and also not all the browser APIs
+// React Native is similar to edge in the sense it doesn't have the node API/libraries
+// and also not all the browser APIs, therefore it needs to polyfill the same things as edge
 const rnRuntimeBuildConfig: BuildOptions = {
   name: 'rn',
   target: 'ES2022',
