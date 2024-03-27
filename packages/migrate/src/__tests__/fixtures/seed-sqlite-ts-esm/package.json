@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "devDependencies": {
-    "@types/node": "16.18.88",
+    "@types/node": "16.18.91",
     "ts-node": "10.9.2",
     "typescript": "5.3.3"
   },
