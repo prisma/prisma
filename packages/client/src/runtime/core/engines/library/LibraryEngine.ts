@@ -180,14 +180,26 @@ export class LibraryEngine implements Engine<undefined> {
         isolation_level: arg.isolationLevel,
       })
 
-      // @ts-ignore
-      result = await __PrismaProxy.startTransaction(this.engine, jsonOptions, headerStr)
+      if (TARGET_BUILD_TYPE === 'rn') {
+        // @ts-ignore
+        result = await __PrismaProxy.startTransaction(this.engine, jsonOptions, headerStr)
+      } else {
+        result = await this.engine?.startTransaction(jsonOptions, headerStr)
+      }
     } else if (action === 'commit') {
-      // @ts-ignore
-      result = await __PrismaProxy.commitTransaction(this.engine, arg.id, headerStr)
+      if (TARGET_BUILD_TYPE === 'rn') {
+        // @ts-ignore
+        result = await __PrismaProxy.commitTransaction(this.engine, arg.id, headerStr)
+      } else {
+        result = await this.engine?.commitTransaction(arg.id, headerStr)
+      }
     } else if (action === 'rollback') {
-      // @ts-ignore
-      result = await __PrismaProxy.rollbackTransaction(this.engine, arg.id, headerStr)
+      if (TARGET_BUILD_TYPE === 'rn') {
+        // @ts-ignore
+        result = await __PrismaProxy.rollbackTransaction(this.engine, arg.id, headerStr)
+      } else {
+        result = await this.engine?.rollbackTransaction(arg.id, headerStr)
+      }
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
