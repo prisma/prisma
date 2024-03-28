@@ -363,9 +363,8 @@ export class Init implements Command {
       )
     }
 
-    const promoMessage = `Deploying your app to serverless or edge functions?
-    Try Prisma Accelerate for connection pooling and caching.
-    ${link('https://pris.ly/cli/accelerate')}`
+    const promoMessage = `Developing real-time features? Prisma Pulse lets you respond instantly to database changes.
+${link('https://pris.ly/cli/pulse')}`
 
     const boxedPromoMessage = drawBox({
       height: promoMessage.split('\n').length,
