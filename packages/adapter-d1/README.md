@@ -2,13 +2,10 @@
 
 Prisma driver adapter for [Cloudflare's D1 database](https://developers.cloudflare.com/d1/).
 
-> [!IMPORTANT]
-> We do not recommend using the adapter in a production environment yet.
-> The adapter is currently in [Early Access](https://www.prisma.io/docs/orm/more/releases#early-access), we are looking for feedback before moving to Preview.
+> [!NOTE]
+> The adapter is currently in [Preview](https://www.prisma.io/docs/orm/more/releases#early-access), we are looking for feedback before moving to General Availability.
 
 <!-- TODO Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
-
-<!-- > **Note**: Support for Cloudflare D1 is available in [Early Access](https://www.prisma.io/docs/about/prisma/releases#early-access) from Prisma versions [TODO](https://github.com/prisma/prisma/releases/tag/TODO) and later. -->
 
 ## Getting started
 
@@ -30,9 +27,9 @@ datasource db {
 Install Prisma CLI, Prisma Client, the Prisma adapter for Cloudflare D1, the TypeScript types for Cloudflare Workers, and Wrangler CLI packages:
 
 ```sh
-npm install @prisma/client@early-access
-npm install @prisma/adapter-d1@early-access
-npm install --save-dev prisma@early-access
+npm install @prisma/client
+npm install @prisma/adapter-d1
+npm install --save-dev prisma
 npm install --save-dev @cloudflare/workers-types
 npm install --save-dev wrangler
 ```
