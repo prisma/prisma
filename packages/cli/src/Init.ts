@@ -4,6 +4,7 @@ import {
   canConnectToDatabase,
   checkUnsupportedDataProxy,
   Command,
+  drawBox,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -362,6 +363,17 @@ export class Init implements Command {
       )
     }
 
+    const promoMessage = `Deploying your app to serverless or edge functions?
+    Try Prisma Accelerate for connection pooling and caching.
+    ${link('https://pris.ly/cli/accelerate')}`
+
+    const boxedPromoMessage = drawBox({
+      height: promoMessage.split('\n').length,
+      width: 0, // calculated automatically
+      str: promoMessage,
+      horizontalPadding: 2,
+    })
+
     return `
 ✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
@@ -371,6 +383,8 @@ ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
 More information in our documentation:
 ${link('https://pris.ly/d/getting-started')}
+
+${boxedPromoMessage}
     `
   }
 
