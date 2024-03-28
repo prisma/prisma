@@ -606,8 +606,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
-        version: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
+        specifier: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
+        version: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -633,8 +633,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
-        version: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
+        specifier: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
+        version: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -855,8 +855,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
-        version: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
+        specifier: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
+        version: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -892,8 +892,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
-        version: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
+        specifier: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
+        version: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1217,8 +1217,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
-        version: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
+        specifier: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
+        version: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1374,8 +1374,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
-        version: 5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9
+        specifier: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
+        version: 5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3535,8 +3535,8 @@ packages:
     resolution: {integrity: sha512-HNUrTqrd8aTRZYMDcsoZ62s36sIWkMMmKZBOehoCWR2WrfNPKq+Q1yQef5okl3pSVlldFnu2h/dbHjOsDTHXug==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9:
-    resolution: {integrity: sha512-sgAVLFBuInQ2Y1pZMjxiWwNicZPLXdy/k/vh/HUCiIoDrTa5gBuCf9hABFRhqCGM9bSM5ARBDj06v4Xb3/e+AQ==}
+  /@prisma/engines-version@5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3:
+    resolution: {integrity: sha512-zq9A2s/bRDZIfYSL7m3tTLTdjKtTIiSUfRaVTAO+rhWQ+eO0izaiXIOyd2ucHYtOfJMfa1zK38l8EEw5PCfCxQ==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3544,12 +3544,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9:
-    resolution: {integrity: sha512-nj4h6ndbmlN2sp7sx5/BclCTBCCWi4PEIxwqUKxnNGo9pwNI1cFXdqmZhWOnIEeaDCZxuqTHq3tT0zvU9eRIzw==}
+  /@prisma/prisma-schema-wasm@5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3:
+    resolution: {integrity: sha512-XV51oBkEcwfrx3EQyGBcMdBwmkoYe5lZnhcYdPdwUa8WnvEjpNVshz5D6qTUH/W83pf2iFMWIQSz1Z3vWdOYlQ==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9:
-    resolution: {integrity: sha512-juzuZAPOljTNLxhzvGKWmpPjdpJhNq5Is2L8N+tRgyLZRievQBxU34gZoW1ru3VJpP8xjX8CyEXL4hXUojxkYw==}
+  /@prisma/query-engine-wasm@5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3:
+    resolution: {integrity: sha512-rJI5hM44k66j7/YLTFgpAC6EGp2/ulyzIKFzhmaa4BdXGMHbmYqKaz5Pw6M2LjZlHzMpHvV2GcnPRFt/3/r2XA==}
     dev: true
 
   /@prisma/studio-common@0.499.0:

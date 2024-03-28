@@ -81,7 +81,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.12.0-17.12fad4795eef0c21ed444646215f274961d99cf9",
+    "@prisma/prisma-schema-wasm": "5.12.0-18.feat-enable-create-many-for-sqlite-aaa83118b69ba19b89249b386afd03e7efb06bc3",
     "arg": "5.0.2",
     "prompts": "2.4.2"
   },

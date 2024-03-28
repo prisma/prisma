@@ -47718,6 +47718,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
     "modelOperations": [
       {
         "aggregate": "aggregateA",
+        "createMany": "createManyA",
         "createOne": "createOneA",
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
@@ -48464,6 +48465,39 @@ exports[`getDMMF success simple model, sqlite 2`] = `
             },
           ],
           "name": "AUncheckedUpdateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "name",
+            },
+          ],
+          "name": "ACreateManyInput",
         },
         {
           "constraints": {
@@ -51148,6 +51182,37 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                 "location": "outputObjectTypes",
                 "namespace": "model",
                 "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AffectedRowsOutput",
               },
             },
             {
