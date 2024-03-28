@@ -250,8 +250,8 @@ Please make sure they have the same version.`
             : ''
 
         const tryAccelerateMessage = `Supercharge your Prisma Client with global database caching, scalable connection pooling and real-time database events.
-Explore Prisma Accelerate: ${link('https://pris.ly/cli/_accelerate')}
-Explore Prisma Pulse: ${link('https://pris.ly/cli/_pulse')}`
+Explore Prisma Accelerate: ${link('https://pris.ly/cli/-accelerate')}
+Explore Prisma Pulse: ${link('https://pris.ly/cli/-pulse')}`
 
         const boxedTryAccelerateMessage = drawBox({
           height: tryAccelerateMessage.split('\n').length,
