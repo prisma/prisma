@@ -35,5 +35,9 @@ testMatrix.setupTestSuite(
         Just for the sake of keeping test times acceptable, we are testing it only on sqlite
       `,
     },
+    skipDriverAdapter: {
+      from: ['js_d1'],
+      reason: 'https://github.com/prisma/team-orm/issues/1070',
+    },
   },
 )
