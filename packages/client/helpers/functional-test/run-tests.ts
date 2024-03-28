@@ -154,7 +154,12 @@ async function main(): Promise<number | void> {
     )
 
     if (unknownAdapterProviders.length > 0) {
-      throw new Error(`Unknown adapter providers: ${unknownAdapterProviders.join(', ')}`)
+      const allAdaptersStr = Array.from(allAdapterProviders)
+        .map((provider) => `  - ${provider}`)
+        .join('\n')
+      throw new Error(
+        `Unknown adapter providers: ${unknownAdapterProviders.join(', ')}. Available options:\n${allAdaptersStr}\n\n`,
+      )
     }
 
     if (adapterProviders.some(isDriverAdapterProviderLabel)) {
