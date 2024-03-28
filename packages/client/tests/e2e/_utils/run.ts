@@ -55,7 +55,7 @@ async function main() {
   console.log('🎠 Preparing e2e tests')
 
   let allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
-  allPackageFolderNames = allPackageFolderNames.filter((p) => p.includes('DS_store'))
+  allPackageFolderNames = allPackageFolderNames.filter((p) => !p.includes('.DS_store'))
 
   if (args['--skipPack'] === false) {
     // this process will need to modify some package.json, we save copies
