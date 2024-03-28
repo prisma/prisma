@@ -373,9 +373,8 @@ testMatrix.setupTestSuite(
 
       testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
         await expect(
-          // @ts-test-if: provider !== 'sqlite'
           prisma.user.createMany({
-            // @ts-test-if: provider === 'sqlite'
+            // @ts-expect-error
             relationLoadStrategy: 'query',
             data: [{ login: 'user' }],
           }),
@@ -384,9 +383,9 @@ testMatrix.setupTestSuite(
           Invalid \`prisma.user.createMany()\` invocation in
           /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
+            XX 
             XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
             XX   await expect(
-            XX     // @ts-test-if: provider !== 'sqlite'
           → XX     prisma.user.createMany({
                       relationLoadStrategy: "query",
                       ~~~~~~~~~~~~~~~~~~~~
@@ -406,9 +405,8 @@ testMatrix.setupTestSuite(
         'createMany (sqlserver, mongodb)',
         async () => {
           await expect(
-            // @ts-test-if: provider !== 'sqlite'
             prisma.user.createMany({
-              // @ts-test-if: provider === 'sqlite'
+              // @ts-expect-error
               relationLoadStrategy: 'query',
               data: [{ login: 'user' }],
             }),
@@ -417,9 +415,9 @@ testMatrix.setupTestSuite(
             Invalid \`prisma.user.createMany()\` invocation in
             /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
+              XX 'createMany (sqlserver, mongodb)',
               XX async () => {
               XX   await expect(
-              XX     // @ts-test-if: provider !== 'sqlite'
             → XX     prisma.user.createMany({
                         relationLoadStrategy: "query",
                         ~~~~~~~~~~~~~~~~~~~~

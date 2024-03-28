@@ -740,7 +740,7 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
-              // @ts-test-if: provider !== Providers.SQLITE && provider !== Providers.MONGODB
+              // @ts-test-if: provider !== Providers.MONGODB
               expectTypeOf(operation).toEqualTypeOf<
                 | 'findUnique'
                 | 'findUniqueOrThrow'
@@ -805,7 +805,7 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
-              // @ts-test-if: provider !== Providers.SQLITE && provider !== Providers.MONGODB
+              // @ts-test-if: provider !== Providers.MONGODB
               expectTypeOf(operation).toEqualTypeOf<
                 | 'findUnique'
                 | 'findUniqueOrThrow'
@@ -1237,13 +1237,10 @@ testMatrix.setupTestSuite(
                 return data
               },
 
-              // @ts-test-if: provider !== Providers.SQLITE
               async createMany({ args, query, operation }) {
                 const data = await query(args)
 
-                // @ts-test-if: provider !== Providers.SQLITE
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
-                // @ts-test-if: provider !== Providers.SQLITE
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
@@ -1387,14 +1384,10 @@ testMatrix.setupTestSuite(
                   return data
                 }
 
-                // @ts-test-if: provider !== Providers.SQLITE
                 if (operation === 'createMany') {
-                  // @ts-test-if: provider !== Providers.SQLITE
                   const data = await query(args)
 
-                  // @ts-test-if: provider !== Providers.SQLITE
                   expectTypeOf(operation).toEqualTypeOf<'createMany'>()
-                  // @ts-test-if: provider !== Providers.SQLITE
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
@@ -1545,14 +1538,10 @@ testMatrix.setupTestSuite(
 
                   return data
                 }
-                // @ts-test-if: provider !== Providers.SQLITE
                 if (model === 'User' && operation === 'createMany') {
-                  // @ts-test-if: provider !== Providers.SQLITE
                   const data = await query(args)
 
-                  // @ts-test-if: provider !== Providers.SQLITE
                   expectTypeOf(operation).toEqualTypeOf<'createMany'>()
-                  // @ts-test-if: provider !== Providers.SQLITE
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
@@ -1703,15 +1692,12 @@ testMatrix.setupTestSuite(
                 return data
               },
 
-              // @ts-test-if: provider !== Providers.SQLITE
               async createMany({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
                 const data = await query(args)
 
-                // @ts-test-if: provider !== Providers.SQLITE
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
-                // @ts-test-if: provider !== Providers.SQLITE
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
@@ -1848,8 +1834,7 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-              // TODO not sure why it is not failing here on SQLite
-              // @ts-test-if: provider === Providers.MONGODB || provider === Providers.SQLITE
+              // @ts-test-if: provider === Providers.MONGODB
               async aggregateRaw({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 

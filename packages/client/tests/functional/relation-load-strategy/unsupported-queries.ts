@@ -173,7 +173,6 @@ testMatrix.setupTestSuite(
 
       testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
         await expect(
-          // @ts-test-if: provider !== 'sqlite'
           prisma.user.createMany({
             // @ts-test-if: provider === 'sqlite'
             relationLoadStrategy: 'query',
@@ -181,59 +180,26 @@ testMatrix.setupTestSuite(
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-            Invalid \`prisma.user.createMany()\` invocation in
-            /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
+          Invalid \`prisma.user.createMany()\` invocation in
+          /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
-              XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
-              XX   await expect(
-              XX     // @ts-test-if: provider !== 'sqlite'
-            → XX     prisma.user.createMany({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        data: [
-                          {
-                            login: "user"
-                          }
-                        ],
-                      ? skipDuplicates?: Boolean
-                      })
+            XX 
+            XX testIf(![Providers.SQLITE, Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany', async () => {
+            XX   await expect(
+          → XX     prisma.user.createMany({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      data: [
+                        {
+                          login: "user"
+                        }
+                      ],
+                    ? skipDuplicates?: Boolean
+                    })
 
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
         `)
       })
-
-      testIf([Providers.SQLSERVER, Providers.MONGODB].includes(provider))(
-        'createMany (sqlserver, mongodb)',
-        async () => {
-          await expect(
-            // @ts-test-if: provider !== 'sqlite'
-            prisma.user.createMany({
-              // @ts-test-if: provider === 'sqlite'
-              relationLoadStrategy: 'query',
-              data: [{ login: 'user' }],
-            }),
-          ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-              Invalid \`prisma.user.createMany()\` invocation in
-              /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
-
-                XX async () => {
-                XX   await expect(
-                XX     // @ts-test-if: provider !== 'sqlite'
-              → XX     prisma.user.createMany({
-                          relationLoadStrategy: "query",
-                          ~~~~~~~~~~~~~~~~~~~~
-                          data: [
-                            {
-                              login: "user"
-                            }
-                          ]
-                        })
-
-              Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
-          `)
-        },
-      )
 
       test('updateMany', async () => {
         await expect(
