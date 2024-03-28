@@ -29,7 +29,7 @@
   "devDependencies": {
     "@antfu/ni": "0.21.12",
     "@opentelemetry/api": "1.8.0",
-    "@swc/core": "1.2.204",
+    "@swc/core": "1.4.11",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.26",
