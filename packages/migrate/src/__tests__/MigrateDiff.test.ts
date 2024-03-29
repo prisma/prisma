@@ -96,7 +96,6 @@ describe('migrate diff', () => {
         'miniflare-D1DatabaseObject',
         '5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite',
       )
-      console.log('url', url)
 
       const result = await MigrateDiff.new().parse(['--to-empty', '--from-url', `file:${url}`, '--script'])
       expect(result).toMatchInlineSnapshot(``)
@@ -126,7 +125,6 @@ describe('migrate diff', () => {
         'miniflare-D1DatabaseObject',
         '5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite',
       )
-      console.log('url', url)
 
       const result = await MigrateDiff.new().parse(['--from-empty', '--to-url', `file:${url}`, '--script'])
       expect(result).toMatchInlineSnapshot(``)
