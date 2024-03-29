@@ -228,9 +228,11 @@ export async function resolveDistro(): Promise<DistroInfo> {
   // https://github.com/retrohacker/getos/blob/master/os.json
 
   const osReleaseFile = '/etc/os-release'
+  let distroInfo: DistroInfo
+
   try {
     const osReleaseInput = await fs.readFile(osReleaseFile, { encoding: 'utf-8' })
-    return parseDistro(osReleaseInput)
+    distroInfo = parseDistro(osReleaseInput)
   } catch (_) {
     return {
       targetDistro: undefined,
@@ -238,6 +240,22 @@ export async function resolveDistro(): Promise<DistroInfo> {
       originalDistro: undefined,
     }
   }
+
+  // If it's a regular Linux distro with Nix as a package manager, and the Node.js
+  // version we are running under was installed with Nix, override the target
+  // distro and treat it as NixOS. The reason is because Nix-installed Node.js
+  // will not be able to load the query engine library that depends on the system
+  // OpenSSL.
+  if (distroInfo.targetDistro !== 'nixos' && process.argv[0].startsWith('/nix/store/')) {
+    debug(
+      'this Node.js or another runtime (%s) comes from the Nix store, overriding the target distro from "%s" to "nixos"',
+      process.argv[0],
+      distroInfo.targetDistro,
+    )
+    distroInfo.targetDistro = 'nixos'
+  }
+
+  return distroInfo
 }
 
 /**
