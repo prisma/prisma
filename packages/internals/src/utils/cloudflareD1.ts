@@ -4,7 +4,7 @@ import process from 'node:process'
 import glob from 'globby'
 import { match } from 'ts-pattern'
 
-const defaultD1DirPath = '.wrangler/state/v3/d1/miniflare-D1DatabaseObject'
+const defaultD1DirPath = path.join('.wrangler', 'state', 'v3', 'd1', 'miniflare-D1DatabaseObject')
 
 type TocateLocalCloudflareD1Args = {
   arg: '--to-local-d1' | '--from-local-d1'
