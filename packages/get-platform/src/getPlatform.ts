@@ -534,7 +534,7 @@ ${additionalMessage}`,
   }
 
   if (platform === 'linux' && targetDistro === 'nixos') {
-    return 'linux-nixos'
+    return arch === 'arm64' ? 'linux-nixos-arm64' : 'linux-nixos'
   }
 
   if (platform === 'linux' && arch === 'arm64') {
