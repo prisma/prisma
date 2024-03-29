@@ -164,7 +164,6 @@ model AwesomeProfile {
 `;
 
 exports[`common/sqlite should succeed when --local-d1 and a single local Cloudflare D1 database exists 1`] = `
-schemaPath,
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
@@ -193,7 +192,6 @@ model User {
 `;
 
 exports[`common/sqlite should succeed when --local-d1 and a single local Cloudflare D1 database exists 2`] = `
-schemaPath,
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
@@ -221,7 +219,7 @@ model User {
 
 `;
 
-exports[`common/sqlite should succeed when reintrospecting with --local-d1 and a single local Cloudflare D1 database exists 2`] = `schemaPath,/private/var/folders/z_/f5ttrqvn7_70qf7kw61yf6qr0000gn/T/28d1af6632a5bba1db69057e024520d3/prisma/schema.prisma`;
+exports[`common/sqlite should succeed when reintrospecting with --local-d1 and a single local Cloudflare D1 database exists 2`] = ``;
 
 exports[`common/sqlite should succeed when schema is invalid and using --force 7`] = `
 generator client {
