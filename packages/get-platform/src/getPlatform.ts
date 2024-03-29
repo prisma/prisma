@@ -313,6 +313,11 @@ export function computeLibSSLSpecificPaths(args: ComputeLibSSLSpecificPathsParam
       debug('Trying platform-specific paths for "rhel"')
       return ['/lib64', '/usr/lib64']
     })
+    .with({ familyDistro: 'nixos' }, () => {
+      /* NixOS */
+      debug('NixOS detected, no platform-specific shared library paths exist')
+      return []
+    })
     .otherwise(({ familyDistro, arch, archFromUname }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
       debug(`Don't know any platform-specific paths for "${familyDistro}" on ${arch} (${archFromUname})`)
