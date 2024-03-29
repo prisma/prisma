@@ -483,7 +483,12 @@ export function getBinaryTargetForCurrentPlatformInternal(args: GetOSResult): Bi
 
   // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
   const defaultLibssl = '1.1.x' as const
-  if (platform === 'linux' && libssl === undefined) {
+
+  // openssl detection is irrelevant on nixos (also on linux-static-*: we don't currently
+  // support detecting those targets but if we were to in the future then it would make
+  // sense to move this check later and make it dependent on the `binaryTarget` rather than
+  // `platform` + `targetDistro`)
+  if (platform === 'linux' && libssl === undefined && targetDistro !== 'nixos') {
     /**
      * Ask the user to install libssl manually, and provide some additional instructions based on the detected Linux distro family.
      * TODO: we should also provide a pris.ly link to a documentation page with more details on how to install libssl.
