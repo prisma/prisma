@@ -98,7 +98,7 @@ export async function getos(): Promise<GetOSResult> {
   const distroInfo = await resolveDistro()
   const archFromUname = await getArchFromUname()
   const libsslSpecificPaths = computeLibSSLSpecificPaths({ arch, archFromUname, familyDistro: distroInfo.familyDistro })
-  const { libssl } = await getSSLVersion(libsslSpecificPaths)
+  const { libssl } = await getSSLVersion(libsslSpecificPaths, distroInfo.targetDistro)
 
   return {
     platform: 'linux',
@@ -363,7 +363,21 @@ type GetOpenSSLVersionResult =
  *
  * This function never throws.
  */
-export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetOpenSSLVersionResult> {
+export async function getSSLVersion(
+  libsslSpecificPaths: string[],
+  targetDistro?: DistroInfo['targetDistro'],
+): Promise<GetOpenSSLVersionResult> {
+  if (targetDistro === 'nixos') {
+    // On NixOS, the concept of detecting OpenSSL version fundamentally doesn't
+    // apply as there are no global libraries. Instead, we need to tell Nix
+    // that our binaries depends on a specific version of OpenSSL, and let Nix
+    // fulfill the dependency, download it if necessary, and set the RPATH in
+    // ELF headers of the downloaded engines to point at the specific locations
+    // of every library they depend on in the Nix store (even glibc). This is
+    // facilitated in `@prisma/fetch-engine`.
+    return {}
+  }
+
   const excludeLibssl0x = 'grep -v "libssl.so.0"'
   const libsslFilenameFromSpecificPath: string | undefined = await findLibSSLInLocations(libsslSpecificPaths)
 
