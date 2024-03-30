@@ -5,7 +5,7 @@ Prisma driver adapter for [Cloudflare's D1 database](https://developers.cloudfla
 > [!NOTE]
 > The adapter is currently in [Preview](https://www.prisma.io/docs/orm/more/releases#early-access), we are looking for feedback before moving to General Availability.
 
-<!-- TODO Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1) for more details. -->
+Refer to the [announcement blog post](https://prisma.io/cloudflare-d1) and our [docs](https://www.prisma.io/docs/orm/overview/databases/cloudflare-d1) for more details.
 
 ## Getting started
 
@@ -102,10 +102,12 @@ export default {
 > database_id = "<unique-ID-for-your-database>"
 > ```
 
-<!-- TODO Refer to our [docs](https://www.prisma.io/docs/guides/database/cloudflare-d1#how-to-manage-schema-changes) to learn how to manage schema changes when using Prisma and Cloudflare D1. -->
+## Migrations
 
-<!-- ## Feedback
-TODO Leave this till preview
+Please refer to our [docs](https://www.prisma.io/docs/orm/overview/databases/cloudflare-d1#migration-workflows) to learn how to manage schema changes when using Prisma and Cloudflare D1.
+
+## Feedback
+
 We encourage you to create an issue if you find something missing or run into a bug.
 
-If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/TODO). -->
+If you have any feedback, leave a comment in [this GitHub discussion](https://github.com/prisma/prisma/discussions/23646).
