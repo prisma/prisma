@@ -73,8 +73,11 @@ export async function fetchEngineWithNix(job: NixDownloadJob): Promise<void> {
  * because the logic here is different.
  * First of all, we cannot ignore missing checksums for NixOS binary targets, even
  * if the environment variable `PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING` is set.
- * Without knowing the hash of the binary, we cannot build the Nix derivation
- * ... todo ...
+ * Without knowing the hash of the binary, we cannot build the Nix derivation.
+ * To support offline environments, we also read the sha256 hash in the cache directory
+ * if we cannot download it from the network, however this may still fail later
+ * if the output of the derivation or everything needed to realize it is not already
+ * in the store.
  */
 async function fetchSha256Hash(job: NixDownloadJob): Promise<string> {
   const { downloadUrl, version, binaryTarget, binaryName } = job
