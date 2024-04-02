@@ -308,17 +308,16 @@ function runCommandRawDefinition(this: PrismaClientClass) {
 }
 
 function applyPendingMigrationsDefinition(this: PrismaClientClass) {
-  const method = ts.method('$applyPendingMigrations').setReturnType(ts.promise(ts.voidType))
-
   if (this.runtimeNameTs !== 'react-native') {
-    method.setDocComment(ts.docComment`
-  Tries to apply pending migrations to the database.
-  `)
-  } else {
-    method.setDocComment(
-      ts.docComment`Do not use outside the react native client. This method will always throw an error`,
-    )
+    return null
   }
+
+  const method = ts
+    .method('$applyPendingMigrations')
+    .setReturnType(ts.promise(ts.voidType))
+    .setDocComment(
+      ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
+    )
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
@@ -408,6 +407,7 @@ ${[
   applyPendingMigrationsDefinition.bind(this)(),
   this.clientExtensionsDefinitions.prismaClientDefinitions,
 ]
+  .filter((d) => d !== null)
   .join('\n')
   .trim()}
 
