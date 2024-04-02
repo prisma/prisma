@@ -17,9 +17,11 @@ type TocateLocalCloudflareD1Args = {
 // where `<UUID>` is a unique identifier for the database.
 export async function locateLocalCloudflareD1({ arg }: TocateLocalCloudflareD1Args) {
   const cwd = process.cwd()
-  const d1DirPath = path.join(cwd, defaultD1DirPath)
 
-  const d1Databases = await glob(path.join(pathToPosix(d1DirPath), '*.sqlite'), {})
+  const d1Databases = await glob(path.join(pathToPosix(defaultD1DirPath), '*.sqlite'), {
+    cwd,
+    onlyFiles: true,
+  })
 
   if (d1Databases.length === 0) {
     throw new Error(
