@@ -363,7 +363,8 @@ export class Init implements Command {
       )
     }
 
-    const promoMessage = `Developing real-time features? Prisma Pulse lets you respond instantly to database changes.
+    const promoMessage = `Developing real-time features?
+Prisma Pulse lets you respond instantly to database changes.
 ${link('https://pris.ly/cli/pulse')}`
 
     const boxedPromoMessage = drawBox({

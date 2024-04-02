@@ -249,7 +249,8 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        const tryAccelerateMessage = `Supercharge your Prisma Client with global database caching, scalable connection pooling and real-time database events.
+        const tryAccelerateMessage = `Supercharge your Prisma Client with global database caching,
+scalable connection pooling and real-time database events.
 Explore Prisma Accelerate: ${link('https://pris.ly/cli/-accelerate')}
 Explore Prisma Pulse: ${link('https://pris.ly/cli/-pulse')}`
 
