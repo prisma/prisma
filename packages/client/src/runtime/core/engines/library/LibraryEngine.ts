@@ -29,6 +29,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
+import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
 
@@ -78,14 +79,7 @@ export class LibraryEngine implements Engine<undefined> {
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
     if (TARGET_BUILD_TYPE === 'react-native') {
-      // dummy library, should never be called
-      this.libraryLoader = {
-        loadLibrary() {
-          throw new Error(
-            'React Native bindings cannot be loaded from inside this library, import react-native-prisma on user code',
-          )
-        },
-      }
+      this.libraryLoader = reactNativeLibraryLoader
     } else if (TARGET_BUILD_TYPE === 'library') {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
@@ -135,8 +129,7 @@ export class LibraryEngine implements Engine<undefined> {
   async applyPendingMigrations(): Promise<void> {
     if (TARGET_BUILD_TYPE === 'react-native') {
       await this.start()
-      // @ts-ignore
-      __PrismaProxy.applyPendingMigrations(this.engine, this.datamodel)
+      await this.engine?.applyPendingMigrations()
     } else {
       throw new Error('Cannot call this method from this type of engine instance')
     }
@@ -170,26 +163,11 @@ export class LibraryEngine implements Engine<undefined> {
         isolation_level: arg.isolationLevel,
       })
 
-      if (TARGET_BUILD_TYPE === 'react-native') {
-        // @ts-ignore
-        result = await __PrismaProxy.startTransaction(this.engine, jsonOptions, headerStr)
-      } else {
-        result = await this.engine?.startTransaction(jsonOptions, headerStr)
-      }
+      result = await this.engine?.startTransaction(jsonOptions, headerStr)
     } else if (action === 'commit') {
-      if (TARGET_BUILD_TYPE === 'react-native') {
-        // @ts-ignore
-        result = await __PrismaProxy.commitTransaction(this.engine, arg.id, headerStr)
-      } else {
-        result = await this.engine?.commitTransaction(arg.id, headerStr)
-      }
+      result = await this.engine?.commitTransaction(arg.id, headerStr)
     } else if (action === 'rollback') {
-      if (TARGET_BUILD_TYPE === 'react-native') {
-        // @ts-ignore
-        result = await __PrismaProxy.rollbackTransaction(this.engine, arg.id, headerStr)
-      } else {
-        result = await this.engine?.rollbackTransaction(arg.id, headerStr)
-      }
+      result = await this.engine?.rollbackTransaction(arg.id, headerStr)
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
@@ -263,75 +241,50 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private async loadEngine(): Promise<void> {
-    if (!this.engine) {
-      if (TARGET_BUILD_TYPE === 'react-native') {
-        const weakThis = new WeakRef(this)
+    if (this.engine) {
+      return
+    }
 
-        // @ts-expect-error
-        if (!__PrismaProxy) {
-          throw new PrismaClientInitializationError(
-            '__PrismaProxy not detected make sure rn bindings are installed',
-            this.config.clientVersion!,
-          )
-        }
-        // @ts-ignore
-        this.engine = __PrismaProxy.create({
+    if (!this.QueryEngineConstructor) {
+      this.library = await this.libraryLoader.loadLibrary(this.config)
+      this.QueryEngineConstructor = this.library.QueryEngine
+    }
+    try {
+      // Using strong reference to `this` inside of log callback will prevent
+      // this instance from being GCed while native engine is alive. At the
+      // same time, `this.engine` field will prevent native instance from
+      // being GCed. Using weak ref helps to avoid this cycle
+      const weakThis = new WeakRef(this)
+      const { adapter } = this.config
+
+      if (adapter) {
+        debug('Using driver adapter: %O', adapter)
+      }
+
+      this.engine = new this.QueryEngineConstructor(
+        {
           datamodel: this.datamodel,
           env: process.env,
+          logQueries: this.config.logQueries ?? false,
           ignoreEnvVarErrors: true,
           datasourceOverrides: this.datasourceOverrides ?? {},
           logLevel: this.logLevel,
-          logQueries: this.config.logQueries ?? false,
-          logCallback: (log: string) => {
-            weakThis.deref()?.logger(log)
-          },
-        })
-
-        engineInstanceCount++
-        return
-      }
-
-      if (!this.QueryEngineConstructor) {
-        this.library = await this.libraryLoader.loadLibrary(this.config)
-        this.QueryEngineConstructor = this.library.QueryEngine
-      }
-      try {
-        // Using strong reference to `this` inside of log callback will prevent
-        // this instance from being GCed while native engine is alive. At the
-        // same time, `this.engine` field will prevent native instance from
-        // being GCed. Using weak ref helps to avoid this cycle
-        const weakThis = new WeakRef(this)
-        const { adapter } = this.config
-
-        if (adapter) {
-          debug('Using driver adapter: %O', adapter)
-        }
-
-        this.engine = new this.QueryEngineConstructor(
-          {
-            datamodel: this.datamodel,
-            env: process.env,
-            logQueries: this.config.logQueries ?? false,
-            ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverrides ?? {},
-            logLevel: this.logLevel,
-            configDir: this.config.cwd,
-            engineProtocol: 'json',
-          },
-          (log) => {
-            weakThis.deref()?.logger(log)
-          },
-          adapter,
-        )
-        engineInstanceCount++
-      } catch (_e) {
-        const e = _e as Error
-        const error = this.parseInitError(e.message)
-        if (typeof error === 'string') {
-          throw e
-        } else {
-          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
-        }
+          configDir: this.config.cwd,
+          engineProtocol: 'json',
+        },
+        (log) => {
+          weakThis.deref()?.logger(log)
+        },
+        adapter,
+      )
+      engineInstanceCount++
+    } catch (_e) {
+      const e = _e as Error
+      const error = this.parseInitError(e.message)
+      if (typeof error === 'string') {
+        throw e
+      } else {
+        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
       }
     }
   }
@@ -420,12 +373,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           traceparent: this.config.tracingHelper.getTraceParent(),
         }
 
-        if (TARGET_BUILD_TYPE === 'react-native') {
-          // @ts-ignore
-          __PrismaProxy.connect(this.engine, JSON.stringify(headers))
-        } else {
-          await this.engine?.connect(JSON.stringify(headers))
-        }
+        await this.engine?.connect(JSON.stringify(headers))
 
         this.libraryStarted = true
 
@@ -472,12 +420,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         traceparent: this.config.tracingHelper.getTraceParent(),
       }
 
-      if (TARGET_BUILD_TYPE === 'react-native') {
-        // @ts-ignore
-        __PrismaProxy.disconnect(this.engine, JSON.stringify(headers))
-      } else {
-        await this.engine?.disconnect(JSON.stringify(headers))
-      }
+      await this.engine?.disconnect(JSON.stringify(headers))
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
@@ -511,17 +454,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     try {
       await this.start()
-      if (TARGET_BUILD_TYPE === 'react-native') {
-        //@ts-ignore
-        this.executingQueryPromise = __PrismaProxy.execute(
-          this.engine,
-          queryStr,
-          headerStr,
-          interactiveTransaction?.id,
-        ) as Promise<string>
-      } else {
-        this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
-      }
+
+      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
@@ -566,21 +500,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
-    if (TARGET_BUILD_TYPE === 'react-native') {
-      // @ts-ignore
-      this.executingQueryPromise = __PrismaProxy.execute(
-        this.engine,
-        this.lastQuery,
-        JSON.stringify({ traceparent }),
-        getInteractiveTransactionId(transaction),
-      )
-    } else {
-      this.executingQueryPromise = this.engine!.query(
-        this.lastQuery,
-        JSON.stringify({ traceparent }),
-        getInteractiveTransactionId(transaction),
-      )
-    }
+
+    this.executingQueryPromise = this.engine!.query(
+      this.lastQuery,
+      JSON.stringify({ traceparent }),
+      getInteractiveTransactionId(transaction),
+    )
+
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 
