@@ -69,7 +69,7 @@ test('runtime files exists', async () => {
   "index-browser.js",
   "library.d.ts",
   "library.js",
-  "rn.js",
+  "react-native.js",
   "wasm.js",
 ]
 `)
