@@ -7,6 +7,7 @@ import fs from 'fs/promises'
 import { getProxyAgent } from './getProxyAgent'
 import { getCacheDir } from './utils'
 import path from 'path'
+import execa from 'execa'
 
 const debug = Debug('prisma:fetch-engine:nix')
 
@@ -56,6 +57,10 @@ type NixDownloadJob = {
 export async function fetchEngineWithNix(job: NixDownloadJob): Promise<void> {
   const { progressCb, binaryName, version, fileName, downloadUrl } = job
 
+  if (process.platform !== 'linux' || !hasNixTooling()) {
+    throw new Error('NixOS binary targets are only supported on Linux with Nix installed.')
+  }
+
   if (progressCb) {
     progressCb(0)
   }
@@ -64,6 +69,20 @@ export async function fetchEngineWithNix(job: NixDownloadJob): Promise<void> {
 
   if (progressCb) {
     progressCb(1)
+  }
+}
+
+async function hasNixTooling(): Promise<boolean> {
+  async function checkNixCommand(command: string) {
+    const output = await execa(command, ['--version'])
+    debug(`${command} --version: ${output.stdout}`)
+  }
+
+  try {
+    await Promise.all([checkNixCommand('nix-build'), checkNixCommand('nix-store')])
+    return true
+  } catch {
+    return false
   }
 }
 
