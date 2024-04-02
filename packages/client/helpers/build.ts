@@ -161,7 +161,7 @@ const reactNativeBuildConfig: BuildOptions = {
   emitTypes: false,
   define: {
     NODE_CLIENT: 'false',
-    TARGET_BUILD_TYPE: '"rn"',
+    TARGET_BUILD_TYPE: '"react-native"',
   },
   plugins: [
     fillPlugin({
