@@ -69,7 +69,11 @@ const browserBuildConfig: BuildOptions = {
   sourcemap: 'linked',
 }
 
-const commonEdgeWasmFillerOverrides = {
+/**
+ * Overrides meant for edge, wasm and react-native builds
+ * If at some point they diverge feel free to split them
+ */
+const commonRuntimesOverrides = {
   // we remove eval and Function for vercel
   eval: { define: 'undefined' },
   Function: {
@@ -114,7 +118,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   },
   plugins: [
     fillPlugin({
-      fillerOverrides: commonEdgeWasmFillerOverrides,
+      fillerOverrides: commonRuntimesOverrides,
     }),
   ],
 }
@@ -132,7 +136,7 @@ const wasmRuntimeBuildConfig: BuildOptions = {
   plugins: [
     fillPlugin({
       // not yet enabled in edge build while driverAdapters is not GA
-      fillerOverrides: { ...commonEdgeWasmFillerOverrides, ...smallBuffer, ...smallDecimal },
+      fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
     }),
     copyFilePlugin(
       DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
@@ -161,7 +165,7 @@ const rnRuntimeBuildConfig: BuildOptions = {
   },
   plugins: [
     fillPlugin({
-      fillerOverrides: { ...commonEdgeWasmFillerOverrides },
+      fillerOverrides: { ...commonRuntimesOverrides },
     }),
   ],
   logLevel: 'error',
