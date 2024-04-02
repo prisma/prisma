@@ -44,7 +44,6 @@ ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):
   --to-migrations
 
   --from-local-d1          Automatically locate the local Cloudflare D1 database
-  )}
   --to-local-d1
 
 ${italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
