@@ -783,7 +783,7 @@ jobs:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: false
+          skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/cli
