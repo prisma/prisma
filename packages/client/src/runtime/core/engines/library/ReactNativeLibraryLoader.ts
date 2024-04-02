@@ -91,7 +91,7 @@ export const reactNativeLibraryLoader: LibraryLoader = {
   async loadLibrary(config) {
     if (!__PrismaProxy) {
       throw new PrismaClientInitializationError(
-        '__PrismaProxy not detected make sure rn bindings are installed',
+        '__PrismaProxy not detected make sure React Native bindings are installed',
         config.clientVersion!,
       )
     }
