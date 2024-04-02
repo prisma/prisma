@@ -15,14 +15,14 @@
     "@swc/core": "1.4.6",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.23",
+    "@types/node": "18.19.26",
     "execa": "5.1.1",
     "jest": "29.7.0",
     "typescript": "5.3.3"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.12.0-14.ac6cd787ad122596242218dca95c086051e27e92",
+    "@prisma/engines-version": "5.12.0-21.473ed3124229e22d881cb7addf559799debae1ab",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
