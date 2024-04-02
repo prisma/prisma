@@ -149,11 +149,11 @@ const wasmRuntimeBuildConfig: BuildOptions = {
 
 // React Native is similar to edge in the sense it doesn't have the node API/libraries
 // and also not all the browser APIs, therefore it needs to polyfill the same things as edge
-const rnRuntimeBuildConfig: BuildOptions = {
-  name: 'rn',
+const reactNativeBuildConfig: BuildOptions = {
+  name: 'react-native',
   target: 'ES2022',
   entryPoints: ['src/runtime/index.ts'],
-  outfile: 'runtime/rn',
+  outfile: 'runtime/react-native',
   bundle: true,
   minify: false,
   sourcemap: 'linked',
@@ -222,7 +222,7 @@ void build([
   wasmBindgenRuntimeConfig('mysql'),
   wasmBindgenRuntimeConfig('sqlite'),
   defaultIndexConfig,
-  rnRuntimeBuildConfig,
+  reactNativeBuildConfig,
   accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')

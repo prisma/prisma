@@ -77,7 +77,7 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
-    if (TARGET_BUILD_TYPE === 'rn') {
+    if (TARGET_BUILD_TYPE === 'react-native') {
       // dummy library, should never be called
       this.libraryLoader = {
         loadLibrary() {
@@ -133,7 +133,7 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   async applyPendingMigrations(): Promise<void> {
-    if (TARGET_BUILD_TYPE === 'rn') {
+    if (TARGET_BUILD_TYPE === 'react-native') {
       await this.start()
       // @ts-ignore
       __PrismaProxy.applyPendingMigrations(this.engine, this.datamodel)
@@ -143,7 +143,7 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   async pushSchema(): Promise<void> {
-    if (TARGET_BUILD_TYPE === 'rn') {
+    if (TARGET_BUILD_TYPE === 'react-native') {
       await this.start()
       // @ts-ignore
       __PrismaProxy.pushSchema(this.engine, this.datamodel)
@@ -180,21 +180,21 @@ export class LibraryEngine implements Engine<undefined> {
         isolation_level: arg.isolationLevel,
       })
 
-      if (TARGET_BUILD_TYPE === 'rn') {
+      if (TARGET_BUILD_TYPE === 'react-native') {
         // @ts-ignore
         result = await __PrismaProxy.startTransaction(this.engine, jsonOptions, headerStr)
       } else {
         result = await this.engine?.startTransaction(jsonOptions, headerStr)
       }
     } else if (action === 'commit') {
-      if (TARGET_BUILD_TYPE === 'rn') {
+      if (TARGET_BUILD_TYPE === 'react-native') {
         // @ts-ignore
         result = await __PrismaProxy.commitTransaction(this.engine, arg.id, headerStr)
       } else {
         result = await this.engine?.commitTransaction(arg.id, headerStr)
       }
     } else if (action === 'rollback') {
-      if (TARGET_BUILD_TYPE === 'rn') {
+      if (TARGET_BUILD_TYPE === 'react-native') {
         // @ts-ignore
         result = await __PrismaProxy.rollbackTransaction(this.engine, arg.id, headerStr)
       } else {
@@ -274,7 +274,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   private async loadEngine(): Promise<void> {
     if (!this.engine) {
-      if (TARGET_BUILD_TYPE === 'rn') {
+      if (TARGET_BUILD_TYPE === 'react-native') {
         const weakThis = new WeakRef(this)
 
         // @ts-expect-error
@@ -430,7 +430,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           traceparent: this.config.tracingHelper.getTraceParent(),
         }
 
-        if (TARGET_BUILD_TYPE === 'rn') {
+        if (TARGET_BUILD_TYPE === 'react-native') {
           // @ts-ignore
           __PrismaProxy.connect(this.engine, JSON.stringify(headers))
         } else {
@@ -482,7 +482,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         traceparent: this.config.tracingHelper.getTraceParent(),
       }
 
-      if (TARGET_BUILD_TYPE === 'rn') {
+      if (TARGET_BUILD_TYPE === 'react-native') {
         // @ts-ignore
         __PrismaProxy.disconnect(this.engine, JSON.stringify(headers))
       } else {
@@ -521,7 +521,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     try {
       await this.start()
-      if (TARGET_BUILD_TYPE === 'rn') {
+      if (TARGET_BUILD_TYPE === 'react-native') {
         //@ts-ignore
         this.executingQueryPromise = __PrismaProxy.execute(
           this.engine,
@@ -576,7 +576,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
-    if (TARGET_BUILD_TYPE === 'rn') {
+    if (TARGET_BUILD_TYPE === 'react-native') {
       // @ts-ignore
       this.executingQueryPromise = __PrismaProxy.execute(
         this.engine,
