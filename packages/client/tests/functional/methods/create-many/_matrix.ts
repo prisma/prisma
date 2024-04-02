@@ -18,5 +18,8 @@ export default defineMatrix(() => [
     {
       provider: Providers.MONGODB,
     },
+    {
+      provider: Providers.SQLITE,
+    },
   ],
 ])
