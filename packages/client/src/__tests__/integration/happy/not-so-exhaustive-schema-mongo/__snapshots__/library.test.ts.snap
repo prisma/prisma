@@ -559,11 +559,6 @@ export class PrismaClient<
    */
   $runCommandRaw(command: Prisma.InputJsonObject): Prisma.PrismaPromise<Prisma.JsonObject>
 
-
-  /**
-   * Tries to apply pending migrations to the database.
-   */
-  $applyPendingMigrations(): Prisma.PrismaPromise<void>
   $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>
 
       /**
