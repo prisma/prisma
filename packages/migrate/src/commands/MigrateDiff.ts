@@ -43,8 +43,7 @@ ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):
   --from-migrations        Path to the Prisma Migrate migrations directory
   --to-migrations
 
-  --from-local-d1          Automatically locate the local Cloudflare D1 database, see ${link(
-    'https://pris.ly/d/diff-cloudflare-d1',
+  --from-local-d1          Automatically locate the local Cloudflare D1 database
   )}
   --to-local-d1
 
