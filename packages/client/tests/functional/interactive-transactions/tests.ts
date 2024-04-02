@@ -845,7 +845,8 @@ testMatrix.setupTestSuite(
   {
     skipDriverAdapter: {
       from: ['js_d1'],
-      reason: 'Transactions are not supported is D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733',
+      reason:
+        'iTx are not possible. There is no Transaction API for D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733',
     },
   },
 )

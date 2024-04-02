@@ -56,15 +56,15 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
 const isoDateRegex = new RegExp(
   /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/,
 )
-function isISODate(str) {
-  return isoDateRegex.test(str)
+
+// SQLITE date format, returned by built-in time functions. See https://www.sqlite.org/lang_datefunc.html
+// Essentially, it is "<ISO Date> <ISO Time>"
+const sqliteDateRegex = /^\d{4}-[0-1]\d-[0-3]\d [0-2]\d:[0-5]\d:[0-5]\d$/
+function isISODate(str: string) {
+  return isoDateRegex.test(str) || sqliteDateRegex.test(str)
 }
 
 function inferStringType(value: string): ColumnType {
-  if (['true', 'false'].includes(value)) {
-    return ColumnTypeEnum.Boolean
-  }
-
   if (isISODate(value)) {
     return ColumnTypeEnum.DateTime
   }
@@ -72,19 +72,8 @@ function inferStringType(value: string): ColumnType {
   return ColumnTypeEnum.Text
 }
 
-function inferNumberType(value: number): ColumnType {
-  if (!Number.isInteger(value)) {
-    return ColumnTypeEnum.Float
-    // Note: returning "Numeric" makes is better for our Decimal type
-    // But we can't tell what is a float or a decimal here
-    // return ColumnTypeEnum.Numeric
-  }
-  // Hack - TODO change this when we have type metadata
-  else if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
-    return ColumnTypeEnum.Int32
-  } else {
-    return ColumnTypeEnum.UnknownNumber
-  }
+function inferNumberType(_: number): ColumnType {
+  return ColumnTypeEnum.Double
 }
 
 function inferObjectType(value: Object): ColumnType {

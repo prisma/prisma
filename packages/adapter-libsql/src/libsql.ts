@@ -16,6 +16,7 @@ import type {
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
 
+import { name as packageName } from '../package.json'
 import { getColumnTypes, mapRow } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:libsql')
@@ -26,7 +27,8 @@ type TransactionClient = LibSqlTransactionRaw
 const LOCK_TAG = Symbol()
 
 class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly provider = 'sqlite';
+  readonly provider = 'sqlite'
+  readonly adapterName = packageName;
 
   [LOCK_TAG] = new Mutex()
 

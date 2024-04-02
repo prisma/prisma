@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
+import { Providers } from '../../_utils/providers'
 
 declare let prisma: PrismaClient
 
@@ -67,7 +68,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Mongodb connector does not support the Decimal type.',
     },
   },

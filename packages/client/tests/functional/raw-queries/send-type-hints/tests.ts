@@ -78,7 +78,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: '$queryRaw only works on SQL based providers',
     },
     skipDataProxy: {

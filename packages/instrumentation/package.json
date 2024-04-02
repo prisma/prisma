@@ -16,7 +16,7 @@
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.4.6",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.23",
+    "@types/node": "18.19.26",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "typescript": "5.3.3"

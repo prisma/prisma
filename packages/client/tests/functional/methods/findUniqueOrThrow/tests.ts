@@ -27,6 +27,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     await expect(record).rejects.toMatchObject(new Prisma.NotFoundError('No User found', '0.0.0'))
   })
 
+  // batch transaction needs to be implemented. Unskip once https://github.com/prisma/team-orm/issues/997 is done
   skipTestIf(clientMeta.runtime === 'edge' || _suiteConfig.driverAdapter === 'js_d1')(
     'works with transactions',
     async () => {

@@ -13,7 +13,9 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
+import { name as packageName } from '../package.json'
 import { getColumnTypes, mapRow } from './conversion'
+import { cleanArg, matchSQLiteErrorCode } from './utils'
 
 const debug = Debug('prisma:driver-adapter:d1')
 
@@ -23,6 +25,7 @@ type StdClient = D1Database
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
   readonly provider = 'sqlite'
+  readonly adapterName = packageName
 
   constructor(protected readonly client: ClientT) {}
 
@@ -82,7 +85,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 
   private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
     try {
-      query.args = query.args.map((arg) => this.cleanArg(arg))
+      query.args = query.args.map((arg) => cleanArg(arg))
 
       const stmt = this.client.prepare(query.sql).bind(...query.args)
 
@@ -93,49 +96,15 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
         return ok([columnNames, rows])
       }
     } catch (e) {
-      const error = e as Error
-      console.error('Error in performIO: %O', error)
-
-      // We only get the error message, not the error code.
-      // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
-      // So we try to match some errors and use the generic error code as a fallback.
-      // https://www.sqlite.org/rescode.html
-      // 1 = The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
-      let extendedCode = 1
-      if (error.message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
-        extendedCode = 2067
-      } else if (error.message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
-        extendedCode = 787
-      }
+      console.error('Error in performIO: %O', e)
+      const { message } = e
 
       return err({
         kind: 'Sqlite',
-        extendedCode,
-        message: error.message,
+        extendedCode: matchSQLiteErrorCode(message),
+        message,
       })
     }
-  }
-
-  cleanArg(arg: unknown): unknown {
-    // * Hack for booleans, we must convert them to 0/1.
-    // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
-    if (arg === true) {
-      return 1
-    }
-
-    if (arg === false) {
-      return 0
-    }
-
-    if (arg instanceof Uint8Array) {
-      return Array.from(arg)
-    }
-
-    if (typeof arg === 'bigint') {
-      return String(arg)
-    }
-
-    return arg
   }
 }
 
@@ -193,7 +162,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
   // eslint-disable-next-line @typescript-eslint/require-await
   async startTransaction(): Promise<Result<Transaction>> {
     const options: TransactionOptions = {
-      // TODO: D1 does not support transactions.
+      // TODO: D1 does not have a Transaction API.
       usePhantomQuery: true,
     }
 
