@@ -142,16 +142,6 @@ export class LibraryEngine implements Engine<undefined> {
     }
   }
 
-  async pushSchema(): Promise<void> {
-    if (TARGET_BUILD_TYPE === 'react-native') {
-      await this.start()
-      // @ts-ignore
-      __PrismaProxy.pushSchema(this.engine, this.datamodel)
-    } else {
-      throw new Error('Cannot call this method from this type of engine instance')
-    }
-  }
-
   async transaction(
     action: 'start',
     headers: Tx.TransactionHeaders,
