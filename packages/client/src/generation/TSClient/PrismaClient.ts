@@ -308,7 +308,7 @@ function runCommandRawDefinition(this: PrismaClientClass) {
 }
 
 function applyPendingMigrationsDefinition(this: PrismaClientClass) {
-  const method = ts.method('$applyPendingMigrations').setReturnType(ts.prismaPromise(ts.voidType))
+  const method = ts.method('$applyPendingMigrations').setReturnType(ts.promise(ts.voidType))
 
   if (this.runtimeNameTs !== 'react-native') {
     method.setDocComment(ts.docComment`
