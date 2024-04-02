@@ -27,7 +27,8 @@
     "MSSQL",
     "SQL Server",
     "SQLServer",
-    "MongoDB"
+    "MongoDB",
+    "react-native"
   ],
   "main": "default.js",
   "types": "default.d.ts",

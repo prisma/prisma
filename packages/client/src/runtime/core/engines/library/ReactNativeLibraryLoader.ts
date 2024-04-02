@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { ErrorCapturingDriverAdapter } from '../../../../../../driver-adapter-utils/src/types'
+
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { QueryEngineConfig } from '../common/types/QueryEngine'
 import { LibraryLoader, QueryEngineInstance } from './types/Library'
@@ -30,7 +30,7 @@ declare const __PrismaProxy: {
 
 class ReactNativeQueryEngine implements QueryEngineInstance {
   private engineObject: QueryEngineObject
-  constructor(config: QueryEngineConfig, logger: (log: string) => void, _adapter?: ErrorCapturingDriverAdapter) {
+  constructor(config: QueryEngineConfig, logger: (log: string) => void, _adapter?: any) {
     this.engineObject = __PrismaProxy.create({
       datamodel: config.datamodel,
       env: process.env,
