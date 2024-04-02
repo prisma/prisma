@@ -265,9 +265,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlserver', 'mongodb', 'sqlite'],
-      reason:
-        'not relevant for this test. Sqlite is excluded due to it lacking `createMany` (see: https://github.com/prisma/prisma/issues/10710).',
+      from: ['sqlserver', 'mongodb'],
+      reason: 'not relevant for this test.',
     },
     skipDriverAdapter: {
       from: ['js_planetscale', 'js_neon'],
