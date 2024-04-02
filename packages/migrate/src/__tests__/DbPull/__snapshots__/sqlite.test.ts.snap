@@ -8,7 +8,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "REPLACED_BY_TEST"
+  url = "REPLACED_BY_TEST"
 }
 
 model Post {

@@ -1,5 +1,4 @@
 import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
-import os from 'os'
 
 import { DbPull } from '../../commands/DbPull'
 
@@ -14,12 +13,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()
 process.env.CI = 'true'
 
 describe('D1', () => {
-  const isWindows = os.platform() === 'win32'
-  const urlValueWindows =
-    'file:.wrangler//state//v3//d1//miniflare-D1DatabaseObject//5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite'
-  const urlValueUnix =
-    'file:.wrangler/state/v3/d1/miniflare-D1DatabaseObject/5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite'
-  const urlValue = isWindows ? urlValueWindows : urlValueUnix
+  const urlValueRegex = /url\s*=\s*".*"/
 
   test('should succeed when --local-d1 and a single local Cloudflare D1 database exists', async () => {
     ctx.fixture('cloudflare-d1-one-db')
@@ -28,7 +22,14 @@ describe('D1', () => {
     const result = introspect.parse(['--local-d1', '--print'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(urlValue, 'REPLACED_BY_TEST')).toMatchSnapshot()
+    // Example values:
+    // Windows
+    // 'file:.wrangler//state//v3//d1//miniflare-D1DatabaseObject//5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite'
+    // macOS
+    // 'file:.wrangler/state/v3/d1/miniflare-D1DatabaseObject/5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite'
+    expect(
+      ctx.mocked['console.log'].mock.calls.join('\n').replace(urlValueRegex, 'url = "REPLACED_BY_TEST"'),
+    ).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
