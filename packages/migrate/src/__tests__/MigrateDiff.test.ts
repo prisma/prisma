@@ -1,6 +1,8 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
+import path from 'node:path'
+
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
@@ -17,6 +19,200 @@ const originalEnv = { ...process.env }
 
 describe('migrate diff', () => {
   describe('generic', () => {
+    it('wrong flag', async () => {
+      const commandInstance = MigrateDiff.new()
+      const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+
+      await commandInstance.parse(['--something'])
+      expect(spy).toHaveBeenCalledTimes(1)
+      spy.mockRestore()
+    })
+
+    it('help flag', async () => {
+      const commandInstance = MigrateDiff.new()
+      const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+
+      await commandInstance.parse(['--help'])
+      expect(spy).toHaveBeenCalledTimes(1)
+      spy.mockRestore()
+    })
+
+    it('should succeed when --from-local-d1 and a single local Cloudflare D1 database exists', async () => {
+      ctx.fixture('cloudflare-d1-one-db')
+
+      const result = await MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'])
+      expect(result).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "Post";
+        PRAGMA foreign_keys=on;
+
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "User";
+        PRAGMA foreign_keys=on;
+      `)
+    })
+
+    it('should succeed when --to-local-d1 and a single local Cloudflare D1 database exists', async () => {
+      ctx.fixture('cloudflare-d1-one-db')
+
+      const result = await MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'])
+      expect(result).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        -- CreateTable
+        CREATE TABLE "Post" (
+            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            "title" TEXT NOT NULL,
+            "authorId" INTEGER NOT NULL,
+            FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+        );
+
+        -- CreateTable
+        CREATE TABLE "User" (
+            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            "email" TEXT NOT NULL,
+            "count1" INTEGER NOT NULL,
+            "name" TEXT
+        );
+
+        -- CreateIndex
+        CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
+      `)
+    })
+
+    it('should succeed when --from-url and a single local Cloudflare D1 database exists', async () => {
+      ctx.fixture('cloudflare-d1-one-db')
+
+      const url = path.join(
+        ctx.fs.cwd(),
+        '.wrangler',
+        'state',
+        'v3',
+        'd1',
+        'miniflare-D1DatabaseObject',
+        '5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite',
+      )
+
+      const result = await MigrateDiff.new().parse(['--to-empty', '--from-url', `file:${url}`, '--script'])
+      expect(result).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "Post";
+        PRAGMA foreign_keys=on;
+
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "User";
+        PRAGMA foreign_keys=on;
+      `)
+    })
+
+    it('should succeed when --to-url and a single local Cloudflare D1 database exists', async () => {
+      ctx.fixture('cloudflare-d1-one-db')
+
+      const url = path.join(
+        ctx.fs.cwd(),
+        '.wrangler',
+        'state',
+        'v3',
+        'd1',
+        'miniflare-D1DatabaseObject',
+        '5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite',
+      )
+
+      const result = await MigrateDiff.new().parse(['--from-empty', '--to-url', `file:${url}`, '--script'])
+      expect(result).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        -- CreateTable
+        CREATE TABLE "Post" (
+            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            "title" TEXT NOT NULL,
+            "authorId" INTEGER NOT NULL,
+            FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+        );
+
+        -- CreateTable
+        CREATE TABLE "User" (
+            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            "email" TEXT NOT NULL,
+            "count1" INTEGER NOT NULL,
+            "name" TEXT
+        );
+
+        -- CreateIndex
+        CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
+      `)
+    })
+
+    it('should fail when --from-local-d1 and several local Cloudflare D1 databases exist', async () => {
+      ctx.fixture('cloudflare-d1-many-dbs')
+
+      const result = MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'])
+      await expect(result).rejects.toMatchInlineSnapshot(
+        `Multiple Cloudflare D1 databases found in .wrangler/state/v3/d1/miniflare-D1DatabaseObject. Please manually specify the local D1 database with \`--from-url file:\`, without using the \`--from-local-d1\` flag.`,
+      )
+    })
+
+    it('should fail when --to-local-d1 and several local Cloudflare D1 databases exist', async () => {
+      ctx.fixture('cloudflare-d1-many-dbs')
+
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'])
+      await expect(result).rejects.toMatchInlineSnapshot(
+        `Multiple Cloudflare D1 databases found in .wrangler/state/v3/d1/miniflare-D1DatabaseObject. Please manually specify the local D1 database with \`--to-url file:\`, without using the \`--to-local-d1\` flag.`,
+      )
+    })
+
+    it('should fail when --from-local-d1 and no local Cloudflare D1 databases exists', async () => {
+      ctx.fixture('cloudflare-d1-no-db')
+
+      const result = MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'])
+      await expect(result).rejects.toMatchInlineSnapshot(
+        `No Cloudflare D1 databases found in .wrangler/state/v3/d1/miniflare-D1DatabaseObject. Did you run \`wrangler d1 create <DATABASE_NAME>\` and \`wrangler dev\`?`,
+      )
+    })
+
+    it('should fail when --to-local-d1 and no local Cloudflare D1 databases exists', async () => {
+      ctx.fixture('cloudflare-d1-no-db')
+
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'])
+      await expect(result).rejects.toMatchInlineSnapshot(
+        `No Cloudflare D1 databases found in .wrangler/state/v3/d1/miniflare-D1DatabaseObject. Did you run \`wrangler d1 create <DATABASE_NAME>\` and \`wrangler dev\`?`,
+      )
+    })
+
+    it('should fail when --from-local-d1 is used with --shadow-database-url', async () => {
+      ctx.fixture('cloudflare-d1-one-db')
+
+      const result = MigrateDiff.new().parse([
+        '--to-empty',
+        '--from-local-d1',
+        '--shadow-database-url',
+        'file:dev.db',
+        '--script',
+      ])
+      await expect(result).rejects.toMatchSnapshot()
+    })
+
+    it('should fail when --to-local-d1 is used with --shadow-database-url', async () => {
+      ctx.fixture('cloudflare-d1-one-db')
+
+      const result = MigrateDiff.new().parse([
+        '--from-empty',
+        '--to-local-d1',
+        '--shadow-database-url',
+        'file:dev.db',
+        '--script',
+      ])
+      await expect(result).rejects.toMatchSnapshot()
+    })
+
     it('should fail if missing --from-... and --to-...', async () => {
       ctx.fixture('empty')
 
@@ -127,18 +323,18 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                        [+] Added tables
-                                                                                                                          - Post
-                                                                                                                          - Profile
-                                                                                                                          - User
-                                                                                                                          - _Migration
+                                                                                                                                                        [+] Added tables
+                                                                                                                                                          - Post
+                                                                                                                                                          - Profile
+                                                                                                                                                          - User
+                                                                                                                                                          - _Migration
 
-                                                                                                                        [*] Changed the \`Profile\` table
-                                                                                                                          [+] Added unique index on columns (userId)
+                                                                                                                                                        [*] Changed the \`Profile\` table
+                                                                                                                                                          [+] Added unique index on columns (userId)
 
-                                                                                                                        [*] Changed the \`User\` table
-                                                                                                                          [+] Added unique index on columns (email)
-                                                                                          `)
+                                                                                                                                                        [*] Changed the \`User\` table
+                                                                                                                                                          [+] Added unique index on columns (email)
+                                                                                                                  `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -155,9 +351,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                        [+] Added tables
-                                                                                                                          - Blog
-                                                                                          `)
+                                                                                                                                                        [+] Added tables
+                                                                                                                                                          - Blog
+                                                                                                                  `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -184,9 +380,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                        [-] Removed tables
-                                                                                                                          - Blog
-                                                                                          `)
+                                                                                                                                                        [-] Removed tables
+                                                                                                                                                          - Blog
+                                                                                                                  `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -233,9 +429,9 @@ describe('migrate diff', () => {
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
         expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                [-] Removed tables
-                                                                                  - Blog
-                                                                `)
+                                                                                                                        [-] Removed tables
+                                                                                                                          - Blog
+                                                                                                `)
 
         expect(mockExit).toHaveBeenCalledTimes(1)
         expect(mockExit).toHaveBeenCalledWith(2)
