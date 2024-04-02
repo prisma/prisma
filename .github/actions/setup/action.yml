@@ -55,7 +55,7 @@ runs:
           target/release/libquery_engine.so
           target/release/libquery_engine.dylib
           target/release/query_engine.dll
-    - name: Set environment variables for custom engine
+    - name: Set environment variables for custom engines
       if: steps.custom-engine.outputs.cache-hit == 'true'
       run: |
         RELEASE_DIR="$(pwd)/target/release"
@@ -78,6 +78,7 @@ runs:
           exit 1
         fi
       shell: bash
+
     - run: pnpm run build
       if: inputs.skip-tsc == 'false' && inputs.skip-build != 'true'
       shell: bash
