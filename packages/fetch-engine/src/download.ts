@@ -22,7 +22,7 @@ import { downloadZip } from './downloadZip'
 import { allEngineEnvVarsSet, getBinaryEnvVarPath } from './env'
 import { getHash } from './getHash'
 import { getBar } from './log'
-import { getDownloadableBinaryTarget } from './nixos'
+import { fetchEngineWithNix, getDownloadableBinaryTarget, isNixOsTarget } from './nixos'
 import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 
 const { enginesOverride } = require('../package.json')
@@ -199,6 +199,19 @@ async function executeJob(
     binaryTarget: getDownloadableBinaryTarget(job.binaryTarget),
     binaryName: job.binaryName,
   })
+
+  if (isNixOsTarget(job.binaryTarget)) {
+    await fetchEngineWithNix({
+      binaryName: job.binaryName,
+      version: opts.version,
+      fileName: job.fileName,
+      binaryTarget: job.binaryTarget,
+      downloadUrl,
+      progressCb,
+    })
+    // todo remove, just for debugging
+    process.exit(1)
+  }
 
   debug(`${downloadUrl} will be downloaded to ${job.targetFilePath}`)
 
