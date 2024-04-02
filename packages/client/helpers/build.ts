@@ -160,7 +160,7 @@ const rnRuntimeBuildConfig: BuildOptions = {
   legalComments: 'none',
   emitTypes: false,
   define: {
-    ...commonEdgeWasmRuntimeBuildConfig.define,
+    NODE_CLIENT: 'false',
     TARGET_BUILD_TYPE: '"rn"',
   },
   plugins: [
