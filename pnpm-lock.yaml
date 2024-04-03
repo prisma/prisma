@@ -537,8 +537,8 @@ importers:
         specifier: 8.4.1
         version: 8.4.1
       '@fast-check/jest':
-        specifier: 1.8.0
-        version: 1.8.0(@jest/globals@29.7.0)
+        specifier: 1.8.1
+        version: 1.8.1(@jest/globals@29.7.0)
       '@inquirer/prompts':
         specifier: 4.3.0
         version: 4.3.0
@@ -2797,10 +2797,10 @@ packages:
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
     dev: true
 
-  /@fast-check/jest@1.8.0(@jest/globals@29.7.0):
-    resolution: {integrity: sha512-PSscQRxU4t9rP4vmrfe6GbXbY6VPVpjPE/CRo0UxG9b6Eksx8PLLq2Uy/Q+Z3x9suj0bXCW9UajYAp9+m1kmsg==}
+  /@fast-check/jest@1.8.1(@jest/globals@29.7.0):
+    resolution: {integrity: sha512-qKtH74n1IY56zrAd0hs3IZsODxi4VzRgfIJDxjruBV7lZZQjHt9jFKVi++ML5Fzwllfkz5sF3FtVkAxUow8tpg==}
     peerDependencies:
-      '@fast-check/worker': ~0.0.7 || ~0.1.0
+      '@fast-check/worker': '>=0.0.7 <0.4.0'
       '@jest/expect': '>=28.0.0'
       '@jest/globals': '>=25.5.2'
     peerDependenciesMeta:
