@@ -238,7 +238,7 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.0.8",
+    "ts-pattern": "5.1.0",
     "tsd": "0.31.0",
     "typescript": "5.3.3",
     "undici": "5.28.4",
