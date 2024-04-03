@@ -20,8 +20,8 @@
     "@prisma/client": "workspace:*",
     "@prisma/pg-worker": "workspace:*",
     "@prisma/adapter-pg-worker": "workspace:*",
-    "pg": "8.11.3",
+    "pg": "8.11.5",
     "prisma": "workspace:*",
-    "wrangler": "3.36.0"
+    "wrangler": "3.44.0"
   }
 }

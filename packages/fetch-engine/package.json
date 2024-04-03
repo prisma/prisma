@@ -15,10 +15,10 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@swc/core": "1.4.6",
+    "@swc/core": "1.4.11",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.26",
+    "@types/node": "18.19.29",
     "@types/node-fetch": "2.6.11",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.12.0-21.473ed3124229e22d881cb7addf559799debae1ab",
+    "@prisma/engines-version": "5.13.0-2.fc73af6cd8932d6a618a6c74cdaa015542d7adae",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
