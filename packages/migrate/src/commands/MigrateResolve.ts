@@ -117,7 +117,8 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         migrate.stop()
       }
 
-      return `Migration ${args['--applied']} marked as applied.`
+      process.stdout.write(`\nMigration ${args['--applied']} marked as applied.\n`)
+      return ``
     } else {
       if (typeof args['--rolled-back'] !== 'string' || args['--rolled-back'].length === 0) {
         throw new Error(
@@ -138,7 +139,8 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         migrate.stop()
       }
 
-      return `Migration ${args['--rolled-back']} marked as rolled back.`
+      process.stdout.write(`\nMigration ${args['--rolled-back']} marked as rolled back.\n`)
+      return ``
     }
   }
 

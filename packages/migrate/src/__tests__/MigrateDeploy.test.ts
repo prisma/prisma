@@ -2,11 +2,26 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 
 import { MigrateDeploy } from '../commands/MigrateDeploy'
+import { CaptureStdout } from '../utils/captureStdout'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const originalEnv = { ...process.env }
+
+const captureStdout = new CaptureStdout()
+
+beforeEach(() => {
+  captureStdout.startCapture()
+})
+
+afterEach(() => {
+  captureStdout.clearCaptureText()
+})
+
+afterAll(() => {
+  captureStdout.stopCapture()
+})
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
@@ -25,13 +40,14 @@ describe('sqlite', () => {
     const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       No migration found in prisma/migrations
+
 
 
     `)
@@ -58,7 +74,7 @@ describe('sqlite', () => {
     const resultBis = MigrateDeploy.new().parse([])
     await expect(resultBis).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -72,6 +88,7 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       1 migration found in prisma/migrations
+
 
 
     `)
@@ -90,11 +107,12 @@ describe('sqlite', () => {
 
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       1 migration found in prisma/migrations
+
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
@@ -145,12 +163,13 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-data-proxy')
     const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-deploy", schema "public" at "localhost:5432"
 
       No migration found in prisma/migrations
+
 
 
     `)

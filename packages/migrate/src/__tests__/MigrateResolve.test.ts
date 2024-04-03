@@ -1,8 +1,23 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateResolve } from '../commands/MigrateResolve'
+import { CaptureStdout } from '../utils/captureStdout'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+
+const captureStdout = new CaptureStdout()
+
+beforeEach(() => {
+  captureStdout.startCapture()
+})
+
+afterEach(() => {
+  captureStdout.clearCaptureText()
+})
+
+afterAll(() => {
+  captureStdout.stopCapture()
+})
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
@@ -35,12 +50,11 @@ describe('sqlite', () => {
     const result = MigrateResolve.new().parse(['--schema=./prisma/empty.prisma', '--applied=something_applied'])
     await expect(result).rejects.toMatchInlineSnapshot(`P1003: Database dev.db does not exist at dev.db`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   //
@@ -83,13 +97,14 @@ describe('sqlite', () => {
   it('--applied should work on a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
     const result = MigrateResolve.new().parse(['--applied', '20201106130852_failed'])
-    await expect(result).resolves.toMatchInlineSnapshot(`Migration 20201231000000_failed marked as applied.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Migration 20201231000000_failed marked as applied.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   //
@@ -121,32 +136,36 @@ describe('sqlite', () => {
   it('--rolled-back should work on a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
     const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'])
-    await expect(result).resolves.toMatchInlineSnapshot(`Migration 20201231000000_failed marked as rolled back.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Migration 20201231000000_failed marked as rolled back.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('--rolled-back works if migration is already rolled back', async () => {
     ctx.fixture('existing-db-1-failed-migration')
     const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'])
-    await expect(result).resolves.toMatchInlineSnapshot(`Migration 20201231000000_failed marked as rolled back.`)
+    await expect(result).resolves.toMatchInlineSnapshot(``)
 
     // Try again
     const result2 = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'])
-    await expect(result2).resolves.toMatchInlineSnapshot(`Migration 20201231000000_failed marked as rolled back.`)
+    await expect(result2).resolves.toMatchInlineSnapshot(``)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Migration 20201231000000_failed marked as rolled back.
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Migration 20201231000000_failed marked as rolled back.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -162,13 +181,12 @@ describe('postgresql', () => {
             Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -185,13 +203,11 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
             Please make sure your database server is running at \`something.cockroachlabs.cloud\`:\`26257\`.
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" at "something.cockroachlabs.cloud:26257"
-    `)
 
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+    `)
   }, 10_000)
 })

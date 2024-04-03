@@ -26,6 +26,7 @@ model User {
   Post   Post[]
 }
 
+
 `;
 
 exports[`common/sqlite basic introspection 2`] = `
@@ -62,6 +63,7 @@ model User {
   posts   Post[]
   profile Profile?
 }
+
 
 `;
 
@@ -100,15 +102,8 @@ model User {
   profile Profile?
 }
 
+
 `;
-
-exports[`common/sqlite basic introspection with invalid --url - empty host 2`] = ``;
-
-exports[`common/sqlite basic introspection with invalid --url if schema is unspecified 2`] = ``;
-
-exports[`common/sqlite basic introspection with schema and --url missing file: prefix should fail 2`] = ``;
-
-exports[`common/sqlite basic introspection without schema and with --url missing "file:" prefix should fail 2`] = ``;
 
 exports[`common/sqlite introspection --force 2`] = `
 generator client {
@@ -144,6 +139,7 @@ model User {
   Post    Post[]
   Profile Profile?
 }
+
 
 `;
 
@@ -189,9 +185,10 @@ model AwesomeProfile {
   @@map("Profile")
 }
 
+
 `;
 
-exports[`common/sqlite should succeed when schema is invalid and using --force 7`] = `
+exports[`common/sqlite should succeed when schema is invalid and using --force 3`] = `
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
