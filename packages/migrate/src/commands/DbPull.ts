@@ -12,6 +12,7 @@ import {
   HelpError,
   link,
   loadEnvFile,
+  locateLocalCloudflareD1,
   protocolToConnectorType,
 } from '@prisma/internals'
 import fs from 'fs'
@@ -55,7 +56,7 @@ ${bold('Options')}
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
                --schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
-
+              --local-d1   Generate a Prisma schema from a local Cloudflare D1 database
 ${bold('Examples')}
 
 With an existing Prisma schema
@@ -97,6 +98,7 @@ Set composite types introspection depth to 2 levels
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
+      '--local-d1': Boolean, // optional, only on cloudflare D1
     })
 
     const spinnerFactory = createSpinner(!args['--print'])
@@ -128,7 +130,9 @@ Set composite types introspection depth to 2 levels
       loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
     }
 
-    if (!url && !schemaPath) {
+    const fromD1 = Boolean(args['--local-d1'])
+
+    if (!url && !schemaPath && !fromD1) {
       throw new NoSchemaFoundError()
     }
 
@@ -141,12 +145,13 @@ Set composite types introspection depth to 2 levels
      * When `url` is set, and `schemaPath` isn't:
      * - create a minimal schema with a datasource block from the given URL.
      *   CockroachDB URLs are however mapped to the `postgresql` provider, as those URLs are indistinguishable from Postgres URLs.
+     * Note: this schema is persisted to `./schema.prisma`, rather than the canonical `./prisma/schema.prisma`.
      *
      * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
      */
-    const { firstDatasource, schema } = await match({ url, schemaPath })
+    const { firstDatasource, schema, validationWarning } = await match({ url, schemaPath, fromD1 })
       .when(
-        (input): input is { url: string | undefined; schemaPath: string } => input.schemaPath !== null,
+        (input): input is { url: string | undefined; schemaPath: string; fromD1: boolean } => input.schemaPath !== null,
         async (input) => {
           const rawSchema = fs.readFileSync(input.schemaPath, 'utf-8')
           const config = await getConfig({
@@ -154,6 +159,7 @@ Set composite types introspection depth to 2 levels
             ignoreEnvVarErrors: true,
           })
 
+          const previewFeatures = config.generators.find(({ name }) => name === 'client')?.previewFeatures
           const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
           if (input.url) {
@@ -187,6 +193,30 @@ Set composite types introspection depth to 2 levels
             }
 
             return { firstDatasource, schema }
+          } else if (input.fromD1) {
+            const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
+            const pathToSQLiteFile = path.relative(path.dirname(input.schemaPath), d1Database)
+
+            const schema = this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')
+            const config = await getConfig({
+              datamodel: schema,
+              ignoreEnvVarErrors: true,
+            })
+
+            const result = { firstDatasource: config.datasources[0], schema }
+
+            const hasDriverAdaptersPreviewFeature = (previewFeatures || []).includes('driverAdapters')
+            const validationWarning = `Without the ${bold(
+              'driverAdapters',
+            )} preview feature, the schema introspected via the ${bold('--local-d1')} flag will not work with ${bold(
+              '@prisma/client',
+            )}.`
+
+            if (hasDriverAdaptersPreviewFeature) {
+              return result
+            } else {
+              return { ...result, validationWarning }
+            }
           } else {
             // Use getConfig with ignoreEnvVarErrors
             // It will  throw an error if the env var is not set or if it is invalid
@@ -196,11 +226,32 @@ Set composite types introspection depth to 2 levels
             })
           }
 
-          return { firstDatasource, schema: rawSchema }
+          return { firstDatasource, schema: rawSchema, validationWarning: undefined } as const
         },
       )
       .when(
-        (input): input is { url: string; schemaPath: null } => input.url !== undefined,
+        (input): input is { url: undefined; schemaPath: null; fromD1: true } => input.fromD1 === true,
+        async (_) => {
+          const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
+          const pathToSQLiteFile = path.relative(process.cwd(), d1Database)
+
+          // TODO: `urlToDatasource(..)` doesn't generate a `generator client` block. Should it?
+          // TODO: Should we also add the `Try Prisma Accelerate` comment like we do in `prisma init`?
+          const schema = `generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
+          const config = await getConfig({
+            datamodel: schema,
+            ignoreEnvVarErrors: true,
+          })
+
+          return { firstDatasource: config.datasources[0], schema }
+        },
+      )
+      .when(
+        (input): input is { url: string; schemaPath: null; fromD1: false } => input.url !== undefined,
         async (input) => {
           // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
           // TODO: better error handling with better error message
@@ -356,11 +407,13 @@ Or run this command with the ${green(
           ? `${modelsAndTypesMessage} and wrote them`
           : `${modelsAndTypesMessage} and wrote it`
 
+      const renderValidationWarning = validationWarning ? `\n${yellow(validationWarning)}` : ''
+
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), schemaPath),
       )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
-${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
+${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}${renderValidationWarning}`)
     }
 
     return ''
