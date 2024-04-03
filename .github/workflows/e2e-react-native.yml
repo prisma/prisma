@@ -42,6 +42,14 @@ jobs:
   e2e-ios:
     runs-on: macos-latest
     steps:
+      - name: install git lfs
+        run: |
+          brew install git-lfs
+          git lfs install
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+
       - uses: actions/checkout@v4
 
       - name: Install & build
