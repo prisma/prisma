@@ -1271,6 +1271,9 @@ importers:
       execa:
         specifier: 5.1.1
         version: 5.1.1
+      fast-glob:
+        specifier: 3.3.2
+        version: 3.3.2
       find-up:
         specifier: 5.0.0
         version: 5.0.0
@@ -4288,7 +4291,7 @@ packages:
     resolution: {integrity: sha512-O2xNmXebtwVekJDD+02udOncjVcMZQuTEQEMpKJ0ZRf5E7/9JJX3izhKUcUifBkyKpljyUM6BTgy2trmviKlpw==}
     dependencies:
       '@types/node': 20.12.3
-      pg-protocol: 1.6.1
+      pg-protocol: 1.6.0
       pg-types: 2.2.0
 
   /@types/progress@2.0.7:
