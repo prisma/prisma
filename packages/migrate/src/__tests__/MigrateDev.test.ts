@@ -696,6 +696,7 @@ describe('sqlite', () => {
 
 
     `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
   it('existingdb: 1 warning from schema change (prompt yes)', async () => {

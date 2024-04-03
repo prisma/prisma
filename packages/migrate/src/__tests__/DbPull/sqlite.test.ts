@@ -177,11 +177,6 @@ describe('common/sqlite', () => {
       The provided database string is invalid. empty host in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
     `)
-
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-
-
-    `)
   })
 
   it('should succeed and keep changes to valid schema and output warnings', async () => {

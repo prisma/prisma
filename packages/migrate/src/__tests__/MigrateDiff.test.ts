@@ -1,6 +1,7 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
+import os from 'node:os'
 import path from 'node:path'
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
@@ -18,6 +19,8 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 const originalEnv = { ...process.env }
 const captureStdout = new CaptureStdout()
+
+const isWindows = os.platform() === 'win32'
 
 describe('migrate diff', () => {
   beforeEach(() => {
@@ -394,7 +397,7 @@ describe('migrate diff', () => {
       `)
     })
 
-    it('should fail with EACCES when writing to output path which is read only', async () => {
+    it('should fail with EACCES/EPERM when writing to output path which is read only', async () => {
       ctx.fixture('schema-only-sqlite')
 
       // Create a readonly file
@@ -408,8 +411,11 @@ describe('migrate diff', () => {
         '--output=./readonly.sql',
       ])
       // Example error message:
+      // macOS
       // [Error: EACCES: permission denied, open '/private/var/folders/qt/13pk8tq5113437vp1xr2l_s40000gn/T/f322d2ba6d947ea7c04312edde54aba3/readonly.sql']
-      await expect(result).rejects.toThrow(`EACCES`)
+      // Windows
+      // EPERM: operation not permitted, open 'C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\61b2f2248cfc996bff236aa42e874653\\readonly.sql'
+      await expect(result).rejects.toThrow(isWindows ? 'EPERM' : 'EACCES')
     })
 
     it('should pass if no schema file around', async () => {

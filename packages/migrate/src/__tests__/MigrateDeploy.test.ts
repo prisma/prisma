@@ -52,7 +52,7 @@ describe('sqlite', () => {
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
   it('1 unapplied migration', async () => {
@@ -93,7 +93,7 @@ describe('sqlite', () => {
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
   it('should throw if database is not empty', async () => {
@@ -116,7 +116,7 @@ describe('sqlite', () => {
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 })
 

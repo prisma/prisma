@@ -117,9 +117,10 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`./prisma/seed.sh\` ...`,
-    )
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      Running seed command \`./prisma/seed.sh\` ...
+
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
