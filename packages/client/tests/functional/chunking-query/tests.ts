@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient, Tag } from './node_modules/@prisma/client'
@@ -134,7 +135,7 @@ testMatrix.setupTestSuite(
         expect(tags.length).toBe(n)
       })
 
-      test('should succeed when "in" has 32766 ids and a "skip" filter', async () => {
+      testIf(provider !== Providers.SQLITE)('should succeed when "in" has 32766 ids and a "skip" filter', async () => {
         const n = 32766
         const ids = await createTags(n)
 
@@ -174,109 +175,147 @@ testMatrix.setupTestSuite(
       }
 
       describeIf(driverAdapter === undefined)('With Rust drivers only', () => {
+        testIf(provider === Providers.SQLITE)(
+          'Selecting 999 ids at once in two inclusive disjunct filters succeeds',
+          async () => {
+            const ids = generatedIds(999)
+
+            try {
+              await selectWith2InFilters(ids)
+            } catch (error) {
+              expect(true).toBe(false)
+            }
+          },
+        )
+
+        testIf(provider === Providers.SQLITE)(
+          'Selecting 1000 ids at once in two inclusive disjunct filters succeeds',
+          async () => {
+            const ids = generatedIds(1000)
+
+            try {
+              await selectWith2InFilters(ids)
+            } catch (error) {
+              expect(true).toBe(false)
+            }
+          },
+        )
+
         // See: https://github.com/prisma/prisma/issues/21802.
-        test('Selecting 32767 ids at once in two inclusive disjunct filters results in error: "too many bind variables", but not with mysql', async () => {
-          const ids = generatedIds(32767)
+        testIf(provider !== Providers.SQLITE)(
+          'Selecting 32767 ids at once in two inclusive disjunct filters results in error: "too many bind variables", but not with mysql',
+          async () => {
+            const ids = generatedIds(32767)
 
-          try {
-            await selectWith2InFilters(ids)
+            try {
+              await selectWith2InFilters(ids)
 
-            if (!['mysql'].includes(provider)) {
-              // unreachable
-              expect(true).toBe(false)
-            }
-          } catch (error) {
-            const e = error as Error
+              if (!['mysql'].includes(provider)) {
+                // unreachable
+                expect(true).toBe(false)
+              }
+            } catch (error) {
+              const e = error as Error
 
-            if (usingRelationJoins) {
-              expect(e.message).toContain('Joined queries cannot be split into multiple queries')
-            } else if (['postgresql', 'cockroachdb'].includes(provider)) {
-              expect(e.message).toContain('Assertion violation on the database')
-              expect(e.message).toContain('too many bind variables in prepared statement')
-              expect(e.message).toContain(`expected maximum of 32767, received 65534`)
-            } else {
-              // unreachable
-              expect(true).toBe(false)
-            }
-          }
-        })
-
-        test('Selecting 32768 ids at once in two inclusive disjunct filters results in error: "too many bind variables"', async () => {
-          const ids = generatedIds(32768)
-
-          try {
-            await selectWith2InFilters(ids)
-            // unreachable
-            expect(true).toBe(false)
-          } catch (error) {
-            const e = error as Error
-
-            if (['postgresql', 'cockroachdb'].includes(provider)) {
               if (usingRelationJoins) {
                 expect(e.message).toContain('Joined queries cannot be split into multiple queries')
-              } else {
+              } else if (['postgresql', 'cockroachdb'].includes(provider)) {
                 expect(e.message).toContain('Assertion violation on the database')
                 expect(e.message).toContain('too many bind variables in prepared statement')
-                expect(e.message).toContain(`expected maximum of 32767, received 65535`)
+                expect(e.message).toContain(`expected maximum of 32767, received 65534`)
+              } else {
+                // unreachable
+                expect(true).toBe(false)
               }
-            } else {
-              expect(e.message).toContain('Prepared statement contains too many placeholders')
             }
-          }
-        })
+          },
+        )
+
+        testIf(provider !== Providers.SQLITE)(
+          'Selecting 32768 ids at once in two inclusive disjunct filters results in error: "too many bind variables"',
+          async () => {
+            const ids = generatedIds(32768)
+
+            try {
+              await selectWith2InFilters(ids)
+              // unreachable
+              expect(true).toBe(false)
+            } catch (error) {
+              const e = error as Error
+
+              if (['postgresql', 'cockroachdb'].includes(provider)) {
+                if (usingRelationJoins) {
+                  expect(e.message).toContain('Joined queries cannot be split into multiple queries')
+                } else {
+                  expect(e.message).toContain('Assertion violation on the database')
+                  expect(e.message).toContain('too many bind variables in prepared statement')
+                  expect(e.message).toContain(`expected maximum of 32767, received 65535`)
+                }
+              } else {
+                expect(e.message).toContain('Prepared statement contains too many placeholders')
+              }
+            }
+          },
+        )
       })
 
       describeIf(driverAdapter !== undefined)('With Driver Adapters only', () => {
-        test('Selecting 32768 ids at once in two inclusive disjunct filters works', async () => {
-          const ids = generatedIds(32768)
+        testIf(provider !== Providers.SQLITE)(
+          'Selecting 32768 ids at once in two inclusive disjunct filters works',
+          async () => {
+            const ids = generatedIds(32768)
 
-          try {
-            await selectWith2InFilters(ids)
-          } catch (error) {
-            if (usingRelationJoins) {
-              expect((error as Error).message).toContain('Joined queries cannot be split into multiple queries')
-            } else {
-              throw error
+            try {
+              await selectWith2InFilters(ids)
+            } catch (error) {
+              if (usingRelationJoins) {
+                expect((error as Error).message).toContain('Joined queries cannot be split into multiple queries')
+              } else {
+                throw error
+              }
             }
-          }
-        })
+          },
+        )
 
         // See: https://github.com/prisma/prisma/issues/21803.
-        test('Selecting 65536 ids at once in two inclusive disjunct filters results in error', async () => {
-          const ids = generatedIds(65536)
+        testIf(provider !== Providers.SQLITE)(
+          'Selecting 65536 ids at once in two inclusive disjunct filters results in error',
+          async () => {
+            const ids = generatedIds(65536)
 
-          try {
-            await selectWith2InFilters(ids)
-            // unreachable
-            expect(true).toBe(false)
-          } catch (error) {
-            const e = error as Error
+            try {
+              await selectWith2InFilters(ids)
+              // unreachable
+              expect(true).toBe(false)
+            } catch (error) {
+              const e = error as Error
 
-            if (usingRelationJoins) {
-              expect(e.message).toContain('Joined queries cannot be split into multiple queries')
-            } else if (['postgresql', 'cockroachdb'].includes(provider)) {
-              // Note: this sometimes fails with "bind message has 5 parameter formats but 0 parameters" on Neon
-              expect(e.message).toContain('bind message has 32767 parameter formats but 0 parameters')
+              if (usingRelationJoins) {
+                expect(e.message).toContain('Joined queries cannot be split into multiple queries')
+              } else if (['postgresql', 'cockroachdb'].includes(provider)) {
+                // Note: this sometimes fails with "bind message has 5 parameter formats but 0 parameters" on Neon
+                expect(e.message).toContain('bind message has 32767 parameter formats but 0 parameters')
+              }
             }
-          }
-        })
+          },
+        )
       })
     })
   },
   {
     optOut: {
-      from: ['sqlserver', 'mongodb', 'sqlite'],
-      reason:
-        'not relevant for this test. Sqlite is excluded due to it lacking `createMany` (see: https://github.com/prisma/prisma/issues/10710).',
+      from: ['sqlserver', 'mongodb'],
+      reason: 'not relevant for this test.',
     },
     skipDriverAdapter: {
-      from: ['js_planetscale', 'js_neon'],
+      from: ['js_planetscale', 'js_neon', 'js_d1'],
 
       // `rpc error: code = Aborted desc = Row count exceeded 10000 (CallerID: userData1)", state: "70100"`
       // This could potentially be configured in Vitess by increasing the `queryserver-config-max-result-size`
       // query server parameter.
-      reason:
-        'Vitess supports at most 10k rows returned in a single query, so this test is not applicable. Neon occasionally fails with different parameter counts in its error messages.',
+      reason: `Vitess supports at most 10k rows returned in a single query, so this test is not applicable.
+        Neon occasionally fails with different parameter counts in its error messages
+        D1 fails with "D1_ERROR: too many SQL variables at offset".`,
     },
   },
 )
