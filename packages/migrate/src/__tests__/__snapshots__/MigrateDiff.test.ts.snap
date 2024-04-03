@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`migrate diff generic should fail when --from-local-d1 is used with --shadow-database-url 1`] = `
+exports[`migrate diff D1 should fail when --from-local-d1 is used with --shadow-database-url 1`] = `
 
 The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.
 
@@ -41,7 +41,7 @@ Flags
 
 `;
 
-exports[`migrate diff generic should fail when --to-local-d1 is used with --shadow-database-url 1`] = `
+exports[`migrate diff D1 should fail when --to-local-d1 is used with --shadow-database-url 1`] = `
 
 The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.
 

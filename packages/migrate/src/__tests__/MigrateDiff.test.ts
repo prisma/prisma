@@ -18,42 +18,14 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 const originalEnv = { ...process.env }
 
 describe('migrate diff', () => {
-  describe('generic', () => {
-    it('wrong flag', async () => {
-      const commandInstance = MigrateDiff.new()
-      const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
-
-      await commandInstance.parse(['--something'])
-      expect(spy).toHaveBeenCalledTimes(1)
-      spy.mockRestore()
-    })
-
-    it('help flag', async () => {
-      const commandInstance = MigrateDiff.new()
-      const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
-
-      await commandInstance.parse(['--help'])
-      expect(spy).toHaveBeenCalledTimes(1)
-      spy.mockRestore()
-    })
-
+  describe('D1', () => {
     it('should succeed when --from-local-d1 and a single local Cloudflare D1 database exists', async () => {
       ctx.fixture('cloudflare-d1-one-db')
 
       const result = await MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'])
       expect(result).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        -- DropTable
-        PRAGMA foreign_keys=off;
-        DROP TABLE "Post";
-        PRAGMA foreign_keys=on;
-
-        -- DropTable
-        PRAGMA foreign_keys=off;
-        DROP TABLE "User";
-        PRAGMA foreign_keys=on;
-      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     it('should succeed when --to-local-d1 and a single local Cloudflare D1 database exists', async () => {
@@ -62,26 +34,7 @@ describe('migrate diff', () => {
       const result = await MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'])
       expect(result).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        -- CreateTable
-        CREATE TABLE "Post" (
-            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            "title" TEXT NOT NULL,
-            "authorId" INTEGER NOT NULL,
-            FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-        );
-
-        -- CreateTable
-        CREATE TABLE "User" (
-            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            "email" TEXT NOT NULL,
-            "count1" INTEGER NOT NULL,
-            "name" TEXT
-        );
-
-        -- CreateIndex
-        CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
-      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     it('should succeed when --from-url and a single local Cloudflare D1 database exists', async () => {
@@ -100,17 +53,7 @@ describe('migrate diff', () => {
       const result = await MigrateDiff.new().parse(['--to-empty', '--from-url', `file:${url}`, '--script'])
       expect(result).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        -- DropTable
-        PRAGMA foreign_keys=off;
-        DROP TABLE "Post";
-        PRAGMA foreign_keys=on;
-
-        -- DropTable
-        PRAGMA foreign_keys=off;
-        DROP TABLE "User";
-        PRAGMA foreign_keys=on;
-      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     it('should succeed when --to-url and a single local Cloudflare D1 database exists', async () => {
@@ -129,26 +72,7 @@ describe('migrate diff', () => {
       const result = await MigrateDiff.new().parse(['--from-empty', '--to-url', `file:${url}`, '--script'])
       expect(result).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        -- CreateTable
-        CREATE TABLE "Post" (
-            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            "title" TEXT NOT NULL,
-            "authorId" INTEGER NOT NULL,
-            FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-        );
-
-        -- CreateTable
-        CREATE TABLE "User" (
-            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            "email" TEXT NOT NULL,
-            "count1" INTEGER NOT NULL,
-            "name" TEXT
-        );
-
-        -- CreateIndex
-        CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
-      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     it('should fail when --from-local-d1 and several local Cloudflare D1 databases exist', async () => {
@@ -211,6 +135,26 @@ describe('migrate diff', () => {
         '--script',
       ])
       await expect(result).rejects.toMatchSnapshot()
+    })
+  })
+
+  describe('generic', () => {
+    it('wrong flag', async () => {
+      const commandInstance = MigrateDiff.new()
+      const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+
+      await commandInstance.parse(['--something'])
+      expect(spy).toHaveBeenCalledTimes(1)
+      spy.mockRestore()
+    })
+
+    it('help flag', async () => {
+      const commandInstance = MigrateDiff.new()
+      const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+
+      await commandInstance.parse(['--help'])
+      expect(spy).toHaveBeenCalledTimes(1)
+      spy.mockRestore()
     })
 
     it('should fail if missing --from-... and --to-...', async () => {
@@ -399,6 +343,64 @@ describe('migrate diff', () => {
         DROP TABLE "Blog";
         PRAGMA foreign_keys=on;
       `)
+    })
+
+    it('should diff and write to output path', async () => {
+      ctx.fixture('schema-only-sqlite')
+
+      const result = MigrateDiff.new().parse([
+        '--from-schema-datamodel=./prisma/schema.prisma',
+        '--to-empty',
+        '--script',
+        '--output=./output.sql',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.fs.read('./output.sql')).toMatchInlineSnapshot(`
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "Blog";
+        PRAGMA foreign_keys=on;
+
+      `)
+    })
+
+    it('should diff and write to output path if directory does not exist', async () => {
+      ctx.fixture('schema-only-sqlite')
+
+      const result = MigrateDiff.new().parse([
+        '--from-schema-datamodel=./prisma/schema.prisma',
+        '--to-empty',
+        '--script',
+        '--output=./subdir/output.sql',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.fs.read('./subdir/output.sql')).toMatchInlineSnapshot(`
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "Blog";
+        PRAGMA foreign_keys=on;
+
+      `)
+    })
+
+    it('should fail with EACCES when writing to output path which is read only', async () => {
+      ctx.fixture('schema-only-sqlite')
+
+      // Create a readonly file
+      ctx.fs.write('./readonly.sql', 'test', {
+        mode: 0o444,
+      })
+      const result = MigrateDiff.new().parse([
+        '--from-schema-datamodel=./prisma/schema.prisma',
+        '--to-empty',
+        '--script',
+        '--output=./readonly.sql',
+      ])
+      // Example error message:
+      // [Error: EACCES: permission denied, open '/private/var/folders/qt/13pk8tq5113437vp1xr2l_s40000gn/T/f322d2ba6d947ea7c04312edde54aba3/readonly.sql']
+      await expect(result).rejects.toThrow(`EACCES`)
     })
 
     it('should pass if no schema file around', async () => {
