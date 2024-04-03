@@ -38,6 +38,7 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
@@ -54,6 +55,7 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       1 migration found in prisma/migrations
 
     `)
@@ -90,6 +92,7 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/using-file-as-url.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+
       No migration found in prisma/migrations
 
     `)
@@ -111,6 +114,7 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       1 migration found in prisma/migrations
 
 
@@ -130,13 +134,14 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-      1 migration found in prisma/migrations
 
+      1 migration found in prisma/migrations
       Following migration have not yet been applied:
       20201231000000_init
 
       To apply migrations in development run prisma migrate dev.
       To apply migrations in production run prisma migrate deploy.
+
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(mockExit).toHaveBeenCalledWith(1)
@@ -155,6 +160,7 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       No migration found in prisma/migrations
 
     `)
@@ -180,6 +186,7 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       No migration found in prisma/migrations
 
     `)
@@ -201,6 +208,7 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       1 migration found in prisma/migrations
 
 
@@ -220,6 +228,7 @@ describe('sqlite', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       2 migrations found in prisma/migrations
 
     `)
@@ -253,6 +262,7 @@ describe('postgresql', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
+
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })

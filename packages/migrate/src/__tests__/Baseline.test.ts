@@ -50,7 +50,8 @@ describe('Baselining', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
-      ⠋ Introspecting based on datasource defined in prisma/schema.prisma✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXXms
+      - Introspecting based on datasource defined in prisma/schema.prisma
+      ✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
 

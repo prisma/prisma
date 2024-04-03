@@ -107,7 +107,7 @@ ${bold('Examples')}
       process.stdout.write('\n') // empty line
 
       if (!confirmation.value) {
-        console.info('Drop cancelled.')
+        process.stdout.write('Drop cancelled.\n')
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
       } else if (confirmation.value !== datasourceInfo.dbName) {

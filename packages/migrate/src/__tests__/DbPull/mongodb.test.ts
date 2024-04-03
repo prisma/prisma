@@ -341,6 +341,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     const result = introspect.parse(['--print', '--url', MONGO_URI])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
                   // *** WARNING ***

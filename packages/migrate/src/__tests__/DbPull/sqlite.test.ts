@@ -265,14 +265,14 @@ describe('common/sqlite', () => {
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                    // *** WARNING ***
-                                    // 
-                                    // These models were enriched with \`@@map\` information taken from the previous Prisma schema:
-                                    //   - "AwesomeNewPost"
-                                    //   - "AwesomeProfile"
-                                    //   - "AwesomeUser"
-                                    // 
-                        `)
+                                          // *** WARNING ***
+                                          // 
+                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema:
+                                          //   - "AwesomeNewPost"
+                                          //   - "AwesomeProfile"
+                                          //   - "AwesomeUser"
+                                          // 
+                            `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
