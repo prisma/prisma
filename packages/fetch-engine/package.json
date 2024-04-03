@@ -18,7 +18,7 @@
     "@swc/core": "1.4.6",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.26",
+    "@types/node": "18.19.29",
     "@types/node-fetch": "2.6.11",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
