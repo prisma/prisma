@@ -76,7 +76,7 @@ describe('mysql', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -88,7 +88,7 @@ describe('mysql', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })

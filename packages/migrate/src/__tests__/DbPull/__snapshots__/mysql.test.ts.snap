@@ -39,6 +39,7 @@ model your_url {
   @@index([timestamp], map: "timestamp")
 }
 
+
 `;
 
 exports[`mysql basic introspection 2`] = `
@@ -79,5 +80,6 @@ model your_url {
   @@index([ip], map: "ip")
   @@index([timestamp], map: "timestamp")
 }
+
 
 `;

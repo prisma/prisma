@@ -76,7 +76,7 @@ describe('postgresql-extensions', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'schema.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    const introspectedSchema = ctx.mocked['console.log'].mock.calls.join('\n')
+    const introspectedSchema = captureStdout.getCapturedText().join('\n')
     expect(introspectedSchema).toMatchInlineSnapshot(`
       generator client {
         provider        = "prisma-client-js"
@@ -113,6 +113,7 @@ describe('postgresql-extensions', () => {
         USER
         ADMIN
       }
+
 
     `)
     expect(introspectedSchema).toContain('[citext(schema:')
@@ -125,7 +126,7 @@ describe('postgresql-extensions', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    const introspectedSchema = ctx.mocked['console.log'].mock.calls.join('\n')
+    const introspectedSchema = captureStdout.getCapturedText().join('\n')
     expect(introspectedSchema).toMatchInlineSnapshot(`
       generator client {
         provider        = "prisma-client-js"
@@ -162,6 +163,7 @@ describe('postgresql-extensions', () => {
         USER
         ADMIN
       }
+
 
     `)
     expect(introspectedSchema).toContain('[citext(schema:')
