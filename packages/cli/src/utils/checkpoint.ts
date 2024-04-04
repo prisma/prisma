@@ -27,15 +27,28 @@ export async function runCheckpointClientCheck({
   telemetryInformation: string
   schemaPath?: string
 }): Promise<Check.Result | 0> {
+  // If the user has disabled telemetry, we can stop here already.
+  if (process.env['CHECKPOINT_DISABLE']) {
+    // TODO: this breaks checkpoint-client abstraction, ideally it would export a reusable isGloballyDisabled() function
+    debug('runCheckpointClientCheck() is disabled by the CHECKPOINT_DISABLE env var.')
+    return 0
+  }
+
   try {
-    // SHA256 identifier for the project based on the Prisma schema path
-    const projectPathHash = await getProjectHash()
+    const startGetInfo = performance.now()
+    // Get some info about the project
+    const [projectPathHash, { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders }] = await Promise.all([
+      // SHA256 identifier for the project based on the Prisma schema path
+      getProjectHash(),
+      // Read schema and extract some data
+      tryToReadDataFromSchema(schemaPath),
+    ])
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
-    // Read schema and extract some data
-    const { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders } = await tryToReadDataFromSchema(
-      schemaPath,
-    )
+
+    const endGetInfo = performance.now()
+    const getInfoElapsedTime = endGetInfo - startGetInfo
+    debug(`runCheckpointClientCheck(): Execution time for getting info: ${getInfoElapsedTime} ms`)
 
     const data: Check.Input = {
       // Name of the product
@@ -65,8 +78,14 @@ export async function runCheckpointClientCheck({
       cli_path: process.argv[1],
     }
 
+    const startCheckpoint = performance.now()
     // Call Checkpoint Client and return result
-    return await checkpoint.check(data)
+    const checkpointResult = await checkpoint.check(data)
+    const endCheckpoint = performance.now()
+    const checkpointElapsedTime = endCheckpoint - startCheckpoint
+    debug(`runCheckpointClientCheck(): Execution time for "await checkpoint.check(data)": ${checkpointElapsedTime} ms`)
+
+    return checkpointResult
   } catch (e) {
     debug('Error from runCheckpointClientCheck()')
     debug(e)
