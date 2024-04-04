@@ -6,6 +6,7 @@ import path from 'path'
 import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'
+import { CaptureStdout } from '../utils/captureStdout'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
@@ -17,6 +18,20 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 function removeRocketEmoji(str: string) {
   return str.replace('🚀  ', '')
 }
+
+const captureStdout = new CaptureStdout()
+
+beforeEach(() => {
+  captureStdout.startCapture()
+})
+
+afterEach(() => {
+  captureStdout.clearCaptureText()
+})
+
+afterAll(() => {
+  captureStdout.stopCapture()
+})
 
 const originalEnv = { ...process.env }
 
@@ -52,13 +67,13 @@ describe('push', () => {
     ctx.fixture('reset')
     const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('missing SQLite db should be created next to the schema.prisma file', async () => {
@@ -68,19 +83,18 @@ describe('push', () => {
 
     const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
     expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
     expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
     expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
-
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('missing SQLite db should be created next to the --schema path', async () => {
@@ -93,21 +107,20 @@ describe('push', () => {
 
     const result = DbPush.new().parse(['--schema', newSchemaPath])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from something/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
     expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
     expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
     expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
     expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
     expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
-
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should ask for --accept-data-loss if not provided in CI', async () => {
@@ -118,8 +131,6 @@ describe('push', () => {
     await expect(result).rejects.toMatchInlineSnapshot(
       `Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --accept-data-loss`,
     )
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('dataloss warnings accepted (prompt)', async () => {
@@ -129,7 +140,7 @@ describe('push', () => {
 
     const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -139,9 +150,10 @@ describe('push', () => {
 
 
 
+
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('dataloss warnings cancelled (prompt)', async () => {
@@ -154,7 +166,7 @@ describe('push', () => {
 
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -163,9 +175,11 @@ describe('push', () => {
         • You are about to drop the \`Blog\` table, which is not empty (1 rows).
 
 
+
       Push cancelled.
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
     expect(mockExit).toHaveBeenCalledWith(130)
   })
 
@@ -173,7 +187,7 @@ describe('push', () => {
     ctx.fixture('existing-db-warnings')
     const result = DbPush.new().parse(['--accept-data-loss'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -182,9 +196,10 @@ describe('push', () => {
         • You are about to drop the \`Blog\` table, which is not empty (1 rows).
 
 
+
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('unexecutable - drop accepted (prompt)', async () => {
@@ -204,7 +219,7 @@ describe('push', () => {
     expect(sqliteDbSizeAfter).toBeGreaterThan(10_000)
     expect(sqliteDbSizeAfter).toBeLessThan(sqliteDbSizeBefore)
 
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -217,8 +232,8 @@ describe('push', () => {
       The SQLite database "dev.db" from "file:dev.db" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('unexecutable - drop cancelled (prompt)', async () => {
@@ -231,7 +246,7 @@ describe('push', () => {
 
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -240,9 +255,11 @@ describe('push', () => {
         • You are about to drop the \`Blog\` table, which is not empty (1 rows).
 
 
+
       Push cancelled.
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
     expect(mockExit).toHaveBeenCalledWith(130)
   })
 
@@ -250,15 +267,15 @@ describe('push', () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
     const result = DbPush.new().parse(['--force-reset'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       The SQLite database "dev.db" at "file:dev.db" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('unexecutable - should ask for --force-reset in CI', async () => {
@@ -276,8 +293,6 @@ describe('push', () => {
                                                                         All data will be lost.
                                                                                 
                                                 `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
 
@@ -322,7 +337,7 @@ describe('postgresql', () => {
 
     const result = DbPush.new().parse(['--force-reset'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-db-push", schema "public" at "localhost:5432"
@@ -330,8 +345,8 @@ describe('postgresql', () => {
       The PostgreSQL database "tests-migrate-db-push" schema "public" at "localhost:5432" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should work if url is prisma:// and directUrl defined', async () => {
@@ -341,7 +356,7 @@ describe('postgresql', () => {
 
     const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" at "localhost:5432"
@@ -352,9 +367,10 @@ describe('postgresql', () => {
 
 
 
+
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
 
@@ -402,15 +418,15 @@ describe('postgresql-multischema', () => {
 
     const result = DbPush.new().parse(['--force-reset'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate-db-push-multischema", schemas "base, transactional" at "localhost:5432"
 
       The PostgreSQL database "tests-migrate-db-push-multischema" schemas "base, transactional" at "localhost:5432" were successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
 
@@ -448,7 +464,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
     const result = DbPush.new().parse(['--force-reset'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
 
@@ -459,8 +475,8 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
 
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('dataloss warnings accepted (prompt)', async () => {
@@ -470,7 +486,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
     const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
@@ -479,8 +495,8 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
 
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('dataloss warnings cancelled (prompt)', async () => {
@@ -493,7 +509,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
     const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
@@ -502,8 +518,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
 
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
     expect(mockExit).toHaveBeenCalledWith(130)
   })
 
@@ -511,7 +528,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
     ctx.fixture('existing-db-warnings-mongodb')
     const result = DbPush.new().parse(['--accept-data-loss'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
@@ -520,7 +537,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
 
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
