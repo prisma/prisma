@@ -1,20 +1,21 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { getSchema, pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SchemaEngine } from '../../SchemaEngine'
 import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
+import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 // To avoid the loading spinner locally
 process.env.CI = 'true'
@@ -22,6 +23,20 @@ process.env.CI = 'true'
 const originalEnv = { ...process.env }
 
 describe('postgresql-views', () => {
+  const captureStdout = new CaptureStdout()
+
+  beforeEach(() => {
+    captureStdout.startCapture()
+  })
+
+  afterEach(() => {
+    captureStdout.clearCaptureText()
+  })
+
+  afterAll(() => {
+    captureStdout.stopCapture()
+  })
+
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-postgresql-views',
@@ -223,39 +238,39 @@ describe('postgresql-views', () => {
       const listWithoutViews = await ctx.fs.listAsync('views')
       expect(listWithoutViews).toEqual(undefined)
 
-      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-        Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-      `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+        Prisma schema loaded from schema.prisma
 
-
-                        - Introspecting based on datasource defined in schema.prisma
-
-                        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-                              
-                        *** WARNING ***
-
-                        The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-                          - "simpleuser"
-                          - "workers"
-
-                        Run prisma generate to generate Prisma Client.
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
 
 
 
-                        - Introspecting based on datasource defined in schema.prisma
+        - Introspecting based on datasource defined in schema.prisma
 
-                        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-                              
-                        Run prisma generate to generate Prisma Client.
+        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+              
+        *** WARNING ***
 
-                  `)
-      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+        The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+          - "simpleuser"
+          - "workers"
+
+        Run prisma generate to generate Prisma Client.
+
+        Prisma schema loaded from schema.prisma
+
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
+
+
+
+        - Introspecting based on datasource defined in schema.prisma
+
+        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+              
+        Run prisma generate to generate Prisma Client.
+
+      `)
     })
   })
 
@@ -285,13 +300,12 @@ describe('postgresql-views', () => {
         ]
       `)
 
-      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        Prisma schema loaded from schema.prisma
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-      `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+        Prisma schema loaded from schema.prisma
+
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
+
 
 
         - Introspecting based on datasource defined in schema.prisma
@@ -307,7 +321,6 @@ describe('postgresql-views', () => {
         Run prisma generate to generate Prisma Client.
 
       `)
-      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     const schemaPaths = [
@@ -395,11 +408,8 @@ describe('postgresql-views', () => {
             );
         `)
 
-        expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-        expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
+        expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-        expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchSnapshot()
-        expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       })
     }
 
@@ -471,13 +481,11 @@ describe('postgresql-views', () => {
       const tree = await ctx.fs.findAsync({ directories: false, files: true, recursive: true, matching: 'views/**/*' })
       expect(tree).toMatchInlineSnapshot(`[]`)
 
-      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
         Prisma schema loaded from schema.prisma
+
         Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-      `)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
 
 
         - Introspecting based on datasource defined in schema.prisma
@@ -487,7 +495,7 @@ describe('postgresql-views', () => {
         Run prisma generate to generate Prisma Client.
 
       `)
-      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     test('introspect with already existing files in "views"', async () => {

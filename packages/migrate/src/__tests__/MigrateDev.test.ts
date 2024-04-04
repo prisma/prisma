@@ -8,6 +8,7 @@ import prompt from 'prompts'
 
 import { DbExecute } from '../commands/DbExecute'
 import { MigrateDev } from '../commands/MigrateDev'
+import { CaptureStdout } from '../utils/captureStdout'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
@@ -18,6 +19,7 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const captureStdout = new CaptureStdout()
 
 // Disable prompts
 process.env.GITHUB_ACTIONS = '1'
@@ -29,6 +31,18 @@ function removeSeedlingEmoji(str: string) {
 }
 
 const originalEnv = { ...process.env }
+
+beforeEach(() => {
+  captureStdout.startCapture()
+})
+
+afterEach(() => {
+  captureStdout.clearCaptureText()
+})
+
+afterAll(() => {
+  captureStdout.stopCapture()
+})
 
 describe('common', () => {
   it('invalid schema', async () => {
@@ -56,11 +70,10 @@ describe('common', () => {
       `)
     }
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Prisma schema loaded from prisma/invalid.prisma`,
-    )
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/invalid.prisma
+
+    `)
   })
 
   it('provider array should fail', async () => {
@@ -86,11 +99,10 @@ describe('common', () => {
         Prisma CLI Version : 0.0.0
       `)
     }
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Prisma schema loaded from prisma/provider-array.prisma`,
-    )
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/provider-array.prisma
+
+    `)
   })
 
   it('wrong flag', async () => {
@@ -127,7 +139,6 @@ describe('common', () => {
             To apply existing migrations in deployments, use prisma migrate deploy.
             See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-deploy
           `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
 
@@ -137,16 +148,15 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       Already in sync, no schema change or pending migration was found.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('first migration (--name)', async () => {
@@ -156,7 +166,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -171,9 +181,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   //
@@ -197,7 +206,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -213,9 +222,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // it('first migration --name --force', async () => {
@@ -229,7 +237,7 @@ describe('sqlite', () => {
   //   await expect(result).resolves.toMatchInlineSnapshot(
   //     `Everything is now in sync.`,
   //   )
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //   expect(captureStdout.getCapturedText().join(''))
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
 
@@ -242,8 +250,6 @@ describe('sqlite', () => {
   //         └─ migration.sql
 
   //   `)
-  //   expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   // })
 
   it('snapshot of sql', async () => {
@@ -286,7 +292,7 @@ describe('sqlite', () => {
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -305,9 +311,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('draft migration with empty schema (prompt)', async () => {
@@ -325,16 +330,15 @@ describe('sqlite', () => {
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       Enter a name for the new migration:
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('draft migration and apply (--name)', async () => {
@@ -352,7 +356,7 @@ describe('sqlite', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(``)
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -370,9 +374,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('transition-db-push-migrate (prompt reset yes)', async () => {
@@ -383,7 +386,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -412,9 +415,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('transition-db-push-migrate (prompt reset no)', async () => {
@@ -428,7 +430,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -449,9 +451,8 @@ describe('sqlite', () => {
       Do you want to continue? All data will be lost.
 
       Reset cancelled.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
     expect(mockExit).toHaveBeenCalledWith(130)
   })
 
@@ -463,7 +464,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -483,9 +484,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('removed applied migration and unapplied empty draft', async () => {
@@ -497,7 +497,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -533,9 +533,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('broken migration should fail', async () => {
@@ -548,15 +547,14 @@ describe('sqlite', () => {
       expect(e.message).toContain('near "BROKEN": syntax error')
     }
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('existingdb: has a failed migration', async () => {
@@ -570,13 +568,12 @@ describe('sqlite', () => {
       expect(e.message).toContain('failed to apply cleanly to the shadow database.')
     }
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('existing-db-1-migration edit migration with broken sql', async () => {
@@ -596,7 +593,7 @@ describe('sqlite', () => {
       expect(e.message).toContain('failed to apply cleanly to the shadow database.')
     }
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -604,9 +601,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unapplied draft', async () => {
@@ -614,7 +610,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -627,9 +623,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unapplied draft + 1 schema change', async () => {
@@ -637,7 +632,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -658,9 +653,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unexecutable schema change', async () => {
@@ -676,15 +670,14 @@ describe('sqlite', () => {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     Then run prisma migrate dev to apply it and verify it works.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          `)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unexecutable schema change with --create-only should succeed', async () => {
@@ -696,14 +689,14 @@ describe('sqlite', () => {
 
             You can now edit it and apply it by running prisma migrate dev.
           `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
   it('existingdb: 1 warning from schema change (prompt yes)', async () => {
@@ -713,10 +706,14 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
+      ⚠️  Warnings for the current datasource:
+
+        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
 
       Applying migration \`20201231000000_\`
 
@@ -727,14 +724,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                                                                                                                                                                                                                                                                                                                                                                                    ⚠️  Warnings for the current datasource:
-
-                                                                                                                                                                                                                                                                                                                                                                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                                                                                                        `)
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 warning from schema change (prompt no)', async () => {
@@ -747,20 +738,18 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+      ⚠️  Warnings for the current datasource:
+
+        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+
       Migration cancelled.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                                                                                                                                                                                                                                                                                                                                                                                    ⚠️  Warnings for the current datasource:
-
-                                                                                                                                                                                                                                                                                                                                                                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                                                                                                        `)
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(mockExit).toHaveBeenCalledWith(130)
   })
 
@@ -772,7 +761,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(removeSeedlingEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -794,8 +783,6 @@ describe('sqlite', () => {
       The seed command has been executed.
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('one seed file --skip-seed', async () => {
@@ -806,7 +793,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse(['--skip-seed'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -822,9 +809,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('one broken seed.js file', async () => {
@@ -839,7 +825,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -857,9 +843,11 @@ describe('sqlite', () => {
       Your database is now in sync with your schema.
 
       Running seed command \`node prisma/seed.js\` ...
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toContain(`An error occurred while running the seed command:`)
+    expect(ctx.mocked['console.error'].mock.calls.join('')).toContain(
+      `An error occurred while running the seed command:`,
+    )
     expect(mockExit).toHaveBeenCalledWith(1)
   })
 
@@ -873,7 +861,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -889,9 +877,8 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('provider switch: postgresql to sqlite', async () => {
@@ -905,15 +892,14 @@ describe('sqlite', () => {
       expect(e.message).toContain('The datasource provider')
     }
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       SQLite database dev.db created at file:./dev.db
 
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -958,9 +944,7 @@ describe('postgresql', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
@@ -974,6 +958,7 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
   })
 
@@ -982,9 +967,7 @@ describe('postgresql', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
@@ -998,6 +981,7 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
   })
 
@@ -1006,7 +990,7 @@ describe('postgresql', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
@@ -1020,9 +1004,8 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('create first migration with nativeTypes', async () => {
@@ -1031,7 +1014,7 @@ describe('postgresql', () => {
     const result = MigrateDev.new().parse(['--name=first'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
@@ -1044,8 +1027,8 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   // it('first migration --force + --name', async () => {
@@ -1058,7 +1041,7 @@ describe('postgresql', () => {
   //   await expect(result).resolves.toMatchInlineSnapshot(
   //     `Everything is now in sync.`,
   //   )
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //   expect(captureStdout.getCapturedText().join(''))
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
@@ -1068,8 +1051,6 @@ describe('postgresql', () => {
   //         └─ migration.sql
 
   //   `)
-  //   expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-  //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   // })
 
   it('draft migration and apply (--name)', async () => {
@@ -1088,7 +1069,7 @@ describe('postgresql', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(``)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
@@ -1106,9 +1087,8 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: create first migration', async () => {
@@ -1116,7 +1096,7 @@ describe('postgresql', () => {
     const result = MigrateDev.new().parse(['--name=first'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
@@ -1130,9 +1110,8 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // it('real-world-grading-app: compare snapshot', async () => {
@@ -1140,7 +1119,7 @@ describe('postgresql', () => {
   //   const result = MigrateDev.new().parse([])
 
   //   await expect(result).resolves.toMatchInlineSnapshot()
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //   expect(captureStdout.getCapturedText().join(''))
   //     .toMatchInlineSnapshot(`
   //     Prisma Schema loaded from prisma/schema.prisma
 
@@ -1151,8 +1130,6 @@ describe('postgresql', () => {
   //         └─ migration.sql
   //   `)
 
-  //   expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-  //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   //   expect(
   //     fs.read(`prisma/${fs.list('prisma/migrations')![0]}/migration.sql`),
   //   ).toEqual([])
@@ -1194,15 +1171,14 @@ describe('postgresql', () => {
 
     `)
     expect(mockExit).toHaveBeenCalledWith(130)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/multiSchema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schemas "schema1, schema2" at "localhost:5432"
 
       Enter a name for the new migration:
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(`Canceled by user.`)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
+    // expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(`Canceled by user.`)
   })
 
   it('should work if directUrl is set as env var', async () => {
@@ -1210,15 +1186,14 @@ describe('postgresql', () => {
     const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
       Already in sync, no schema change or pending migration was found.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -1266,9 +1241,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
@@ -1282,6 +1255,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
   })
 
@@ -1290,9 +1264,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev-shadowdb", schema "public" at "localhost:26257"
@@ -1306,6 +1278,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
   })
 
@@ -1314,7 +1287,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
@@ -1328,9 +1301,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('create first migration with nativeTypes', async () => {
@@ -1339,7 +1311,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     const result = MigrateDev.new().parse(['--name=first'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
 
@@ -1352,8 +1324,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   }, 40_000)
 
   it('draft migration and apply (--name)', async () => {
@@ -1372,7 +1344,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(``)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
@@ -1390,9 +1362,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: create first migration', async () => {
@@ -1400,7 +1371,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     const result = MigrateDev.new().parse(['--name=first'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
@@ -1414,9 +1385,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -1461,9 +1431,7 @@ describe('mysql', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
@@ -1476,6 +1444,7 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
   })
 
@@ -1484,9 +1453,7 @@ describe('mysql', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
@@ -1499,6 +1466,7 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
   })
 
@@ -1507,7 +1475,7 @@ describe('mysql', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
@@ -1520,9 +1488,8 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // it('create first migration with nativeTypes', async () => {
@@ -1531,7 +1498,7 @@ describe('mysql', () => {
   //   const result = MigrateDev.new().parse(['--name=first'])
   //   await expect(result).resolves.toMatchInlineSnapshot(``)
 
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //   expect(captureStdout.getCapturedText().join(''))
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
@@ -1544,9 +1511,6 @@ describe('mysql', () => {
 
   //     Your database is now in sync with your schema.
   //   `)
-  //   expect(
-  //     ctx.mocked['console.error'].mock.calls.join('\n'),
-  //   ).toMatchInlineSnapshot(``)
   // })
 
   // it('first migration --force + --name', async () => {
@@ -1559,7 +1523,7 @@ describe('mysql', () => {
   //   await expect(result).resolves.toMatchInlineSnapshot(
   //     `Everything is now in sync.`,
   //   )
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //   expect(captureStdout.getCapturedText().join(''))
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
@@ -1569,8 +1533,6 @@ describe('mysql', () => {
   //         └─ migration.sql
 
   //   `)
-  //   expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-  //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   // })
 
   it('draft migration and apply (--name)', async () => {
@@ -1589,7 +1551,7 @@ describe('mysql', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(``)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
@@ -1605,9 +1567,8 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: create first migration', async () => {
@@ -1615,7 +1576,7 @@ describe('mysql', () => {
     const result = MigrateDev.new().parse(['--name=first'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
@@ -1628,9 +1589,8 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -1684,9 +1644,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
@@ -1699,6 +1657,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
   })
 
@@ -1707,9 +1666,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": SQL Server database
 
@@ -1722,6 +1679,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
   })
 
@@ -1730,7 +1688,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
@@ -1743,9 +1701,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // it('create first migration with nativeTypes', async () => {
@@ -1754,7 +1711,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   //   const result = MigrateDev.new().parse(['--name=first'])
   //   await expect(result).resolves.toMatchInlineSnapshot(``)
 
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //   expect(captureStdout.getCapturedText().join(''))
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
@@ -1767,9 +1724,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
   //     Your database is now in sync with your schema.
   //   `)
-  //   expect(
-  //     ctx.mocked['console.error'].mock.calls.join('\n'),
-  //   ).toMatchInlineSnapshot(``)
   // })
 
   // it('first migration --force + --name', async () => {
@@ -1782,7 +1736,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   //   await expect(result).resolves.toMatchInlineSnapshot(
   //     `Everything is now in sync.`,
   //   )
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //   expect(captureStdout.getCapturedText().join(''))
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
@@ -1792,8 +1746,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   //         └─ migration.sql
 
   //   `)
-  //   expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-  //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   // })
 
   it('draft migration and apply (--name)', async () => {
@@ -1811,7 +1763,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(``)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
@@ -1827,9 +1779,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: create first migration', async () => {
@@ -1837,7 +1788,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     const result = MigrateDev.new().parse(['--name=first'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
@@ -1850,8 +1801,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })

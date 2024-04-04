@@ -119,7 +119,7 @@ Set composite types introspection depth to 2 levels
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
-      console.info(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+      process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 
       // Load and print where the .env was loaded (if loaded)
       loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
@@ -359,7 +359,7 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
-        console.info() // empty line
+        process.stdout.write('\n') // empty line
 
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
@@ -375,14 +375,14 @@ Or run this command with the ${green(
         )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
 
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
       throw e
     }
 
     const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings)
 
     if (args['--print']) {
-      console.log(introspectionSchema)
+      process.stdout.write(introspectionSchema + '\n')
 
       if (introspectionWarningsMessage.trim().length > 0) {
         // Replace make it a // comment block
