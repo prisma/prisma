@@ -91,7 +91,7 @@ testMatrix.setupTestSuite(
         } catch (e) {
           const message = stripAnsi(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI.`)
+          expect(message).toMatchInlineSnapshot(`"error: Environment variable not found: DATABASE_URI."`)
         }
       },
     )
