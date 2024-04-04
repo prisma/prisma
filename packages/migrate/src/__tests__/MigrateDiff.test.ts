@@ -38,6 +38,7 @@ describe('migrate diff', () => {
 
       const result = await MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'])
       expect(result).toMatchInlineSnapshot(``)
+      expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
@@ -64,6 +65,7 @@ describe('migrate diff', () => {
 
       const result = await MigrateDiff.new().parse(['--to-empty', '--from-url', `file:${url}`, '--script'])
       expect(result).toMatchInlineSnapshot(``)
+      expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
@@ -82,6 +84,7 @@ describe('migrate diff', () => {
 
       const result = await MigrateDiff.new().parse(['--from-empty', '--to-url', `file:${url}`, '--script'])
       expect(result).toMatchInlineSnapshot(``)
+      expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
@@ -637,10 +640,10 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-url', connectionString!, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Error in Schema engine.
-              Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
+        Error in Schema engine.
+        Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
 
-            `)
+      `)
     })
   })
 
