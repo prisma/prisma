@@ -2,10 +2,25 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { DbDrop } from '../commands/DbDrop'
+import { CaptureStdout } from '../utils/captureStdout'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('drop', () => {
+  const captureStdout = new CaptureStdout()
+
+  beforeEach(() => {
+    captureStdout.startCapture()
+  })
+
+  afterEach(() => {
+    captureStdout.clearCaptureText()
+  })
+
+  afterAll(() => {
+    captureStdout.stopCapture()
+  })
+
   it('requires --preview-feature flag', async () => {
     ctx.fixture('empty')
 
@@ -59,9 +74,13 @@ describe('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+
 
 
     `)
@@ -73,9 +92,12 @@ describe('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
 
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -85,9 +107,12 @@ describe('drop', () => {
     ctx.fixture('reset')
     const result = DbDrop.new().parse(['--preview-feature', '-f'])
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
 
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -103,12 +128,17 @@ describe('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+
+
+
       Drop cancelled.
+
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(mockExit).toHaveBeenCalledWith(130)

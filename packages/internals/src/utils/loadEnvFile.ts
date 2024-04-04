@@ -13,6 +13,6 @@ export function loadEnvFile({
   const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
 
   if (printMessage && envData && envData.message) {
-    console.info(envData.message)
+    process.stdout.write(envData.message + '\n')
   }
 }

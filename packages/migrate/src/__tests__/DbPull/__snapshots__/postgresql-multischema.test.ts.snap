@@ -33,6 +33,7 @@ enum status {
   @@schema("base")
 }
 
+
 `;
 
 exports[`postgresql-multischema --url  --schemas=base,transactional (2 existing schemas) should succeed 2`] = `
@@ -99,6 +100,7 @@ enum transactional_status {
   @@schema("transactional")
 }
 
+
 `;
 
 exports[`postgresql-multischema --url --schemas=base (1 existing schema) should succeed 2`] = `
@@ -134,6 +136,7 @@ enum status {
   @@schema("base")
 }
 
+
 `;
 
 exports[`postgresql-multischema --url with \`?schema=base\` should succeed 2`] = `
@@ -156,6 +159,7 @@ enum status {
   ON
   OFF
 }
+
 
 `;
 
@@ -194,9 +198,13 @@ enum status {
   @@schema("base")
 }
 
+
 `;
 
-exports[`postgresql-multischema --url with --schemas=base without preview feature should error 2`] = ``;
+exports[`postgresql-multischema --url with --schemas=base without preview feature should error 2`] = `
+
+
+`;
 
 exports[`postgresql-multischema --url with --schemas=does-not-exist should error 2`] = ``;
 
@@ -264,6 +272,7 @@ enum transactional_status {
   @@schema("transactional")
 }
 
+
 `;
 
 exports[`postgresql-multischema datasource property \`schemas=["base"]\` should succeed 2`] = `
@@ -299,6 +308,7 @@ enum status {
   @@schema("base")
 }
 
+
 `;
 
 exports[`postgresql-multischema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
@@ -333,6 +343,7 @@ enum status {
 
   @@schema("base")
 }
+
 
 `;
 
