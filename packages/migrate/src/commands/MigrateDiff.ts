@@ -28,7 +28,7 @@ const helpOptions = format(
 ${bold('Options')}
 
   -h, --help               Display this help message
-  -o, --output             Path to the file where the diff output will be written to
+  -o, --output             Writes to a file instead of stdout
 
 ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
   --from-url               A datasource URL
