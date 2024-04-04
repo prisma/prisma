@@ -88,7 +88,7 @@ const commonRuntimesOverrides = {
   './warnEnvConflicts': { contents: '' },
 }
 
-const commonEdgeWasmRuntimeBuildConfig = {
+const runtimesCommonBuildConfig = {
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
   bundle: true,
@@ -108,11 +108,11 @@ const commonEdgeWasmRuntimeBuildConfig = {
 
 // we define the config for edge
 const edgeRuntimeBuildConfig: BuildOptions = {
-  ...commonEdgeWasmRuntimeBuildConfig,
+  ...runtimesCommonBuildConfig,
   name: 'edge',
   outfile: 'runtime/edge',
   define: {
-    ...commonEdgeWasmRuntimeBuildConfig.define,
+    ...runtimesCommonBuildConfig.define,
     // tree shake the Library and Binary engines out
     TARGET_BUILD_TYPE: '"edge"',
   },
@@ -125,12 +125,12 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 
 // we define the config for wasm
 const wasmRuntimeBuildConfig: BuildOptions = {
-  ...commonEdgeWasmRuntimeBuildConfig,
+  ...runtimesCommonBuildConfig,
   target: 'ES2022',
   name: 'wasm',
   outfile: 'runtime/wasm',
   define: {
-    ...commonEdgeWasmRuntimeBuildConfig.define,
+    ...runtimesCommonBuildConfig.define,
     TARGET_BUILD_TYPE: '"wasm"',
   },
   plugins: [
@@ -150,15 +150,11 @@ const wasmRuntimeBuildConfig: BuildOptions = {
 // React Native is similar to edge in the sense it doesn't have the node API/libraries
 // and also not all the browser APIs, therefore it needs to polyfill the same things as edge
 const reactNativeBuildConfig: BuildOptions = {
+  ...runtimesCommonBuildConfig,
   name: 'react-native',
   target: 'ES2022',
-  entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/react-native',
-  bundle: true,
-  minify: false,
-  sourcemap: 'linked',
-  legalComments: 'none',
-  emitTypes: false,
+  emitTypes: true,
   define: {
     NODE_CLIENT: 'false',
     TARGET_BUILD_TYPE: '"react-native"',
@@ -168,7 +164,6 @@ const reactNativeBuildConfig: BuildOptions = {
       fillerOverrides: { ...commonRuntimesOverrides },
     }),
   ],
-  logLevel: 'error',
 }
 
 // we define the config for edge in esm format (used by deno)
