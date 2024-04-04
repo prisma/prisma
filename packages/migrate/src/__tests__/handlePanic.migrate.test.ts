@@ -130,7 +130,7 @@ describe('handlePanic migrate', () => {
       `)
     } else {
       const output = captureStdout.getCapturedText()
-      expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(``)
+      expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`""`)
     }
     captureStdout.stopCapture()
   })

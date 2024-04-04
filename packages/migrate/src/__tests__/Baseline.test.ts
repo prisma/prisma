@@ -45,16 +45,16 @@ describe('Baselining', () => {
 
     // db pull
     const dbPull = DbPull.new().parse([])
-    await expect(dbPull).resolves.toMatchInlineSnapshot(``)
+    await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
     captureStdout.clearCaptureText()
 
@@ -62,12 +62,12 @@ describe('Baselining', () => {
     prompt.inject(['y'])
     const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'])
     await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
-      Prisma Migrate created the following migration without applying it 20201231000000_
+      "Prisma Migrate created the following migration without applying it 20201231000000_
 
-      You can now edit it and apply it by running prisma migrate dev.
+      You can now edit it and apply it by running prisma migrate dev."
     `)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       Drift detected: Your database schema is not in sync with your migration history.
@@ -85,16 +85,16 @@ describe('Baselining', () => {
       We need to reset the SQLite database "dev.db" at "file:./dev.db"
       Do you want to continue? All data will be lost.
 
-
+      "
     `)
     captureStdout.clearCaptureText()
 
     // migrate dev
     captureStdout.startCapture()
     const migrateDev = MigrateDev.new().parse([])
-    await expect(migrateDev).resolves.toMatchInlineSnapshot(``)
+    await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       Applying migration \`20201231000000_\`
@@ -106,7 +106,7 @@ describe('Baselining', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
     captureStdout.clearCaptureText()
 
@@ -116,28 +116,28 @@ describe('Baselining', () => {
     // migrate resolve --applied migration_name
     const migrationName = fs.list('prisma/migrations')![0]
     const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName])
-    await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(``)
+    await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "prod.db" at "file:./prod.db"
 
       Migration 20201231000000_ marked as applied.
-
+      "
     `)
     captureStdout.clearCaptureText()
 
     // migrate deploy
     const migrateDeployProd = MigrateDeploy.new().parse([])
-    await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
+    await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "prod.db" at "file:./prod.db"
 
       1 migration found in prisma/migrations
 
 
-
+      "
     `)
 
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])

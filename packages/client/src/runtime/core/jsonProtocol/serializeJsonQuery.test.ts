@@ -62,7 +62,7 @@ function serialize(params: SimplifiedParams) {
 
 test('findMany', () => {
   expect(serialize({ modelName: 'User', action: 'findMany', args: {} })).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -72,13 +72,13 @@ test('findMany', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('create', () => {
   expect(serialize({ modelName: 'User', action: 'create', args: {} })).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "createOne",
       "query": {
@@ -88,13 +88,13 @@ test('create', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('delete', () => {
   expect(serialize({ modelName: 'User', action: 'delete', args: {} })).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "deleteOne",
       "query": {
@@ -104,13 +104,13 @@ test('delete', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('upsert', () => {
   expect(serialize({ modelName: 'User', action: 'upsert', args: {} })).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "upsertOne",
       "query": {
@@ -120,7 +120,7 @@ test('upsert', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -131,7 +131,7 @@ test('queryRaw', () => {
       args: { query: 'SELECT ?', parameters: { __prismaRawParameters__: true, values: '[1]' } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "action": "queryRaw",
       "query": {
         "arguments": {
@@ -140,7 +140,7 @@ test('queryRaw', () => {
         },
         "selection": {}
       }
-    }
+    }"
   `)
 })
 
@@ -151,7 +151,7 @@ test('executeRaw', () => {
       args: { query: 'INSET INTO test VALUES (?, ?)', parameters: { __prismaRawParameters__: true, values: '[1, 2]' } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "action": "queryRaw",
       "query": {
         "arguments": {
@@ -160,7 +160,7 @@ test('executeRaw', () => {
         },
         "selection": {}
       }
-    }
+    }"
   `)
 })
 
@@ -172,14 +172,14 @@ test('findRaw', () => {
       args: {},
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findRaw",
       "query": {
         "arguments": {},
         "selection": {}
       }
-    }
+    }"
   `)
 })
 
@@ -191,7 +191,7 @@ test('aggregateRaw', () => {
       args: { pipeline: [] },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "aggregateRaw",
       "query": {
@@ -200,13 +200,13 @@ test('aggregateRaw', () => {
         },
         "selection": {}
       }
-    }
+    }"
   `)
 })
 
 test('no args', () => {
   expect(serialize({ modelName: 'User', action: 'findMany' })).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -216,13 +216,13 @@ test('no args', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('args - number - int', () => {
   expect(serialize({ modelName: 'User', action: 'findMany', args: { where: { id: 1 } } })).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -236,14 +236,14 @@ test('args - number - int', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('args - number - float', () => {
   expect(serialize({ modelName: 'User', action: 'findMany', args: { where: { height: { gt: 180.1234 } } } }))
     .toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -259,13 +259,13 @@ test('args - number - float', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('args - string', () => {
   expect(serialize({ modelName: 'User', action: 'findMany', args: { where: { name: 'foo' } } })).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -279,14 +279,14 @@ test('args - string', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('args - boolean - true', () => {
   expect(serialize({ modelName: 'User', action: 'findMany', args: { where: { active: true } } }))
     .toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -300,14 +300,14 @@ test('args - boolean - true', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('args - boolean - false', () => {
   expect(serialize({ modelName: 'User', action: 'findMany', args: { where: { active: false } } }))
     .toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -321,7 +321,7 @@ test('args - boolean - false', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -333,7 +333,7 @@ test('args - Date', () => {
       args: { where: { birthday: new Date('1980-01-02') } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -350,7 +350,7 @@ test('args - Date', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -362,7 +362,7 @@ test('args - BigInt', () => {
       args: { where: { netWorth: 123n } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -379,7 +379,7 @@ test('args - BigInt', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -391,7 +391,7 @@ test('args - Buffer', () => {
       args: { where: { binary: Buffer.from('hello world') } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -408,7 +408,7 @@ test('args - Buffer', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -420,7 +420,7 @@ test('args - Decimal', () => {
       args: { where: { height: new Decimal('123.45') } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -437,7 +437,7 @@ test('args - Decimal', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -458,7 +458,7 @@ test('args - Decimal-js like', () => {
       },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -475,7 +475,7 @@ test('args - Decimal-js like', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -487,7 +487,7 @@ test('args - FieldRef', () => {
       args: { where: { name: new FieldRefImpl('User', 'nickname', 'string', false, false) } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -507,7 +507,7 @@ test('args - FieldRef', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -525,7 +525,7 @@ test('args - object with toJSON method', () => {
       args: { where: { name } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -539,7 +539,7 @@ test('args - object with toJSON method', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -551,7 +551,7 @@ test('args - object with undefined values', () => {
       args: { where: { undefinedField: undefined, definedField: 123 } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -565,7 +565,7 @@ test('args - object with undefined values', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -578,7 +578,7 @@ test('args - object with $type field', () => {
     }),
     // not using inline snapshot here because our default serializer mangles backslashes on windows
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -598,7 +598,7 @@ test('args - object with $type field', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -610,7 +610,7 @@ test('args - JsonNull field', () => {
       args: { where: { jsonColumn: objectEnumValues.instances.JsonNull } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -627,7 +627,7 @@ test('args - JsonNull field', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -639,7 +639,7 @@ test('args - DbNull field', () => {
       args: { where: { jsonColumn: objectEnumValues.instances.DbNull } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -656,7 +656,7 @@ test('args - DbNull field', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -668,7 +668,7 @@ test('args - AnyNull field', () => {
       args: { where: { jsonColumn: objectEnumValues.instances.AnyNull } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -685,7 +685,7 @@ test('args - AnyNull field', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -697,7 +697,7 @@ test('args - array', () => {
       args: { where: { favoriteNumbers: [1, 23, 45, 67] } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -716,14 +716,14 @@ test('args - array', () => {
           "$scalars": true
         }
       }
-    }
+    }"
   `)
 })
 
 test('1 level include', () => {
   expect(serialize({ modelName: 'User', action: 'findMany', args: { include: { posts: true } } }))
     .toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -734,7 +734,7 @@ test('1 level include', () => {
           "posts": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -742,7 +742,7 @@ test('include with arguments', () => {
   expect(
     serialize({ modelName: 'User', action: 'findMany', args: { include: { posts: { where: { published: true } } } } }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -763,7 +763,7 @@ test('include with arguments', () => {
           }
         }
       }
-    }
+    }"
   `)
 })
 
@@ -775,7 +775,7 @@ test('multiple level include', () => {
       args: { include: { posts: { include: { attachments: true } } } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -793,7 +793,7 @@ test('multiple level include', () => {
           }
         }
       }
-    }
+    }"
   `)
 })
 
@@ -805,7 +805,7 @@ test('explicit selection', () => {
       args: { select: { title: true, posts: true } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -815,7 +815,7 @@ test('explicit selection', () => {
           "posts": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -827,7 +827,7 @@ test('explicit nested selection', () => {
       args: { select: { name: true, posts: { select: { attachments: { select: { fileName: true } } } } } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -847,7 +847,7 @@ test('explicit nested selection', () => {
           }
         }
       }
-    }
+    }"
   `)
 })
 
@@ -859,7 +859,7 @@ test('explicit nested selection with arguments', () => {
       args: { select: { name: true, posts: { where: { published: true } } } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -879,7 +879,7 @@ test('explicit nested selection with arguments', () => {
           }
         }
       }
-    }
+    }"
   `)
 })
 
@@ -891,7 +891,7 @@ test('mixed include and select', () => {
       args: { select: { name: true, posts: { include: { attachments: true } } } },
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -908,7 +908,7 @@ test('mixed include and select', () => {
           }
         }
       }
-    }
+    }"
   `)
 })
 
@@ -930,7 +930,7 @@ test('explicit selection with extension', () => {
       }),
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -940,7 +940,7 @@ test('explicit selection with extension', () => {
           "name": true
         }
       }
-    }
+    }"
   `)
 })
 
@@ -962,7 +962,7 @@ test('explicit selection shadowing a field', () => {
       }),
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       "modelName": "User",
       "action": "findMany",
       "query": {
@@ -972,6 +972,6 @@ test('explicit selection shadowing a field', () => {
           "name": true
         }
       }
-    }
+    }"
   `)
 })

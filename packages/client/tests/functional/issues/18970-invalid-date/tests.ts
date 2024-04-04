@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
           },
         }),
       ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+        "
         Invalid \`prisma.user.findMany()\` invocation in
         /client/tests/functional/issues/18970-invalid-date/tests.ts:0:0
 
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
                      }
                    })
 
-        Invalid value for argument \`date\`: Provided Date object is invalid. Expected Date.
+        Invalid value for argument \`date\`: Provided Date object is invalid. Expected Date."
       `)
     })
   },

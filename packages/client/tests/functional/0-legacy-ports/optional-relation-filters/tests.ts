@@ -61,17 +61,17 @@ testMatrix.setupTestSuite(
 
         expect(result).toHaveLength(2)
         expect(result).toMatchInlineSnapshot(`
-        [
-          {
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-          },
-          {
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-          },
-        ]
-      `)
+          [
+            {
+              "email": "Kyla_Beer587@fraternise-assassination.name",
+              "id": "a7fe5dac91ab6b0f529430c5",
+            },
+            {
+              "email": "Sam.Mills50272@oozeastronomy.net",
+              "id": "a85d5d75a3a886cb61eb3a0e",
+            },
+          ]
+        `)
       },
     )
 
@@ -87,8 +87,8 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            email: Pete.Runte93767@broaden-dungeon.info,
-            id: 02d25579a73a72373fa4e846,
+            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "id": "02d25579a73a72373fa4e846",
           },
         ]
       `)
@@ -104,13 +104,13 @@ testMatrix.setupTestSuite(
 
       expect(result).toHaveLength(1)
       expect(result).toMatchInlineSnapshot(`
-            [
-              {
-                email: Pete.Runte93767@broaden-dungeon.info,
-                id: 02d25579a73a72373fa4e846,
-              },
-            ]
-          `)
+        [
+          {
+            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "id": "02d25579a73a72373fa4e846",
+          },
+        ]
+      `)
     })
 
     // TODO likely a bug in mongodb
@@ -123,13 +123,13 @@ testMatrix.setupTestSuite(
 
       expect(result).toHaveLength(1)
       expect(result).toMatchInlineSnapshot(`
-            [
-              {
-                email: Pete.Runte93767@broaden-dungeon.info,
-                id: 02d25579a73a72373fa4e846,
-              },
-            ]
-          `)
+        [
+          {
+            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "id": "02d25579a73a72373fa4e846",
+          },
+        ]
+      `)
     })
 
     // TODO likely a bug in mongodb
@@ -146,13 +146,13 @@ testMatrix.setupTestSuite(
 
         expect(result).toHaveLength(1)
         expect(result).toMatchInlineSnapshot(`
-        [
-          {
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-          },
-        ]
-      `)
+          [
+            {
+              "email": "Sam.Mills50272@oozeastronomy.net",
+              "id": "a85d5d75a3a886cb61eb3a0e",
+            },
+          ]
+        `)
       },
     )
 
@@ -170,13 +170,13 @@ testMatrix.setupTestSuite(
 
         expect(result).toHaveLength(1)
         expect(result).toMatchInlineSnapshot(`
-        [
-          {
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-          },
-        ]
-      `)
+          [
+            {
+              "email": "Kyla_Beer587@fraternise-assassination.name",
+              "id": "a7fe5dac91ab6b0f529430c5",
+            },
+          ]
+        `)
       },
     )
   },

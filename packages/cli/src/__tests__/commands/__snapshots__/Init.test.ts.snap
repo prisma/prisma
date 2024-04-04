@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`appends when .env present 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -19,11 +19,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`appends when .env present 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -37,11 +37,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`appends when .env present 3`] = `
-SOMETHING="is here"
+"SOMETHING="is here"
 
 # This was inserted by \`prisma init\`:
 # Environment variables declared in this file are automatically made available to Prisma.
@@ -50,11 +50,11 @@ SOMETHING="is here"
 # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
+DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public""
 `;
 
 exports[`is schema and env written on disk replace 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -72,11 +72,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`is schema and env written on disk replace 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -90,11 +90,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`warns when DATABASE_URL present in .env  1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -114,11 +114,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`warns when DATABASE_URL present in .env  2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -132,11 +132,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with custom output 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -154,11 +154,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with custom output 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -173,11 +173,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with generator param - \`go run github.com/steebchen/prisma-client-go\` 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -195,11 +195,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with generator param - \`go run github.com/steebchen/prisma-client-go\` 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -213,11 +213,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with preview features - mock test 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -235,11 +235,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with preview features - mock test 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -254,11 +254,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with preview features - multiple 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -276,11 +276,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with preview features - multiple 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -295,11 +295,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with provider and url params - cockroachdb 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -316,11 +316,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with provider and url params - cockroachdb 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -334,11 +334,11 @@ datasource db {
   provider = "cockroachdb"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with provider param - MongoDB 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -355,11 +355,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with provider param - MongoDB 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -373,11 +373,11 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with provider param - SQLITE 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -394,11 +394,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with provider param - SQLITE 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -409,11 +409,11 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with provider param - SqlServer 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -430,11 +430,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with provider param - SqlServer 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -448,11 +448,11 @@ datasource db {
   provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with provider param - cockroachdb 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -469,11 +469,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with provider param - cockroachdb 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -487,11 +487,11 @@ datasource db {
   provider = "cockroachdb"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with provider param - mysql 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -508,11 +508,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with provider param - mysql 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -526,11 +526,11 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with provider param - postgresql 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -547,11 +547,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with provider param - postgresql 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -565,11 +565,11 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`works with url param 1`] = `
-
+"
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
@@ -585,11 +585,11 @@ https://pris.ly/d/getting-started
 │  Prisma Pulse lets you respond instantly to database changes.  │
 │  https://pris.ly/cli/pulse                                     │
 └────────────────────────────────────────────────────────────────┘
-    
+    "
 `;
 
 exports[`works with url param 2`] = `
-// This is your Prisma schema file,
+"// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -600,12 +600,12 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
-
+"
 `;
 
 exports[`writes a minimal .gitignore file 1`] = `
-node_modules
+"node_modules
 # Keep environment variables out of version control
 .env
-
+"
 `;

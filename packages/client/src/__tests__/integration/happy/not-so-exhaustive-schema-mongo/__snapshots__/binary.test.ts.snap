@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`not-so-exhaustive-schema-mongo (binary): generatedBrowserJS 1`] = `
-
+"
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
@@ -353,11 +353,11 @@ If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-r
 exports.PrismaClient = PrismaClient
 
 Object.assign(exports, Prisma)
-
+"
 `;
 
 exports[`not-so-exhaustive-schema-mongo (binary): generatedTypeScript 1`] = `
-
+"
 /**
  * Client
 **/
@@ -23111,5 +23111,5 @@ export namespace Prisma {
    * DMMF
    */
   export const dmmf: runtime.BaseDMMF
-}
+}"
 `;

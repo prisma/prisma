@@ -23,17 +23,17 @@ setupTestSuite(() => {
       { id: expect.any(String) },
       `
       {
-        content: {
-          text: Hello World,
-          upvotes: [
+        "content": {
+          "text": "Hello World",
+          "upvotes": [
             {
-              userId: 10,
-              vote: true,
+              "userId": "10",
+              "vote": true,
             },
           ],
         },
-        country: null,
-        id: Any<String>,
+        "country": null,
+        "id": Any<String>,
       }
     `,
     )
@@ -53,8 +53,8 @@ setupTestSuite(() => {
 
     expect(comment).toMatchInlineSnapshot(`
       {
-        content: {
-          text: Hello World,
+        "content": {
+          "text": "Hello World",
         },
       }
     `)
@@ -76,17 +76,17 @@ setupTestSuite(() => {
       { id: expect.any(String) },
       `
       {
-        content: {
-          text: Hello World,
-          upvotes: [
+        "content": {
+          "text": "Hello World",
+          "upvotes": [
             {
-              userId: 10,
-              vote: true,
+              "userId": "10",
+              "vote": true,
             },
           ],
         },
-        country: null,
-        id: Any<String>,
+        "country": null,
+        "id": Any<String>,
       }
     `,
     )

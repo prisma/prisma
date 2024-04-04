@@ -35,7 +35,7 @@ describe('D1', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--local-d1', '--print'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     // Example values:
     // Windows
     // 'file:.wrangler//state//v3//d1//miniflare-D1DatabaseObject//5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite'
@@ -52,9 +52,9 @@ describe('D1', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--local-d1'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -66,7 +66,7 @@ describe('D1', () => {
             
       Run prisma generate to generate Prisma Client.
       Without the driverAdapters preview feature, the schema introspected via the --local-d1 flag will not work with @prisma/client.
-
+      "
     `)
   })
 })
@@ -76,7 +76,7 @@ describe('common/sqlite', () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot(``)
   })
@@ -85,7 +85,7 @@ describe('common/sqlite', () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot(``)
   })
@@ -103,35 +103,35 @@ describe('common/sqlite', () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown protocol withoutfileprefix.db:`)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol withoutfileprefix.db:"`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection without schema and with --url missing "file:" prefix should fail', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown protocol withoutfileprefix.db:`)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol withoutfileprefix.db:"`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection with invalid --url if schema is unspecified', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'invalidstring'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown protocol invalidstring:`)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol invalidstring:"`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('should succeed when schema and db do match', async () => {
     ctx.fixture('introspect/prisma')
     const result = DbPull.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
+      "Prisma schema loaded from schema.prisma
 
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
 
@@ -142,18 +142,18 @@ describe('common/sqlite', () => {
       ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
   })
 
   test('should succeed when schema and db do match using --url', async () => {
     ctx.fixture('introspect/prisma')
     const result = DbPull.new().parse(['--url=file:./dev.db'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
+      "Prisma schema loaded from schema.prisma
 
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
 
@@ -164,7 +164,7 @@ describe('common/sqlite', () => {
       ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
   })
 
@@ -172,20 +172,20 @@ describe('common/sqlite', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'postgresql://root:prisma@/prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      P1013
+      "P1013
 
       The provided database string is invalid. empty host in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
-
+      "
     `)
   })
 
   it('should succeed and keep changes to valid schema and output warnings', async () => {
     ctx.fixture('introspect')
     const result = DbPull.new().parse(['--schema=./prisma/reintrospection.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/reintrospection.prisma
+      "Prisma schema loaded from prisma/reintrospection.prisma
 
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
 
@@ -203,11 +203,11 @@ describe('common/sqlite', () => {
         - "AwesomeUser"
 
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toMatchInlineSnapshot(`
-      generator client {
+      "generator client {
         provider = "prisma-client-js"
         output   = "../generated/client"
       }
@@ -247,7 +247,7 @@ describe('common/sqlite', () => {
 
         @@map("Profile")
       }
-
+      "
     `)
   })
 
@@ -255,19 +255,19 @@ describe('common/sqlite', () => {
     ctx.fixture('introspect')
     const originalSchema = ctx.fs.read('prisma/reintrospection.prisma')
     const result = DbPull.new().parse(['--print', '--schema=./prisma/reintrospection.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                                          // *** WARNING ***
-                                          // 
-                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema:
-                                          //   - "AwesomeNewPost"
-                                          //   - "AwesomeProfile"
-                                          //   - "AwesomeUser"
-                                          // 
-                            `)
+      "
+      // *** WARNING ***
+      // 
+      // These models were enriched with \`@@map\` information taken from the previous Prisma schema:
+      //   - "AwesomeNewPost"
+      //   - "AwesomeProfile"
+      //   - "AwesomeUser"
+      // "
+    `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -275,10 +275,10 @@ describe('common/sqlite', () => {
   it('should succeed when schema and db do not match', async () => {
     ctx.fixture('existing-db-histories-diverge')
     const result = DbPull.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -289,7 +289,7 @@ describe('common/sqlite', () => {
       ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
   })
 
@@ -297,7 +297,7 @@ describe('common/sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+      "
       P1003 The introspected database does not exist:
 
       prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
@@ -308,11 +308,11 @@ describe('common/sqlite', () => {
       - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
 
       Then you can run prisma db pull again. 
-
+      "
     `)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -321,7 +321,7 @@ describe('common/sqlite', () => {
       - Introspecting based on datasource defined in prisma/schema.prisma
 
       ✖ Introspecting based on datasource defined in prisma/schema.prisma
-
+      "
     `)
   })
 
@@ -330,7 +330,7 @@ describe('common/sqlite', () => {
     ctx.fs.write('prisma/dev.db', '')
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+      "
       P4001 The introspected database was empty:
 
       prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
@@ -341,11 +341,11 @@ describe('common/sqlite', () => {
       - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
       Then you can run prisma db pull again. 
-
+      "
     `)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -354,25 +354,25 @@ describe('common/sqlite', () => {
       - Introspecting based on datasource defined in prisma/schema.prisma
 
       ✖ Introspecting based on datasource defined in prisma/schema.prisma
-
+      "
     `)
   })
 
   it('should fail when Prisma schema is missing', async () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      Could not find a schema.prisma file that is required for this command.
-      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+      "Could not find a schema.prisma file that is required for this command.
+      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
     `)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('should fail when schema is invalid', async () => {
     ctx.fixture('introspect')
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      P1012
+      "P1012
 
       error: Error validating model "something": Each model must have at least one unique criteria that has only required fields. Either mark a single field with \`@id\`, \`@unique\` or add a multi field criterion with \`@@id([])\` or \`@@unique([])\` to the model.
         -->  schema.prisma:11
@@ -388,11 +388,11 @@ describe('common/sqlite', () => {
 
       Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
       Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-
+      "
     `)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/invalid.prisma
+      "Prisma schema loaded from prisma/invalid.prisma
 
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
 
@@ -403,7 +403,7 @@ describe('common/sqlite', () => {
       ✖ Introspecting based on datasource defined in prisma/invalid.prisma
 
 
-
+      "
     `)
   })
 
@@ -411,10 +411,10 @@ describe('common/sqlite', () => {
     ctx.fixture('introspect')
 
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma', '--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/invalid.prisma
+      "Prisma schema loaded from prisma/invalid.prisma
 
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
 
@@ -425,7 +425,7 @@ describe('common/sqlite', () => {
       ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
 
     expect(ctx.fs.read('prisma/invalid.prisma')).toMatchSnapshot()

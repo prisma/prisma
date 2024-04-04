@@ -44,7 +44,7 @@ testMatrix.setupTestSuite(
 
           // proof that the correct engine is used
           await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-            `Error validating datasource \`db\`: the URL must contain a valid API key`,
+            `"Error validating datasource \`db\`: the URL must contain a valid API key"`,
           )
         },
       )
@@ -85,7 +85,7 @@ testMatrix.setupTestSuite(
 
           // proof that the correct engine is used
           await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-            `Error validating datasource \`db\`: the URL must contain a valid API key`,
+            `"Error validating datasource \`db\`: the URL must contain a valid API key"`,
           )
         },
       )

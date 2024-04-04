@@ -53,7 +53,7 @@ describe('common', () => {
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
-        Prisma schema validation - (get-config wasm)
+        "Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
           -->  schema.prisma:10
@@ -66,13 +66,13 @@ describe('common', () => {
         Validation Error Count: 1
         [Context: getConfig]
 
-        Prisma CLI Version : 0.0.0
+        Prisma CLI Version : 0.0.0"
       `)
     }
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/invalid.prisma
-
+      "Prisma schema loaded from prisma/invalid.prisma
+      "
     `)
   })
 
@@ -84,7 +84,7 @@ describe('common', () => {
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
-        Prisma schema validation - (get-config wasm)
+        "Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
           -->  schema.prisma:2
@@ -96,12 +96,12 @@ describe('common', () => {
         Validation Error Count: 1
         [Context: getConfig]
 
-        Prisma CLI Version : 0.0.0
+        Prisma CLI Version : 0.0.0"
       `)
     }
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/provider-array.prisma
-
+      "Prisma schema loaded from prisma/provider-array.prisma
+      "
     `)
   })
 
@@ -125,20 +125,20 @@ describe('common', () => {
     ctx.fixture('empty')
     const result = MigrateDev.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Could not find a schema.prisma file that is required for this command.
-            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-          `)
+      "Could not find a schema.prisma file that is required for this command.
+      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+    `)
   })
   it('dev should error in unattended environment', async () => {
     ctx.fixture('transition-db-push-migrate')
     const result = MigrateDev.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Prisma Migrate has detected that the environment is non-interactive, which is not supported.
+      "Prisma Migrate has detected that the environment is non-interactive, which is not supported.
 
-            \`prisma migrate dev\` is an interactive command designed to create new migrations and evolve the database in development.
-            To apply existing migrations in deployments, use prisma migrate deploy.
-            See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-deploy
-          `)
+      \`prisma migrate dev\` is an interactive command designed to create new migrations and evolve the database in development.
+      To apply existing migrations in deployments, use prisma migrate deploy.
+      See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-deploy"
+    `)
   })
 })
 
@@ -146,16 +146,16 @@ describe('sqlite', () => {
   it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/empty.prisma
+      "Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       Already in sync, no schema change or pending migration was found.
-
+      "
     `)
   })
 
@@ -163,11 +163,11 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
@@ -181,7 +181,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -205,9 +205,9 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
@@ -222,7 +222,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -257,19 +257,19 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     const baseDir = path.join('prisma', 'migrations')
     const migrationDirList = fs.list(baseDir)
     const migrationFilePath = path.join(baseDir, migrationDirList![0], 'migration.sql')
     const migrationFile = fs.read(migrationFilePath)
     expect(migrationFile).toMatchInlineSnapshot(`
-      -- CreateTable
+      "-- CreateTable
       CREATE TABLE "Blog" (
           "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
           "viewCount20" INTEGER NOT NULL
       );
-
+      "
     `)
   })
 
@@ -281,19 +281,19 @@ describe('sqlite', () => {
     const draftResult = MigrateDev.new().parse(['--create-only'])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
-            Prisma Migrate created the following migration without applying it 20201231000000_some_draft
+      "Prisma Migrate created the following migration without applying it 20201231000000_some_draft
 
-            You can now edit it and apply it by running prisma migrate dev.
-          `)
+      You can now edit it and apply it by running prisma migrate dev."
+    `)
 
     const applyResult = MigrateDev.new().parse([])
 
-    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
+    await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
@@ -311,7 +311,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -323,21 +323,21 @@ describe('sqlite', () => {
     const draftResult = MigrateDev.new().parse(['--schema=./prisma/empty.prisma', '--create-only'])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
-            Prisma Migrate created the following migration without applying it 20201231000000_some_empty_draft
+      "Prisma Migrate created the following migration without applying it 20201231000000_some_empty_draft
 
-            You can now edit it and apply it by running prisma migrate dev.
-          `)
+      You can now edit it and apply it by running prisma migrate dev."
+    `)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/empty.prisma
+      "Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       Enter a name for the new migration:
-
+      "
     `)
   })
 
@@ -346,18 +346,18 @@ describe('sqlite', () => {
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
-            Prisma Migrate created the following migration without applying it 20201231000000_first
+      "Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev.
-          `)
+      You can now edit it and apply it by running prisma migrate dev."
+    `)
 
     const applyResult = MigrateDev.new().parse([])
 
-    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
+    await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
@@ -374,7 +374,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -385,9 +385,9 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Drift detected: Your database schema is not in sync with your migration history.
@@ -415,7 +415,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -429,9 +429,9 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
+    await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Drift detected: Your database schema is not in sync with your migration history.
@@ -451,7 +451,7 @@ describe('sqlite', () => {
       Do you want to continue? All data will be lost.
 
       Reset cancelled.
-
+      "
     `)
     expect(mockExit).toHaveBeenCalledWith(130)
   })
@@ -463,9 +463,9 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       The migration \`20201231000000_test\` was modified after it was applied.
@@ -484,7 +484,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -496,9 +496,9 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       - Drift detected: Your database schema is not in sync with your migration history.
@@ -533,7 +533,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -548,12 +548,12 @@ describe('sqlite', () => {
     }
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
-
+      "
     `)
   })
 
@@ -569,10 +569,10 @@ describe('sqlite', () => {
     }
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-
+      "
     `)
   })
 
@@ -580,7 +580,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-migration')
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     // Edit with broken SQL
     fs.write('prisma/migrations/20201014154943_init/migration.sql', 'CREATE BROKEN')
@@ -594,14 +594,14 @@ describe('sqlite', () => {
     }
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Already in sync, no schema change or pending migration was found.
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-
+      "
     `)
   })
 
@@ -609,9 +609,9 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-draft')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Applying migration \`20201231000000_draft\`
@@ -623,7 +623,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -631,9 +631,9 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-draft-1-change')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Applying migration \`20201231000000_draft\`
@@ -653,7 +653,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -662,21 +662,21 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).rejects.toMatchInlineSnapshot(`
+      "
+      ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
+        • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Then run prisma migrate dev to apply it and verify it works.
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          `)
+      You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+      Then run prisma migrate dev to apply it and verify it works.
+      "
+    `)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
-
+      "
     `)
   })
 
@@ -685,16 +685,16 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse(['--create-only'])
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-            Prisma Migrate created the following migration without applying it 20201231000000_
+      "Prisma Migrate created the following migration without applying it 20201231000000_
 
-            You can now edit it and apply it by running prisma migrate dev.
-          `)
+      You can now edit it and apply it by running prisma migrate dev."
+    `)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
-
+      "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
@@ -705,9 +705,9 @@ describe('sqlite', () => {
     prompt.inject(['y'])
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
@@ -724,7 +724,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -737,9 +737,9 @@ describe('sqlite', () => {
     prompt.inject([new Error()])
 
     const result = MigrateDev.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
+    await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
@@ -748,7 +748,7 @@ describe('sqlite', () => {
         • You are about to drop the \`Blog\` table, which is not empty (2 rows).
 
       Migration cancelled.
-
+      "
     `)
     expect(mockExit).toHaveBeenCalledWith(130)
   })
@@ -760,9 +760,9 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
       SQLite database dev.db created at file:./dev.db
@@ -781,7 +781,7 @@ describe('sqlite', () => {
       Running seed command \`ts-node prisma/seed.ts\` ...
 
       The seed command has been executed.
-
+      "
     `)
   })
 
@@ -792,9 +792,9 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse(['--skip-seed'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
       SQLite database dev.db created at file:./dev.db
@@ -809,7 +809,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -824,9 +824,9 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
       SQLite database dev.db created at file:./dev.db
@@ -843,7 +843,7 @@ describe('sqlite', () => {
       Your database is now in sync with your schema.
 
       Running seed command \`node prisma/seed.js\` ...
-
+      "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('')).toContain(
       `An error occurred while running the seed command:`,
@@ -859,10 +859,10 @@ describe('sqlite', () => {
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
       SQLite database dev.db created at file:./dev.db
@@ -877,7 +877,7 @@ describe('sqlite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -893,12 +893,12 @@ describe('sqlite', () => {
     }
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       SQLite database dev.db created at file:./dev.db
 
-
+      "
     `)
   })
 })
@@ -943,9 +943,9 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
@@ -958,7 +958,7 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -966,9 +966,9 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
@@ -981,7 +981,7 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -989,9 +989,9 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
@@ -1004,7 +1004,7 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1012,10 +1012,10 @@ describe('postgresql', () => {
     ctx.fixture('nativeTypes-postgresql')
 
     const result = MigrateDev.new().parse(['--name=first'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
       Applying migration \`20201231000000_first\`
@@ -1027,7 +1027,7 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1060,17 +1060,17 @@ describe('postgresql', () => {
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
-            Prisma Migrate created the following migration without applying it 20201231000000_first
+      "Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev.
-          `)
+      You can now edit it and apply it by running prisma migrate dev."
+    `)
 
     const applyResult = MigrateDev.new().parse([])
-    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
+    await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
@@ -1087,7 +1087,7 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1095,9 +1095,9 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
@@ -1110,7 +1110,7 @@ describe('postgresql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1185,14 +1185,14 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-data-proxy')
     const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from .env
+      "Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
       Already in sync, no schema change or pending migration was found.
-
+      "
     `)
   })
 })
@@ -1240,9 +1240,9 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     ctx.fixture('schema-only-cockroachdb')
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
 
@@ -1255,7 +1255,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1263,9 +1263,9 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     ctx.fixture('schema-only-cockroachdb')
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev-shadowdb", schema "public" at "localhost:26257"
 
@@ -1278,7 +1278,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1286,9 +1286,9 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     ctx.fixture('schema-only-cockroachdb')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
 
@@ -1301,7 +1301,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1309,10 +1309,10 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     ctx.fixture('nativeTypes-cockroachdb')
 
     const result = MigrateDev.new().parse(['--name=first'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
 
       Applying migration \`20201231000000_first\`
@@ -1324,7 +1324,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   }, 40_000)
 
@@ -1335,17 +1335,17 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
-            Prisma Migrate created the following migration without applying it 20201231000000_first
+      "Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev.
-          `)
+      You can now edit it and apply it by running prisma migrate dev."
+    `)
 
     const applyResult = MigrateDev.new().parse([])
-    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
+    await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
 
@@ -1362,7 +1362,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1370,9 +1370,9 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     ctx.fixture('schema-only-cockroachdb')
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
 
@@ -1385,7 +1385,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 })
@@ -1430,9 +1430,9 @@ describe('mysql', () => {
     ctx.fixture('schema-only-mysql')
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
       Applying migration \`20201231000000_\`
@@ -1444,7 +1444,7 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1452,9 +1452,9 @@ describe('mysql', () => {
     ctx.fixture('schema-only-mysql')
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/shadowdb.prisma
+      "Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
       Applying migration \`20201231000000_\`
@@ -1466,7 +1466,7 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1474,9 +1474,9 @@ describe('mysql', () => {
     ctx.fixture('schema-only-mysql')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
       Applying migration \`20201231000000_\`
@@ -1488,7 +1488,7 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1542,17 +1542,17 @@ describe('mysql', () => {
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
-            Prisma Migrate created the following migration without applying it 20201231000000_first
+      "Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev.
-          `)
+      You can now edit it and apply it by running prisma migrate dev."
+    `)
 
     const applyResult = MigrateDev.new().parse([])
-    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
+    await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
       Prisma schema loaded from prisma/schema.prisma
@@ -1567,7 +1567,7 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1575,9 +1575,9 @@ describe('mysql', () => {
     ctx.fixture('schema-only-mysql')
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
 
       Applying migration \`20201231000000_first\`
@@ -1589,7 +1589,7 @@ describe('mysql', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 })
@@ -1643,9 +1643,9 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     ctx.fixture('schema-only-sqlserver')
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_\`
@@ -1657,7 +1657,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1665,9 +1665,9 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     ctx.fixture('schema-only-sqlserver')
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/shadowdb.prisma
+      "Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_\`
@@ -1679,7 +1679,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1687,9 +1687,9 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     ctx.fixture('schema-only-sqlserver')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_\`
@@ -1701,7 +1701,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1754,17 +1754,17 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
-            Prisma Migrate created the following migration without applying it 20201231000000_first
+      "Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev.
-          `)
+      You can now edit it and apply it by running prisma migrate dev."
+    `)
 
     const applyResult = MigrateDev.new().parse([])
-    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
+    await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
       Prisma schema loaded from prisma/schema.prisma
@@ -1779,7 +1779,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 
@@ -1787,9 +1787,9 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     ctx.fixture('schema-only-sqlserver')
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_first\`
@@ -1801,7 +1801,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
+      "
     `)
   })
 })

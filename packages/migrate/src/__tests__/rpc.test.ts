@@ -18,7 +18,7 @@ describe('applyMigrations', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        appliedMigrationNames: [],
+        "appliedMigrationNames": [],
       }
     `)
     migrate.stop()
@@ -33,10 +33,10 @@ describe('applyMigrations', () => {
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-      P3005
+      "P3005
 
       The database schema is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
-
+      "
     `)
     migrate.stop()
   })
@@ -55,7 +55,7 @@ describe('createDatabase', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        databaseName: dev.db,
+        "databaseName": "dev.db",
       }
     `)
     migrate.stop()
@@ -73,10 +73,10 @@ describe('createDatabase', () => {
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-      P1009
+      "P1009
 
       Database \`tests\` already exists on the database server at \`localhost:5432\`
-
+      "
     `)
     migrate.stop()
   })
@@ -97,7 +97,7 @@ describe('createMigration', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        generatedMigrationName: 20201231000000_my_migration,
+        "generatedMigrationName": "20201231000000_my_migration",
       }
     `)
     migrate.stop()
@@ -117,7 +117,7 @@ describe('createMigration', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        generatedMigrationName: 20201231000000_draft_123,
+        "generatedMigrationName": "20201231000000_draft_123",
       }
     `)
     migrate.stop()
@@ -153,8 +153,8 @@ describe('devDiagnostic', () => {
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        action: {
-          tag: createMigration,
+        "action": {
+          "tag": "createMigration",
         },
       }
     `)
@@ -171,8 +171,8 @@ describe('devDiagnostic', () => {
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        action: {
-          reason: Drift detected: Your database schema is not in sync with your migration history.
+        "action": {
+          "reason": "Drift detected: Your database schema is not in sync with your migration history.
 
       The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
 
@@ -184,8 +184,8 @@ describe('devDiagnostic', () => {
       [+] Added tables
         - Blog
         - _Migration
-      ,
-          tag: reset,
+      ",
+          "tag": "reset",
         },
       }
     `)
@@ -206,10 +206,10 @@ describe('diagnoseMigrationHistory', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        editedMigrationNames: [],
-        failedMigrationNames: [],
-        hasMigrationsTable: true,
-        history: null,
+        "editedMigrationNames": [],
+        "failedMigrationNames": [],
+        "hasMigrationsTable": true,
+        "history": null,
       }
     `)
     migrate.stop()
@@ -226,10 +226,10 @@ describe('diagnoseMigrationHistory', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        editedMigrationNames: [],
-        failedMigrationNames: [],
-        hasMigrationsTable: true,
-        history: null,
+        "editedMigrationNames": [],
+        "failedMigrationNames": [],
+        "hasMigrationsTable": true,
+        "history": null,
       }
     `)
     migrate.stop()
@@ -278,10 +278,10 @@ describe('ensureConnectionValidity', () => {
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-      P1003
+      "P1003
 
       Database dev.db does not exist at dev.db
-
+      "
     `)
     migrate.stop()
   })
@@ -297,12 +297,12 @@ describe('ensureConnectionValidity', () => {
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-      P1001
+      "P1001
 
       Can't reach database server at \`server-does-not-exist\`:\`5432\`
 
       Please make sure your database server is running at \`server-does-not-exist\`:\`5432\`.
-
+      "
     `)
     migrate.stop()
     // It was flaky on CI (but rare)
@@ -324,9 +324,9 @@ describe('evaluateDataLoss', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        migrationSteps: 1,
-        unexecutableSteps: [],
-        warnings: [],
+        "migrationSteps": 1,
+        "unexecutableSteps": [],
+        "warnings": [],
       }
     `)
     migrate.stop()
@@ -345,9 +345,9 @@ describe('evaluateDataLoss', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        migrationSteps: 0,
-        unexecutableSteps: [],
-        warnings: [],
+        "migrationSteps": 0,
+        "unexecutableSteps": [],
+        "warnings": [],
       }
     `)
     migrate.stop()
@@ -416,8 +416,8 @@ describe('listMigrationDirectories', () => {
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        migrations: [
-          20201231000000_init,
+        "migrations": [
+          "20201231000000_init",
         ],
       }
     `)
@@ -434,7 +434,7 @@ describe('listMigrationDirectories', () => {
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        migrations: [],
+        "migrations": [],
       }
     `)
 
@@ -455,11 +455,11 @@ describe('markMigrationRolledBack', () => {
     })
 
     await expect(resultMarkRolledBacked).rejects.toMatchInlineSnapshot(`
-          P3012
+      "P3012
 
-          Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
-
-        `)
+      Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
+      "
+    `)
 
     migrate.stop()
   })
@@ -478,7 +478,7 @@ describe('markMigrationRolledBack', () => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        generatedMigrationName: 20201231000000_draft_123,
+        "generatedMigrationName": "20201231000000_draft_123",
       }
     `)
 
@@ -514,11 +514,11 @@ describe('markMigrationRolledBack', () => {
     })
 
     await expect(resultMarkApplied).rejects.toMatchInlineSnapshot(`
-          P3008
+      "P3008
 
-          The migration \`20201231000000_draft_123\` is already recorded as applied in the database.
-
-        `)
+      The migration \`20201231000000_draft_123\` is already recorded as applied in the database.
+      "
+    `)
 
     migrate.stop()
   })
@@ -539,7 +539,7 @@ describe('markMigrationApplied', () => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        generatedMigrationName: 20201231000000_draft_123,
+        "generatedMigrationName": "20201231000000_draft_123",
       }
     `)
 
@@ -569,9 +569,9 @@ describe('schemaPush', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        executedSteps: 1,
-        unexecutable: [],
-        warnings: [],
+        "executedSteps": 1,
+        "unexecutable": [],
+        "warnings": [],
       }
     `)
     migrate.stop()
@@ -589,9 +589,9 @@ describe('schemaPush', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        executedSteps: 1,
-        unexecutable: [],
-        warnings: [],
+        "executedSteps": 1,
+        "unexecutable": [],
+        "warnings": [],
       }
     `)
     migrate.stop()
@@ -610,10 +610,10 @@ describe('schemaPush', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        executedSteps: 0,
-        unexecutable: [],
-        warnings: [
-          You are about to drop the \`Blog\` table, which is not empty (1 rows).,
+        "executedSteps": 0,
+        "unexecutable": [],
+        "warnings": [
+          "You are about to drop the \`Blog\` table, which is not empty (1 rows).",
         ],
       }
     `)
@@ -633,10 +633,10 @@ describe('schemaPush', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        executedSteps: 2,
-        unexecutable: [],
-        warnings: [
-          You are about to drop the \`Blog\` table, which is not empty (1 rows).,
+        "executedSteps": 2,
+        "unexecutable": [],
+        "warnings": [
+          "You are about to drop the \`Blog\` table, which is not empty (1 rows).",
         ],
       }
     `)

@@ -25,152 +25,152 @@ describe('dmmf', () => {
     expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'))
       .toMatchInlineSnapshot(`
       {
-        constraints: {
-          maxNumFields: null,
-          minNumFields: null,
+        "constraints": {
+          "maxNumFields": null,
+          "minNumFields": null,
         },
-        fields: [
+        "fields": [
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": false,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: fieldRefTypes,
-                namespace: prisma,
-                type: EnumPostKindFieldRefInput,
+                "isList": false,
+                "location": "fieldRefTypes",
+                "namespace": "prisma",
+                "type": "EnumPostKindFieldRefInput",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: equals,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "equals",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": true,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: in,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "in",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": true,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: notIn,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "notIn",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": false,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: inputObjectTypes,
-                namespace: prisma,
-                type: NestedEnumPostKindFilter,
+                "isList": false,
+                "location": "inputObjectTypes",
+                "namespace": "prisma",
+                "type": "NestedEnumPostKindFilter",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: not,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "not",
           },
         ],
-        name: NestedEnumPostKindFilter,
+        "name": "NestedEnumPostKindFilter",
       }
     `)
     expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'EnumPostKindFilter')).toMatchInlineSnapshot(`
       {
-        constraints: {
-          maxNumFields: null,
-          minNumFields: null,
+        "constraints": {
+          "maxNumFields": null,
+          "minNumFields": null,
         },
-        fields: [
+        "fields": [
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": false,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: fieldRefTypes,
-                namespace: prisma,
-                type: EnumPostKindFieldRefInput,
+                "isList": false,
+                "location": "fieldRefTypes",
+                "namespace": "prisma",
+                "type": "EnumPostKindFieldRefInput",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: equals,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "equals",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": true,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: in,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "in",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": true,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: notIn,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "notIn",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": false,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: inputObjectTypes,
-                namespace: prisma,
-                type: NestedEnumPostKindFilter,
+                "isList": false,
+                "location": "inputObjectTypes",
+                "namespace": "prisma",
+                "type": "NestedEnumPostKindFilter",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: not,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "not",
           },
         ],
-        name: EnumPostKindFilter,
+        "name": "EnumPostKindFilter",
       }
     `)
   })
@@ -198,176 +198,176 @@ describe('dmmf', () => {
     expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'))
       .toMatchInlineSnapshot(`
       {
-        constraints: {
-          maxNumFields: null,
-          minNumFields: null,
+        "constraints": {
+          "maxNumFields": null,
+          "minNumFields": null,
         },
-        fields: [
+        "fields": [
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": false,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: fieldRefTypes,
-                namespace: prisma,
-                type: EnumPostKindFieldRefInput,
+                "isList": false,
+                "location": "fieldRefTypes",
+                "namespace": "prisma",
+                "type": "EnumPostKindFieldRefInput",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: equals,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "equals",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": true,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: fieldRefTypes,
-                namespace: prisma,
-                type: ListEnumPostKindFieldRefInput,
+                "isList": false,
+                "location": "fieldRefTypes",
+                "namespace": "prisma",
+                "type": "ListEnumPostKindFieldRefInput",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: in,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "in",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": true,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: fieldRefTypes,
-                namespace: prisma,
-                type: ListEnumPostKindFieldRefInput,
+                "isList": false,
+                "location": "fieldRefTypes",
+                "namespace": "prisma",
+                "type": "ListEnumPostKindFieldRefInput",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: notIn,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "notIn",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": false,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: inputObjectTypes,
-                namespace: prisma,
-                type: NestedEnumPostKindFilter,
+                "isList": false,
+                "location": "inputObjectTypes",
+                "namespace": "prisma",
+                "type": "NestedEnumPostKindFilter",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: not,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "not",
           },
         ],
-        name: NestedEnumPostKindFilter,
+        "name": "NestedEnumPostKindFilter",
       }
     `)
     expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'EnumPostKindFilter')).toMatchInlineSnapshot(`
       {
-        constraints: {
-          maxNumFields: null,
-          minNumFields: null,
+        "constraints": {
+          "maxNumFields": null,
+          "minNumFields": null,
         },
-        fields: [
+        "fields": [
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": false,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: fieldRefTypes,
-                namespace: prisma,
-                type: EnumPostKindFieldRefInput,
+                "isList": false,
+                "location": "fieldRefTypes",
+                "namespace": "prisma",
+                "type": "EnumPostKindFieldRefInput",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: equals,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "equals",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": true,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: fieldRefTypes,
-                namespace: prisma,
-                type: ListEnumPostKindFieldRefInput,
+                "isList": false,
+                "location": "fieldRefTypes",
+                "namespace": "prisma",
+                "type": "ListEnumPostKindFieldRefInput",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: in,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "in",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": true,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: fieldRefTypes,
-                namespace: prisma,
-                type: ListEnumPostKindFieldRefInput,
+                "isList": false,
+                "location": "fieldRefTypes",
+                "namespace": "prisma",
+                "type": "ListEnumPostKindFieldRefInput",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: notIn,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "notIn",
           },
           {
-            inputTypes: [
+            "inputTypes": [
               {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
+                "isList": false,
+                "location": "enumTypes",
+                "namespace": "model",
+                "type": "PostKind",
               },
               {
-                isList: false,
-                location: inputObjectTypes,
-                namespace: prisma,
-                type: NestedEnumPostKindFilter,
+                "isList": false,
+                "location": "inputObjectTypes",
+                "namespace": "prisma",
+                "type": "NestedEnumPostKindFilter",
               },
             ],
-            isNullable: false,
-            isRequired: false,
-            name: not,
+            "isNullable": false,
+            "isRequired": false,
+            "name": "not",
           },
         ],
-        name: EnumPostKindFilter,
+        "name": "EnumPostKindFilter",
       }
     `)
   })
@@ -395,7 +395,7 @@ describe('dmmf', () => {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        Prisma schema validation - (get-dmmf wasm)
+        "Prisma schema validation - (get-dmmf wasm)
         Error code: P1012
         error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
           -->  schema.prisma:14
@@ -410,7 +410,7 @@ describe('dmmf', () => {
         Validation Error Count: 1
         [Context: getDmmf]
 
-        Prisma CLI Version : 0.0.0
+        Prisma CLI Version : 0.0.0"
       `)
     }
   })

@@ -22,7 +22,7 @@ test('introspection basic', async () => {
   const result = await engine.introspect({ schema })
   expect(result).toMatchInlineSnapshot(`
     {
-      datamodel: datasource db {
+      "datamodel": "datasource db {
       provider = "sqlite"
       url      = "file:./blog.db"
     }
@@ -49,9 +49,9 @@ test('introspection basic', async () => {
       role    String  @default("USER")
       Post    Post[]
     }
-    ,
-      views: null,
-      warnings: null,
+    ",
+      "views": null,
+      "warnings": null,
     }
   `)
 })
