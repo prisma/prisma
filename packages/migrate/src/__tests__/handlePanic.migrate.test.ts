@@ -124,9 +124,9 @@ describe('handlePanic migrate', () => {
     // We use prompts.inject() for testing in our CI
     if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
       expect(error).toMatchInlineSnapshot(`
-        Error in Schema engine.
+        "Error in Schema engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
-
+        "
       `)
     } else {
       const output = captureStdout.getCapturedText()

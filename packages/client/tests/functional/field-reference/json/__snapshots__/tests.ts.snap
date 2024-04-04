@@ -73,7 +73,7 @@ Input error. Expected a referenced scalar field of type Json but found Product.t
 `;
 
 exports[`field-reference.json (provider=postgresql, js_pg) wrong field type 1`] = `
-
+"
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/json/tests.ts:0:0
 
@@ -81,5 +81,5 @@ Invalid \`prisma.product.findMany()\` invocation in
   XX // TODO: Edge: skipped because of the error snapshot
   XX testIf(runtime !== 'edge')('wrong field type', async () => {
 → XX   const products = prisma.product.findMany(
-Input error. Expected a referenced scalar field of type Json but found Product.title of type String.
+Input error. Expected a referenced scalar field of type Json but found Product.title of type String."
 `;
