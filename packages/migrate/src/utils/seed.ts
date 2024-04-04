@@ -161,8 +161,8 @@ export async function executeSeedCommand({
   // Example: db seed -- --custom-arg
   // Then extraArgs will be '--custom-arg'
   const command = extraArgs ? `${commandFromConfig} ${extraArgs}` : commandFromConfig
+  process.stdout.write(`Running seed command \`${italic(command)}\` ...\n`)
 
-  console.info(`Running seed command \`${italic(command)}\` ...`)
   try {
     await execa.command(command, {
       stdout: 'inherit',

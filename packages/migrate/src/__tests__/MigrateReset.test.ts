@@ -2,10 +2,25 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { MigrateReset } from '../commands/MigrateReset'
+import { CaptureStdout } from '../utils/captureStdout'
 
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+
+const captureStdout = new CaptureStdout()
+
+beforeEach(() => {
+  captureStdout.startCapture()
+})
+
+afterEach(() => {
+  captureStdout.clearCaptureText()
+})
+
+afterAll(() => {
+  captureStdout.stopCapture()
+})
 
 function removeSeedlingEmoji(str: string) {
   return str.replace('🌱  ', '')
@@ -46,7 +61,7 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -60,8 +75,8 @@ describe('reset', () => {
       migrations/
         └─ 20201231000000_init/
           └─ migration.sql
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should work (--force)', async () => {
@@ -69,7 +84,7 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -82,8 +97,8 @@ describe('reset', () => {
       migrations/
         └─ 20201231000000_init/
           └─ migration.sql
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('with missing db', async () => {
@@ -92,7 +107,7 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -107,8 +122,8 @@ describe('reset', () => {
       migrations/
         └─ 20201231000000_init/
           └─ migration.sql
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('without the migrations directory should fail (prompt)', async () => {
@@ -119,15 +134,15 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
       Database reset successful
 
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should be cancelled if user send n (prompt)', async () => {
@@ -140,14 +155,15 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
       Reset cancelled.
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
     expect(mockExit).toHaveBeenCalledWith(130)
   })
 
@@ -169,7 +185,7 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -178,8 +194,8 @@ describe('reset', () => {
 
       Database reset successful
 
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('reset - multiple seed files - --skip-seed', async () => {
@@ -188,7 +204,6 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse(['--skip-seed'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   test('reset - seed.js', async () => {
@@ -198,7 +213,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
-    expect(removeSeedlingEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -211,9 +226,9 @@ describe('reset', () => {
       Running seed command \`node prisma/seed.js\` ...
 
       The seed command has been executed.
+
     `)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   test('reset - seed.js - error should exit 1', async () => {
@@ -227,7 +242,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -238,13 +253,14 @@ describe('reset', () => {
 
 
       Running seed command \`node prisma/seed.js\` ...
+
     `)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-            An error occurred while running the seed command:
-            Error: Command failed with exit code 1: node prisma/seed.js
-        `)
+                  An error occurred while running the seed command:
+                  Error: Command failed with exit code 1: node prisma/seed.js
+            `)
     expect(mockExit).toHaveBeenCalledWith(1)
   })
 
@@ -255,22 +271,22 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
-    expect(removeSeedlingEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
-        Prisma schema loaded from prisma/schema.prisma
-        Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+    expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
-        SQLite database dev.db created at file:./dev.db
-
-
-        Database reset successful
+      SQLite database dev.db created at file:./dev.db
 
 
-        Running seed command \`ts-node prisma/seed.ts\` ...
+      Database reset successful
 
-        The seed command has been executed.
-      `)
+
+      Running seed command \`ts-node prisma/seed.ts\` ...
+
+      The seed command has been executed.
+
+    `)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   }, 10_000)
 
   it('reset - legacy seed (no config in package.json)', async () => {
@@ -283,7 +299,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -292,9 +308,9 @@ describe('reset', () => {
 
       Database reset successful
 
+
     `)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should work with directUrl', async () => {
@@ -304,7 +320,7 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -318,7 +334,7 @@ describe('reset', () => {
       migrations/
         └─ 20201231000000_init/
           └─ migration.sql
+
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })

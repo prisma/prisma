@@ -1,8 +1,22 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateStatus } from '../commands/MigrateStatus'
+import { CaptureStdout } from '../utils/captureStdout'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const captureStdout = new CaptureStdout()
+
+beforeEach(() => {
+  captureStdout.startCapture()
+})
+
+afterEach(() => {
+  captureStdout.clearCaptureText()
+})
+
+afterAll(() => {
+  captureStdout.stopCapture()
+})
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
@@ -21,11 +35,11 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`P1003: Database dev.db does not exist at dev.db`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
@@ -38,13 +52,13 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       1 migration found in prisma/migrations
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Following migration have failed:
       20201231000000_failed
@@ -75,13 +89,13 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse(['--schema=./prisma/using-file-as-url.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/using-file-as-url.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+
       No migration found in prisma/migrations
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       The current database is not managed by Prisma Migrate.
               
@@ -97,14 +111,14 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`Database schema is up to date!`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       1 migration found in prisma/migrations
 
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
@@ -117,18 +131,18 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-      1 migration found in prisma/migrations
 
+      1 migration found in prisma/migrations
       Following migration have not yet been applied:
       20201231000000_init
 
       To apply migrations in development run prisma migrate dev.
       To apply migrations in production run prisma migrate deploy.
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(mockExit).toHaveBeenCalledWith(1)
     mockExit.mockRestore()
@@ -143,13 +157,13 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       No migration found in prisma/migrations
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       The current database is not managed by Prisma Migrate.
               
@@ -169,13 +183,13 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       No migration found in prisma/migrations
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       The current database is not managed by Prisma Migrate.
               
@@ -191,14 +205,14 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`Database schema is up to date!`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       1 migration found in prisma/migrations
 
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
@@ -211,13 +225,13 @@ describe('sqlite', () => {
     const result = MigrateStatus.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
       2 migrations found in prisma/migrations
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Your local migration history and the migrations table from your database are different:
 
@@ -244,12 +258,12 @@ describe('postgresql', () => {
       Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
     `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
+
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 })

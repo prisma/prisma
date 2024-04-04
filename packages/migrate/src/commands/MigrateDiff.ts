@@ -10,11 +10,13 @@ import {
   loadEnvFile,
   locateLocalCloudflareD1,
 } from '@prisma/internals'
+import fs from 'fs-jetpack'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs, EngineResults } from '../types'
+import { CaptureStdout } from '../utils/captureStdout'
 
 const debug = Debug('prisma:migrate:diff')
 
@@ -26,6 +28,7 @@ const helpOptions = format(
 ${bold('Options')}
 
   -h, --help               Display this help message
+  -o, --output             Path to the file where the diff output will be written to
 
 ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
   --from-url               A datasource URL
@@ -142,6 +145,8 @@ ${bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
+        '--output': String,
+        '-o': '--output',
         // From
         '--from-empty': Boolean,
         '--from-schema-datasource': String,
@@ -282,6 +287,14 @@ ${bold('Examples')}
 
     const migrate = new Migrate()
 
+    // Capture stdout if --output is defined
+    const captureStdout = new CaptureStdout()
+    const outputPath = args['--output']
+    const isOutputDefined = Boolean(outputPath)
+    if (isOutputDefined) {
+      captureStdout.startCapture()
+    }
+
     let result: EngineResults.MigrateDiffOutput
     try {
       result = await migrate.engine.migrateDiff({
@@ -294,6 +307,14 @@ ${bold('Examples')}
     } finally {
       // Stop engine
       migrate.stop()
+    }
+
+    // Write output to file if --output is defined
+    if (isOutputDefined) {
+      captureStdout.stopCapture()
+      const diffOutput = captureStdout.getCapturedText()
+      captureStdout.clearCaptureText()
+      await fs.writeAsync(outputPath!, diffOutput.join('\n'))
     }
 
     // Note: only contains the exitCode
