@@ -134,7 +134,9 @@ describe('migrate diff', () => {
         'file:dev.db',
         '--script',
       ])
-      await expect(result).rejects.toThrow()
+      await expect(result).rejects.toThrow(
+        `The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.`,
+      )
     })
 
     it('should fail when --to-local-d1 is used with --shadow-database-url', async () => {
@@ -147,7 +149,9 @@ describe('migrate diff', () => {
         'file:dev.db',
         '--script',
       ])
-      await expect(result).rejects.toThrow()
+      await expect(result).rejects.toThrow(
+        `The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.`,
+      )
     })
   })
 
