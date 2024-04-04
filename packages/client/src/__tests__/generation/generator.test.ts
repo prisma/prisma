@@ -56,11 +56,11 @@ describe('generator', () => {
     } else {
       expect(manifest).toMatchInlineSnapshot(`
         {
-          defaultOutput: .prisma/client,
-          prettyName: Prisma Client,
-          requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: [
-            queryEngine,
+          "defaultOutput": ".prisma/client",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [
+            "queryEngine",
           ],
         }
       `)
@@ -251,11 +251,11 @@ describe('generator', () => {
     } else {
       expect(manifest).toMatchInlineSnapshot(`
         {
-          defaultOutput: .prisma/client,
-          prettyName: Prisma Client,
-          requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: [
-            queryEngine,
+          "defaultOutput": ".prisma/client",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [
+            "queryEngine",
           ],
         }
       `)
