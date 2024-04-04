@@ -1,84 +1,50 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`migrate diff generic should fail when --from-local-d1 is used with --shadow-database-url 1`] = `
+exports[`migrate diff D1 should succeed when --from-local-d1 and a single local Cloudflare D1 database exists 2`] = `
+-- DropTable
+PRAGMA foreign_keys=off;
+DROP TABLE "Post";
+PRAGMA foreign_keys=on;
 
-The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.
-
-Usage
-
-  $ prisma migrate diff [options]
-
-Options
-
-  -h, --help               Display this help message
-
-From and To inputs (1 \`--from-...\` and 1 \`--to-...\` must be provided):
-  --from-url               A datasource URL
-  --to-url
-
-  --from-empty             Flag to assume from or to is an empty datamodel
-  --to-empty
-
-  --from-schema-datamodel  Path to a Prisma schema file, uses the datamodel for the diff
-  --to-schema-datamodel
-
-  --from-schema-datasource Path to a Prisma schema file, uses the datasource url for the diff
-  --to-schema-datasource
-
-  --from-migrations        Path to the Prisma Migrate migrations directory
-  --to-migrations
-
-  --from-local-d1          Automatically locate the local Cloudflare D1 database
-  --to-local-d1
-
-Shadow database (only required if using --from-migrations or --to-migrations):
-  --shadow-database-url    URL for the shadow database
-
-Flags
-
-  --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
-  --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+-- DropTable
+PRAGMA foreign_keys=off;
+DROP TABLE "User";
+PRAGMA foreign_keys=on;
 
 `;
 
-exports[`migrate diff generic should fail when --to-local-d1 is used with --shadow-database-url 1`] = `
+exports[`migrate diff D1 should succeed when --from-url and a single local Cloudflare D1 database exists 2`] = `
+-- DropTable
+PRAGMA foreign_keys=off;
+DROP TABLE "Post";
+PRAGMA foreign_keys=on;
 
-The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.
+-- DropTable
+PRAGMA foreign_keys=off;
+DROP TABLE "User";
+PRAGMA foreign_keys=on;
 
-Usage
+`;
 
-  $ prisma migrate diff [options]
+exports[`migrate diff D1 should succeed when --to-url and a single local Cloudflare D1 database exists 2`] = `
+-- CreateTable
+CREATE TABLE "Post" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "title" TEXT NOT NULL,
+    "authorId" INTEGER NOT NULL,
+    FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
 
-Options
+-- CreateTable
+CREATE TABLE "User" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "email" TEXT NOT NULL,
+    "count1" INTEGER NOT NULL,
+    "name" TEXT
+);
 
-  -h, --help               Display this help message
-
-From and To inputs (1 \`--from-...\` and 1 \`--to-...\` must be provided):
-  --from-url               A datasource URL
-  --to-url
-
-  --from-empty             Flag to assume from or to is an empty datamodel
-  --to-empty
-
-  --from-schema-datamodel  Path to a Prisma schema file, uses the datamodel for the diff
-  --to-schema-datamodel
-
-  --from-schema-datasource Path to a Prisma schema file, uses the datasource url for the diff
-  --to-schema-datasource
-
-  --from-migrations        Path to the Prisma Migrate migrations directory
-  --to-migrations
-
-  --from-local-d1          Automatically locate the local Cloudflare D1 database
-  --to-local-d1
-
-Shadow database (only required if using --from-migrations or --to-migrations):
-  --shadow-database-url    URL for the shadow database
-
-Flags
-
-  --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
-  --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
 
 `;
 
@@ -129,4 +95,5 @@ CREATE UNIQUE INDEX "Profile.userId" ON "Profile"("userId" ASC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User.email" ON "User"("email" ASC);
+
 `;

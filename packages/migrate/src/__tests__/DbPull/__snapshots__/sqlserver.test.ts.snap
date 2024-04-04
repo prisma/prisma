@@ -13,6 +13,7 @@ model jobs {
   created_at  DateTime?
 }
 
+
 `;
 
 exports[`SQL Server basic introspection 2`] = `
@@ -27,6 +28,7 @@ model jobs {
   description String?   @db.VarChar(200)
   created_at  DateTime?
 }
+
 
 `;
 
@@ -46,9 +48,8 @@ model SomeUser {
   email String @db.NVarChar(1)
 }
 
-`;
 
-exports[`sqlserver-multischema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
+`;
 
 exports[`sqlserver-multischema datasource property \`schemas=["base"]\` should succeed 2`] = `
 generator client {
@@ -75,6 +76,7 @@ model SomeUser {
 
   @@schema("base")
 }
+
 
 `;
 
@@ -104,6 +106,5 @@ model SomeUser {
   @@schema("base")
 }
 
-`;
 
-exports[`sqlserver-multischema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
+`;
