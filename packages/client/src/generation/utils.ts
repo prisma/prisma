@@ -67,6 +67,10 @@ export function getIncludeName(modelName: string): string {
   return `${modelName}Include`
 }
 
+export function getOmitName(modelName: string): string {
+  return `${modelName}Omit`
+}
+
 export function getFieldArgName(field: DMMF.SchemaField, modelName: string): string {
   if (field.args.length) {
     return getModelFieldArgsName(field, modelName)

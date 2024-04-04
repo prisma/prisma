@@ -54,4 +54,8 @@ export class ArrayValue extends Value {
       })
     }
   }
+
+  override asObject(): undefined {
+    return undefined
+  }
 }

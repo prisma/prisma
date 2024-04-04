@@ -13,10 +13,18 @@ import {
 } from '../engines'
 import { throwValidationException } from '../errorRendering/throwValidationException'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
-import { applyComputedFieldsToSelection } from '../extensions/resultUtils'
+import { computeEngineSideOmissions, computeEngineSideSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
 import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
-import { Action, JsArgs, JsInputValue, JsonConvertible, RawParameters, Selection } from '../types/exported/JsApi'
+import {
+  Action,
+  JsArgs,
+  JsInputValue,
+  JsonConvertible,
+  Omission,
+  RawParameters,
+  Selection,
+} from '../types/exported/JsApi'
 import { ObjectEnumValue, objectEnumValues } from '../types/exported/ObjectEnums'
 import { ValidationError } from '../types/ValidationError'
 
@@ -53,6 +61,7 @@ export type SerializeParams = {
   clientMethod: string
   clientVersion: string
   errorFormat: ErrorFormat
+  previewFeatures: string[]
 }
 
 export function serializeJsonQuery({
@@ -65,6 +74,7 @@ export function serializeJsonQuery({
   clientMethod,
   errorFormat,
   clientVersion,
+  previewFeatures,
 }: SerializeParams): JsonQuery {
   const context = new SerializeContext({
     runtimeDataModel,
@@ -78,6 +88,7 @@ export function serializeJsonQuery({
     originalMethod: clientMethod,
     errorFormat,
     clientVersion,
+    previewFeatures,
   })
   return {
     modelName,
@@ -90,29 +101,50 @@ function serializeFieldSelection(
   { select, include, ...args }: JsArgs = {},
   context: SerializeContext,
 ): JsonFieldSelection {
+  let omit: Omission | undefined
+  if (context.isPreviewFeatureOn('omitApi')) {
+    omit = args.omit
+    delete args.omit
+  }
   return {
     arguments: serializeArgumentsObject(args, context),
-    selection: serializeSelectionSet(select, include, context),
+    selection: serializeSelectionSet(select, include, omit, context),
   }
 }
 
 function serializeSelectionSet(
   select: Selection | undefined,
   include: Selection | undefined,
+  omit: Record<string, boolean> | undefined,
   context: SerializeContext,
 ): JsonSelectionSet {
-  if (select && include) {
-    context.throwValidationError({ kind: 'IncludeAndSelect', selectionPath: context.getSelectionPath() })
-  }
-
   if (select) {
+    if (include) {
+      context.throwValidationError({
+        kind: 'MutuallyExclusiveFields',
+        firstField: 'include',
+        secondField: 'select',
+        selectionPath: context.getSelectionPath(),
+      })
+    } else if (omit && context.isPreviewFeatureOn('omitApi')) {
+      context.throwValidationError({
+        kind: 'MutuallyExclusiveFields',
+        firstField: 'omit',
+        secondField: 'select',
+        selectionPath: context.getSelectionPath(),
+      })
+    }
     return createExplicitSelection(select, context)
   }
 
-  return createImplicitSelection(context, include)
+  return createImplicitSelection(context, include, omit)
 }
 
-function createImplicitSelection(context: SerializeContext, include: Selection | undefined) {
+function createImplicitSelection(
+  context: SerializeContext,
+  include: Selection | undefined,
+  omit: Record<string, boolean> | undefined,
+) {
   const selectionSet: JsonSelectionSet = {}
 
   if (context.model && !context.isRawAction()) {
@@ -122,6 +154,10 @@ function createImplicitSelection(context: SerializeContext, include: Selection |
 
   if (include) {
     addIncludedRelations(selectionSet, include, context)
+  }
+
+  if (omit && context.isPreviewFeatureOn('omitApi')) {
+    omitFields(selectionSet, omit, context)
   }
 
   return selectionSet
@@ -147,10 +183,22 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
   }
 }
 
+function omitFields(selectionSet: JsonSelectionSet, omit: Omission, context: SerializeContext) {
+  const computedFields = context.getComputedFields()
+  const omitWithComputedFields = computeEngineSideOmissions(omit, computedFields)
+  for (const [key, value] of Object.entries(omitWithComputedFields)) {
+    const field = context.findField(key)
+    if (computedFields?.[key] && !field) {
+      continue
+    }
+    selectionSet[key] = !value
+  }
+}
+
 function createExplicitSelection(select: Selection, context: SerializeContext) {
   const selectionSet: JsonSelectionSet = {}
   const computedFields = context.getComputedFields()
-  const selectWithComputedFields = applyComputedFieldsToSelection(select, computedFields)
+  const selectWithComputedFields = computeEngineSideSelection(select, computedFields)
 
   for (const [key, value] of Object.entries(selectWithComputedFields)) {
     const field = context.findField(key)
@@ -307,6 +355,7 @@ type ContextParams = {
   callsite?: CallSite
   errorFormat: ErrorFormat
   clientVersion: string
+  previewFeatures: string[]
 }
 
 class SerializeContext {
@@ -357,6 +406,10 @@ class SerializeContext {
 
   isRawAction() {
     return ['executeRaw', 'queryRaw', 'runCommandRaw', 'findRaw', 'aggregateRaw'].includes(this.params.action)
+  }
+
+  isPreviewFeatureOn(previewFeature: string) {
+    return this.params.previewFeatures.includes(previewFeature)
   }
 
   getComputedFields() {

@@ -1,4 +1,4 @@
-import { applyComputedFieldsToSelection, getComputedFields } from './resultUtils'
+import { computeEngineSideOmissions, computeEngineSideSelection, getComputedFields } from './resultUtils'
 
 describe('getAllComputedFields', () => {
   test('returns all dependencies of an extension', () => {
@@ -174,14 +174,14 @@ describe('getAllComputedFields', () => {
   })
 })
 
-describe('applyComputedFieldsToSelection', () => {
+describe('computeEngineSideSelection', () => {
   test('adds all dependencies to the selection', () => {
     const fields = {
       fullName: { name: 'fullName', needs: ['firstName', 'lastName'], compute: jest.fn() },
     }
     const selection = { fullName: true, age: true }
 
-    expect(applyComputedFieldsToSelection(selection, fields)).toEqual({
+    expect(computeEngineSideSelection(selection, fields)).toEqual({
       fullName: true,
       age: true,
       firstName: true,
@@ -196,7 +196,7 @@ describe('applyComputedFieldsToSelection', () => {
 
     const selection = { firstName: true }
 
-    expect(applyComputedFieldsToSelection(selection, fields)).toEqual({
+    expect(computeEngineSideSelection(selection, fields)).toEqual({
       firstName: true,
     })
   })
@@ -207,7 +207,7 @@ describe('applyComputedFieldsToSelection', () => {
     }
     const selection = { age: true }
 
-    expect(applyComputedFieldsToSelection(selection, fields)).toEqual({
+    expect(computeEngineSideSelection(selection, fields)).toEqual({
       age: true,
     })
   })
@@ -218,9 +218,35 @@ describe('applyComputedFieldsToSelection', () => {
     }
     const selection = { age: true, fullName: false }
 
-    expect(applyComputedFieldsToSelection(selection, fields)).toEqual({
+    expect(computeEngineSideSelection(selection, fields)).toEqual({
       age: true,
       fullName: false,
+    })
+  })
+})
+
+describe('computeEngineSideOmissions', () => {
+  test('removes computed field dependencies from an exclusion', () => {
+    const fields = {
+      fullName: { name: 'fullName', needs: ['firstName', 'lastName'], compute: jest.fn() },
+    }
+    const omission = { firstName: true, age: true }
+
+    expect(computeEngineSideOmissions(omission, fields)).toEqual({
+      age: true,
+    })
+  })
+
+  test('does not remove dependencies if computed field is excluded as well', () => {
+    const fields = {
+      fullName: { name: 'fullName', needs: ['firstName', 'lastName'], compute: jest.fn() },
+    }
+    const omission = { fullName: true, firstName: true, lastName: true }
+
+    expect(computeEngineSideOmissions(omission, fields)).toEqual({
+      fullName: true,
+      firstName: true,
+      lastName: true,
     })
   })
 })

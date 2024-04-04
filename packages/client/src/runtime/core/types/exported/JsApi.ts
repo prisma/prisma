@@ -31,10 +31,13 @@ export interface JsonConvertible {
 export type JsArgs = {
   select?: Selection
   include?: Selection
+  omit?: Omission
   [argName: string]: JsInputValue
 }
 
 export type Selection = Record<string, boolean | JsArgs>
+
+export type Omission = Record<string, boolean>
 
 export type RawParameters = {
   __prismaRawParameters__: true
