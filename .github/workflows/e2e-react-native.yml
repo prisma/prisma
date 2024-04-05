@@ -99,7 +99,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: react-native-prisma/example/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-${{ hashFiles('react-native-prisma/example/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
 
