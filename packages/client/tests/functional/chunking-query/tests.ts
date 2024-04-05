@@ -1,12 +1,12 @@
 import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
-// @ts-ignore
-import type { PrismaClient, Tag } from './node_modules/@prisma/client'
 import {
   EXCESS_BIND_VALUES_BY_PROVIDER,
   MAX_BIND_VALUES_BY_PROVIDER,
   RELATION_JOINS_NO_CHUNKING_ERROR_MSG,
-} from './utils'
+} from './_utils'
+// @ts-ignore
+import type { PrismaClient, Tag } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -156,6 +156,16 @@ testMatrix.setupTestSuite(
           },
         })
       }
+
+      test('Selecting MAX ids at once in two inclusive disjunct filters results in error', async () => {
+        const ids = generatedIds(MAX_BIND_VALUES)
+
+        if (usingRelationJoins) {
+          await expect(selectWith2InFilters(ids)).rejects.toThrow(RELATION_JOINS_NO_CHUNKING_ERROR_MSG)
+        } else {
+          await expect(selectWith2InFilters(ids)).rejects.toThrow()
+        }
+      })
 
       test('Selecting EXCESS ids at once in two inclusive disjunct filters results in error', async () => {
         const ids = generatedIds(EXCESS_BIND_VALUES)
