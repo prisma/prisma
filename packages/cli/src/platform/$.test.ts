@@ -6,8 +6,8 @@ describe('--early-access flag', () => {
   it('should not work without it', () => {
     // eslint-disable-next-line
     expect(platform.new({}).parse([])).rejects.toMatchInlineSnapshot(`
-      This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
-      Please provide the --early-access flag to use this command.
+      "This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
+      Please provide the --early-access flag to use this command."
     `)
   })
 
@@ -35,7 +35,7 @@ describe('--early-access flag', () => {
     const commandInstance = platform.new({})
     const result = await commandInstance.parse(['--early-access'])
     expect(result).toMatchInlineSnapshot(`
-
+      "
       Usage
 
         $ prisma platform [command] [options]
@@ -62,7 +62,7 @@ describe('--early-access flag', () => {
 
       For detailed command descriptions and options, use \`prisma platform [command] --help\`
       For additional help visit https://pris.ly/cli/platform-docs
-
+      "
     `)
   })
 })

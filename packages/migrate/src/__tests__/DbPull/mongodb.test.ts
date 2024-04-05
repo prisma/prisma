@@ -43,10 +43,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/no-model.prisma
+      "Prisma schema loaded from prisma/no-model.prisma
 
       Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
 
@@ -66,19 +66,19 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('introspection --force (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse(['--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
 
@@ -98,18 +98,18 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('introspection --print (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      generator client {
+      "generator client {
         provider = "prisma-client-js"
       }
 
@@ -143,30 +143,30 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         numberOrString1 Json
       }
 
-
+      "
     `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-            // *** WARNING ***
-            // 
-            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-            //   - Model: "users", field: "numberOrString1", original data type: "Json"
-            // 
-            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-            //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-            //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-            // 
-        `)
+      "
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+      // "
+    `)
   })
 
   test('introspection --print --composite-type-depth=0 (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=0'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      generator client {
+      "generator client {
         provider = "prisma-client-js"
       }
 
@@ -185,26 +185,26 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         numberOrString1 Json
       }
 
-
+      "
     `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                  // *** WARNING ***
-                  // 
-                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-                  //   - Model: "users", field: "numberOrString1", original data type: "Json"
-                  // 
-            `)
+      "
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
+      // "
+    `)
   })
 
   test('introspection --print --composite-type-depth=1 (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=1'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      generator client {
+      "generator client {
         provider = "prisma-client-js"
       }
 
@@ -231,30 +231,30 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         numberOrString1 Json
       }
 
-
+      "
     `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                  // *** WARNING ***
-                  // 
-                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-                  //   - Model: "users", field: "numberOrString1", original data type: "Json"
-                  // 
-                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-                  //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                  // 
-            `)
+      "
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      // "
+    `)
   })
 
   test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse(['--force', '--composite-type-depth=-1'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
 
@@ -274,18 +274,18 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('introspection --print --composite-type-depth=-1 (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=-1'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      generator client {
+      "generator client {
         provider = "prisma-client-js"
       }
 
@@ -319,41 +319,41 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         numberOrString1 Json
       }
 
-
+      "
     `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                  // *** WARNING ***
-                  // 
-                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-                  //   - Model: "users", field: "numberOrString1", original data type: "Json"
-                  // 
-                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-                  //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                  //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-                  // 
-            `)
+      "
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+      // "
+    `)
   })
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', MONGO_URI])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                  // *** WARNING ***
-                  // 
-                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-                  //   - Model: "users", field: "numberOrString1", original data type: "Json"
-                  // 
-                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-                  //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                  //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-                  // 
-            `)
+      "
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
+      // 
+      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
+      //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+      // "
+    `)
   })
 
   // In this case it should not error and the line `Datasource "x"` not be printed
@@ -361,11 +361,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     ctx.fixture('schema-only-mongodb/only-generator')
     const introspect = new DbPull()
     const result = introspect.parse(['--url', MONGO_URI])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).not.toContain(`Datasource `)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
+      "Prisma schema loaded from schema.prisma
 
 
 
@@ -383,19 +383,19 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('introspection with --force', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse(['--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
 
@@ -415,9 +415,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
         - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('re-introspection should error (not supported) (existing models)', async () => {
@@ -425,17 +425,17 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
-            You can explicitly ignore and override your current local schema file with prisma db pull --force
-            Some information will be lost (relations, comments, mapped fields, @ignore...), follow https://github.com/prisma/prisma/issues/9585 for more info.
-          `)
+      "Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
+      You can explicitly ignore and override your current local schema file with prisma db pull --force
+      Some information will be lost (relations, comments, mapped fields, @ignore...), follow https://github.com/prisma/prisma/issues/9585 for more info."
+    `)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

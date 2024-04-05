@@ -41,38 +41,38 @@ describe('push', () => {
 
     const result = DbPush.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-                      Could not find a schema.prisma file that is required for this command.
-                      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-                  `)
+      "Could not find a schema.prisma file that is required for this command.
+      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+    `)
   })
 
   it('should fail if nativeTypes VarChar on sqlite', async () => {
     ctx.fixture('nativeTypes-sqlite')
     const result = DbPush.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            P1012
+      "P1012
 
-            error: Native type VarChar is not supported for sqlite connector.
-              -->  schema.prisma:12
-               | 
-            11 |   id   Int    @id
-            12 |   name String @db.VarChar(100)
-               | 
+      error: Native type VarChar is not supported for sqlite connector.
+        -->  schema.prisma:12
+         | 
+      11 |   id   Int    @id
+      12 |   name String @db.VarChar(100)
+         | 
 
-
-          `)
+      "
+    `)
   })
 
   it('already in sync', async () => {
     ctx.fixture('reset')
     const result = DbPush.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 
@@ -82,15 +82,15 @@ describe('push', () => {
     const schemaPath = 'prisma/schema.prisma'
 
     const result = DbPush.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
     expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
     expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
@@ -106,15 +106,15 @@ describe('push', () => {
     ctx.fs.move(oldSchemaPath, newSchemaPath)
 
     const result = DbPush.new().parse(['--schema', newSchemaPath])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from something/schema.prisma
+      "Prisma schema loaded from something/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
     expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
     expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
@@ -129,7 +129,7 @@ describe('push', () => {
 
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --accept-data-loss`,
+      `"Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --accept-data-loss"`,
     )
   })
 
@@ -139,9 +139,9 @@ describe('push', () => {
     prompt.inject(['y'])
 
     const result = DbPush.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       ⚠️  There might be data loss when applying the changes:
@@ -152,7 +152,7 @@ describe('push', () => {
 
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 
@@ -165,9 +165,9 @@ describe('push', () => {
     prompt.inject([new Error()]) // simulate user cancellation
 
     const result = DbPush.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
+    await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       ⚠️  There might be data loss when applying the changes:
@@ -177,7 +177,7 @@ describe('push', () => {
 
 
       Push cancelled.
-
+      "
     `)
 
     expect(mockExit).toHaveBeenCalledWith(130)
@@ -186,9 +186,9 @@ describe('push', () => {
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings')
     const result = DbPush.new().parse(['--accept-data-loss'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       ⚠️  There might be data loss when applying the changes:
@@ -198,7 +198,7 @@ describe('push', () => {
 
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 
@@ -211,7 +211,7 @@ describe('push', () => {
 
     const sqliteDbSizeBefore = ctx.fs.inspect('prisma/dev.db')!.size
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     const sqliteDbSizeAfter = ctx.fs.inspect('prisma/dev.db')!.size
 
@@ -220,7 +220,7 @@ describe('push', () => {
     expect(sqliteDbSizeAfter).toBeLessThan(sqliteDbSizeBefore)
 
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
@@ -232,7 +232,7 @@ describe('push', () => {
       The SQLite database "dev.db" from "file:dev.db" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 
@@ -245,9 +245,9 @@ describe('push', () => {
     prompt.inject([new Error()]) // simulate user cancellation
 
     const result = DbPush.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
+    await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       ⚠️  There might be data loss when applying the changes:
@@ -257,7 +257,7 @@ describe('push', () => {
 
 
       Push cancelled.
-
+      "
     `)
 
     expect(mockExit).toHaveBeenCalledWith(130)
@@ -266,15 +266,15 @@ describe('push', () => {
   it('unexecutable - --force-reset should succeed and print a log', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
     const result = DbPush.new().parse(['--force-reset'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       The SQLite database "dev.db" at "file:dev.db" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 
@@ -284,15 +284,15 @@ describe('push', () => {
 
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
+      "
+      ⚠️ We found changes that cannot be executed:
 
-                                                                        ⚠️ We found changes that cannot be executed:
+        • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                          • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
-
-                                                                        Use the --force-reset flag to drop the database before push like prisma db push --force-reset
-                                                                        All data will be lost.
-                                                                                
-                                                `)
+      Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+      All data will be lost.
+              "
+    `)
   })
 })
 
@@ -336,16 +336,16 @@ describe('postgresql', () => {
     prompt.inject(['y'])
 
     const result = DbPush.new().parse(['--force-reset'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
+      "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-db-push", schema "public" at "localhost:5432"
 
       The PostgreSQL database "tests-migrate-db-push" schema "public" at "localhost:5432" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 
@@ -355,9 +355,9 @@ describe('postgresql', () => {
     prompt.inject(['n'])
 
     const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Environment variables loaded from .env
+      "Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" at "localhost:5432"
 
@@ -369,7 +369,7 @@ describe('postgresql', () => {
 
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 })
@@ -417,15 +417,15 @@ describe('postgresql-multischema', () => {
     prompt.inject(['y'])
 
     const result = DbPush.new().parse(['--force-reset'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
+      "Prisma schema loaded from schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate-db-push-multischema", schemas "base, transactional" at "localhost:5432"
 
       The PostgreSQL database "tests-migrate-db-push-multischema" schemas "base, transactional" at "localhost:5432" were successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 })
@@ -463,9 +463,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
     prompt.inject(['y'])
 
     const result = DbPush.new().parse(['--force-reset'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
 
       The MongoDB database "tests-migrate-existing-db" at "localhost:27017" was successfully reset.
@@ -475,7 +475,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
 
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 
@@ -485,9 +485,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
     prompt.inject(['y'])
 
     const result = DbPush.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
 
@@ -495,7 +495,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
 
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 
@@ -508,9 +508,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
     prompt.inject([new Error()]) // simulate user cancellation
 
     const result = DbPush.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
 
@@ -518,7 +518,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
 
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
 
     expect(mockExit).toHaveBeenCalledWith(130)
@@ -527,9 +527,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
     const result = DbPush.new().parse(['--accept-data-loss'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
 
@@ -537,7 +537,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
 
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
-
+      "
     `)
   })
 })
