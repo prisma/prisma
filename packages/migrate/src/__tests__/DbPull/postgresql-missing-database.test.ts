@@ -40,7 +40,7 @@ describe('postgresql - missing database', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+      "
       P1003 The introspected database does not exist:
 
       prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
@@ -51,9 +51,9 @@ describe('postgresql - missing database', () => {
       - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
 
       Then you can run prisma db pull again. 
-
+      "
     `)
 
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

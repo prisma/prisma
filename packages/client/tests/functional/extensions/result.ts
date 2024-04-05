@@ -314,7 +314,7 @@ testMatrix.setupTestSuite(
       })
 
       const user = await xprisma.user.findFirstOrThrow({})
-      expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(`oops!`)
+      expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(`"oops!"`)
       expectTypeOf(() => user.fullName).toEqualTypeOf<() => never>()
     })
 
@@ -333,7 +333,7 @@ testMatrix.setupTestSuite(
       })
 
       const user = await xprisma.user.findFirstOrThrow({})
-      expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(`oops!`)
+      expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(`"oops!"`)
       expectTypeOf(() => user.fullName).toEqualTypeOf<() => never>()
     })
 

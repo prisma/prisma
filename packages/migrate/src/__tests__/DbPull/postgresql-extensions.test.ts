@@ -75,10 +75,10 @@ describe('postgresql-extensions', () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'schema.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     const introspectedSchema = captureStdout.getCapturedText().join('\n')
     expect(introspectedSchema).toMatchInlineSnapshot(`
-      generator client {
+      "generator client {
         provider        = "prisma-client-js"
         previewFeatures = ["postgresqlExtensions"]
       }
@@ -114,21 +114,21 @@ describe('postgresql-extensions', () => {
         ADMIN
       }
 
-
+      "
     `)
     expect(introspectedSchema).toContain('[citext(schema:')
 
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('re-introspection should succeed and keep defined extension in schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     const introspectedSchema = captureStdout.getCapturedText().join('\n')
     expect(introspectedSchema).toMatchInlineSnapshot(`
-      generator client {
+      "generator client {
         provider        = "prisma-client-js"
         previewFeatures = ["postgresqlExtensions"]
       }
@@ -164,10 +164,10 @@ describe('postgresql-extensions', () => {
         ADMIN
       }
 
-
+      "
     `)
     expect(introspectedSchema).toContain('[citext(schema:')
 
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

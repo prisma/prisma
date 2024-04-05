@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`D1 should succeed when --local-d1 and a single local Cloudflare D1 database exists 2`] = `
-generator client {
+"generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
@@ -26,11 +26,11 @@ model User {
   Post   Post[]
 }
 
-
+"
 `;
 
 exports[`common/sqlite basic introspection 2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -64,11 +64,11 @@ model User {
   profile Profile?
 }
 
-
+"
 `;
 
 exports[`common/sqlite basic introspection with --url 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -102,11 +102,11 @@ model User {
   profile Profile?
 }
 
-
+"
 `;
 
 exports[`common/sqlite introspection --force 2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -140,11 +140,11 @@ model User {
   Profile Profile?
 }
 
-
+"
 `;
 
 exports[`common/sqlite should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
 }
@@ -185,11 +185,11 @@ model AwesomeProfile {
   @@map("Profile")
 }
 
-
+"
 `;
 
 exports[`common/sqlite should succeed when schema is invalid and using --force 3`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
 }
@@ -223,5 +223,5 @@ model User {
   Post    Post[]
   Profile Profile?
 }
-
+"
 `;

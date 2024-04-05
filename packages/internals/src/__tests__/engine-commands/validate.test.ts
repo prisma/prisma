@@ -179,8 +179,8 @@ describe('validate', () => {
       } catch (e) {
         expect(isRustPanic(e)).toBe(true)
         expect(serialize(e.message)).toMatchInlineSnapshot(`
-          "RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
-          Failed to deserialize ValidateParams: invalid type: boolean \`true\`, expected a string at line 1 column 20"
+          ""RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
+          Failed to deserialize ValidateParams: invalid type: boolean \`true\`, expected a string at line 1 column 20""
         `)
         expect(e.rustStack).toBeTruthy()
       }

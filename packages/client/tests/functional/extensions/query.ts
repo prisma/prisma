@@ -369,10 +369,10 @@ testMatrix.setupTestSuite(
 
       expect(data).toMatchInlineSnapshot(`
         {
-          email: jane@doe.io,
-          firstName: Jane,
-          id: <redacted>,
-          lastName: Doe,
+          "email": "jane@doe.io",
+          "firstName": "Jane",
+          "id": "<redacted>",
+          "lastName": "Doe",
         }
       `)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
@@ -417,10 +417,10 @@ testMatrix.setupTestSuite(
 
       expect(data).toMatchInlineSnapshot(`
         {
-          email: <redacted>,
-          firstName: Jane,
-          id: <redacted>,
-          lastName: Doe,
+          "email": "<redacted>",
+          "firstName": "Jane",
+          "id": "<redacted>",
+          "lastName": "Doe",
         }
       `)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
@@ -468,10 +468,10 @@ testMatrix.setupTestSuite(
         expect(data).toMatchInlineSnapshot(`
           [
             {
-              email: <redacted>,
-              firstName: Jane,
-              id: <redacted>,
-              lastName: Doe,
+              "email": "<redacted>",
+              "firstName": "Jane",
+              "id": "<redacted>",
+              "lastName": "Doe",
             },
             null,
           ]
@@ -514,7 +514,7 @@ testMatrix.setupTestSuite(
 
         expect(data).toMatchInlineSnapshot(`
           {
-            lastName: Doe,
+            "lastName": "Doe",
           }
         `)
         await waitFor(() => {
@@ -562,13 +562,13 @@ testMatrix.setupTestSuite(
       ])
 
       expect(data).toMatchInlineSnapshot(`
-          [
-            {
-              lastName: Doe,
-            },
-            null,
-          ]
-        `)
+        [
+          {
+            "lastName": "Doe",
+          },
+          null,
+        ]
+      `)
       await waitFor(() => {
         // user.findFirst 4 queries + post.findFirst 1 query
         expect(fnEmitter).toHaveBeenCalledTimes(5)
@@ -653,14 +653,14 @@ testMatrix.setupTestSuite(
       ])
 
       expect(data).toMatchInlineSnapshot(`
-          [
-            {
-              firstName: <redacted>,
-              lastName: <redacted>,
-            },
-            null,
-          ]
-        `)
+        [
+          {
+            "firstName": "<redacted>",
+            "lastName": "<redacted>",
+          },
+          null,
+        ]
+      `)
 
       await waitFor(() => {
         // user.findFirst 4 queries + post.findFirst 1 query
@@ -864,7 +864,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(xprisma.user.findFirst({})).rejects.toMatchInlineSnapshot(`All is lost!`)
+      await expect(xprisma.user.findFirst({})).rejects.toMatchInlineSnapshot(`"All is lost!"`)
     })
 
     test('errors in with no extension name', async () => {
@@ -878,7 +878,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(xprisma.user.findFirst({})).rejects.toMatchInlineSnapshot(`All is lost!`)
+      await expect(xprisma.user.findFirst({})).rejects.toMatchInlineSnapshot(`"All is lost!"`)
     })
 
     test('empty args becomes an empty object', async () => {

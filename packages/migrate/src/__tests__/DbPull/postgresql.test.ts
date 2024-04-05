@@ -75,19 +75,19 @@ describe('postgresql', () => {
     ctx.fixture('introspection/postgresql')
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('introspection should load .env file with --print', async () => {
@@ -101,7 +101,7 @@ describe('postgresql', () => {
       expect(e.message).toContain(`fromdotenvdoesnotexist`)
     }
 
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('introspection should load .env file without --print', async () => {
@@ -116,7 +116,7 @@ describe('postgresql', () => {
     }
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/using-dotenv.prisma
+      "Prisma schema loaded from prisma/using-dotenv.prisma
 
       Environment variables loaded from prisma/.env
 
@@ -129,9 +129,9 @@ describe('postgresql', () => {
       ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
 
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('introspection --url with postgresql provider but schema has a sqlite provider should fail', async () => {
@@ -143,26 +143,26 @@ describe('postgresql', () => {
     } catch (e) {
       expect(e.code).toEqual(undefined)
       expect(e.message).toMatchInlineSnapshot(
-        `The database provider found in --url (postgresql) is different from the provider found in the Prisma schema (sqlite).`,
+        `"The database provider found in --url (postgresql) is different from the provider found in the Prisma schema (sqlite)."`,
       )
     }
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
 
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('introspection works with directUrl from env var', async () => {
     ctx.fixture('schema-only-data-proxy')
     const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from with-directUrl-env.prisma
+      "Prisma schema loaded from with-directUrl-env.prisma
 
       Environment variables loaded from .env
 
@@ -175,8 +175,8 @@ describe('postgresql', () => {
       ✔ Introspected 2 models and wrote them into with-directUrl-env.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
-
+      "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

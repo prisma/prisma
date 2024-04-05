@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`migrate diff D1 should succeed when --from-local-d1 and a single local Cloudflare D1 database exists 2`] = `
--- DropTable
+"-- DropTable
 PRAGMA foreign_keys=off;
 DROP TABLE "Post";
 PRAGMA foreign_keys=on;
@@ -10,11 +10,11 @@ PRAGMA foreign_keys=on;
 PRAGMA foreign_keys=off;
 DROP TABLE "User";
 PRAGMA foreign_keys=on;
-
+"
 `;
 
 exports[`migrate diff D1 should succeed when --from-url and a single local Cloudflare D1 database exists 2`] = `
--- DropTable
+"-- DropTable
 PRAGMA foreign_keys=off;
 DROP TABLE "Post";
 PRAGMA foreign_keys=on;
@@ -23,11 +23,11 @@ PRAGMA foreign_keys=on;
 PRAGMA foreign_keys=off;
 DROP TABLE "User";
 PRAGMA foreign_keys=on;
-
+"
 `;
 
 exports[`migrate diff D1 should succeed when --to-url and a single local Cloudflare D1 database exists 2`] = `
--- CreateTable
+"-- CreateTable
 CREATE TABLE "Post" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title" TEXT NOT NULL,
@@ -45,11 +45,11 @@ CREATE TABLE "User" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
-
+"
 `;
 
 exports[`migrate diff sqlite should diff --from-empty --to-url=file:dev.db --script 2`] = `
--- CreateTable
+"-- CreateTable
 CREATE TABLE "Post" (
     "authorId" INTEGER NOT NULL,
     "content" TEXT,
@@ -95,5 +95,5 @@ CREATE UNIQUE INDEX "Profile.userId" ON "Profile"("userId" ASC);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User.email" ON "User"("email" ASC);
-
+"
 `;
