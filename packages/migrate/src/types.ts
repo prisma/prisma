@@ -29,6 +29,13 @@ export interface RPCPayload extends RpcRequestResponse {
   params: any
 }
 
+export interface RPCPrintPayload extends RpcRequestResponse {
+  method: 'print'
+  params: {
+    content: string
+  }
+}
+
 interface UserFacingError {
   is_panic: boolean
   message: string
