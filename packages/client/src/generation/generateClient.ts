@@ -200,8 +200,8 @@ export async function buildClient({
     // In short: A lot can be simplified, but can only happen in GA & P6.
     fileMap['default.js'] = JS(trampolineTsClient)
     fileMap['default.d.ts'] = TS(trampolineTsClient)
-    fileMap['wasm-worker-loader.js'] = `export default (await import('./query_engine_bg.wasm')).default`
-    fileMap['wasm-edge-light-loader.js'] = `export default (await import('./query_engine_bg.wasm?module')).default`
+    fileMap['wasm-worker-loader.js'] = `export { default } from './query_engine_bg.wasm'`
+    fileMap['wasm-edge-light-loader.js'] = `export { default } from './query_engine_bg.wasm?module'`
     pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
     pkgJson['imports'] = {
       // when `import('#wasm-engine-loader')` is called, it will be resolved to the correct file
