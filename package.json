@@ -89,7 +89,7 @@
     "ts-toolbelt": "9.6.0",
     "tsx": "4.7.1",
     "typescript": "5.3.3",
-    "zx": "7.2.3"
+    "zx": "8.0.1"
   },
   "pnpm": {
     "peerDependencyRules": {

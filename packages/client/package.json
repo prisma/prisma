@@ -243,7 +243,7 @@
     "typescript": "5.3.3",
     "undici": "5.28.4",
     "wrangler": "3.47.1",
-    "zx": "7.2.3"
+    "zx": "8.0.1"
   },
   "peerDependencies": {
     "prisma": "*"
