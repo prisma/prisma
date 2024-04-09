@@ -18,7 +18,7 @@ describe('debug', () => {
     debug('Does it even log?')
     debug('I dont know')
 
-    expect(logs).toMatchInlineSnapshot(`Array []`)
+    expect(logs).toMatchInlineSnapshot(`[]`)
 
     expect(sanitizeTestLogs(getLogs())).toMatchInlineSnapshot(`
       "my-namespace Does it even log?

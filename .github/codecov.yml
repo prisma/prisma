@@ -1,5 +1,20 @@
-# Enable/Disable PR comments 
+# Enable/Disable PR comments
 comment: false
+
+# https://docs.codecov.com/docs/commit-status
+# Disable both statuses
+coverage:
+  status:
+    project: off
+    patch: off
+# Alternatively we can have them as "informational"
+# status:
+#   project:
+#     default:
+#       informational: true
+#   patch:
+#     default:
+#       informational: true
 
 # About `carryforward: true`
 # https://docs.codecov.com/docs/carryforward-flags
@@ -17,10 +32,6 @@ flags:
     carryforward: true
     paths:
       - packages/debug/
-  engine-core:
-    carryforward: true
-    paths:
-      - packages/engine-core/
   generator-helper:
     carryforward: true
     paths:

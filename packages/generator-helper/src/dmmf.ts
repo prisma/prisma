@@ -1,73 +1,76 @@
+export type ReadonlyDeep<O> = {
+  +readonly [K in keyof O]: ReadonlyDeep<O[K]>
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
-  export interface Document {
+  export type Document = ReadonlyDeep<{
     datamodel: Datamodel
     schema: Schema
     mappings: Mappings
-  }
+  }>
 
-  export interface Mappings {
+  export type Mappings = ReadonlyDeep<{
     modelOperations: ModelMapping[]
     otherOperations: {
       read: string[]
       write: string[]
     }
-  }
+  }>
 
-  export interface OtherOperationMappings {
+  export type OtherOperationMappings = ReadonlyDeep<{
     read: string[]
     write: string[]
-  }
+  }>
 
-  export interface DatamodelEnum {
+  export type DatamodelEnum = ReadonlyDeep<{
     name: string
     values: EnumValue[]
     dbName?: string | null
     documentation?: string
-  }
+  }>
 
-  export interface SchemaEnum {
+  export type SchemaEnum = ReadonlyDeep<{
     name: string
     values: string[]
-  }
+  }>
 
-  export interface EnumValue {
+  export type EnumValue = ReadonlyDeep<{
     name: string
     dbName: string | null
-  }
+  }>
 
-  export interface Datamodel {
+  export type Datamodel = ReadonlyDeep<{
     models: Model[]
     enums: DatamodelEnum[]
     types: Model[]
-  }
+  }>
 
-  export interface uniqueIndex {
+  export type uniqueIndex = ReadonlyDeep<{
     name: string
     fields: string[]
-  }
-  export interface PrimaryKey {
+  }>
+  export type PrimaryKey = ReadonlyDeep<{
     name: string | null
     fields: string[]
-  }
-  export interface Model {
+  }>
+  export type Model = ReadonlyDeep<{
     name: string
     dbName: string | null
     fields: Field[]
-    fieldMap?: Record<string, Field>
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
     documentation?: string
     primaryKey: PrimaryKey | null
-    [key: string]: any // safe net for additional new props // TODO: remove this and the others, not safe
-  }
+    isGenerated?: boolean
+  }>
 
   export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
 
   export type FieldNamespace = 'model' | 'prisma'
-  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
+  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes' | 'fieldRefTypes'
 
-  export interface Field {
+  export type Field = ReadonlyDeep<{
     kind: FieldKind
     name: string
     isRequired: boolean
@@ -78,29 +81,28 @@ export namespace DMMF {
     isGenerated?: boolean // does not exist on 'type' but does on 'model'
     isUpdatedAt?: boolean // does not exist on 'type' but does on 'model'
     /**
-     * Describes the data type in the same the way is is defined in the Prisma schema:
+     * Describes the data type in the same the way it is defined in the Prisma schema:
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
-    dbNames?: string[] | null
+    dbName?: string | null
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
     relationFromFields?: string[]
-    relationToFields?: any[]
+    relationToFields?: string[]
     relationOnDelete?: string
     relationName?: string
     documentation?: string
-    [key: string]: any // safe net for additional new props
-  }
+  }>
 
-  export interface FieldDefault {
+  export type FieldDefault = ReadonlyDeep<{
     name: string
     args: any[]
-  }
+  }>
 
   export type FieldDefaultScalar = string | boolean | number
 
-  export interface Schema {
+  export type Schema = ReadonlyDeep<{
     rootQueryType?: string
     rootMutationType?: string
     inputObjectTypes: {
@@ -116,79 +118,92 @@ export namespace DMMF {
       model?: SchemaEnum[]
       prisma: SchemaEnum[]
     }
-  }
+    fieldRefTypes: {
+      // model?: FieldRefType[]
+      prisma?: FieldRefType[]
+    }
+  }>
 
-  export interface Query {
+  export type Query = ReadonlyDeep<{
     name: string
     args: SchemaArg[]
     output: QueryOutput
-  }
+  }>
 
-  export interface QueryOutput {
+  export type QueryOutput = ReadonlyDeep<{
     name: string
     isRequired: boolean
     isList: boolean
-  }
+  }>
 
-  export type ArgType = string | InputType | SchemaEnum
-
-  export interface SchemaArgInputType {
+  export type TypeRef<AllowedLocations extends FieldLocation> = {
     isList: boolean
-    type: ArgType
-    location: FieldLocation
+    type: string
+    location: AllowedLocations
     namespace?: FieldNamespace
   }
 
-  export interface SchemaArg {
+  export type InputTypeRef = TypeRef<'scalar' | 'inputObjectTypes' | 'enumTypes' | 'fieldRefTypes'>
+
+  export type SchemaArg = ReadonlyDeep<{
     name: string
     comment?: string
     isNullable: boolean
     isRequired: boolean
-    inputTypes: SchemaArgInputType[]
+    inputTypes: InputTypeRef[]
     deprecation?: Deprecation
-  }
+  }>
 
-  export interface OutputType {
+  export type OutputType = ReadonlyDeep<{
     name: string
     fields: SchemaField[]
-    fieldMap?: Record<string, SchemaField>
-  }
+  }>
 
-  export interface SchemaField {
+  export type SchemaField = ReadonlyDeep<{
     name: string
     isNullable?: boolean
-    outputType: {
-      type: string | OutputType | SchemaEnum // note that in the serialized state we don't have the reference to MergedOutputTypes
-      isList: boolean
-      location: FieldLocation
-      namespace?: FieldNamespace
-    }
+    outputType: OutputTypeRef
     args: SchemaArg[]
     deprecation?: Deprecation
     documentation?: string
-  }
+  }>
 
-  export interface Deprecation {
+  export type OutputTypeRef = TypeRef<'scalar' | 'outputObjectTypes' | 'enumTypes'>
+
+  export type Deprecation = ReadonlyDeep<{
     sinceVersion: string
     reason: string
     plannedRemovalVersion?: string
-  }
+  }>
 
-  export interface InputType {
+  export type InputType = ReadonlyDeep<{
     name: string
     constraints: {
       maxNumFields: number | null
       minNumFields: number | null
+      fields?: string[]
+    }
+    meta?: {
+      source?: string
     }
     fields: SchemaArg[]
-    fieldMap?: Record<string, SchemaArg>
-  }
+  }>
 
-  export interface ModelMapping {
+  export type FieldRefType = ReadonlyDeep<{
+    name: string
+    allowTypes: FieldRefAllowType[]
+    fields: SchemaArg[]
+  }>
+
+  export type FieldRefAllowType = TypeRef<'scalar' | 'enumTypes'>
+
+  export type ModelMapping = ReadonlyDeep<{
     model: string
     plural: string
     findUnique?: string | null
+    findUniqueOrThrow?: string | null
     findFirst?: string | null
+    findFirstOrThrow?: string | null
     findMany?: string | null
     create?: string | null
     createMany?: string | null
@@ -202,11 +217,13 @@ export namespace DMMF {
     count?: string | null
     findRaw?: string | null
     aggregateRaw?: string | null
-  }
+  }>
 
   export enum ModelAction {
     findUnique = 'findUnique',
+    findUniqueOrThrow = 'findUniqueOrThrow',
     findFirst = 'findFirst',
+    findFirstOrThrow = 'findFirstOrThrow',
     findMany = 'findMany',
     create = 'create',
     createMany = 'createMany',

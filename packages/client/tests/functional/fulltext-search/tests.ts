@@ -1,10 +1,11 @@
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ andQuery, orQuery, notQuery, noResultsQuery, badQuery }) => {
+  ({ andQuery, orQuery, notQuery, noResultsQuery, badQuery }, _suiteMeta, _clientMeta) => {
     beforeAll(async () => {
       await prisma.user.createMany({
         data: [
@@ -77,6 +78,8 @@ testMatrix.setupTestSuite(
       expect(result).toEqual([])
     })
 
+    // TODO: Windows: why is this test skipped?
+    // TODO: Edge: skipped because of the error snapshot
     testIf(process.platform !== 'win32')('bad query', async () => {
       const result = prisma.user
         .findMany({
@@ -86,13 +89,18 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        .catch((error) => {
-          // Remove `tsquery.c` line number to make error snapshots portable across PostgreSQL versions.
-          error.message = error.message.replace(/line: Some\(\d+\)/, 'line: Some(0)')
+        .catch((e) => {
+          const error = e as Error
+          error.message = error.message
+            // Remove `tsquery.c` line number to make error snapshots portable across PostgreSQL versions.
+            .replace(/line: Some\(\d+\)/, 'line: Some(0)')
+            // Align Rust / Driver Adapters divergences: "t1.[column]" -> "`User`.[column]"
+            .replace(/t1\./g, '`User`.')
+            .replace(' as t1', '')
           throw error
         })
 
-      await expect(result).rejects.toThrowErrorMatchingSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
     })
 
     test('order by relevance on a single field', async () => {

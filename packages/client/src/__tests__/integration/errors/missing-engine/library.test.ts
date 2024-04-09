@@ -1,11 +1,13 @@
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('missing-engine: library', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
+testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine: library', async () => {
   if (getClientEngineType() !== ClientEngineType.Library) {
     return
   }
@@ -15,11 +17,11 @@ test('missing-engine: library', async () => {
 
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const binaryPath =
     getClientEngineType() === ClientEngineType.Library
-      ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(platform, 'fs'))
-      : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
+      ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(binaryTarget, 'fs'))
+      : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${binaryTarget}`)
   fs.unlinkSync(binaryPath)
   const prisma = new PrismaClient({
     log: [
@@ -33,38 +35,27 @@ test('missing-engine: library', async () => {
   await expect(async () => {
     await prisma.user.findMany()
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
+    "
+    Invalid \`prisma.user.findMany()\` invocation in
+    /client/src/__tests__/integration/errors/missing-engine/library.test.ts:0:0
 
-          Invalid \`prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/missing-engine/library.test.ts:0:0
+      33 })
+      34 
+      35 await expect(async () => {
+    → 36   await prisma.user.findMany(
+    Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
-            31 })
-            32 
-            33 await expect(async () => {
-          → 34   await prisma.user.findMany(
-            Query engine library for current platform "TEST_PLATFORM" could not be found.
-          You incorrectly pinned it to TEST_PLATFORM
+    This is likely caused by tooling that has not copied "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" to the deployment folder.
+    Ensure that you ran \`prisma generate\` and that "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" has been copied to "src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client".
 
-          This probably happens, because you built Prisma Client on a different platform.
-          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+    We would appreciate if you could take the time to share some information with us.
+    Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation
 
-          Searched Locations:
-
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
-            /client/src/__tests__/integration/errors/missing-engine
-            /tmp/prisma-engines
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
-
-
-          To solve this problem, add the platform "TEST_PLATFORM" to the "binaryTargets" attribute in the "generator" block in the "schema.prisma" file:
-          generator client {
-            provider      = "prisma-client-js"
-            binaryTargets = ["native"]
-          }
-
-          Then run "prisma generate" for your changes to take effect.
-          Read more about deploying Prisma Client: https://pris.ly/d/client-generator
-        `)
+    The following locations have been searched:
+      /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
+      /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client
+      /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime
+      /tmp/prisma-engines
+      /client/src/__tests__/integration/errors/missing-engine"
+  `)
 })

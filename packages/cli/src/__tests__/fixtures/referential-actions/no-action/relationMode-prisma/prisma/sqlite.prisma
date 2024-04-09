@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./db.dev"
+  relationMode = "prisma"
+}
+
+model SomeUser {
+  id              String @id @default(cuid())
+  profileNoAction ProfileNoAction?
+  enabled         Boolean?
+}
+
+model ProfileNoAction {
+  id       String @id @default(cuid())
+  user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  userId   String @unique
+  enabled  Boolean?
+}

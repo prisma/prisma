@@ -18,14 +18,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator gen {
+    "generator gen {
       provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }
+    }"
   `)
 })
 
@@ -49,14 +49,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator gen {
+    "generator gen {
       provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }
+    }"
   `)
 })
 
@@ -73,14 +73,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator gen {
+    "generator gen {
       provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }
+    }"
   `)
 })
 
@@ -107,13 +107,52 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator gen {
+    "generator gen {
       provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }
+    }"
+  `)
+})
+
+test('datasource block not starting at the beginning of the file and not at the beginning of a line with generator should only return the generator block', () => {
+  const schema = `
+  datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+`
+  expect(removeDatasource(schema)).toMatchInlineSnapshot(`
+    "generator client {
+      provider        = "prisma-client-js"
+      previewFeatures = ["multiSchema"]
+    }"
+  `)
+})
+
+test('datasource block not starting at the beginning of a line with generator should only return the generator block', () => {
+  const schema = ` datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+`
+  expect(removeDatasource(schema)).toMatchInlineSnapshot(`
+    "generator client {
+      provider        = "prisma-client-js"
+      previewFeatures = ["multiSchema"]
+    }"
   `)
 })

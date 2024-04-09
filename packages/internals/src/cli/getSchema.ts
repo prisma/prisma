@@ -1,13 +1,11 @@
-import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
+import { bold, green } from 'kleur/colors'
 import path from 'path'
-import type { NormalizedPackageJson } from 'read-pkg-up'
-import readPkgUp from 'read-pkg-up'
+import { PackageJson, readPackageUp, readPackageUpSync } from 'read-package-up'
 import { promisify } from 'util'
 
 const exists = promisify(fs.exists)
-const readFile = promisify(fs.readFile)
 
 /**
  * Async
@@ -66,7 +64,7 @@ export type PrismaConfig = {
 }
 
 export async function getPrismaConfigFromPackageJson(cwd: string) {
-  const pkgJson = await readPkgUp({ cwd })
+  const pkgJson = await readPackageUp({ cwd, normalize: false })
   const prismaPropertyFromPkgJson = pkgJson?.packageJson?.prisma as PrismaConfig | undefined
 
   if (!pkgJson) {
@@ -246,23 +244,22 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
   return path.dirname(schemaPath)
 }
 
-// TODO: This should probably return string | null to stay consistent with the other functions
 export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
   const schemaPath = await getSchemaPath(schemaPathFromArgs)
 
   if (!schemaPath) {
     throw new Error(
-      `Could not find a ${chalk.bold(
+      `Could not find a ${bold(
         'schema.prisma',
-      )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+      )} file that is required for this command.\nYou can either provide it with ${green(
         '--schema',
-      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${green(
         './prisma/schema.prisma',
       )} https://pris.ly/d/prisma-schema-location`,
     )
   }
 
-  return readFile(schemaPath, 'utf-8')
+  return fs.promises.readFile(schemaPath, 'utf-8')
 }
 
 /**
@@ -305,8 +302,8 @@ export function getSchemaPathSyncInternal(
 }
 
 export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
-  const pkgJson = readPkgUp.sync({ cwd })
-  const schemaPathFromPkgJson: string | undefined = pkgJson?.packageJson?.prisma?.schema
+  const pkgJson = readPackageUpSync({ cwd, normalize: false })
+  const schemaPathFromPkgJson: string | undefined = pkgJson?.packageJson?.prisma?.['schema']
 
   if (!schemaPathFromPkgJson || !pkgJson) {
     return null
@@ -361,41 +358,6 @@ function getRelativeSchemaPathSync(cwd: string): string | null {
   return null
 }
 
-/**
- * Sync version of the small helper that returns the directory which contains the `schema.prisma` file
- */
-export function getSchemaDirSync(schemaPathFromArgs?: string): string | null {
-  if (schemaPathFromArgs) {
-    return path.resolve(path.dirname(schemaPathFromArgs))
-  }
-
-  const schemaPath = getSchemaPathSync(schemaPathFromArgs)
-  if (schemaPath) {
-    return path.dirname(schemaPath)
-  }
-
-  return null
-}
-
-// TODO: This should probably return string | null to stay consistent with the other functions
-export function getSchemaSync(schemaPathFromArgs?: string): string {
-  const schemaPath = getSchemaPathSync(schemaPathFromArgs)
-
-  if (!schemaPath) {
-    throw new Error(
-      `Could not find a ${chalk.bold(
-        'schema.prisma',
-      )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-        '--schema',
-      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-        './prisma/schema.prisma',
-      )} https://pris.ly/d/prisma-schema-location`,
-    )
-  }
-
-  return fs.readFileSync(schemaPath, 'utf-8')
-}
-
 function getJson(stdout: string): any {
   const firstCurly = stdout.indexOf('{')
   const lastCurly = stdout.lastIndexOf('}')
@@ -403,7 +365,7 @@ function getJson(stdout: string): any {
   return JSON.parse(sliced)
 }
 
-function isPkgJsonWorkspaceRoot(pkgJson: NormalizedPackageJson) {
+function isPkgJsonWorkspaceRoot(pkgJson: PackageJson) {
   const workspaces = pkgJson.workspaces
 
   if (!workspaces) {
@@ -414,7 +376,7 @@ function isPkgJsonWorkspaceRoot(pkgJson: NormalizedPackageJson) {
 }
 
 async function isNearestPkgJsonWorkspaceRoot(cwd: string) {
-  const pkgJson = await readPkgUp({ cwd })
+  const pkgJson = await readPackageUp({ cwd, normalize: false })
 
   if (!pkgJson) {
     return null
@@ -427,7 +389,7 @@ async function isNearestPkgJsonWorkspaceRoot(cwd: string) {
 }
 
 function isNearestPkgJsonWorkspaceRootSync(cwd: string) {
-  const pkgJson = readPkgUp.sync({ cwd })
+  const pkgJson = readPackageUpSync({ cwd, normalize: false })
 
   if (!pkgJson) {
     return null

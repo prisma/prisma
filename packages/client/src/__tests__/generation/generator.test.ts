@@ -1,11 +1,4 @@
-import {
-  ClientEngineType,
-  getClientEngineType,
-  getGenerator,
-  getPackedPackage,
-  parseEnvValue,
-  serializeQueryEngineName,
-} from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, getGenerator, getPackedPackage, parseEnvValue } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
@@ -40,7 +33,6 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
@@ -52,43 +44,49 @@ describe('generator', () => {
 
     if (getClientEngineType() === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
-          defaultOutput: .prisma/client,
-          prettyName: Prisma Client,
-          requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
-            libqueryEngine,
+        {
+          "defaultOutput": ".prisma/client",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [
+            "libqueryEngine",
           ],
         }
       `)
     } else {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
-          defaultOutput: .prisma/client,
-          prettyName: Prisma Client,
-          requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
-            queryEngine,
+        {
+          "defaultOutput": ".prisma/client",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [
+            "queryEngine",
           ],
         }
       `)
     }
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        binaryTargets: Array [],
-        config: Object {},
-        name: client,
-        previewFeatures: Array [],
-        provider: Object {
-          fromEnvVar: null,
-          value: prisma-client-js,
+      {
+        "binaryTargets": [
+          {
+            "fromEnvVar": null,
+            "native": true,
+            "value": "TEST_PLATFORM",
+          },
+        ],
+        "config": {},
+        "name": "client",
+        "previewFeatures": [],
+        "provider": {
+          "fromEnvVar": null,
+          "value": "prisma-client-js",
         },
       }
     `)
 
     expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
-      `node_modules/@prisma/client`,
+      `"node_modules/@prisma/client"`,
     )
 
     await generator.generate()
@@ -122,11 +120,10 @@ describe('generator', () => {
         baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
-        dataProxy: false,
       })
     } catch (e) {
-      expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
-        Get DMMF: Schema parsing - Error while interacting with query-engine-NORMALIZED
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "Prisma schema validation - (get-dmmf wasm)
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
@@ -146,8 +143,9 @@ describe('generator', () => {
            | 
 
         Validation Error Count: 2
+        [Context: getDmmf]
 
-        Prisma CLI Version : 0.0.0
+        Prisma CLI Version : 0.0.0"
       `)
     }
   })
@@ -166,20 +164,19 @@ describe('generator', () => {
       throw new Error(`Prisma Client didn't get packed properly 🤔`)
     }
 
-    let doesnNotExistError
+    let doesNotExistError
     try {
       await getGenerator({
         schemaPath: path.join(__dirname, 'doesnotexist.prisma'),
         baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
-        dataProxy: false,
       })
     } catch (e) {
-      doesnNotExistError = e
+      doesNotExistError = e
     } finally {
-      expect(stripAnsi(doesnNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
-        `doesnotexist.prisma does not exist`,
+      expect(stripAnsi(doesNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
+        `"doesnotexist.prisma does not exist"`,
       )
     }
   })
@@ -190,12 +187,11 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     try {
       await expect(generator.generate()).rejects.toThrowErrorMatchingInlineSnapshot(`
-        Generating client into /client/src/__tests__/generation/__fixture__/@prisma/client is not allowed.
+        "Generating client into /client/src/__tests__/generation/__fixture__/@prisma/client is not allowed.
         This package is used by \`prisma generate\` and overwriting its content is dangerous.
 
         Suggestion:
@@ -206,7 +202,7 @@ describe('generator', () => {
         8 output   = "./__fixture__/.prisma/client"
 
         You won't need to change your imports.
-        Imports from \`@prisma/client\` will be automatically forwarded to \`.prisma/client\`
+        Imports from \`@prisma/client\` will be automatically forwarded to \`.prisma/client\`"
       `)
     } finally {
       generator.stop()
@@ -232,7 +228,6 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
@@ -244,43 +239,49 @@ describe('generator', () => {
 
     if (getClientEngineType(generator.config) === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
-          defaultOutput: .prisma/client,
-          prettyName: Prisma Client,
-          requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
-            libqueryEngine,
+        {
+          "defaultOutput": ".prisma/client",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [
+            "libqueryEngine",
           ],
         }
       `)
     } else {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
-          defaultOutput: .prisma/client,
-          prettyName: Prisma Client,
-          requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
-            queryEngine,
+        {
+          "defaultOutput": ".prisma/client",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [
+            "queryEngine",
           ],
         }
       `)
     }
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        binaryTargets: Array [],
-        config: Object {},
-        name: client,
-        previewFeatures: Array [],
-        provider: Object {
-          fromEnvVar: null,
-          value: prisma-client-js,
+      {
+        "binaryTargets": [
+          {
+            "fromEnvVar": null,
+            "native": true,
+            "value": "TEST_PLATFORM",
+          },
+        ],
+        "config": {},
+        "name": "client",
+        "previewFeatures": [],
+        "provider": {
+          "fromEnvVar": null,
+          "value": "prisma-client-js",
         },
       }
     `)
 
     expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
-      `node_modules/@prisma/client`,
+      `"node_modules/@prisma/client"`,
     )
 
     await generator.generate()

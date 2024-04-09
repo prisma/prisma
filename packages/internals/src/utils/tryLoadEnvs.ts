@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
-import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
+import { bold, dim, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 
 import { dotenvExpand } from '../dotenvExpand'
@@ -59,7 +59,7 @@ export function tryLoadEnvs(
 
   // Print the error if any (if internal dotenv readFileSync throws)
   if (schemaEnvInfo?.dotenvResult.error) {
-    return console.error(chalk.redBright.bold('Schema Env Error: ') + schemaEnvInfo.dotenvResult.error) as undefined
+    return console.error(red(bold('Schema Env Error: ')) + schemaEnvInfo.dotenvResult.error) as undefined
   }
   const messages = [rootEnvInfo?.message, schemaEnvInfo?.message].filter(Boolean)
 
@@ -94,23 +94,23 @@ function checkForConflicts(
       const relativeRootEnvPath = path.relative(process.cwd(), rootEnvInfo!.path)
       const relativeEnvPath = path.relative(process.cwd(), envPath)
       if (type === 'error') {
-        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${chalk.underline(
+        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${underline(
           relativeRootEnvPath,
-        )} and ${chalk.underline(relativeEnvPath)}
+        )} and ${underline(relativeEnvPath)}
 Conflicting env vars:
-${conflicts.map((conflict) => `  ${chalk.bold(conflict)}`).join('\n')}
+${conflicts.map((conflict) => `  ${bold(conflict)}`).join('\n')}
 
-We suggest to move the contents of ${chalk.underline(relativeEnvPath)} to ${chalk.underline(
+We suggest to move the contents of ${underline(relativeEnvPath)} to ${underline(
           relativeRootEnvPath,
         )} to consolidate your env vars.\n`
         throw new Error(message)
       } else if (type === 'warn') {
         const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts
-          .map((c) => chalk.bold(c))
-          .join(', ')} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}
-Env vars from ${chalk.underline(relativeEnvPath)} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}
+          .map((c) => bold(c))
+          .join(', ')} in ${underline(relativeRootEnvPath)} and ${underline(relativeEnvPath)}
+Env vars from ${underline(relativeEnvPath)} overwrite the ones from ${underline(relativeRootEnvPath)}
       `
-        console.warn(`${chalk.yellow('warn(prisma)')} ${message}`)
+        console.warn(`${yellow('warn(prisma)')} ${message}`)
       }
     }
   }
@@ -120,21 +120,23 @@ export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
 
+    const dotenvOutput = dotenv.config({
+      path: envPath,
+      // Useful to debug dotenv parsing, prints errors & warnings
+      // Set to any value to enable
+      // Example for empty .env file
+      // [dotenv][DEBUG] did not match key and value when parsing line 1:
+      //
+      // Value needs to be null or undefined, false is truthy
+      // https://github.com/motdotla/dotenv/blob/7301ac9be0b2c766f865bbe24280bf82586d25aa/lib/main.js#L89-L91
+      debug: process.env.DOTENV_CONFIG_DEBUG ? true : undefined,
+    })
+
+    const dotenvExpandOutput = dotenvExpand(dotenvOutput)
+
     return {
-      dotenvResult: dotenvExpand(
-        dotenv.config({
-          path: envPath,
-          // Useful to debug dotenv parsing, prints errors & warnings
-          // Set to any value to enable
-          // Example for empty .env file
-          // [dotenv][DEBUG] did not match key and value when parsing line 1:
-          //
-          // Value needs to be null or undefined, false is truthy
-          // https://github.com/motdotla/dotenv/blob/7301ac9be0b2c766f865bbe24280bf82586d25aa/lib/main.js#L89-L91
-          debug: process.env.DOTENV_CONFIG_DEBUG ? true : undefined,
-        }),
-      ),
-      message: chalk.dim(`Environment variables loaded from ${path.relative(process.cwd(), envPath)}`),
+      dotenvResult: dotenvExpandOutput,
+      message: dim(`Environment variables loaded from ${path.relative(process.cwd(), envPath)}`),
       path: envPath,
     }
   } else {

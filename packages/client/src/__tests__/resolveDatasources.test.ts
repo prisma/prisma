@@ -7,25 +7,25 @@ const cwd = '/Users/tim/project/prisma'
 const outputDir = '/Users/tim/project/node_modules/@prisma/client/runtime'
 
 test('absolutizeRelativePath', () => {
-  expect(absolutizeRelativePath('file:db.db', cwd, outputDir)).toMatchInlineSnapshot(`../../../../prisma/db.db`)
-  expect(absolutizeRelativePath('file:/db.db', cwd, outputDir)).toMatchInlineSnapshot(`../../../../../../../db.db`)
-  expect(absolutizeRelativePath('file:../db.db', cwd, outputDir)).toMatchInlineSnapshot(`../../../../db.db`)
-  expect(absolutizeRelativePath('file:./db.db', cwd, outputDir)).toMatchInlineSnapshot(`../../../../prisma/db.db`)
+  expect(absolutizeRelativePath('file:db.db', cwd, outputDir)).toMatchInlineSnapshot(`"../../../../prisma/db.db"`)
+  expect(absolutizeRelativePath('file:/db.db', cwd, outputDir)).toMatchInlineSnapshot(`"../../../../../../../db.db"`)
+  expect(absolutizeRelativePath('file:../db.db', cwd, outputDir)).toMatchInlineSnapshot(`"../../../../db.db"`)
+  expect(absolutizeRelativePath('file:./db.db', cwd, outputDir)).toMatchInlineSnapshot(`"../../../../prisma/db.db"`)
 
   expect(absolutizeRelativePath('file:asd/another/dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `../../../../prisma/asd/another/dir/db.db`,
+    `"../../../../prisma/asd/another/dir/db.db"`,
   )
   expect(absolutizeRelativePath('file:/some/random/dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `../../../../../../../some/random/dir/db.db`,
+    `"../../../../../../../some/random/dir/db.db"`,
   )
   expect(
     absolutizeRelativePath('file:/Users/tim/project/node_modules/@prisma/client/runtime', cwd, outputDir),
-  ).toMatchInlineSnapshot(``)
+  ).toMatchInlineSnapshot(`""`)
   expect(absolutizeRelativePath('file:../another-dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `../../../../another-dir/db.db`,
+    `"../../../../another-dir/db.db"`,
   )
   expect(absolutizeRelativePath('file:./some/dir/db.db', cwd, outputDir)).toMatchInlineSnapshot(
-    `../../../../prisma/some/dir/db.db`,
+    `"../../../../prisma/some/dir/db.db"`,
   )
 })
 
@@ -38,7 +38,7 @@ const datasources: DataSource[] = [
     },
     activeProvider: 'sqlite',
     provider: 'sqlite',
-    config: {},
+    schemas: [],
   },
   {
     name: 'db2',
@@ -48,7 +48,7 @@ const datasources: DataSource[] = [
     },
     activeProvider: 'sqlite',
     provider: 'sqlite',
-    config: {},
+    schemas: [],
   },
   {
     name: 'db3',
@@ -58,7 +58,7 @@ const datasources: DataSource[] = [
     },
     activeProvider: 'mysql',
     provider: 'mysql',
-    config: {},
+    schemas: [],
   },
   {
     name: 'db4',
@@ -68,13 +68,13 @@ const datasources: DataSource[] = [
     },
     activeProvider: 'postgresql',
     provider: 'postgresql',
-    config: {},
+    schemas: [],
   },
 ]
 
 test('serializeDatasources', () => {
   expect(serializeDatasources(datasources.map(datasourceToDatasourceOverwrite))).toMatchInlineSnapshot(`
-    [
+    "[
       {
         "name": "db",
         "url": "file:db.db"
@@ -91,6 +91,6 @@ test('serializeDatasources', () => {
         "name": "db4",
         "url": "postgresql://"
       }
-    ]
+    ]"
   `)
 })

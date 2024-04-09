@@ -1,17 +1,5 @@
-import { handlePanic, jestConsoleContext, jestContext } from '@prisma/internals'
-import {
-  DbCommand,
-  DbPull,
-  DbPush,
-  // DbDrop,
-  DbSeed,
-  MigrateCommand,
-  MigrateDeploy,
-  MigrateDev,
-  MigrateReset,
-  MigrateResolve,
-  MigrateStatus,
-} from '@prisma/migrate'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { DbPull } from '@prisma/migrate'
 
 import { CLI } from '../../CLI'
 
@@ -43,23 +31,9 @@ const cliInstance = CLI.new(
     // version: Version.new(),
     // validate: Validate.new(),
     // format: Format.new(),
-    // doctor: Doctor.new(),
     // telemetry: Telemetry.new(),
   },
-  [
-    'version',
-    'init',
-    'migrate',
-    'db',
-    'introspect',
-    'dev',
-    'studio',
-    'generate',
-    'validate',
-    'format',
-    'doctor',
-    'telemetry',
-  ],
+  ['version', 'init', 'migrate', 'db', 'introspect', 'dev', 'studio', 'generate', 'validate', 'format', 'telemetry'],
 )
 
 it('no params should return help', async () => {
@@ -87,22 +61,22 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrowError()
+  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrow()
 })
 
 it('introspect should include deprecation warning', async () => {
   const result = cliInstance.parse(['introspect'])
 
   await expect(result).rejects.toMatchInlineSnapshot(`
-          Could not find a schema.prisma file that is required for this command.
-          You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-        `)
+    "Could not find a schema.prisma file that is required for this command.
+    You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+  `)
   expect(ctx.mocked['console.log'].mock.calls).toHaveLength(0)
   expect(ctx.mocked['console.info'].mock.calls).toHaveLength(0)
   expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-    prisma:warn 
+    "prisma:warn 
     prisma:warn The prisma introspect command is deprecated. Please use prisma db pull instead.
-    prisma:warn 
+    prisma:warn "
   `)
   expect(ctx.mocked['console.error'].mock.calls).toHaveLength(0)
 })

@@ -28,14 +28,23 @@ export namespace JsonRPC {
   }
 }
 
-export type Dictionary<T> = { [key: string]: T }
-
 export interface GeneratorConfig {
   name: string
   output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
-  config: Dictionary<string>
+  config: {
+    /** `output` is a reserved name and will only be available directly at `generator.output` */
+    output?: never
+    /** `provider` is a reserved name and will only be available directly at `generator.provider` */
+    provider?: never
+    /** `binaryTargets` is a reserved name and will only be available directly at `generator.binaryTargets` */
+    binaryTargets?: never
+    /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
+    previewFeatures?: never
+  } & {
+    [key: string]: string | string[] | undefined
+  }
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
@@ -43,12 +52,13 @@ export interface GeneratorConfig {
 
 export interface EnvValue {
   fromEnvVar: null | string
-  value: string
+  value: null | string
 }
 
 export interface BinaryTargetsEnvValue {
-  fromEnvVar: null | string
+  fromEnvVar: string | null
   value: string
+  native?: boolean
 }
 
 export type ConnectorType =
@@ -56,24 +66,23 @@ export type ConnectorType =
   | 'mongodb'
   | 'sqlite'
   | 'postgresql'
+  | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
   | 'sqlserver'
-  | 'jdbc:sqlserver'
   | 'cockroachdb'
 
 export interface DataSource {
   name: string
-  activeProvider: ConnectorType
   provider: ConnectorType
+  activeProvider: ConnectorType
   url: EnvValue
-  config: { [key: string]: string }
+  directUrl?: EnvValue
+  schemas: string[] | []
 }
 
 export type BinaryPaths = {
-  migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
+  schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
-  introspectionEngine?: { [binaryTarget: string]: string }
-  prismaFmt?: { [binaryTarget: string]: string }
 }
 
 /** The options passed to the generator implementations */
@@ -89,10 +98,11 @@ export type GeneratorOptions = {
   // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
   binaryPaths?: BinaryPaths
-  dataProxy: boolean
+  postinstall?: boolean
+  noEngine?: boolean
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

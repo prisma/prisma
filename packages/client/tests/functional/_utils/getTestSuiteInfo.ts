@@ -1,17 +1,33 @@
+import { ClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
+import { AdapterProviders, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta, ClientRuntime, CliMeta } from './types'
 
-export type TestSuiteMatrix = { [K in string]: string }[][]
+export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
-  matrixOptions: Record<string, string>
+  matrixOptions: Record<string, string> & {
+    provider: Providers
+    driverAdapter?: `${AdapterProviders}`
+    relationMode?: `${RelationModes}`
+    engineType?: `${ClientEngineType}`
+    clientRuntime?: `${ClientRuntime}`
+    previewFeatures?: string[]
+  }
 }
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
+
+const allProvidersRegexUnion = Object.values(Providers).join('|')
+const schemaPreviewFeaturesRegex = /previewFeatures\s*=\s*(.*)/
+const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-js"/
+const schemaProviderRegex = new RegExp(`provider\\s*=\\s*"(?:${allProvidersRegexUnion})"`, 'g')
+const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
 
 /**
  * Get the generated test suite name, used for the folder name.
@@ -23,7 +39,6 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Name
   let name = ``
 
   name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
-
   name += ` (${suiteConfig.parametersString})`
 
   // replace illegal chars with empty string
@@ -35,20 +50,22 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Name
  * @param suiteConfig
  * @returns
  */
-export function getTestSuitePreviewFeatures(matrixOptions: Record<string, string>) {
-  return [
-    ...(matrixOptions['providerFeatures']?.split(', ') ?? []),
-    ...(matrixOptions['previewFeatures']?.split(', ') ?? []),
-  ]
+export function getTestSuitePreviewFeatures(schema: string): string[] {
+  const match = schema.match(schemaPreviewFeaturesRegex)
+
+  return match === null ? [] : JSON.parse(match[1])
 }
 
 /**
  * Get the generated test suite path, where files will be copied to.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
+export function getTestSuiteFolderPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
   const generatedFolder = path.join(suiteMeta.prismaPath, '..', '.generated')
   const suiteName = getTestSuiteFullName(suiteMeta, suiteConfig)
   const suiteFolder = path.join(generatedFolder, suiteName)
@@ -58,12 +75,15 @@ export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
 
 /**
  * Get the generated test suite schema file path.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  const prismaFolder = getTestSuitePrismaPath(suiteMeta, suiteConfig)
+export function getTestSuiteSchemaPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
+  const prismaFolder = getTestSuitePrismaPath({ suiteMeta, suiteConfig })
   const schemaPath = path.join(prismaFolder, 'schema.prisma')
 
   return schemaPath
@@ -71,12 +91,15 @@ export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
 
 /**
  * Get the generated test suite prisma folder path.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+export function getTestSuitePrismaPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
+  const suiteFolder = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
   const prismaPath = path.join(suiteFolder, 'prisma')
 
   return prismaPath
@@ -87,15 +110,28 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
  * @param suiteMeta
  * @returns
  */
-export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteConfig[] {
+export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
   const matrixModule = require(suiteMeta._matrixPath).default as MatrixModule
 
-  const rawMatrix = typeof matrixModule === 'function' ? matrixModule() : matrixModule.matrix()
+  let rawMatrix: TestSuiteMatrix
+  let exclude: (config: Record<string, string>) => boolean
 
-  return matrix(rawMatrix).map((configs) => ({
-    parametersString: getTestSuiteParametersString(configs),
-    matrixOptions: merge(configs),
-  }))
+  if (typeof matrixModule === 'function') {
+    rawMatrix = matrixModule()
+    exclude = () => false
+  } else {
+    rawMatrix = matrixModule.matrix()
+    exclude = matrixModule.matrixOptions?.exclude ?? (() => false)
+  }
+
+  const configs = matrix(rawMatrix)
+    .map((configs) => ({
+      parametersString: getTestSuiteParametersString(configs),
+      matrixOptions: merge(configs),
+    }))
+    .filter(({ matrixOptions }) => !exclude(matrixOptions))
+
+  return configs as NamedTestSuiteConfig[]
 }
 
 /**
@@ -110,20 +146,80 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteCon
 function getTestSuiteParametersString(configs: Record<string, string>[]) {
   return configs
     .map((config) => {
-      const firstKey = Object.keys(config)[0]
-      return `${firstKey}=${config[firstKey]}`
+      // Note: if the name is too long tests will fail with
+      // `ENAMETOOLONG: name too long` as this is used for the directory name
+
+      // For `relationMode` tests
+      // we hardcode how it looks like for test results
+      if (config.relationMode !== undefined) {
+        const driverAdapterStr = config.driverAdapter === undefined ? '' : `driverAdapter=${config.driverAdapter},`
+        return `relationMode=${config.relationMode},provider=${config.provider},${driverAdapterStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
+      } else {
+        const firstKey = Object.keys(config)[0] // ! TODO this can actually produce incorrect tests and break type checks ! \\ Replace with hash
+        return `${firstKey}=${config[firstKey]}`
+      }
     })
     .join(', ')
 }
 
 /**
  * Inflate the base schema with a test suite config, used for schema generation.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Record<string, string>) {
-  return require(suiteMeta._schemaPath).default(matrixOptions)
+export function getTestSuiteSchema({
+  cliMeta,
+  suiteMeta,
+  matrixOptions,
+}: {
+  cliMeta: CliMeta
+  suiteMeta: TestSuiteMeta
+  matrixOptions: NamedTestSuiteConfig['matrixOptions']
+}) {
+  let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
+  const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
+  const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
+  const prismaRelationModeMatch = schema.match(schemaRelationModeRegex)
+  const providerMatch = schema.match(schemaProviderRegex)
+  const previewFeatures = getTestSuitePreviewFeatures(schema)
+
+  const { engineType, relationMode } = matrixOptions
+
+  // By default, mini-proxy distinguishes different engine instances using
+  // inline schema hash. In case 2 tests are running in parallel with identical
+  // schema, this can cause all kinds of problems. Adding a unique comment at
+  // the top of schema file forces them to have different hash and fixes this.
+  schema = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}\n${schema}`
+
+  // in some cases we may add more preview features automatically to the schema
+  previewFeatures.push(...cliMeta.previewFeatures)
+  const previewFeaturesStr = `previewFeatures = ${JSON.stringify(previewFeatures)}`
+
+  // if there's already a preview features block, replace it with the updated one
+  if (previewFeatureMatch !== null) {
+    schema = schema.replace(previewFeatureMatch[0], previewFeaturesStr)
+  }
+
+  // if there's no preview features, append them to the default generator block
+  if (previewFeatureMatch === null && defaultGeneratorMatch !== null) {
+    const replacement = `${defaultGeneratorMatch[0]}\n${previewFeaturesStr}`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
+  }
+
+  // if an engine type is specified, append it to the default generator block
+  if (engineType !== undefined && defaultGeneratorMatch !== null) {
+    const replacement = `${defaultGeneratorMatch[0]}\nengineType = "${engineType}"`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
+  }
+
+  // for PlanetScale and Vitess, we need to add `relationMode = "prisma"` to the schema
+  if (matrixOptions.relationMode && providerMatch !== null) {
+    const replacement = `${providerMatch![0]}\nrelationMode = "${relationMode}"`
+
+    if (prismaRelationModeMatch === null) {
+      schema = schema.replace(providerMatch[0], replacement)
+    }
+  }
+
+  return schema
 }
 
 /**
@@ -133,11 +229,14 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Reco
 export function getTestSuiteMeta() {
   const testsDir = path.join(path.dirname(__dirname), '/')
   const testPath = expect.getState().testPath
-  const testRootDirName = testPath.replace(testsDir, '').split(path.sep)[0]
+  if (testPath === undefined) {
+    throw new Error(`getTestSuiteMeta can be executed only within jest test`)
+  }
+  const testRootDirName = path.parse(testPath.replace(testsDir, '')).dir
   const testRoot = path.join(testsDir, testRootDirName)
   const rootRelativeTestPath = path.relative(testRoot, testPath)
   const rootRelativeTestDir = path.dirname(rootRelativeTestPath)
-  let testName
+  let testName: string
   if (rootRelativeTestPath === 'tests.ts') {
     testName = testRootDirName
   } else {
@@ -158,5 +257,36 @@ export function getTestSuiteMeta() {
     prismaPath,
     _matrixPath,
     _schemaPath,
+  }
+}
+
+/**
+ * Get `TestCliMeta` from the environment variables created by the test CLI.
+ */
+export function getTestSuiteCliMeta(): CliMeta {
+  const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
+  const runtime = process.env.TEST_CLIENT_RUNTIME as ClientRuntime | undefined
+  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType | undefined
+  const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
+
+  return {
+    dataProxy,
+    runtime: runtime ?? 'node',
+    engineType: engineType ?? ClientEngineType.Library,
+    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
+  }
+}
+
+/**
+ * Get `ClientMeta` information to be passed down into the test suite.
+ */
+export function getTestSuiteClientMeta({
+  suiteConfig,
+}: {
+  suiteConfig: NamedTestSuiteConfig['matrixOptions']
+}): ClientMeta {
+  return {
+    ...getTestSuiteCliMeta(),
+    driverAdapter: isDriverAdapterProviderLabel(suiteConfig.driverAdapter),
   }
 }

@@ -1,7 +1,9 @@
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
@@ -153,7 +155,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Orderby Null not supported on mongodb',
     },
   },

@@ -1,9 +1,11 @@
 import { faker } from '@faker-js/faker'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(({ provider }) => {
   const tests = [
@@ -17,12 +19,11 @@ testMatrix.setupTestSuite(({ provider }) => {
         })
       },
     ],
-    ...(provider !== 'sqlite'
+    ...(provider !== Providers.SQLITE
       ? [
           [
             'createMany',
             (email: string) => {
-              // @ts-test-if: provider !== 'sqlite'
               return prisma.user.createMany({
                 data: [
                   {
@@ -151,35 +152,35 @@ testMatrix.setupTestSuite(({ provider }) => {
         })
       },
     ],
-    ...(provider !== 'mongodb'
+    ...(provider !== Providers.MONGODB
       ? [
           [
             '$queryRaw',
             () => {
-              // @ts-test-if: provider !== 'mongodb'
+              // @ts-test-if: provider !== Providers.MONGODB
               return prisma.$queryRaw`SELECT 1 + 1;`
             },
           ],
           [
             '$queryRawUnsafe',
             () => {
-              // @ts-test-if: provider !== 'mongodb'
+              // @ts-test-if: provider !== Providers.MONGODB
               return prisma.$queryRawUnsafe(`SELECT 1 + 1;`)
             },
           ],
-          ...(provider !== 'sqlite'
+          ...(provider !== Providers.SQLITE
             ? [
                 [
                   '$executeRaw',
                   () => {
-                    // @ts-test-if: provider !== 'mongodb'
+                    // @ts-test-if: provider !== Providers.MONGODB
                     return prisma.$executeRaw`SELECT 1 + 1;`
                   },
                 ],
                 [
                   '$executeRawUnsafe',
                   () => {
-                    // @ts-test-if: provider !== 'mongodb'
+                    // @ts-test-if: provider !== Providers.MONGODB
                     return prisma.$executeRawUnsafe(`SELECT 1 + 1;`)
                   },
                 ],
@@ -187,12 +188,12 @@ testMatrix.setupTestSuite(({ provider }) => {
             : []),
         ]
       : []),
-    ...(provider === 'mongodb'
+    ...(provider === Providers.MONGODB
       ? [
           [
             '$runCommandRaw',
             () => {
-              // @ts-test-if: provider === 'mongodb'
+              // @ts-test-if: provider === Providers.MONGODB
               return prisma.$runCommandRaw({
                 aggregate: 'User',
                 pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
@@ -202,14 +203,12 @@ testMatrix.setupTestSuite(({ provider }) => {
           ],
         ]
       : []),
-  ]
+  ] as Array<[string, (email: string) => any]>
 
-  // @ts-ignore function defined in matrix
   describe.each(tests)('%s', (name, fn) => {
     const email = faker.internet.email()
     const createPromise = () => {
-      // @ts-ignore function defined in matrix
-      return (fn as (email: string) => any)(email)
+      return fn(email)
     }
 
     beforeEach(async () => {
@@ -266,16 +265,6 @@ testMatrix.setupTestSuite(({ provider }) => {
       // repeated calls to then & co should not change the result
       const res1 = await promise.finally().then().catch()
       const res2 = await promise.catch().finally().then()
-
-      expect(res1).toStrictEqual(res2)
-    })
-
-    test('repeated calls to .requestTransaction', async () => {
-      const promise = createPromise()
-
-      // repeated calls to then & co should not change the result
-      const res1 = await promise.requestTransaction(1)
-      const res2 = await promise.requestTransaction(1)
 
       expect(res1).toStrictEqual(res2)
     })

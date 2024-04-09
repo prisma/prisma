@@ -41,10 +41,10 @@ test('ignore comments', () => {
   const result = extractSqliteSources(datamodel, '/cwd', '/outputdir')
 
   expect(result).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        name: db,
-        url: ../cwd/my/folder/dev.db,
+    [
+      {
+        "name": "db",
+        "url": "../cwd/my/folder/dev.db",
       },
     ]
   `)
@@ -57,12 +57,12 @@ test('ignore comments', () => {
   }
 
   expect(serializedResult).toMatchInlineSnapshot(`
-    [
+    "[
       {
         "name": "db",
         "url": "../cwd/my/folder/dev.db"
       }
-    ]
+    ]"
   `)
 })
 
@@ -106,10 +106,10 @@ test('basic happy path', () => {
   const result = extractSqliteSources(datamodel, '/cwd', '/outputdir')
 
   expect(result).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        name: db,
-        url: ../cwd/my/folder/dev.db,
+    [
+      {
+        "name": "db",
+        "url": "../cwd/my/folder/dev.db",
       },
     ]
   `)
@@ -122,11 +122,11 @@ test('basic happy path', () => {
   }
 
   expect(serializedResult).toMatchInlineSnapshot(`
-    [
+    "[
       {
         "name": "db",
         "url": "../cwd/my/folder/dev.db"
       }
-    ]
+    ]"
   `)
 })

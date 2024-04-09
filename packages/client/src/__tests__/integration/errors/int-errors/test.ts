@@ -8,13 +8,13 @@ describe('int-errors', () => {
 
   beforeAll(async () => {
     await generateTestClient()
-    const { PrismaClient } = require('@prisma/client')
-    let originalConnectionString = process.env.TEST_MYSQL_URI || 'mysql://root:root@localhost:3306/tests'
+    const { PrismaClient } = require('./node_modules/@prisma/client')
+    let connectionString = process.env.TEST_MYSQL_URI
 
-    originalConnectionString += '-signed-int'
+    connectionString += '-signed-int'
 
     SetupParams = {
-      connectionString: originalConnectionString,
+      connectionString: connectionString,
       dirname: __dirname,
     }
 
@@ -23,7 +23,7 @@ describe('int-errors', () => {
     prisma = new PrismaClient({
       datasources: {
         db: {
-          url: originalConnectionString,
+          url: connectionString,
         },
       },
       errorFormat: 'minimal',

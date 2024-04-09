@@ -1,7 +1,12 @@
 // See engine's JSON RPC types
 // https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/types/index.html
-
+//
 // https://www.jsonrpc.org/specification
+
+import type { MigrateTypes } from '@prisma/internals'
+
+import type { IntrospectionViewDefinition } from './views/handleViewsIO'
+
 // A JSON-RPC request or response.
 export interface RpcRequestResponse {
   id: number
@@ -79,32 +84,10 @@ export namespace EngineArgs {
   /**
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
-  export interface DevDiagnosticInput {
+  export interface ApplyMigrationsInput {
     migrationsDirectoryPath: string
   }
-  export interface ListMigrationDirectoriesInput {
-    migrationsDirectoryPath: string
-  }
-  export interface MarkMigrationAppliedInput {
-    migrationsDirectoryPath: string
-    migrationName: string
-  }
-  export interface MarkMigrationRolledBackInput {
-    migrationName: string
-  }
-  export interface DiagnoseMigrationHistoryInput {
-    migrationsDirectoryPath: string
-    /// Whether creating shadow/temporary databases is allowed.
-    optInToShadowDatabase: boolean
-  }
-  export interface PlanMigrationInput {
-    migrationsDirectoryPath: string
-    prismaSchema: string
-  }
-  export interface EvaluateDataLossInput {
-    migrationsDirectoryPath: string
-    prismaSchema: string
-  }
+
   export interface CreateMigrationInput {
     migrationsDirectoryPath: string
     prismaSchema: string
@@ -112,8 +95,18 @@ export namespace EngineArgs {
     /// The user-given name for the migration. This will be used in the migration directory.
     migrationName?: string
   }
-  export interface ApplyMigrationsInput {
-    migrationsDirectoryPath: string
+
+  // The path to a live database taken as input.
+  // For flexibility,
+  // this can be the path to a Prisma schema file containing the datasource,
+  // or the whole Prisma schema as a string,
+  // or only the connection string.
+  export interface CreateDatabaseInput {
+    datasource: MigrateTypes.SchemaContainer | MigrateTypes.UrlContainer | MigrateTypes.PathContainer
+  }
+
+  export interface DropDatabase {
+    schema: string
   }
 
   type DbExecuteDatasourceTypeSchema = {
@@ -127,7 +120,6 @@ export namespace EngineArgs {
     url: string
   }
   export type DbExecuteDatasourceType = DbExecuteDatasourceTypeSchema | DbExecuteDatasourceTypeUrl
-
   export interface DbExecuteInput {
     // The location of the live database to connect to.
     datasourceType: DbExecuteDatasourceType
@@ -135,9 +127,68 @@ export namespace EngineArgs {
     script: string
   }
 
+  export type GetDatabaseVersionParams = MigrateTypes.GetDatabaseVersionParams
+
+  export interface IntrospectParams {
+    schema: string
+    force?: Boolean
+
+    // Note: this must be a non-negative integer
+    compositeTypeDepth?: number
+    schemas?: string[]
+  }
+
+  export interface IntrospectResult {
+    datamodel: string
+    warnings: string | null
+
+    /**
+     * Views retrieved from the databases.
+     * Supported databases: 'postgresql'.
+     *
+     * This value is:
+     * - `null` if "views" doesn't appear in the schema's preview features
+     * - `[]` if the database doesn't have any views
+     * - a non-empty array in other cases
+     */
+    views: IntrospectionViewDefinition[] | null
+  }
+
+  export interface DevDiagnosticInput {
+    migrationsDirectoryPath: string
+  }
+
+  export interface DiagnoseMigrationHistoryInput {
+    migrationsDirectoryPath: string
+    /// Whether creating shadow/temporary databases is allowed.
+    optInToShadowDatabase: boolean
+  }
+
+  export interface EnsureConnectionValidityInput {
+    datasource: MigrateTypes.SchemaContainer | MigrateTypes.UrlContainer | MigrateTypes.PathContainer
+  }
+
+  export interface EvaluateDataLossInput {
+    migrationsDirectoryPath: string
+    prismaSchema: string
+  }
+
+  export interface ListMigrationDirectoriesInput {
+    migrationsDirectoryPath: string
+  }
+
+  export interface MarkMigrationAppliedInput {
+    migrationsDirectoryPath: string
+    migrationName: string
+  }
+
+  export interface MarkMigrationRolledBackInput {
+    migrationName: string
+  }
+
   type MigrateDiffTargetUrl = {
     // The url to a live database. Its schema will be considered.
-    // This will cause the migration engine to connect to the database and read from it. It will not write.
+    // This will cause the Schema engine to connect to the database and read from it. It will not write.
     tag: 'url'
     url: string
   }
@@ -179,7 +230,7 @@ export namespace EngineArgs {
     // The URL to a live database to use as a shadow database. The schema and data on that database will be wiped during diffing.
     // This is only necessary when one of from or to is referencing a migrations directory as a source for the schema.
     shadowDatabaseUrl?: string
-    // Change the exit code behaviour when diff is not empty
+    // Change the exit code behavior when diff is not empty
     // Empty: 0, Error: 1, Non empty: 2
     exitCode?: boolean
   }
@@ -188,16 +239,29 @@ export namespace EngineArgs {
     schema: string
     force: boolean
   }
-  export interface DropDatabase {
-    schema: string
-  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineResults {
-  export interface ListMigrationDirectoriesOutput {
-    migrations: string[]
+  export interface ApplyMigrationsOutput {
+    appliedMigrationNames: string[]
   }
+
+  export interface CreateDatabaseOutput {
+    database_name: string
+  }
+
+  export interface CreateMigrationOutput {
+    /// The name of the newly generated migration directory, if any.
+    generatedMigrationName: string | null
+  }
+
+  export interface DbExecuteOutput {}
+
+  export interface DevDiagnosticOutput {
+    action: DevAction
+  }
+
   export interface DiagnoseMigrationHistoryOutput {
     /// Null means the database and the migrations directory are in sync and up to date.
     history: HistoryDiagnostic | null
@@ -208,12 +272,7 @@ export namespace EngineResults {
     /// Whether the migrations table is present.
     hasMigrationsTable: boolean
   }
-  export interface DevDiagnosticOutput {
-    action: DevAction
-  }
-  export interface PlanMigrationOutput {
-    // Todo
-  }
+
   export interface EvaluateDataLossOutput {
     /// The number of migration steps that would be generated. If this is 0, we wouldn't generate a new migration, unless the `draft` option is passed.
     migrationSteps: number
@@ -223,19 +282,10 @@ export namespace EngineResults {
     warnings: MigrationFeedback[]
     unexecutableSteps: MigrationFeedback[]
   }
-  export interface CreateMigrationOutput {
-    /// The name of the newly generated migration directory, if any.
-    generatedMigrationName: string | null
+
+  export interface ListMigrationDirectoriesOutput {
+    migrations: string[]
   }
-  export interface ApplyMigrationsOutput {
-    appliedMigrationNames: string[]
-  }
-  export interface SchemaPush {
-    executedSteps: number
-    warnings: string[]
-    unexecutable: string[]
-  }
-  export interface DbExecuteOutput {}
 
   export enum MigrateDiffExitCode {
     // 0 = success
@@ -249,6 +299,12 @@ export namespace EngineResults {
   }
   export interface MigrateDiffOutput {
     exitCode: MigrateDiffExitCode
+  }
+
+  export interface SchemaPush {
+    executedSteps: number
+    warnings: string[]
+    unexecutable: string[]
   }
 }
 

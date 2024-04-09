@@ -12,6 +12,7 @@ fi
 if [ "$RUNNER_OS" = "macOS" ]; then
     export PGDATA="$RUNNER_TEMP/pgdata"
     export PGUSER="$USER"
+    brew install postgresql@14 || true
 fi
 
 pg_ctl init
@@ -20,7 +21,7 @@ createuser --createdb prisma
 createdb -O prisma tests
 psql -c "ALTER USER prisma PASSWORD 'prisma';" tests
 
-echo 'TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/tests' >> $GITHUB_ENV
-echo 'TEST_FUNCTIONAL_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME' >> $GITHUB_ENV
-echo 'TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate' >> $GITHUB_ENV
-echo 'TEST_POSTGRES_SHADOWDB_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb' >> $GITHUB_ENV
+echo 'TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/tests' >> "$GITHUB_ENV"
+echo 'TEST_FUNCTIONAL_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME' >> "$GITHUB_ENV"
+echo 'TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate' >> "$GITHUB_ENV"
+echo 'TEST_POSTGRES_SHADOWDB_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb' >> "$GITHUB_ENV"

@@ -1,35 +1,33 @@
-import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
-import chalk from 'chalk'
 import fs from 'fs'
+import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
 import path from 'path'
 
-import { MigrateEngine } from './MigrateEngine'
+import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
-const debug = Debug('prisma:migrate')
 const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
-  public engine: MigrateEngine
+  public engine: SchemaEngine
   private schemaPath?: string
   public migrationsDirectoryPath?: string
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
-    // schemaPath and migrationsDirectoryPath is optionnal for primitives
+    // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
     if (schemaPath) {
       this.schemaPath = this.getSchemaPath(schemaPath)
       this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
-      this.engine = new MigrateEngine({
+      this.engine = new SchemaEngine({
         projectDir: path.dirname(this.schemaPath),
         schemaPath: this.schemaPath,
         enabledPreviewFeatures,
       })
     } else {
-      this.engine = new MigrateEngine({
+      this.engine = new SchemaEngine({
         projectDir: process.cwd(),
         enabledPreviewFeatures,
       })
@@ -147,24 +145,23 @@ export class Migrate {
 
     const message: string[] = []
 
-    console.info() // empty line
-    logUpdate(`Running generate... ${chalk.dim('(Use --skip-generate to skip the generators)')}`)
+    process.stdout.write('\n') // empty line
+    logUpdate(`Running generate... ${dim('(Use --skip-generate to skip the generators)')}`)
 
     const generators = await getGenerators({
       schemaPath: this.schemaPath,
       printDownloadProgress: true,
       version: enginesVersion,
       cliVersion: packageJson.version,
-      dataProxy: false,
     })
 
     for (const generator of generators) {
       logUpdate(`Running generate... - ${generator.getPrettyName()}`)
 
-      const before = Date.now()
+      const before = Math.round(performance.now())
       try {
         await generator.generate()
-        const after = Date.now()
+        const after = Math.round(performance.now())
         message.push(getGeneratorSuccessMessage(generator, after - before))
         generator.stop()
       } catch (e: any) {

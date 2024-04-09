@@ -12,6 +12,9 @@ describe('sendPanic should fail when the error report creation fails', () => {
 
   let spyCreateErrorReport: jest.SpyInstance<Promise<string>, [data: errorReportingUtils.CreateErrorReportInput]>
 
+  // mock for retrieving the database version
+  const getDatabaseVersionSafe = () => Promise.resolve(undefined)
+
   beforeEach(() => {
     spyCreateErrorReport = jest
       .spyOn(errorReportingUtils, 'createErrorReport')
@@ -27,13 +30,20 @@ describe('sendPanic should fail when the error report creation fails', () => {
       'test-message',
       rustStackTrace,
       'test-request',
-      ErrorArea.INTROSPECTION_CLI, // area
+      ErrorArea.LIFT_CLI, // area
       undefined, // schemaPath
       undefined, // schema
       undefined, // introspectionUrl
     )
 
-    await expect(sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(createErrorReportTag)
+    await expect(
+      sendPanic({
+        error: rustPanic,
+        cliVersion,
+        enginesVersion,
+        getDatabaseVersionSafe,
+      }),
+    ).rejects.toThrow(createErrorReportTag)
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
       schemaFile: undefined,
@@ -50,13 +60,20 @@ describe('sendPanic should fail when the error report creation fails', () => {
       'test-message',
       rustStackTrace,
       'test-request',
-      ErrorArea.INTROSPECTION_CLI, // area
+      ErrorArea.LIFT_CLI, // area
       schemaPath,
       undefined, // schema
       undefined, // introspectionUrl
     )
 
-    await expect(sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(createErrorReportTag)
+    await expect(
+      sendPanic({
+        error: rustPanic,
+        cliVersion,
+        enginesVersion,
+        getDatabaseVersionSafe,
+      }),
+    ).rejects.toThrow(createErrorReportTag)
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
       schemaFile: expectedMaskedSchema,
@@ -83,13 +100,20 @@ datasource db {
       'test-message',
       rustStackTrace,
       'test-request',
-      ErrorArea.INTROSPECTION_CLI, // area
+      ErrorArea.LIFT_CLI, // area
       undefined, // schemaPath
       schema,
       undefined, // introspectionUrl
     )
 
-    await expect(sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(createErrorReportTag)
+    await expect(
+      sendPanic({
+        error: rustPanic,
+        cliVersion,
+        enginesVersion,
+        getDatabaseVersionSafe,
+      }),
+    ).rejects.toThrow(createErrorReportTag)
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
       schemaFile: maskedSchema,

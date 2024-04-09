@@ -10,7 +10,7 @@ export class Generator {
   public options?: GeneratorOptions
   constructor(executablePath: string, config: GeneratorConfig, isNode?: boolean) {
     this.config = config
-    this.generatorProcess = new GeneratorProcess(executablePath, isNode)
+    this.generatorProcess = new GeneratorProcess(executablePath, { isNode })
   }
   async init(): Promise<void> {
     await this.generatorProcess.init()
@@ -19,7 +19,7 @@ export class Generator {
   stop(): void {
     this.generatorProcess.stop()
   }
-  generate(): Promise<any> {
+  generate(): Promise<void> {
     if (!this.options) {
       throw new Error(`Please first run .setOptions() on the Generator to initialize the options`)
     }

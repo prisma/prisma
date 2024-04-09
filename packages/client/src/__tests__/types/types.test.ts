@@ -1,9 +1,8 @@
-import { getPackedPackage } from '@prisma/internals'
+import { getClientEngineType, getPackedPackage } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
-import tsd from 'tsd'
-import formatter from 'tsd/dist/lib/formatter'
+import tsd, { formatter } from 'tsd'
 import { promisify } from 'util'
 
 import { compileFile } from '../../utils/compileFile'
@@ -29,12 +28,12 @@ describe('valid types', () => {
     }
     await generateInFolder({
       projectDir: dir,
-      useLocalRuntime: false,
-      transpile: true,
       packageSource,
     })
+
     const indexPath = path.join(dir, 'test.ts')
     const tsdTestPath = path.join(dir, 'index.test-d.ts')
+    const engineSpecificTestPath = path.join(dir, `test.${getClientEngineType()}.ts`)
 
     if (fs.existsSync(tsdTestPath)) {
       await runTsd(dir)
@@ -45,12 +44,21 @@ describe('valid types', () => {
     } else {
       await expect(compileFile(indexPath)).resolves.not.toThrow()
     }
+
+    if (fs.existsSync(engineSpecificTestPath)) {
+      if (testName.startsWith('unhappy')) {
+        await expect(compileFile(engineSpecificTestPath)).rejects.toThrow()
+      } else {
+        await expect(compileFile(engineSpecificTestPath)).resolves.not.toThrow()
+      }
+    }
   })
 })
 
 async function runTsd(dir: string) {
   const diagnostics = await tsd({
     cwd: dir,
+    typingsFile: 'index.d.ts',
   })
   if (diagnostics && diagnostics.length > 0) {
     throw new Error(formatter(diagnostics))

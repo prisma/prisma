@@ -1,6 +1,6 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.187.0/containers/typescript-node/.devcontainer/base.Dockerfile
 
-# [Choice] Node.js version: 14, 16, 18
+# [Choice] Node.js version: 16, 18, 20
 ARG VARIANT="16-buster"
 FROM mcr.microsoft.com/vscode/devcontainers/typescript-node:0-${VARIANT}
 
@@ -13,4 +13,4 @@ FROM mcr.microsoft.com/vscode/devcontainers/typescript-node:0-${VARIANT}
 # RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
 
 # To install more global node packages
-RUN su node -c "npm install -g pnpm@7 ts-node"
+RUN su node -c "npm install -g pnpm@8.15.5 ts-node"

@@ -1,8 +1,9 @@
-import chalk from 'chalk'
 import fs from 'fs'
+import { green } from 'kleur/colors'
 import { O } from 'ts-toolbelt'
 
-import { getConfig, getSchemaPath, link } from '..'
+import { getConfig, getEffectiveUrl, getSchemaPath, link } from '..'
+import { resolveUrl } from '../engine-commands/getConfig'
 import { loadEnvFile } from '../utils/loadEnvFile'
 
 /**
@@ -28,13 +29,10 @@ type Args = O.Optional<O.Update<typeof checkedArgs, any, string>>
  * @returns
  */
 export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
-Using the Data Proxy (connection URL starting with protocol ${chalk.green(
-  'prisma://',
-)}) is not supported for this CLI command ${chalk.green(
-  `prisma ${command}`,
-)} yet. Please use a direct connection to your database for now.
+Using an Accelerate URL is not supported for this CLI command ${green(`prisma ${command}`)} yet.
+Please use a direct connection to your database via the datasource \`directUrl\` setting.
 
-More information about Data Proxy: ${link('https://pris.ly/d/data-proxy-cli')}
+More information about this limitation: ${link('https://pris.ly/d/accelerate-limitations')}
 `
 
 /**
@@ -56,17 +54,15 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
       return forbiddenCmdWithDataProxyFlagMessage(command)
     }
 
-    // for all the args that represent a schema path ensure data proxy isn't used
+    // for all the args that represent a schema path (including implicit, default path) ensure data proxy isn't used
     if (argName.includes('schema')) {
-      loadEnvFile(argValue, false)
+      loadEnvFile({ schemaPath: argValue, printMessage: false })
 
       const datamodel = await fs.promises.readFile(argValue, 'utf-8')
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-      const urlFromValue = config.datasources[0]?.url.value
-      const urlEnvVarName = config.datasources[0]?.url.fromEnvVar
-      const urlEnvVarValue = urlEnvVarName ? process.env[urlEnvVarName] : undefined
+      const url = resolveUrl(getEffectiveUrl(config.datasources[0]))
 
-      if ((urlFromValue ?? urlEnvVarValue)?.startsWith('prisma://')) {
+      if (url?.startsWith('prisma://')) {
         return forbiddenCmdWithDataProxyFlagMessage(command)
       }
     }

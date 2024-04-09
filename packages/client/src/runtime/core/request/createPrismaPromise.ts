@@ -1,4 +1,6 @@
-import type { PrismaPromise } from './PrismaPromise'
+import type { PrismaPromise, PrismaPromiseTransaction } from './PrismaPromise'
+
+export type PrismaPromiseCallback = (transaction?: PrismaPromiseTransaction) => PrismaPromise<unknown>
 
 /**
  * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
@@ -9,41 +11,62 @@ import type { PrismaPromise } from './PrismaPromise'
  * @see [[PrismaPromise]]
  * @returns
  */
-export function createPrismaPromise(
-  callback: (txId?: string | number, lock?: PromiseLike<void>) => PrismaPromise<unknown>,
-): PrismaPromise<unknown> {
-  let promise: PrismaPromise<unknown> | undefined
-  const _callback = (txId?: string | number, lock?: PromiseLike<void>) => {
-    try {
-      // we allow the callback to be executed only one time
-      return (promise ??= callback(txId, lock))
-    } catch (error) {
-      // if the callback throws, then we reject the promise
-      // and that is because exceptions are not always async
-      return Promise.reject(error) as PrismaPromise<unknown>
+export type PrismaPromiseFactory = (callback: PrismaPromiseCallback) => PrismaPromise<unknown>
+
+/**
+ * Creates a factory, that allows creating PrismaPromises, bound to a specific transactions
+ * @param transaction
+ * @returns
+ */
+export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransaction): PrismaPromiseFactory {
+  return function createPrismaPromise(callback) {
+    let promise: PrismaPromise<unknown> | undefined
+    const _callback = (callbackTransaction = transaction) => {
+      try {
+        // promises cannot be triggered twice after resolving
+        if (callbackTransaction === undefined || callbackTransaction?.kind === 'itx') {
+          return (promise ??= valueToPromise(callback(callbackTransaction)))
+        }
+
+        // but for batch tx we can trigger them again & again
+        return valueToPromise(callback(callbackTransaction))
+      } catch (error) {
+        // if the callback throws, then we reject the promise
+        // and that is because exceptions are not always async
+        return Promise.reject(error) as PrismaPromise<unknown>
+      }
+    }
+
+    return {
+      then(onFulfilled, onRejected) {
+        return _callback().then(onFulfilled, onRejected)
+      },
+      catch(onRejected) {
+        return _callback().catch(onRejected)
+      },
+      finally(onFinally) {
+        return _callback().finally(onFinally)
+      },
+
+      requestTransaction(batchTransaction) {
+        const promise = _callback(batchTransaction)
+
+        if (promise.requestTransaction) {
+          // we want to have support for nested promises
+          return promise.requestTransaction(batchTransaction)
+        }
+
+        return promise
+      },
+      [Symbol.toStringTag]: 'PrismaPromise',
     }
   }
+}
 
-  return {
-    then(onFulfilled, onRejected, txId?: string) {
-      return _callback(txId, undefined).then(onFulfilled, onRejected, txId)
-    },
-    catch(onRejected, txId?: string) {
-      return _callback(txId, undefined).catch(onRejected, txId)
-    },
-    finally(onFinally, txId?: string) {
-      return _callback(txId, undefined).finally(onFinally, txId)
-    },
-    requestTransaction(txId: number, lock?: PromiseLike<void>) {
-      const promise = _callback(txId, lock)
-
-      if (promise.requestTransaction) {
-        // we want to have support for nested promises
-        return promise.requestTransaction(txId, lock)
-      }
-
-      return promise
-    },
-    [Symbol.toStringTag]: 'PrismaPromise',
+function valueToPromise<T>(thing: T): PrismaPromise<T> {
+  if (typeof thing['then'] === 'function') {
+    return thing as Promise<T>
   }
+
+  return Promise.resolve(thing)
 }

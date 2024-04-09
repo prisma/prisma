@@ -1,7 +1,11 @@
+const path = require('path')
+
+const project = path.resolve(__dirname, 'tsconfig.json')
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import'],
+  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import', 'local-rules'],
   env: {
     node: true,
     es6: true,
@@ -9,11 +13,22 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./tsconfig.json'],
+    project,
   },
   overrides: [
     {
-      files: ['*.ts'],
+      files: ['./packages/client/src/runtime/core/types/exported/*.ts'],
+      excludedFiles: ['index.ts'],
+      rules: {
+        'local-rules/all-types-are-exported': 'error',
+        'local-rules/imports-from-same-directory': 'error',
+      },
+    },
+    {
+      files: ['./packages/client/src/runtime/core/types/exported/index.ts'],
+      rules: {
+        'local-rules/valid-exported-types-index': 'error',
+      },
     },
   ],
   extends: [
@@ -39,6 +54,15 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        // don't complain if we are omitting properties using spread operator, i.e. const { ignored, ...rest } = someObject
+        ignoreRestSiblings: true,
+        // for functions, allow to have unused arguments if they start with _. We need to do this from time to time to test type inference within the tests
+        argsIgnorePattern: '^_',
+      },
+    ],
     'eslint-comments/no-unlimited-disable': 'off',
     'eslint-comments/disable-enable-pair': 'off',
     '@typescript-eslint/no-misused-promises': 'off',
@@ -54,6 +78,8 @@ module.exports = {
     'jest/valid-title': 'off',
     '@typescript-eslint/no-unnecessary-type-assertion': 'off',
     // low hanging fruits:
+    // to unblock eslint dep update in https://github.com/prisma/prisma/pull/21935
+    '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
     // to unblock eslint dep update in https://github.com/prisma/prisma/pull/9692
     '@typescript-eslint/no-unsafe-argument': 'warn',
     '@typescript-eslint/ban-types': 'off',
@@ -61,17 +87,8 @@ module.exports = {
     '@typescript-eslint/restrict-template-expressions': 'off',
     'jest/no-conditional-expect': 'off',
     'jest/no-export': 'off',
+    'jest/no-standalone-expect': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
-    // Allow the `testIf`/`describeIf` pattern.
-    // TODO: it's not exactly correct to have `describeIf` in `additionalTestBlockFunctions`,
-    // but it's better than disabling the rule completely for files that need `describeIf`.
-    // Ideally, a new option like `additionalDescribeBlockFunctions` should be implemented in the rule.
-    'jest/no-standalone-expect': [
-      'error',
-      {
-        additionalTestBlockFunctions: ['testIf', 'describeIf'],
-      },
-    ],
     // https://github.com/lydell/eslint-plugin-simple-import-sort
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',

@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryDownloadConfiguration, BinaryType, download } from '@prisma/fetch-engine'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 
@@ -9,13 +9,13 @@ import { getCliQueryEngineBinaryType } from '..'
 
 const debug = Debug('prisma:download')
 
-const binaryDir = path.join(__dirname, '../../')
+const baseDir = path.join(__dirname, '../../')
 
-const lockFile = path.join(binaryDir, 'download-lock')
+const lockFile = path.join(baseDir, 'download-lock')
 
 let createdLockFile = false
 async function main() {
-  if (fs.existsSync(lockFile) && parseInt(fs.readFileSync(lockFile, 'utf-8'), 10) > Date.now() - 20000) {
+  if (fs.existsSync(lockFile) && parseInt(fs.readFileSync(lockFile, 'utf-8'), 10) > Date.now() - 20_000) {
     debug(`Lock file already exists, so we're skipping the download of the prisma binaries`)
   } else {
     createLockFile()
@@ -26,18 +26,16 @@ async function main() {
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
     const binaries: BinaryDownloadConfiguration = {
-      [cliQueryEngineBinaryType]: binaryDir,
-      [BinaryType.migrationEngine]: binaryDir,
-      [BinaryType.introspectionEngine]: binaryDir,
-      [BinaryType.prismaFmt]: binaryDir,
+      [cliQueryEngineBinaryType]: baseDir,
+      [BinaryType.SchemaEngineBinary]: baseDir,
     }
 
     await download({
       binaries,
-      showProgress: true,
       version: enginesVersion,
+      showProgress: true,
       failSilent: true,
-      binaryTargets: binaryTargets as Platform[],
+      binaryTargets: binaryTargets as BinaryTarget[],
     }).catch((e) => debug(e))
 
     cleanupLockFile()
@@ -63,7 +61,6 @@ function cleanupLockFile() {
 
 main().catch((e) => debug(e))
 
-// if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
 process.on('beforeExit', () => {
   cleanupLockFile()
 })

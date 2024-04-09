@@ -35,33 +35,35 @@ export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: b
   const environment = config.ignoreProcessEnv ? {} : process.env
 
   const interpolate = (envValue: string) => {
-    const matches = envValue.match(/(.?\${(?:[a-zA-Z0-9_]+)?})/g) || []
+    const matches = envValue.match(/(.?\${(?:[a-zA-Z0-9_]+)?})/g)
 
-    return matches.reduce(function (newEnv, match) {
-      const parts = /(.?)\${([a-zA-Z0-9_]+)?}/g.exec(match)
-      if (!parts) {
-        return newEnv
-      }
+    return (
+      matches?.reduce(function (newEnv, match) {
+        const parts = /(.?)\${([a-zA-Z0-9_]+)?}/g.exec(match)
+        if (!parts) {
+          return newEnv
+        }
 
-      const prefix = parts[1]
+        const prefix = parts[1]
 
-      let value, replacePart
+        let value, replacePart
 
-      if (prefix === '\\') {
-        replacePart = parts[0]
-        value = replacePart.replace('\\$', '$')
-      } else {
-        const key = parts[2]
-        replacePart = parts[0].substring(prefix.length)
-        // process.env value 'wins' over .env file's value
-        value = Object.hasOwnProperty.call(environment, key) ? environment[key] : config.parsed![key] || ''
+        if (prefix === '\\') {
+          replacePart = parts[0]
+          value = replacePart.replace('\\$', '$')
+        } else {
+          const key = parts[2]
+          replacePart = parts[0].substring(prefix.length)
+          // process.env value 'wins' over .env file's value
+          value = Object.hasOwnProperty.call(environment, key) ? environment[key] : config.parsed![key] || ''
 
-        // Resolve recursive interpolations
-        value = interpolate(value)
-      }
+          // Resolve recursive interpolations
+          value = interpolate(value)
+        }
 
-      return newEnv.replace(replacePart, value)
-    }, envValue)
+        return newEnv.replace(replacePart, value)
+      }, envValue) ?? envValue
+    )
   }
 
   for (const configKey in config.parsed) {
