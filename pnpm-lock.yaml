@@ -362,8 +362,8 @@ importers:
         specifier: workspace:*
         version: link:../cli
       wrangler:
-        specifier: 3.47.1
-        version: 3.47.1(@cloudflare/workers-types@4.20240405.0)
+        specifier: 3.48.0
+        version: 3.48.0(@cloudflare/workers-types@4.20240405.0)
 
   packages/bundled-js-drivers:
     dependencies:
@@ -810,8 +810,8 @@ importers:
         specifier: 5.28.4
         version: 5.28.4
       wrangler:
-        specifier: 3.47.1
-        version: 3.47.1(@cloudflare/workers-types@4.20240405.0)
+        specifier: 3.48.0
+        version: 3.48.0(@cloudflare/workers-types@4.20240405.0)
       zx:
         specifier: 7.2.3
         version: 7.2.3
@@ -11556,8 +11556,8 @@ packages:
       '@cloudflare/workerd-linux-arm64': 1.20240404.0
       '@cloudflare/workerd-windows-64': 1.20240404.0
 
-  /wrangler@3.47.1(@cloudflare/workers-types@4.20240405.0):
-    resolution: {integrity: sha512-KEnYxAnhpn8vkAV3thrdCB79CK43Wr+L5xvUmfUSZu9j9HFm0I2z9HHPKzzIwdhpcvdC3WtZZz+n5NS2NQ1yzA==}
+  /wrangler@3.48.0(@cloudflare/workers-types@4.20240405.0):
+    resolution: {integrity: sha512-Wv7JS6FyX1j9HkaM6WL3fmTzBMAYc4hPSyZCuxuH55hkJDX/7ts+YAgsaN1U8rKoDrV3FVSgBfI9TyqP9iuM8Q==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
