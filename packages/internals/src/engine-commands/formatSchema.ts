@@ -1,14 +1,15 @@
-import fs from 'fs'
+import { loadSchemaFiles } from '@prisma/schema-files-loader'
 import { match } from 'ts-pattern'
 
 import { logger } from '..'
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
+import { type Datamodel, schemaToStringDebug } from '../utils/datamodel'
 import { prismaSchemaWasm } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
-type FormatSchemaParams = { schema: string; schemaPath?: never } | { schema?: never; schemaPath: string }
+type FormatSchemaParams = { schema: Datamodel; schemaPath?: never } | { schema?: never; schemaPath: string }
 
-function isSchemaOnly(schemaParams: FormatSchemaParams): schemaParams is { schema: string; schemaPath?: never } {
+function isSchemaOnly(schemaParams: FormatSchemaParams): schemaParams is { schema: Datamodel; schemaPath?: never } {
   return Boolean(schemaParams.schema)
 }
 
@@ -37,15 +38,11 @@ export async function formatSchema(
     )
   }
 
-  const schemaContent = match({ schema, schemaPath } as FormatSchemaParams)
-    .when(isSchemaOnly, ({ schema: _schema }) => _schema)
-    .when(isSchemaPathOnly, ({ schemaPath: _schemaPath }) => {
-      if (!fs.existsSync(_schemaPath)) {
-        throw new Error(`Schema at ${schemaPath} does not exist.`)
-      }
-
-      const _schema = fs.readFileSync(_schemaPath, { encoding: 'utf8' })
-      return _schema
+  const schemaContent = await match({ schema, schemaPath } as FormatSchemaParams)
+    .when(isSchemaOnly, ({ schema: _schema }) => Promise.resolve(_schema))
+    .when(isSchemaPathOnly, async ({ schemaPath: _schemaPath }) => {
+      const schemaFiles = await loadSchemaFiles(_schemaPath)
+      return schemaFiles
     })
     .exhaustive()
 
@@ -74,11 +71,11 @@ export async function formatSchema(
   const { formattedSchema, lintDiagnostics } = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
-      const formattedSchema = formatWasm(schemaContent, documentFormattingParams)
+      const formattedSchema = formatWasm(JSON.stringify(schemaContent), documentFormattingParams)
       const lintDiagnostics = lintSchema({ schema: formattedSchema })
       return { formattedSchema, lintDiagnostics }
     },
-    { schemaPath, schema } as FormatSchemaParams,
+    { schemaPath, schema: schemaContent } as FormatSchemaParams,
   )
 
   const lintWarnings = getLintWarningsAsText(lintDiagnostics)
@@ -102,7 +99,7 @@ function handleFormatPanic<T>(tryCb: () => T, { schemaPath, schema }: FormatSche
       /* request */ '@prisma/prisma-schema-wasm format',
       ErrorArea.FMT_CLI,
       schemaPath,
-      schema,
+      /* schema */ schemaToStringDebug(schema),
     )
 
     throw panic
