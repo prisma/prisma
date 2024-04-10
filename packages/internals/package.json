@@ -47,7 +47,7 @@
     "fp-ts": "2.16.5",
     "fs-extra": "11.1.1",
     "fs-jetpack": "5.1.0",
-    "global-dirs": "3.0.1",
+    "global-dirs": "4.0.0",
     "globby": "11.1.0",
     "indent-string": "4.0.0",
     "is-windows": "1.0.2",
