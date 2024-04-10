@@ -191,13 +191,13 @@ testMatrix.setupTestSuite(
       reason: 'not relevant for this test.',
     },
     skipDriverAdapter: {
-      from: ['js_planetscale', 'js_neon'],
+      from: ['js_planetscale', 'js_neon', 'js_d1'],
 
       // `rpc error: code = Aborted desc = Row count exceeded 10000 (CallerID: userData1)", state: "70100"`
       // This could potentially be configured in Vitess by increasing the `queryserver-config-max-result-size`
       // query server parameter.
       reason:
-        'Vitess supports at most 10k rows returned in a single query, so this test is not applicable. Neon occasionally fails with different parameter counts in its error messages.',
+        'Vitess supports at most 10k rows returned in a single query, so this test is not applicable. Neon occasionally fails with different parameter counts in its error messages. D1 does not have the correct amount of max_bind_values.',
     },
   },
 )
