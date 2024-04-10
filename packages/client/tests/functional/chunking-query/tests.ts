@@ -170,7 +170,7 @@ testMatrix.setupTestSuite(
           await expect(selectWith2InFilters(ids)).rejects.toThrow()
         } else {
           // It's unknown why this test doesn't fail with driver adapters.
-          await expect(selectWith2InFilters(ids)).resolves.toBeArray()
+          await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
         }
       })
 
