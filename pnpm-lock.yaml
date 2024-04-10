@@ -69,8 +69,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       dotenv-cli:
-        specifier: 7.3.0
-        version: 7.3.0
+        specifier: 7.4.1
+        version: 7.4.1
       esbuild:
         specifier: 0.20.2
         version: 0.20.2
@@ -5901,8 +5901,8 @@ packages:
       esutils: 2.0.3
     dev: true
 
-  /dotenv-cli@7.3.0:
-    resolution: {integrity: sha512-314CA4TyK34YEJ6ntBf80eUY+t1XaFLyem1k9P0sX1gn30qThZ5qZr/ZwE318gEnzyYP9yj9HJk6SqwE0upkfw==}
+  /dotenv-cli@7.4.1:
+    resolution: {integrity: sha512-fE1aywjRrWGxV3miaiUr3d2zC/VAiuzEGghi+QzgIA9fEf/M5hLMaRSXb4IxbUAwGmaLi0IozdZddnVU96acag==}
     hasBin: true
     dependencies:
       cross-spawn: 7.0.3
