@@ -5,6 +5,7 @@ import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
+import { Datamodel, schemaToStringDebug } from '../utils/datamodel'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
@@ -12,7 +13,7 @@ import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } fro
 const debug = Debug('prisma:validate')
 
 export type ValidateOptions = {
-  datamodel: string
+  datamodel: Datamodel
 }
 
 export class ValidateError extends Error {
@@ -91,13 +92,16 @@ export function validate(options: ValidateOptions): void {
        */
       if (isWasmPanic(e.error)) {
         const { message, stack } = getWasmError(e.error)
+
+        const schema = schemaToStringDebug(options.datamodel)
+
         const panic = new RustPanic(
           /* message */ message,
           /* rustStack */ stack,
           /* request */ '@prisma/prisma-schema-wasm validate',
           ErrorArea.FMT_CLI,
           /* schemaPath */ undefined,
-          /* schema */ options.datamodel,
+          /* schema */ schema,
         )
         return panic
       }
