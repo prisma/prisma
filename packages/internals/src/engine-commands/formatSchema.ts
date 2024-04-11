@@ -1,4 +1,5 @@
-import { loadSchemaFiles } from '@prisma/schema-files-loader'
+import fs from 'node:fs/promises'
+
 import { match } from 'ts-pattern'
 
 import { logger } from '..'
@@ -39,10 +40,14 @@ export async function formatSchema(
   }
 
   const schemaContent = await match({ schema, schemaPath } as FormatSchemaParams)
-    .when(isSchemaOnly, ({ schema: _schema }) => Promise.resolve(_schema))
+    .when(isSchemaOnly, async ({ schema: _schema }) => await Promise.resolve(_schema))
     .when(isSchemaPathOnly, async ({ schemaPath: _schemaPath }) => {
-      const schemaFiles = await loadSchemaFiles(_schemaPath)
-      return schemaFiles
+      if (!(await fs.exists(_schemaPath))) {
+        throw new Error(`Schema at ${schemaPath} does not exist.`)
+      }
+
+      const _schema = await fs.readFile(_schemaPath, { encoding: 'utf8' })
+      return _schema
     })
     .exhaustive()
 
