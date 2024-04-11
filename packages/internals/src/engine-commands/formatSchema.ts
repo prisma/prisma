@@ -1,4 +1,5 @@
-import fs from 'node:fs/promises'
+import fs from 'node:fs'
+import { promisify } from 'node:util'
 
 import { match } from 'ts-pattern'
 
@@ -7,6 +8,9 @@ import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
 import { type Datamodel, schemaToStringDebug } from '../utils/datamodel'
 import { prismaSchemaWasm } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
+
+const readFile = promisify(fs.readFile)
+const exists = promisify(fs.exists)
 
 type FormatSchemaParams = { schema: Datamodel; schemaPath?: never } | { schema?: never; schemaPath: string }
 
@@ -42,11 +46,11 @@ export async function formatSchema(
   const schemaContent = await match({ schema, schemaPath } as FormatSchemaParams)
     .when(isSchemaOnly, async ({ schema: _schema }) => await Promise.resolve(_schema))
     .when(isSchemaPathOnly, async ({ schemaPath: _schemaPath }) => {
-      if (!(await fs.exists(_schemaPath))) {
+      if (!(await exists(_schemaPath))) {
         throw new Error(`Schema at ${schemaPath} does not exist.`)
       }
 
-      const _schema = await fs.readFile(_schemaPath, { encoding: 'utf8' })
+      const _schema = await readFile(_schemaPath, { encoding: 'utf8' })
       return _schema
     })
     .exhaustive()
