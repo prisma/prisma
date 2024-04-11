@@ -1,4 +1,3 @@
-import { loadSchemaFiles } from '@prisma/schema-files-loader'
 import execa from 'execa'
 import fs from 'fs'
 import { bold, green } from 'kleur/colors'
@@ -6,16 +5,12 @@ import path from 'path'
 import { PackageJson, readPackageUp, readPackageUpSync } from 'read-package-up'
 import { promisify } from 'util'
 
-import { getConfig } from '../engine-commands'
-
 const exists = promisify(fs.exists)
-const stat = promisify(fs.stat)
 
 /**
  * Async
  */
 
-// TODO: return { schemaPath: string, files: Datamodel } instead of just the path
 export async function getSchemaPath(
   schemaPathFromArgs?: string,
   opts: { cwd: string } = {
@@ -44,7 +39,7 @@ export async function getSchemaPathInternal(
   }
 
   // 2. Try the package.json `prisma.schema` custom path
-  // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths, or `./prisma/schema` if the Prisma schemas therein use the `prismaSchemaFolder` preview feature
+  // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths
   // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
   const schemaPath =
     (await getSchemaPathFromPackageJson(opts.cwd)) ??
@@ -217,37 +212,16 @@ async function getAbsoluteSchemaPath(schemaPath: string): Promise<string | null>
 }
 
 export async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
-  const schemaPaths = [
-    ['file', path.join(cwd, 'schema.prisma')],
-    ['file', path.join(cwd, 'prisma', 'schema.prisma')],
-    ['directory', path.join(cwd, 'prisma', 'schema')],
-  ] as const
+  let schemaPath: string | undefined
 
-  // TODO: add warning in case of multiple schema branches being found.
-  for (const [pathKind, schemaPath] of schemaPaths) {
-    if (await exists(schemaPath)) {
-      const stats = await stat(schemaPath)
+  schemaPath = path.join(cwd, 'schema.prisma')
+  if (await exists(schemaPath)) {
+    return schemaPath
+  }
 
-      if (pathKind === 'file' && stats.isFile()) {
-        return schemaPath
-      }
-
-      if (pathKind === 'directory' && stats.isDirectory()) {
-        // TODO: only return this if the schemas therein actually contain the `prismaSchemaFolder` preview feature
-        const files = await loadSchemaFiles(schemaPath)
-
-        const config = await getConfig({
-          datamodel: files,
-          ignoreEnvVarErrors: true,
-        })
-        const previewFeatures = config.generators.find((g) => g.previewFeatures.length > 0)?.previewFeatures
-        const usesPrismaSchemaFolder = (previewFeatures || []).includes('prismaSchemaFolder')
-
-        if (usesPrismaSchemaFolder) {
-          return schemaPath
-        }
-      }
-    }
+  schemaPath = path.join(cwd, `prisma/schema.prisma`)
+  if (await exists(schemaPath)) {
+    return schemaPath
   }
 
   return null
