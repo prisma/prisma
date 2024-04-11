@@ -116,7 +116,6 @@ Set composite types introspection depth to 2 levels
     const url: string | undefined = args['--url']
     // getSchemaPathAndPrint is not flexible enough for this use case
     let schemaPath = await getSchemaPath(args['--schema'])
-    console.log('schemaPath@DbPull', schemaPath)
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
