@@ -123,7 +123,7 @@ describe('generator', () => {
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Prisma schema validation - (get-dmmf wasm)
+        "Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
@@ -143,7 +143,7 @@ describe('generator', () => {
            | 
 
         Validation Error Count: 2
-        [Context: getDmmf]
+        [Context: getConfig]
 
         Prisma CLI Version : 0.0.0"
       `)
