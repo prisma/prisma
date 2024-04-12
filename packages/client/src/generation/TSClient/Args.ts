@@ -1,144 +1,128 @@
-import indent from 'indent-string'
-
 import { DMMF } from '../dmmf-types'
-import { getIncludeName, getLegacyModelArgName, getModelArgName, getSelectName } from '../utils'
-import { TAB_SIZE } from './constants'
-import type { Generatable } from './Generatable'
+import * as ts from '../ts-builders'
+import {
+  extArgsParam,
+  getIncludeName,
+  getLegacyModelArgName,
+  getModelArgName,
+  getOmitName,
+  getSelectName,
+} from '../utils'
 import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc } from './helpers'
-import { InputField } from './Input'
+import { buildInputField } from './Input'
 
-export class ArgsType implements Generatable {
-  private generatedName: string | null = null
-  private comment: string | null = null
+export class ArgsTypeBuilder {
+  private moduleExport: ts.Export<ts.TypeDeclaration<ts.ObjectType>>
+
+  private hasDefaultName = true
+
   constructor(
-    protected readonly args: readonly DMMF.SchemaArg[],
-    protected readonly type: DMMF.OutputType,
-    protected readonly context: GenerateContext,
-    protected readonly action?: DMMF.ModelAction,
-  ) {}
-  public setGeneratedName(name: string): this {
-    this.generatedName = name
+    private readonly type: DMMF.OutputType,
+    private readonly context: GenerateContext,
+    private readonly action?: DMMF.ModelAction,
+  ) {
+    this.moduleExport = ts
+      .moduleExport(
+        ts.typeDeclaration(getModelArgName(type.name, action), ts.objectType()).addGenericParameter(extArgsParam),
+      )
+      .setDocComment(ts.docComment(`${type.name} ${action ?? 'without action'}`))
+  }
+
+  private addProperty(prop: ts.Property) {
+    this.moduleExport.declaration.type.add(prop)
+  }
+
+  addSchemaArgs(args: readonly DMMF.SchemaArg[]): this {
+    for (const arg of args) {
+      const inputField = buildInputField(arg, this.context.genericArgsInfo)
+
+      const docComment = getArgFieldJSDoc(this.type, this.action, arg)
+      if (docComment) {
+        inputField.setDocComment(ts.docComment(docComment))
+      }
+      this.addProperty(inputField)
+    }
     return this
   }
 
-  public setComment(comment: string): this {
-    this.comment = comment
+  addSelectArg(): this {
+    this.addProperty(
+      ts
+        .property(
+          'select',
+          ts.unionType([
+            ts.namedType(getSelectName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
+            ts.nullType,
+          ]),
+        )
+        .optional()
+        .setDocComment(ts.docComment(`Select specific fields to fetch from the ${this.type.name}`)),
+    )
+
     return this
   }
 
-  public toTS(): string {
-    const { action, args } = this
-    const { name } = this.type
-
-    const updatedArgs = args.map((arg) => {
-      return { ...arg, comment: getArgFieldJSDoc(this.type, action, arg) }
-    })
-
-    const selectName = getSelectName(name)
-
-    const argsToGenerate: DMMF.SchemaArg[] = [
-      {
-        name: 'select',
-        isRequired: false,
-        isNullable: true,
-        inputTypes: [
-          {
-            type: selectName,
-            location: 'inputObjectTypes',
-            isList: false,
-          },
-          {
-            type: 'null',
-            location: 'scalar',
-            isList: false,
-          },
-        ],
-        comment: `Select specific fields to fetch from the ${name}`,
-      },
-    ]
-
+  addIncludeArgIfHasRelations(): this {
     const hasRelationField = this.type.fields.some((f) => f.outputType.location === 'outputObjectTypes')
-
-    if (hasRelationField) {
-      const includeName = getIncludeName(name)
-      argsToGenerate.push({
-        name: 'include',
-        isRequired: false,
-        isNullable: true,
-        inputTypes: [
-          {
-            type: includeName,
-            location: 'inputObjectTypes',
-            isList: false,
-          },
-          {
-            type: 'null',
-            location: 'scalar',
-            isList: false,
-          },
-        ],
-        comment: `Choose, which related nodes to fetch as well.`,
-      })
+    if (!hasRelationField) {
+      return this
     }
 
-    argsToGenerate.push(...updatedArgs)
-    if (!action && !this.generatedName) {
-      this.context.defaultArgsAliases.addPossibleAlias(getModelArgName(name), getLegacyModelArgName(name))
-    }
-    const generatedName = this.generatedName ?? getModelArgName(name, action)
-    this.context.defaultArgsAliases.registerArgName(generatedName)
+    this.addProperty(
+      ts
+        .property(
+          'include',
+          ts.unionType([
+            ts.namedType(getIncludeName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
+            ts.nullType,
+          ]),
+        )
+        .optional()
+        .setDocComment(ts.docComment('Choose, which related nodes to fetch as well')),
+    )
 
-    return `
-/**
- * ${this.getGeneratedComment()}
- */
-export type ${generatedName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, this.context.genericArgsInfo).toTS()).join('\n'), TAB_SIZE)}
-}
-`
+    return this
   }
 
-  private getGeneratedComment() {
-    return this.comment ?? `${this.type.name} ${this.action ?? 'without action'}`
-  }
-}
-
-export class MinimalArgsType implements Generatable {
-  constructor(
-    protected readonly args: readonly DMMF.SchemaArg[],
-    protected readonly type: DMMF.OutputType,
-    protected readonly context: GenerateContext,
-    protected readonly action?: DMMF.ModelAction,
-    protected readonly generatedTypeName?: string,
-  ) {}
-  public toTS(): string {
-    const { action, args } = this
-    const { name } = this.type
-
-    const updatedArgs = args.map((arg) => {
-      return { ...arg, comment: getArgFieldJSDoc(this.type, action, arg) }
-    })
-
-    if (!action && !this.generatedTypeName) {
-      this.context.defaultArgsAliases.addPossibleAlias(getModelArgName(name), getLegacyModelArgName(name))
+  addOmitArg(): this {
+    if (!this.context.isPreviewFeatureOn('omitApi')) {
+      return this
     }
-    const typeName = this.generatedTypeName ?? getModelArgName(name, action)
-    this.context.defaultArgsAliases.registerArgName(typeName)
-    return `
-/**
- * ${name} ${action ? action : 'without action'}
- */
-export type ${typeName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-${indent(
-  updatedArgs
-    .map((arg) => {
-      return new InputField(arg, this.context.genericArgsInfo).toTS()
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
-}
-`
+    this.addProperty(
+      ts
+        .property(
+          'omit',
+          ts.unionType([
+            ts.namedType(getOmitName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
+            ts.nullType,
+          ]),
+        )
+        .optional()
+        .setDocComment(ts.docComment(`Omit specific fields from the ${this.type.name}`)),
+    )
+    return this
+  }
+
+  setGeneratedName(name: string): this {
+    this.hasDefaultName = false
+    this.moduleExport.declaration.setName(name)
+    return this
+  }
+
+  setComment(comment: string): this {
+    this.moduleExport.setDocComment(ts.docComment(comment))
+    return this
+  }
+
+  createExport() {
+    if (!this.action && this.hasDefaultName) {
+      this.context.defaultArgsAliases.addPossibleAlias(
+        getModelArgName(this.type.name),
+        getLegacyModelArgName(this.type.name),
+      )
+    }
+    this.context.defaultArgsAliases.registerArgName(this.moduleExport.declaration.name)
+    return this.moduleExport
   }
 }

@@ -40,9 +40,10 @@ const datamodel = runtimeDataModel({ models: [User, Post, Attachment] })
 
 type SimplifiedParams = Omit<
   SerializeParams,
-  'runtimeDataModel' | 'extensions' | 'clientMethod' | 'errorFormat' | 'clientVersion'
+  'runtimeDataModel' | 'extensions' | 'clientMethod' | 'errorFormat' | 'clientVersion' | 'previewFeatures'
 > & {
   extensions?: MergedExtensionsList
+  previewFeatures?: string[]
 }
 
 function serialize(params: SimplifiedParams) {
@@ -50,6 +51,7 @@ function serialize(params: SimplifiedParams) {
     serializeJsonQuery({
       ...params,
       runtimeDataModel: datamodel,
+      previewFeatures: params.previewFeatures ?? [],
       extensions: params.extensions ?? MergedExtensionsList.empty(),
       clientMethod: 'foo',
       errorFormat: 'colorless',
@@ -970,6 +972,177 @@ test('explicit selection shadowing a field', () => {
         "selection": {
           "id": true,
           "name": true
+        }
+      }
+    }"
+  `)
+})
+
+test('omit', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: { omit: { name: true } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "name": false
+        }
+      }
+    }"
+  `)
+})
+
+test('omit(false)', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: { omit: { name: false } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "name": true
+        }
+      }
+    }"
+  `)
+})
+
+test('omit + include', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: { include: { posts: true }, omit: { name: true } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "posts": true,
+          "name": false
+        }
+      }
+    }"
+  `)
+})
+
+test('nested omit', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: { include: { posts: { omit: { title: true } } } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true,
+              "title": false
+            }
+          }
+        }
+      }
+    }"
+  `)
+})
+
+test('exclusion with extension', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: { omit: { name: true } },
+      extensions: MergedExtensionsList.single({
+        result: {
+          user: {
+            fullName: {
+              needs: { name: true },
+              compute: jest.fn(),
+            },
+          },
+        },
+      }),
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('exclusion with extension while excluding computed field too', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: { omit: { name: true, fullName: true } },
+      extensions: MergedExtensionsList.single({
+        result: {
+          user: {
+            fullName: {
+              needs: { name: true },
+              compute: jest.fn(),
+            },
+          },
+        },
+      }),
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "name": false
         }
       }
     }"

@@ -45,11 +45,11 @@ const PostOutputDescription = {
   ],
 }
 
-describe('includeAndSelect', () => {
+describe('mutuallyExclusiveFields', () => {
   test('top level', () => {
     expect(
       renderError(
-        { kind: 'IncludeAndSelect', selectionPath: [] },
+        { kind: 'MutuallyExclusiveFields', firstField: 'include', secondField: 'select', selectionPath: [] },
         {
           data: { foo: 'bar' },
           include: {},
@@ -91,10 +91,60 @@ describe('includeAndSelect', () => {
     `)
   })
 
+  test('top level (omit)', () => {
+    expect(
+      renderError(
+        { kind: 'MutuallyExclusiveFields', firstField: 'omit', secondField: 'select', selectionPath: [] },
+        {
+          data: { foo: 'bar' },
+          omit: {},
+          select: {},
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        data: {
+          foo: "bar"
+        },
+        omit: {},
+        ~~~~
+        select: {}
+        ~~~~~~
+      }
+
+      Please either use \`omit\` or \`select\`, but not both at the same time.
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        data: {
+          foo: "bar"
+        },
+        <red>omit</color>: {},
+        <red>~~~~</color>
+        <red>select</color>: {}
+        <red>~~~~~~</color>
+      }
+
+      Please <bold>either</intensity> use <green>\`omit\`</color> or <green>\`select\`</color>, but <red>not both</color> at the same time.
+      "
+    `)
+  })
+
   test('deep', () => {
     expect(
       renderError(
-        { kind: 'IncludeAndSelect', selectionPath: ['posts', 'likes'] },
+        {
+          kind: 'MutuallyExclusiveFields',
+          firstField: 'include',
+          secondField: 'select',
+          selectionPath: ['posts', 'likes'],
+        },
         {
           include: {
             posts: {
@@ -453,6 +503,53 @@ describe('EmptySelection', () => {
     `)
   })
 
+  test('top level (omit)', () => {
+    expect(
+      renderError(
+        {
+          kind: 'EmptySelection',
+          selectionPath: [],
+          outputType: PostOutputDescription,
+        },
+        { where: { published: true }, omit: { id: true, title: true } },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        where: {
+          published: true
+        },
+        omit: {
+      ?   id?: false,
+      ?   title?: false,
+      ?   comments?: false
+        }
+      }
+
+      The omit statement includes every field of the model Post. At least one field must be included in the result
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        where: {
+          published: true
+        },
+        omit: {
+      <green>?</color>   <green>id</color><green>?</color><green>: </color><green>false</color>,
+      <green>?</color>   <green>title</color><green>?</color><green>: </color><green>false</color>,
+      <green>?</color>   <green>comments</color><green>?</color><green>: </color><green>false</color>
+        }
+      }
+
+      The <red>omit</color> statement includes every field of the model <bold>Post</intensity>. At least one field must be included in the result
+      "
+    `)
+  })
+
   test('top level with falsy values', () => {
     expect(
       renderError(
@@ -556,6 +653,63 @@ describe('EmptySelection', () => {
       "
     `)
   })
+
+  test('nested (omit)', () => {
+    expect(
+      renderError(
+        {
+          kind: 'EmptySelection',
+          selectionPath: ['users', 'posts'],
+          outputType: PostOutputDescription,
+        },
+        { select: { users: { include: { posts: { omit: { id: true, title: true, comments: true } } } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          users: {
+            include: {
+              posts: {
+                omit: {
+      ?           id?: false,
+      ?           title?: false,
+      ?           comments?: false
+                }
+              }
+            }
+          }
+        }
+      }
+
+      The omit statement includes every field of the model Post. At least one field must be included in the result
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          users: {
+            include: {
+              posts: {
+                omit: {
+      <green>?</color>           <green>id</color><green>?</color><green>: </color><green>false</color>,
+      <green>?</color>           <green>title</color><green>?</color><green>: </color><green>false</color>,
+      <green>?</color>           <green>comments</color><green>?</color><green>: </color><green>false</color>
+                }
+              }
+            }
+          }
+        }
+      }
+
+      The <red>omit</color> statement includes every field of the model <bold>Post</intensity>. At least one field must be included in the result
+      "
+    `)
+  })
 })
 
 describe('UnknownSelectionField', () => {
@@ -622,8 +776,6 @@ describe('UnknownSelectionField', () => {
         include: {
           notThere: true,
           ~~~~~~~~
-      ?   id?: true,
-      ?   title?: true,
       ?   comments?: true
         }
       }
@@ -638,13 +790,54 @@ describe('UnknownSelectionField', () => {
         include: {
           <red>notThere</color>: true,
           <red>~~~~~~~~</color>
-      <green>?</color>   <green>id</color><green>?</color><green>: </color><green>true</color>,
-      <green>?</color>   <green>title</color><green>?</color><green>: </color><green>true</color>,
       <green>?</color>   <green>comments</color><green>?</color><green>: </color><green>true</color>
         }
       }
 
       Unknown field <red>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <green>green</color>.
+      "
+    `)
+  })
+
+  test('top level omit', () => {
+    expect(
+      renderError(
+        {
+          kind: 'UnknownSelectionField',
+          selectionPath: ['notThere'],
+          outputType: PostOutputDescription,
+        },
+        { omit: { notThere: true } },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        omit: {
+          notThere: true,
+          ~~~~~~~~
+      ?   id?: true,
+      ?   title?: true
+        }
+      }
+
+      Unknown field \`notThere\` for omit statement on model \`Post\`. Available options are marked with ?.
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        omit: {
+          <red>notThere</color>: true,
+          <red>~~~~~~~~</color>
+      <green>?</color>   <green>id</color><green>?</color><green>: </color><green>true</color>,
+      <green>?</color>   <green>title</color><green>?</color><green>: </color><green>true</color>
+        }
+      }
+
+      Unknown field <red>\`notThere\`</color> for <bold>omit</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <green>green</color>.
       "
     `)
   })
@@ -732,8 +925,6 @@ describe('UnknownSelectionField', () => {
                 include: {
                   notThere: true,
                   ~~~~~~~~
-      ?           id?: true,
-      ?           title?: true,
       ?           comments?: true
                 }
               }
@@ -756,8 +947,6 @@ describe('UnknownSelectionField', () => {
                 include: {
                   <red>notThere</color>: true,
                   <red>~~~~~~~~</color>
-      <green>?</color>           <green>id</color><green>?</color><green>: </color><green>true</color>,
-      <green>?</color>           <green>title</color><green>?</color><green>: </color><green>true</color>,
       <green>?</color>           <green>comments</color><green>?</color><green>: </color><green>true</color>
                 }
               }
@@ -767,6 +956,65 @@ describe('UnknownSelectionField', () => {
       }
 
       Unknown field <red>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <green>green</color>.
+      "
+    `)
+  })
+
+  test('nested level omit', () => {
+    expect(
+      renderError(
+        {
+          kind: 'UnknownSelectionField',
+          selectionPath: ['users', 'posts', 'notThere'],
+          outputType: PostOutputDescription,
+        },
+        { select: { users: { include: { posts: { omit: { notThere: true } } } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          users: {
+            include: {
+              posts: {
+                omit: {
+                  notThere: true,
+                  ~~~~~~~~
+      ?           id?: true,
+      ?           title?: true
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Unknown field \`notThere\` for omit statement on model \`Post\`. Available options are marked with ?.
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          users: {
+            include: {
+              posts: {
+                omit: {
+                  <red>notThere</color>: true,
+                  <red>~~~~~~~~</color>
+      <green>?</color>           <green>id</color><green>?</color><green>: </color><green>true</color>,
+      <green>?</color>           <green>title</color><green>?</color><green>: </color><green>true</color>
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Unknown field <red>\`notThere\`</color> for <bold>omit</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <green>green</color>.
       "
     `)
   })
