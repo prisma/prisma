@@ -178,8 +178,11 @@ export async function buildClient({
   fileMap['index-browser.js'] = await BrowserJS(nodeClient)
   fileMap['edge.js'] = await JS(edgeClient)
   fileMap['edge.d.ts'] = await TS(edgeClient)
-  fileMap['react-native.js'] = await JS(rnTsClient)
-  fileMap['react-native.d.ts'] = await TS(rnTsClient)
+
+  if (generator.previewFeatures.includes('reactNative')) {
+    fileMap['react-native.js'] = await JS(rnTsClient)
+    fileMap['react-native.d.ts'] = await TS(rnTsClient)
+  }
 
   if (generator.previewFeatures.includes('driverAdapters')) {
     // The trampoline client points to #main-entry-point (see below).  We use
