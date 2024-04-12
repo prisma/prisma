@@ -1,4 +1,5 @@
 import { ErrorBasicBuilder, ErrorWriter } from './base'
+import { ObjectValue } from './ObjectValue'
 
 export abstract class Value implements ErrorBasicBuilder {
   abstract write(writer: ErrorWriter): void
@@ -15,4 +16,6 @@ export abstract class Value implements ErrorBasicBuilder {
     this.hasError = true
     return this
   }
+
+  abstract asObject(): ObjectValue | undefined
 }

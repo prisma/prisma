@@ -167,12 +167,12 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       return ts.stringify(topExports)
     }
 
-    const context: GenerateContext = {
+    const context = new GenerateContext({
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
       defaultArgsAliases: new DefaultArgsAliases(),
-    }
+    })
 
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,

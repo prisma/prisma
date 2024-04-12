@@ -2,7 +2,7 @@ import { DMMF } from '@prisma/generator-helper'
 
 import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
-import { getFieldArgName, getIncludeName, getSelectName } from '../utils'
+import { extArgsParam, getFieldArgName, getIncludeName, getOmitName, getSelectName } from '../utils'
 import { lowerCase } from '../utils/common'
 
 type BuildIncludeTypeParams = {
@@ -11,14 +11,35 @@ type BuildIncludeTypeParams = {
   fields: readonly DMMF.SchemaField[]
 }
 
-const extArgsParameter = ts
-  .genericParameter('ExtArgs')
-  .extends(ts.namedType('$Extensions.InternalArgs'))
-  .default(ts.namedType('$Extensions.DefaultArgs'))
-
 export function buildIncludeType({ modelName, dmmf, fields }: BuildIncludeTypeParams) {
   const type = buildSelectOrIncludeObject(modelName, getIncludeFields(fields, dmmf))
   return buildExport(getIncludeName(modelName), type)
+}
+
+type BuildOmitTypeParams = {
+  modelName: string
+  dmmf: DMMFHelper
+  fields: readonly DMMF.SchemaField[]
+}
+
+export function buildOmitType({ modelName, fields, dmmf }: BuildOmitTypeParams) {
+  const keysType = ts.unionType<ts.TypeBuilder>(
+    fields
+      .filter(
+        (field) =>
+          field.outputType.location === 'scalar' ||
+          field.outputType.location === 'enumTypes' ||
+          dmmf.isComposite(field.outputType.type),
+      )
+      .map((field) => ts.stringLiteral(field.name)),
+  )
+
+  const omitType = ts
+    .namedType('$Extensions.GetOmit')
+    .addGenericArgument(keysType)
+    .addGenericArgument(modelResultExtensionsType(modelName))
+
+  return buildExport(getOmitName(modelName), omitType)
 }
 
 type BuildSelectTypeParams = {
@@ -31,9 +52,13 @@ export function buildSelectType({ modelName, fields }: BuildSelectTypeParams) {
   const selectType = ts
     .namedType('$Extensions.GetSelect')
     .addGenericArgument(objectType)
-    .addGenericArgument(extArgsParameter.toArgument().subKey('result').subKey(lowerCase(modelName)))
+    .addGenericArgument(modelResultExtensionsType(modelName))
 
   return buildExport(getSelectName(modelName), selectType)
+}
+
+function modelResultExtensionsType(modelName: string) {
+  return extArgsParam.toArgument().subKey('result').subKey(lowerCase(modelName))
 }
 
 export function buildScalarSelectType({ modelName, fields }: BuildSelectTypeParams) {
@@ -53,7 +78,7 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
     if (field.outputType.location === 'outputObjectTypes') {
       const subSelectType = ts.namedType(getFieldArgName(field, modelName))
 
-      subSelectType.addGenericArgument(extArgsParameter.toArgument())
+      subSelectType.addGenericArgument(extArgsParam.toArgument())
 
       fieldType.addVariant(subSelectType)
     }
@@ -64,7 +89,7 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
 
 function buildExport(typeName: string, type: ts.TypeBuilder) {
   const declaration = ts.typeDeclaration(typeName, type)
-  return ts.moduleExport(declaration.addGenericParameter(extArgsParameter))
+  return ts.moduleExport(declaration.addGenericParameter(extArgsParam))
 }
 
 function getIncludeFields(fields: readonly DMMF.SchemaField[], dmmf: DMMFHelper) {
