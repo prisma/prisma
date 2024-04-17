@@ -83,7 +83,7 @@ const officialPrismaAdapters = [
 ] as const
 
 export interface Queryable {
-  readonly provider: 'mysql' | 'postgres' | 'sqlite'
+  readonly provider: 'mysql' | 'postgres' | 'sqlite' | 'pglite'
   readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
 
   /**
