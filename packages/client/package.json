@@ -27,7 +27,8 @@
     "MSSQL",
     "SQL Server",
     "SQLServer",
-    "MongoDB"
+    "MongoDB",
+    "react-native"
   ],
   "main": "default.js",
   "types": "default.d.ts",
@@ -58,6 +59,12 @@
       "require": "./edge.js",
       "import": "./edge.js",
       "default": "./edge.js"
+    },
+    "./react-native": {
+      "types": "./react-native.d.ts",
+      "require": "./react-native.js",
+      "import": "./react-native.js",
+      "default": "./react-native.js"
     },
     "./extension": {
       "types": "./extension.d.ts",
@@ -141,6 +148,8 @@
     "wasm.d.ts",
     "index.js",
     "index.d.ts",
+    "react-native.js",
+    "react-native.d.ts",
     "default.js",
     "default.d.ts",
     "index-browser.js",

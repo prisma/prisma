@@ -1,0 +1,137 @@
+name: e2e-ios
+on:
+  push:
+    branches:
+      - main
+      - '*.*.x'
+    paths-ignore:
+      # Any update here needs to be done for `pull_request`, see below
+      # and all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
+      - '*.md'
+      # - '*.bench.ts' -> should not be ignored in this workflow
+      - 'LICENSE'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'graphs/**'
+      - 'sandbox/**'
+  pull_request:
+    paths-ignore:
+      # Any update here needs to be done for `push`, see above
+      # and all files (test.yml, benchmark.yml, release-ci.yml)
+      - '*.md'
+      # - '*.bench.ts' -> should not be ignored in this workflow
+      - 'LICENSE'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'graphs/**'
+      - 'sandbox/**'
+
+jobs:
+  e2e-ios:
+    runs-on: macos-latest
+    steps:
+      - name: install git lfs
+        run: |
+          brew install git-lfs
+          git lfs install
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: 18
+          pnpm-version: 8.15.5
+          skip-tsc: true
+
+      - run: pnpm run dev
+        working-directory: packages/client
+
+      - name: clone react-native-prisma repo
+        run: git clone http://github.com/prisma/react-native-prisma.git
+
+      - name: Enable corepack
+        run: corepack enable yarn
+
+      - name: change example app to use local prisma client
+        working-directory: react-native-prisma/example
+        run: yarn add @prisma/client@../../packages/client
+
+      - name: Install dependencies
+        working-directory: react-native-prisma
+        run: yarn
+
+      - name: Install example dependencies
+        working-directory: react-native-prisma/example
+        run: yarn
+
+      - name: Install macOS dependencies
+        run: |
+          brew tap wix/brew
+          brew install applesimutils
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.2
+          bundler-cache: true
+
+      - name: Cache CocoaPods
+        id: cache-cocoapods
+        uses: actions/cache@v3
+        with:
+          path: react-native-prisma/example/ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('react-native-prisma/example/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install CocoaPods
+        working-directory: react-native-prisma/example
+        if: steps.cache-cocoapods.outputs.cache-hit != 'true'
+        run: cd ios ; pod install ; cd -
+
+      - name: Detox rebuild framework cache
+        working-directory: react-native-prisma/example
+        run: yarn detox rebuild-framework-cache
+
+      - name: Cache Detox build
+        id: cache-detox-build
+        uses: actions/cache@v3
+        with:
+          path: react-native-prisma/example/ios/build
+          key: ${{ runner.os }}-detox-build
+          restore-keys: |
+            ${{ runner.os }}-detox-build
+
+      - name: Detox build
+        working-directory: react-native-prisma/example
+        run: yarn detox build --configuration ios.sim.release
+
+      - name: Detox test
+        working-directory: react-native-prisma/example
+        run: yarn detox test --configuration ios.sim.release --cleanup --headless --record-logs all
+
+      - name: Upload artifacts
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: detox-artifacts
+          path: artifacts
