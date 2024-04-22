@@ -1,6 +1,6 @@
 import { ensureBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
-import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
+import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import { bold, dim, green, red, underline } from 'kleur/colors'
 
 import { Version } from './Version'
@@ -89,6 +89,17 @@ export class CLI implements Command {
     return CLI.help
   }
 
+  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma  |
+  |  Accelerate and capture real-time events from your database with Prisma   |
+  |  Pulse. Learn more ${link('https://pris.ly/cli/pdp')}`
+
+  private static boxedTryPdpMessage = drawBox({
+    height: this.tryPdpMessage.split('\n').length,
+    width: 0, // calculated automatically
+    str: this.tryPdpMessage,
+    horizontalPadding: 2,
+  })
+
   private static help = format(`
     ${
       process.platform === 'win32' ? '' : bold(green('◭  '))
@@ -114,6 +125,14 @@ export class CLI implements Command {
 
          --preview-feature   Run Preview Prisma commands
          --help, -h          Show additional information about a command
+
+    ┌───────────────────────────────────────────────────────────────────────────┐
+    │  Optimize performance through connection pooling and caching with Prisma  |
+    |  Accelerate and capture real-time events from your database with Prisma   |
+    |  Pulse. Learn more (https://pris.ly/pdp)                                  |
+    └───────────────────────────────────────────────────────────────────────────┘
+
+    ${this.boxedTryPdpMessage}
 
     ${bold('Examples')}
 
