@@ -307,6 +307,21 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
+function applyPendingMigrationsDefinition(this: PrismaClientClass) {
+  if (this.runtimeNameTs !== 'react-native') {
+    return null
+  }
+
+  const method = ts
+    .method('$applyPendingMigrations')
+    .setReturnType(ts.promise(ts.voidType))
+    .setDocComment(
+      ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
+    )
+
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
 function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
   if (runtimeNameTs === 'binary.js') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;`
@@ -389,8 +404,10 @@ ${[
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
   metricDefinition.bind(this)(),
+  applyPendingMigrationsDefinition.bind(this)(),
   this.clientExtensionsDefinitions.prismaClientDefinitions,
 ]
+  .filter((d) => d !== null)
   .join('\n')
   .trim()}
 

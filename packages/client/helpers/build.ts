@@ -69,7 +69,11 @@ const browserBuildConfig: BuildOptions = {
   sourcemap: 'linked',
 }
 
-const commonEdgeWasmFillerOverrides = {
+/**
+ * Overrides meant for edge, wasm and react-native builds
+ * If at some point they diverge feel free to split them
+ */
+const commonRuntimesOverrides = {
   // we remove eval and Function for vercel
   eval: { define: 'undefined' },
   Function: {
@@ -84,7 +88,7 @@ const commonEdgeWasmFillerOverrides = {
   './warnEnvConflicts': { contents: '' },
 }
 
-const commonEdgeWasmRuntimeBuildConfig = {
+const runtimesCommonBuildConfig = {
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
   bundle: true,
@@ -104,35 +108,35 @@ const commonEdgeWasmRuntimeBuildConfig = {
 
 // we define the config for edge
 const edgeRuntimeBuildConfig: BuildOptions = {
-  ...commonEdgeWasmRuntimeBuildConfig,
+  ...runtimesCommonBuildConfig,
   name: 'edge',
   outfile: 'runtime/edge',
   define: {
-    ...commonEdgeWasmRuntimeBuildConfig.define,
+    ...runtimesCommonBuildConfig.define,
     // tree shake the Library and Binary engines out
     TARGET_BUILD_TYPE: '"edge"',
   },
   plugins: [
     fillPlugin({
-      fillerOverrides: commonEdgeWasmFillerOverrides,
+      fillerOverrides: commonRuntimesOverrides,
     }),
   ],
 }
 
 // we define the config for wasm
 const wasmRuntimeBuildConfig: BuildOptions = {
-  ...commonEdgeWasmRuntimeBuildConfig,
+  ...runtimesCommonBuildConfig,
   target: 'ES2022',
   name: 'wasm',
   outfile: 'runtime/wasm',
   define: {
-    ...commonEdgeWasmRuntimeBuildConfig.define,
+    ...runtimesCommonBuildConfig.define,
     TARGET_BUILD_TYPE: '"wasm"',
   },
   plugins: [
     fillPlugin({
       // not yet enabled in edge build while driverAdapters is not GA
-      fillerOverrides: { ...commonEdgeWasmFillerOverrides, ...smallBuffer, ...smallDecimal },
+      fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
     }),
     copyFilePlugin(
       DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
@@ -140,6 +144,25 @@ const wasmRuntimeBuildConfig: BuildOptions = {
         to: path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
       })),
     ),
+  ],
+}
+
+// React Native is similar to edge in the sense it doesn't have the node API/libraries
+// and also not all the browser APIs, therefore it needs to polyfill the same things as edge
+const reactNativeBuildConfig: BuildOptions = {
+  ...runtimesCommonBuildConfig,
+  name: 'react-native',
+  target: 'ES2022',
+  outfile: 'runtime/react-native',
+  emitTypes: true,
+  define: {
+    NODE_CLIENT: 'false',
+    TARGET_BUILD_TYPE: '"react-native"',
+  },
+  plugins: [
+    fillPlugin({
+      fillerOverrides: { ...commonRuntimesOverrides },
+    }),
   ],
 }
 
@@ -194,6 +217,7 @@ void build([
   wasmBindgenRuntimeConfig('mysql'),
   wasmBindgenRuntimeConfig('sqlite'),
   defaultIndexConfig,
+  reactNativeBuildConfig,
   accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
