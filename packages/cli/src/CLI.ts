@@ -89,9 +89,9 @@ export class CLI implements Command {
     return CLI.help
   }
 
-  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma  |
-  |  Accelerate and capture real-time events from your database with Prisma   |
-  |  Pulse. Learn more ${link('https://pris.ly/cli/pdp')}`
+  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma Accelerate
+and capture real-time events from your database with Prisma Pulse.
+Learn more at ${link('https://pris.ly/cli/pdp')}`
 
   private static boxedTryPdpMessage = drawBox({
     height: this.tryPdpMessage.split('\n').length,
@@ -125,12 +125,6 @@ export class CLI implements Command {
 
          --preview-feature   Run Preview Prisma commands
          --help, -h          Show additional information about a command
-
-    ┌───────────────────────────────────────────────────────────────────────────┐
-    │  Optimize performance through connection pooling and caching with Prisma  |
-    |  Accelerate and capture real-time events from your database with Prisma   |
-    |  Pulse. Learn more (https://pris.ly/pdp)                                  |
-    └───────────────────────────────────────────────────────────────────────────┘
 
     ${this.boxedTryPdpMessage}
 
