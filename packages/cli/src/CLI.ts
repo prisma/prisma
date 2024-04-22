@@ -126,7 +126,7 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
          --preview-feature   Run Preview Prisma commands
          --help, -h          Show additional information about a command
 
-    ${this.boxedTryPdpMessage}
+${this.boxedTryPdpMessage}
 
     ${bold('Examples')}
 
