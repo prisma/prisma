@@ -82,7 +82,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.13.0-23.b9a39a7ee606c28e3455d0fd60e78c3ba82b1a2b",
+    "@prisma/prisma-schema-wasm": "5.14.0-1.integration-vitess-constraint-fix-ca251465b6b966a5b9f61c3a8077ef99275ca330",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"
