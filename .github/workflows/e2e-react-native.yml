@@ -96,7 +96,7 @@ jobs:
 
       - name: Cache CocoaPods
         id: cache-cocoapods
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: react-native-prisma/example/ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('react-native-prisma/example/ios/Podfile.lock') }}
@@ -114,7 +114,7 @@ jobs:
 
       - name: Cache Detox build
         id: cache-detox-build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: react-native-prisma/example/ios/build
           key: ${{ runner.os }}-detox-build
