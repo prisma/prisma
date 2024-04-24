@@ -72,7 +72,7 @@
     "terminal-link": "2.1.1",
     "tmp": "0.2.3",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.1.0",
+    "ts-pattern": "5.1.1",
     "typescript": "5.3.3",
     "yarn": "1.22.22"
   },
