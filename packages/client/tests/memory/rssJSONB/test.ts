@@ -69,5 +69,4 @@ void createMemoryTest({
   async cleanup(client) {
     await client.$disconnect()
   },
-  iterations: 10,
 })
