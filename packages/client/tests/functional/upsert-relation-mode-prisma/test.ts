@@ -12,7 +12,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta) => {
         create: { identifier: 1, value: 5 },
         update: { value: 5 },
       })
-      expect(node.identifier).toEqual(5)
+      expect(node.identifier).toEqual(1)
       expect(node.value).toEqual(5)
     }
   })
