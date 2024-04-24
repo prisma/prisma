@@ -15,6 +15,7 @@ export default testMatrix.setupSchema(({ provider }) => {
 
       model Node {
         id ${idForProvider(provider)}
+        identifier Int @unique
         value Int
       }
       `
