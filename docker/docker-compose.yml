@@ -128,7 +128,7 @@ services:
       retries: 20
 
   mariadb:
-    image: mariadb:10
+    image: mariadb:11
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
