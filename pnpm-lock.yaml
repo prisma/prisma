@@ -783,8 +783,8 @@ importers:
         specifier: 0.5.21
         version: 0.5.21
       sql-template-tag:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.2.1
+        version: 5.2.1
       stacktrace-parser:
         specifier: 0.1.10
         version: 0.1.10
@@ -10547,8 +10547,8 @@ packages:
     resolution: {integrity: sha512-VE0SOVEHCk7Qc8ulkWw3ntAzXuqf7S2lvwQaDLRnUeIEaKNQJzV6BwmLKhOqT61aGhfUMrXeaBk+oDGCzvhcug==}
     dev: true
 
-  /sql-template-tag@5.2.0:
-    resolution: {integrity: sha512-VVrlwWfOvG5hhDkcaoxmwv7uHdpJfAYImfKq37GVGRCYHjvlVdHpNkG8ITOIJlwAlSQDesS4arPfKif/19zjoQ==}
+  /sql-template-tag@5.2.1:
+    resolution: {integrity: sha512-lFdvXCOqWhV40A7w4oQVDyuaNFb5yO+dhsHStZzOdtDJWCBWYv4+hhATK5nPpY5v/T1OMVcLMPeN4519qIyb9Q==}
     engines: {node: '>=14'}
     dev: true
 
