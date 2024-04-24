@@ -6,7 +6,7 @@ name: prisma-prisma
 # https://github.com/prisma/prisma/blob/main/TESTING.md#environment-variables
 services:
   postgres:
-    image: postgres:10
+    image: postgres:16
     restart: unless-stopped
     # Uncomment the following line to enable query logging
     # Then restart the container.
@@ -46,7 +46,7 @@ services:
       retries: 20
 
   postgres_isolated:
-    image: postgres:10
+    image: postgres:16
     restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
