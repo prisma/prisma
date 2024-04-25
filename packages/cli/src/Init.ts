@@ -4,6 +4,7 @@ import {
   canConnectToDatabase,
   checkUnsupportedDataProxy,
   Command,
+  drawBox,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -21,16 +22,37 @@ import { isError } from 'util'
 import { printError } from './utils/prompt/utils/print'
 import { getDefaultSchemaModel, getSchemaModelCockroachDb, getSchemaModelMongoDb } from './utils/schemaGenerator'
 
-export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
+export const defaultSchema = (props?: {
+  datasourceProvider?: ConnectorType
+  generatorProvider?: string
+  previewFeatures?: string[]
+  output?: string
+}) => {
+  const {
+    datasourceProvider = 'postgresql',
+    generatorProvider = defaultGeneratorProvider,
+    previewFeatures = defaultPreviewFeatures,
+    output = defaultOutput,
+  } = props || {}
+
+  const aboutAccelerate = `\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n`
+
+  const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
+
   return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+${isProviderCompatibleWithAccelerate ? aboutAccelerate : ''}
 generator client {
-  provider = "prisma-client-js"
-}
+  provider = "${generatorProvider}"
+${
+  previewFeatures.length > 0
+    ? `  previewFeatures = [${previewFeatures.map((feature) => `"${feature}"`).join(', ')}]\n`
+    : ''
+}${output != defaultOutput ? `  output = "${output}"\n` : ''}}
 
 datasource db {
-  provider = "${provider}"
+  provider = "${datasourceProvider}"
   url      = env("DATABASE_URL")
 }
 `
@@ -89,8 +111,6 @@ export const defaultURL = (provider: ConnectorType, port = defaultPort(provider)
       return `mysql://johndoe:randompassword@localhost:${port}/mydb`
     case 'sqlserver':
       return `sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
-    case 'jdbc:sqlserver':
-      return `jdbc:sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
     case 'mongodb':
       return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
     case 'sqlite':
@@ -106,6 +126,12 @@ export const defaultGitIgnore = () => {
 .env
 `
 }
+
+export const defaultGeneratorProvider = 'prisma-client-js'
+
+export const defaultPreviewFeatures = []
+
+export const defaultOutput = 'node_modules/.prisma/client'
 
 export class Init implements Command {
   static new(): Init {
@@ -123,6 +149,9 @@ export class Init implements Command {
     
              -h, --help   Display this help message
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
+   --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
+      --preview-feature   Define a preview feature to use.
+               --output   Define Prisma Client generator output path to use.
                   --url   Define a custom datasource url
 
   ${bold('Flags')}
@@ -136,6 +165,15 @@ export class Init implements Command {
 
   Set up a new Prisma project and specify MySQL as the datasource provider to use
     ${dim('$')} prisma init --datasource-provider mysql
+
+  Set up a new Prisma project and specify \`prisma-client-go\` as the generator provider to use
+    ${dim('$')} prisma init --generator-provider prisma-client-go
+
+  Set up a new Prisma project and specify \`x\` and \`y\` as the preview features to use
+    ${dim('$')} prisma init --preview-feature x --preview-feature y
+
+  Set up a new Prisma project and specify \`./generated-client\` as the output path to use
+    ${dim('$')} prisma init --output ./generated-client
   
   Set up a new Prisma project and specify the url that will be used
     ${dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
@@ -151,6 +189,9 @@ export class Init implements Command {
       '-h': '--help',
       '--url': String,
       '--datasource-provider': String,
+      '--generator-provider': String,
+      '--preview-feature': [String],
+      '--output': String,
       '--with-model': Boolean,
     })
 
@@ -213,7 +254,10 @@ export class Init implements Command {
           }
           const provider = providerLowercase as ConnectorType
           const url = defaultURL(provider)
-          return Promise.resolve({ provider, url })
+          return Promise.resolve({
+            provider,
+            url,
+          })
         },
       )
       .with(
@@ -242,8 +286,14 @@ export class Init implements Command {
       )
       .otherwise(() => {
         // Default to PostgreSQL
-        return Promise.resolve({ provider: 'postgresql' as ConnectorType, url: undefined })
+        return Promise.resolve({
+          provider: 'postgresql' as ConnectorType,
+          url: undefined,
+        })
       })
+    const generatorProvider = args['--generator-provider']
+    const previewFeatures = args['--preview-feature']
+    const output = args['--output']
 
     /**
      * Validation successful? Let's create everything!
@@ -260,7 +310,15 @@ export class Init implements Command {
     if (args['--with-model']) {
       fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), withModelSchema(provider))
     } else {
-      fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema(provider))
+      fs.writeFileSync(
+        path.join(prismaFolder, 'schema.prisma'),
+        defaultSchema({
+          datasourceProvider: provider,
+          generatorProvider,
+          previewFeatures,
+          output,
+        }),
+      )
     }
 
     const warnings: string[] = []
@@ -330,6 +388,17 @@ export class Init implements Command {
       )
     }
 
+    const promoMessage = `Developing real-time features?
+Prisma Pulse lets you respond instantly to database changes.
+${link('https://pris.ly/cli/pulse')}`
+
+    const boxedPromoMessage = drawBox({
+      height: promoMessage.split('\n').length,
+      width: 0, // calculated automatically
+      str: promoMessage,
+      horizontalPadding: 2,
+    })
+
     return `
 ✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
@@ -339,6 +408,8 @@ ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
 More information in our documentation:
 ${link('https://pris.ly/d/getting-started')}
+
+${boxedPromoMessage}
     `
   }
 

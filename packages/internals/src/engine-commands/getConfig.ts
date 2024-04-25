@@ -1,12 +1,13 @@
 import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
+import { type Datamodel, schemaToStringDebug } from '../utils/datamodel'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
@@ -20,7 +21,7 @@ export interface ConfigMetaFormat {
 }
 
 export type GetConfigOptions = {
-  datamodel: string
+  datamodel: Datamodel
   cwd?: string
   prismaPath?: string
   datamodelPath?: string
@@ -145,7 +146,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           /* request */ '@prisma/prisma-schema-wasm get_config',
           ErrorArea.FMT_CLI,
           /* schemaPath */ options.prismaPath,
-          /* schema */ options.datamodel,
+          /* schema */ schemaToStringDebug(options.datamodel),
         )
         return panic
       }
@@ -177,12 +178,12 @@ async function resolveBinaryTargets(generator: GeneratorConfig) {
 
     // resolve native to the current platform
     if (binaryTarget.value === 'native') {
-      binaryTarget.value = await getPlatform()
+      binaryTarget.value = await getBinaryTargetForCurrentPlatform()
       binaryTarget.native = true
     }
   }
 
   if (generator.binaryTargets.length === 0) {
-    generator.binaryTargets = [{ fromEnvVar: null, value: await getPlatform(), native: true }]
+    generator.binaryTargets = [{ fromEnvVar: null, value: await getBinaryTargetForCurrentPlatform(), native: true }]
   }
 }

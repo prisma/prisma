@@ -1,5 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
+import { Providers } from '../../_utils/providers'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -47,32 +48,35 @@ testMatrix.setupTestSuite(
     })
 
     // TODO likely a bug in mongodb
-    testIf(suiteConfig.provider !== 'mongodb')('filter existing optional relation with `isNot: null`', async () => {
-      const result = await prisma.user.findMany({
-        where: {
-          bio: { isNot: null },
-        },
-      })
-
-      result.sort((a, b) => a.id.localeCompare(b.id))
-
-      expect(result).toHaveLength(2)
-      expect(result).toMatchInlineSnapshot(`
-        [
-          {
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
+    testIf(suiteConfig.provider !== Providers.MONGODB)(
+      'filter existing optional relation with `isNot: null`',
+      async () => {
+        const result = await prisma.user.findMany({
+          where: {
+            bio: { isNot: null },
           },
-          {
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-          },
-        ]
-      `)
-    })
+        })
+
+        result.sort((a, b) => a.id.localeCompare(b.id))
+
+        expect(result).toHaveLength(2)
+        expect(result).toMatchInlineSnapshot(`
+          [
+            {
+              "email": "Kyla_Beer587@fraternise-assassination.name",
+              "id": "a7fe5dac91ab6b0f529430c5",
+            },
+            {
+              "email": "Sam.Mills50272@oozeastronomy.net",
+              "id": "a85d5d75a3a886cb61eb3a0e",
+            },
+          ]
+        `)
+      },
+    )
 
     // TODO likely a bug in mongodb
-    testIf(suiteConfig.provider !== 'mongodb')('filter empty optional relation with ', async () => {
+    testIf(suiteConfig.provider !== Providers.MONGODB)('filter empty optional relation with ', async () => {
       const result = await prisma.user.findMany({
         where: {
           bio: { is: null },
@@ -83,15 +87,15 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            email: Pete.Runte93767@broaden-dungeon.info,
-            id: 02d25579a73a72373fa4e846,
+            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "id": "02d25579a73a72373fa4e846",
           },
         ]
       `)
     })
 
     // TODO likely a bug in mongodb
-    testIf(suiteConfig.provider !== 'mongodb')('filter empty optional relation with `null`', async () => {
+    testIf(suiteConfig.provider !== Providers.MONGODB)('filter empty optional relation with `null`', async () => {
       const result = await prisma.user.findMany({
         where: {
           bio: null,
@@ -100,17 +104,17 @@ testMatrix.setupTestSuite(
 
       expect(result).toHaveLength(1)
       expect(result).toMatchInlineSnapshot(`
-            [
-              {
-                email: Pete.Runte93767@broaden-dungeon.info,
-                id: 02d25579a73a72373fa4e846,
-              },
-            ]
-          `)
+        [
+          {
+            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "id": "02d25579a73a72373fa4e846",
+          },
+        ]
+      `)
     })
 
     // TODO likely a bug in mongodb
-    testIf(suiteConfig.provider !== 'mongodb')('filter empty optional relation', async () => {
+    testIf(suiteConfig.provider !== Providers.MONGODB)('filter empty optional relation', async () => {
       const result = await prisma.user.findMany({
         where: {
           bio: null,
@@ -119,56 +123,62 @@ testMatrix.setupTestSuite(
 
       expect(result).toHaveLength(1)
       expect(result).toMatchInlineSnapshot(`
-            [
-              {
-                email: Pete.Runte93767@broaden-dungeon.info,
-                id: 02d25579a73a72373fa4e846,
-              },
-            ]
-          `)
-    })
-
-    // TODO likely a bug in mongodb
-    testIf(suiteConfig.provider !== 'mongodb')('filter existing optional relation with empty field', async () => {
-      const result = await prisma.user.findMany({
-        where: {
-          bio: {
-            text: null,
-          },
-        },
-      })
-
-      expect(result).toHaveLength(1)
-      expect(result).toMatchInlineSnapshot(`
         [
           {
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
+            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "id": "02d25579a73a72373fa4e846",
           },
         ]
       `)
     })
 
     // TODO likely a bug in mongodb
-    testIf(suiteConfig.provider !== 'mongodb')('filter existing optional relation with existing field', async () => {
-      const result = await prisma.user.findMany({
-        where: {
-          bio: {
-            text: { not: null },
+    testIf(suiteConfig.provider !== Providers.MONGODB)(
+      'filter existing optional relation with empty field',
+      async () => {
+        const result = await prisma.user.findMany({
+          where: {
+            bio: {
+              text: null,
+            },
           },
-        },
-      })
+        })
 
-      expect(result).toHaveLength(1)
-      expect(result).toMatchInlineSnapshot(`
-        [
-          {
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
+        expect(result).toHaveLength(1)
+        expect(result).toMatchInlineSnapshot(`
+          [
+            {
+              "email": "Sam.Mills50272@oozeastronomy.net",
+              "id": "a85d5d75a3a886cb61eb3a0e",
+            },
+          ]
+        `)
+      },
+    )
+
+    // TODO likely a bug in mongodb
+    testIf(suiteConfig.provider !== Providers.MONGODB)(
+      'filter existing optional relation with existing field',
+      async () => {
+        const result = await prisma.user.findMany({
+          where: {
+            bio: {
+              text: { not: null },
+            },
           },
-        ]
-      `)
-    })
+        })
+
+        expect(result).toHaveLength(1)
+        expect(result).toMatchInlineSnapshot(`
+          [
+            {
+              "email": "Kyla_Beer587@fraternise-assassination.name",
+              "id": "a7fe5dac91ab6b0f529430c5",
+            },
+          ]
+        `)
+      },
+    )
   },
   {
     skipDefaultClientInstance: true,

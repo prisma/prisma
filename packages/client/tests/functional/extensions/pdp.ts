@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'
 import https from 'https'
@@ -60,7 +61,13 @@ testMatrix.setupTestSuite(() => {
               expect(client).toHaveProperty('_runtimeDataModel')
               expect((client as any)._runtimeDataModel).toHaveProperty('models')
               expect((client as any)._runtimeDataModel.models).toHaveProperty('User')
+              expect((client as any)._runtimeDataModel.models.User).toHaveProperty('dbName')
               expect((client as any)._runtimeDataModel.models.User).toHaveProperty('fields')
+              expect((client as any)._runtimeDataModel.models.User.fields[3]).toHaveProperty('name')
+              expect((client as any)._runtimeDataModel.models.User.fields[3]).toHaveProperty('kind')
+              expect((client as any)._runtimeDataModel.models.User.fields[3]).toHaveProperty('type')
+              expect((client as any)._runtimeDataModel.models.User.fields[4]).toHaveProperty('relationName')
+              expect((client as any)._runtimeDataModel.models.User.fields[3]).toHaveProperty('dbName')
             },
           },
         },
@@ -70,6 +77,46 @@ testMatrix.setupTestSuite(() => {
     prisma.$extends(extension).user.subscribe()
     expect.hasAssertions()
   })
+
+  testIf(process.env.TEST_DATA_PROXY !== undefined)(
+    'Prisma-Engine-Hash headers is present when sending a request',
+    async () => {
+      const xprisma = prisma.$extends({
+        query: {
+          $allModels: {
+            findUnique(operation) {
+              const { __internalParams, query, args } = operation as any as {
+                query: (...args: any[]) => Promise<any>
+                __internalParams: any
+                args: any
+              }
+
+              __internalParams.customDataProxyFetch = (fetch) => {
+                return async (url, options) => {
+                  const res = await fetch(url, options)
+
+                  expect(res).toHaveProperty('headers')
+                  expect(res.headers.get('content-length')).toBeDefined()
+                  expect(res.headers.get('Prisma-Engine-Hash')).toBeNull()
+
+                  return res
+                }
+              }
+
+              return query(args, __internalParams)
+            },
+          },
+        },
+      })
+
+      const data = await xprisma.user.findUnique({ where: { id: randomId1 } })
+      expect(data).toHaveProperty('id', randomId1)
+      expect(mockedRequest.mock.calls[0][1].headers).toHaveProperty(
+        'Prisma-Engine-Hash',
+        '0000000000000000000000000000000000000000',
+      )
+    },
+  )
 
   testIf(process.env.TEST_DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
     const xprisma = prisma.$extends({

@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MongoDB basic introspection --url 2`] = `
-datasource db {
+"datasource db {
   provider = "mongodb"
-  url      = "mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
+  url      = "mongodb://localhost:27017/tests-migrate"
 }
 
 type UsersHobbies {
@@ -31,4 +31,5 @@ model users {
   numberOrString1 Json
 }
 
+"
 `;

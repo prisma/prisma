@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 import { ChildProcess } from 'child_process'
 
 import { NewPrismaClient } from '../../_utils/types'
@@ -20,7 +20,7 @@ function waitForChildExit(child: ChildProcess): Promise<void> {
   })
 }
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite(({ engineType }) => {
   let client: PrismaClient
 
   afterEach(() => {
@@ -30,8 +30,8 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('should assert that PrismaClient is restarted when it goes down', async () => {
-    // No child process for Node-API, so nothing that can be killed or tested
-    if (getClientEngineType() === ClientEngineType.Library) {
+    // Only child process for Binary, so nothing that can be killed or tested with other engines
+    if (engineType !== ClientEngineType.Binary) {
       return
     }
 

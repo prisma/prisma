@@ -1,6 +1,6 @@
 import { ensureBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
-import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
+import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import { bold, dim, green, red, underline } from 'kleur/colors'
 
 import { Version } from './Version'
@@ -23,7 +23,7 @@ export class CLI implements Command {
       '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--preview-feature': Boolean,
-      '--early-access-feature': Boolean,
+      '--early-access': Boolean,
       '--telemetry-information': String,
     })
 
@@ -70,8 +70,8 @@ export class CLI implements Command {
         argsForCmd = [...args._.slice(1), `--experimental=${args['--experimental']}`]
       } else if (args['--preview-feature']) {
         argsForCmd = [...args._.slice(1), `--preview-feature=${args['--preview-feature']}`]
-      } else if (args['--early-access-feature']) {
-        argsForCmd = [...args._.slice(1), `--early-access-feature=${args['--early-access-feature']}`]
+      } else if (args['--early-access']) {
+        argsForCmd = [...args._.slice(1), `--early-access=${args['--early-access']}`]
       } else {
         argsForCmd = args._.slice(1)
       }
@@ -88,6 +88,17 @@ export class CLI implements Command {
     }
     return CLI.help
   }
+
+  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma Accelerate
+and capture real-time events from your database with Prisma Pulse.
+Learn more at ${link('https://pris.ly/cli/pdp')}`
+
+  private static boxedTryPdpMessage = drawBox({
+    height: this.tryPdpMessage.split('\n').length,
+    width: 0, // calculated automatically
+    str: this.tryPdpMessage,
+    horizontalPadding: 2,
+  })
 
   private static help = format(`
     ${
@@ -108,11 +119,14 @@ export class CLI implements Command {
             validate   Validate your Prisma schema
               format   Format your Prisma schema
              version   Displays Prisma version info
+               debug   Displays Prisma debug info
 
     ${bold('Flags')}
 
          --preview-feature   Run Preview Prisma commands
          --help, -h          Show additional information about a command
+
+${this.boxedTryPdpMessage}
 
     ${bold('Examples')}
 
@@ -127,7 +141,7 @@ export class CLI implements Command {
 
       Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
       ${dim('$')} prisma migrate dev
-  
+
       Pull the schema from an existing database, updating the Prisma schema
       ${dim('$')} prisma db pull
 
@@ -139,5 +153,11 @@ export class CLI implements Command {
 
       Format your Prisma schema
       ${dim('$')} prisma format
+
+      Display Prisma version info
+      ${dim('$')} prisma version
+
+      Display Prisma debug info
+      ${dim('$')} prisma debug
   `)
 }

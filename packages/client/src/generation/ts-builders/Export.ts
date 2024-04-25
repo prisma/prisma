@@ -3,9 +3,9 @@ import { BasicBuilder } from './BasicBuilder'
 import { DocComment } from './DocComment'
 import { Writer } from './Writer'
 
-export class Export implements BasicBuilder {
+export class Export<Decl extends AnyDeclarationBuilder> implements BasicBuilder {
   private docComment?: DocComment
-  constructor(private declaration: AnyDeclarationBuilder) {}
+  constructor(public readonly declaration: Decl) {}
 
   setDocComment(docComment: DocComment): this {
     this.docComment = docComment
@@ -20,6 +20,6 @@ export class Export implements BasicBuilder {
   }
 }
 
-export function moduleExport(declaration: AnyDeclarationBuilder) {
+export function moduleExport<Decl extends AnyDeclarationBuilder>(declaration: Decl): Export<Decl> {
   return new Export(declaration)
 }

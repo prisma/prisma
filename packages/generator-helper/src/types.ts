@@ -28,14 +28,23 @@ export namespace JsonRPC {
   }
 }
 
-export type Dictionary<T> = { [key: string]: T | undefined }
-
 export interface GeneratorConfig {
   name: string
   output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
-  config: Dictionary<string | string[]>
+  config: {
+    /** `output` is a reserved name and will only be available directly at `generator.output` */
+    output?: never
+    /** `provider` is a reserved name and will only be available directly at `generator.provider` */
+    provider?: never
+    /** `binaryTargets` is a reserved name and will only be available directly at `generator.binaryTargets` */
+    binaryTargets?: never
+    /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
+    previewFeatures?: never
+  } & {
+    [key: string]: string | string[] | undefined
+  }
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
@@ -60,10 +69,6 @@ export type ConnectorType =
   | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
   | 'sqlserver'
   | 'cockroachdb'
-
-  // TODO: this should be removed in favor of `'sqlserver'`, as per `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "sqlserver"`
-  // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
-  | 'jdbc:sqlserver'
 
 export interface DataSource {
   name: string

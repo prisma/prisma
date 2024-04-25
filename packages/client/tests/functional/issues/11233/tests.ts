@@ -1,3 +1,4 @@
+import { AdapterProviders, Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -7,7 +8,7 @@ declare let Prisma: typeof PrismaNamespace
 
 // https://github.com/prisma/prisma/issues/11233
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider, driverAdapter }) => {
     test('should not throw when using Prisma.empty inside $executeRaw', async () => {
       expect.assertions(1)
 
@@ -20,17 +21,23 @@ testMatrix.setupTestSuite(
       }
 
       switch (provider) {
-        case 'sqlite':
-          expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+        case Providers.SQLITE:
+          // TODO the error does not match to the usual one
+          if (driverAdapter === AdapterProviders.JS_LIBSQL) {
+            expect((result as Error).message).toContain(': not an error')
+          } else if (driverAdapter === AdapterProviders.JS_D1) {
+            expect((result as Error).message).toContain('D1_ERROR: No SQL statements detected.')
+          } else {
+            expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+          }
           break
-
-        case 'postgresql':
-        case 'cockroachdb':
-        case 'sqlserver':
+        case Providers.POSTGRESQL:
+        case Providers.COCKROACHDB:
+        case Providers.SQLSERVER:
           expect(result).toEqual(0)
           break
 
-        case 'mysql':
+        case Providers.MYSQL:
           expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
           break
 
@@ -51,17 +58,23 @@ testMatrix.setupTestSuite(
       }
 
       switch (provider) {
-        case 'sqlite':
-          expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+        case Providers.SQLITE:
+          // TODO the error does not match to the usual one
+          if (driverAdapter === AdapterProviders.JS_LIBSQL) {
+            expect((result as Error).message).toContain(': not an error')
+          } else if (driverAdapter === AdapterProviders.JS_D1) {
+            expect((result as Error).message).toContain('D1_ERROR: No SQL statements detected.')
+          } else {
+            expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
+          }
           break
-
-        case 'postgresql':
-        case 'cockroachdb':
-        case 'sqlserver':
+        case Providers.POSTGRESQL:
+        case Providers.COCKROACHDB:
+        case Providers.SQLSERVER:
           expect(result).toEqual([])
           break
 
-        case 'mysql':
+        case Providers.MYSQL:
           expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
           break
 
@@ -72,7 +85,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: '$raw methods not allowed when using mongodb',
     },
   },

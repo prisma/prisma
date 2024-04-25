@@ -1,19 +1,11 @@
 module.exports = {
-  transform: {
-    '^.+\\.(m?j|t)s$': '@swc/jest',
-  },
-  transformIgnorePatterns: [],
-  testEnvironment: 'node',
-  collectCoverage: process.env.CI ? true : false,
-  coverageReporters: ['clover'],
-  coverageDirectory: 'src/__tests__/coverage',
+  preset: '../../helpers/test/presets/withSnapshotSerializer.js',
   modulePathIgnorePatterns: [
     '<rootDir>/dist/',
     '<rootDir>/fixtures/',
     '<rootDir>/generator-build/',
     '<rootDir>/runtime/',
     '<rootDir>/runtime-dist/',
-    '<rootDir>/sandbox/',
     '<rootDir>/scripts/',
     '<rootDir>/tests/memory',
     '<rootDir>/tests/functional',
@@ -36,19 +28,7 @@ module.exports = {
     '.bench.ts',
   ],
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*', '!src/**/*.test.ts'],
-  snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
-  testTimeout: 90000,
+  testTimeout: 90_000,
   setupFiles: ['./helpers/jestSetup.js'],
-  reporters: [
-    'default',
-    [
-      'jest-junit',
-      {
-        addFileAttribute: 'true',
-        ancestorSeparator: ' › ',
-        classNameTemplate: '{classname}',
-        titleTemplate: '{title}',
-      },
-    ],
-  ],
+  openHandlesTimeout: 10_000,
 }

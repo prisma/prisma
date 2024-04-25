@@ -2,7 +2,7 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
-import { Operation } from '../../runtime/core/types/Result'
+import { Operation } from '../../runtime/core/types/exported/Result'
 import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import {
@@ -19,6 +19,7 @@ import { runtimeImport } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
+import { TSClientOptions } from './TSClient'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(this: PrismaClientClass) {
@@ -110,11 +111,11 @@ function clientTypeMapDefinition(this: PrismaClientClass) {
   const typeMap = `${clientTypeMapModelsDefinition.bind(this)()} & ${clientTypeMapOthersDefinition.bind(this)()}`
 
   return `
-interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.Args}, $Utils.Record<string, any>> {
+interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs}, $Utils.Record<string, any>> {
   returns: Prisma.TypeMap<this['params']['extArgs']>
 }
 
-export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = ${typeMap}`
+export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ${typeMap}`
 }
 
 function clientExtensionsDefinitions(this: PrismaClientClass) {
@@ -306,8 +307,23 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function eventRegistrationMethodDeclaration(runtimeName: string) {
-  if (runtimeName === 'binary') {
+function applyPendingMigrationsDefinition(this: PrismaClientClass) {
+  if (this.runtimeNameTs !== 'react-native') {
+    return null
+  }
+
+  const method = ts
+    .method('$applyPendingMigrations')
+    .setReturnType(ts.promise(ts.voidType))
+    .setDocComment(
+      ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
+    )
+
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
+function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
+  if (runtimeNameTs === 'binary.js') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;`
   } else {
     return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
@@ -323,7 +339,7 @@ export class PrismaClientClass implements Generatable {
     protected readonly dmmf: DMMFHelper,
     protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
-    protected readonly runtimeName: string,
+    protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
     protected readonly cwd?: string,
@@ -355,14 +371,14 @@ export class PrismaClientClass implements Generatable {
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
-  ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs
+  ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  ${eventRegistrationMethodDeclaration(this.runtimeName)}
+  ${eventRegistrationMethodDeclaration(this.runtimeNameTs)}
 
   /**
    * Connect with the database
@@ -388,8 +404,10 @@ ${[
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
   metricDefinition.bind(this)(),
+  applyPendingMigrationsDefinition.bind(this)(),
   this.clientExtensionsDefinitions.prismaClientDefinitions,
 ]
+  .filter((d) => d !== null)
   .join('\n')
   .trim()}
 
@@ -545,10 +563,27 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           `),
       )
 
-    if (this.runtimeName === 'library' && this.generator?.previewFeatures.includes('driverAdapters')) {
+    const transactionOptions = ts
+      .objectType()
+      .add(ts.property('maxWait', ts.numberType).optional())
+      .add(ts.property('timeout', ts.numberType).optional())
+
+    if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
+      transactionOptions.add(ts.property('isolationLevel', ts.namedType('Prisma.TransactionIsolationLevel')).optional())
+    }
+
+    clientOptions.add(
+      ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
+             The default values for transactionOptions
+             maxWait ?= 2000
+             timeout ?= 5000
+          `),
+    )
+
+    if (this.runtimeNameTs === 'library.js' && this.generator?.previewFeatures.includes('driverAdapters')) {
       clientOptions.add(
         ts
-          .property('adapter', ts.namedType('runtime.DriverAdapter'))
+          .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))
           .optional()
           .setDocComment(
             ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),

@@ -1,11 +1,13 @@
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('missing-engine: binary', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
+testIf(!process.env.PRISMA_QUERY_ENGINE_BINARY)('missing-engine: binary', async () => {
   if (getClientEngineType() !== ClientEngineType.Binary) {
     return
   }
@@ -15,11 +17,11 @@ test('missing-engine: binary', async () => {
 
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   let binaryPath =
     getClientEngineType() === ClientEngineType.Library
-      ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(platform, 'fs'))
-      : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
+      ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(binaryTarget, 'fs'))
+      : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${binaryTarget}`)
 
   if (process.platform === 'win32') {
     binaryPath += '.exe'
@@ -38,14 +40,14 @@ test('missing-engine: binary', async () => {
   await expect(async () => {
     await prisma.user.findMany()
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+    "
     Invalid \`prisma.user.findMany()\` invocation in
     /client/src/__tests__/integration/errors/missing-engine/binary.test.ts:0:0
 
-      36 })
-      37 
-      38 await expect(async () => {
-    → 39   await prisma.user.findMany(
+      38 })
+      39 
+      40 await expect(async () => {
+    → 41   await prisma.user.findMany(
     Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
     This is likely caused by tooling that has not copied "query-engine-TEST_PLATFORM" to the deployment folder.
@@ -59,6 +61,6 @@ test('missing-engine: binary', async () => {
       /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client
       /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime
       /tmp/prisma-engines
-      /client/src/__tests__/integration/errors/missing-engine
+      /client/src/__tests__/integration/errors/missing-engine"
   `)
 })

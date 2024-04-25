@@ -1,12 +1,14 @@
+import { Providers } from './providers'
+
 export interface Options {
   includeDefault: boolean
 }
 
-export function idForProvider(provider: string, options: Options = { includeDefault: true }): string {
+export function idForProvider(provider: Providers, options: Options = { includeDefault: true }): string {
   const strs = ['String @id']
 
   switch (provider) {
-    case 'mongodb':
+    case Providers.MONGODB:
       if (options.includeDefault) {
         strs.push('@default(auto())')
       }
@@ -26,10 +28,10 @@ export function idForProvider(provider: string, options: Options = { includeDefa
   return strs.join(' ')
 }
 
-export function foreignKeyForProvider(provider: string): string {
+export function foreignKeyForProvider(provider: Providers): string {
   const strs = ['String']
 
-  if (provider === 'mongodb') {
+  if (provider === Providers.MONGODB) {
     strs.push('@db.ObjectId')
   }
 

@@ -67,6 +67,10 @@ export function getIncludeName(modelName: string): string {
   return `${modelName}Include`
 }
 
+export function getOmitName(modelName: string): string {
+  return `${modelName}Omit`
+}
+
 export function getFieldArgName(field: DMMF.SchemaField, modelName: string): string {
   if (field.args.length) {
     return getModelFieldArgsName(field, modelName)
@@ -168,18 +172,22 @@ export function getReturnType({
   isChaining = false,
   isNullable = false,
 }: SelectReturnTypeOptions): string {
-  if (actionName === 'count') {
+  if (actionName === DMMF.ModelAction.count) {
     return `Promise<number>`
   }
-  if (actionName === 'aggregate') return `Promise<${getAggregateGetName(name)}<T>>`
+  if (actionName === DMMF.ModelAction.aggregate) return `Promise<${getAggregateGetName(name)}<T>>`
 
-  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
     return `Prisma.PrismaPromise<JsonObject>`
   }
 
   const isList = actionName === DMMF.ModelAction.findMany
 
-  if (actionName === 'deleteMany' || actionName === 'updateMany' || actionName === 'createMany') {
+  if (
+    actionName === DMMF.ModelAction.deleteMany ||
+    actionName === DMMF.ModelAction.updateMany ||
+    actionName === DMMF.ModelAction.createMany
+  ) {
     return `Prisma.PrismaPromise<BatchPayload>`
   }
 
@@ -195,21 +203,21 @@ export function getReturnType({
     }${promiseClose}`
   }
 
-  if (isChaining && actionName === 'findUniqueOrThrow') {
+  if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
     return `Prisma__${name}Client<${getType(
       `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )} | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
   }
 
-  if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
+  if (actionName === DMMF.ModelAction.findFirstOrThrow || actionName === DMMF.ModelAction.findUniqueOrThrow) {
     return `Prisma__${name}Client<${getType(
       `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )}, never, ExtArgs>`
   }
 
-  if (actionName === 'findFirst' || actionName === 'findUnique') {
+  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
     return `Prisma__${name}Client<${getType(
       `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
@@ -237,5 +245,5 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
 
 export const extArgsParam = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('$Extensions.Args'))
+  .extends(ts.namedType('$Extensions.InternalArgs'))
   .default(ts.namedType('$Extensions.DefaultArgs'))

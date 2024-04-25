@@ -1,7 +1,11 @@
+const path = require('path')
+
+const project = path.resolve(__dirname, 'tsconfig.json')
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import'],
+  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import', 'local-rules'],
   env: {
     node: true,
     es6: true,
@@ -9,11 +13,22 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./tsconfig.json'],
+    project,
   },
   overrides: [
     {
-      files: ['*.ts'],
+      files: ['./packages/client/src/runtime/core/types/exported/*.ts'],
+      excludedFiles: ['index.ts'],
+      rules: {
+        'local-rules/all-types-are-exported': 'error',
+        'local-rules/imports-from-same-directory': 'error',
+      },
+    },
+    {
+      files: ['./packages/client/src/runtime/core/types/exported/index.ts'],
+      rules: {
+        'local-rules/valid-exported-types-index': 'error',
+      },
     },
   ],
   extends: [
@@ -63,6 +78,8 @@ module.exports = {
     'jest/valid-title': 'off',
     '@typescript-eslint/no-unnecessary-type-assertion': 'off',
     // low hanging fruits:
+    // to unblock eslint dep update in https://github.com/prisma/prisma/pull/21935
+    '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
     // to unblock eslint dep update in https://github.com/prisma/prisma/pull/9692
     '@typescript-eslint/no-unsafe-argument': 'warn',
     '@typescript-eslint/ban-types': 'off',

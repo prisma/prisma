@@ -12,7 +12,7 @@ test('info and warn', () => {
     },
   ])
 
-  expect(level).toMatchInlineSnapshot(`info`)
+  expect(level).toMatchInlineSnapshot(`"info"`)
 })
 
 test('query', () => {
@@ -35,16 +35,16 @@ test('strings and objects', () => {
     'warn',
   ])
 
-  expect(level).toMatchInlineSnapshot(`warn`)
+  expect(level).toMatchInlineSnapshot(`"warn"`)
 })
 test('strings', () => {
   const level = getLogLevel('warn')
 
-  expect(level).toMatchInlineSnapshot(`warn`)
+  expect(level).toMatchInlineSnapshot(`"warn"`)
 })
 
 test('strings array', () => {
   const level = getLogLevel(['warn', 'error'])
 
-  expect(level).toMatchInlineSnapshot(`error`)
+  expect(level).toMatchInlineSnapshot(`"error"`)
 })

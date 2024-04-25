@@ -2,12 +2,12 @@
 
 exports[`sqlite 1 unapplied migration 4`] = `[]`;
 
-exports[`sqlite 1 unapplied migration 5`] = `[]`;
+exports[`sqlite 1 unapplied migration 5`] = `""`;
 
 exports[`sqlite no unapplied migrations 3`] = `[]`;
 
-exports[`sqlite no unapplied migrations 4`] = `[]`;
+exports[`sqlite no unapplied migrations 4`] = `""`;
 
 exports[`sqlite should throw if database is not empty 3`] = `[]`;
 
-exports[`sqlite should throw if database is not empty 4`] = `[]`;
+exports[`sqlite should throw if database is not empty 4`] = `""`;

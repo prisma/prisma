@@ -1,5 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -33,24 +34,24 @@ testMatrix.setupTestSuite(
 
       expect(result).toMatchInlineSnapshot(`
         {
-          id: 02d25579a73a72373fa4e846,
-          optionalJson: null,
-          requiredJson: {
-            bar: {
-              baz: qux,
+          "id": "02d25579a73a72373fa4e846",
+          "optionalJson": null,
+          "requiredJson": {
+            "bar": {
+              "baz": "qux",
             },
-            foo: bar,
-            garply: [
+            "foo": "bar",
+            "garply": [
               {
-                waldo: fred,
+                "waldo": "fred",
               },
               {
-                plugh: xyzzy,
+                "plugh": "xyzzy",
               },
             ],
-            quux: [
-              corge,
-              grault,
+            "quux": [
+              "corge",
+              "grault",
             ],
           },
         }
@@ -73,11 +74,11 @@ testMatrix.setupTestSuite(
       async () => {
         let result
 
-        if (suiteConfig.provider === 'mysql') {
+        if (suiteConfig.provider === Providers.MYSQL) {
           result = await prisma.resource.findMany({
             where: {
               requiredJson: {
-                // @ts-test-if: provider === 'mysql'
+                // @ts-test-if: provider === Providers.MYSQL
                 path: '$.bar.baz',
                 equals: 'qux',
               },
@@ -85,11 +86,11 @@ testMatrix.setupTestSuite(
           })
         }
 
-        if (suiteConfig.provider === 'postgresql' || suiteConfig.provider === 'cockroachdb') {
+        if (suiteConfig.provider === Providers.POSTGRESQL || suiteConfig.provider === Providers.COCKROACHDB) {
           result = await prisma.resource.findMany({
             where: {
               requiredJson: {
-                // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb'
+                // @ts-test-if: provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB
                 path: ['bar', 'baz'],
                 equals: 'qux',
               },
@@ -137,9 +138,9 @@ testMatrix.setupTestSuite(
 
       expect(result).toMatchInlineSnapshot(`
         {
-          id: 02d25579a73a72373fa4e846,
-          optionalJson: null,
-          requiredJson: {},
+          "id": "02d25579a73a72373fa4e846",
+          "optionalJson": null,
+          "requiredJson": {},
         }
       `)
     })

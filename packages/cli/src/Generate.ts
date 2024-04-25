@@ -2,6 +2,7 @@ import { enginesVersion } from '@prisma/engines'
 import {
   arg,
   Command,
+  drawBox,
   format,
   Generator,
   getCommandWithExecutor,
@@ -123,7 +124,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
 
@@ -248,6 +249,18 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
+        const tryAccelerateMessage = `Supercharge your Prisma Client with global database caching,
+scalable connection pooling and real-time database events.
+Explore Prisma Accelerate: ${link('https://pris.ly/cli/-accelerate')}
+Explore Prisma Pulse: ${link('https://pris.ly/cli/-pulse')}`
+
+        const boxedTryAccelerateMessage = drawBox({
+          height: tryAccelerateMessage.split('\n').length,
+          width: 0, // calculated automatically
+          str: tryAccelerateMessage,
+          horizontalPadding: 2,
+        })
+
         hint = `
 Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
@@ -263,7 +276,37 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
+
+${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+        if (generator?.previewFeatures.includes('driverAdapters')) {
+          if (generator?.isCustomOutput && isDeno) {
+            hint = `
+${bold('Start using Prisma Client')}
+${dim('```')}
+${highlightTS(`\
+import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
+const prisma = new PrismaClient()`)}
+${dim('```')}
+
+More information: https://pris.ly/d/client`
+          } else {
+            hint = `
+${bold('Start using Prisma Client')}
+${dim('```')}
+${highlightTS(`\
+import { PrismaClient } from '${importPath}'
+const prisma = new PrismaClient()`)}
+${dim('```')}
+
+More information: https://pris.ly/d/client`
+          }
+
+          hint = `${hint}
+
+${boxedTryAccelerateMessage}
+${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+        }
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')

@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { devDependencies } from '@prisma/engines/package.json'
+import { dependencies } from '@prisma/engines/package.json'
 
 import type { EngineConfig } from '../../common/Engine'
 import { NotImplementedYetError } from '../errors/NotImplementedYetError'
@@ -9,7 +9,7 @@ const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
 const debug = Debug('prisma:client:dataproxyEngine')
 
 async function _getClientVersion(host: string, config: EngineConfig) {
-  const engineVersion = devDependencies['@prisma/engines-version']
+  const engineVersion = dependencies['@prisma/engines-version']
   const clientVersion = config.clientVersion ?? 'unknown'
 
   // internal override for testing and manual version overrides

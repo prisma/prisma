@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import {
   ClientEngineType,
   extractPreviewFeatures,
@@ -24,19 +24,13 @@ const del = promisify(rimraf)
 
 export interface GenerateInFolderOptions {
   projectDir: string
-  useLocalRuntime?: boolean
-  transpile?: boolean
   packageSource?: string
-  useBuiltRuntime?: boolean
   overrideEngineType?: ClientEngineType
 }
 
 export async function generateInFolder({
   projectDir,
-  useLocalRuntime = false,
-  transpile = true,
   packageSource,
-  useBuiltRuntime,
   overrideEngineType,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
@@ -50,72 +44,51 @@ export async function generateInFolder({
   const schemaPath = getSchemaPath(projectDir)
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
+  if (overrideEngineType) {
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = overrideEngineType
+  }
+
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const previewFeatures = extractPreviewFeatures(config)
-  const clientGenerator = config.generators[0]
-  const clientEngineType = overrideEngineType ?? getClientEngineType(clientGenerator)
+  const clientEngineType = getClientEngineType(config.generators[0])
 
-  const outputDir = transpile
-    ? path.join(projectDir, 'node_modules/@prisma/client')
-    : path.join(projectDir, '@prisma/client')
-
-  // if (transpile && config.generators[0]?.output) {
-  //   outputDir = path.join(path.dirname(schemaPath), config.generators[0]?.output)
-  // }
+  const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
 
   await del(outputDir)
 
-  if (transpile) {
-    if (packageSource) {
-      await copy({
-        from: packageSource, // when using yarn pack and extracting it, it includes a folder called "package"
-        to: outputDir,
-        recursive: true,
-        parallelJobs: 20,
-        overwrite: true,
-      })
-    } else {
-      await getPackedPackage('@prisma/client', outputDir)
-    }
+  if (packageSource) {
+    await copy({
+      from: packageSource, // when using yarn pack and extracting it, it includes a folder called "package"
+      to: outputDir,
+      recursive: true,
+      parallelJobs: 20,
+      overwrite: true,
+    })
+  } else {
+    await getPackedPackage('@prisma/client', outputDir)
   }
 
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
-  let runtimeDirs
-  if (useLocalRuntime) {
-    if (useBuiltRuntime) {
-      runtimeDirs = {
-        node: path.relative(outputDir, path.join(__dirname, '../../runtime')),
-        edge: path.relative(outputDir, path.join(__dirname, '../../runtime/edge')),
-      }
-    } else {
-      runtimeDirs = {
-        node: path.relative(outputDir, path.join(__dirname, '../runtime')),
-        edge: path.relative(outputDir, path.join(__dirname, '../runtime/edge')),
-      }
-    }
-  } else if (useBuiltRuntime) {
-    throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
-  }
   const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
-  const queryEngineBinaryPath = path.join(
-    enginesPath,
-    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-  )
+  const queryEngineLibraryPath =
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(binaryTarget, 'fs'))
+  const queryEngineBinaryPath =
+    process.env.PRISMA_QUERY_ENGINE_BINARY ??
+    path.join(enginesPath, `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`)
 
-  await ensureTestClientQueryEngine(clientEngineType, platform)
+  await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
 
   const binaryPaths =
     clientEngineType === ClientEngineType.Library
       ? {
           libqueryEngine: {
-            [platform]: queryEngineLibraryPath,
+            [binaryTarget]: queryEngineLibraryPath,
           },
         }
       : {
           queryEngine: {
-            [platform]: queryEngineBinaryPath,
+            [binaryTarget]: queryEngineBinaryPath,
           },
         }
 
@@ -131,16 +104,13 @@ export async function generateInFolder({
     dmmf,
     ...config,
     outputDir,
-    runtimeDirs,
-    transpile,
-    testMode: true,
     schemaPath,
+    testMode: true,
     copyRuntime: false,
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
-    overrideEngineType,
   })
 
   const time = performance.now() - before

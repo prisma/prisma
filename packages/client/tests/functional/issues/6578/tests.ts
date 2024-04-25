@@ -1,4 +1,6 @@
 import { QueryEvent } from '../../../../src/runtime/getPrismaClient'
+import { Providers } from '../../_utils/providers'
+import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -26,6 +28,7 @@ testMatrix.setupTestSuite(
       await _prisma.$disconnect()
     })
 
+    // TODO Planetscale InvalidArgument desc = Incorrect time value: '2023-09-30T03:07:55.276+00:00
     test('should assert Dates, DateTimes, Times and UUIDs are wrapped in quotes and are deserializable', async () => {
       const date = new Date()
 
@@ -37,9 +40,9 @@ testMatrix.setupTestSuite(
         }
       })
 
-      if (provider === 'sqlite') {
+      if (provider === Providers.SQLITE) {
         await _prisma.user.create({
-          // @ts-test-if: provider === 'sqlite'
+          // @ts-test-if: provider === Providers.SQLITE
           data: {
             dateTime: date,
           },
@@ -48,17 +51,23 @@ testMatrix.setupTestSuite(
         await _prisma.user.create({
           data: {
             dateTime: date,
-            // @ts-test-if: provider !== 'sqlite'
+            // @ts-test-if: provider !== Providers.SQLITE
             date: date,
             time: date,
           },
         })
       }
 
+      await waitFor(() => {
+        if (paramsString === '') {
+          throw new Error('params not received from query logs')
+        }
+      })
+
       // This test is asserting that JSON.parse does not throw because quotes are used
       const params = JSON.parse(paramsString)
 
-      if (provider === 'sqlite') {
+      if (provider === Providers.SQLITE) {
         expect(params).toHaveLength(3)
       } else {
         expect(params).toHaveLength(5)
@@ -72,7 +81,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Params not applicable to mongodb',
     },
   },

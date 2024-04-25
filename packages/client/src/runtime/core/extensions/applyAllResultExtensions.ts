@@ -1,6 +1,6 @@
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { RuntimeDataModel } from '../runtimeDataModel'
-import { JsArgs } from '../types/JsApi'
+import { JsArgs } from '../types/exported/JsApi'
 import { applyResultExtensions } from './applyResultExtensions'
 import { MergedExtensionsList } from './MergedExtensionsList'
 import { visitQueryResult } from './visitQueryResult'
@@ -45,6 +45,7 @@ export function applyAllResultExtensions({
         result: value,
         modelName: dmmfToJSModelName(dmmfModelName),
         select: args.select,
+        omit: args.omit,
         extensions,
       }),
   })
