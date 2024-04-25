@@ -3,12 +3,11 @@
   "extends": [
     "config:recommended",
     ":disableRateLimiting",
-    ":noUnscheduledUpdates",
-    ":pinAllExceptPeerDependencies"
+    ":noUnscheduledUpdates"
   ],
   "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
-  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
+  "reviewers": ["@Jolg42", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "pin",
   "ignoreDeps": [
@@ -24,6 +23,24 @@
   },
   "configMigration": true,
   "packageRules": [
+    {
+      "matchPackagePatterns": [
+        "*"
+      ],
+      "excludePackageNames": [
+        "@opentelemetry/api",
+        "@opentelemetry/instrumentation",
+        "@opentelemetry/sdk-trace-base"
+      ],
+      "rangeStrategy": "pin"
+    },
+    {
+      "matchDepTypes": [
+        "engines",
+        "peerDependencies"
+      ],
+      "rangeStrategy": "auto"
+    },
     {
       "groupName": "Studio",
       "automerge": true,
