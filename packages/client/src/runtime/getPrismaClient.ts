@@ -76,7 +76,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native'
 }
 
 // used by esbuild for tree-shaking
@@ -991,6 +991,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     _hasPreviewFlag(feature: string) {
       return !!this._engineConfig.previewFeatures?.includes(feature)
+    }
+
+    $applyPendingMigrations(): Promise<void> {
+      return this._engine.applyPendingMigrations()
     }
 
     $extends = $extends

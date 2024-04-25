@@ -72,7 +72,7 @@
     "terminal-link": "2.1.1",
     "tmp": "0.2.3",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.1.0",
+    "ts-pattern": "5.1.1",
     "typescript": "5.3.3",
     "yarn": "1.22.22"
   },
@@ -82,7 +82,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.13.0-22.3364458a783b65fd18b9ccc7fe4acfa87fbaa07d",
+    "@prisma/prisma-schema-wasm": "5.14.0-4.5d2f494bcde9cef4e9f9e636940376b767e4aa8d",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"

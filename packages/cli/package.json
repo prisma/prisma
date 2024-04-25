@@ -79,7 +79,7 @@
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/studio": "0.500.0",
     "@prisma/studio-server": "0.500.0",
-    "@swc/core": "1.4.11",
+    "@swc/core": "1.5.0",
     "@swc/jest": "0.2.36",
     "@types/debug": "4.1.12",
     "@types/fs-extra": "9.0.13",
@@ -110,7 +110,7 @@
     "resolve-pkg": "2.0.0",
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.1",
-    "ts-pattern": "5.1.0",
+    "ts-pattern": "5.1.1",
     "typescript": "5.3.3",
     "xdg-app-paths": "8.3.0",
     "zx": "7.2.3"

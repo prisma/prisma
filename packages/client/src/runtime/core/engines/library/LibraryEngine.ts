@@ -29,6 +29,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
+import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
 
@@ -77,7 +78,9 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
-    if (TARGET_BUILD_TYPE === 'library') {
+    if (TARGET_BUILD_TYPE === 'react-native') {
+      this.libraryLoader = reactNativeLibraryLoader
+    } else if (TARGET_BUILD_TYPE === 'library') {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
       // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
@@ -120,6 +123,15 @@ export class LibraryEngine implements Engine<undefined> {
           'warn(prisma-client)',
         )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
       )
+    }
+  }
+
+  async applyPendingMigrations(): Promise<void> {
+    if (TARGET_BUILD_TYPE === 'react-native') {
+      await this.start()
+      await this.engine?.applyPendingMigrations()
+    } else {
+      throw new Error('Cannot call this method from this type of engine instance')
     }
   }
 
@@ -229,48 +241,50 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private async loadEngine(): Promise<void> {
-    if (!this.engine) {
-      if (!this.QueryEngineConstructor) {
-        this.library = await this.libraryLoader.loadLibrary(this.config)
-        this.QueryEngineConstructor = this.library.QueryEngine
+    if (this.engine) {
+      return
+    }
+
+    if (!this.QueryEngineConstructor) {
+      this.library = await this.libraryLoader.loadLibrary(this.config)
+      this.QueryEngineConstructor = this.library.QueryEngine
+    }
+    try {
+      // Using strong reference to `this` inside of log callback will prevent
+      // this instance from being GCed while native engine is alive. At the
+      // same time, `this.engine` field will prevent native instance from
+      // being GCed. Using weak ref helps to avoid this cycle
+      const weakThis = new WeakRef(this)
+      const { adapter } = this.config
+
+      if (adapter) {
+        debug('Using driver adapter: %O', adapter)
       }
-      try {
-        // Using strong reference to `this` inside of log callback will prevent
-        // this instance from being GCed while native engine is alive. At the
-        // same time, `this.engine` field will prevent native instance from
-        // being GCed. Using weak ref helps to avoid this cycle
-        const weakThis = new WeakRef(this)
-        const { adapter } = this.config
 
-        if (adapter) {
-          debug('Using driver adapter: %O', adapter)
-        }
-
-        this.engine = new this.QueryEngineConstructor(
-          {
-            datamodel: this.datamodel,
-            env: process.env,
-            logQueries: this.config.logQueries ?? false,
-            ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverrides ?? {},
-            logLevel: this.logLevel,
-            configDir: this.config.cwd,
-            engineProtocol: 'json',
-          },
-          (log) => {
-            weakThis.deref()?.logger(log)
-          },
-          adapter,
-        )
-        engineInstanceCount++
-      } catch (_e) {
-        const e = _e as Error
-        const error = this.parseInitError(e.message)
-        if (typeof error === 'string') {
-          throw e
-        } else {
-          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
-        }
+      this.engine = new this.QueryEngineConstructor(
+        {
+          datamodel: this.datamodel,
+          env: process.env,
+          logQueries: this.config.logQueries ?? false,
+          ignoreEnvVarErrors: true,
+          datasourceOverrides: this.datasourceOverrides ?? {},
+          logLevel: this.logLevel,
+          configDir: this.config.cwd,
+          engineProtocol: 'json',
+        },
+        (log) => {
+          weakThis.deref()?.logger(log)
+        },
+        adapter,
+      )
+      engineInstanceCount++
+    } catch (_e) {
+      const e = _e as Error
+      const error = this.parseInitError(e.message)
+      if (typeof error === 'string') {
+        throw e
+      } else {
+        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
       }
     }
   }
@@ -440,6 +454,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     try {
       await this.start()
+
       this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
       this.lastQuery = queryStr
@@ -485,11 +500,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
+
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
     )
+
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 

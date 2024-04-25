@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "3.1.0",
-    "@swc/core": "1.4.11",
+    "@swc/core": "1.5.0",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
@@ -31,7 +31,7 @@
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
-    "ts-pattern": "5.1.0"
+    "ts-pattern": "5.1.1"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*"
