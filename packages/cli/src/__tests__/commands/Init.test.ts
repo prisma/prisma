@@ -3,7 +3,7 @@ import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { defaultEnv, defaultGitIgnore, defaultSchema, withModelSchema } from '../../Init'
+import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -237,7 +237,7 @@ test('works with --with-model param postgresql', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(withModelSchema('postgresql'))
+  expect(schema).toMatch(defaultSchema({ withModel: true, datasourceProvider: 'postgresql' }))
   expect(schema).toMatchSnapshot()
 })
 
@@ -247,7 +247,7 @@ test('works with --with-model param mongodb', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(withModelSchema('mongodb'))
+  expect(schema).toMatch(defaultSchema({ withModel: true, datasourceProvider: 'mongodb' }))
   expect(schema).toMatchSnapshot()
 })
 
@@ -257,7 +257,7 @@ test('works with --with-model param cockroachdb', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(withModelSchema('cockroachdb'))
+  expect(schema).toMatch(defaultSchema({ withModel: true, datasourceProvider: 'cockroachdb' }))
 })
 
 test('works with generator param - `go run github.com/steebchen/prisma-client-go`', async () => {
@@ -277,6 +277,8 @@ test('works with generator param - `go run github.com/steebchen/prisma-client-go
 test('works with preview features - mock test', async () => {
   ctx.fixture('init')
   const result = await ctx.cli('init', '--preview-feature', 'mock-123')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(
     defaultSchema({

@@ -20,19 +20,20 @@ import { match, P } from 'ts-pattern'
 import { isError } from 'util'
 
 import { printError } from './utils/prompt/utils/print'
-import { getDefaultSchemaModel, getSchemaModelCockroachDb, getSchemaModelMongoDb } from './utils/schemaGenerator'
 
 export const defaultSchema = (props?: {
   datasourceProvider?: ConnectorType
   generatorProvider?: string
   previewFeatures?: string[]
   output?: string
+  withModel?: boolean
 }) => {
   const {
     datasourceProvider = 'postgresql',
     generatorProvider = defaultGeneratorProvider,
     previewFeatures = defaultPreviewFeatures,
     output = defaultOutput,
+    withModel = false,
   } = props || {}
 
   const aboutAccelerate = `\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -40,7 +41,7 @@ export const defaultSchema = (props?: {
 
   const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
 
-  return `// This is your Prisma schema file,
+  let schema = `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 ${isProviderCompatibleWithAccelerate ? aboutAccelerate : ''}
 generator client {
@@ -56,17 +57,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 `
-}
 
-export const withModelSchema = (provider: ConnectorType = 'postgresql') => {
-  switch (provider) {
-    case 'mongodb':
-      return getSchemaModelMongoDb(provider)
-    case 'cockroachdb':
-      return getSchemaModelCockroachDb(provider)
-    default:
-      return getDefaultSchemaModel(provider)
+  // We add a model to the schema file if the user passed the --with-model flag
+  if (withModel) {
+    const defaultAttributes = `email String  @unique
+  name  String?`
+
+    switch (datasourceProvider) {
+      case 'mongodb':
+        schema += `
+model User {
+  id    String   @id @default(auto()) @map("_id") @db.ObjectId
+  ${defaultAttributes}
+}
+`
+        break
+      case 'cockroachdb':
+        schema += `
+model User {
+  id    BigInt  @id @default(sequence())
+  ${defaultAttributes}
+}
+`
+        break
+      default:
+        schema += `
+model User {
+  id    Int     @id @default(autoincrement())
+  ${defaultAttributes}
+}
+`
+    }
   }
+
+  return schema
 }
 
 export const defaultEnv = (
@@ -84,8 +108,8 @@ export const defaultEnv = (
   return env
 }
 
-export const defaultPort = (provider: ConnectorType) => {
-  switch (provider) {
+export const defaultPort = (datasourceProvider: ConnectorType) => {
+  switch (datasourceProvider) {
     case 'mysql':
       return 3306
     case 'sqlserver':
@@ -101,8 +125,12 @@ export const defaultPort = (provider: ConnectorType) => {
   return undefined
 }
 
-export const defaultURL = (provider: ConnectorType, port = defaultPort(provider), schema = 'public') => {
-  switch (provider) {
+export const defaultURL = (
+  datasourceProvider: ConnectorType,
+  port = defaultPort(datasourceProvider),
+  schema = 'public',
+) => {
+  switch (datasourceProvider) {
     case 'postgresql':
       return `postgresql://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
     case 'cockroachdb':
@@ -240,22 +268,28 @@ export class Init implements Command {
       process.exit(1)
     }
 
-    const { provider, url } = await match(args)
+    const { datasourceProvider, url } = await match(args)
       .with(
         {
-          '--datasource-provider': P.when((provider): provider is string => Boolean(provider)),
+          '--datasource-provider': P.when((datasourceProvider): datasourceProvider is string =>
+            Boolean(datasourceProvider),
+          ),
         },
         (input) => {
-          const providerLowercase = input['--datasource-provider'].toLowerCase()
-          if (!['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb'].includes(providerLowercase)) {
+          const datasourceProviderLowercase = input['--datasource-provider'].toLowerCase()
+          if (
+            !['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb'].includes(
+              datasourceProviderLowercase,
+            )
+          ) {
             throw new Error(
               `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
             )
           }
-          const provider = providerLowercase as ConnectorType
-          const url = defaultURL(provider)
+          const datasourceProvider = datasourceProviderLowercase as ConnectorType
+          const url = defaultURL(datasourceProvider)
           return Promise.resolve({
-            provider,
+            datasourceProvider,
             url,
           })
         },
@@ -280,14 +314,14 @@ export class Init implements Command {
             }
           }
 
-          const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
-          return { provider, url }
+          const datasourceProvider = protocolToConnectorType(`${url.split(':')[0]}:`)
+          return { datasourceProvider, url }
         },
       )
       .otherwise(() => {
         // Default to PostgreSQL
         return Promise.resolve({
-          provider: 'postgresql' as ConnectorType,
+          datasourceProvider: 'postgresql' as ConnectorType,
           url: undefined,
         })
       })
@@ -307,19 +341,16 @@ export class Init implements Command {
       fs.mkdirSync(prismaFolder)
     }
 
-    if (args['--with-model']) {
-      fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), withModelSchema(provider))
-    } else {
-      fs.writeFileSync(
-        path.join(prismaFolder, 'schema.prisma'),
-        defaultSchema({
-          datasourceProvider: provider,
-          generatorProvider,
-          previewFeatures,
-          output,
-        }),
-      )
-    }
+    fs.writeFileSync(
+      path.join(prismaFolder, 'schema.prisma'),
+      defaultSchema({
+        datasourceProvider,
+        generatorProvider,
+        previewFeatures,
+        output,
+        withModel: args['--with-model'],
+      }),
+    )
 
     const warnings: string[] = []
     const envPath = path.join(outputDir, '.env')
@@ -356,7 +387,7 @@ export class Init implements Command {
 
     const steps: string[] = []
 
-    if (provider === 'mongodb') {
+    if (datasourceProvider === 'mongodb') {
       steps.push(`Define models in the schema.prisma file.`)
     } else {
       steps.push(
