@@ -206,7 +206,7 @@ export class Init implements Command {
   Set up a new Prisma project and specify the url that will be used
     ${dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
 
-  Set up a new Prisma projects with a model example
+  Set up a new Prisma project with an example model
     ${dim('$')} prisma init --with-model
   `)
 
