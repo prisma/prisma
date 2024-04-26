@@ -48,7 +48,7 @@
     "strip-indent": "3.0.0",
     "tempy": "1.0.1",
     "ts-pattern": "5.1.1",
-    "typescript": "5.3.3"
+    "typescript": "5.4.5"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
