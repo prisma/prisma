@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">=16.13",
-    "pnpm": ">=8.6.7 <9"
+    "pnpm": ">=8.6.7 <10"
   },
   "scripts": {
     "build": "pnpm -r build",
