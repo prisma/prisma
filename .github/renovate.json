@@ -207,20 +207,23 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "e2e ts-version tests",
-      "excludePackageNames": ["typescript"],
-      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"],
-      "schedule": ["before 7am on Wednesday"]
-    },
-    {
       "groupName": "e2e tests - typescript",
       "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["patch", "minor", "major"],
       "matchFileNames": ["packages/client/tests/e2e/**"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "e2e ts-version tests - typescript",
+      "groupName": "e2e ts-version (major/minor) tests - typescript",
+      "enabled": false,
       "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["minor","major"],
+      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
+    },
+    {
+      "groupName": "e2e ts-version (patch) tests - typescript",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["patch"],
       "matchFileNames": ["packages/client/tests/e2e/ts-version/**"],
       "schedule": ["before 7am on Wednesday"]
     },
