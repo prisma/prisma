@@ -4,6 +4,7 @@
     ":dependencyDashboard",
     ":semanticCommitType(chore)",
     ":ignoreModulesAndTests",
+    ":pinAllExceptPeerDependencies",
     "group:monorepos",
     "group:recommended",
     "replacements:all",
@@ -29,24 +30,6 @@
   },
   "configMigration": true,
   "packageRules": [
-    {
-      "matchPackagePatterns": [
-        "*"
-      ],
-      "excludePackageNames": [
-        "@opentelemetry/api",
-        "@opentelemetry/instrumentation",
-        "@opentelemetry/sdk-trace-base"
-      ],
-      "rangeStrategy": "pin"
-    },
-    {
-      "matchDepTypes": [
-        "engines",
-        "peerDependencies"
-      ],
-      "rangeStrategy": "auto"
-    },
     {
       "groupName": "devDependencies patch (non-major)",
       "automerge": true,
@@ -192,6 +175,16 @@
       "groupName": "opentelemetry packages",
       "matchPackagePatterns": ["^@opentelemetry/"],
       "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "opentelemetry packages for instrumentation package",
+      "matchFileNames": ["packages/instrumentation/**"],
+      "matchPackageNames": [
+        "@opentelemetry/api",
+        "@opentelemetry/instrumentation",
+        "@opentelemetry/sdk-trace-base"
+      ],
+      "rangeStrategy": "auto"
     },
     {
       "groupName": "esbuild packages",
