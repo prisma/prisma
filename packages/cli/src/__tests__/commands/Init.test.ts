@@ -258,6 +258,7 @@ test('works with --with-model param cockroachdb', async () => {
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema({ withModel: true, datasourceProvider: 'cockroachdb' }))
+  expect(schema).toMatchSnapshot()
 })
 
 test('works with generator param - `go run github.com/steebchen/prisma-client-go`', async () => {

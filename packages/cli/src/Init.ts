@@ -67,7 +67,7 @@ datasource db {
       case 'mongodb':
         schema += `
 model User {
-  id    String   @id @default(auto()) @map("_id") @db.ObjectId
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
   ${defaultAttributes}
 }
 `
