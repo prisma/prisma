@@ -249,7 +249,7 @@
     "ts-node": "10.9.2",
     "ts-pattern": "5.1.1",
     "tsd": "0.31.0",
-    "typescript": "5.3.3",
+    "typescript": "5.4.5",
     "undici": "5.28.4",
     "wrangler": "3.52.0",
     "zx": "7.2.3"
