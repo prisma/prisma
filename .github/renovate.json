@@ -30,7 +30,6 @@
   "configMigration": true,
   "packageRules": [
     {
-      "groupName": "rangeStrategy pin for all (otel excluded)",
       "matchPackagePatterns": [
         "*"
       ],
@@ -42,7 +41,6 @@
       "rangeStrategy": "pin"
     },
     {
-      "groupName": "rangeStrategy auto for engines and peerDependencies",
       "matchDepTypes": [
         "engines",
         "peerDependencies"
