@@ -744,8 +744,8 @@ importers:
         specifier: 3.3.0
         version: 3.3.0
       memfs:
-        specifier: 4.8.2
-        version: 4.8.2
+        specifier: 4.9.1
+        version: 4.9.1
       mssql:
         specifier: 10.0.2
         version: 10.0.2
@@ -3260,6 +3260,38 @@ packages:
 
   /@js-joda/core@5.5.3:
     resolution: {integrity: sha512-7dqNYwG8gCt4hfg5PKgM7xLEcgSBcx/UgC92OMnhMmvAnq11QzDFPrxUkNR/u5kn17WWLZ8beZ4A3Qrz4pZcmQ==}
+    dev: true
+
+  /@jsonjoy.com/base64@1.1.1(tslib@2.6.2):
+    resolution: {integrity: sha512-LnFjVChaGY8cZVMwAIMjvA1XwQjZ/zIXHyh28IyJkyNkzof4Dkm1+KN9UIm3lHhREH4vs7XwZ0NpkZKnwOtEfg==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+    dependencies:
+      tslib: 2.6.2
+    dev: true
+
+  /@jsonjoy.com/json-pack@1.0.2(tslib@2.6.2):
+    resolution: {integrity: sha512-4KMApTgb1Hvjz9Ue7unziJ1xNy3k6d2erp0hz1iXryXsf6LEM3KwN6YrfbqT0vqkUO8Tu+CSnvMia9cWX6YGVw==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+    dependencies:
+      '@jsonjoy.com/base64': 1.1.1(tslib@2.6.2)
+      '@jsonjoy.com/util': 1.1.0(tslib@2.6.2)
+      hyperdyperid: 1.2.0
+      thingies: 1.21.0(tslib@2.6.2)
+      tslib: 2.6.2
+    dev: true
+
+  /@jsonjoy.com/util@1.1.0(tslib@2.6.2):
+    resolution: {integrity: sha512-Yz+xITJ3Y/w0DBISwPkBETP5/cITHXscjgQNZIkfrVz1V7/ahJY8vw+T+LZy/KtXgKuUWqu4GALAQ3bhGt9J8A==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+    dependencies:
+      hyperdyperid: 1.2.0
+      tslib: 2.6.2
     dev: true
 
   /@libsql/client@0.6.0:
@@ -7369,6 +7401,11 @@ packages:
     hasBin: true
     dev: true
 
+  /hyperdyperid@1.2.0:
+    resolution: {integrity: sha512-Y93lCzHYgGWdrJ66yIktxiaGULYc6oGiABxhcO5AufBeOyoIdZF7bIfLaOrbM0iGIOXQQgxxRrFEnb+Y6w1n4A==}
+    engines: {node: '>=10.18'}
+    dev: true
+
   /iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
     engines: {node: '>=0.10.0'}
@@ -8804,10 +8841,13 @@ packages:
     engines: {node: '>= 0.6'}
     dev: true
 
-  /memfs@4.8.2:
-    resolution: {integrity: sha512-j4WKth315edViMBGkHW6NTF0QBjsTrcRDmYNcGsPq+ozMEyCCCIlX2d2mJ5wuh6iHvJ3FevUrr48v58YRqVdYg==}
+  /memfs@4.9.1:
+    resolution: {integrity: sha512-36cVYFMaa9HNEYyvkyKCwker8DBmOdjWLrfekE/cHEKJ806fCfKNVhOJNvoyV/CrGSZDtfQPbhn0Zid0gbH0Hw==}
     engines: {node: '>= 4.0.0'}
     dependencies:
+      '@jsonjoy.com/json-pack': 1.0.2(tslib@2.6.2)
+      '@jsonjoy.com/util': 1.1.0(tslib@2.6.2)
+      sonic-forest: 1.0.0(tslib@2.6.2)
       tslib: 2.6.2
     dev: true
 
@@ -10535,6 +10575,15 @@ packages:
     dev: true
     optional: true
 
+  /sonic-forest@1.0.0(tslib@2.6.2):
+    resolution: {integrity: sha512-yFO2N4uTUFtgKLw03WWFpN1iEwZySweMsa18XN3Kt0yYrlmVHunC2ZgM+437zDoKISAJHcH3Cg18U7d6tuSgSQ==}
+    engines: {node: '>=10.0'}
+    peerDependencies:
+      tslib: '2'
+    dependencies:
+      tslib: 2.6.2
+    dev: true
+
   /sort-keys@4.2.0:
     resolution: {integrity: sha512-aUYIEU/UviqPgc8mHR6IW1EGxkAXpeRETYcrzg8cLAvUPZcpAlleSXHV2mY7G12GphSH6Gzv+4MMVSSkbdteHg==}
     engines: {node: '>=8'}
@@ -10979,6 +11028,15 @@ packages:
 
   /text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
+    dev: true
+
+  /thingies@1.21.0(tslib@2.6.2):
+    resolution: {integrity: sha512-hsqsJsFMsV+aD4s3CWKk85ep/3I9XzYV/IXaSouJMYIoDlgyi11cBhsqYe9/geRfB0YIikBQg6raRaM+nIMP9g==}
+    engines: {node: '>=10.18'}
+    peerDependencies:
+      tslib: ^2
+    dependencies:
+      tslib: 2.6.2
     dev: true
 
   /through@2.3.8:
