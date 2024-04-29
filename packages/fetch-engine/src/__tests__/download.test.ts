@@ -546,7 +546,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     test('auto heal corrupt engine binary', async () => {
-      const targetPath = path.join(baseDirCorruption, getBinaryName('query-engine', binaryTarget))
+      const targetPath = path.join(baseDirCorruption, getBinaryName(BinaryType.QueryEngineBinary, binaryTarget))
       if (fs.existsSync(targetPath)) {
         try {
           fs.unlinkSync(targetPath)
@@ -713,7 +713,11 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       mockFetch.mockImplementation((url, opts) => {
         opts = opts || {}
         // This makes everything fail with a timeout
-        opts.timeout = 1
+        const controller = new AbortController()
+        setTimeout(() => {
+          controller.abort()
+        }, 1)
+        opts.signal = controller.signal
         return actualFetch(url, opts)
       })
 
@@ -738,7 +742,11 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         opts = opts || {}
         // We only make binaries fail with a timeout, not checksums
         if (!String(url).endsWith('.sha256')) {
-          opts.timeout = 1
+          const controller = new AbortController()
+          setTimeout(() => {
+            controller.abort()
+          }, 1)
+          opts.signal = controller.signal
         }
         return actualFetch(url, opts)
       })

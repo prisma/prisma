@@ -97,6 +97,10 @@ export async function downloadZip(
       return await new Promise(async (resolve, reject) => {
         let bytesRead = 0
 
+        if (response.body === null) {
+          return reject(new Error(`Failed to fetch the engine file at ${url} - response.body is null`))
+        }
+
         response.body.on('error', reject).on('data', (chunk) => {
           bytesRead += chunk.length
 
