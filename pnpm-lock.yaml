@@ -961,6 +961,9 @@ importers:
       tempy:
         specifier: 1.0.1
         version: 1.0.1
+      timeout-signal:
+        specifier: 2.0.0
+        version: 2.0.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -10967,6 +10970,11 @@ packages:
 
   /through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
+    dev: true
+
+  /timeout-signal@2.0.0:
+    resolution: {integrity: sha512-YBGpG4bWsHoPvofT6y/5iqulfXIiIErl5B0LdtHT1mGXDFTAhhRrbUpTvBgYbovr+3cKblya2WAOcpoy90XguA==}
+    engines: {node: '>=16'}
     dev: true
 
   /tmp@0.0.33:

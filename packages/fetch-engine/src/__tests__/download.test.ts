@@ -3,9 +3,10 @@ import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-pla
 import del from 'del'
 import fs from 'fs'
 import type { Response } from 'node-fetch'
-import _mockFetch from 'node-fetch'
+import { default as _mockFetch } from 'node-fetch'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
+import timeoutSignal from 'timeout-signal'
 
 import { BinaryType } from '../BinaryType'
 import { cleanupCache } from '../cleanupCache'
@@ -16,7 +17,7 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 jest.mock('node-fetch', () => jest.fn())
 const actualFetch: typeof import('node-fetch').default = jest.requireActual('node-fetch').default
-const mockFetch = _mockFetch as any as jest.Mock<ReturnType<typeof actualFetch>, Parameters<typeof actualFetch>>
+const mockFetch = _mockFetch as jest.MockedFunction<typeof actualFetch>
 
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
@@ -713,11 +714,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       mockFetch.mockImplementation((url, opts) => {
         opts = opts || {}
         // This makes everything fail with a timeout
-        const controller = new AbortController()
-        setTimeout(() => {
-          controller.abort()
-        }, 1)
-        opts.signal = controller.signal
+        opts.signal = timeoutSignal(0)
         return actualFetch(url, opts)
       })
 
@@ -729,7 +726,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
-      ).rejects.toThrow(`network timeout at:`)
+      ).rejects.toThrow(`The operation was aborted.`)
 
       // Because we try to fetch 2 different checksum files
       // And there are 2 retries for the checksums
@@ -742,11 +739,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         opts = opts || {}
         // We only make binaries fail with a timeout, not checksums
         if (!String(url).endsWith('.sha256')) {
-          const controller = new AbortController()
-          setTimeout(() => {
-            controller.abort()
-          }, 1)
-          opts.signal = controller.signal
+          opts.signal = timeoutSignal(1)
         }
         return actualFetch(url, opts)
       })
@@ -759,7 +752,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
-      ).rejects.toThrow(`network timeout at:`)
+      ).rejects.toThrow(`The operation was aborted.`)
 
       // Because we try to fetch 2 different checksum files before we even start downloading the binaries
       // And there are 2 retries for the binary
