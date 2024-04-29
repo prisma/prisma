@@ -1,5 +1,6 @@
 import { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
+  ConnectionInfo,
   Debug,
   DriverAdapter,
   err,
@@ -16,6 +17,8 @@ import { blue, cyan, red, yellow } from 'kleur/colors'
 import { name as packageName } from '../package.json'
 import { getColumnTypes, mapRow } from './conversion'
 import { cleanArg, matchSQLiteErrorCode } from './utils'
+
+const MAX_BIND_VALUES = 100
 
 const debug = Debug('prisma:driver-adapter:d1')
 
@@ -175,5 +178,11 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
     )
 
     return ok(new D1Transaction(this.client, options))
+  }
+
+  getConnectionInfo(): Result<ConnectionInfo> {
+    return ok({
+      maxBindValues: MAX_BIND_VALUES,
+    })
   }
 }
