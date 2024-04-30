@@ -157,6 +157,7 @@ jobs:
         working-directory: packages/client
 
       - uses: codecov/codecov-action@v4
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
@@ -166,7 +167,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -234,7 +235,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -299,7 +300,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -515,7 +516,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -1031,7 +1032,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason =='buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason =='buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -1093,7 +1094,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'internals'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
       - uses: codecov/codecov-action@v4
-        if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-')
+        if: (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-')) && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/internals/src/__tests__/coverage/clover.xml
@@ -1243,7 +1244,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
