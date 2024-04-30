@@ -173,7 +173,7 @@
     "@opentelemetry/resources": "1.24.0",
     "@opentelemetry/sdk-trace-base": "1.24.0",
     "@opentelemetry/semantic-conventions": "1.24.0",
-    "@planetscale/database": "1.16.0",
+    "@planetscale/database": "1.18.0",
     "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
