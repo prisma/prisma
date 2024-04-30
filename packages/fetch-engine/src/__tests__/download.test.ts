@@ -739,7 +739,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         opts = opts || {}
         // We only make binaries fail with a timeout, not checksums
         if (!String(url).endsWith('.sha256')) {
-          opts.signal = timeoutSignal(1)
+          opts.signal = timeoutSignal(0)
         }
         return actualFetch(url, opts)
       })
