@@ -16,13 +16,13 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.26",
-    "pg": "8.11.3",
+    "@types/node": "18.19.31",
+    "pg": "8.11.5",
     "pg-cloudflare": "1.1.1",
-    "esbuild": "0.20.1",
+    "esbuild": "0.20.2",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
-    "typescript": "5.2.2"
+    "typescript": "5.4.5"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -35,7 +35,7 @@
     "dist"
   ],
   "dependencies": {
-    "@types/pg": "8.11.4"
+    "@types/pg": "8.11.5"
   },
   "sideEffects": false
 }

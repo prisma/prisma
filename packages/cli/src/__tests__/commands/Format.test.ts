@@ -38,11 +38,11 @@ describe('format', () => {
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-            Prisma schema warning:
-            - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
-      `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      "
+      Prisma schema warning:
+      - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature."
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('should throw with an error and show a warning on stderr (preview feature deprecated)', async () => {
@@ -51,11 +51,11 @@ describe('format', () => {
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-            Prisma schema warning:
-            - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
-      `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      "
+      Prisma schema warning:
+      - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature."
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('should succeed and NOT show a warning when PRISMA_DISABLE_WARNINGS is truthy', async () => {

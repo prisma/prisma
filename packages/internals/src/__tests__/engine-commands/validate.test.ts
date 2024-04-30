@@ -4,6 +4,7 @@ import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { isRustPanic, validate } from '../..'
+import type { Datamodel } from '../../utils/datamodel'
 import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
@@ -93,168 +94,270 @@ describe('validate', () => {
   })
 
   describe('errors', () => {
-    test('model with autoincrement should fail if sqlite', () => {
-      expect.assertions(1)
-      const datamodel = `
-        datasource db {
+    describe('single file', () => {
+      test('model with autoincrement should fail if sqlite', () => {
+        expect.assertions(1)
+        const datamodel = `
+          datasource db {
+            provider = "sqlite"
+            url      = "file:dev.db"
+          }
+          model User {
+            id        Int      @default(autoincrement())
+            email     String   @unique
+            @@map("users")
+          }`
+
+        try {
+          validate({ datamodel })
+        } catch (e) {
+          expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+            "Prisma schema validation - (validate wasm)
+            Error code: P1012
+            error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
+              -->  schema.prisma:7
+               | 
+             6 |           model User {
+             7 |             id        Int      @default(autoincrement())
+             8 |             email     String   @unique
+               | 
+            error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
+              -->  schema.prisma:7
+               | 
+             6 |           model User {
+             7 |             id        Int      @default(autoincrement())
+             8 |             email     String   @unique
+               | 
+
+            Validation Error Count: 2
+            [Context: validate]
+
+            Prisma CLI Version : 0.0.0"
+          `)
+        }
+      })
+
+      test('model with autoincrement should fail if mysql', () => {
+        expect.assertions(1)
+        const datamodel = `
+          datasource db {
+            provider = "mysql"
+            url      = env("MY_MYSQL_DB")
+          }
+          model User {
+            id        Int      @default(autoincrement())
+            email     String   @unique
+            @@map("users")
+          }`
+
+        try {
+          validate({ datamodel })
+        } catch (e) {
+          expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+            "Prisma schema validation - (validate wasm)
+            Error code: P1012
+            error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
+              -->  schema.prisma:7
+               | 
+             6 |           model User {
+             7 |             id        Int      @default(autoincrement())
+             8 |             email     String   @unique
+               | 
+
+            Validation Error Count: 1
+            [Context: validate]
+
+            Prisma CLI Version : 0.0.0"
+          `)
+        }
+      })
+
+      test(`panics when the given datamodel isn't a string`, () => {
+        expect.assertions(3)
+
+        try {
+          // @ts-expect-error
+          validate({ datamodel: true })
+        } catch (e) {
+          expect(isRustPanic(e)).toBe(true)
+          expect(serialize(e.message)).toMatchInlineSnapshot(`
+            ""RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
+            Failed to deserialize ValidateParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 20""
+          `)
+          expect(e.rustStack).toBeTruthy()
+        }
+      })
+
+      test('validation errors', () => {
+        expect.assertions(1)
+        const datamodel = `generator client {
+          provider = "prisma-client-js"
+        }
+        
+        datasource my_db {
           provider = "sqlite"
           url      = "file:dev.db"
         }
+        
         model User {
-          id        Int      @default(autoincrement())
-          email     String   @unique
-          @@map("users")
-        }`
-
-      try {
-        validate({ datamodel })
-      } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-          "Prisma schema validation - (validate wasm)
-          Error code: P1012
-          error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
-            -->  schema.prisma:7
-             | 
-           6 |         model User {
-           7 |           id        Int      @default(autoincrement())
-           8 |           email     String   @unique
-             | 
-          error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
-            -->  schema.prisma:7
-             | 
-           6 |         model User {
-           7 |           id        Int      @default(autoincrement())
-           8 |           email     String   @unique
-             | 
-
-          Validation Error Count: 2
-          [Context: validate]
-
-          Prisma CLI Version : 0.0.0"
-        `)
-      }
-    })
-
-    test('model with autoincrement should fail if mysql', () => {
-      expect.assertions(1)
-      const datamodel = `
-        datasource db {
-          provider = "mysql"
-          url      = env("MY_MYSQL_DB")
+          id           String     @id @default(cuid())
+          id           String     @id @default(cuid())
+          name         String
+          email        String     @unique
+          status       String     @default("")
+          permissions  Permission @default()
+          permissions  Permission @default("")
+          posts        Post[]
+          posts        Post[]
         }
-        model User {
-          id        Int      @default(autoincrement())
+        
+        model Post {
+          id        String   @id @default(cuid())
+          name      String
           email     String   @unique
-          @@map("users")
-        }`
+          createdAt DateTime @default(now())
+          updatedAt DateTime @updatedAt
+        }
+        
+        enum Permission {
+          ADMIN
+          USER
+          OWNER
+          COLLABORATOR
+        }
+        `
+        try {
+          validate({ datamodel })
+        } catch (e) {
+          expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+            "Prisma schema validation - (validate wasm)
+            Error code: P1012
+            error: Field "id" is already defined on model "User".
+              -->  schema.prisma:12
+               | 
+            11 |           id           String     @id @default(cuid())
+            12 |           id           String     @id @default(cuid())
+               | 
+            error: Field "permissions" is already defined on model "User".
+              -->  schema.prisma:17
+               | 
+            16 |           permissions  Permission @default()
+            17 |           permissions  Permission @default("")
+               | 
+            error: Field "posts" is already defined on model "User".
+              -->  schema.prisma:19
+               | 
+            18 |           posts        Post[]
+            19 |           posts        Post[]
+               | 
 
-      try {
-        validate({ datamodel })
-      } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-          "Prisma schema validation - (validate wasm)
-          Error code: P1012
-          error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
-            -->  schema.prisma:7
-             | 
-           6 |         model User {
-           7 |           id        Int      @default(autoincrement())
-           8 |           email     String   @unique
-             | 
+            Validation Error Count: 3
+            [Context: validate]
 
-          Validation Error Count: 1
-          [Context: validate]
-
-          Prisma CLI Version : 0.0.0"
-        `)
-      }
+            Prisma CLI Version : 0.0.0"
+          `)
+        }
+      })
     })
 
-    test(`panics when the given datamodel isnt' a string`, () => {
-      expect.assertions(3)
+    describe('multiple files', () => {
+      test(`panics when the given datamodel isn't an array of string tuples`, () => {
+        expect.assertions(3)
 
-      try {
-        // @ts-expect-error
-        validate({ datamodel: true })
-      } catch (e) {
-        expect(isRustPanic(e)).toBe(true)
-        expect(serialize(e.message)).toMatchInlineSnapshot(`
-          "RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
-          Failed to deserialize ValidateParams: invalid type: boolean \`true\`, expected a string at line 1 column 20"
-        `)
-        expect(e.rustStack).toBeTruthy()
-      }
-    })
+        try {
+          // @ts-expect-error
+          validate({ datamodel: [['schema.prisma', true]] })
+        } catch (e) {
+          expect(isRustPanic(e)).toBe(true)
+          expect(serialize(e.message)).toMatchInlineSnapshot(`
+            ""RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
+            Failed to deserialize ValidateParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 40""
+          `)
+          expect(e.rustStack).toBeTruthy()
+        }
+      })
 
-    test('validation errors', () => {
-      expect.assertions(1)
-      const datamodel = `generator client {
-        provider = "prisma-client-js"
-      }
-      
-      datasource my_db {
-        provider = "sqlite"
-        url      = "file:dev.db"
-      }
-      
-      model User {
-        id           String     @id @default(cuid())
-        id           String     @id @default(cuid())
-        name         String
-        email        String     @unique
-        status       String     @default("")
-        permissions  Permission @default()
-        permissions  Permission @default("")
-        posts        Post[]
-        posts        Post[]
-      }
-      
-      model Post {
-        id        String   @id @default(cuid())
-        name      String
-        email     String   @unique
-        createdAt DateTime @default(now())
-        updatedAt DateTime @updatedAt
-      }
-      
-      enum Permission {
-        ADMIN
-        USER
-        OWNER
-        COLLABORATOR
-      }
-      `
-      try {
-        validate({ datamodel })
-      } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-          "Prisma schema validation - (validate wasm)
-          Error code: P1012
-          error: Field "id" is already defined on model "User".
-            -->  schema.prisma:12
-             | 
-          11 |         id           String     @id @default(cuid())
-          12 |         id           String     @id @default(cuid())
-             | 
-          error: Field "permissions" is already defined on model "User".
-            -->  schema.prisma:17
-             | 
-          16 |         permissions  Permission @default()
-          17 |         permissions  Permission @default("")
-             | 
-          error: Field "posts" is already defined on model "User".
-            -->  schema.prisma:19
-             | 
-          18 |         posts        Post[]
-          19 |         posts        Post[]
-             | 
+      test('validation errors', () => {
+        expect.assertions(1)
 
-          Validation Error Count: 3
-          [Context: validate]
+        const datamodel1 = /* prisma */ `
+          generator client {
+            provider = "prisma-client-js"
+          }
 
-          Prisma CLI Version : 0.0.0"
-        `)
-      }
+          datasource my_db {
+            provider = "sqlite"
+            url      = "file:dev.db"
+          }
+
+          model User {
+            id           String     @id @default(cuid())
+            id           String     @id @default(cuid())
+            name         String
+            email        String     @unique
+            status       String     @default("")
+            permissions  Permission @default()
+            permissions  Permission @default("")
+            posts        Post[]
+            posts        Post[]
+          }
+        `
+
+        const datamodel2 = /* prisma */ `
+          model Post {
+            id        String   @id @default(cuid())
+            name      String
+            email     String   @unique
+            createdAt DateTime @default(now())
+            updatedAt DateTime @updatedAt
+          }
+          
+          enum Permission {
+            ADMIN
+            USER
+            OWNER
+            COLLABORATOR
+          }
+        `
+
+        const datamodel: Datamodel = [
+          ['schema.prisma', datamodel1],
+          ['schema2.prisma', datamodel2],
+        ]
+
+        try {
+          validate({ datamodel })
+        } catch (e) {
+          // TODO: patch engines to fix this message, it should group errors by the different filenames.
+          expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+            "Prisma schema validation - (validate wasm)
+            Error code: P1012
+            error: Field "id" is already defined on model "User".
+              -->  schema.prisma:13
+               | 
+            12 |             id           String     @id @default(cuid())
+            13 |             id           String     @id @default(cuid())
+               | 
+            error: Field "permissions" is already defined on model "User".
+              -->  schema.prisma:18
+               | 
+            17 |             permissions  Permission @default()
+            18 |             permissions  Permission @default("")
+               | 
+            error: Field "posts" is already defined on model "User".
+              -->  schema.prisma:20
+               | 
+            19 |             posts        Post[]
+            20 |             posts        Post[]
+               | 
+
+            Validation Error Count: 3
+            [Context: validate]
+
+            Prisma CLI Version : 0.0.0"
+          `)
+        }
+      })
     })
   })
 

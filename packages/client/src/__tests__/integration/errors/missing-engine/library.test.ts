@@ -35,7 +35,7 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine: library', asyn
   await expect(async () => {
     await prisma.user.findMany()
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+    "
     Invalid \`prisma.user.findMany()\` invocation in
     /client/src/__tests__/integration/errors/missing-engine/library.test.ts:0:0
 
@@ -56,6 +56,6 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine: library', asyn
       /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client
       /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime
       /tmp/prisma-engines
-      /client/src/__tests__/integration/errors/missing-engine
+      /client/src/__tests__/integration/errors/missing-engine"
   `)
 })

@@ -1,18 +1,19 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
+import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 // To avoid the loading spinner locally
 process.env.CI = 'true'
@@ -20,6 +21,20 @@ process.env.CI = 'true'
 const originalEnv = { ...process.env }
 
 describe('postgresql-multischema', () => {
+  const captureStdout = new CaptureStdout()
+
+  beforeEach(() => {
+    captureStdout.startCapture()
+  })
+
+  afterEach(() => {
+    captureStdout.clearCaptureText()
+  })
+
+  afterAll(() => {
+    captureStdout.stopCapture()
+  })
+
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-multischema-postgresql',
@@ -61,11 +76,8 @@ describe('postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
     await expect(result).rejects.toThrow(`P4001`)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
@@ -73,7 +85,7 @@ describe('postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-      Prisma schema validation - (get-config wasm)
+      "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
         -->  schema.prisma:4
@@ -85,47 +97,40 @@ describe('postgresql-multischema', () => {
       Validation Error Count: 1
       [Context: getConfig]
 
-      Prisma CLI Version : 0.0.0
+      Prisma CLI Version : 0.0.0"
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
-            // *** WARNING ***
-            // 
-            // These items were renamed due to their names being duplicates in the Prisma Schema Language:
-            //   - Type: "enum", name: "base_status"
-            //   - Type: "enum", name: "transactional_status"
-            //   - Type: "model", name: "base_some_table"
-            //   - Type: "model", name: "transactional_some_table"
-            // 
-        `)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      "
+      // *** WARNING ***
+      // 
+      // These items were renamed due to their names being duplicates in the Prisma Schema Language:
+      //   - Type: "enum", name: "base_status"
+      //   - Type: "enum", name: "transactional_status"
+      //   - Type: "model", name: "base_some_table"
+      //   - Type: "model", name: "transactional_some_table"
+      // "
+    `)
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
@@ -133,11 +138,9 @@ describe('postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
     await expect(result).rejects.toThrow(`P4001`)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
@@ -148,12 +151,10 @@ describe('postgresql-multischema', () => {
       '--schema',
       'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
     ])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url with --schemas=base without preview feature should error', async () => {
@@ -163,15 +164,13 @@ describe('postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      The preview feature \`multiSchema\` must be enabled before using --schemas command line parameter.
+      "The preview feature \`multiSchema\` must be enabled before using --schemas command line parameter.
 
-
+      "
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url with --schemas=does-not-exist should error', async () => {
@@ -180,7 +179,7 @@ describe('postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+      "
       P4001 The introspected database was empty:
 
       prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
@@ -191,13 +190,11 @@ describe('postgresql-multischema', () => {
       - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
       Then you can run prisma db pull again. 
-
+      "
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url --schemas=base (1 existing schema) should succeed', async () => {
@@ -205,12 +202,10 @@ describe('postgresql-multischema', () => {
 
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url  --schemas=base,transactional (2 existing schemas) should succeed', async () => {
@@ -224,22 +219,20 @@ describe('postgresql-multischema', () => {
       '--schemas',
       'base,transactional',
     ])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
-            // *** WARNING ***
-            // 
-            // These items were renamed due to their names being duplicates in the Prisma Schema Language:
-            //   - Type: "enum", name: "base_status"
-            //   - Type: "enum", name: "transactional_status"
-            //   - Type: "model", name: "base_some_table"
-            //   - Type: "model", name: "transactional_some_table"
-            // 
-        `)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      "
+      // *** WARNING ***
+      // 
+      // These items were renamed due to their names being duplicates in the Prisma Schema Language:
+      //   - Type: "enum", name: "base_status"
+      //   - Type: "enum", name: "transactional_status"
+      //   - Type: "model", name: "base_some_table"
+      //   - Type: "model", name: "transactional_some_table"
+      // "
+    `)
   })
 
   test('--url  --schemas=base,does-not-exist (1 existing schemas + 1 non-existing) should succeed', async () => {
@@ -253,12 +246,10 @@ describe('postgresql-multischema', () => {
       '--schemas',
       'base,does-not-exist',
     ])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url with --schemas=["does-not-exist", "base"] should error', async () => {
@@ -266,12 +257,10 @@ describe('postgresql-multischema', () => {
 
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
@@ -279,22 +268,18 @@ describe('postgresql-multischema', () => {
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).rejects.toThrow(`P4001`)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
     const connectionString = `${setupParams.connectionString}?schema=base`
     const result = introspect.parse(['--print', '--url', connectionString])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

@@ -34,24 +34,24 @@ testMatrix.setupTestSuite(
 
       expect(result).toMatchInlineSnapshot(`
         {
-          id: 02d25579a73a72373fa4e846,
-          optionalJson: null,
-          requiredJson: {
-            bar: {
-              baz: qux,
+          "id": "02d25579a73a72373fa4e846",
+          "optionalJson": null,
+          "requiredJson": {
+            "bar": {
+              "baz": "qux",
             },
-            foo: bar,
-            garply: [
+            "foo": "bar",
+            "garply": [
               {
-                waldo: fred,
+                "waldo": "fred",
               },
               {
-                plugh: xyzzy,
+                "plugh": "xyzzy",
               },
             ],
-            quux: [
-              corge,
-              grault,
+            "quux": [
+              "corge",
+              "grault",
             ],
           },
         }
@@ -138,9 +138,9 @@ testMatrix.setupTestSuite(
 
       expect(result).toMatchInlineSnapshot(`
         {
-          id: 02d25579a73a72373fa4e846,
-          optionalJson: null,
-          requiredJson: {},
+          "id": "02d25579a73a72373fa4e846",
+          "optionalJson": null,
+          "requiredJson": {},
         }
       `)
     })

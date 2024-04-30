@@ -143,29 +143,29 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        [
-          {
-            login: author,
-            posts: [
+            [
               {
-                comments: [
+                "login": "author",
+                "posts": [
                   {
-                    author: {
-                      login: commenter,
-                    },
-                    body: a comment,
+                    "comments": [
+                      {
+                        "author": {
+                          "login": "commenter",
+                        },
+                        "body": "a comment",
+                      },
+                    ],
+                    "title": "first post",
                   },
                 ],
-                title: first post,
               },
-            ],
-          },
-          {
-            login: commenter,
-            posts: [],
-          },
-        ]
-      `)
+              {
+                "login": "commenter",
+                "posts": [],
+              },
+            ]
+          `)
 
           await expectQueryCountAtLeast({
             join: 1,
@@ -202,23 +202,23 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          login: author,
-          posts: [
             {
-              comments: [
+              "login": "author",
+              "posts": [
                 {
-                  author: {
-                    login: commenter,
-                  },
-                  body: a comment,
+                  "comments": [
+                    {
+                      "author": {
+                        "login": "commenter",
+                      },
+                      "body": "a comment",
+                    },
+                  ],
+                  "title": "first post",
                 },
               ],
-              title: first post,
-            },
-          ],
-        }
-      `)
+            }
+          `)
 
           await expectQueryCountAtLeast({
             join: 1,
@@ -255,23 +255,23 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          login: author,
-          posts: [
             {
-              comments: [
+              "login": "author",
+              "posts": [
                 {
-                  author: {
-                    login: commenter,
-                  },
-                  body: a comment,
+                  "comments": [
+                    {
+                      "author": {
+                        "login": "commenter",
+                      },
+                      "body": "a comment",
+                    },
+                  ],
+                  "title": "first post",
                 },
               ],
-              title: first post,
-            },
-          ],
-        }
-      `)
+            }
+          `)
 
           await expectQueryCountAtLeast({
             join: 1,
@@ -308,23 +308,23 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          login: author,
-          posts: [
             {
-              comments: [
+              "login": "author",
+              "posts": [
                 {
-                  author: {
-                    login: commenter,
-                  },
-                  body: a comment,
+                  "comments": [
+                    {
+                      "author": {
+                        "login": "commenter",
+                      },
+                      "body": "a comment",
+                    },
+                  ],
+                  "title": "first post",
                 },
               ],
-              title: first post,
-            },
-          ],
-        }
-      `)
+            }
+          `)
 
           await expectQueryCountAtLeast({
             join: 1,
@@ -361,23 +361,23 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          login: author,
-          posts: [
             {
-              comments: [
+              "login": "author",
+              "posts": [
                 {
-                  author: {
-                    login: commenter,
-                  },
-                  body: a comment,
+                  "comments": [
+                    {
+                      "author": {
+                        "login": "commenter",
+                      },
+                      "body": "a comment",
+                    },
+                  ],
+                  "title": "first post",
                 },
               ],
-              title: first post,
-            },
-          ],
-        }
-      `)
+            }
+          `)
 
           await expectQueryCountAtLeast({
             join: 1,
@@ -417,18 +417,18 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          comments: [
             {
-              body: most insightful indeed!,
-              post: {
-                title: first post,
-              },
-            },
-          ],
-          login: reader,
-        }
-      `)
+              "comments": [
+                {
+                  "body": "most insightful indeed!",
+                  "post": {
+                    "title": "first post",
+                  },
+                },
+              ],
+              "login": "reader",
+            }
+          `)
 
           await expectQueryCountAtLeast({
             join: 6,
@@ -463,20 +463,20 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          login: distinguished author,
-          posts: [
             {
-              comments: [
+              "login": "distinguished author",
+              "posts": [
                 {
-                  body: a comment,
+                  "comments": [
+                    {
+                      "body": "a comment",
+                    },
+                  ],
+                  "title": "first post",
                 },
               ],
-              title: first post,
-            },
-          ],
-        }
-      `)
+            }
+          `)
 
           await expectQueryCountAtLeast({
             join: 4,
@@ -508,20 +508,20 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          login: author,
-          posts: [
             {
-              comments: [
+              "login": "author",
+              "posts": [
                 {
-                  body: a comment,
+                  "comments": [
+                    {
+                      "body": "a comment",
+                    },
+                  ],
+                  "title": "first post",
                 },
               ],
-              title: first post,
-            },
-          ],
-        }
-      `)
+            }
+          `)
 
           await expectQueryCountAtLeast({
             join: 4,
@@ -559,18 +559,18 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          comments: [
             {
-              body: a comment,
-              post: {
-                title: first post,
-              },
-            },
-          ],
-          login: ardent commenter,
-        }
-      `)
+              "comments": [
+                {
+                  "body": "a comment",
+                  "post": {
+                    "title": "first post",
+                  },
+                },
+              ],
+              "login": "ardent commenter",
+            }
+          `)
 
           await expectQueryCountAtLeast({
             join: 5,
@@ -601,10 +601,10 @@ testMatrix.setupTestSuite(
               },
             }),
           ).resolves.toMatchInlineSnapshot(`
-        {
-          login: reader,
-        }
-      `)
+            {
+              "login": "reader",
+            }
+          `)
 
           // Query count is equal in this test since no relations are loaded.
           await expectQueryCountAtLeast({

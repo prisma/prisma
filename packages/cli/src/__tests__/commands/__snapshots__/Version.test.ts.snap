@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`version basic version (Node-API) 1`] = `
-prisma                  : 0.0.0
+"prisma                  : 0.0.0
 @prisma/client          : Not found
 Computed binaryTarget   : TEST_PLATFORM
 Operating System        : OS
@@ -11,11 +11,11 @@ Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libq
 Schema Engine           : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
 Schema Wasm             : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash    : ENGINE_VERSION
-Studio                  : STUDIO_VERSION
+Studio                  : STUDIO_VERSION"
 `;
 
 exports[`version basic version 1`] = `
-prisma                : 0.0.0
+"prisma                : 0.0.0
 @prisma/client        : Not found
 Computed binaryTarget : TEST_PLATFORM
 Operating System      : OS
@@ -25,11 +25,11 @@ Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-eng
 Schema Engine         : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
 Schema Wasm           : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash  : ENGINE_VERSION
-Studio                : STUDIO_VERSION
+Studio                : STUDIO_VERSION"
 `;
 
 exports[`version version with custom binaries (Node-API) 1`] = `
-prisma                  : 0.0.0
+"prisma                  : 0.0.0
 @prisma/client          : Not found
 Computed binaryTarget   : TEST_PLATFORM
 Operating System        : OS
@@ -39,11 +39,11 @@ Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libq
 Schema Engine           : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM, resolved by PRISMA_SCHEMA_ENGINE_BINARY)
 Schema Wasm             : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash    : ENGINE_VERSION
-Studio                  : STUDIO_VERSION
+Studio                  : STUDIO_VERSION"
 `;
 
 exports[`version version with custom binaries 1`] = `
-prisma                : 0.0.0
+"prisma                : 0.0.0
 @prisma/client        : Not found
 Computed binaryTarget : TEST_PLATFORM
 Operating System      : OS
@@ -53,5 +53,5 @@ Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-eng
 Schema Engine         : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM, resolved by PRISMA_SCHEMA_ENGINE_BINARY)
 Schema Wasm           : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash  : ENGINE_VERSION
-Studio                : STUDIO_VERSION
+Studio                : STUDIO_VERSION"
 `;
