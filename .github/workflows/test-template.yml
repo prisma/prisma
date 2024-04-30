@@ -100,7 +100,7 @@ jobs:
   client:
     name: Client func&legacy-notypes
     timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') || 
       contains(inputs.jobsToRun, '-client-')
@@ -111,7 +111,6 @@ jobs:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         node: [16, 18, 20]
         previewFeatures: ['', 'relationJoins']
-        os: [ubuntu-latest, ubuntu-20.04]
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
       JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -183,7 +182,7 @@ jobs:
   client-miniproxy:
     name: Client (func/mini-proxy)
     timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
@@ -192,7 +191,6 @@ jobs:
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [16, 18, 20]
-        os: [ubuntu-latest, ubuntu-20.04]
     steps:
       - uses: actions/checkout@v4
 
@@ -252,7 +250,7 @@ jobs:
   client-driveradapters:
     name: Client (func/adapters)
     timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
@@ -264,7 +262,6 @@ jobs:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20] #[16, 18, 20]
         previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
-        os: [ubuntu-latest, ubuntu-20.04]    
     steps:
       - uses: actions/checkout@v4
 
@@ -318,7 +315,7 @@ jobs:
   client-memory:
     name: Client (memory tests)
     timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
@@ -327,7 +324,6 @@ jobs:
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
         node: [16, 18, 20]
-        os: [ubuntu-latest, ubuntu-20.04]
     steps:
       - uses: actions/checkout@v4
 
@@ -535,7 +531,7 @@ jobs:
   client-legacy-types:
     name: Client (legacy types)
     timeout-minutes: 15
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
@@ -543,7 +539,6 @@ jobs:
       fail-fast: false
       matrix:
         node: [16]
-        os: [ubuntu-latest, ubuntu-20.04]
     steps:
       - uses: actions/checkout@v4
 
@@ -572,12 +567,11 @@ jobs:
   workspace-types:
     name: Workspace types
     timeout-minutes: 15
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         node: [16]
-        os: [ubuntu-latest, ubuntu-20.04]
     steps:
       - uses: actions/checkout@v4
 
@@ -597,7 +591,7 @@ jobs:
   integration-tests:
     name: Integration tests
     timeout-minutes: 20
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-integration-tests-')
@@ -606,7 +600,6 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         node: [16]
-        os: [ubuntu-latest, ubuntu-20.04]
     steps:
       - uses: actions/checkout@v4
 
