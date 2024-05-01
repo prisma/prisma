@@ -362,8 +362,8 @@ importers:
         specifier: workspace:*
         version: link:../cli
       wrangler:
-        specifier: 3.52.0
-        version: 3.52.0(@cloudflare/workers-types@4.20240423.0)
+        specifier: 3.53.0
+        version: 3.53.0(@cloudflare/workers-types@4.20240423.0)
 
   packages/bundled-js-drivers:
     dependencies:
@@ -804,8 +804,8 @@ importers:
         specifier: 5.28.4
         version: 5.28.4
       wrangler:
-        specifier: 3.52.0
-        version: 3.52.0(@cloudflare/workers-types@4.20240423.0)
+        specifier: 3.53.0
+        version: 3.53.0(@cloudflare/workers-types@4.20240423.0)
       zx:
         specifier: 7.2.3
         version: 7.2.3
@@ -10662,9 +10662,6 @@ packages:
   /sqlite3@5.1.2:
     resolution: {integrity: sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.10
       node-addon-api: 4.3.0
@@ -11647,8 +11644,8 @@ packages:
       '@cloudflare/workerd-linux-arm64': 1.20240419.0
       '@cloudflare/workerd-windows-64': 1.20240419.0
 
-  /wrangler@3.52.0(@cloudflare/workers-types@4.20240423.0):
-    resolution: {integrity: sha512-HR06jTym+yr7+CI3Ggld3nfp1OM9vSC7h4B8vwWHwhi5K0sYg8p44rxV514Gmsv9dkFHegkRP70SM3sjuuxxpQ==}
+  /wrangler@3.53.0(@cloudflare/workers-types@4.20240423.0):
+    resolution: {integrity: sha512-JxkvCQekL9j8Mu4CEKM/HEVyDnymWzKQuMUuJH0yum1AilutD5HAP9kVVYmvu7BvwlRyRUAj8TI5OUxXnLCEpQ==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
