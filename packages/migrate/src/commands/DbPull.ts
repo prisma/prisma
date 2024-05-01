@@ -115,7 +115,8 @@ Set composite types introspection depth to 2 levels
 
     const url: string | undefined = args['--url']
     // getSchemaPathAndPrint is not flexible enough for this use case
-    let schemaPath = await getSchemaPath(args['--schema'])
+    const schemaPathResult = await getSchemaPath(args['--schema'])
+    let schemaPath = schemaPathResult?.schemaPath ?? null
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
@@ -272,7 +273,7 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
       const schema = await getSchema(args['--schema'])
 
       const modelRegex = /\s*model\s*(\w+)\s*{/
-      const modelMatch = modelRegex.exec(schema)
+      const modelMatch = modelRegex.exec(schema as string)
       const isReintrospection = modelMatch
 
       if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {

@@ -95,7 +95,7 @@ ${bold('Examples')}
 
     loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
 
     const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })
@@ -324,7 +324,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
           }
         } else {
           // Only used to help users to set up their seeds from old way to new package.json config
-          const schemaPath = await getSchemaPath(args['--schema'])
+          const { schemaPath } = (await getSchemaPath(args['--schema']))!
           // we don't want to output the returned warning message
           // but we still want to run it for `legacyTsNodeScriptWarning()`
           await verifySeedConfigAndReturnMessage(schemaPath)

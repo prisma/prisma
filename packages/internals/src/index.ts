@@ -6,7 +6,6 @@ export {
   getSchema,
   getSchemaDir,
   getSchemaPath,
-  getSchemaPathFromPackageJson,
   getSchemaPathFromPackageJsonSync,
   getSchemaPathSync,
 } from './cli/getSchema'

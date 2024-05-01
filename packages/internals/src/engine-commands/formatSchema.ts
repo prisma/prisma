@@ -1,35 +1,15 @@
-import fs from 'node:fs'
-import { promisify } from 'node:util'
-
-import { match } from 'ts-pattern'
-
 import { logger } from '..'
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
 import { type Datamodel, schemaToStringDebug } from '../utils/datamodel'
 import { prismaSchemaWasm } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
-const readFile = promisify(fs.readFile)
-const exists = promisify(fs.exists)
+type FormatSchemaParams = { schema: Datamodel; schemaPath: string }
 
-type FormatSchemaParams = { schema: Datamodel; schemaPath?: never } | { schema?: never; schemaPath: string }
-
-function isSchemaOnly(schemaParams: FormatSchemaParams): schemaParams is { schema: Datamodel; schemaPath?: never } {
-  return Boolean(schemaParams.schema)
-}
-
-function isSchemaPathOnly(schemaParams: FormatSchemaParams): schemaParams is { schema?: never; schemaPath: string } {
-  return Boolean(schemaParams.schemaPath)
-}
-
-/**
- * Can be used by passing either the `schema` as a string, or a path `schemaPath` to the schema file.
- * Currently, we only use `schemaPath` in the cli. Do we need to keep supporting `schema` as well?
- */
 export async function formatSchema(
   { schemaPath, schema }: FormatSchemaParams,
   inputFormattingOptions?: Partial<DocumentFormattingParams['options']>,
-): Promise<string> {
+): Promise<Datamodel> {
   if (!schema && !schemaPath) {
     throw new Error(`Parameter schema or schemaPath must be passed.`)
   }
@@ -42,18 +22,6 @@ export async function formatSchema(
       { schemaPath, schema } as FormatSchemaParams,
     )
   }
-
-  const schemaContent = await match({ schema, schemaPath } as FormatSchemaParams)
-    .when(isSchemaOnly, async ({ schema: _schema }) => await Promise.resolve(_schema))
-    .when(isSchemaPathOnly, async ({ schemaPath: _schemaPath }) => {
-      if (!(await exists(_schemaPath))) {
-        throw new Error(`Schema at ${schemaPath} does not exist.`)
-      }
-
-      const _schema = await readFile(_schemaPath, { encoding: 'utf8' })
-      return _schema
-    })
-    .exhaustive()
 
   const defaultFormattingOptions: DocumentFormattingParams['options'] = {
     tabSize: 2,
@@ -77,14 +45,16 @@ export async function formatSchema(
    *   They appear when calling `getDmmf` on the formatted schema in Format.ts.
    *   If we called `getConfig` instead, we wouldn't have any validation check.
    */
-  const { formattedSchema, lintDiagnostics } = handleFormatPanic(
+  const { formattedDatamodel, lintDiagnostics } = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
-      const formattedSchema = formatWasm(JSON.stringify(schemaContent), documentFormattingParams)
-      const lintDiagnostics = lintSchema({ schema: formattedSchema })
-      return { formattedSchema, lintDiagnostics }
+      const formattedDatamodelRaw = formatWasm(JSON.stringify(schema), documentFormattingParams)
+      const formattedDatamodel = JSON.parse(formattedDatamodelRaw) as Datamodel
+
+      const lintDiagnostics = lintSchema({ schema: formattedDatamodel })
+      return { formattedDatamodel, lintDiagnostics }
     },
-    { schemaPath, schema: schemaContent } as FormatSchemaParams,
+    { schemaPath, schema } as FormatSchemaParams,
   )
 
   const lintWarnings = getLintWarningsAsText(lintDiagnostics)
@@ -93,7 +63,7 @@ export async function formatSchema(
     console.warn(lintWarnings)
   }
 
-  return Promise.resolve(formattedSchema)
+  return Promise.resolve(formattedDatamodel)
 }
 
 function handleFormatPanic<T>(tryCb: () => T, { schemaPath, schema }: FormatSchemaParams) {
