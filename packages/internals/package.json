@@ -81,7 +81,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.14.0-9.612a7f7142ab73baf44704be23cbac7b7df1f7fc",
+    "@prisma/prisma-schema-wasm": "5.14.0-10.feat-create-many-and-return-31c187d29db487fb54d6bb593a851d2f9e5687a6",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"
