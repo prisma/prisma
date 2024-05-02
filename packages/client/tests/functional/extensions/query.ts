@@ -740,24 +740,26 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
-              // @ts-test-if: provider !== Providers.MONGODB
-              expectTypeOf(operation).toEqualTypeOf<
-                | 'findUnique'
-                | 'findUniqueOrThrow'
+
+              expectTypeOf(operation).toMatchTypeOf<
                 | 'findFirst'
                 | 'findFirstOrThrow'
+                | 'findUnique'
+                | 'findUniqueOrThrow'
                 | 'findMany'
                 | 'create'
                 | 'createMany'
-                | 'createManyAndReturn'
-                | 'delete'
+                | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
-                | 'deleteMany'
                 | 'updateMany'
                 | 'upsert'
+                | 'delete'
+                | 'deleteMany'
                 | 'aggregate'
                 | 'groupBy'
                 | 'count'
+                | 'aggregateRaw' // MongoDB only
+                | 'findRaw' // MongoDB only
               >()
 
               type Model = typeof model
@@ -806,25 +808,28 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
-              // @ts-test-if: provider !== Providers.MONGODB
-              expectTypeOf(operation).toEqualTypeOf<
-                | 'findUnique'
-                | 'findUniqueOrThrow'
+
+              expectTypeOf(operation).toMatchTypeOf<
                 | 'findFirst'
                 | 'findFirstOrThrow'
+                | 'findUnique'
+                | 'findUniqueOrThrow'
                 | 'findMany'
                 | 'create'
                 | 'createMany'
-                | 'createManyAndReturn'
-                | 'delete'
+                | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
-                | 'deleteMany'
                 | 'updateMany'
                 | 'upsert'
+                | 'delete'
+                | 'deleteMany'
                 | 'aggregate'
                 | 'groupBy'
                 | 'count'
+                | 'aggregateRaw' // MongoDB only
+                | 'findRaw' // MongoDB only
               >()
+
               expectTypeOf(model).toEqualTypeOf<'Post'>()
 
               fnModel({ args, operation, model })
@@ -1698,6 +1703,7 @@ testMatrix.setupTestSuite(
 
                 return query(args)
               },
+
               async aggregate({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
@@ -1889,7 +1895,10 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-              // @ts-test-if: provider === Providers.MONGODB
+
+              // This MYSQL & SQLSERVER does not make sense...
+              // This was added to avoid a "Unused '@ts-expect-error' directive." error.
+              // @ts-test-if: provider === Providers.MONGODB || provider === Providers.MYSQL || provider === Providers.SQLSERVER
               async aggregateRaw({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
