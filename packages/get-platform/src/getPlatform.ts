@@ -477,7 +477,7 @@ export function getBinaryTargetForCurrentPlatformInternal(args: GetOSResult): Bi
 
   if (platform === 'linux' && !['x64', 'arm64'].includes(arch)) {
     warn(
-      `Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".`,
+      `Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures (detected "${arch}" instead). If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".`,
     )
   }
 
