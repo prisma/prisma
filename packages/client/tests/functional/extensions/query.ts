@@ -749,6 +749,7 @@ testMatrix.setupTestSuite(
                 | 'findMany'
                 | 'create'
                 | 'createMany'
+                | 'createManyAndReturn'
                 | 'delete'
                 | 'update'
                 | 'deleteMany'
@@ -814,6 +815,7 @@ testMatrix.setupTestSuite(
                 | 'findMany'
                 | 'create'
                 | 'createMany'
+                | 'createManyAndReturn'
                 | 'delete'
                 | 'update'
                 | 'deleteMany'
@@ -1236,13 +1238,22 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-
               async createMany({ args, query, operation }) {
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                return data
+              },
+              async createManyAndReturn({ args, query, operation }) {
+                const data = await query(args)
+
+                expectTypeOf(operation).toEqualTypeOf<'createManyAndReturn'>()
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[] | undefined>()
+                expectTypeOf(data?.[0]?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                 return data
               },
@@ -1383,13 +1394,22 @@ testMatrix.setupTestSuite(
 
                   return data
                 }
-
                 if (operation === 'createMany') {
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                  return data
+                }
+                if (operation === 'createManyAndReturn') {
+                  const data = await query(args)
+
+                  expectTypeOf(operation).toEqualTypeOf<'createManyAndReturn'>()
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[] | undefined>()
+                  expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                   return data
                 }
@@ -1691,7 +1711,6 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-
               async createMany({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
@@ -1700,6 +1719,18 @@ testMatrix.setupTestSuite(
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                return data
+              },
+              async createManyAndReturn({ args, query, operation, model }) {
+                if (model !== 'User') return query(args)
+
+                const data = await query(args)
+
+                expectTypeOf(operation).toEqualTypeOf<'createManyAndReturn'>()
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[] | undefined>()
+                expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                 return data
               },

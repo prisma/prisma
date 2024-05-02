@@ -93,6 +93,37 @@ test('create', () => {
     }"
   `)
 })
+test('createMany', () => {
+  expect(serialize({ modelName: 'User', action: 'createMany', args: {} })).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "createMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('createManyAndReturn', () => {
+  expect(serialize({ modelName: 'User', action: 'createManyAndReturn', args: {} })).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "createManyAndReturn",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
 
 test('delete', () => {
   expect(serialize({ modelName: 'User', action: 'delete', args: {} })).toMatchInlineSnapshot(`

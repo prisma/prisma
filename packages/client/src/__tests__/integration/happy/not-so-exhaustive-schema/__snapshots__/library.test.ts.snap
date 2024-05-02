@@ -1270,6 +1270,10 @@ export namespace Prisma {
             args: Prisma.PostCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
+          createManyAndReturn: {
+            args: Prisma.PostCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$PostPayload>[]
+          }
           delete: {
             args: Prisma.PostDeleteArgs<ExtArgs>,
             result: $Utils.PayloadToResult<Prisma.$PostPayload>
@@ -1335,6 +1339,10 @@ export namespace Prisma {
           createMany: {
             args: Prisma.UserCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$UserPayload>[]
           }
           delete: {
             args: Prisma.UserDeleteArgs<ExtArgs>,
@@ -1402,6 +1410,10 @@ export namespace Prisma {
             args: Prisma.MCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
+          createManyAndReturn: {
+            args: Prisma.MCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$MPayload>[]
+          }
           delete: {
             args: Prisma.MDeleteArgs<ExtArgs>,
             result: $Utils.PayloadToResult<Prisma.$MPayload>
@@ -1467,6 +1479,10 @@ export namespace Prisma {
           createMany: {
             args: Prisma.NCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.NCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$NPayload>[]
           }
           delete: {
             args: Prisma.NDeleteArgs<ExtArgs>,
@@ -1534,6 +1550,10 @@ export namespace Prisma {
             args: Prisma.OneOptionalCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
+          createManyAndReturn: {
+            args: Prisma.OneOptionalCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>[]
+          }
           delete: {
             args: Prisma.OneOptionalDeleteArgs<ExtArgs>,
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>
@@ -1599,6 +1619,10 @@ export namespace Prisma {
           createMany: {
             args: Prisma.ManyRequiredCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ManyRequiredCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>[]
           }
           delete: {
             args: Prisma.ManyRequiredDeleteArgs<ExtArgs>,
@@ -1666,6 +1690,10 @@ export namespace Prisma {
             args: Prisma.OptionalSide1CreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
+          createManyAndReturn: {
+            args: Prisma.OptionalSide1CreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>[]
+          }
           delete: {
             args: Prisma.OptionalSide1DeleteArgs<ExtArgs>,
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>
@@ -1731,6 +1759,10 @@ export namespace Prisma {
           createMany: {
             args: Prisma.OptionalSide2CreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OptionalSide2CreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>[]
           }
           delete: {
             args: Prisma.OptionalSide2DeleteArgs<ExtArgs>,
@@ -1798,6 +1830,10 @@ export namespace Prisma {
             args: Prisma.ACreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
+          createManyAndReturn: {
+            args: Prisma.ACreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$APayload>[]
+          }
           delete: {
             args: Prisma.ADeleteArgs<ExtArgs>,
             result: $Utils.PayloadToResult<Prisma.$APayload>
@@ -1863,6 +1899,10 @@ export namespace Prisma {
           createMany: {
             args: Prisma.BCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$BPayload>[]
           }
           delete: {
             args: Prisma.BDeleteArgs<ExtArgs>,
@@ -1930,6 +1970,10 @@ export namespace Prisma {
             args: Prisma.CCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
+          createManyAndReturn: {
+            args: Prisma.CCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$CPayload>[]
+          }
           delete: {
             args: Prisma.CDeleteArgs<ExtArgs>,
             result: $Utils.PayloadToResult<Prisma.$CPayload>
@@ -1996,6 +2040,10 @@ export namespace Prisma {
             args: Prisma.DCreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
           }
+          createManyAndReturn: {
+            args: Prisma.DCreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DPayload>[]
+          }
           delete: {
             args: Prisma.DDeleteArgs<ExtArgs>,
             result: $Utils.PayloadToResult<Prisma.$DPayload>
@@ -2061,6 +2109,10 @@ export namespace Prisma {
           createMany: {
             args: Prisma.ECreateManyArgs<ExtArgs>,
             result: Prisma.BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ECreateManyAndReturnArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$EPayload>[]
           }
           delete: {
             args: Prisma.EDeleteArgs<ExtArgs>,
@@ -2201,6 +2253,7 @@ export namespace Prisma {
     | 'findFirstOrThrow'
     | 'create'
     | 'createMany'
+    | 'createManyAndReturn'
     | 'update'
     | 'updateMany'
     | 'upsert'
@@ -2751,6 +2804,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many Posts and returns the data saved in the database.
+     *     @param {PostCreateManyAndReturnArgs} args - Arguments to create many Posts.
+     *     @example
+     *     // Create many Posts
+     *     const post = await prisma.post.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends PostCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, PostCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a Post.
      * @param {PostDeleteArgs} args - Arguments to delete one Post.
      * @example
@@ -3220,6 +3289,17 @@ export namespace Prisma {
    * Post createMany
    */
   export type PostCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Posts.
+     */
+    data: PostCreateManyInput | PostCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Post createManyAndReturn
+   */
+  export type PostCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many Posts.
      */
@@ -3791,6 +3871,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many Users and returns the data saved in the database.
+     *     @param {UserCreateManyAndReturnArgs} args - Arguments to create many Users.
+     *     @example
+     *     // Create many Users
+     *     const user = await prisma.user.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends UserCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, UserCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a User.
      * @param {UserDeleteArgs} args - Arguments to delete one User.
      * @example
@@ -4268,6 +4364,17 @@ export namespace Prisma {
    * User createMany
    */
   export type UserCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Users.
+     */
+    data: UserCreateManyInput | UserCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * User createManyAndReturn
+   */
+  export type UserCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many Users.
      */
@@ -4849,6 +4956,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many Ms and returns the data saved in the database.
+     *     @param {MCreateManyAndReturnArgs} args - Arguments to create many Ms.
+     *     @example
+     *     // Create many Ms
+     *     const m = await prisma.m.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends MCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, MCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a M.
      * @param {MDeleteArgs} args - Arguments to delete one M.
      * @example
@@ -5325,6 +5448,17 @@ export namespace Prisma {
    * M createMany
    */
   export type MCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MS.
+     */
+    data: MCreateManyInput | MCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * M createManyAndReturn
+   */
+  export type MCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many MS.
      */
@@ -5906,6 +6040,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many Ns and returns the data saved in the database.
+     *     @param {NCreateManyAndReturnArgs} args - Arguments to create many Ns.
+     *     @example
+     *     // Create many Ns
+     *     const n = await prisma.n.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends NCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, NCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a N.
      * @param {NDeleteArgs} args - Arguments to delete one N.
      * @example
@@ -6382,6 +6532,17 @@ export namespace Prisma {
    * N createMany
    */
   export type NCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many NS.
+     */
+    data: NCreateManyInput | NCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * N createManyAndReturn
+   */
+  export type NCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many NS.
      */
@@ -6963,6 +7124,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many OneOptionals and returns the data saved in the database.
+     *     @param {OneOptionalCreateManyAndReturnArgs} args - Arguments to create many OneOptionals.
+     *     @example
+     *     // Create many OneOptionals
+     *     const oneOptional = await prisma.oneOptional.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends OneOptionalCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, OneOptionalCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a OneOptional.
      * @param {OneOptionalDeleteArgs} args - Arguments to delete one OneOptional.
      * @example
@@ -7439,6 +7616,17 @@ export namespace Prisma {
    * OneOptional createMany
    */
   export type OneOptionalCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OneOptionals.
+     */
+    data: OneOptionalCreateManyInput | OneOptionalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OneOptional createManyAndReturn
+   */
+  export type OneOptionalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many OneOptionals.
      */
@@ -8032,6 +8220,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many ManyRequireds and returns the data saved in the database.
+     *     @param {ManyRequiredCreateManyAndReturnArgs} args - Arguments to create many ManyRequireds.
+     *     @example
+     *     // Create many ManyRequireds
+     *     const manyRequired = await prisma.manyRequired.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends ManyRequiredCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, ManyRequiredCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a ManyRequired.
      * @param {ManyRequiredDeleteArgs} args - Arguments to delete one ManyRequired.
      * @example
@@ -8509,6 +8713,17 @@ export namespace Prisma {
    * ManyRequired createMany
    */
   export type ManyRequiredCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ManyRequireds.
+     */
+    data: ManyRequiredCreateManyInput | ManyRequiredCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ManyRequired createManyAndReturn
+   */
+  export type ManyRequiredCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many ManyRequireds.
      */
@@ -9097,6 +9312,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many OptionalSide1s and returns the data saved in the database.
+     *     @param {OptionalSide1CreateManyAndReturnArgs} args - Arguments to create many OptionalSide1s.
+     *     @example
+     *     // Create many OptionalSide1s
+     *     const optionalSide1 = await prisma.optionalSide1.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends OptionalSide1CreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, OptionalSide1CreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a OptionalSide1.
      * @param {OptionalSide1DeleteArgs} args - Arguments to delete one OptionalSide1.
      * @example
@@ -9574,6 +9805,17 @@ export namespace Prisma {
    * OptionalSide1 createMany
    */
   export type OptionalSide1CreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OptionalSide1s.
+     */
+    data: OptionalSide1CreateManyInput | OptionalSide1CreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OptionalSide1 createManyAndReturn
+   */
+  export type OptionalSide1CreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many OptionalSide1s.
      */
@@ -10148,6 +10390,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many OptionalSide2s and returns the data saved in the database.
+     *     @param {OptionalSide2CreateManyAndReturnArgs} args - Arguments to create many OptionalSide2s.
+     *     @example
+     *     // Create many OptionalSide2s
+     *     const optionalSide2 = await prisma.optionalSide2.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends OptionalSide2CreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, OptionalSide2CreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a OptionalSide2.
      * @param {OptionalSide2DeleteArgs} args - Arguments to delete one OptionalSide2.
      * @example
@@ -10624,6 +10882,17 @@ export namespace Prisma {
    * OptionalSide2 createMany
    */
   export type OptionalSide2CreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OptionalSide2s.
+     */
+    data: OptionalSide2CreateManyInput | OptionalSide2CreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OptionalSide2 createManyAndReturn
+   */
+  export type OptionalSide2CreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many OptionalSide2s.
      */
@@ -11169,6 +11438,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many As and returns the data saved in the database.
+     *     @param {ACreateManyAndReturnArgs} args - Arguments to create many As.
+     *     @example
+     *     // Create many As
+     *     const a = await prisma.a.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends ACreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, ACreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$APayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a A.
      * @param {ADeleteArgs} args - Arguments to delete one A.
      * @example
@@ -11616,6 +11901,17 @@ export namespace Prisma {
    * A createMany
    */
   export type ACreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AS.
+     */
+    data: ACreateManyInput | ACreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * A createManyAndReturn
+   */
+  export type ACreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many AS.
      */
@@ -12076,6 +12372,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many Bs and returns the data saved in the database.
+     *     @param {BCreateManyAndReturnArgs} args - Arguments to create many Bs.
+     *     @example
+     *     // Create many Bs
+     *     const b = await prisma.b.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends BCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, BCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BPayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a B.
      * @param {BDeleteArgs} args - Arguments to delete one B.
      * @example
@@ -12527,6 +12839,17 @@ export namespace Prisma {
   }
 
   /**
+   * B createManyAndReturn
+   */
+  export type BCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BS.
+     */
+    data: BCreateManyInput | BCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
    * B update
    */
   export type BUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12951,6 +13274,22 @@ export namespace Prisma {
     createMany<T extends CCreateManyArgs<ExtArgs>>(
       args?: SelectSubset<T, CCreateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Cs and returns the data saved in the database.
+     *     @param {CCreateManyAndReturnArgs} args - Arguments to create many Cs.
+     *     @example
+     *     // Create many Cs
+     *     const c = await prisma.c.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends CCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, CCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CPayload<ExtArgs>, T, 'createManyAndReturn'>>
 
     /**
      * Delete a C.
@@ -13398,6 +13737,17 @@ export namespace Prisma {
    * C createMany
    */
   export type CCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CS.
+     */
+    data: CCreateManyInput | CCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * C createManyAndReturn
+   */
+  export type CCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many CS.
      */
@@ -13854,6 +14204,22 @@ export namespace Prisma {
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
+     * Create many Ds and returns the data saved in the database.
+     *     @param {DCreateManyAndReturnArgs} args - Arguments to create many Ds.
+     *     @example
+     *     // Create many Ds
+     *     const d = await prisma.d.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends DCreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, DCreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DPayload<ExtArgs>, T, 'createManyAndReturn'>>
+
+    /**
      * Delete a D.
      * @param {DDeleteArgs} args - Arguments to delete one D.
      * @example
@@ -14307,6 +14673,17 @@ export namespace Prisma {
   }
 
   /**
+   * D createManyAndReturn
+   */
+  export type DCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DS.
+     */
+    data: DCreateManyInput | DCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
    * D update
    */
   export type DUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14701,6 +15078,22 @@ export namespace Prisma {
     createMany<T extends ECreateManyArgs<ExtArgs>>(
       args?: SelectSubset<T, ECreateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Es and returns the data saved in the database.
+     *     @param {ECreateManyAndReturnArgs} args - Arguments to create many Es.
+     *     @example
+     *     // Create many Es
+     *     const e = await prisma.e.createManyAndReturn({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createManyAndReturn<T extends ECreateManyAndReturnArgs<ExtArgs>>(
+      args?: SelectSubset<T, ECreateManyAndReturnArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EPayload<ExtArgs>, T, 'createManyAndReturn'>>
 
     /**
      * Delete a E.
@@ -15145,6 +15538,17 @@ export namespace Prisma {
    * E createMany
    */
   export type ECreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ES.
+     */
+    data: ECreateManyInput | ECreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * E createManyAndReturn
+   */
+  export type ECreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many ES.
      */

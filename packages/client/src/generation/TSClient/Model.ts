@@ -67,6 +67,7 @@ export class Model implements Generatable {
         action === 'updateMany' ||
         action === 'deleteMany' ||
         action === 'createMany' ||
+        action === 'createManyAndReturn' ||
         action === 'findRaw' ||
         action === 'aggregateRaw'
       ) {
