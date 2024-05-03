@@ -160,6 +160,7 @@ exports[`getDMMF success @@id model 1`] = `
       {
         "aggregate": "aggregateUser1",
         "createMany": "createManyUser1",
+        "createManyAndReturn": "createManyUser1AndReturn",
         "createOne": "createOneUser1",
         "deleteMany": "deleteManyUser1",
         "deleteOne": "deleteOneUser1",
@@ -177,6 +178,7 @@ exports[`getDMMF success @@id model 1`] = `
       {
         "aggregate": "aggregateUser2",
         "createMany": "createManyUser2",
+        "createManyAndReturn": "createManyUser2AndReturn",
         "createOne": "createOneUser2",
         "deleteMany": "deleteManyUser2",
         "deleteOne": "deleteOneUser2",
@@ -5532,6 +5534,96 @@ exports[`getDMMF success @@id model 1`] = `
           ],
           "name": "User2",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
+          "name": "CreateManyUser1AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
+          "name": "CreateManyUser2AndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -6748,6 +6840,49 @@ exports[`getDMMF success @@id model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1CreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1CreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Boolean",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skipDuplicates",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyUser1AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyUser1AndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereUniqueInput",
                     },
                   ],
@@ -7013,6 +7148,49 @@ exports[`getDMMF success @@id model 1`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Boolean",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skipDuplicates",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyUser2AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyUser2AndReturnOutputType",
               },
             },
             {
@@ -8019,6 +8197,7 @@ exports[`getDMMF success @@map model 2`] = `
       {
         "aggregate": "aggregateUser",
         "createMany": "createManyUser",
+        "createManyAndReturn": "createManyUserAndReturn",
         "createOne": "createOneUser",
         "deleteMany": "deleteManyUser",
         "deleteOne": "deleteOneUser",
@@ -11102,6 +11281,31 @@ exports[`getDMMF success @@map model 2`] = `
           ],
           "name": "User",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "email",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "CreateManyUserAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -11777,6 +11981,49 @@ exports[`getDMMF success @@map model 2`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Boolean",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skipDuplicates",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyUserAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyUserAndReturnOutputType",
               },
             },
             {
@@ -12597,6 +12844,7 @@ exports[`getDMMF success @@unique model 1`] = `
       {
         "aggregate": "aggregatePost",
         "createMany": "createManyPost",
+        "createManyAndReturn": "createManyPostAndReturn",
         "createOne": "createOnePost",
         "deleteMany": "deleteManyPost",
         "deleteOne": "deleteOnePost",
@@ -12614,6 +12862,7 @@ exports[`getDMMF success @@unique model 1`] = `
       {
         "aggregate": "aggregateUser",
         "createMany": "createManyUser",
+        "createManyAndReturn": "createManyUserAndReturn",
         "createOne": "createOneUser",
         "deleteMany": "deleteManyUser",
         "deleteOne": "deleteOneUser",
@@ -12631,6 +12880,7 @@ exports[`getDMMF success @@unique model 1`] = `
       {
         "aggregate": "aggregateUser1",
         "createMany": "createManyUser1",
+        "createManyAndReturn": "createManyUser1AndReturn",
         "createOne": "createOneUser1",
         "deleteMany": "deleteManyUser1",
         "deleteOne": "deleteOneUser1",
@@ -12648,6 +12898,7 @@ exports[`getDMMF success @@unique model 1`] = `
       {
         "aggregate": "aggregateUser2",
         "createMany": "createManyUser2",
+        "createManyAndReturn": "createManyUser2AndReturn",
         "createOne": "createOneUser2",
         "deleteMany": "deleteManyUser2",
         "deleteOne": "deleteOneUser2",
@@ -22355,6 +22606,177 @@ exports[`getDMMF success @@unique model 1`] = `
           ],
           "name": "User2",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "authorId",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "published",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "author",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+          ],
+          "name": "CreateManyPostAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "email",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "CreateManyUserAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
+          "name": "CreateManyUser1AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
+          "name": "CreateManyUser2AndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -24633,6 +25055,49 @@ exports[`getDMMF success @@unique model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "PostCreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostCreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Boolean",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skipDuplicates",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyPostAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyPostAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "PostWhereUniqueInput",
                     },
                   ],
@@ -24898,6 +25363,49 @@ exports[`getDMMF success @@unique model 1`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Boolean",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skipDuplicates",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyUserAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyUserAndReturnOutputType",
               },
             },
             {
@@ -25183,6 +25691,49 @@ exports[`getDMMF success @@unique model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1CreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1CreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Boolean",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skipDuplicates",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyUser1AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyUser1AndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereUniqueInput",
                     },
                   ],
@@ -25448,6 +25999,49 @@ exports[`getDMMF success @@unique model 1`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Boolean",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skipDuplicates",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyUser2AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyUser2AndReturnOutputType",
               },
             },
             {
@@ -26991,7 +27585,7 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `148202208`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `153400956`;
 
 exports[`getDMMF success chinook introspected schema 1`] = `979838`;
 
@@ -27112,7 +27706,7 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `136726822`;
+exports[`getDMMF success odoo introspected schema 1`] = `137207101`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -39297,6 +39891,7 @@ exports[`getDMMF success simple model, postgresql 2`] = `
       {
         "aggregate": "aggregateA",
         "createMany": "createManyA",
+        "createManyAndReturn": "createManyAAndReturn",
         "createOne": "createOneA",
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
@@ -42380,6 +42975,31 @@ exports[`getDMMF success simple model, postgresql 2`] = `
           ],
           "name": "A",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "CreateManyAAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -43055,6 +43675,49 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Boolean",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skipDuplicates",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyAAndReturnOutputType",
               },
             },
             {
@@ -47719,6 +48382,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
       {
         "aggregate": "aggregateA",
         "createMany": "createManyA",
+        "createManyAndReturn": "createManyAAndReturn",
         "createOne": "createOneA",
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
@@ -50550,6 +51214,31 @@ exports[`getDMMF success simple model, sqlite 2`] = `
           ],
           "name": "A",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "CreateManyAAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -51213,6 +51902,37 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyAAndReturnOutputType",
               },
             },
             {

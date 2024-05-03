@@ -2339,6 +2339,7 @@ export namespace Prisma {
     | 'findFirstOrThrow'
     | 'create'
     | 'createMany'
+    | 'createManyAndReturn'
     | 'update'
     | 'updateMany'
     | 'upsert'
@@ -2912,8 +2913,8 @@ export namespace Prisma {
     ): Prisma__PostClient<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one Post that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one Post that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {PostFindUniqueOrThrowArgs} args - Arguments to find a Post
      * @example
      * // Get one Post
@@ -3000,14 +3001,14 @@ export namespace Prisma {
 
     /**
      * Create many Posts.
-     *     @param {PostCreateManyArgs} args - Arguments to create many Posts.
-     *     @example
-     *     // Create many Posts
-     *     const post = await prisma.post.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {PostCreateManyArgs} args - Arguments to create many Posts.
+     * @example
+     * // Create many Posts
+     * const post = await prisma.post.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends PostCreateManyArgs<ExtArgs>>(
@@ -4015,8 +4016,8 @@ export namespace Prisma {
     ): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one User that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one User that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
      * @example
      * // Get one User
@@ -4103,14 +4104,14 @@ export namespace Prisma {
 
     /**
      * Create many Users.
-     *     @param {UserCreateManyArgs} args - Arguments to create many Users.
-     *     @example
-     *     // Create many Users
-     *     const user = await prisma.user.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {UserCreateManyArgs} args - Arguments to create many Users.
+     * @example
+     * // Create many Users
+     * const user = await prisma.user.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends UserCreateManyArgs<ExtArgs>>(
@@ -5005,8 +5006,8 @@ export namespace Prisma {
     ): Prisma__EmbedHolderClient<$Result.GetResult<Prisma.$EmbedHolderPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one EmbedHolder that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one EmbedHolder that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {EmbedHolderFindUniqueOrThrowArgs} args - Arguments to find a EmbedHolder
      * @example
      * // Get one EmbedHolder
@@ -5093,14 +5094,14 @@ export namespace Prisma {
 
     /**
      * Create many EmbedHolders.
-     *     @param {EmbedHolderCreateManyArgs} args - Arguments to create many EmbedHolders.
-     *     @example
-     *     // Create many EmbedHolders
-     *     const embedHolder = await prisma.embedHolder.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {EmbedHolderCreateManyArgs} args - Arguments to create many EmbedHolders.
+     * @example
+     * // Create many EmbedHolders
+     * const embedHolder = await prisma.embedHolder.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends EmbedHolderCreateManyArgs<ExtArgs>>(
@@ -6109,8 +6110,8 @@ export namespace Prisma {
     ): Prisma__MClient<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one M that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one M that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {MFindUniqueOrThrowArgs} args - Arguments to find a M
      * @example
      * // Get one M
@@ -6197,14 +6198,14 @@ export namespace Prisma {
 
     /**
      * Create many Ms.
-     *     @param {MCreateManyArgs} args - Arguments to create many Ms.
-     *     @example
-     *     // Create many Ms
-     *     const m = await prisma.m.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {MCreateManyArgs} args - Arguments to create many Ms.
+     * @example
+     * // Create many Ms
+     * const m = await prisma.m.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends MCreateManyArgs<ExtArgs>>(
@@ -7223,8 +7224,8 @@ export namespace Prisma {
     ): Prisma__NClient<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one N that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one N that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {NFindUniqueOrThrowArgs} args - Arguments to find a N
      * @example
      * // Get one N
@@ -7311,14 +7312,14 @@ export namespace Prisma {
 
     /**
      * Create many Ns.
-     *     @param {NCreateManyArgs} args - Arguments to create many Ns.
-     *     @example
-     *     // Create many Ns
-     *     const n = await prisma.n.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {NCreateManyArgs} args - Arguments to create many Ns.
+     * @example
+     * // Create many Ns
+     * const n = await prisma.n.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends NCreateManyArgs<ExtArgs>>(
@@ -8331,8 +8332,8 @@ export namespace Prisma {
     ): Prisma__OneOptionalClient<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one OneOptional that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one OneOptional that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {OneOptionalFindUniqueOrThrowArgs} args - Arguments to find a OneOptional
      * @example
      * // Get one OneOptional
@@ -8419,14 +8420,14 @@ export namespace Prisma {
 
     /**
      * Create many OneOptionals.
-     *     @param {OneOptionalCreateManyArgs} args - Arguments to create many OneOptionals.
-     *     @example
-     *     // Create many OneOptionals
-     *     const oneOptional = await prisma.oneOptional.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {OneOptionalCreateManyArgs} args - Arguments to create many OneOptionals.
+     * @example
+     * // Create many OneOptionals
+     * const oneOptional = await prisma.oneOptional.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends OneOptionalCreateManyArgs<ExtArgs>>(
@@ -9446,8 +9447,8 @@ export namespace Prisma {
     ): Prisma__ManyRequiredClient<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one ManyRequired that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one ManyRequired that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {ManyRequiredFindUniqueOrThrowArgs} args - Arguments to find a ManyRequired
      * @example
      * // Get one ManyRequired
@@ -9534,14 +9535,14 @@ export namespace Prisma {
 
     /**
      * Create many ManyRequireds.
-     *     @param {ManyRequiredCreateManyArgs} args - Arguments to create many ManyRequireds.
-     *     @example
-     *     // Create many ManyRequireds
-     *     const manyRequired = await prisma.manyRequired.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {ManyRequiredCreateManyArgs} args - Arguments to create many ManyRequireds.
+     * @example
+     * // Create many ManyRequireds
+     * const manyRequired = await prisma.manyRequired.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends ManyRequiredCreateManyArgs<ExtArgs>>(
@@ -10557,8 +10558,8 @@ export namespace Prisma {
     ): Prisma__OptionalSide1Client<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one OptionalSide1 that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one OptionalSide1 that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {OptionalSide1FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide1
      * @example
      * // Get one OptionalSide1
@@ -10645,14 +10646,14 @@ export namespace Prisma {
 
     /**
      * Create many OptionalSide1s.
-     *     @param {OptionalSide1CreateManyArgs} args - Arguments to create many OptionalSide1s.
-     *     @example
-     *     // Create many OptionalSide1s
-     *     const optionalSide1 = await prisma.optionalSide1.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {OptionalSide1CreateManyArgs} args - Arguments to create many OptionalSide1s.
+     * @example
+     * // Create many OptionalSide1s
+     * const optionalSide1 = await prisma.optionalSide1.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends OptionalSide1CreateManyArgs<ExtArgs>>(
@@ -11658,8 +11659,8 @@ export namespace Prisma {
     ): Prisma__OptionalSide2Client<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one OptionalSide2 that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one OptionalSide2 that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {OptionalSide2FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide2
      * @example
      * // Get one OptionalSide2
@@ -11746,14 +11747,14 @@ export namespace Prisma {
 
     /**
      * Create many OptionalSide2s.
-     *     @param {OptionalSide2CreateManyArgs} args - Arguments to create many OptionalSide2s.
-     *     @example
-     *     // Create many OptionalSide2s
-     *     const optionalSide2 = await prisma.optionalSide2.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {OptionalSide2CreateManyArgs} args - Arguments to create many OptionalSide2s.
+     * @example
+     * // Create many OptionalSide2s
+     * const optionalSide2 = await prisma.optionalSide2.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends OptionalSide2CreateManyArgs<ExtArgs>>(
@@ -12691,8 +12692,8 @@ export namespace Prisma {
     ): Prisma__AClient<$Result.GetResult<Prisma.$APayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one A that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one A that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {AFindUniqueOrThrowArgs} args - Arguments to find a A
      * @example
      * // Get one A
@@ -12779,14 +12780,14 @@ export namespace Prisma {
 
     /**
      * Create many As.
-     *     @param {ACreateManyArgs} args - Arguments to create many As.
-     *     @example
-     *     // Create many As
-     *     const a = await prisma.a.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {ACreateManyArgs} args - Arguments to create many As.
+     * @example
+     * // Create many As
+     * const a = await prisma.a.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends ACreateManyArgs<ExtArgs>>(
@@ -13621,8 +13622,8 @@ export namespace Prisma {
     ): Prisma__BClient<$Result.GetResult<Prisma.$BPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one B that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one B that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {BFindUniqueOrThrowArgs} args - Arguments to find a B
      * @example
      * // Get one B
@@ -13709,14 +13710,14 @@ export namespace Prisma {
 
     /**
      * Create many Bs.
-     *     @param {BCreateManyArgs} args - Arguments to create many Bs.
-     *     @example
-     *     // Create many Bs
-     *     const b = await prisma.b.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {BCreateManyArgs} args - Arguments to create many Bs.
+     * @example
+     * // Create many Bs
+     * const b = await prisma.b.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends BCreateManyArgs<ExtArgs>>(
@@ -14550,8 +14551,8 @@ export namespace Prisma {
     ): Prisma__CClient<$Result.GetResult<Prisma.$CPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one C that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one C that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {CFindUniqueOrThrowArgs} args - Arguments to find a C
      * @example
      * // Get one C
@@ -14638,14 +14639,14 @@ export namespace Prisma {
 
     /**
      * Create many Cs.
-     *     @param {CCreateManyArgs} args - Arguments to create many Cs.
-     *     @example
-     *     // Create many Cs
-     *     const c = await prisma.c.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {CCreateManyArgs} args - Arguments to create many Cs.
+     * @example
+     * // Create many Cs
+     * const c = await prisma.c.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends CCreateManyArgs<ExtArgs>>(
@@ -15505,8 +15506,8 @@ export namespace Prisma {
     ): Prisma__DClient<$Result.GetResult<Prisma.$DPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one D that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one D that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {DFindUniqueOrThrowArgs} args - Arguments to find a D
      * @example
      * // Get one D
@@ -15593,14 +15594,14 @@ export namespace Prisma {
 
     /**
      * Create many Ds.
-     *     @param {DCreateManyArgs} args - Arguments to create many Ds.
-     *     @example
-     *     // Create many Ds
-     *     const d = await prisma.d.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {DCreateManyArgs} args - Arguments to create many Ds.
+     * @example
+     * // Create many Ds
+     * const d = await prisma.d.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends DCreateManyArgs<ExtArgs>>(
@@ -16408,8 +16409,8 @@ export namespace Prisma {
     ): Prisma__EClient<$Result.GetResult<Prisma.$EPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
-     * Find one E that matches the filter or throw an error  with \`error.code='P2025'\` 
-     *     if no matches were found.
+     * Find one E that matches the filter or throw an error with \`error.code='P2025'\` 
+     * if no matches were found.
      * @param {EFindUniqueOrThrowArgs} args - Arguments to find a E
      * @example
      * // Get one E
@@ -16496,14 +16497,14 @@ export namespace Prisma {
 
     /**
      * Create many Es.
-     *     @param {ECreateManyArgs} args - Arguments to create many Es.
-     *     @example
-     *     // Create many Es
-     *     const e = await prisma.e.createMany({
-     *       data: {
-     *         // ... provide data here
-     *       }
-     *     })
+     * @param {ECreateManyArgs} args - Arguments to create many Es.
+     * @example
+     * // Create many Es
+     * const e = await prisma.e.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
      *     
     **/
     createMany<T extends ECreateManyArgs<ExtArgs>>(
