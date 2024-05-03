@@ -64,7 +64,7 @@ testMatrix.setupTestSuite(
     },
     optOut: {
       from: [Providers.MONGODB, Providers.SQLSERVER, Providers.MYSQL],
-      reason: 'Excluded dbs are missing the "ConnectorCapability::InsertReturning".',
+      reason: 'Excluded dbs are missing the "ConnectorCapability::InsertReturning". They are tested separately.',
     },
   },
 )
