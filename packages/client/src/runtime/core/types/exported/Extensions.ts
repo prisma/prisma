@@ -48,7 +48,7 @@ export type GetOmit<BaseKeys extends string, R extends InternalArgs['result'][st
 
 // prettier-ignore
 export type DynamicQueryExtensionArgs<
-  Q_, 
+  Q_,
   TypeMap extends TypeMapDef,
 > = {
   [K in keyof Q_]:
@@ -142,9 +142,9 @@ export type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends Pro
 
 // prettier-ignore
 export type DynamicModelExtensionArgs<
-  M_, 
-  TypeMap extends TypeMapDef, 
-  TypeMapCb extends TypeMapCbDef, 
+  M_,
+  TypeMap extends TypeMapDef,
+  TypeMapCb extends TypeMapCbDef,
   ExtArgs extends Record<string, any>
 > = {
   [K in keyof M_]:
@@ -156,7 +156,7 @@ export type DynamicModelExtensionArgs<
         & {
             [K: symbol]: {
               ctx: & DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, K>, ExtArgs>
-                   & { $parent: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs> } 
+                   & { $parent: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs> }
                    & { $name: ModelKey<TypeMap, K> }
                    & {
                       /**
@@ -171,8 +171,8 @@ export type DynamicModelExtensionArgs<
 
 // prettier-ignore
 export type DynamicModelExtensionThis<
-  TypeMap extends TypeMapDef, 
-  M extends PropertyKey, 
+  TypeMap extends TypeMapDef,
+  M extends PropertyKey,
   ExtArgs extends Record<string, any>,
 > = {
   [P in keyof ExtArgs['model'][Uncapitalize<M & string>]]:
@@ -182,7 +182,7 @@ export type DynamicModelExtensionThis<
     DynamicModelExtensionOperationFn<TypeMap, M, P>
 } & {
   [P in Exclude<'fields', keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
-    TypeMap['model'][M]['fields'] 
+    TypeMap['model'][M]['fields']
 } & {
   [K: symbol]: { types: TypeMap['model'][M] }
 }
@@ -227,7 +227,7 @@ export type DynamicModelExtensionFluentApi<
 > = {
   [K in keyof TypeMap['model'][M]['payload']['objects']]: <A>(
     args?: Exact<A, Path<TypeMap['model'][M]['operations'][P]['args']['select'], [K]>>,
-  ) => 
+  ) =>
     & PrismaPromise<Path<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P>, [K]> | Null>
     & DynamicModelExtensionFluentApi<
       TypeMap,
@@ -395,7 +395,7 @@ export type { UserArgs }
 
 // TODO snippet for replacing PrismaClient text generated definition to reuse the full-dynamic type logic
 // export class PrismaClient<
-//   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+//   const T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
 //   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
 // > {
 //   constructor(options?: Prisma.Subset<T, Prisma.PrismaClientOptions>)
@@ -404,6 +404,6 @@ export type { UserArgs }
 //   ${metricDefinition.bind(this)()}
 // }
 // export interface PrismaClient<
-//   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+//   const T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
 //   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
 // > extends $Extensions.DynamicClientExtensionThis<Prisma.TypeMap, Prisma.TypeMapCb, $Extensions.DefaultArgs> {}

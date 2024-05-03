@@ -208,7 +208,7 @@ function queryRawDefinition(this: PrismaClientClass) {
    * \`\`\`
    * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
@@ -220,7 +220,7 @@ function queryRawDefinition(this: PrismaClientClass) {
    * \`\`\`
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;`
@@ -239,7 +239,7 @@ function executeRawDefinition(this: PrismaClientClass) {
    * \`\`\`
    * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
@@ -251,7 +251,7 @@ function executeRawDefinition(this: PrismaClientClass) {
    * \`\`\`
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
@@ -267,7 +267,7 @@ function metricDefinition(this: PrismaClientClass) {
     .setDocComment(
       ts.docComment`
         Gives access to the client metrics in json or prometheus format.
-        
+
         @example
         \`\`\`
         const metrics = await prisma.$metrics.json()
@@ -300,7 +300,7 @@ function runCommandRawDefinition(this: PrismaClientClass) {
         explain: false,
       })
       \`\`\`
-   
+
       Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
     `)
 
@@ -352,7 +352,7 @@ export class PrismaClientClass implements Generatable {
     const example = dmmf.mappings.modelOperations[0]
     return `/**
  * ##  Prisma Client ʲˢ
- * 
+ *
  * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
@@ -361,14 +361,14 @@ export class PrismaClientClass implements Generatable {
  * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
  * \`\`\`
  *
- * 
+ *
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */`
   }
   public toTSWithoutNamespace(): string {
     const { dmmf } = this
     return `${this.jsDoc}
-export class PrismaClient<
+const export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
   ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
@@ -451,10 +451,17 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
-  GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
-  : never
+export type CheckIsLogLevel<T> = T extends LogLevel ? T : never;
+
+export type GetLogType<T> = T extends LogDefinition
+  ? (T['emit'] extends 'event' ? CheckIsLogLevel<T['level']> : never)
+  : CheckIsLogLevel<T>;
+
+export type GetEvents<T extends any[]> = T extends Array<LogLevel | LogDefinition>
+? T extends [...(infer RestT), infer U]
+    ? GetLogType<U> | GetEvents<RestT>
+    : never
+: never;
 
 export type QueryEvent = {
   timestamp: Date
@@ -550,7 +557,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
              \`\`\`
              // Defaults to stdout
              log: ['query', 'info', 'warn', 'error']
-            
+
              // Emit as events
              log: [
                { emit: 'stdout', level: 'query' },

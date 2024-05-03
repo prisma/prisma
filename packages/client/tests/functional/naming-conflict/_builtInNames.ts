@@ -46,6 +46,7 @@ export const builtInNames = [
   'ErrorFormat',
   'LogDefinition',
   'GetLogType',
+  'CheckIsLogLevel',
   'GetEvents',
   'QueryEvent',
   'LogEvent',
