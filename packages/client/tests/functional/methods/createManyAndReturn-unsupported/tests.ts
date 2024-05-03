@@ -10,6 +10,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   () => {
     test('should work as createMany is supported', async () => {
+      // eslint-disable-next-line @typescript-eslint/require-await
       prisma.user.createMany()
 
       expectTypeOf(prisma.user).toHaveProperty('createMany')
@@ -17,6 +18,7 @@ testMatrix.setupTestSuite(
 
     test('should fail as createManyAndReturn is not supported on tested providers', async () => {
       // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/require-await
       prisma.user.createManyAndReturn()
 
       expectTypeOf(prisma.user).not.toHaveProperty('createManyAndReturn')
