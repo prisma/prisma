@@ -3,7 +3,7 @@
 //
 // https://www.jsonrpc.org/specification
 
-import type { MigrateTypes } from '@prisma/internals'
+import type { MigrateTypes, SchemaFileInput } from '@prisma/internals'
 
 import type { IntrospectionViewDefinition } from './views/handleViewsIO'
 
@@ -112,7 +112,7 @@ export namespace EngineArgs {
   type DbExecuteDatasourceTypeSchema = {
     // Path to the Prisma schema file to take the datasource URL from.
     tag: 'schema'
-    schema: string
+    schema: SchemaFileInput
   }
   type DbExecuteDatasourceTypeUrl = {
     // The URL of the database to run the command on.

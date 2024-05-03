@@ -7,7 +7,7 @@ import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
-import { type Datamodel, schemaToStringDebug } from '../utils/datamodel'
+import { type SchemaFileInput, schemaToStringDebug } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
@@ -21,7 +21,7 @@ export interface ConfigMetaFormat {
 }
 
 export type GetConfigOptions = {
-  datamodel: Datamodel
+  datamodel: SchemaFileInput
   cwd?: string
   prismaPath?: string
   datamodelPath?: string

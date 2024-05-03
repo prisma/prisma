@@ -27,6 +27,8 @@ export type DatasourceInfo = {
   schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
 }
 
+// TODO: sometimes this function is called with a `schemaPath`, even though the schema(s) have already been read from disk.
+// (e.g., check `MigrateDev.ts`).
 export async function getDatasourceInfo({
   schemaPath,
   throwIfEnvError,

@@ -51,13 +51,13 @@ Or specify a Prisma schema path
       return this.help()
     }
 
-    const { schemaPath, files: datamodel } = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
-    const formattedDatamodel = await formatSchema({ schemaPath, schema: datamodel })
+    const formattedDatamodel = await formatSchema({ schemaPath, schemas })
 
     // Validate whether the formatted output is a valid schema
     validate({
-      datamodel: formattedDatamodel,
+      schemas: formattedDatamodel,
     })
 
     if (Array.isArray(formattedDatamodel)) {

@@ -8,7 +8,7 @@ import { PackageJson, readPackageUp, readPackageUpSync } from 'read-package-up'
 import { promisify } from 'util'
 
 import { getConfig } from '../engine-commands'
-import type { Datamodel } from '../utils/datamodel'
+import type { MultipleSchemas, MultipleSchemaTuple, SchemaFileInput } from '../utils/schemaFileInput'
 
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
@@ -17,7 +17,7 @@ const debug = Debug('prisma:getSchema')
 
 export type GetSchemaResult = {
   schemaPath: string
-  files: Datamodel
+  schemas: MultipleSchemas
 }
 
 /**
@@ -35,9 +35,10 @@ export async function getSchemaPath(
   })
 }
 
-async function readSchemaFromSingleFile(schemaPath: string): Promise<GetSchemaResult> {
+export async function readSchemaFromSingleFile(schemaPath: string): Promise<GetSchemaResult> {
   const file = await readFile(schemaPath, { encoding: 'utf-8' })
-  return { schemaPath, files: file } as const
+  const schemaTuple: MultipleSchemaTuple = [schemaPath, file]
+  return { schemaPath, schemas: [schemaTuple] } as const
 }
 
 async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaResult | null> {
@@ -54,7 +55,7 @@ async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaRe
   const usesPrismaSchemaFolder = (previewFeatures || []).includes('prismaSchemaFolder')
 
   if (usesPrismaSchemaFolder) {
-    return { schemaPath, files } as const
+    return { schemaPath, schemas: files } as const
   }
 
   return null
@@ -96,13 +97,12 @@ export async function getSchemaPathInternal(
       continue
     }
 
-    const schemaPathResult = await Promise.any([
-      // 1. If it's a single file, read it and return it
-      readSchemaFromSingleFile(schemaPath),
-
+    const schemaPathResult = await // 1. If it's a single file, read it and return it
+    readSchemaFromSingleFile(schemaPath)
       // 2. If it's a directory, load all files and return them, but only if the `prismaSchemaFolder` preview feature is used.
-      readSchemaFromMultiFiles(schemaPath),
-    ]).catch(() => null)
+      .catch(() => readSchemaFromMultiFiles(schemaPath))
+      // 3. If it's neither, return null
+      .catch(() => null)
 
     if (schemaPathResult) {
       return schemaPathResult
@@ -300,7 +300,7 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
   return path.dirname(schemaPathResult.schemaPath)
 }
 
-export async function getSchema(schemaPathFromArgs?: string): Promise<Datamodel> {
+export async function getSchema(schemaPathFromArgs?: string): Promise<SchemaFileInput> {
   const schemaPathResult = await getSchemaPath(schemaPathFromArgs)
 
   if (!schemaPathResult) {
@@ -315,7 +315,7 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<Datamodel>
     )
   }
 
-  return schemaPathResult.files
+  return schemaPathResult.schemas
 }
 
 /**

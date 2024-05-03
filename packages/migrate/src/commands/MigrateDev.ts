@@ -13,7 +13,6 @@ import {
   loadEnvFile,
   validate,
 } from '@prisma/internals'
-import fs from 'fs'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
@@ -95,7 +94,7 @@ ${bold('Examples')}
 
     loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema']))!
 
     const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })
@@ -103,12 +102,11 @@ ${bold('Examples')}
     process.stdout.write('\n') // empty line
 
     // Validate schema (same as prisma validate)
-    const schema = fs.readFileSync(schemaPath, 'utf-8')
     validate({
-      datamodel: schema,
+      schemas,
     })
     await getConfig({
-      datamodel: schema,
+      datamodel: schemas,
       ignoreEnvVarErrors: false,
     })
 

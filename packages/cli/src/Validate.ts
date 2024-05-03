@@ -62,15 +62,15 @@ ${bold('Examples')}
 
     loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const { schemaPath, files: datamodel } = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
     const { lintDiagnostics } = handleLintPanic(
       () => {
         // the only possible error here is a Rust panic
-        const lintDiagnostics = lintSchema({ schema: datamodel })
+        const lintDiagnostics = lintSchema({ schemas })
         return { lintDiagnostics }
       },
-      { schema: datamodel },
+      { schemas },
     )
 
     const lintWarnings = getLintWarningsAsText(lintDiagnostics)
@@ -80,12 +80,12 @@ ${bold('Examples')}
     }
 
     validate({
-      datamodel,
+      schemas,
     })
 
     // We could have a CLI flag to ignore env var validation
     await getConfig({
-      datamodel,
+      datamodel: schemas,
       ignoreEnvVarErrors: false,
     })
 
