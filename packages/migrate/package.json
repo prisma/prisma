@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.14.0-10.feat-create-many-and-return-31c187d29db487fb54d6bb593a851d2f9e5687a6",
+    "@prisma/engines-version": "5.14.0-12.54465718776ea99c622bd1c060a5fa445952886d",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
