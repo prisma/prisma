@@ -1,9 +1,10 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
+import { readSchemaFromSingleFile } from '../../cli/getSchema'
 import { formatSchema } from '../../engine-commands'
+import { extractSchemaContent, type MultipleSchemas } from '../../utils/schemaFileInput'
 import { fixturesPath } from '../__utils__/fixtures'
 
 if (process.env.CI) {
@@ -14,54 +15,39 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('schema wasm', () => {
   describe('diff', () => {
+    async function testAgainstPreformatted(schemaFilename: string) {
+      const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'format', schemaFilename))
+      const { schemas: preformatted } = await readSchemaFromSingleFile(
+        path.join(fixturesPath, 'format', 'schema.prisma'),
+      )
+      const formattedByWasm = await formatSchema({ schemas })
+
+      const preformattedContent: string[] = extractSchemaContent(preformatted)
+      const formattedByWasmContent: string[] = extractSchemaContent(formattedByWasm)
+
+      expect(preformattedContent).toEqual(formattedByWasmContent)
+    }
+
     test('2-spaces', async () => {
-      const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces.prisma'), {
-        encoding: 'utf8',
-      })
-      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
-        encoding: 'utf8',
-      })
-      const formattedByWasm = await formatSchema({ schema })
-      expect(formattedSchema).toEqual(formattedByWasm)
+      await testAgainstPreformatted('schema-2-spaces.prisma')
     })
 
     test('2-spaces-as-tab', async () => {
-      const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces-as-tab.prisma'), {
-        encoding: 'utf8',
-      })
-      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
-        encoding: 'utf8',
-      })
-      const formattedByWasm = await formatSchema({ schema })
-      expect(formattedSchema).toEqual(formattedByWasm)
+      await testAgainstPreformatted('schema-2-spaces-as-tab.prisma')
     })
 
     test('4-spaces', async () => {
-      const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces.prisma'), {
-        encoding: 'utf8',
-      })
-      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
-        encoding: 'utf8',
-      })
-      const formattedByWasm = await formatSchema({ schema })
-      expect(formattedSchema).toEqual(formattedByWasm)
+      await testAgainstPreformatted('schema-4-spaces.prisma')
     })
 
     test('4-spaces-as-tab', async () => {
-      const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces-as-tab.prisma'), {
-        encoding: 'utf8',
-      })
-      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
-        encoding: 'utf8',
-      })
-      const formattedByWasm = await formatSchema({ schema })
-      expect(formattedSchema).toEqual(formattedByWasm)
+      await testAgainstPreformatted('schema-4-spaces-as-tab.prisma')
     })
   })
 })
 
 describe('format custom options', () => {
-  const schema = `
+  const schema = /* prisma */ `
   datasource db {
    provider = "sqlite"
    url  = "file:dev.db"
@@ -74,10 +60,13 @@ describe('format custom options', () => {
    posts Post[]
   }
 `
+  const schemas: MultipleSchemas = [['/* schemaPath */', schema]]
 
   test('tabSize=2', async () => {
-    const formatted = await formatSchema({ schema }, { tabSize: 2 })
-    expect(formatted).toMatchInlineSnapshot(`
+    const formatted = await formatSchema({ schemas }, { tabSize: 2 })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+    expect(formattedContent.length).toBe(1)
+    expect(formattedContent[0]).toMatchInlineSnapshot(`
       "datasource db {
         provider = "sqlite"
         url      = "file:dev.db"
@@ -94,8 +83,10 @@ describe('format custom options', () => {
   })
 
   test('tabSize=4', async () => {
-    const formatted = await formatSchema({ schema }, { tabSize: 4 })
-    expect(formatted).toMatchInlineSnapshot(`
+    const formatted = await formatSchema({ schemas }, { tabSize: 4 })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+    expect(formattedContent.length).toBe(1)
+    expect(formattedContent[0]).toMatchInlineSnapshot(`
       "datasource db {
           provider = "sqlite"
           url      = "file:dev.db"
@@ -123,16 +114,19 @@ describe('format', () => {
   })
 
   test('valid blog schemaPath', async () => {
-    const formatted = await formatSchema({
-      schemaPath: path.join(fixturesPath, 'blog.prisma'),
-    })
-
-    expect(formatted).toMatchSnapshot()
+    const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'blog.prisma'))
+    const formatted = await formatSchema({ schemas })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+    expect(formattedContent.length).toBe(1)
+    expect(formattedContent[0]).toMatchSnapshot()
   })
 
   test('valid blog schema', async () => {
     const formatted = await formatSchema({
-      schema: `
+      schemas: [
+        [
+          '/* schemaPath */',
+          `
       datasource db {
         provider = "sqlite"
         url      = "file:dev.db"
@@ -170,9 +164,13 @@ describe('format', () => {
       
         @@unique([userId, postId])
       }`,
+        ],
+      ] as const,
     })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+    expect(formattedContent.length).toBe(1)
 
-    expect(formatted).toMatchSnapshot()
+    expect(formattedContent[0]).toMatchSnapshot()
   })
 
   test('valid schema with 1 preview feature flag warning', async () => {
@@ -191,8 +189,12 @@ describe('format', () => {
         id   Int    @id
       }
     `
-    const formattedSchema = await formatSchema({ schema })
-    expect(formattedSchema).toMatchSnapshot()
+    const schemas: MultipleSchemas = [['/* schemaPath */', schema]]
+
+    const formatted = await formatSchema({ schemas })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+    expect(formattedContent.length).toBe(1)
+    expect(formattedContent[0]).toMatchSnapshot()
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
@@ -219,8 +221,13 @@ describe('format', () => {
         id   Int    @id
       }
     `
-    const formattedSchema = await formatSchema({ schema })
-    expect(formattedSchema).toMatchSnapshot()
+
+    const schemas: MultipleSchemas = [['/* schemaPath */', schema]]
+
+    const formatted = await formatSchema({ schemas })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+    expect(formattedContent.length).toBe(1)
+    expect(formattedContent[0]).toMatchSnapshot()
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
@@ -255,8 +262,13 @@ describe('format', () => {
         userId Int      @unique
       }
     `
-    const formattedSchema = await formatSchema({ schema })
-    expect(formattedSchema).toMatchInlineSnapshot(`
+
+    const schemas: MultipleSchemas = [['/* schemaPath */', schema]]
+
+    const formatted = await formatSchema({ schemas })
+    const formattedContent: string[] = extractSchemaContent(formatted)
+    expect(formattedContent.length).toBe(1)
+    expect(formattedContent[0]).toMatchInlineSnapshot(`
       "generator client {
         provider = "prisma-client-js"
       }

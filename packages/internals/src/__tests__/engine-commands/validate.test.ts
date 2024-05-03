@@ -4,7 +4,7 @@ import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { isRustPanic, validate } from '../..'
-import type { Datamodel } from '../../utils/datamodel'
+import type { SchemaFileInput } from '../../utils/schemaFileInput'
 import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
@@ -39,7 +39,7 @@ describe('validate', () => {
       `
 
       try {
-        validate({ datamodel })
+        validate({ schemas: datamodel })
       } catch (e) {
         expect(e.message).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
@@ -71,7 +71,7 @@ describe('validate', () => {
       `
 
       try {
-        validate({ datamodel })
+        validate({ schemas: datamodel })
       } catch (e) {
         expect(e.message).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
@@ -109,7 +109,7 @@ describe('validate', () => {
           }`
 
         try {
-          validate({ datamodel })
+          validate({ schemas: datamodel })
         } catch (e) {
           expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
@@ -151,7 +151,7 @@ describe('validate', () => {
           }`
 
         try {
-          validate({ datamodel })
+          validate({ schemas: datamodel })
         } catch (e) {
           expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
@@ -177,7 +177,7 @@ describe('validate', () => {
 
         try {
           // @ts-expect-error
-          validate({ datamodel: true })
+          validate({ schemas: true })
         } catch (e) {
           expect(isRustPanic(e)).toBe(true)
           expect(serialize(e.message)).toMatchInlineSnapshot(`
@@ -227,7 +227,7 @@ describe('validate', () => {
         }
         `
         try {
-          validate({ datamodel })
+          validate({ schemas: datamodel })
         } catch (e) {
           expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
@@ -266,7 +266,7 @@ describe('validate', () => {
 
         try {
           // @ts-expect-error
-          validate({ datamodel: [['schema.prisma', true]] })
+          validate({ schemas: [['schema.prisma', true]] })
         } catch (e) {
           expect(isRustPanic(e)).toBe(true)
           expect(serialize(e.message)).toMatchInlineSnapshot(`
@@ -320,13 +320,13 @@ describe('validate', () => {
           }
         `
 
-        const datamodel: Datamodel = [
+        const datamodel: SchemaFileInput = [
           ['schema.prisma', datamodel1],
           ['schema2.prisma', datamodel2],
         ]
 
         try {
-          validate({ datamodel })
+          validate({ schemas: datamodel })
         } catch (e) {
           // TODO: patch engines to fix this message, it should group errors by the different filenames.
           expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
@@ -364,7 +364,7 @@ describe('validate', () => {
   describe('success', () => {
     test('simple model, no datasource', () => {
       validate({
-        datamodel: `model A {
+        schemas: `model A {
           id Int @id
           name String
         }`,
@@ -373,7 +373,7 @@ describe('validate', () => {
 
     test('simple model, sqlite', () => {
       validate({
-        datamodel: `
+        schemas: `
         datasource db {
           provider = "sqlite"
           url      = "file:dev.db"
@@ -388,14 +388,14 @@ describe('validate', () => {
     test('chinook introspected schema', async () => {
       const file = await fs.promises.readFile(path.join(fixturesPath, 'chinook.prisma'), 'utf-8')
       validate({
-        datamodel: file,
+        schemas: file,
       })
     })
 
     test('odoo introspected schema', async () => {
       const file = await fs.promises.readFile(path.join(fixturesPath, 'odoo.prisma'), 'utf-8')
       validate({
-        datamodel: file,
+        schemas: file,
       })
     })
   })
