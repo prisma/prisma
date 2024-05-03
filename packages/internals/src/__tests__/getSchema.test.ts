@@ -92,9 +92,8 @@ it('reads from --schema args first even if package.json is provided', async () =
   `)
 })
 
-// TODO: this fails.
 it('throws if schema args path is invalid', async () => {
-  const res = await testSchemaPath('pkg-json-with-schema-args', path.resolve(FIXTURE_CWD, 'wrong_path'))
+  const res = await testSchemaPath('pkg-json-with-schema-args-no-package-json', path.resolve(FIXTURE_CWD, 'wrong_path'))
 
   expect(res).toMatchInlineSnapshot(`
     {

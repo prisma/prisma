@@ -61,31 +61,51 @@ async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaRe
   return null
 }
 
+// This function only throws when `schemaPathFromArgs` is provided, yet the schema doesn't exist.
 export async function getSchemaPathInternal(
   schemaPathFromArgs?: string,
   opts: { cwd: string } = {
     cwd: process.cwd(),
   },
 ): Promise<GetSchemaResult | null> {
-  const trials = (
-    [
-      // 1. try the user custom path
-      {
-        strategy: 'absolute',
-        fn: getAbsoluteSchemaPath,
-        sourcePath: schemaPathFromArgs ? path.resolve(schemaPathFromArgs) : null,
-      },
+  async function getSchemaPathResult(schemaPath: string) {
+    // a. If it's a single file, read it and return it
+    return (
+      readSchemaFromSingleFile(schemaPath)
+        // b. If it's a directory, load all files and return them, but only if the `prismaSchemaFolder` preview feature is used.
+        .catch(() => readSchemaFromMultiFiles(schemaPath))
+        // c. If it's neither, return null
+        .catch(() => null)
+    )
+  }
 
-      // 2. Try the package.json `prisma.schema` custom path
-      { strategy: 'package.json', fn: getSchemaPathFromPackageJson, sourcePath: opts.cwd },
+  // 1. Try the user custom path, when provided.
+  if (schemaPathFromArgs) {
+    const customSchemaPath = await getAbsoluteSchemaPath(path.resolve(schemaPathFromArgs))
+    const onError = () => {
+      throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
+    }
 
-      // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths
-      { strategy: 'relative', fn: getRelativeSchemaPath, sourcePath: opts.cwd },
+    if (!customSchemaPath) {
+      return onError()
+    }
 
-      // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
-      { strategy: 'yarn', fn: resolveYarnSchema, sourcePath: opts.cwd },
-    ] as const
-  ).filter(({ sourcePath }) => sourcePath !== null)
+    const customSchemaResult = await getSchemaPathResult(customSchemaPath)
+    if (!customSchemaResult) {
+      return onError()
+    }
+
+    return customSchemaResult
+  }
+
+  const trials = [
+    // 2. Try the package.json `prisma.schema` custom path.
+    { strategy: 'package.json', fn: getSchemaPathFromPackageJson, sourcePath: opts.cwd },
+    // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths.
+    { strategy: 'relative', fn: getRelativeSchemaPath, sourcePath: opts.cwd },
+    // 4. Try resolving yarn workspaces and looking for a schema.prisma file there.
+    { strategy: 'yarn', fn: resolveYarnSchema, sourcePath: opts.cwd },
+  ]
 
   for (const { strategy, sourcePath, fn } of trials) {
     debug(`Trying ${strategy}...`)
@@ -97,12 +117,7 @@ export async function getSchemaPathInternal(
       continue
     }
 
-    const schemaPathResult = await // 1. If it's a single file, read it and return it
-    readSchemaFromSingleFile(schemaPath)
-      // 2. If it's a directory, load all files and return them, but only if the `prismaSchemaFolder` preview feature is used.
-      .catch(() => readSchemaFromMultiFiles(schemaPath))
-      // 3. If it's neither, return null
-      .catch(() => null)
+    const schemaPathResult = await getSchemaPathResult(schemaPath)
 
     if (schemaPathResult) {
       return schemaPathResult
@@ -138,6 +153,7 @@ export async function getPrismaConfigFromPackageJson(cwd: string) {
 
 async function getSchemaPathFromPackageJson(cwd: string): Promise<string | null> {
   const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+  debug('prismaConfig', prismaConfig)
 
   if (!prismaConfig || !prismaConfig.data?.schema) {
     return null
