@@ -319,7 +319,8 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<SchemaFile
 }
 
 /**
- * Sync
+ * Sync.
+ * TODO: this is only used by `Migrate` to synchronously read the schema path from its (sync) constructor.
  */
 
 export function getSchemaPathSync(schemaPathFromArgs?: string): string | null {

@@ -9,12 +9,17 @@ import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
+// TODO: can't this `eval` be replaced with an `import`?
 const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
   public engine: SchemaEngine
   private schemaPath?: string
   public migrationsDirectoryPath?: string
+
+  // TODO: make the constructor private, and only allow instantiation via an async static method.
+  // This would allow us to do async work in the constructor (such as using the async version of `getSchemaPath`,
+  // which supports multiple schema files), which is currently not possible.
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
     // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
