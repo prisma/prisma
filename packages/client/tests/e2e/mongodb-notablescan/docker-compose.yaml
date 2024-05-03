@@ -9,14 +9,14 @@ services:
 
   mongo:
     image: mongo:7.0
-    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
-    ports:
-      - 27017:27017
+    command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27017']
+    # ports:
+    #   - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: prisma
       MONGO_INITDB_ROOT_PASSWORD: prisma
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     healthcheck:
       test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
       interval: 5s
@@ -25,8 +25,8 @@ services:
       start_interval: 1s
       retries: 30
     volumes:
-      - "mongo_data:/data/db"
-      - "mongo_config:/data/configdb"
+      - 'mongo_data:/data/db'
+      - 'mongo_config:/data/configdb'
 
 volumes:
   mongo_data:
