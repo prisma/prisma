@@ -22,7 +22,7 @@ export const schemaToStringDebug = (schemaFileInput: SchemaFileInput | unknown):
 }
 
 export function debugMultipleSchemas(multipleSchemas: MultipleSchemas): string {
-  return multipleSchemas.map(([filename, content]) => `// @prisma Schema file:${filename}\n\n${content}`).join('\n')
+  return multipleSchemas.map(([, content]) => content).join('\n/* - newfile - */')
 }
 
 export function debugMultipleSchemaPaths(multipleSchemas: MultipleSchemas): string {

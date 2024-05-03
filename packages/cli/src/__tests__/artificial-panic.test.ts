@@ -83,9 +83,20 @@ describe('artificial-panic formatter', () => {
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath.replace(/\\/g, '/')) // replace due to Windows CI
         .toContain('prisma/schema.prisma')
-      expect(e).toMatchObject({
-        schema: undefined,
-      })
+      expect(e.schema).toMatchInlineSnapshot(`
+        "// This is your Prisma schema file,
+        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+        generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "postgresql"
+          url      = "postgres://user:password@randomhost:5432"
+        }
+        "
+      `)
     }
   })
 })
@@ -169,9 +180,7 @@ describe('artificial-panic validate', () => {
         }
         "
       `)
-      expect(e).toMatchObject({
-        schemaPath: undefined,
-      })
+      expect(e.schemaPath).toBeTruthy()
     }
   })
 
@@ -204,9 +213,7 @@ describe('artificial-panic validate', () => {
         }
         "
       `)
-      expect(e).toMatchObject({
-        schemaPath: undefined,
-      })
+      expect(e.schemaPath).toBeTruthy()
     }
   })
 })

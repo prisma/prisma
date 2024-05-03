@@ -117,6 +117,7 @@ Set composite types introspection depth to 2 levels
     // getSchemaPathAndPrint is not flexible enough for this use case
     const schemaPathResult = await getSchemaPath(args['--schema'])
     let schemaPath = schemaPathResult?.schemaPath ?? null
+    debug('schemaPathResult', schemaPathResult)
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {

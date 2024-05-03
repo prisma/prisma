@@ -8,7 +8,7 @@ import { PackageJson, readPackageUp, readPackageUpSync } from 'read-package-up'
 import { promisify } from 'util'
 
 import { getConfig } from '../engine-commands'
-import type { MultipleSchemas, MultipleSchemaTuple, SchemaFileInput } from '../utils/schemaFileInput'
+import type { MultipleSchemas, MultipleSchemaTuple } from '../utils/schemaFileInput'
 
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
@@ -24,12 +24,14 @@ export type GetSchemaResult = {
  * Async
  */
 
+type ReturnWithNonNullArg<In, Out> = In extends undefined ? Out | null : Out
+
 export async function getSchemaPath(
   schemaPathFromArgs?: string,
   opts: { cwd: string } = {
     cwd: process.cwd(),
   },
-): Promise<GetSchemaResult | null> {
+): Promise<ReturnWithNonNullArg<typeof schemaPathFromArgs, GetSchemaResult>> {
   return getSchemaPathInternal(schemaPathFromArgs, {
     cwd: opts.cwd,
   })
@@ -67,7 +69,7 @@ export async function getSchemaPathInternal(
   opts: { cwd: string } = {
     cwd: process.cwd(),
   },
-): Promise<GetSchemaResult | null> {
+): Promise<ReturnWithNonNullArg<typeof schemaPathFromArgs, GetSchemaResult>> {
   async function getSchemaPathResult(schemaPath: string) {
     // a. If it's a single file, read it and return it
     return (
@@ -79,12 +81,16 @@ export async function getSchemaPathInternal(
     )
   }
 
+  debug('getSchemaPathInternal', schemaPathFromArgs)
+
   // 1. Try the user custom path, when provided.
   if (schemaPathFromArgs) {
-    const customSchemaPath = await getAbsoluteSchemaPath(path.resolve(schemaPathFromArgs))
+    const customSchemaPath = await getCustomSchemaPath(path.resolve(schemaPathFromArgs), opts.cwd)
     const onError = () => {
       throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
     }
+
+    debug('getAbsoluteSchemaPath', customSchemaPath)
 
     if (!customSchemaPath) {
       return onError()
@@ -278,22 +284,29 @@ function resolveYarnSchemaSync(cwd: string): string | null {
   return null
 }
 
-async function getAbsoluteSchemaPath(schemaPath: string): Promise<string | null> {
-  if (await exists(schemaPath)) {
-    return schemaPath
+async function getCustomSchemaPath(schemaPath: string, cwd?: string): Promise<string | null> {
+  // Schema paths are always resolved relative to the cwd, due to snapshots in existing tests (e.g., `incomplete-schemas.test.ts`)
+  const customPath = cwd ? path.relative(cwd, schemaPath) : schemaPath
+
+  if (await exists(customPath)) {
+    return customPath
   }
 
   return null
 }
 
 export async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
-  const schemaPaths = ['schema.prisma', path.join('prisma', 'schema.prisma'), path.join('prisma', 'schema')] as const
+  const relativeSchemaPaths = [
+    'schema.prisma',
+    path.join('prisma', 'schema.prisma'),
+    path.join('prisma', 'schema'),
+  ] as const
 
-  for (const schemaPath of schemaPaths) {
-    const relativePath = path.join(cwd, schemaPath)
+  for (const relativeSchemaPath of relativeSchemaPaths) {
+    const relativePath = path.join(cwd, relativeSchemaPath)
     debug(`Checking existence of ${relativePath}`)
     if (await exists(relativePath)) {
-      return relativePath
+      return relativeSchemaPath
     }
   }
 
@@ -308,7 +321,7 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
     return path.resolve(path.dirname(schemaPathFromArgs))
   }
 
-  const schemaPathResult = await getSchemaPath(schemaPathFromArgs)
+  const schemaPathResult = await getSchemaPath()
   if (!schemaPathResult) {
     return null
   }
@@ -316,7 +329,7 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
   return path.dirname(schemaPathResult.schemaPath)
 }
 
-export async function getSchema(schemaPathFromArgs?: string): Promise<SchemaFileInput> {
+export async function getSchema(schemaPathFromArgs?: string): Promise<MultipleSchemas> {
   const schemaPathResult = await getSchemaPath(schemaPathFromArgs)
 
   if (!schemaPathResult) {

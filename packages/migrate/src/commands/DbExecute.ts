@@ -4,7 +4,7 @@ import {
   Command,
   format,
   getCommandWithExecutor,
-  getSchema,
+  getSchemaPath,
   HelpError,
   isError,
   loadEnvFile,
@@ -164,12 +164,12 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     else {
       // validate that schema file exists
       // throws an error if it doesn't
-      const schemas = await getSchema(args['--schema'])
+      const { schemaPath } = (await getSchemaPath(args['--schema']))!
 
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        schema: schemas,
+        schema: schemaPath,
       }
     }
 
