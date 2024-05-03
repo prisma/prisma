@@ -574,7 +574,6 @@ testMatrix.setupTestSuite(() => {
       const _createManyAndReturn = xprisma.user._createManyAndReturn({
         data: [{ email: '', firstName: '', lastName: '' }],
       })
-      // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
       const createManyAndReturn = await xprisma.user._createManyAndReturn({
         data: [{ email: '', firstName: '', lastName: '' }],
       })
