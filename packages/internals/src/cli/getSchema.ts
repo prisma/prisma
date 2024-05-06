@@ -285,8 +285,6 @@ function resolveYarnSchemaSync(cwd: string): string | null {
 async function getCustomSchemaPath(schemaPath: string, cwd?: string): Promise<string | null> {
   if (await exists(schemaPath)) {
     if (cwd !== undefined) {
-      debug('return@getCustomSchemaPath', path.relative(cwd, path.resolve(cwd, schemaPath)))
-      // return path.relative(cwd, path.resolve(cwd, schemaPath))
       return path.relative(cwd, schemaPath)
     }
 

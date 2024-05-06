@@ -21,6 +21,8 @@ describe('artificial-panic introspection', () => {
     process.env = { ...OLD_ENV }
   })
 
+  // TODO: this fails with
+  // "Error opening datamodel file in `prisma/schema.prisma`: No such file or directory"
   it('schema-engine', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(6)

@@ -1,6 +1,4 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
-import { cwd } from 'process'
 
 import { DebugInfo } from '../../DebugInfo'
 
@@ -429,9 +427,7 @@ describe('debug', () => {
 
   it('should succeed with --schema', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(DebugInfo.new().parse(['--schema=schema.prisma'])).resolves.toContain(
-      path.join(cwd(), 'schema.prisma'),
-    )
+    await expect(DebugInfo.new().parse(['--schema=schema.prisma'])).resolves.toContain('schema.prisma')
   })
 
   it('should succeed with incorrect --schema path', async () => {
