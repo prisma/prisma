@@ -80,7 +80,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     debug(`${tag} %O`, query)
 
     const res = await this.performIO(query, true)
-    return res.map((result) => (result as D1Response).meta.rows_written ?? 0)
+    return res.map((result) => (result as D1Response).meta.changes ?? 0)
   }
 
   private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
