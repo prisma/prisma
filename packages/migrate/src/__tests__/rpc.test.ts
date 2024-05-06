@@ -10,7 +10,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 describe('applyMigrations', () => {
   it('should succeed', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.applyMigrations({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -26,7 +26,7 @@ describe('applyMigrations', () => {
 
   it('should fail on existing brownfield db', async () => {
     ctx.fixture('existing-db-brownfield')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.applyMigrations({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -63,7 +63,7 @@ describe('createDatabase', () => {
 
   it('should succeed - SchemaPath - postgresql', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate()
     const result = migrate.engine.createDatabase({
       datasource: {
@@ -85,7 +85,7 @@ describe('createDatabase', () => {
 describe('createMigration', () => {
   it('should succeed - existing-db-1-migration', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
     const result = migrate.engine.createMigration({
@@ -105,7 +105,7 @@ describe('createMigration', () => {
 
   it('draft should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
     const result = migrate.engine.createMigration({
@@ -146,7 +146,7 @@ describe('dbExecute', () => {
 describe('devDiagnostic', () => {
   it('createMigration', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.devDiagnostic({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -164,7 +164,7 @@ describe('devDiagnostic', () => {
 
   it('reset because drift', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.devDiagnostic({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -197,7 +197,7 @@ describe('devDiagnostic', () => {
 describe('diagnoseMigrationHistory', () => {
   it('optInToShadowDatabase true should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -217,7 +217,7 @@ describe('diagnoseMigrationHistory', () => {
 
   it(' optInToShadowDatabase false should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -254,7 +254,7 @@ describe('ensureConnectionValidity', () => {
 
   it('should succeed when database exists - PostgreSQL', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate()
     const result = migrate.engine.ensureConnectionValidity({
       datasource: {
@@ -314,7 +314,7 @@ describe('evaluateDataLoss', () => {
   // migration is not yet applied
   it('should succeed - schema-only-sqlite', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
     const result = migrate.engine.evaluateDataLoss({
@@ -335,7 +335,7 @@ describe('evaluateDataLoss', () => {
   // migration is already applied so should be empty
   it('should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
     const result = migrate.engine.evaluateDataLoss({
@@ -357,7 +357,7 @@ describe('evaluateDataLoss', () => {
 describe('getDatabaseVersion - PostgreSQL', () => {
   it('[No params] should succeed', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.getDatabaseVersion()
     await expect(result).resolves.toContain('PostgreSQL')
@@ -366,7 +366,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
 
   it('[SchemaPath] should succeed', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate()
     const result = migrate.engine.getDatabaseVersion({
       datasource: {
@@ -380,7 +380,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
 
   it('[SchemaString] should succeed', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const schema = (await fs.readAsync(schemaPath))!
     const migrate = new Migrate()
     const result = migrate.engine.getDatabaseVersion({
@@ -409,7 +409,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
 describe('listMigrationDirectories', () => {
   it('should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.listMigrationDirectories({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -427,7 +427,7 @@ describe('listMigrationDirectories', () => {
 
   it('should succeed - schema-only-sqlite', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.listMigrationDirectories({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -447,7 +447,7 @@ describe('markMigrationRolledBack', () => {
     jest.setTimeout(10_000)
     ctx.fixture('existing-db-1-migration')
 
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
 
     const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
@@ -466,7 +466,7 @@ describe('markMigrationRolledBack', () => {
 
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
     const result = await migrate.engine.createMigration({
@@ -527,7 +527,7 @@ describe('markMigrationRolledBack', () => {
 describe('markMigrationApplied', () => {
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
     const result = await migrate.engine.createMigration({
@@ -559,7 +559,7 @@ describe('schemaPush', () => {
   // Since 5.0.0 this RPC does not error anymore if the SQLite database file is missing
   it('should succeed if SQLite database file is missing', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
     const result = migrate.engine.schemaPush({
@@ -579,7 +579,7 @@ describe('schemaPush', () => {
 
   it('should succeed without warning', async () => {
     ctx.fixture('existing-db-1-draft')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
     const result = migrate.engine.schemaPush({
@@ -599,7 +599,7 @@ describe('schemaPush', () => {
 
   it('should return executedSteps 0 with warning if dataloss detected', async () => {
     ctx.fixture('existing-db-brownfield')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
 
@@ -622,7 +622,7 @@ describe('schemaPush', () => {
 
   it('force should accept dataloss', async () => {
     ctx.fixture('existing-db-brownfield')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
     const schema = migrate.getPrismaSchema()
 

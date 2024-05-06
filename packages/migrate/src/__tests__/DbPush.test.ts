@@ -53,7 +53,7 @@ describe('push', () => {
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: Native type VarChar is not supported for sqlite connector.
-        -->  schema.prisma:12
+        -->  prisma/schema.prisma:12
          | 
       11 |   id   Int    @id
       12 |   name String @db.VarChar(100)

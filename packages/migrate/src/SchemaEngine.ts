@@ -64,7 +64,7 @@ export class SchemaEngine {
 
   constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: SchemaEngineOptions) {
     this.projectDir = projectDir
-    this.schemaPath = schemaPath ? path.resolve(process.cwd(), schemaPath) : undefined
+    this.schemaPath = schemaPath
     if (debug) {
       Debug.enable('SchemaEngine*')
     }
