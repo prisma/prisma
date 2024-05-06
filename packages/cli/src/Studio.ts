@@ -13,7 +13,6 @@ import {
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
-import fs from 'fs'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
@@ -97,7 +96,7 @@ ${bold('Examples')}
 
     loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
     const hostname = args['--hostname']
     const port = args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
@@ -105,8 +104,7 @@ ${bold('Examples')}
 
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
-    const schema = await fs.promises.readFile(schemaPath, 'utf-8')
-    const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
+    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({

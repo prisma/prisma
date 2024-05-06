@@ -70,7 +70,7 @@ export async function getSchemaPathInternal(
     cwd: process.cwd(),
   },
 ): Promise<ReturnWithNonNullArg<typeof schemaPathFromArgs, GetSchemaResult>> {
-  async function getSchemaPathResult(schemaPath: string) {
+  async function getSchemaResult(schemaPath: string) {
     // a. If it's a single file, read it and return it
     return (
       readSchemaFromSingleFile(schemaPath)
@@ -81,8 +81,6 @@ export async function getSchemaPathInternal(
     )
   }
 
-  debug('getSchemaPathInternal', schemaPathFromArgs)
-
   // 1. Try the user custom path, when provided.
   if (schemaPathFromArgs) {
     const customSchemaPath = await getCustomSchemaPath(path.resolve(schemaPathFromArgs), opts.cwd)
@@ -90,13 +88,13 @@ export async function getSchemaPathInternal(
       throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
     }
 
-    debug('getAbsoluteSchemaPath', customSchemaPath)
-
     if (!customSchemaPath) {
       return onError()
     }
 
-    const customSchemaResult = await getSchemaPathResult(customSchemaPath)
+    const customSchemaResult = await getSchemaResult(
+      opts.cwd !== process.cwd() ? path.resolve(opts.cwd, customSchemaPath) : customSchemaPath,
+    )
     if (!customSchemaResult) {
       return onError()
     }
@@ -111,7 +109,7 @@ export async function getSchemaPathInternal(
     { strategy: 'relative', fn: getRelativeSchemaPath, sourcePath: opts.cwd },
     // 4. Try resolving yarn workspaces and looking for a schema.prisma file there.
     { strategy: 'yarn', fn: resolveYarnSchema, sourcePath: opts.cwd },
-  ]
+  ] as const
 
   for (const { strategy, sourcePath, fn } of trials) {
     debug(`Trying ${strategy}...`)
@@ -123,7 +121,7 @@ export async function getSchemaPathInternal(
       continue
     }
 
-    const schemaPathResult = await getSchemaPathResult(schemaPath)
+    const schemaPathResult = await getSchemaResult(schemaPath)
 
     if (schemaPathResult) {
       return schemaPathResult
@@ -285,11 +283,14 @@ function resolveYarnSchemaSync(cwd: string): string | null {
 }
 
 async function getCustomSchemaPath(schemaPath: string, cwd?: string): Promise<string | null> {
-  // Schema paths are always resolved relative to the cwd, due to snapshots in existing tests (e.g., `incomplete-schemas.test.ts`)
-  const customPath = cwd ? path.relative(cwd, schemaPath) : schemaPath
+  if (await exists(schemaPath)) {
+    if (cwd !== undefined) {
+      debug('return@getCustomSchemaPath', path.relative(cwd, path.resolve(cwd, schemaPath)))
+      // return path.relative(cwd, path.resolve(cwd, schemaPath))
+      return path.relative(cwd, schemaPath)
+    }
 
-  if (await exists(customPath)) {
-    return customPath
+    return schemaPath
   }
 
   return null
@@ -306,6 +307,7 @@ export async function getRelativeSchemaPath(cwd: string): Promise<string | null>
     const relativePath = path.join(cwd, relativeSchemaPath)
     debug(`Checking existence of ${relativePath}`)
     if (await exists(relativePath)) {
+      debug('Found schema at', relativeSchemaPath)
       return relativeSchemaPath
     }
   }

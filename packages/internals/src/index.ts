@@ -92,6 +92,7 @@ export {
   extractSchemaContent,
   type SchemaFileInput,
 } from './utils/schemaFileInput'
+export { type MultipleSchemas } from './utils/schemaFileInput'
 export { serializeQueryEngineName } from './utils/serializeQueryEngineName'
 export { setClassName } from './utils/setClassName'
 export type { Position } from './utils/trimBlocksFromSchema'

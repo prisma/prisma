@@ -271,11 +271,10 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
 
     if (schemaPath) {
       // Re-Introspection is not supported on MongoDB
-      const schema = await getSchema(args['--schema'])
+      const schemas = await getSchema(args['--schema'])
 
       const modelRegex = /\s*model\s*(\w+)\s*{/
-      const modelMatch = modelRegex.exec(schema as string)
-      const isReintrospection = modelMatch
+      const isReintrospection = schemas.some(([_, schema]) => !!modelRegex.exec(schema as string))
 
       if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
         throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.

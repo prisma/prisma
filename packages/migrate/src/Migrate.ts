@@ -24,7 +24,7 @@ export class Migrate {
     // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
     if (schemaPath) {
-      this.schemaPath = this.getSchemaPath(schemaPath)
+      this.schemaPath = schemaPath
       this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
       this.engine = new SchemaEngine({
         projectDir: path.dirname(this.schemaPath),
