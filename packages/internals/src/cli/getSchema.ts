@@ -282,11 +282,11 @@ function resolveYarnSchemaSync(cwd: string): string | null {
   return null
 }
 
-async function getCustomSchemaPath(schemaPath: string, cwd?: string): Promise<string | null> {
+async function getCustomSchemaPath(schemaPath: string, _cwd?: string): Promise<string | null> {
   if (await exists(schemaPath)) {
-    if (cwd !== undefined) {
-      return path.relative(cwd, schemaPath)
-    }
+    // if (cwd !== undefined) {
+    //   return path.relative(cwd, schemaPath)
+    // }
 
     return schemaPath
   }
