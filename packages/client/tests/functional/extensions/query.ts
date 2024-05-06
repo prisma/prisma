@@ -740,23 +740,26 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
-              // @ts-test-if: provider !== Providers.MONGODB
-              expectTypeOf(operation).toEqualTypeOf<
-                | 'findUnique'
-                | 'findUniqueOrThrow'
+
+              expectTypeOf(operation).toMatchTypeOf<
                 | 'findFirst'
                 | 'findFirstOrThrow'
+                | 'findUnique'
+                | 'findUniqueOrThrow'
                 | 'findMany'
                 | 'create'
                 | 'createMany'
-                | 'delete'
+                | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
-                | 'deleteMany'
                 | 'updateMany'
                 | 'upsert'
+                | 'delete'
+                | 'deleteMany'
                 | 'aggregate'
                 | 'groupBy'
                 | 'count'
+                | 'aggregateRaw' // MongoDB only
+                | 'findRaw' // MongoDB only
               >()
 
               type Model = typeof model
@@ -805,24 +808,28 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
-              // @ts-test-if: provider !== Providers.MONGODB
-              expectTypeOf(operation).toEqualTypeOf<
-                | 'findUnique'
-                | 'findUniqueOrThrow'
+
+              expectTypeOf(operation).toMatchTypeOf<
                 | 'findFirst'
                 | 'findFirstOrThrow'
+                | 'findUnique'
+                | 'findUniqueOrThrow'
                 | 'findMany'
                 | 'create'
                 | 'createMany'
-                | 'delete'
+                | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
-                | 'deleteMany'
                 | 'updateMany'
                 | 'upsert'
+                | 'delete'
+                | 'deleteMany'
                 | 'aggregate'
                 | 'groupBy'
                 | 'count'
+                | 'aggregateRaw' // MongoDB only
+                | 'findRaw' // MongoDB only
               >()
+
               expectTypeOf(model).toEqualTypeOf<'Post'>()
 
               fnModel({ args, operation, model })
@@ -1236,13 +1243,25 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-
               async createMany({ args, query, operation }) {
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                return data
+              },
+              // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+              async createManyAndReturn({ args, query, operation }) {
+                const data = await query(args)
+
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(operation).toEqualTypeOf<'createManyAndReturn'>()
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                 return data
               },
@@ -1383,13 +1402,26 @@ testMatrix.setupTestSuite(
 
                   return data
                 }
-
                 if (operation === 'createMany') {
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                  return data
+                }
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                if (operation === 'createManyAndReturn') {
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  const data = await query(args)
+
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(operation).toEqualTypeOf<'createManyAndReturn'>()
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                  expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                   return data
                 }
@@ -1547,6 +1579,20 @@ testMatrix.setupTestSuite(
 
                   return data
                 }
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                if (model === 'User' && operation === 'createManyAndReturn') {
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  const data = await query(args)
+
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(operation).toEqualTypeOf<'createManyAndReturn'>()
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                  expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
+
+                  return data
+                }
                 if (model === 'User' && operation === 'delete') {
                   const data = await query(args)
 
@@ -1657,6 +1703,7 @@ testMatrix.setupTestSuite(
 
                 return query(args)
               },
+
               async aggregate({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
@@ -1691,7 +1738,6 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-
               async createMany({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
@@ -1700,6 +1746,21 @@ testMatrix.setupTestSuite(
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                return data
+              },
+              // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+              async createManyAndReturn({ args, query, operation, model }) {
+                if (model !== 'User') return query(args)
+
+                const data = await query(args)
+
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(operation).toEqualTypeOf<'createManyAndReturn'>()
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                 return data
               },
@@ -1834,7 +1895,10 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-              // @ts-test-if: provider === Providers.MONGODB
+
+              // This MYSQL & SQLSERVER does not make sense...
+              // This was added to avoid a "Unused '@ts-expect-error' directive." error.
+              // @ts-test-if: provider === Providers.MONGODB || provider === Providers.MYSQL || provider === Providers.SQLSERVER
               async aggregateRaw({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
