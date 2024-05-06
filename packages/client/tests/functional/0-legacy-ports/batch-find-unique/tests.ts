@@ -118,7 +118,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
 
       case Providers.MONGODB:
         expect(executedBatchQuery).toMatchInlineSnapshot(
-          `"db.User.aggregate([ { $match: { $expr: { $and: [ { $in: [ "$email", { $literal: [ "Pete.Runte93767@broaden-dungeon.info", "Sam.Mills50272@oozeastronomy.net", "Kyla_Beer587@fraternise-assassination.name", "Arielle.Reichel85426@hunker-string.org", ], }, ], }, { $ne: [ "$email", "$$REMOVE", ], }, ], }, }, }, { $project: { _id: 1, email: 1, age: 1, name: 1, }, }, ])"`,
+          `"db.User.aggregate([ { $match: { $expr: { $and: [ { $or: [ { $eq: [ "$email", { $literal: "Pete.Runte93767@broaden-dungeon.info", }, ], }, { $eq: [ "$email", { $literal: "Sam.Mills50272@oozeastronomy.net", }, ], }, { $eq: [ "$email", { $literal: "Kyla_Beer587@fraternise-assassination.name", }, ], }, { $eq: [ "$email", { $literal: "Arielle.Reichel85426@hunker-string.org", }, ], }, ], }, { $ne: [ "$email", "$$REMOVE", ], }, ], }, }, }, { $project: { _id: 1, email: 1, age: 1, name: 1, }, }, ])"`,
         )
         break
 
