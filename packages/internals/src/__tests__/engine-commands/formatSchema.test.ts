@@ -104,15 +104,6 @@ describe('format custom options', () => {
 })
 
 describe('format', () => {
-  test('nothing', async () => {
-    try {
-      // @ts-expect-error
-      await formatSchema({})
-    } catch (e) {
-      expect(e.message).toMatchSnapshot()
-    }
-  })
-
   test('valid blog schemaPath', async () => {
     const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'blog.prisma'))
     const formatted = await formatSchema({ schemas })

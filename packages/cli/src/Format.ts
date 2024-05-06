@@ -53,19 +53,15 @@ Or specify a Prisma schema path
 
     const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
-    const formattedDatamodel = await formatSchema({ schemaPath, schemas })
+    const formattedDatamodel = await formatSchema({ schemas })
 
     // Validate whether the formatted output is a valid schema
     validate({
       schemas: formattedDatamodel,
     })
 
-    if (Array.isArray(formattedDatamodel)) {
-      for (const [filename, data] of formattedDatamodel) {
-        await fs.writeFile(filename, data)
-      }
-    } else {
-      await fs.writeFile(schemaPath, formattedDatamodel)
+    for (const [filename, data] of formattedDatamodel) {
+      await fs.writeFile(filename, data)
     }
 
     const after = Math.round(performance.now())
