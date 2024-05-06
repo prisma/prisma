@@ -1,4 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { DebugInfo } from '../../DebugInfo'
@@ -430,7 +431,7 @@ describe('debug', () => {
     ctx.fixture('example-project/prisma')
     const result = stripAnsi((await DebugInfo.new().parse(['--schema=schema.prisma'])) as string)
 
-    expect(result).toContain('Path: schema.prisma')
+    expect(result).toContain(`Path: ${path.join(process.cwd(), 'schema.prisma')}`)
   })
 
   it('should succeed with incorrect --schema path', async () => {

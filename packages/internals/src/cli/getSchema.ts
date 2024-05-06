@@ -125,6 +125,7 @@ export async function getSchemaPathInternal(
       continue
     }
 
+    // const schemaPathResult = await getSchemaResult(schemaPath)
     const schemaPathResult = await getSchemaResult(path.resolve(sourcePath, schemaPath))
 
     if (schemaPathResult) {
@@ -286,12 +287,8 @@ function resolveYarnSchemaSync(cwd: string): string | null {
   return null
 }
 
-async function getCustomSchemaPath(schemaPath: string, cwd?: string): Promise<string | null> {
+async function getCustomSchemaPath(schemaPath: string, _cwd?: string): Promise<string | null> {
   if (await exists(schemaPath)) {
-    if (cwd !== undefined) {
-      return path.relative(cwd, schemaPath)
-    }
-
     return schemaPath
   }
 

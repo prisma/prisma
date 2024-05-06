@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
+import path from 'path'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
@@ -20,6 +21,7 @@ export class ValidateError extends Error {
   constructor(params: QueryEngineErrorInit) {
     const constructedErrorMessage = match(params)
       .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
+        message = message.replaceAll(process.cwd() + path.sep, '')
         const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
         return `${reason}
 ${errorCodeMessage}
