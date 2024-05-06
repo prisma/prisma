@@ -14,6 +14,7 @@ export type Operation =
 // creates
 | 'create'
 | 'createMany'
+| 'createManyAndReturn'
 // updates
 | 'update'
 | 'updateMany'
@@ -141,6 +142,7 @@ export type GetResult<P extends OperationPayload, A, O extends Operation = 'find
   findMany: GetFindResult<P, A>[],
   create: GetFindResult<P, A>,
   createMany: GetBatchResult,
+  createManyAndReturn: GetFindResult<P, A>[],
   update: GetFindResult<P, A>,
   updateMany: GetBatchResult,
   upsert: GetFindResult<P, A>,

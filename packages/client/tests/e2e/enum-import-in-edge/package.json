@@ -5,7 +5,7 @@
   "scripts": {},
   "dependencies": {
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
-    "wrangler": "3.51.2"
+    "wrangler": "3.53.0"
   },
   "devDependencies": {
     "@types/jest": "29.5.12",

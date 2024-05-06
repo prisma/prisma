@@ -207,6 +207,7 @@ export namespace DMMF {
     findMany?: string | null
     create?: string | null
     createMany?: string | null
+    createManyAndReturn?: string | null
     update?: string | null
     updateMany?: string | null
     upsert?: string | null
@@ -227,6 +228,7 @@ export namespace DMMF {
     findMany = 'findMany',
     create = 'create',
     createMany = 'createMany',
+    createManyAndReturn = 'createManyAndReturn',
     update = 'update',
     updateMany = 'updateMany',
     upsert = 'upsert',

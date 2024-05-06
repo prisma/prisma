@@ -1267,7 +1267,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev-shadowdb", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
 
       Applying migration \`20201231000000_\`
 
