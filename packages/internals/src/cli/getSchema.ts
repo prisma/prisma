@@ -38,21 +38,25 @@ export async function getSchemaPath(
 }
 
 export async function readSchemaFromSingleFile(schemaPath: string): Promise<GetSchemaResult> {
+  debug('Reading schema from single file', schemaPath)
   const file = await readFile(schemaPath, { encoding: 'utf-8' })
   const schemaTuple: MultipleSchemaTuple = [schemaPath, file]
   return { schemaPath, schemas: [schemaTuple] } as const
 }
 
 async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaResult | null> {
+  debug('Reading schema from multiple files', schemaPath)
   const files = await loadSchemaFiles(schemaPath)
 
   // TODO: problem: if the Prisma config isn't valid, we currently get a
   // `Error: Could not find a schema.prisma file that is required for this command.` error
   // in the multi-file case.
+  debug('Loading config')
   const config = await getConfig({
     datamodel: files,
     ignoreEnvVarErrors: true,
   })
+  debug('Ok')
   const previewFeatures = config.generators.find((g) => g.previewFeatures.length > 0)?.previewFeatures
   const usesPrismaSchemaFolder = (previewFeatures || []).includes('prismaSchemaFolder')
 
@@ -121,7 +125,7 @@ export async function getSchemaPathInternal(
       continue
     }
 
-    const schemaPathResult = await getSchemaResult(schemaPath)
+    const schemaPathResult = await getSchemaResult(path.resolve(sourcePath, schemaPath))
 
     if (schemaPathResult) {
       return schemaPathResult

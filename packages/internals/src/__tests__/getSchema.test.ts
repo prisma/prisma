@@ -93,7 +93,7 @@ it('reads from --schema args first even if package.json is provided', async () =
 })
 
 it('throws if schema args path is invalid', async () => {
-  const res = await testSchemaPath('pkg-json-with-schema-args-no-package-json', path.resolve(FIXTURE_CWD, 'wrong_path'))
+  const res = await testSchemaPath('pkg-json-with-schema-args', path.resolve(FIXTURE_CWD, 'wrong_path'))
 
   expect(res).toMatchInlineSnapshot(`
     {
@@ -147,17 +147,16 @@ it('reads from the nearest package.json of the cwd', async () => {
   `)
 })
 
-// TODO: This test started failing after the introduction of the `prismaSchemaFolder` preview feature
-// it('finds the conventional prisma/schema path without configuration', async () => {
-//   const res = await testSchemaPath('conventional-path')
+it('finds the conventional prisma/schema path without configuration', async () => {
+  const res = await testSchemaPath('conventional-path')
 
-//   expect(res).toMatchInlineSnapshot(`
-//     {
-//       "async": "src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma",
-//       "sync": "src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma",
-//     }
-//   `)
-// })
+  expect(res).toMatchInlineSnapshot(`
+    {
+      "async": "src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma",
+      "sync": "src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma",
+    }
+  `)
+})
 
 it('finds the schema path in the root package.json of a yarn workspace from a child package', async () => {
   const res = await testSchemaPath('pkg-json-workspace-parent/packages/a')
