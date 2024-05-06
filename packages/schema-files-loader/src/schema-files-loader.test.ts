@@ -1,5 +1,6 @@
 import path from 'node:path'
 
+import { CompositeFilesResolver, InMemoryFilesResolver, realFsResolver } from './resolver'
 import { loadSchemaFiles } from './schema-files-loader'
 
 function line(text: string) {
@@ -46,5 +47,32 @@ describe('loadSchemaFiles', () => {
   test('ignores symlinks to directories', async () => {
     const files = await loadSchemaFiles(fixturePath('symlinks-to-dir'))
     expect(files).toEqual([])
+  })
+
+  test('allows to use in-memory resolver', async () => {
+    const resolver = new InMemoryFilesResolver()
+    resolver.addFile('/some/dir/a.prisma', '// this is a')
+    resolver.addFile('/some/dir/b.prisma', '// this is b')
+    const files = await loadSchemaFiles('/some/dir', resolver)
+
+    expect(files).toEqual([
+      ['/some/dir/a.prisma', '// this is a'],
+      ['/some/dir/b.prisma', '// this is b'],
+    ])
+  })
+
+  test('allows to use composite resolver', async () => {
+    const inMemory = new InMemoryFilesResolver()
+    inMemory.addFile(fixturePath('simple', 'b.prisma'), line('// b is overridden'))
+    inMemory.addFile(fixturePath('simple', 'c.prisma'), line('// in memory only'))
+
+    const resolver = new CompositeFilesResolver(inMemory, realFsResolver)
+    const files = await loadSchemaFiles(fixturePath('simple'), resolver)
+
+    expect(files).toEqual([
+      [fixturePath('simple', 'b.prisma'), line('// b is overridden')],
+      [fixturePath('simple', 'c.prisma'), line('// in memory only')],
+      [fixturePath('simple', 'a.prisma'), line('// this is a')],
+    ])
   })
 })
