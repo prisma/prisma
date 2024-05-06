@@ -32,7 +32,7 @@ describe('artificial-panic introspection', () => {
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
         "Error in Schema engine.
-        Reason: [/some/rust/path:0:0] Error opening datamodel file in \`prisma/schema.prisma\`: No such file or directory (os error 2)
+        Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
         "
       `)
       expect(isRustPanic(e)).toBe(true)
