@@ -8,6 +8,7 @@ export {
   getSchemaPath,
   getSchemaPathFromPackageJsonSync,
   getSchemaPathSync,
+  type GetSchemaResult,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'

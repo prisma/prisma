@@ -1,4 +1,4 @@
-import { getSchemaPath, link, logger } from '@prisma/internals'
+import { getSchemaPath, type GetSchemaResult, link, logger } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import path from 'path'
 
@@ -15,18 +15,20 @@ import { NoSchemaFoundError } from './errors'
  *
  * @returns {String} schemaPath
  */
-export async function getSchemaPathAndPrint(
-  schemaPathProvided?: string,
-): Promise<NonNullable<Awaited<ReturnType<typeof getSchemaPath>>>>
+export async function getSchemaPathAndPrint(schemaPathProvided?: string): Promise<GetSchemaResult>
 export async function getSchemaPathAndPrint(
   schemaPathProvided?: string,
   postinstallCwd?: string,
-): ReturnType<typeof getSchemaPath> {
+): Promise<GetSchemaResult | null>
+export async function getSchemaPathAndPrint(
+  schemaPathProvided?: string,
+  postinstallCwd?: string,
+): Promise<GetSchemaResult | null> {
   const cwdOptions = postinstallCwd ? { cwd: postinstallCwd } : undefined
   const schemaPathResult = await getSchemaPath(schemaPathProvided, cwdOptions)
   if (!schemaPathResult) {
     // Special case for Generate command
-    if (postinstallCwd) {
+    if (cwdOptions !== undefined) {
       logger.warn(`We could not find your Prisma schema in the default locations (see: ${link(
         'https://pris.ly/d/prisma-schema-location',
       )}.
