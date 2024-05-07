@@ -15,7 +15,7 @@ testMatrix.setupTestSuite(
       const email3 = faker.internet.email()
       const email4 = faker.internet.email()
 
-      const created = await prisma.user.createManyAndReturn({
+      const users = await prisma.user.createManyAndReturn({
         data: [
           {
             email: email1,
@@ -32,7 +32,7 @@ testMatrix.setupTestSuite(
         ],
       })
 
-      expect(created).toMatchObject([
+      expect(users).toMatchObject([
         {
           email: email1,
           id: expect.any(String),
@@ -55,10 +55,11 @@ testMatrix.setupTestSuite(
         },
       ])
     })
+
     test('should accept select', async () => {
       const email1 = faker.internet.email()
 
-      const created = await prisma.user.createManyAndReturn({
+      const users = await prisma.user.createManyAndReturn({
         select: {
           id: true,
         },
@@ -69,31 +70,48 @@ testMatrix.setupTestSuite(
         ],
       })
 
-      expect(created).toMatchObject([
+      expect(users).toMatchObject([
         {
           id: expect.any(String),
         },
       ])
     })
-    test.skip('should accept include', async () => {
+
+    test('should accept include on the post side', async () => {
       const email1 = faker.internet.email()
 
-      const created = await prisma.user.createManyAndReturn({
-        // Type '{ posts: true; }' is not assignable to type 'never'.
-        // include: {
-        // posts: true,
-        // },
+      const users = await prisma.user.createManyAndReturn({
+        select: {
+          id: true,
+        },
         data: [
           {
             email: email1,
           },
         ],
       })
-      console.log({ created })
 
-      expect(created).toMatchObject([
+      const posts = await prisma.post.createManyAndReturn({
+        include: {
+          user: true,
+        },
+        data: [
+          {
+            userId: users[0].id,
+            title: 'Include my user please!',
+          },
+        ],
+      })
+
+      expect(posts).toMatchObject([
         {
           id: expect.any(String),
+          title: expect.any(String),
+          userId: expect.any(String),
+          user: {
+            id: expect.any(String),
+            email: email1,
+          },
         },
       ])
     })
