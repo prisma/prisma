@@ -108,7 +108,7 @@ ${bold('Examples')}
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
-      schemaPath: path.resolve(process.cwd(), schemaPath),
+      schemaPath,
       hostname,
       port,
       staticAssetDir,
