@@ -20,9 +20,9 @@ it('should redact a PostgreSQL connection string', () => {
   expect(redactCommandArray(['init', '--url', '"postgresql://janedoe:mypassword@localhost:5432/mydb?schema=sample"']))
     .toMatchInlineSnapshot(`
     [
-      init,
-      --url,
-      [redacted],
+      "init",
+      "--url",
+      "[redacted]",
     ]
   `)
 })
@@ -35,8 +35,8 @@ it('should redact a MySQL connection string', () => {
     ]),
   ).toMatchInlineSnapshot(`
     [
-      init,
-      --url=[redacted],
+      "init",
+      "--url=[redacted]",
     ]
   `)
 })
@@ -49,8 +49,8 @@ it('should redact a MongoDB connection string', () => {
     ]),
   ).toMatchInlineSnapshot(`
     [
-      init,
-      --url=[redacted],
+      "init",
+      "--url=[redacted]",
     ]
   `)
 })
@@ -58,9 +58,9 @@ it('should redact a MongoDB connection string', () => {
 it('should redact a SQLite connection string', () => {
   expect(redactCommandArray(['init', '--url', '"file:./dev.db"'])).toMatchInlineSnapshot(`
     [
-      init,
-      --url,
-      [redacted],
+      "init",
+      "--url",
+      "[redacted]",
     ]
   `)
 })
@@ -73,8 +73,8 @@ it('should redact a SQL Server connection string', () => {
     ]),
   ).toMatchInlineSnapshot(`
     [
-      init,
-      --url=[redacted],
+      "init",
+      "--url=[redacted]",
     ]
   `)
 })
@@ -82,9 +82,9 @@ it('should redact a SQL Server connection string', () => {
 it('should redact a path with for example --schema', () => {
   expect(redactCommandArray(['cmd', '--schema', '../../../../directory/my_schema.prisma'])).toMatchInlineSnapshot(`
     [
-      cmd,
-      --schema,
-      [redacted],
+      "cmd",
+      "--schema",
+      "[redacted]",
     ]
   `)
 })
@@ -92,9 +92,9 @@ it('should redact a path with for example --schema', () => {
 it('should redact a name with for example --name', () => {
   expect(redactCommandArray(['cmd', '--name', '1234_my_name'])).toMatchInlineSnapshot(`
     [
-      cmd,
-      --name,
-      [redacted],
+      "cmd",
+      "--name",
+      "[redacted]",
     ]
   `)
 })
@@ -104,14 +104,14 @@ it('should read data from Prisma schema', async () => {
 
   await expect(tryToReadDataFromSchema('./schema.prisma')).resolves.toMatchInlineSnapshot(`
     {
-      schemaGeneratorsProviders: [
-        prisma-client-js,
-        something,
+      "schemaGeneratorsProviders": [
+        "prisma-client-js",
+        "something",
       ],
-      schemaPreviewFeatures: [
-        extendedIndexes,
+      "schemaPreviewFeatures": [
+        "extendedIndexes",
       ],
-      schemaProvider: sqlite,
+      "schemaProvider": "sqlite",
     }
   `)
 })
@@ -119,8 +119,8 @@ it('should read data from Prisma schema', async () => {
 it('should redact token from Platform commands', () => {
   expect(redactCommandArray(['platform', '--token="foo"'])).toMatchInlineSnapshot(`
     [
-      platform,
-      --token=[redacted],
+      "platform",
+      "--token=[redacted]",
     ]
   `)
 })
@@ -128,10 +128,10 @@ it('should redact token from Platform commands', () => {
 it('should redact a database url from Platform accelerate enable command', () => {
   expect(redactCommandArray(['platform', 'accelerate', 'enable', '--url="foo"'])).toMatchInlineSnapshot(`
     [
-      platform,
-      accelerate,
-      enable,
-      --url=[redacted],
+      "platform",
+      "accelerate",
+      "enable",
+      "--url=[redacted]",
     ]
   `)
 })

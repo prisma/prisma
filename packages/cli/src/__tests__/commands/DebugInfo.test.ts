@@ -77,7 +77,7 @@ describe('debug', () => {
     const result = await DebugInfo.new().parse([])
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      -- Prisma schema --
+      "-- Prisma schema --
       Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
@@ -152,7 +152,7 @@ describe('debug', () => {
 
       -- CI detected? --
       false
-
+      "
     `)
   })
 
@@ -169,7 +169,7 @@ describe('debug', () => {
     const result = await DebugInfo.new().parse([])
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      -- Prisma schema --
+      "-- Prisma schema --
       Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
@@ -244,7 +244,7 @@ describe('debug', () => {
 
       -- CI detected? --
       false
-
+      "
     `)
   })
 
@@ -256,7 +256,7 @@ describe('debug', () => {
     const result = await DebugInfo.new().parse([])
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      -- Prisma schema --
+      "-- Prisma schema --
       Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
@@ -331,7 +331,7 @@ describe('debug', () => {
 
       -- CI detected? --
       true
-
+      "
     `)
   })
 
@@ -348,7 +348,7 @@ describe('debug', () => {
     expect(result).toContain('from_env_file')
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      -- Prisma schema --
+      "-- Prisma schema --
       Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
@@ -423,7 +423,7 @@ describe('debug', () => {
 
       -- CI detected? --
       true
-
+      "
     `)
   })
 

@@ -60,16 +60,16 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     })
 
     await expect(products).rejects.toMatchPrismaErrorInlineSnapshot(`
+      "
+      Invalid \`prisma.product.findMany()\` invocation in
+      /client/tests/functional/field-reference/string/tests.ts:0:0
 
-            Invalid \`prisma.product.findMany()\` invocation in
-            /client/tests/functional/field-reference/string/tests.ts:0:0
-
-              XX 
-              XX // TODO: Edge: skipped because of the error snapshot
-              XX testIf(runtime !== 'edge')('wrong field type', async () => {
-            → XX   const products = prisma.product.findMany(
-            Input error. Expected a referenced scalar field of type String but found Product.notString of type Int.
-        `)
+        XX 
+        XX // TODO: Edge: skipped because of the error snapshot
+        XX testIf(runtime !== 'edge')('wrong field type', async () => {
+      → XX   const products = prisma.product.findMany(
+      Input error. Expected a referenced scalar field of type String but found Product.notString of type Int."
+    `)
   })
 
   // TODO: Edge: skipped because of the error snapshot
@@ -84,16 +84,16 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     })
 
     await expect(products).rejects.toMatchPrismaErrorInlineSnapshot(`
+      "
+      Invalid \`prisma.product.findMany()\` invocation in
+      /client/tests/functional/field-reference/string/tests.ts:0:0
 
-            Invalid \`prisma.product.findMany()\` invocation in
-            /client/tests/functional/field-reference/string/tests.ts:0:0
-
-              XX 
-              XX // TODO: Edge: skipped because of the error snapshot
-              XX testIf(runtime !== 'edge')('wrong model', async () => {
-            → XX   const products = prisma.product.findMany(
-            Input error. Expected a referenced scalar field of model Product, but found a field of model OtherModel.
-        `)
+        XX 
+        XX // TODO: Edge: skipped because of the error snapshot
+        XX testIf(runtime !== 'edge')('wrong model', async () => {
+      → XX   const products = prisma.product.findMany(
+      Input error. Expected a referenced scalar field of model Product, but found a field of model OtherModel."
+    `)
   })
 
   // TODO: Edge: skipped because of the error snapshot
@@ -108,7 +108,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     })
 
     await expect(products).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
@@ -116,7 +116,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
          XX // TODO: Edge: skipped because of the error snapshot
         XX testIf(runtime !== 'edge')('wrong identical model', async () => {
       → XX   const products = prisma.product.findMany(
-      Input error. Expected a referenced scalar field of model Product, but found a field of model IdenticalToProduct.
+      Input error. Expected a referenced scalar field of model Product, but found a field of model IdenticalToProduct."
     `)
   })
 })

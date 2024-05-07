@@ -12,10 +12,10 @@ testMatrix.setupTestSuite(
         newPrismaClient()
       } catch (e) {
         expect(e.message).toMatchInlineSnapshot(`
-          The \`metrics\` preview feature is not yet available with Accelerate.
+          "The \`metrics\` preview feature is not yet available with Accelerate.
           Please remove \`metrics\` from the \`previewFeatures\` in your schema.
 
-          More information about Accelerate: https://pris.ly/d/accelerate
+          More information about Accelerate: https://pris.ly/d/accelerate"
         `)
       }
     })

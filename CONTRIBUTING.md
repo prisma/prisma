@@ -25,7 +25,7 @@ Copy paste these commands to install the global dependencies:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 nvm install 18
-npm install --global pnpm@8 ts-node
+npm install --global pnpm@8.15.5 ts-node
 ```
 
 ## General Setup

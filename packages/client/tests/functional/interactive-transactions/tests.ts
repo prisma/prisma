@@ -143,7 +143,7 @@ testMatrix.setupTestSuite(
         throw new Error('you better rollback now')
       })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`you better rollback now`)
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"you better rollback now"`)
 
       const users = await prisma.user.findMany()
 
@@ -330,16 +330,16 @@ testMatrix.setupTestSuite(
 
       if (clientMeta.runtime !== 'edge') {
         await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`transactionBoundPrisma.user.create()\` invocation in
+          /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-        Invalid \`transactionBoundPrisma.user.create()\` invocation in
-        /client/tests/functional/interactive-transactions/tests.ts:0:0
-
-          XX })
-          XX 
-          XX const result = prisma.$transaction(async () => {
-        → XX   await transactionBoundPrisma.user.create(
-        Transaction API error: Transaction already closed: A query cannot be executed on a committed transaction.
-      `)
+            XX })
+            XX 
+            XX const result = prisma.$transaction(async () => {
+          → XX   await transactionBoundPrisma.user.create(
+          Transaction API error: Transaction already closed: A query cannot be executed on a committed transaction."
+        `)
       }
 
       const users = await prisma.user.findMany()
@@ -645,7 +645,7 @@ testMatrix.setupTestSuite(
         throw new Error('rollback')
       })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"rollback"`)
 
       const users = await prisma.user.findMany()
 
@@ -676,7 +676,7 @@ testMatrix.setupTestSuite(
         throw new Error('rollback')
       })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"rollback"`)
 
       const users = await prisma.user.findMany()
 
@@ -709,7 +709,7 @@ testMatrix.setupTestSuite(
         throw new Error('rollback')
       })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"rollback"`)
 
       const users = await prisma.user.findMany()
 
@@ -887,7 +887,7 @@ testMatrix.setupTestSuite(
         })
 
         await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-          `Inconsistent column data: Conversion failed: Invalid isolation level \`NotAValidLevel\``,
+          `"Inconsistent column data: Conversion failed: Invalid isolation level \`NotAValidLevel\`"`,
         )
       })
     })
@@ -905,7 +905,7 @@ testMatrix.setupTestSuite(
       )
 
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `The current database provider doesn't support a feature that the query used: Mongo does not support setting transaction isolation levels.`,
+        `"The current database provider doesn't support a feature that the query used: Mongo does not support setting transaction isolation levels."`,
       )
     })
   },

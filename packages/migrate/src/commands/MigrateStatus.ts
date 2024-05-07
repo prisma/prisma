@@ -100,24 +100,26 @@ Check the status of your database migrations
       migrate.stop()
     }
 
-    console.log() // empty line
+    process.stdout.write('\n') // empty line
 
     if (listMigrationDirectoriesResult.migrations.length > 0) {
       const migrations = listMigrationDirectoriesResult.migrations
-      console.info(`${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations\n`)
+      process.stdout.write(
+        `${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations\n`,
+      )
     } else {
-      console.info(`No migration found in prisma/migrations\n`)
+      process.stdout.write(`No migration found in prisma/migrations\n`)
     }
 
     let unappliedMigrations: string[] = []
     if (diagnoseResult.history?.diagnostic === 'databaseIsBehind') {
       unappliedMigrations = diagnoseResult.history.unappliedMigrationNames
-      console.info(
+      process.stdout.write(
         `Following migration${unappliedMigrations.length > 1 ? 's' : ''} have not yet been applied:
 ${unappliedMigrations.join('\n')}
 
 To apply migrations in development run ${bold(green(getCommandWithExecutor(`prisma migrate dev`)))}.
-To apply migrations in production run ${bold(green(getCommandWithExecutor(`prisma migrate deploy`)))}.`,
+To apply migrations in production run ${bold(green(getCommandWithExecutor(`prisma migrate deploy`)))}.\n`,
       )
       // Exit 1 to signal that the status is not in sync
       process.exit(1)
@@ -196,7 +198,7 @@ ${link('https://pris.ly/d/migrate-resolve')}`)
       // Exit 1 to signal that the status is not in sync
       process.exit(1)
     } else {
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
       if (unappliedMigrations.length === 0) {
         // Exit 0 to signal that the status is in sync
         return `Database schema is up to date!`

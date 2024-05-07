@@ -37,13 +37,13 @@ testMatrix.setupTestSuite(
         // TODO Prisma 6: should be a PrismaClientInitializationError, but the message is correct
         // await expect(promise).rejects.toBeInstanceOf(Prisma.InvalidDatasourceError)
         await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-          `Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\``,
+          `"Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\`"`,
         )
       } else if (clientMeta.dataProxy && clientMeta.runtime === 'node') {
         // TODO Prisma 6: should be a PrismaClientInitializationError, but the message is correct
         // await expect(promise).rejects.toBeInstanceOf(Prisma.InvalidDatasourceError)
         await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-          `Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\``,
+          `"Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\`"`,
         )
       } else if (!clientMeta.dataProxy) {
         await promise.catch((e) => {

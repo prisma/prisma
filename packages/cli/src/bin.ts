@@ -44,6 +44,8 @@ import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
 
+const debug = Debug('prisma:cli:bin')
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
@@ -152,8 +154,13 @@ async function main(): Promise<number> {
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
+  const startCliExec = performance.now()
   // Execute the command
   const result = await cli.parse(commandArray)
+  const endCliExec = performance.now()
+  const cliExecElapsedTime = endCliExec - startCliExec
+  debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
+
   // Did it error?
   if (result instanceof HelpError) {
     console.error(result.message)

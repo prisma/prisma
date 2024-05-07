@@ -68,15 +68,15 @@ it('introspect should include deprecation warning', async () => {
   const result = cliInstance.parse(['introspect'])
 
   await expect(result).rejects.toMatchInlineSnapshot(`
-          Could not find a schema.prisma file that is required for this command.
-          You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-        `)
+    "Could not find a schema.prisma file that is required for this command.
+    You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+  `)
   expect(ctx.mocked['console.log'].mock.calls).toHaveLength(0)
   expect(ctx.mocked['console.info'].mock.calls).toHaveLength(0)
   expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-    prisma:warn 
+    "prisma:warn 
     prisma:warn The prisma introspect command is deprecated. Please use prisma db pull instead.
-    prisma:warn 
+    prisma:warn "
   `)
   expect(ctx.mocked['console.error'].mock.calls).toHaveLength(0)
 })

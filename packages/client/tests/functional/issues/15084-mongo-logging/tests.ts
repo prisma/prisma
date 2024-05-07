@@ -44,9 +44,9 @@ testMatrix.setupTestSuite(
       expect(queryLogEvents).toHaveProperty('params')
       expect(queryLogEvents).toHaveProperty('duration')
       expect(queryLogEvents).toHaveProperty('target')
-      expect(queryLogEvents.query).toMatchInlineSnapshot('db.User.aggregate([ { $project: { _id: 1, }, }, ])')
+      expect(queryLogEvents.query).toMatchInlineSnapshot(`"db.User.aggregate([ { $project: { _id: 1, }, }, ])"`)
       expect(consoleCalls.join('/n')).toMatchInlineSnapshot(
-        `prisma:query,db.User.aggregate([ { $project: { _id: 1, }, }, ])`,
+        `"prisma:query,db.User.aggregate([ { $project: { _id: 1, }, }, ])"`,
       )
     })
   },

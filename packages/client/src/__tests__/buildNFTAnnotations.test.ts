@@ -14,13 +14,13 @@ describe('library', () => {
     const annotations = buildNFTAnnotations(false, ClientEngineType.Library, ['debian-openssl-1.1.x'], 'out')
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
   })
 
@@ -33,7 +33,7 @@ describe('library', () => {
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
@@ -47,7 +47,7 @@ describe('library', () => {
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
   })
 })
@@ -57,13 +57,13 @@ describe('binary', () => {
     const annotations = buildNFTAnnotations(false, ClientEngineType.Binary, ['debian-openssl-1.1.x'], 'out')
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "query-engine-TEST_PLATFORM");
       path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
   })
 
@@ -76,7 +76,7 @@ describe('binary', () => {
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "query-engine-TEST_PLATFORM");
       path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
@@ -90,7 +90,7 @@ describe('binary', () => {
       path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
   })
 })
@@ -136,13 +136,13 @@ describe('special cases for Netlify', () => {
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
 
     expect(annotations).toContain(binaryTarget)
@@ -160,13 +160,13 @@ describe('special cases for Netlify', () => {
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
 
     expect(annotations).toContain('rhel-openssl-1.0.x')
@@ -183,13 +183,13 @@ describe('special cases for Netlify', () => {
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
 
     expect(annotations).toContain('rhel-openssl-1.0.x')
@@ -207,13 +207,13 @@ describe('special cases for Netlify', () => {
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
 
     expect(annotations).toContain('rhel-openssl-3.0.x')
@@ -230,13 +230,13 @@ describe('special cases for Netlify', () => {
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-
+      "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       // file annotations for bundling tools to include these files
       path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
+      path.join(process.cwd(), "out/schema.prisma")"
     `)
 
     expect(annotations).toContain('rhel-openssl-3.0.x')

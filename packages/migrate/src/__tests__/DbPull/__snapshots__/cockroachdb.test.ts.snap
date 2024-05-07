@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`cockroachdb basic introspection (no schema) --url 2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -35,10 +35,11 @@ enum Role {
   ADMIN
 }
 
+"
 `;
 
 exports[`cockroachdb basic introspection (with cockroach provider) --url  2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -72,10 +73,11 @@ enum Role {
   ADMIN
 }
 
+"
 `;
 
 exports[`cockroachdb basic introspection (with cockroachdb provider) 2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -109,6 +111,10 @@ enum Role {
   ADMIN
 }
 
+"
 `;
 
-exports[`cockroachdb basic introspection (with postgresql provider) --url should fail 2`] = ``;
+exports[`cockroachdb basic introspection (with postgresql provider) --url should fail 2`] = `
+"
+"
+`;

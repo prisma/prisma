@@ -9,10 +9,12 @@ import { EngineValidationError, OutputTypeDescription } from '../engines'
  */
 
 /**
- * `include` and `select` are used at the same time
+ * Pair of mutually exclusive fields are found on selection (for example select + include or select + omit)
  */
-export type IncludeAndSelectError = {
-  kind: 'IncludeAndSelect'
+export type MutuallyExclusiveFieldsError = {
+  kind: 'MutuallyExclusiveFields'
+  firstField: string
+  secondField: string
   selectionPath: string[]
 }
 
@@ -24,4 +26,4 @@ export type IncludeOnScalarError = {
   selectionPath: string[]
   outputType?: OutputTypeDescription
 }
-export type ValidationError = IncludeAndSelectError | IncludeOnScalarError | EngineValidationError
+export type ValidationError = MutuallyExclusiveFieldsError | IncludeOnScalarError | EngineValidationError

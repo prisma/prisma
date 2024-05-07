@@ -28,5 +28,5 @@ export function printDatasource({ datasourceInfo }: { datasourceInfo: Datasource
     message += ` at "${datasourceInfo.dbLocation}"`
   }
 
-  console.info(dim(message))
+  process.stdout.write(dim(message) + '\n')
 }

@@ -19,7 +19,7 @@ testMatrix.setupTestSuite(
       expect(consoleWarnMock).toHaveBeenCalledTimes(1)
       expect(consoleWarnMock.mock.calls[0]).toMatchInlineSnapshot(`
         [
-          prisma:warn In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`),
+          "prisma:warn In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`)",
         ]
       `)
 

@@ -79,7 +79,7 @@ testMatrix.setupTestSuite(
       })
 
       await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+        "
         Invalid \`prisma.$transaction([prisma.user.findFirst()\` invocation in
         /client/tests/functional/batch-transaction-isolation-level/tests.ts:0:0
 
@@ -87,7 +87,7 @@ testMatrix.setupTestSuite(
           XX test('invalid level generates run- and compile- time error', async () => {
           XX   // @ts-expect-error
         → XX   const result = prisma.$transaction([prisma.user.findFirst(
-        Inconsistent column data: Conversion failed: Invalid isolation level \`yes\`
+        Inconsistent column data: Conversion failed: Invalid isolation level \`yes\`"
       `)
     })
   },

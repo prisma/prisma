@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`mysql basic introspection --url 2`] = `
-datasource db {
+"datasource db {
   provider = "mysql"
   url      = "mysql://root:root@localhost:3306/tests"
 }
@@ -39,10 +39,11 @@ model your_url {
   @@index([timestamp], map: "timestamp")
 }
 
+"
 `;
 
 exports[`mysql basic introspection 2`] = `
-datasource db {
+"datasource db {
   provider = "mysql"
   url      = env("TEST_MYSQL_URI")
 }
@@ -80,4 +81,5 @@ model your_url {
   @@index([timestamp], map: "timestamp")
 }
 
+"
 `;

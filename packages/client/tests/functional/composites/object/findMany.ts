@@ -21,25 +21,23 @@ setupTestSuite(() => {
       where: { id: id1 },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      `
+    expect(comment).toMatchInlineSnapshot(`
       [
         {
-          content: {
-            text: Hello World,
-            upvotes: [
+          "content": {
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
             ],
           },
-          country: null,
-          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
+          "country": null,
+          "id": "8aaaaaaaaaaaaaaaaaaaaaaa",
         },
       ]
-    `,
-    )
+    `)
   })
 
   test('select', async () => {
@@ -57,8 +55,8 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(`
       [
         {
-          content: {
-            text: Hello World,
+          "content": {
+            "text": "Hello World",
           },
         },
       ]
@@ -77,42 +75,40 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      `
+    expect(comment).toMatchInlineSnapshot(`
       [
         {
-          content: {
-            text: Goodbye World,
-            upvotes: [
+          "content": {
+            "text": "Goodbye World",
+            "upvotes": [
               {
-                userId: 11,
-                vote: false,
+                "userId": "11",
+                "vote": false,
               },
               {
-                userId: 12,
-                vote: true,
+                "userId": "12",
+                "vote": true,
               },
             ],
           },
-          country: France,
-          id: 1ddddddddddddddddddddddd,
+          "country": "France",
+          "id": "1ddddddddddddddddddddddd",
         },
         {
-          content: {
-            text: Hello World,
-            upvotes: [
+          "content": {
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
             ],
           },
-          country: null,
-          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
+          "country": null,
+          "id": "8aaaaaaaaaaaaaaaaaaaaaaa",
         },
       ]
-    `,
-    )
+    `)
   })
 
   test('filter equals', async () => {
@@ -123,25 +119,23 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      `
+    expect(comment).toMatchInlineSnapshot(`
       [
         {
-          content: {
-            text: Hello World,
-            upvotes: [
+          "content": {
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
             ],
           },
-          country: null,
-          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
+          "country": null,
+          "id": "8aaaaaaaaaaaaaaaaaaaaaaa",
         },
       ]
-    `,
-    )
+    `)
   })
 
   test('filter equals shorthand', async () => {
@@ -152,25 +146,23 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      `
+    expect(comment).toMatchInlineSnapshot(`
       [
         {
-          content: {
-            text: Hello World,
-            upvotes: [
+          "content": {
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
             ],
           },
-          country: null,
-          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
+          "country": null,
+          "id": "8aaaaaaaaaaaaaaaaaaaaaaa",
         },
       ]
-    `,
-    )
+    `)
   })
 
   test('filter is', async () => {
@@ -181,42 +173,40 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      `
+    expect(comment).toMatchInlineSnapshot(`
       [
         {
-          content: {
-            text: Goodbye World,
-            upvotes: [
+          "content": {
+            "text": "Goodbye World",
+            "upvotes": [
               {
-                userId: 11,
-                vote: false,
+                "userId": "11",
+                "vote": false,
               },
               {
-                userId: 12,
-                vote: true,
+                "userId": "12",
+                "vote": true,
               },
             ],
           },
-          country: France,
-          id: 1ddddddddddddddddddddddd,
+          "country": "France",
+          "id": "1ddddddddddddddddddddddd",
         },
         {
-          content: {
-            text: Hello World,
-            upvotes: [
+          "content": {
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
             ],
           },
-          country: null,
-          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
+          "country": null,
+          "id": "8aaaaaaaaaaaaaaaaaaaaaaa",
         },
       ]
-    `,
-    )
+    `)
   })
 
   test('filter isNot', async () => {
@@ -227,25 +217,23 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      `
+    expect(comment).toMatchInlineSnapshot(`
       [
         {
-          content: {
-            text: Hello World,
-            upvotes: [
+          "content": {
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
             ],
           },
-          country: null,
-          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
+          "country": null,
+          "id": "8aaaaaaaaaaaaaaaaaaaaaaa",
         },
       ]
-    `,
-    )
+    `)
   })
 
   test('filter isSet', async () => {
@@ -256,28 +244,26 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      `
+    expect(comment).toMatchInlineSnapshot(`
       [
         {
-          content: {
-            text: Goodbye World,
-            upvotes: [
+          "content": {
+            "text": "Goodbye World",
+            "upvotes": [
               {
-                userId: 11,
-                vote: false,
+                "userId": "11",
+                "vote": false,
               },
               {
-                userId: 12,
-                vote: true,
+                "userId": "12",
+                "vote": true,
               },
             ],
           },
-          country: France,
-          id: 1ddddddddddddddddddddddd,
+          "country": "France",
+          "id": "1ddddddddddddddddddddddd",
         },
       ]
-    `,
-    )
+    `)
   })
 })

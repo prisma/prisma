@@ -1,12 +1,13 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupMSSQL, tearDownMSSQL } from '../../utils/setupMSSQL'
 import { SetupParams } from '../../utils/setupPostgres'
+import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -15,7 +16,20 @@ if (isMacOrWindowsCI) {
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const captureStdout = new CaptureStdout()
+
+beforeEach(() => {
+  captureStdout.startCapture()
+})
+
+afterEach(() => {
+  captureStdout.clearCaptureText()
+})
+
+afterAll(() => {
+  captureStdout.stopCapture()
+})
 
 // To avoid the loading spinner locally
 process.env.CI = 'true'
@@ -89,23 +103,19 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     ctx.fixture('introspection/sqlserver')
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', process.env.TEST_MSSQL_JDBC_URI_MIGRATE!])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })
 
@@ -162,11 +172,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
     await expect(result).rejects.toThrow(`P4001`)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
@@ -174,7 +181,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-      Prisma schema validation - (get-config wasm)
+      "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
         -->  schema.prisma:4
@@ -186,13 +193,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
       Validation Error Count: 1
       [Context: getConfig]
 
-      Prisma CLI Version : 0.0.0
+      Prisma CLI Version : 0.0.0"
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   // TODO unskip in a following PR
@@ -206,34 +210,30 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
+
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                              // *** WARNING ***
-                              // 
-                              // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
-                              //   - transactional_some_table
-                              // 
-                              // These items were renamed due to their names being duplicates in the Prisma Schema Language:
-                              //   - type: model, name: base_some_table
-                              //   - type: model, name: transactional_some_table
-                              // 
-                    `)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+                                    // *** WARNING ***
+                                    // 
+                                    // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
+                                    //   - transactional_some_table
+                                    // 
+                                    // These items were renamed due to their names being duplicates in the Prisma Schema Language:
+                                    //   - type: model, name: base_some_table
+                                    //   - type: model, name: transactional_some_table
+                                    // 
+                        `)
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
     ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
@@ -241,11 +241,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
     await expect(result).rejects.toThrow(`P4001`)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
@@ -256,12 +253,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
       '--schema',
       'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
     ])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
@@ -269,22 +264,17 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
     const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).rejects.toThrow(`P4001`)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
     const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
     const result = introspect.parse(['--print', '--url', connectionString])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

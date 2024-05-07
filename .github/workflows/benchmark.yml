@@ -61,7 +61,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 20
-          pnpm-version: 8
+          pnpm-version: 8.15.5
           skip-tsc: false
 
       - name: Run benchmarks

@@ -300,7 +300,7 @@ export class SchemaEngine {
           if (result.method === 'print' && result.params?.content !== undefined) {
             // Here we print the content from the Schema Engine to stdout directly
             // (it is not returned to the caller)
-            console.info(result.params.content)
+            process.stdout.write(result.params.content + '\n')
 
             // Send an empty response back as ACK.
             const response: RpcSuccessResponse<{}> = {

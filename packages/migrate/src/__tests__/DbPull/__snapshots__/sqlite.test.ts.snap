@@ -1,7 +1,36 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`D1 should succeed when --local-d1 and a single local Cloudflare D1 database exists 2`] = `
+"generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url = "REPLACED_BY_TEST"
+}
+
+model Post {
+  id       Int    @id @default(autoincrement())
+  title    String
+  authorId Int
+  User     User   @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id     Int     @id @default(autoincrement())
+  email  String  @unique
+  count1 Int
+  name   String?
+  Post   Post[]
+}
+
+"
+`;
+
 exports[`common/sqlite basic introspection 2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -35,10 +64,11 @@ model User {
   profile Profile?
 }
 
+"
 `;
 
 exports[`common/sqlite basic introspection with --url 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -72,18 +102,11 @@ model User {
   profile Profile?
 }
 
+"
 `;
 
-exports[`common/sqlite basic introspection with invalid --url - empty host 2`] = ``;
-
-exports[`common/sqlite basic introspection with invalid --url if schema is unspecified 2`] = ``;
-
-exports[`common/sqlite basic introspection with schema and --url missing file: prefix should fail 2`] = ``;
-
-exports[`common/sqlite basic introspection without schema and with --url missing "file:" prefix should fail 2`] = ``;
-
 exports[`common/sqlite introspection --force 2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
 }
 
@@ -117,10 +140,11 @@ model User {
   Profile Profile?
 }
 
+"
 `;
 
 exports[`common/sqlite should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
 }
@@ -161,10 +185,11 @@ model AwesomeProfile {
   @@map("Profile")
 }
 
+"
 `;
 
-exports[`common/sqlite should succeed when schema is invalid and using --force 7`] = `
-generator client {
+exports[`common/sqlite should succeed when schema is invalid and using --force 3`] = `
+"generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
 }
@@ -198,5 +223,5 @@ model User {
   Post    Post[]
   Profile Profile?
 }
-
+"
 `;

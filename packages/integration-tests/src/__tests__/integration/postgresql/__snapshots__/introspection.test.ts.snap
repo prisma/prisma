@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`introspection: create bigint data: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -14,13 +14,13 @@ datasource postgresql {
 model migrate {
   version BigInt @id
 }
-
+"
 `;
 
 exports[`introspection: create bigint data: warnings 1`] = `null`;
 
 exports[`introspection: create with data: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -34,13 +34,13 @@ model teams {
   id   Int    @id @default(autoincrement())
   name String @unique
 }
-
+"
 `;
 
 exports[`introspection: create with data: warnings 1`] = `null`;
 
 exports[`introspection: create with empty data and SQL default: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -54,13 +54,13 @@ model teams {
   id   Int    @id @default(autoincrement())
   name String @default("alice")
 }
-
+"
 `;
 
 exports[`introspection: create with empty data and SQL default: warnings 1`] = `null`;
 
 exports[`introspection: delete where composite PK: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -78,13 +78,13 @@ model variables {
 
   @@id([name, key])
 }
-
+"
 `;
 
 exports[`introspection: delete where composite PK: warnings 1`] = `null`;
 
 exports[`introspection: delete where composite unique: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -101,13 +101,13 @@ model users {
 
   @@unique([email, name])
 }
-
+"
 `;
 
 exports[`introspection: delete where composite unique: warnings 1`] = `null`;
 
 exports[`introspection: deleteMany where enum - check count: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -127,13 +127,13 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
-
+"
 `;
 
 exports[`introspection: deleteMany where enum - check count: warnings 1`] = `null`;
 
 exports[`introspection: deleteMany where enum - check findMany: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -153,13 +153,13 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
-
+"
 `;
 
 exports[`introspection: deleteMany where enum - check findMany: warnings 1`] = `null`;
 
 exports[`introspection: findMany - default enum: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -179,13 +179,13 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
-
+"
 `;
 
 exports[`introspection: findMany - default enum: warnings 1`] = `null`;
 
 exports[`introspection: findMany - email text: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -199,13 +199,13 @@ model users {
   id    Int     @id @default(autoincrement())
   email String?
 }
-
+"
 `;
 
 exports[`introspection: findMany - email text: warnings 1`] = `null`;
 
 exports[`introspection: findMany - email varchar(50) not null unique: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -219,13 +219,13 @@ model users {
   id    Int    @id @default(autoincrement())
   email String @unique
 }
-
+"
 `;
 
 exports[`introspection: findMany - email varchar(50) not null unique: warnings 1`] = `null`;
 
 exports[`introspection: findMany on column_name_that_becomes_empty_string: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -265,11 +265,11 @@ enum invalid_enum {
   // 123 @map("123")
   // $§! @map("$§!")
 }
-
+"
 `;
 
 exports[`introspection: findMany on column_name_that_becomes_empty_string: warnings 1`] = `
-*** WARNING ***
+"*** WARNING ***
 
 These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute:
   - Model: "column_name_that_becomes_empty_string", field(s): ["12345"]
@@ -283,11 +283,11 @@ The following models were ignored as they do not have a valid unique identifier 
 
 These fields are not supported by Prisma Client, because Prisma currently does not support their types:
   - Model: "unsupported_type", field: "unsupported", original data type: "polygon"
-
+"
 `;
 
 exports[`introspection: findMany orderBy asc: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -302,13 +302,13 @@ model posts {
   title     String
   published Boolean @default(false)
 }
-
+"
 `;
 
 exports[`introspection: findMany orderBy asc: warnings 1`] = `null`;
 
 exports[`introspection: findMany orderBy desc: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -323,13 +323,13 @@ model posts {
   title     String
   published Boolean @default(false)
 }
-
+"
 `;
 
 exports[`introspection: findMany orderBy desc: warnings 1`] = `null`;
 
 exports[`introspection: findMany where - case insensitive field: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -343,13 +343,13 @@ model users {
   id    Int    @id @default(autoincrement())
   email String @unique @postgresql.Citext
 }
-
+"
 `;
 
 exports[`introspection: findMany where - case insensitive field: warnings 1`] = `null`;
 
 exports[`introspection: findMany where OR[contains, contains] : datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -364,13 +364,13 @@ model posts {
   title     String
   published Boolean @default(false)
 }
-
+"
 `;
 
 exports[`introspection: findMany where OR[contains, contains] : warnings 1`] = `null`;
 
 exports[`introspection: findMany where contains and boolean: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -385,13 +385,13 @@ model posts {
   title     String
   published Boolean @default(false)
 }
-
+"
 `;
 
 exports[`introspection: findMany where contains and boolean: warnings 1`] = `null`;
 
 exports[`introspection: findMany where contains: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -406,13 +406,13 @@ model crons {
   job       String  @unique
   frequency String?
 }
-
+"
 `;
 
 exports[`introspection: findMany where contains: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime exact: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -426,13 +426,13 @@ model events {
   id   Int       @id @default(autoincrement())
   time DateTime? @postgresql.Timestamptz(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where datetime exact: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime gt: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -446,13 +446,13 @@ model events {
   id   Int       @id @default(autoincrement())
   time DateTime? @postgresql.Timestamptz(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where datetime gt: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime gte: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -466,13 +466,13 @@ model events {
   id   Int       @id @default(autoincrement())
   time DateTime? @postgresql.Timestamptz(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where datetime gte: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime lt: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -486,13 +486,13 @@ model events {
   id   Int       @id @default(autoincrement())
   time DateTime? @postgresql.Timestamptz(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where datetime lt: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime lte - check instanceof Date: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -507,13 +507,13 @@ model posts {
   title      String
   created_at DateTime @default(now()) @postgresql.Timestamp(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where datetime lte - check instanceof Date: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime lte: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -527,13 +527,13 @@ model events {
   id   Int       @id @default(autoincrement())
   time DateTime? @postgresql.Timestamptz(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where datetime lte: warnings 1`] = `null`;
 
 exports[`introspection: findMany where datetime not: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -547,13 +547,13 @@ model events {
   id   Int       @id @default(autoincrement())
   time DateTime? @postgresql.Timestamptz(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where datetime not: warnings 1`] = `null`;
 
 exports[`introspection: findMany where decimal: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -567,13 +567,13 @@ model exercises {
   id       Int     @id @default(autoincrement())
   distance Decimal @postgresql.Decimal(5, 3)
 }
-
+"
 `;
 
 exports[`introspection: findMany where decimal: warnings 1`] = `null`;
 
 exports[`introspection: findMany where empty in[]: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -588,13 +588,13 @@ model teams {
   token Int    @unique
   name  String
 }
-
+"
 `;
 
 exports[`introspection: findMany where empty in[]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where empty notIn[]: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -609,13 +609,13 @@ model teams {
   token Int    @unique
   name  String
 }
-
+"
 `;
 
 exports[`introspection: findMany where empty notIn[]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where endsWith: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -630,13 +630,13 @@ model crons {
   job       String  @unique
   frequency String?
 }
-
+"
 `;
 
 exports[`introspection: findMany where endsWith: warnings 1`] = `null`;
 
 exports[`introspection: findMany where id empty in[] and token in[]: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -651,13 +651,13 @@ model teams {
   token Int    @unique
   name  String
 }
-
+"
 `;
 
 exports[`introspection: findMany where id empty in[] and token in[]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where in[integer]: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -672,13 +672,13 @@ model teams {
   token Int    @unique
   name  String
 }
-
+"
 `;
 
 exports[`introspection: findMany where in[integer]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where in[string]: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -693,13 +693,13 @@ model crons {
   job       String  @unique
   frequency String?
 }
-
+"
 `;
 
 exports[`introspection: findMany where in[string]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where notIn[]: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -714,13 +714,13 @@ model teams {
   token Int    @unique
   name  String
 }
-
+"
 `;
 
 exports[`introspection: findMany where notIn[]: warnings 1`] = `null`;
 
 exports[`introspection: findMany where null: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -734,13 +734,13 @@ model events {
   id   Int       @id @default(autoincrement())
   time DateTime? @postgresql.Timestamptz(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where null: warnings 1`] = `null`;
 
 exports[`introspection: findMany where startsWith: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -755,13 +755,13 @@ model crons {
   job       String  @unique
   frequency String?
 }
-
+"
 `;
 
 exports[`introspection: findMany where startsWith: warnings 1`] = `null`;
 
 exports[`introspection: findMany where timestamp gt than now: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -776,13 +776,13 @@ model posts {
   title      String
   created_at DateTime @default(now()) @postgresql.Timestamp(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where timestamp gt than now: warnings 1`] = `null`;
 
 exports[`introspection: findMany where timestamp gte than now: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -797,13 +797,13 @@ model posts {
   title      String
   created_at DateTime @default(now()) @postgresql.Timestamp(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where timestamp gte than now: warnings 1`] = `null`;
 
 exports[`introspection: findMany where timestamp lt than now: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -818,13 +818,13 @@ model posts {
   title      String
   created_at DateTime @default(now()) @postgresql.Timestamp(6)
 }
-
+"
 `;
 
 exports[`introspection: findMany where timestamp lt than now: warnings 1`] = `null`;
 
 exports[`introspection: findMany where unique: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -838,13 +838,13 @@ model users {
   id    Int    @id @default(autoincrement())
   email String @unique
 }
-
+"
 `;
 
 exports[`introspection: findMany where unique: warnings 1`] = `null`;
 
 exports[`introspection: findUnique - check typeof Date is string for Json field: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -859,13 +859,13 @@ model posts {
   title String
   data  Json?
 }
-
+"
 `;
 
 exports[`introspection: findUnique - check typeof Date is string for Json field: warnings 1`] = `null`;
 
 exports[`introspection: findUnique - check typeof array for Json field with array: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -880,13 +880,13 @@ model posts {
   title String
   data  Json
 }
-
+"
 `;
 
 exports[`introspection: findUnique - check typeof array for Json field with array: warnings 1`] = `null`;
 
 exports[`introspection: findUnique - check typeof js object is object for Json field: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -901,13 +901,13 @@ model posts {
   title String
   data  Json?
 }
-
+"
 `;
 
 exports[`introspection: findUnique - check typeof js object is object for Json field: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where PK with include: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -929,13 +929,13 @@ model users {
   email String  @unique
   posts posts[]
 }
-
+"
 `;
 
 exports[`introspection: findUnique where PK with include: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where PK with select: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -950,13 +950,13 @@ model teams {
   name  String @unique
   email String @unique
 }
-
+"
 `;
 
 exports[`introspection: findUnique where PK with select: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where PK: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -970,13 +970,13 @@ model teams {
   id   Int    @id
   name String @unique
 }
-
+"
 `;
 
 exports[`introspection: findUnique where PK: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where composite PK with foreign key: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1000,13 +1000,13 @@ model b {
   two Int
   a   a   @relation(fields: [one, two], references: [one, two], onDelete: NoAction, onUpdate: NoAction, map: "b_one_fkey")
 }
-
+"
 `;
 
 exports[`introspection: findUnique where composite PK with foreign key: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where composite PK: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1024,13 +1024,13 @@ model variables {
 
   @@id([name, key])
 }
-
+"
 `;
 
 exports[`introspection: findUnique where composite PK: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where composite unique: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1047,13 +1047,13 @@ model users {
 
   @@unique([email, name])
 }
-
+"
 `;
 
 exports[`introspection: findUnique where composite unique: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where decimal - default value: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1067,13 +1067,13 @@ model exercises {
   id       Int     @id @default(autoincrement())
   distance Decimal @unique @default(12.3) @postgresql.Decimal(5, 3)
 }
-
+"
 `;
 
 exports[`introspection: findUnique where decimal - default value: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where decimal: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1087,13 +1087,13 @@ model exercises {
   id       Int     @id @default(autoincrement())
   distance Decimal @unique @postgresql.Decimal(5, 3)
 }
-
+"
 `;
 
 exports[`introspection: findUnique where decimal: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where unique composite (PK is a composite): datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1112,13 +1112,13 @@ model variables {
   @@id([name, key])
   @@unique([value, email])
 }
-
+"
 `;
 
 exports[`introspection: findUnique where unique composite (PK is a composite): warnings 1`] = `null`;
 
 exports[`introspection: findUnique where unique composite: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1137,13 +1137,13 @@ model variables {
 
   @@unique([name, key])
 }
-
+"
 `;
 
 exports[`introspection: findUnique where unique composite: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where unique with foreign key and unpack: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1165,13 +1165,13 @@ model users {
   email String  @unique
   posts posts[]
 }
-
+"
 `;
 
 exports[`introspection: findUnique where unique with foreign key and unpack: warnings 1`] = `null`;
 
 exports[`introspection: findUnique where unique: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1185,13 +1185,13 @@ model users {
   id    Int    @id @default(autoincrement())
   email String @unique
 }
-
+"
 `;
 
 exports[`introspection: findUnique where unique: warnings 1`] = `null`;
 
 exports[`introspection: update where composite PK: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1209,13 +1209,13 @@ model variables {
 
   @@id([name, key])
 }
-
+"
 `;
 
 exports[`introspection: update where composite PK: warnings 1`] = `null`;
 
 exports[`introspection: update where composite unique: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1232,13 +1232,13 @@ model users {
 
   @@unique([email, name])
 }
-
+"
 `;
 
 exports[`introspection: update where composite unique: warnings 1`] = `null`;
 
 exports[`introspection: update where integer data: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1252,13 +1252,13 @@ model teams {
   id    Int @id @default(autoincrement())
   token Int @unique
 }
-
+"
 `;
 
 exports[`introspection: update where integer data: warnings 1`] = `null`;
 
 exports[`introspection: update where with boolean data and select: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1273,13 +1273,13 @@ model teams {
   name   String  @unique
   active Boolean @default(true)
 }
-
+"
 `;
 
 exports[`introspection: update where with boolean data and select: warnings 1`] = `null`;
 
 exports[`introspection: update where with boolean data: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1294,13 +1294,13 @@ model teams {
   name   String  @unique
   active Boolean @default(true)
 }
-
+"
 `;
 
 exports[`introspection: update where with boolean data: warnings 1`] = `null`;
 
 exports[`introspection: update where with numeric data: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1314,13 +1314,13 @@ model teams {
   id   Int    @id @default(autoincrement())
   name String @unique
 }
-
+"
 `;
 
 exports[`introspection: update where with numeric data: warnings 1`] = `null`;
 
 exports[`introspection: update where with string data: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1334,13 +1334,13 @@ model teams {
   id   Int    @id @default(autoincrement())
   name String @unique
 }
-
+"
 `;
 
 exports[`introspection: update where with string data: warnings 1`] = `null`;
 
 exports[`introspection: update with data - not null enum - check findMany: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1360,13 +1360,13 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
-
+"
 `;
 
 exports[`introspection: update with data - not null enum - check findMany: warnings 1`] = `null`;
 
 exports[`introspection: update with data - not null enum: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1386,13 +1386,13 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
-
+"
 `;
 
 exports[`introspection: update with data - not null enum: warnings 1`] = `null`;
 
 exports[`introspection: updateMany where null - check findMany: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1406,13 +1406,13 @@ model teams {
   id   Int     @id @default(autoincrement())
   name String?
 }
-
+"
 `;
 
 exports[`introspection: updateMany where null - check findMany: warnings 1`] = `null`;
 
 exports[`introspection: updateMany where with string data - check findMany: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1426,13 +1426,13 @@ model teams {
   id   Int    @id @default(autoincrement())
   name String
 }
-
+"
 `;
 
 exports[`introspection: updateMany where with string data - check findMany: warnings 1`] = `null`;
 
 exports[`introspection: updateMany where with string data - check returned count: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1446,13 +1446,13 @@ model teams {
   id   Int    @id @default(autoincrement())
   name String
 }
-
+"
 `;
 
 exports[`introspection: updateMany where with string data - check returned count: warnings 1`] = `null`;
 
 exports[`introspection: updateMany with data - not null enum - check count: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1472,13 +1472,13 @@ enum posts_status {
   DRAFT
   PUBLISHED
 }
-
+"
 `;
 
 exports[`introspection: updateMany with data - not null enum - check count: warnings 1`] = `null`;
 
 exports[`introspection: upsert (create): datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1493,13 +1493,13 @@ model posts {
   title     String
   published Boolean @default(false)
 }
-
+"
 `;
 
 exports[`introspection: upsert (create): warnings 1`] = `null`;
 
 exports[`introspection: upsert (update): datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1514,13 +1514,13 @@ model posts {
   title     String
   published Boolean @default(false)
 }
-
+"
 `;
 
 exports[`introspection: upsert (update): warnings 1`] = `null`;
 
 exports[`introspection: upsert where composite PK - create: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1538,13 +1538,13 @@ model variables {
 
   @@id([name, key])
 }
-
+"
 `;
 
 exports[`introspection: upsert where composite PK - create: warnings 1`] = `null`;
 
 exports[`introspection: upsert where composite PK - update: datamodel 1`] = `
-generator client {
+"generator client {
   provider = "prisma-client-js"
   output = "***"
 }
@@ -1562,7 +1562,7 @@ model variables {
 
   @@id([name, key])
 }
-
+"
 `;
 
 exports[`introspection: upsert where composite PK - update: warnings 1`] = `null`;

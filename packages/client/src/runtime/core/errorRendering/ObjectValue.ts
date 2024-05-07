@@ -145,14 +145,14 @@ export class ObjectValue extends Value {
   }
 
   getSelectionParent(): SelectionParent | undefined {
-    const select = this.getField('select')
-    if (select?.value instanceof ObjectValue) {
-      return { kind: 'select', value: select.value }
+    const select = this.getField('select')?.value.asObject()
+    if (select) {
+      return { kind: 'select', value: select }
     }
 
-    const include = this.getField('include')
-    if (include?.value instanceof ObjectValue) {
-      return { kind: 'include', value: include.value }
+    const include = this.getField('include')?.value.asObject()
+    if (include) {
+      return { kind: 'include', value: include }
     }
     return undefined
   }
@@ -178,6 +178,10 @@ export class ObjectValue extends Value {
     }
 
     this.writeWithContents(writer, fields)
+  }
+
+  override asObject(): ObjectValue {
+    return this
   }
 
   private writeEmpty(writer: ErrorWriter) {

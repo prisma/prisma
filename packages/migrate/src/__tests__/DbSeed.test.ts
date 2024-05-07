@@ -2,8 +2,22 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
 
 import { DbSeed } from '../commands/DbSeed'
+import { CaptureStdout } from '../utils/captureStdout'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const captureStdout = new CaptureStdout()
+
+beforeEach(() => {
+  captureStdout.startCapture()
+})
+
+afterEach(() => {
+  captureStdout.clearCaptureText()
+})
+
+afterAll(() => {
+  captureStdout.stopCapture()
+})
 
 describe('seed', () => {
   it('seed.js', async () => {
@@ -11,11 +25,12 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`node prisma/seed.js\` ...`,
-    )
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      "Running seed command \`node prisma/seed.js\` ...
+      "
+    `)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('seed.js with -- extra args should succeed', async () => {
@@ -29,11 +44,12 @@ describe('seed', () => {
       '-z',
     ])
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`node prisma/seed.js --my-custom-arg-from-config-1 my-value --my-custom-arg-from-config-2=my-value -y --my-custom-arg-from-cli-1 my-value --my-custom-arg-from-cli-2=my-value -z\` ...`,
-    )
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      "Running seed command \`node prisma/seed.js --my-custom-arg-from-config-1 my-value --my-custom-arg-from-config-2=my-value -y --my-custom-arg-from-cli-1 my-value --my-custom-arg-from-cli-2=my-value -z\` ...
+      "
+    `)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('seed.js with extra args but missing -- should throw with specific message', async () => {
@@ -41,13 +57,12 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse(['--my-custom-arg-from-cli=my-value', '-z'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-      unknown or unexpected option: --my-custom-arg-from-cli
+      "unknown or unexpected option: --my-custom-arg-from-cli
       Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
-      $ prisma db seed -- --arg1 value1 --arg2 value2
+      $ prisma db seed -- --arg1 value1 --arg2 value2"
     `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('one broken seed.js file', async () => {
@@ -59,10 +74,11 @@ describe('seed', () => {
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
 
     const result = DbSeed.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`node prisma/seed.js\` ...`,
-    )
+    await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      "Running seed command \`node prisma/seed.js\` ...
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain('An error occurred while running the seed command:')
     expect(mockExit).toHaveBeenCalledWith(1)
   })
@@ -72,10 +88,11 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`ts-node prisma/seed.ts\` ...`,
-    )
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      "Running seed command \`ts-node prisma/seed.ts\` ...
+      "
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   }, 10_000)
 
   it('seed.ts - ESM', async () => {
@@ -86,10 +103,11 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...`,
-    )
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      "Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...
+      "
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     // "high" number since `npm install` can sometimes be very slow
   }, 60_000)
@@ -99,10 +117,11 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`./prisma/seed.sh\` ...`,
-    )
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      "Running seed command \`./prisma/seed.sh\` ...
+      "
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })
 
@@ -117,7 +136,7 @@ describe('seed - legacy', () => {
       await DbSeed.new().parse([])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
-        To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+        "To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
         1. Open the package.json of your project
         2. Add one of the following examples to your package.json:
@@ -153,12 +172,11 @@ describe('seed - legacy', () => {
         \`\`\`
         And run \`chmod +x prisma/seed.sh\` to make it executable.
         More information in our documentation:
-        https://pris.ly/d/seeding
+        https://pris.ly/d/seeding"
       `)
     }
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('more than one seed file', async () => {
@@ -166,22 +184,21 @@ describe('seed - legacy', () => {
 
     const result = DbSeed.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+      "To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-1. Open the package.json of your project
-2. Add the following example to it:
-\`\`\`
-"prisma": {
-  "seed": "node prisma/seed.js"
-}
-\`\`\`
+      1. Open the package.json of your project
+      2. Add the following example to it:
+      \`\`\`
+      "prisma": {
+        "seed": "node prisma/seed.js"
+      }
+      \`\`\`
 
-More information in our documentation:
-https://pris.ly/d/seeding
-`)
+      More information in our documentation:
+      https://pris.ly/d/seeding"
+    `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('custom --schema from package.json should enrich help setup', async () => {
@@ -189,21 +206,21 @@ https://pris.ly/d/seeding
 
     const result = DbSeed.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+      "To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-            1. Open the package.json of your project
-            2. Add the following example to it:
-            \`\`\`
-            "prisma": {
-              "seed": "node custom-folder/seed.js"
-            }
-            \`\`\`
+      1. Open the package.json of your project
+      2. Add the following example to it:
+      \`\`\`
+      "prisma": {
+        "seed": "node custom-folder/seed.js"
+      }
+      \`\`\`
 
-            More information in our documentation:
-            https://pris.ly/d/seeding
-          `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      More information in our documentation:
+      https://pris.ly/d/seeding"
+    `)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('custom ts-node should warn', async () => {
@@ -211,32 +228,32 @@ https://pris.ly/d/seeding
 
     const result = DbSeed.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+      "To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-            1. Open the package.json of your project
-            2. Add the following example to it:
-            \`\`\`
-            "prisma": {
-              "seed": "ts-node prisma/seed.ts"
-            }
-            \`\`\`
-            If you are using ESM (ECMAScript modules):
-            \`\`\`
-            "prisma": {
-              "seed": "node --loader ts-node/esm prisma/seed.ts"
-            }
-            \`\`\`
+      1. Open the package.json of your project
+      2. Add the following example to it:
+      \`\`\`
+      "prisma": {
+        "seed": "ts-node prisma/seed.ts"
+      }
+      \`\`\`
+      If you are using ESM (ECMAScript modules):
+      \`\`\`
+      "prisma": {
+        "seed": "node --loader ts-node/esm prisma/seed.ts"
+      }
+      \`\`\`
 
-            3. Install the required dependencies by running:
-            npm i -D ts-node typescript @types/node
+      3. Install the required dependencies by running:
+      npm i -D ts-node typescript @types/node
 
-            More information in our documentation:
-            https://pris.ly/d/seeding
-          `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      More information in our documentation:
+      https://pris.ly/d/seeding"
+    `)
+
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `prisma:warn The "ts-node" script in the package.json is not used anymore since version 3.0 and can now be removed.`,
+      `"prisma:warn The "ts-node" script in the package.json is not used anymore since version 3.0 and can now be removed."`,
     )
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(`""`)
   })
 })

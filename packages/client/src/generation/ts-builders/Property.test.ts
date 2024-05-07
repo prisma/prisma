@@ -8,28 +8,28 @@ const A = namedType('A')
 test('name and type', () => {
   const prop = property('foo', A)
 
-  expect(stringify(prop)).toMatchInlineSnapshot(`foo: A`)
+  expect(stringify(prop)).toMatchInlineSnapshot(`"foo: A"`)
 })
 
 test('optional', () => {
   const prop = property('foo', A).optional()
 
-  expect(stringify(prop)).toMatchInlineSnapshot(`foo?: A`)
+  expect(stringify(prop)).toMatchInlineSnapshot(`"foo?: A"`)
 })
 
 test('readonly', () => {
   const prop = property('foo', A).readonly()
 
-  expect(stringify(prop)).toMatchInlineSnapshot(`readonly foo: A`)
+  expect(stringify(prop)).toMatchInlineSnapshot(`"readonly foo: A"`)
 })
 
 test('with doc comment', () => {
   const prop = property('foo', A).setDocComment(docComment('This is foo'))
 
   expect(stringify(prop)).toMatchInlineSnapshot(`
-    /**
+    "/**
      * This is foo
      */
-    foo: A
+    foo: A"
   `)
 })

@@ -12,11 +12,11 @@ it('should throw error', async () => {
       throw new Error(message)
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Error: There is a conflict between env var in .env and prisma/.env
-          Conflicting env vars:
-            SHOULD_THROW
+    "Error: There is a conflict between env var in .env and prisma/.env
+    Conflicting env vars:
+      SHOULD_THROW
 
-          We suggest to move the contents of prisma/.env to .env to consolidate your env vars.
-
-        `)
+    We suggest to move the contents of prisma/.env to .env to consolidate your env vars.
+    "
+  `)
 })

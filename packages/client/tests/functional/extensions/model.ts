@@ -284,7 +284,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`Fail!`)
+      expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`"Fail!"`)
     })
 
     test('error in async methods', async () => {
@@ -299,7 +299,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`Fail!`)
+      await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`"Fail!"`)
     })
 
     test('error in async PrismaPromise methods', async () => {
@@ -322,7 +322,7 @@ testMatrix.setupTestSuite(
 
       if (cliMeta.previewFeatures.includes('relationJoins') && providersSupportingRelationJoins.includes(provider)) {
         await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.findUnique()\` invocation:
 
           {
@@ -332,11 +332,11 @@ testMatrix.setupTestSuite(
           ? relationLoadStrategy?: RelationLoadStrategy
           }
 
-          Unknown argument \`badInput\`. Available options are marked with ?.
+          Unknown argument \`badInput\`. Available options are marked with ?."
         `)
       } else {
         await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.findUnique()\` invocation:
 
           {
@@ -345,7 +345,7 @@ testMatrix.setupTestSuite(
           ? where?: UserWhereUniqueInput
           }
 
-          Unknown argument \`badInput\`. Available options are marked with ?.
+          Unknown argument \`badInput\`. Available options are marked with ?."
         `)
       }
     })
@@ -454,7 +454,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`Fail!`)
+      expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`"Fail!"`)
     })
 
     test('custom method re-using input types to augment them via intersection', () => {

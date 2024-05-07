@@ -1,14 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommitType(chore)",
+    ":ignoreModulesAndTests",
+    ":pinAllExceptPeerDependencies",
+    "group:monorepos",
+    "group:recommended",
+    "replacements:all",
+    "workarounds:all",
     ":disableRateLimiting",
-    ":noUnscheduledUpdates",
-    ":pinAllExceptPeerDependencies"
+    ":noUnscheduledUpdates"
   ],
   "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
-  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
+  "reviewers": ["@Jolg42", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "pin",
   "ignoreDeps": [
@@ -24,19 +30,6 @@
   },
   "configMigration": true,
   "packageRules": [
-    {
-      "groupName": "Studio",
-      "automerge": true,
-      "matchPackageNames": ["@prisma/studio", "@prisma/studio-server"],
-      "matchUpdateTypes": ["patch", "minor"],
-      "schedule": ["at any time"]
-    },
-    {
-      "groupName": "checkpoint-client",
-      "matchPackageNames": ["checkpoint-client"],
-      "matchUpdateTypes": ["patch", "minor"],
-      "schedule": ["at any time"]
-    },
     {
       "groupName": "devDependencies patch (non-major)",
       "automerge": true,
@@ -184,6 +177,16 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
+      "groupName": "opentelemetry packages for instrumentation package",
+      "matchFileNames": ["packages/instrumentation/**"],
+      "matchPackageNames": [
+        "@opentelemetry/api",
+        "@opentelemetry/instrumentation",
+        "@opentelemetry/sdk-trace-base"
+      ],
+      "rangeStrategy": "auto"
+    },
+    {
       "groupName": "esbuild packages",
       "matchPackagePatterns": ["^esbuild"],
       "schedule": ["before 7am on Wednesday"]
@@ -195,8 +198,23 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "e2e ts-version tests",
-      "excludePackageNames": ["typescript"],
+      "groupName": "e2e tests - typescript",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["patch", "minor", "major"],
+      "matchFileNames": ["packages/client/tests/e2e/**"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "e2e ts-version (major/minor) tests - typescript",
+      "enabled": false,
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["minor","major"],
+      "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
+    },
+    {
+      "groupName": "e2e ts-version (patch) tests - typescript",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["patch"],
       "matchFileNames": ["packages/client/tests/e2e/ts-version/**"],
       "schedule": ["before 7am on Wednesday"]
     },
@@ -204,6 +222,33 @@
       "groupName": "Weekly vitess docker image version update",
       "matchPackageNames": ["vitess/vttestserver"],
       "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "Extension: Accelerate",
+      "automerge": true,
+      "matchPackageNames": ["@prisma/extension-accelerate"],
+      "matchUpdateTypes": ["patch", "minor", "major"],
+      "schedule": ["at any time"]
+    },
+    {
+      "groupName": "Extension: Read Replicas",
+      "automerge": true,
+      "matchPackageNames": ["@prisma/extension-read-replicas"],
+      "matchUpdateTypes": ["patch", "minor", "major"],
+      "schedule": ["at any time"]
+    },
+    {
+      "groupName": "Studio",
+      "automerge": true,
+      "matchPackageNames": ["@prisma/studio", "@prisma/studio-server"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "schedule": ["at any time"]
+    },
+    {
+      "groupName": "checkpoint-client",
+      "matchPackageNames": ["checkpoint-client"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "schedule": ["at any time"]
     }
   ]
 }

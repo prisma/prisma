@@ -56,8 +56,12 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
 const isoDateRegex = new RegExp(
   /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/,
 )
-function isISODate(str) {
-  return isoDateRegex.test(str)
+
+// SQLITE date format, returned by built-in time functions. See https://www.sqlite.org/lang_datefunc.html
+// Essentially, it is "<ISO Date> <ISO Time>"
+const sqliteDateRegex = /^\d{4}-[0-1]\d-[0-3]\d [0-2]\d:[0-5]\d:[0-5]\d$/
+function isISODate(str: string) {
+  return isoDateRegex.test(str) || sqliteDateRegex.test(str)
 }
 
 function inferStringType(value: string): ColumnType {

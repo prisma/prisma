@@ -22,8 +22,8 @@ testMatrix.setupTestSuite(({ clientRuntime }, _suiteMeta, clientMeta) => {
 
   test('throws if adapter is explicitly set to undefined', () => {
     expect(() => newPrismaClient({ adapter: undefined })).toThrowErrorMatchingInlineSnapshot(`
-      "adapter" property must not be undefined, use null to conditionally disable driver adapters.
-      Read more at https://pris.ly/d/client-constructor
+      ""adapter" property must not be undefined, use null to conditionally disable driver adapters.
+      Read more at https://pris.ly/d/client-constructor"
     `)
   })
 }, defaultTestSuiteOptions)

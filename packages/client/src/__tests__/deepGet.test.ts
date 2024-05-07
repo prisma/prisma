@@ -37,8 +37,8 @@ describe('deepGet', () => {
     const path = ['very', 'deep', 'obj']
     expect(deepGet(obj, path)).toMatchInlineSnapshot(`
       {
-        with: {
-          deep: stuff,
+        "with": {
+          "deep": "stuff",
         },
       }
     `)

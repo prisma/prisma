@@ -31,7 +31,7 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
     throw new NoSchemaFoundError()
   }
 
-  console.info(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+  process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 
   return schemaPath
 }

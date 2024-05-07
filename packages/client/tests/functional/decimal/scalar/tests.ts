@@ -1,9 +1,9 @@
 import { Decimal } from 'decimal.js'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
-import { Providers } from '../../_utils/providers'
 
 declare let prisma: PrismaClient
 

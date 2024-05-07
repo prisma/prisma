@@ -145,7 +145,7 @@ export class Migrate {
 
     const message: string[] = []
 
-    console.info() // empty line
+    process.stdout.write('\n') // empty line
     logUpdate(`Running generate... ${dim('(Use --skip-generate to skip the generators)')}`)
 
     const generators = await getGenerators({

@@ -10,10 +10,10 @@ it('should exit 1 and print a message when Node.js version is lower than minimum
   printMessageAndExitIfUnsupportedNodeVersion('v16.0.0')
 
   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-    ┌──────────────────────────────────────────────┐
+    "┌──────────────────────────────────────────────┐
     │    Prisma only supports Node.js >= 16.13.    │
     │    Please upgrade your Node.js version.      │
-    └──────────────────────────────────────────────┘
+    └──────────────────────────────────────────────┘"
   `)
 
   expect(mockExit).toHaveBeenCalledWith(1)
@@ -26,10 +26,10 @@ it('should exit 1 and print a message when Node.js version is lower than minimum
   printMessageAndExitIfUnsupportedNodeVersion('v14.13.0')
 
   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-    ┌──────────────────────────────────────────────┐
+    "┌──────────────────────────────────────────────┐
     │    Prisma only supports Node.js >= 16.13.    │
     │    Please upgrade your Node.js version.      │
-    └──────────────────────────────────────────────┘
+    └──────────────────────────────────────────────┘"
   `)
 
   expect(mockExit).toHaveBeenCalledWith(1)
@@ -39,17 +39,17 @@ it('should exit 1 and print a message when Node.js version is lower than minimum
 it('should do nothing when Node.js version is supported - 16.13', () => {
   printMessageAndExitIfUnsupportedNodeVersion('v16.13.0')
 
-  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 })
 
 it('should do nothing when Node.js version is supported - current', () => {
   printMessageAndExitIfUnsupportedNodeVersion(process.version)
 
-  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 })
 
 it('should do nothing when Node.js version is supported - 20.0', () => {
   printMessageAndExitIfUnsupportedNodeVersion('v20.0.0')
 
-  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 })

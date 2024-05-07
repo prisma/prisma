@@ -1,12 +1,13 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupMysql, tearDownMysql } from '../../utils/setupMysql'
 import { SetupParams } from '../../utils/setupPostgres'
+import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -15,7 +16,7 @@ if (isMacOrWindowsCI) {
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 // To avoid the loading spinner locally
 process.env.CI = 'true'
@@ -23,6 +24,20 @@ process.env.CI = 'true'
 const originalEnv = { ...process.env }
 
 describe('mysql', () => {
+  const captureStdout = new CaptureStdout()
+
+  beforeEach(() => {
+    captureStdout.startCapture()
+  })
+
+  afterEach(() => {
+    captureStdout.clearCaptureText()
+  })
+
+  afterAll(() => {
+    captureStdout.stopCapture()
+  })
+
   const connectionString = process.env.TEST_MYSQL_URI!.replace('tests-migrate', 'tests-migrate-db-pull-mysql')
 
   const setupParams: SetupParams = {
@@ -60,12 +75,10 @@ describe('mysql', () => {
     ctx.fixture('introspection/mysql')
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   // TODO: snapshot fails on CI for macOS and Windows because the connection
@@ -74,11 +87,9 @@ describe('mysql', () => {
   testIf(!isMacOrWindowsCI)('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

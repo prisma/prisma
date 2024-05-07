@@ -8,6 +8,7 @@ import { blue, bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
+import { type Datamodel, schemaToStringDebug } from '../utils/datamodel'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
@@ -21,7 +22,7 @@ export interface ConfigMetaFormat {
 }
 
 export type GetDMMFOptions = {
-  datamodel?: string
+  datamodel?: Datamodel
   cwd?: string
   prismaPath?: string
   datamodelPath?: string
@@ -157,7 +158,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
           /* request */ '@prisma/prisma-schema-wasm get_dmmf',
           ErrorArea.FMT_CLI,
           /* schemaPath */ options.prismaPath,
-          /* schema */ options.datamodel,
+          /* schema */ schemaToStringDebug(options.datamodel),
         )
         return panic
       }

@@ -21,7 +21,7 @@ test('basic', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         amount: {
           gt: 100
@@ -30,7 +30,7 @@ test('basic', () => {
       select: {
         field: true
       }
-    }
+    }"
   `)
 })
 
@@ -40,11 +40,11 @@ test('null', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         amount: null
       }
-    }
+    }"
   `)
 })
 
@@ -54,12 +54,12 @@ test('undefined', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-      {
-        where: {
-          amount: undefined
-        }
+    "{
+      where: {
+        amount: undefined
       }
-    `)
+    }"
+  `)
 })
 
 test('Decimal', () => {
@@ -68,11 +68,11 @@ test('Decimal', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         amount: new Prisma.Decimal("123.4")
       }
-    }
+    }"
   `)
 })
 
@@ -82,11 +82,11 @@ test('Buffer', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         bin: Buffer.alloc(5)
       }
-    }
+    }"
   `)
 })
 
@@ -96,11 +96,11 @@ test('Uint8Array', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         bin: new Uint8Array(3)
       }
-    }
+    }"
   `)
 })
 
@@ -110,11 +110,11 @@ test('Date', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         createdAt: new Date("1999-01-11T12:30:45.000Z")
       }
-    }
+    }"
   `)
 })
 
@@ -124,11 +124,11 @@ test('DbNull', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         json: Prisma.DbNull
       }
-    }
+    }"
   `)
 })
 
@@ -138,11 +138,11 @@ test('JsonNull', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         json: Prisma.JsonNull
       }
-    }
+    }"
   `)
 })
 
@@ -152,11 +152,11 @@ test('AnyNull', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         json: Prisma.JsonNull
       }
-    }
+    }"
   `)
 })
 
@@ -166,11 +166,11 @@ test('FieldRef', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         field: prisma.user.$fields.someField
       }
-    }
+    }"
   `)
 })
 
@@ -180,11 +180,11 @@ test('non serializable value empty list', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         something: [object Symbol]
       }
-    }
+    }"
   `)
 })
 
@@ -194,13 +194,13 @@ test('BigInt', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         amount: {
           gt: 100n
         }
       }
-    }
+    }"
   `)
 })
 
@@ -210,7 +210,7 @@ test('list', () => {
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         list: [
           1,
@@ -218,7 +218,7 @@ test('list', () => {
           3
         ]
       }
-    }
+    }"
   `)
 })
 
@@ -233,7 +233,7 @@ test('error in top level field', () => {
   tree.arguments.getField('select')?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         amount: {
           gt: 100
@@ -243,7 +243,7 @@ test('error in top level field', () => {
       ~~~~~~
         field: true
       }
-    }
+    }"
   `)
 })
 
@@ -270,7 +270,7 @@ test('error in nested selection', () => {
     ?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         amount: {
           gt: 100
@@ -290,7 +290,7 @@ test('error in nested selection', () => {
           }
         }
       }
-    }
+    }"
   `)
 })
 
@@ -302,12 +302,12 @@ test('error in scalar argument', () => {
   tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         id: "one"
             ~~~~~
       }
-    }
+    }"
   `)
 })
 
@@ -319,7 +319,7 @@ test('error in object argument', () => {
   tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         id: {
           foo: "bar",
@@ -327,7 +327,7 @@ test('error in object argument', () => {
         }
         ~~~~~~~~~~~~
       }
-    }
+    }"
   `)
 })
 
@@ -339,12 +339,12 @@ test('error in empty object argument', () => {
   tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         id: {}
             ~~
       }
-    }
+    }"
   `)
 })
 
@@ -356,7 +356,7 @@ test('error in deeply nested object argument', () => {
   tree.arguments.getDeepFieldValue(['where', 'id', 'foo', 'bar'])?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         id: {
           foo: {
@@ -367,7 +367,7 @@ test('error in deeply nested object argument', () => {
           }
         }
       }
-    }
+    }"
   `)
 })
 
@@ -379,7 +379,7 @@ test('error in array argument', () => {
   tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         id: [
           12,
@@ -389,7 +389,7 @@ test('error in array argument', () => {
         ]
         ~~~~~~~~~
       }
-    }
+    }"
   `)
 })
 
@@ -401,12 +401,12 @@ test('error in empty array', () => {
   tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         id: []
             ~~
       }
-    }
+    }"
   `)
 })
 
@@ -418,14 +418,14 @@ test('error in array element', () => {
   tree.arguments.getDeepFieldValue(['where', 'id', '0'])?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         id: [
           "hello"
           ~~~~~~~
         ]
       }
-    }
+    }"
   `)
 })
 
@@ -437,13 +437,13 @@ test('nested empty list', () => {
   tree.arguments.getDeepFieldValue(['where', 'AND'])?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
-    {
+    "{
       where: {
         AND: [
           []
         ]
         ~~~~
       }
-    }
+    }"
   `)
 })

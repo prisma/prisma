@@ -20,7 +20,7 @@ export class InputField implements Generatable {
   }
 }
 
-function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, source?: string) {
+export function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, source?: string): ts.Property {
   const tsType = buildAllFieldTypes(field.inputTypes, genericsInfo, source)
 
   const tsProperty = ts.property(field.name, tsType)
@@ -58,10 +58,6 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
     return union
   } else {
     type = namedInputType(scalarType ?? t.type)
-  }
-
-  if (type.name.endsWith('Select') || type.name.endsWith('Include')) {
-    type.addGenericArgument(ts.namedType('ExtArgs'))
   }
 
   if (genericsInfo.typeRefNeedsGenericModelArg(t)) {

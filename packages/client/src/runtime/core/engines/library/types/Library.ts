@@ -17,6 +17,7 @@ export type QueryEngineInstance = {
   commitTransaction(id: string, traceHeaders: string): Promise<string>
   rollbackTransaction(id: string, traceHeaders: string): Promise<string>
   metrics(options: string): Promise<string>
+  applyPendingMigrations(): Promise<void>
 }
 
 export interface QueryEngineConstructor {

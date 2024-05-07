@@ -581,4 +581,8 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
       throw error
     }
   }
+
+  applyPendingMigrations(): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
 }

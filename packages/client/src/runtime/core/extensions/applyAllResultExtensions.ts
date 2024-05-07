@@ -45,6 +45,7 @@ export function applyAllResultExtensions({
         result: value,
         modelName: dmmfToJSModelName(dmmfModelName),
         select: args.select,
+        omit: args.omit,
         extensions,
       }),
   })

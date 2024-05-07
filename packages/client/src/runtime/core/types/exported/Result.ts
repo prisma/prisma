@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 
 import { OperationPayload } from './Payload'
-import { Equals, JsonObject, Select } from './Utils'
+import { Compute, Equals, JsonObject, Omit, Select } from './Utils'
 
 // prettier-ignore
 export type Operation =
@@ -14,6 +14,7 @@ export type Operation =
 // creates
 | 'create'
 | 'createMany'
+| 'createManyAndReturn'
 // updates
 | 'update'
 | 'updateMany'
@@ -48,7 +49,16 @@ export type FluentOperation =
 export type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
-export type GetFindResult<P extends OperationPayload, A> =
+export type TrueKeys<T> = {
+  [K in keyof T]: T[K] extends true ? K : never
+}[keyof T]
+
+export type GetFindResult<P extends OperationPayload, A> = A extends { omit: infer Omission }
+  ? Compute<Omit<GetSelectIncludeResult<P, A>, TrueKeys<Omission>>>
+  : GetSelectIncludeResult<P, A>
+
+// prettier-ignore
+export type GetSelectIncludeResult<P extends OperationPayload, A> =
   Equals<A, any> extends 1 ? DefaultSelection<P> :
   A extends
   | { select: infer S extends object } & Record<string, unknown>
@@ -132,6 +142,7 @@ export type GetResult<P extends OperationPayload, A, O extends Operation = 'find
   findMany: GetFindResult<P, A>[],
   create: GetFindResult<P, A>,
   createMany: GetBatchResult,
+  createManyAndReturn: GetFindResult<P, A>[],
   update: GetFindResult<P, A>,
   updateMany: GetBatchResult,
   upsert: GetFindResult<P, A>,

@@ -6,6 +6,7 @@ import { Writer } from './Writer'
 
 export class FunctionType extends TypeBuilder {
   needsParenthesisWhenIndexed = true
+  needsParenthesisInKeyof = true
   private returnType: TypeBuilder = voidType
   private parameters: Parameter[] = []
   private genericParameters: GenericParameter[] = []

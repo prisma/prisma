@@ -199,8 +199,8 @@ describe('getDMMF', () => {
       } catch (e) {
         expect(isRustPanic(e)).toBe(true)
         expect(serialize(e.message)).toMatchInlineSnapshot(`
-          "RuntimeError: panicked at prisma-fmt/src/get_dmmf.rs:0:0:
-          Failed to deserialize GetDmmfParams: invalid type: boolean \`true\`, expected a string at line 1 column 20"
+          ""RuntimeError: panicked at prisma-fmt/src/get_dmmf.rs:0:0:
+          Failed to deserialize GetDmmfParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 20""
         `)
         expect(e.rustStack).toBeTruthy()
       }

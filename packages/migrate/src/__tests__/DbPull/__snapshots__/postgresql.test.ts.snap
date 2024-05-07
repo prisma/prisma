@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`postgresql basic introspection --url 2`] = `
-datasource db {
+"datasource db {
   provider = "postgresql"
   url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
 }
@@ -31,10 +31,11 @@ enum Role {
   ADMIN
 }
 
+"
 `;
 
 exports[`postgresql basic introspection 2`] = `
-datasource db {
+"datasource db {
   provider = "postgres"
   url      = env("TEST_POSTGRES_URI_MIGRATE")
 }
@@ -64,4 +65,5 @@ enum Role {
   ADMIN
 }
 
+"
 `;

@@ -18,14 +18,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator gen {
+    "generator gen {
       provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }
+    }"
   `)
 })
 
@@ -49,14 +49,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator gen {
+    "generator gen {
       provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }
+    }"
   `)
 })
 
@@ -73,14 +73,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator gen {
+    "generator gen {
       provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }
+    }"
   `)
 })
 
@@ -107,14 +107,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator gen {
+    "generator gen {
       provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }
+    }"
   `)
 })
 
@@ -131,10 +131,10 @@ generator client {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator client {
+    "generator client {
       provider        = "prisma-client-js"
       previewFeatures = ["multiSchema"]
-    }
+    }"
   `)
 })
 
@@ -150,9 +150,9 @@ generator client {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    generator client {
+    "generator client {
       provider        = "prisma-client-js"
       previewFeatures = ["multiSchema"]
-    }
+    }"
   `)
 })

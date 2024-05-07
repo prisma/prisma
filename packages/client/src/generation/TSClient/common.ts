@@ -296,6 +296,11 @@ type SelectAndInclude = {
   include: any
 }
 
+type SelectAndOmit = {
+  select: any
+  omit: any
+}
+
 /**
  * Get the type of the value, that the Promise holds.
  */
@@ -344,7 +349,9 @@ export type SelectSubset<T, U> = {
 } &
   (T extends SelectAndInclude
     ? 'Please either choose \`select\` or \`include\`.'
-    : {})
+    : T extends SelectAndOmit
+      ? 'Please either choose \`select\` or \`omit\`.'
+      : {})
 
 /**
  * Subset + Intersection

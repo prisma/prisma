@@ -41,7 +41,7 @@ test('big query', () => {
 }`
 
   expect(maskQuery(query)).toMatchInlineSnapshot(`
-    query {
+    "query {
       users(
         mirst: 5
         skip: "X"
@@ -78,7 +78,7 @@ test('big query', () => {
           name
         }
       }
-    }
+    }"
   `)
 })
 
@@ -92,12 +92,12 @@ test('aggregate', () => {
   }`
 
   expect(maskQuery(query)).toMatchInlineSnapshot(`
-    query {
+    "query {
         aggregateUser(take: 5) {
           count {
             _all
           }
         }
-      }
+      }"
   `)
 })

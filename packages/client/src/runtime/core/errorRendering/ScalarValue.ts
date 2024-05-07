@@ -18,4 +18,8 @@ export class ScalarValue extends Value {
     }
     writer.write(string)
   }
+
+  override asObject(): undefined {
+    return undefined
+  }
 }

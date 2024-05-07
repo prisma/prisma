@@ -39,6 +39,7 @@ function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel)
       findMany: mapping.findMany,
       create: mapping.createOne || mapping.createSingle || mapping.create,
       createMany: mapping.createMany,
+      createManyAndReturn: mapping.createManyAndReturn,
       delete: mapping.deleteOne || mapping.deleteSingle || mapping.delete,
       update: mapping.updateOne || mapping.updateSingle || mapping.update,
       deleteMany: mapping.deleteMany,

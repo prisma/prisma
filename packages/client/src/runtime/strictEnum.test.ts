@@ -13,7 +13,7 @@ test('individual values', () => {
 })
 
 test('throws on undefined value', () => {
-  expect(() => (StrictEnum as any).NOT_THERE).toThrowErrorMatchingInlineSnapshot(`Invalid enum value: NOT_THERE`)
+  expect(() => (StrictEnum as any).NOT_THERE).toThrowErrorMatchingInlineSnapshot(`"Invalid enum value: NOT_THERE"`)
 })
 
 test('keys', () => {
@@ -35,11 +35,11 @@ test('hasOwnProperty', () => {
 })
 
 test('JSON.stringify', () => {
-  expect(JSON.stringify(StrictEnum)).toMatchInlineSnapshot(`{"ONE":"1","TWO":"2","THREE":"3"}`)
+  expect(JSON.stringify(StrictEnum)).toMatchInlineSnapshot(`"{"ONE":"1","TWO":"2","THREE":"3"}"`)
 })
 
 test('Object.prototype.toString', () => {
-  expect(Object.prototype.toString.call(StrictEnum)).toMatchInlineSnapshot(`[object Object]`)
+  expect(Object.prototype.toString.call(StrictEnum)).toMatchInlineSnapshot(`"[object Object]"`)
 })
 
 test('iterator', () => {

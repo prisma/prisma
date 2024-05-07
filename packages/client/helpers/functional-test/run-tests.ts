@@ -154,7 +154,12 @@ async function main(): Promise<number | void> {
     )
 
     if (unknownAdapterProviders.length > 0) {
-      throw new Error(`Unknown adapter providers: ${unknownAdapterProviders.join(', ')}`)
+      const allAdaptersStr = Array.from(allAdapterProviders)
+        .map((provider) => `  - ${provider}`)
+        .join('\n')
+      throw new Error(
+        `Unknown adapter providers: ${unknownAdapterProviders.join(', ')}. Available options:\n${allAdaptersStr}\n\n`,
+      )
     }
 
     if (adapterProviders.some(isDriverAdapterProviderLabel)) {
@@ -230,7 +235,9 @@ async function main(): Promise<number | void> {
 
   try {
     if (args['--updateSnapshot']) {
-      const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
+      const snapshotUpdate = jestCli
+        .withArgs(['-u'])
+        .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {

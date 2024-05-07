@@ -14,6 +14,7 @@ const getDirectories = (path: string) => {
 
 const getKeys = (obj: any, name) => {
   if (obj && obj[name]) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return Object.keys(obj[name]).filter((name) => name.includes('prisma'))
   }
   return []
