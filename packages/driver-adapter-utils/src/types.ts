@@ -126,6 +126,10 @@ export interface Transaction extends Queryable {
    */
   readonly options: TransactionOptions
   /**
+   * Begin the transaction.
+   */
+  begin(): Promise<Result<void>>
+  /**
    * Commit the transaction.
    */
   commit(): Promise<Result<void>>
