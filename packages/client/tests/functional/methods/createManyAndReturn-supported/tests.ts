@@ -9,6 +9,24 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
+    test('should create one record', async () => {
+      const email1 = faker.internet.email()
+
+      const users = await prisma.user.createManyAndReturn({
+        data: {
+          email: email1,
+        },
+      })
+
+      expect(users).toMatchObject([
+        {
+          email: email1,
+          id: expect.any(String),
+          name: null,
+        },
+      ])
+    })
+
     test('should create many records', async () => {
       const email1 = faker.internet.email()
       const email2 = faker.internet.email()

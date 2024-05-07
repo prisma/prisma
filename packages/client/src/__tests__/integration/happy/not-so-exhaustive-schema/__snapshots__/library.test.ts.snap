@@ -2755,7 +2755,7 @@ export namespace Prisma {
      * Find zero or more Posts that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {PostFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {PostFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Posts
      * const posts = await prisma.post.findMany()
@@ -2793,9 +2793,9 @@ export namespace Prisma {
      * @example
      * // Create many Posts
      * const post = await prisma.post.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -2809,11 +2809,21 @@ export namespace Prisma {
      * @example
      * // Create many Posts
      * const post = await prisma.post.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many Posts and only return the \`id\`
+     * const postWithIdOnly = await prisma.post.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends PostCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, PostCreateManyAndReturnArgs<ExtArgs>>
@@ -3300,6 +3310,14 @@ export namespace Prisma {
    * Post createManyAndReturn
    */
   export type PostCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Post
+     */
+    select?: PostSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PostInclude<ExtArgs> | null
     /**
      * The data used to create many Posts.
      */
@@ -3822,7 +3840,7 @@ export namespace Prisma {
      * Find zero or more Users that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {UserFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Users
      * const users = await prisma.user.findMany()
@@ -3860,9 +3878,9 @@ export namespace Prisma {
      * @example
      * // Create many Users
      * const user = await prisma.user.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -3876,11 +3894,21 @@ export namespace Prisma {
      * @example
      * // Create many Users
      * const user = await prisma.user.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many Users and only return the \`id\`
+     * const userWithIdOnly = await prisma.user.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends UserCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, UserCreateManyAndReturnArgs<ExtArgs>>
@@ -4375,6 +4403,14 @@ export namespace Prisma {
    * User createManyAndReturn
    */
   export type UserCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
     /**
      * The data used to create many Users.
      */
@@ -4907,7 +4943,7 @@ export namespace Prisma {
      * Find zero or more Ms that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {MFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ms
      * const ms = await prisma.m.findMany()
@@ -4945,9 +4981,9 @@ export namespace Prisma {
      * @example
      * // Create many Ms
      * const m = await prisma.m.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -4961,11 +4997,21 @@ export namespace Prisma {
      * @example
      * // Create many Ms
      * const m = await prisma.m.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many Ms and only return the \`id\`
+     * const mWithIdOnly = await prisma.m.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends MCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, MCreateManyAndReturnArgs<ExtArgs>>
@@ -5459,6 +5505,14 @@ export namespace Prisma {
    * M createManyAndReturn
    */
   export type MCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the M
+     */
+    select?: MSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MInclude<ExtArgs> | null
     /**
      * The data used to create many MS.
      */
@@ -5991,7 +6045,7 @@ export namespace Prisma {
      * Find zero or more Ns that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {NFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {NFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ns
      * const ns = await prisma.n.findMany()
@@ -6029,9 +6083,9 @@ export namespace Prisma {
      * @example
      * // Create many Ns
      * const n = await prisma.n.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -6045,11 +6099,21 @@ export namespace Prisma {
      * @example
      * // Create many Ns
      * const n = await prisma.n.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many Ns and only return the \`id\`
+     * const nWithIdOnly = await prisma.n.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends NCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, NCreateManyAndReturnArgs<ExtArgs>>
@@ -6543,6 +6607,14 @@ export namespace Prisma {
    * N createManyAndReturn
    */
   export type NCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the N
+     */
+    select?: NSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NInclude<ExtArgs> | null
     /**
      * The data used to create many NS.
      */
@@ -7075,7 +7147,7 @@ export namespace Prisma {
      * Find zero or more OneOptionals that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OneOptionalFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {OneOptionalFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OneOptionals
      * const oneOptionals = await prisma.oneOptional.findMany()
@@ -7113,9 +7185,9 @@ export namespace Prisma {
      * @example
      * // Create many OneOptionals
      * const oneOptional = await prisma.oneOptional.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -7129,11 +7201,21 @@ export namespace Prisma {
      * @example
      * // Create many OneOptionals
      * const oneOptional = await prisma.oneOptional.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many OneOptionals and only return the \`id\`
+     * const oneOptionalWithIdOnly = await prisma.oneOptional.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends OneOptionalCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, OneOptionalCreateManyAndReturnArgs<ExtArgs>>
@@ -7627,6 +7709,14 @@ export namespace Prisma {
    * OneOptional createManyAndReturn
    */
   export type OneOptionalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OneOptional
+     */
+    select?: OneOptionalSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OneOptionalInclude<ExtArgs> | null
     /**
      * The data used to create many OneOptionals.
      */
@@ -8171,7 +8261,7 @@ export namespace Prisma {
      * Find zero or more ManyRequireds that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {ManyRequiredFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {ManyRequiredFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all ManyRequireds
      * const manyRequireds = await prisma.manyRequired.findMany()
@@ -8209,9 +8299,9 @@ export namespace Prisma {
      * @example
      * // Create many ManyRequireds
      * const manyRequired = await prisma.manyRequired.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -8225,11 +8315,21 @@ export namespace Prisma {
      * @example
      * // Create many ManyRequireds
      * const manyRequired = await prisma.manyRequired.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many ManyRequireds and only return the \`id\`
+     * const manyRequiredWithIdOnly = await prisma.manyRequired.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends ManyRequiredCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, ManyRequiredCreateManyAndReturnArgs<ExtArgs>>
@@ -8724,6 +8824,14 @@ export namespace Prisma {
    * ManyRequired createManyAndReturn
    */
   export type ManyRequiredCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ManyRequired
+     */
+    select?: ManyRequiredSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ManyRequiredInclude<ExtArgs> | null
     /**
      * The data used to create many ManyRequireds.
      */
@@ -9263,7 +9371,7 @@ export namespace Prisma {
      * Find zero or more OptionalSide1s that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide1FindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {OptionalSide1FindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OptionalSide1s
      * const optionalSide1s = await prisma.optionalSide1.findMany()
@@ -9301,9 +9409,9 @@ export namespace Prisma {
      * @example
      * // Create many OptionalSide1s
      * const optionalSide1 = await prisma.optionalSide1.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -9317,11 +9425,21 @@ export namespace Prisma {
      * @example
      * // Create many OptionalSide1s
      * const optionalSide1 = await prisma.optionalSide1.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many OptionalSide1s and only return the \`id\`
+     * const optionalSide1WithIdOnly = await prisma.optionalSide1.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends OptionalSide1CreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, OptionalSide1CreateManyAndReturnArgs<ExtArgs>>
@@ -9816,6 +9934,14 @@ export namespace Prisma {
    * OptionalSide1 createManyAndReturn
    */
   export type OptionalSide1CreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OptionalSide1
+     */
+    select?: OptionalSide1Select<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OptionalSide1Include<ExtArgs> | null
     /**
      * The data used to create many OptionalSide1s.
      */
@@ -10341,7 +10467,7 @@ export namespace Prisma {
      * Find zero or more OptionalSide2s that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide2FindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {OptionalSide2FindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OptionalSide2s
      * const optionalSide2s = await prisma.optionalSide2.findMany()
@@ -10379,9 +10505,9 @@ export namespace Prisma {
      * @example
      * // Create many OptionalSide2s
      * const optionalSide2 = await prisma.optionalSide2.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -10395,11 +10521,21 @@ export namespace Prisma {
      * @example
      * // Create many OptionalSide2s
      * const optionalSide2 = await prisma.optionalSide2.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many OptionalSide2s and only return the \`id\`
+     * const optionalSide2WithIdOnly = await prisma.optionalSide2.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends OptionalSide2CreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, OptionalSide2CreateManyAndReturnArgs<ExtArgs>>
@@ -10893,6 +11029,14 @@ export namespace Prisma {
    * OptionalSide2 createManyAndReturn
    */
   export type OptionalSide2CreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OptionalSide2
+     */
+    select?: OptionalSide2Select<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OptionalSide2Include<ExtArgs> | null
     /**
      * The data used to create many OptionalSide2s.
      */
@@ -11389,7 +11533,7 @@ export namespace Prisma {
      * Find zero or more As that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {AFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {AFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all As
      * const as = await prisma.a.findMany()
@@ -11427,9 +11571,9 @@ export namespace Prisma {
      * @example
      * // Create many As
      * const a = await prisma.a.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -11443,11 +11587,21 @@ export namespace Prisma {
      * @example
      * // Create many As
      * const a = await prisma.a.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many As and only return the \`id\`
+     * const aWithIdOnly = await prisma.a.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends ACreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, ACreateManyAndReturnArgs<ExtArgs>>
@@ -11913,6 +12067,10 @@ export namespace Prisma {
    */
   export type ACreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
+     * Select specific fields to fetch from the A
+     */
+    select?: ASelect<ExtArgs> | null
+    /**
      * The data used to create many AS.
      */
     data: ACreateManyInput | ACreateManyInput[]
@@ -12323,7 +12481,7 @@ export namespace Prisma {
      * Find zero or more Bs that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {BFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {BFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Bs
      * const bs = await prisma.b.findMany()
@@ -12361,9 +12519,9 @@ export namespace Prisma {
      * @example
      * // Create many Bs
      * const b = await prisma.b.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -12377,11 +12535,21 @@ export namespace Prisma {
      * @example
      * // Create many Bs
      * const b = await prisma.b.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many Bs and only return the \`id\`
+     * const bWithIdOnly = await prisma.b.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends BCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, BCreateManyAndReturnArgs<ExtArgs>>
@@ -12843,6 +13011,10 @@ export namespace Prisma {
    */
   export type BCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
+     * Select specific fields to fetch from the B
+     */
+    select?: BSelect<ExtArgs> | null
+    /**
      * The data used to create many BS.
      */
     data: BCreateManyInput | BCreateManyInput[]
@@ -13227,7 +13399,7 @@ export namespace Prisma {
      * Find zero or more Cs that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {CFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Cs
      * const cs = await prisma.c.findMany()
@@ -13265,9 +13437,9 @@ export namespace Prisma {
      * @example
      * // Create many Cs
      * const c = await prisma.c.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -13281,11 +13453,21 @@ export namespace Prisma {
      * @example
      * // Create many Cs
      * const c = await prisma.c.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many Cs and only return the \`id\`
+     * const cWithIdOnly = await prisma.c.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends CCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, CCreateManyAndReturnArgs<ExtArgs>>
@@ -13749,6 +13931,10 @@ export namespace Prisma {
    */
   export type CCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
+     * Select specific fields to fetch from the C
+     */
+    select?: CSelect<ExtArgs> | null
+    /**
      * The data used to create many CS.
      */
     data: CCreateManyInput | CCreateManyInput[]
@@ -14155,7 +14341,7 @@ export namespace Prisma {
      * Find zero or more Ds that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {DFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {DFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ds
      * const ds = await prisma.d.findMany()
@@ -14193,9 +14379,9 @@ export namespace Prisma {
      * @example
      * // Create many Ds
      * const d = await prisma.d.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -14209,11 +14395,21 @@ export namespace Prisma {
      * @example
      * // Create many Ds
      * const d = await prisma.d.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many Ds and only return the \`id\`
+     * const dWithIdOnly = await prisma.d.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends DCreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, DCreateManyAndReturnArgs<ExtArgs>>
@@ -14677,6 +14873,10 @@ export namespace Prisma {
    */
   export type DCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
+     * Select specific fields to fetch from the D
+     */
+    select?: DSelect<ExtArgs> | null
+    /**
      * The data used to create many DS.
      */
     data: DCreateManyInput | DCreateManyInput[]
@@ -15031,7 +15231,7 @@ export namespace Prisma {
      * Find zero or more Es that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {EFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {EFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Es
      * const es = await prisma.e.findMany()
@@ -15069,9 +15269,9 @@ export namespace Prisma {
      * @example
      * // Create many Es
      * const e = await prisma.e.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -15085,11 +15285,21 @@ export namespace Prisma {
      * @example
      * // Create many Es
      * const e = await prisma.e.createManyAndReturn({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
-     *     
+     * 
+     * // Create many Es and only return the \`id\`
+     * const eWithIdOnly = await prisma.e.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
     **/
     createManyAndReturn<T extends ECreateManyAndReturnArgs<ExtArgs>>(
       args?: SelectSubset<T, ECreateManyAndReturnArgs<ExtArgs>>
@@ -15549,6 +15759,10 @@ export namespace Prisma {
    * E createManyAndReturn
    */
   export type ECreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the E
+     */
+    select?: ESelect<ExtArgs> | null
     /**
      * The data used to create many ES.
      */
