@@ -50,8 +50,8 @@ describe('push', () => {
     ctx.fixture('nativeTypes-sqlite')
     const result = DbPush.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      "Prisma schema validation - (get-config wasm)
-      Error code: P1012
+      "P1012
+
       error: Native type VarChar is not supported for sqlite connector.
         -->  schema.prisma:12
          | 
@@ -59,10 +59,7 @@ describe('push', () => {
       12 |   name String @db.VarChar(100)
          | 
 
-      Validation Error Count: 1
-      [Context: getConfig]
-
-      Prisma CLI Version : 0.0.0"
+      "
     `)
   })
 
