@@ -9,7 +9,8 @@ import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
-// TODO: can't this `eval` be replaced with an `import`?
+// TODO: `eval` is used so that the `version` field in package.json (resolved at compile-time) doesn't yield `0.0.0`.
+// We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.
 const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {

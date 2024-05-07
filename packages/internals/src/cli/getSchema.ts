@@ -1,5 +1,5 @@
 import { Debug } from '@prisma/debug'
-import { loadSchemaFiles } from '@prisma/schema-files-loader'
+import { loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
 import execa from 'execa'
 import fs from 'fs'
 import { bold, green } from 'kleur/colors'
@@ -57,10 +57,8 @@ async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaRe
     ignoreEnvVarErrors: true,
   })
   debug('Ok')
-  const previewFeatures = config.generators.find((g) => g.previewFeatures.length > 0)?.previewFeatures
-  const usesPrismaSchemaFolder = (previewFeatures || []).includes('prismaSchemaFolder')
 
-  if (usesPrismaSchemaFolder) {
+  if (usesPrismaSchemaFolder(config)) {
     return { schemaPath, schemas: files } as const
   }
 
@@ -87,7 +85,7 @@ export async function getSchemaPathInternal(
 
   // 1. Try the user custom path, when provided.
   if (schemaPathFromArgs) {
-    const customSchemaPath = await getCustomSchemaPath(path.resolve(schemaPathFromArgs), opts.cwd)
+    const customSchemaPath = await getAbsoluteSchemaPath(path.resolve(schemaPathFromArgs))
     const onError = () => {
       throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
     }
@@ -96,9 +94,7 @@ export async function getSchemaPathInternal(
       return onError()
     }
 
-    const customSchemaResult = await getSchemaResult(
-      opts.cwd !== process.cwd() ? path.resolve(opts.cwd, customSchemaPath) : customSchemaPath,
-    )
+    const customSchemaResult = await getSchemaResult(path.resolve(opts.cwd ?? process.cwd(), customSchemaPath))
     if (!customSchemaResult) {
       return onError()
     }
@@ -125,7 +121,6 @@ export async function getSchemaPathInternal(
       continue
     }
 
-    // const schemaPathResult = await getSchemaResult(schemaPath)
     const schemaPathResult = await getSchemaResult(path.resolve(sourcePath, schemaPath))
 
     if (schemaPathResult) {
@@ -287,7 +282,7 @@ function resolveYarnSchemaSync(cwd: string): string | null {
   return null
 }
 
-async function getCustomSchemaPath(schemaPath: string, _cwd?: string): Promise<string | null> {
+async function getAbsoluteSchemaPath(schemaPath: string): Promise<string | null> {
   if (await exists(schemaPath)) {
     return schemaPath
   }
