@@ -51,13 +51,13 @@ describe('loadSchemaFiles', () => {
 
   test('allows to use in-memory resolver', async () => {
     const resolver = new InMemoryFilesResolver()
-    resolver.addFile('/some/dir/a.prisma', '// this is a')
-    resolver.addFile('/some/dir/b.prisma', '// this is b')
+    resolver.addFile(path.join('/', 'some', 'dir', 'a.prisma'), '// this is a')
+    resolver.addFile(path.join('/', 'some', 'dir', 'b.prisma'), '// this is b')
     const files = await loadSchemaFiles('/some/dir', resolver)
 
     expect(files).toEqual([
-      ['/some/dir/a.prisma', '// this is a'],
-      ['/some/dir/b.prisma', '// this is b'],
+      [path.join('/', 'some', 'dir', 'a.prisma'), '// this is a'],
+      [path.join('/', 'some', 'dir', 'b.prisma'), '// this is b'],
     ])
   })
 
