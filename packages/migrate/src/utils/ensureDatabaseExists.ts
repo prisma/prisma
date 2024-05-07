@@ -1,6 +1,4 @@
-import path from 'node:path'
-
-import type { ConfigMetaFormat, DatabaseCredentials, MultipleSchemas } from '@prisma/internals'
+import type { ConfigMetaFormat, DatabaseCredentials } from '@prisma/internals'
 import {
   canConnectToDatabase,
   createDatabase,
@@ -153,14 +151,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
   const schemas = await getSchema(schemaPath)
 
-  // Convert the schema paths to relative paths. This is only done for retro-compatibility with the previous
-  // migrate error snapshots.
-  const relativeSchemas: MultipleSchemas = schemas.map(([filename, schema]) => [
-    path.relative(process.cwd(), filename),
-    schema,
-  ])
-
-  const config = await getConfig({ datamodel: relativeSchemas, ignoreEnvVarErrors: false })
+  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
