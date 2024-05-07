@@ -75,15 +75,6 @@ export class Model implements Generatable {
             .addSchemaArgs(field.args)
             .createExport(),
         )
-      } else if (action === 'createManyAndReturn') {
-        argsTypes.push(
-          new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
-            .addSelectArg()
-            .addOmitArg()
-            .addIncludeArgIfHasRelations()
-            .addSchemaArgs(field.args)
-            .createExport(),
-        )
       } else if (action !== 'groupBy' && action !== 'aggregate') {
         argsTypes.push(
           new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
