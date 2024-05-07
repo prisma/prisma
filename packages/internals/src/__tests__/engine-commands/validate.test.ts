@@ -181,10 +181,13 @@ describe('validate', () => {
 
         try {
           // @ts-expect-error
-          validate({ schemas: true })
+          validate({ schemas: [[true, true]] })
         } catch (e) {
-          expect(isRustPanic(e)).toBe(false)
-          expect(serialize(e.message)).toMatchInlineSnapshot(`""multipleSchemas.map is not a function""`)
+          expect(isRustPanic(e)).toBe(true)
+          expect(serialize(e.message)).toMatchInlineSnapshot(`
+            ""RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
+            Failed to deserialize ValidateParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 29""
+          `)
         }
       })
 
