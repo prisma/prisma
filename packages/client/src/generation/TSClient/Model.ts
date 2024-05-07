@@ -67,12 +67,20 @@ export class Model implements Generatable {
         action === 'updateMany' ||
         action === 'deleteMany' ||
         action === 'createMany' ||
-        action === 'createManyAndReturn' ||
         action === 'findRaw' ||
         action === 'aggregateRaw'
       ) {
         argsTypes.push(
           new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
+            .addSchemaArgs(field.args)
+            .createExport(),
+        )
+      } else if (action === 'createManyAndReturn') {
+        argsTypes.push(
+          new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
+            .addSelectArg()
+            .addOmitArg()
+            .addIncludeArgIfHasRelations()
             .addSchemaArgs(field.args)
             .createExport(),
         )

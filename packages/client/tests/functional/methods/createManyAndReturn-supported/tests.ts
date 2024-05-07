@@ -55,6 +55,48 @@ testMatrix.setupTestSuite(
         },
       ])
     })
+    test('should accept select', async () => {
+      const email1 = faker.internet.email()
+
+      const created = await prisma.user.createManyAndReturn({
+        select: {
+          id: true,
+        },
+        data: [
+          {
+            email: email1,
+          },
+        ],
+      })
+
+      expect(created).toMatchObject([
+        {
+          id: expect.any(String),
+        },
+      ])
+    })
+    test.skip('should accept include', async () => {
+      const email1 = faker.internet.email()
+
+      const created = await prisma.user.createManyAndReturn({
+        // Type '{ posts: true; }' is not assignable to type 'never'.
+        // include: {
+        // posts: true,
+        // },
+        data: [
+          {
+            email: email1,
+          },
+        ],
+      })
+      console.log({ created })
+
+      expect(created).toMatchObject([
+        {
+          id: expect.any(String),
+        },
+      ])
+    })
   },
   {
     skipDriverAdapter: {
