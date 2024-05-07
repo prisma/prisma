@@ -603,8 +603,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
-        version: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
+        specifier: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
+        version: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -630,8 +630,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
-        version: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
+        specifier: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
+        version: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -849,8 +849,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
-        version: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
+        specifier: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
+        version: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -886,8 +886,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
-        version: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
+        specifier: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
+        version: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1211,8 +1211,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
-        version: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
+        specifier: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
+        version: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1371,8 +1371,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
-        version: 5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b
+        specifier: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
+        version: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -7907,13 +7907,18 @@ snapshots:
 
   '@planetscale/database@1.18.0': {}
 
-  '@prisma/engines-version@5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b': {}
+  /@prisma/engines-version@5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85:
+    resolution: {integrity: sha512-S3YeQ1YsGBAzU3xCaKMBiO/c3SldgUBfCdDHN6x4T0f6dvxpAz/fDHfyTAPcLdqREeXyVjiOUW4g3aan6o3LAw==}
 
   '@prisma/mini-proxy@0.9.5': {}
 
-  '@prisma/prisma-schema-wasm@5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b': {}
+  /@prisma/prisma-schema-wasm@5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85:
+    resolution: {integrity: sha512-SX9vE9dGYBap6xsfJuDE5b2eoA6w1vKsx8QpLUHZR+kIV6GQVUYUboEfkvYYoBVen3s9LqxJ1+LjHL/1MqBZag==}
+    dev: false
 
-  '@prisma/query-engine-wasm@5.14.0-14.133a47fad1768a00282f3fa0d06bcb0213fb074b': {}
+  /@prisma/query-engine-wasm@5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85:
+    resolution: {integrity: sha512-mUZHkXPqabYKHMCyxPKUd1jkJwHQb/ls4mIUiGiaJj7qsdhlbJsNiz725zojjjtC+wdrB77c6eG9zLKmdVfdtQ==}
+    dev: true
 
   '@prisma/studio-common@0.500.0':
     dependencies:
