@@ -1522,6 +1522,9 @@ importers:
 
   packages/schema-files-loader:
     dependencies:
+      '@prisma/prisma-schema-wasm':
+        specifier: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
+        version: 5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
