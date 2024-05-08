@@ -30,7 +30,7 @@
     "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.43.1",
+    "@microsoft/api-extractor": "7.43.2",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "9.0.0",
@@ -50,7 +50,7 @@
     "buffer": "6.0.3",
     "chokidar": "3.6.0",
     "decimal.js-light": "2.5.1",
-    "dotenv-cli": "7.4.1",
+    "dotenv-cli": "7.4.2",
     "esbuild": "0.20.2",
     "esbuild-register": "3.5.0",
     "eslint": "8.57.0",
@@ -80,7 +80,7 @@
     "regenerator-runtime": "0.14.1",
     "resolve": "1.22.8",
     "safe-buffer": "5.2.1",
-    "semver": "7.6.0",
+    "semver": "7.6.1",
     "size-limit": "9.0.0",
     "spdx-exceptions": "2.5.0",
     "spdx-license-ids": "3.0.17",
