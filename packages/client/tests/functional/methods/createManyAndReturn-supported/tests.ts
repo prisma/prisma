@@ -9,13 +9,31 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
+    test('should create one record', async () => {
+      const email1 = faker.internet.email()
+
+      const users = await prisma.user.createManyAndReturn({
+        data: {
+          email: email1,
+        },
+      })
+
+      expect(users).toMatchObject([
+        {
+          email: email1,
+          id: expect.any(String),
+          name: null,
+        },
+      ])
+    })
+
     test('should create many records', async () => {
       const email1 = faker.internet.email()
       const email2 = faker.internet.email()
       const email3 = faker.internet.email()
       const email4 = faker.internet.email()
 
-      const created = await prisma.user.createManyAndReturn({
+      const users = await prisma.user.createManyAndReturn({
         data: [
           {
             email: email1,
@@ -32,7 +50,7 @@ testMatrix.setupTestSuite(
         ],
       })
 
-      expect(created).toMatchObject([
+      expect(users).toMatchObject([
         {
           email: email1,
           id: expect.any(String),
@@ -52,6 +70,66 @@ testMatrix.setupTestSuite(
           email: email4,
           id: expect.any(String),
           name: null,
+        },
+      ])
+    })
+
+    test('should accept select', async () => {
+      const email1 = faker.internet.email()
+
+      const users = await prisma.user.createManyAndReturn({
+        select: {
+          id: true,
+        },
+        data: [
+          {
+            email: email1,
+          },
+        ],
+      })
+
+      expect(users).toMatchObject([
+        {
+          id: expect.any(String),
+        },
+      ])
+    })
+
+    test('should accept include on the post side', async () => {
+      const email1 = faker.internet.email()
+
+      const users = await prisma.user.createManyAndReturn({
+        select: {
+          id: true,
+        },
+        data: [
+          {
+            email: email1,
+          },
+        ],
+      })
+
+      const posts = await prisma.post.createManyAndReturn({
+        include: {
+          user: true,
+        },
+        data: [
+          {
+            userId: users[0].id,
+            title: 'Include my user please!',
+          },
+        ],
+      })
+
+      expect(posts).toMatchObject([
+        {
+          id: expect.any(String),
+          title: expect.any(String),
+          userId: expect.any(String),
+          user: {
+            id: expect.any(String),
+            email: email1,
+          },
         },
       ])
     })
