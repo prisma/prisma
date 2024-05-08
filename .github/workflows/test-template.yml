@@ -1157,10 +1157,13 @@ jobs:
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
+      # See https://github.com/actions/runner-images/issues/712
+      # TEMP directory has 8.3 name on GH Windows runners and
+      # that breaks some of the snapshots. Forcing it into long name
+      # to let the tests path.
       - name: Fix windows temp directory
         if: ${{ matrix.os == 'windows-latest'}}
-        shell: bash
-        run: echo TEMP="C:\\Users\\runneradmin\\AppData\\Local\\Temp" >> "$GITHUB_ENV"
+        run: echo "TEMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
 
       - name: Test packages/migrate
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-')
