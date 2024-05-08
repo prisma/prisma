@@ -13,14 +13,10 @@ import { ConfigMetaFormat, usesPrismaSchemaFolder } from './usesPrismaSchemaFold
  * @param filesResolver
  * @returns
  */
-
 export async function loadRelatedSchemaFiles(
   filePath: string,
   filesResolver: FilesResolver = realFsResolver,
 ): Promise<LoadedFile[]> {
-  // TODO: this should read preview features from the found files.
-  // If `prismaSchemaFolder` is not enabled, it should only return the entry for `filePaths`
-  // and not any other file
   const files = await loadSchemaFiles(path.dirname(filePath), filesResolver)
   if (isPrismaFolderEnabled(files)) {
     return files
