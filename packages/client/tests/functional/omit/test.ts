@@ -200,13 +200,15 @@ testMatrix.setupTestSuite(({ provider }) => {
     expectTypeOf(user).not.toHaveProperty('password')
   })
 
+  // Not implemented for SQL Server, MongoDB, and MySQL
   skipTestIf([Providers.SQLSERVER, Providers.MONGODB, Providers.MYSQL].includes(provider))(
     'createManyAndReturn',
     async () => {
+      // @ts-test-if: provider !== Providers.SQLSERVER && provider !== Providers.MONGODB && provider !== Providers.MYSQL
       const user = await prisma.user.createManyAndReturn({
         data: [
           {
-            name: 'Steve the Rat - the sequel',
+            name: 'Steve the Rat - The Sequel',
             password: 'cheese',
             email: 'steve2@rats.com',
           },
@@ -223,10 +225,11 @@ testMatrix.setupTestSuite(({ provider }) => {
         },
       })
 
-      expect(user[0].name).toBe('Steve the Rat - the sequel')
+      expect(user[0].name).toBe('Steve the Rat - The Sequel')
       expect(user[0]).not.toHaveProperty('password')
       expectTypeOf(user[0]).toHaveProperty('id')
       expectTypeOf(user[0]).toHaveProperty('name')
+      // @ts-test-if: provider !== Providers.SQLSERVER && provider !== Providers.MONGODB && provider !== Providers.MYSQL
       expectTypeOf(user[0]).not.toHaveProperty('password')
     },
   )
