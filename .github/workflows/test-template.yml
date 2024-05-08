@@ -1163,6 +1163,7 @@ jobs:
       # to let the tests path.
       - name: Fix windows temp directory
         if: ${{ matrix.os == 'windows-latest'}}
+        shell: pwsh
         run: echo "TEMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
 
       - name: Test packages/migrate
