@@ -111,6 +111,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     }
   }
 
+  // TODO: don't read the schema here, but get it as an argument.
+  // We likely already use `getSchema` in the CLI anyway.
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({

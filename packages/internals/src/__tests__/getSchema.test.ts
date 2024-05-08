@@ -32,9 +32,12 @@ async function testSchemaPath(fixtureName: string, schemaPathFromArgs?: string) 
   }
 
   try {
-    asyncResult = await getSchemaPathInternal(schemaPathFromArgs, {
-      cwd,
-    })
+    asyncResult =
+      (
+        await getSchemaPathInternal(schemaPathFromArgs, {
+          cwd,
+        })
+      )?.schemaPath ?? null
   } catch (e) {
     asyncResult = e as Error
   }

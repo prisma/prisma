@@ -9,17 +9,23 @@ import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
+// TODO: `eval` is used so that the `version` field in package.json (resolved at compile-time) doesn't yield `0.0.0`.
+// We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.
 const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
   public engine: SchemaEngine
   private schemaPath?: string
   public migrationsDirectoryPath?: string
+
+  // TODO: make the constructor private, and only allow instantiation via an async static method.
+  // This would allow us to do async work in the constructor (such as using the async version of `getSchemaPath`,
+  // which supports multiple schema files), which is currently not possible.
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
     // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
     if (schemaPath) {
-      this.schemaPath = this.getSchemaPath(schemaPath)
+      this.schemaPath = path.resolve(process.cwd(), schemaPath)
       this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
       this.engine = new SchemaEngine({
         projectDir: path.dirname(this.schemaPath),

@@ -2,7 +2,7 @@
 /* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { getSchema, pathToPosix } from '@prisma/internals'
+import { extractSchemaContent, getSchema, pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
@@ -99,7 +99,8 @@ describe('postgresql-views', () => {
           schemaPath: undefined,
         })
 
-        const schema = await getSchema()
+        const schemas = await getSchema()
+        const schema = extractSchemaContent(schemas).join('\n')
 
         const introspectionResult = await engine.introspect({
           schema,
@@ -122,7 +123,8 @@ describe('postgresql-views', () => {
           schemaPath: undefined,
         })
 
-        const schema = await getSchema()
+        const schemas = await getSchema()
+        const schema = extractSchemaContent(schemas).join('\n')
 
         const introspectionResult = await engine.introspect({
           schema,
@@ -150,7 +152,8 @@ describe('postgresql-views', () => {
           schemaPath: undefined,
         })
 
-        const schema = await getSchema()
+        const schemas = await getSchema()
+        const schema = extractSchemaContent(schemas).join('\n')
 
         const introspectionResult = await engine.introspect({
           schema,
@@ -178,7 +181,8 @@ describe('postgresql-views', () => {
           schemaPath: undefined,
         })
 
-        const schema = await getSchema()
+        const schemas = await getSchema()
+        const schema = extractSchemaContent(schemas).join('\n')
 
         const introspectionResult = await engine.introspect({
           schema,
