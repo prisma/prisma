@@ -1157,6 +1157,11 @@ jobs:
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
+      - name: Fix windows temp directory
+        if: ${{ matrix.os == 'windows-latest'}}
+        shell: bash
+        run: echo TEMP="C:\\Users\\runneradmin\\AppData\\Local\\Temp" >> "$GITHUB_ENV"
+
       - name: Test packages/migrate
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-')
         run: pnpm run test --testTimeout=40000
