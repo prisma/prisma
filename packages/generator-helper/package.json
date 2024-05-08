@@ -24,12 +24,12 @@
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
-    "@swc-node/register": "1.9.0",
-    "@swc/core": "1.5.2",
+    "@swc-node/register": "1.9.1",
+    "@swc/core": "1.5.3",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
-    "esbuild": "0.20.2",
+    "esbuild": "0.21.1",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "ts-node": "10.9.2",
