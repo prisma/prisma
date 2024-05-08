@@ -1,4 +1,5 @@
-import { FilesResolver, FsEntryType } from './types'
+import { createFileNameToKeyMapper, FileNameToKeyMapper } from './caseSensitivity'
+import { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
 
 /**
  * Files resolver that combines two other resolvers
@@ -6,13 +7,16 @@ import { FilesResolver, FsEntryType } from './types'
  * reported. Content existing in
  */
 export class CompositeFilesResolver implements FilesResolver {
-  constructor(private primary: FilesResolver, private secondary: FilesResolver) {}
+  private _fileNameToKey: FileNameToKeyMapper
+  constructor(private primary: FilesResolver, private secondary: FilesResolver, options: CaseSensitivityOptions) {
+    this._fileNameToKey = createFileNameToKeyMapper(options)
+  }
 
   async listDirContents(path: string): Promise<string[]> {
     const primaryContent = await this.primary.listDirContents(path)
     const secondaryContent = await this.secondary.listDirContents(path)
 
-    return unique([...primaryContent, ...secondaryContent])
+    return uniqueWith([...primaryContent, ...secondaryContent], this._fileNameToKey)
   }
 
   async getEntryType(path: string): Promise<FsEntryType | undefined> {
@@ -24,6 +28,13 @@ export class CompositeFilesResolver implements FilesResolver {
   }
 }
 
-function unique<T>(array: T[]): T[] {
-  return [...new Set(array)]
+function uniqueWith(fileNames: string[], toKey: FileNameToKeyMapper): string[] {
+  const map = new Map<string, string>()
+  for (const fileName of fileNames) {
+    const key = toKey(fileName)
+    if (!map.has(key)) {
+      map.set(key, fileName)
+    }
+  }
+  return Array.from(map.values())
 }

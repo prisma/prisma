@@ -1,13 +1,29 @@
 import path from 'node:path'
 
-import { FilesResolver, FsEntryType } from './types'
+import { createFileNameToKeyMapper, FileNameToKeyMapper } from './caseSensitivity'
+import { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
+
+type InMemoryNode = {
+  /**
+   * Original name of a file or directory, preserving the case used
+   * in `addFile` regardless of case-sensitivity settings. Mostly
+   * needed for nicer output of `listDirContents`
+   */
+  canonicalName: string
+  content: string | InMemoryTree
+}
 
 type InMemoryTree = {
-  [path: string]: string | InMemoryTree
+  [fileKey: string]: InMemoryNode
 }
 
 export class InMemoryFilesResolver implements FilesResolver {
   private _tree: InMemoryTree = {}
+  private _fileNameToKey: FileNameToKeyMapper
+
+  constructor(options: CaseSensitivityOptions) {
+    this._fileNameToKey = createFileNameToKeyMapper(options)
+  }
 
   addFile(absolutePath: string, content: string): void {
     const dirs = absolutePath.split(path.sep)
@@ -17,31 +33,38 @@ export class InMemoryFilesResolver implements FilesResolver {
     }
     let currentDirRecord = this._tree
     for (const dir of dirs) {
-      let nextDirRecord = currentDirRecord[dir]
-      if (!nextDirRecord) {
-        nextDirRecord = {}
-        currentDirRecord[dir] = nextDirRecord
+      const key = this._fileNameToKey(dir)
+      let nextDirNode = currentDirRecord[key]
+      if (!nextDirNode) {
+        nextDirNode = {
+          canonicalName: dir,
+          content: {},
+        }
+        currentDirRecord[key] = nextDirNode
       }
-      if (typeof nextDirRecord === 'string') {
+      if (typeof nextDirNode.content === 'string') {
         throw new Error(`${dir} is a file`)
       }
-      currentDirRecord = nextDirRecord
+      currentDirRecord = nextDirNode.content
     }
 
-    if (typeof currentDirRecord[fileName] === 'object') {
+    if (typeof currentDirRecord[fileName]?.content === 'object') {
       throw new Error(`${absolutePath} is a directory`)
     }
-    currentDirRecord[fileName] = content
+    currentDirRecord[this._fileNameToKey(fileName)] = {
+      canonicalName: fileName,
+      content,
+    }
   }
 
   private getInMemoryContent(absolutePath: string): InMemoryTree | string | undefined {
-    const parts = absolutePath.split(path.sep)
+    const keys = absolutePath.split(path.sep).map((fileName) => this._fileNameToKey(fileName))
     let currentRecord: InMemoryTree | string | undefined = this._tree
-    for (const part of parts) {
+    for (const key of keys) {
       if (typeof currentRecord !== 'object') {
         return undefined
       }
-      currentRecord = currentRecord[part]
+      currentRecord = currentRecord[key]?.content
     }
     return currentRecord
   }
@@ -52,7 +75,7 @@ export class InMemoryFilesResolver implements FilesResolver {
       if (typeof dirContent !== 'object') {
         return []
       }
-      return Object.keys(dirContent)
+      return Object.values(dirContent).map((node) => node.canonicalName)
     })
   }
 

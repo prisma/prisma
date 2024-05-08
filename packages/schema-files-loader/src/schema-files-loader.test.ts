@@ -50,7 +50,7 @@ describe('loadSchemaFiles', () => {
   })
 
   test('allows to use in-memory resolver', async () => {
-    const resolver = new InMemoryFilesResolver()
+    const resolver = new InMemoryFilesResolver({ caseSensitive: true })
     resolver.addFile(path.join('/', 'some', 'dir', 'a.prisma'), '// this is a')
     resolver.addFile(path.join('/', 'some', 'dir', 'b.prisma'), '// this is b')
     const files = await loadSchemaFiles('/some/dir', resolver)
@@ -62,11 +62,11 @@ describe('loadSchemaFiles', () => {
   })
 
   test('allows to use composite resolver', async () => {
-    const inMemory = new InMemoryFilesResolver()
+    const inMemory = new InMemoryFilesResolver({ caseSensitive: true })
     inMemory.addFile(fixturePath('simple', 'b.prisma'), line('// b is overridden'))
     inMemory.addFile(fixturePath('simple', 'c.prisma'), line('// in memory only'))
 
-    const resolver = new CompositeFilesResolver(inMemory, realFsResolver)
+    const resolver = new CompositeFilesResolver(inMemory, realFsResolver, { caseSensitive: true })
     const files = await loadSchemaFiles(fixturePath('simple'), resolver)
 
     expect(files).toEqual([

@@ -18,3 +18,7 @@ export interface FilesResolver {
 
   getFileContents(path: string): Promise<string | undefined>
 }
+
+export type CaseSensitivityOptions = {
+  caseSensitive: boolean
+}

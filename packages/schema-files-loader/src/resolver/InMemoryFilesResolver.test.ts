@@ -1,26 +1,61 @@
 import { InMemoryFilesResolver } from './InMemoryFilesResolver'
 
-test('getEntryType', async () => {
-  const resolver = new InMemoryFilesResolver()
-  resolver.addFile('/some/path/file.prisma', '// hello')
+describe('case-sensitive = true', () => {
+  test('getEntryType', async () => {
+    const resolver = new InMemoryFilesResolver({ caseSensitive: true })
+    resolver.addFile('/some/path/file.prisma', '// hello')
 
-  expect(await resolver.getEntryType('/some/path/file.prisma')).toEqual({ kind: 'file' })
-  expect(await resolver.getEntryType('/some/path')).toEqual({ kind: 'directory' })
+    expect(await resolver.getEntryType('/some/path/file.prisma')).toEqual({ kind: 'file' })
+    expect(await resolver.getEntryType('/some/path')).toEqual({ kind: 'directory' })
+  })
+
+  test('getFileContents', async () => {
+    const resolver = new InMemoryFilesResolver({ caseSensitive: true })
+    resolver.addFile('/some/path/file.prisma', '// hello file')
+
+    expect(await resolver.getFileContents('/some/path/file.prisma')).toBe('// hello file')
+    expect(await resolver.getFileContents('/some/path/File.prisma')).toBe(undefined)
+    expect(await resolver.getFileContents('/some/path/nonexisting.prisma')).toBe(undefined)
+    expect(await resolver.getFileContents('/some/nonexisting/file.prisma')).toBe(undefined)
+  })
+
+  test('listDirContents', async () => {
+    const resolver = new InMemoryFilesResolver({ caseSensitive: true })
+    resolver.addFile('/some/path/Foo.prisma', '// hello Foo')
+    resolver.addFile('/some/path/foo.prisma', '// hello foo')
+    resolver.addFile('/some/path/Bar.prisma', '// hello Bar')
+
+    expect(await resolver.listDirContents('/some/path')).toEqual(['Foo.prisma', 'foo.prisma', 'Bar.prisma'])
+  })
 })
 
-test('getFileContents', async () => {
-  const resolver = new InMemoryFilesResolver()
-  resolver.addFile('/some/path/file.prisma', '// hello')
+describe('case-sensitive = false', () => {
+  test('getEntryType', async () => {
+    const resolver = new InMemoryFilesResolver({ caseSensitive: false })
+    resolver.addFile('/some/path/file.prisma', '// hello')
 
-  expect(await resolver.getFileContents('/some/path/file.prisma')).toBe('// hello')
-  expect(await resolver.getFileContents('/some/path/nonexisting.prisma')).toBe(undefined)
-  expect(await resolver.getFileContents('/some/nonexisting/file.prisma')).toBe(undefined)
-})
+    expect(await resolver.getEntryType('/some/path/file.prisma')).toEqual({ kind: 'file' })
+    expect(await resolver.getEntryType('/some/path')).toEqual({ kind: 'directory' })
+  })
 
-test('listDirContents', async () => {
-  const resolver = new InMemoryFilesResolver()
-  resolver.addFile('/some/path/1.prisma', '// hello 1')
-  resolver.addFile('/some/path/2.prisma', '// hello 2')
+  test('getFileContents', async () => {
+    const resolver = new InMemoryFilesResolver({ caseSensitive: false })
+    resolver.addFile('/some/path/file.prisma', '// hello file')
 
-  expect(await resolver.listDirContents('/some/path')).toEqual(['1.prisma', '2.prisma'])
+    // should point to the same path
+    expect(await resolver.getFileContents('/some/path/file.prisma')).toBe('// hello file')
+    expect(await resolver.getFileContents('/some/path/File.prisma')).toBe('// hello file')
+
+    expect(await resolver.getFileContents('/some/path/nonexisting.prisma')).toBe(undefined)
+    expect(await resolver.getFileContents('/some/nonexisting/file.prisma')).toBe(undefined)
+  })
+
+  test('listDirContents', async () => {
+    const resolver = new InMemoryFilesResolver({ caseSensitive: false })
+    resolver.addFile('/some/path/Foo.prisma', '// hello Foo')
+    resolver.addFile('/some/path/foo.prisma', '// hello foo')
+    resolver.addFile('/some/path/Bar.prisma', '// hello Bar')
+
+    expect(await resolver.listDirContents('/some/path')).toEqual(['foo.prisma', 'Bar.prisma'])
+  })
 })
