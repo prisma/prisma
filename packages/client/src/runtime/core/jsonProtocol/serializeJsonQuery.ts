@@ -37,6 +37,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   count: 'aggregate',
   create: 'createOne',
   createMany: 'createMany',
+  createManyAndReturn: 'createManyAndReturn',
   update: 'updateOne',
   updateMany: 'updateMany',
   upsert: 'upsertOne',

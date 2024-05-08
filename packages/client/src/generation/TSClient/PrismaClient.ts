@@ -61,6 +61,7 @@ function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<
   if (action === 'aggregateRaw') return `Prisma.JsonObject`
   if (action === 'deleteMany') return `Prisma.BatchPayload`
   if (action === 'createMany') return `Prisma.BatchPayload`
+  if (action === 'createManyAndReturn') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>[]`
   if (action === 'updateMany') return `Prisma.BatchPayload`
   if (action === 'findMany') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>[]`
   if (action === 'findFirst') return `$Utils.PayloadToResult<${getPayloadName(modelName)}> | null`
@@ -72,7 +73,7 @@ function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<
   if (action === 'upsert') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
   if (action === 'delete') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
 
-  assertNever(action, 'Unknown action: ' + action)
+  assertNever(action, `Unknown action: ${action}`)
 }
 
 function clientTypeMapOthersDefinition(this: PrismaClientClass) {
@@ -480,6 +481,7 @@ export type PrismaAction =
   | 'findFirstOrThrow'
   | 'create'
   | 'createMany'
+  | 'createManyAndReturn'
   | 'update'
   | 'updateMany'
   | 'upsert'

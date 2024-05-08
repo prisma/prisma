@@ -56,7 +56,7 @@ describe('common', () => {
         "Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
-          -->  schema.prisma:10
+          -->  prisma/invalid.prisma:10
            | 
          9 | }
         10 | model Blog {
@@ -87,7 +87,7 @@ describe('common', () => {
         "Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
-          -->  schema.prisma:2
+          -->  prisma/provider-array.prisma:2
            | 
          1 | datasource my_db {
          2 |     provider = ["postgresql", "sqlite"]
@@ -1267,7 +1267,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev-shadowdb", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
 
       Applying migration \`20201231000000_\`
 

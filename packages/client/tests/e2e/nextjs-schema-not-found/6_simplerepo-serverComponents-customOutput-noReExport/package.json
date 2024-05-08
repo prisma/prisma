@@ -13,14 +13,14 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "18.19.31",
-    "@types/react": "18.2.79",
+    "@types/react": "18.3.1",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   },
   "dependencies": {
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
     "next": "13.1.4",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "typescript": "5.4.5",
     "vercel": "33.5.0"
   }

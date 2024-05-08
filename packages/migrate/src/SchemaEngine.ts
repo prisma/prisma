@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import Debug from '@prisma/debug'
 import {
   BinaryType,
@@ -11,7 +13,6 @@ import {
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 import { bold, red } from 'kleur/colors'
-import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
@@ -185,6 +186,7 @@ export class SchemaEngine {
       const { views } = introspectResult
 
       if (views) {
+        // TODO: this needs to call `getSchemaPath` instead
         const schemaPath = this.schemaPath ?? path.join(process.cwd(), 'prisma')
         await handleViewsIO({ views, schemaPath })
       }

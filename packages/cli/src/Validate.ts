@@ -12,7 +12,6 @@ import {
   validate,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import fs from 'fs'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -63,17 +62,15 @@ ${bold('Examples')}
 
     loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
-
-    const schema = fs.readFileSync(schemaPath, 'utf-8')
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
     const { lintDiagnostics } = handleLintPanic(
       () => {
         // the only possible error here is a Rust panic
-        const lintDiagnostics = lintSchema({ schema })
+        const lintDiagnostics = lintSchema({ schemas })
         return { lintDiagnostics }
       },
-      { schema },
+      { schemas },
     )
 
     const lintWarnings = getLintWarningsAsText(lintDiagnostics)
@@ -83,12 +80,12 @@ ${bold('Examples')}
     }
 
     validate({
-      datamodel: schema,
+      schemas,
     })
 
     // We could have a CLI flag to ignore env var validation
     await getConfig({
-      datamodel: schema,
+      datamodel: schemas,
       ignoreEnvVarErrors: false,
     })
 

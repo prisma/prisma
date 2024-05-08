@@ -117,6 +117,8 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
       return `${modelName}CreateArgs`
     case DMMF.ModelAction.createMany:
       return `${modelName}CreateManyArgs`
+    case DMMF.ModelAction.createManyAndReturn:
+      return `${modelName}CreateManyAndReturnArgs`
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
     case DMMF.ModelAction.groupBy:
@@ -130,7 +132,7 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
     case DMMF.ModelAction.aggregateRaw:
       return `${modelName}AggregateRawArgs`
     default:
-      assertNever(action, 'Unknown action')
+      assertNever(action, `Unknown action: ${action}`)
   }
 }
 
@@ -181,7 +183,7 @@ export function getReturnType({
     return `Prisma.PrismaPromise<JsonObject>`
   }
 
-  const isList = actionName === DMMF.ModelAction.findMany
+  const isList = actionName === DMMF.ModelAction.findMany || actionName === DMMF.ModelAction.createManyAndReturn
 
   if (
     actionName === DMMF.ModelAction.deleteMany ||

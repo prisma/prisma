@@ -59,6 +59,7 @@ export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
     actionName === DMMF.ModelAction.findFirst ||
     actionName === DMMF.ModelAction.deleteMany ||
     actionName === DMMF.ModelAction.createMany ||
+    actionName === DMMF.ModelAction.createManyAndReturn ||
     actionName === DMMF.ModelAction.findUniqueOrThrow ||
     actionName === DMMF.ModelAction.findFirstOrThrow
       ? '?'

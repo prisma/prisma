@@ -57,3 +57,16 @@ export function loadRelatedSchemaFiles(filesPath: string): Promise<LoadedFile[]>
   // and not any other file
   return loadSchemaFiles(path.dirname(filesPath))
 }
+
+// Minimal subset of the return type of `getConfig` from `@prisma/internals`, used for `usesPrismaSchemaFolder`.
+// This is a simplified version of the actual `ConfigMetaFormat` type, which isn't imported to avoid circular dependencies.
+type ConfigMetaFormat = {
+  generators: Array<{
+    previewFeatures: string[]
+  }>
+}
+
+export function usesPrismaSchemaFolder(config: ConfigMetaFormat): boolean {
+  const previewFeatures = config.generators.find((g) => g.previewFeatures.length > 0)?.previewFeatures
+  return (previewFeatures || []).includes('prismaSchemaFolder')
+}

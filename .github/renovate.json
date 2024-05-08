@@ -224,6 +224,20 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
+      "groupName": "Extension: Accelerate",
+      "automerge": true,
+      "matchPackageNames": ["@prisma/extension-accelerate"],
+      "matchUpdateTypes": ["patch", "minor", "major"],
+      "schedule": ["at any time"]
+    },
+    {
+      "groupName": "Extension: Read Replicas",
+      "automerge": true,
+      "matchPackageNames": ["@prisma/extension-read-replicas"],
+      "matchUpdateTypes": ["patch", "minor", "major"],
+      "schedule": ["at any time"]
+    },
+    {
       "groupName": "Studio",
       "automerge": true,
       "matchPackageNames": ["@prisma/studio", "@prisma/studio-server"],
