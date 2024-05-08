@@ -97,9 +97,9 @@ const ${ctx.singular} = await ${ctx.method}({
 @example
 // Create many ${ctx.plural}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
-  data: {
+  data: [
     // ... provide data here
-  }
+  ]
 })
     `,
     fields: {
@@ -107,16 +107,30 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     },
   },
   createManyAndReturn: {
-    body: (ctx) => `Create many ${ctx.plural} and returns the data saved in the database.
+    body: (ctx) => {
+      const onlySelect = ctx.firstScalar
+        ? `\n// Create many ${ctx.plural} and only return the \`${ctx.firstScalar.name}\`
+const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({ 
+  select: { ${ctx.firstScalar.name}: true },
+  data: [
+    // ... provide data here
+  ]
+})`
+        : ''
+
+      return `Create many ${ctx.plural} and returns the data saved in the database.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many ${ctx.plural}.
 @example
 // Create many ${ctx.plural}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
-  data: {
+  data: [
     // ... provide data here
-  }
+  ]
 })
-    `,
+${onlySelect}
+${undefinedNote}
+`
+    },
     fields: {
       data: (singular, plural) => `The data used to create many ${plural}.`,
     },
@@ -206,7 +220,7 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
 
       return `Find zero or more ${ctx.plural} that matches the filter.
 ${undefinedNote}
-@param {${getModelArgName(ctx.model.name, ctx.action)}=} args - Arguments to filter and select certain fields only.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter and select certain fields only.
 @example
 // Get all ${ctx.plural}
 const ${ctx.mapping.plural} = await ${ctx.method}()

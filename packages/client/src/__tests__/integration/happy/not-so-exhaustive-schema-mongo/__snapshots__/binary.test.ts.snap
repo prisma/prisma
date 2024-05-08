@@ -2967,7 +2967,7 @@ export namespace Prisma {
      * Find zero or more Posts that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {PostFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {PostFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Posts
      * const posts = await prisma.post.findMany()
@@ -3005,9 +3005,9 @@ export namespace Prisma {
      * @example
      * // Create many Posts
      * const post = await prisma.post.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -4070,7 +4070,7 @@ export namespace Prisma {
      * Find zero or more Users that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {UserFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Users
      * const users = await prisma.user.findMany()
@@ -4108,9 +4108,9 @@ export namespace Prisma {
      * @example
      * // Create many Users
      * const user = await prisma.user.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -5060,7 +5060,7 @@ export namespace Prisma {
      * Find zero or more EmbedHolders that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {EmbedHolderFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {EmbedHolderFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all EmbedHolders
      * const embedHolders = await prisma.embedHolder.findMany()
@@ -5098,9 +5098,9 @@ export namespace Prisma {
      * @example
      * // Create many EmbedHolders
      * const embedHolder = await prisma.embedHolder.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -6164,7 +6164,7 @@ export namespace Prisma {
      * Find zero or more Ms that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {MFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ms
      * const ms = await prisma.m.findMany()
@@ -6202,9 +6202,9 @@ export namespace Prisma {
      * @example
      * // Create many Ms
      * const m = await prisma.m.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -7278,7 +7278,7 @@ export namespace Prisma {
      * Find zero or more Ns that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {NFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {NFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ns
      * const ns = await prisma.n.findMany()
@@ -7316,9 +7316,9 @@ export namespace Prisma {
      * @example
      * // Create many Ns
      * const n = await prisma.n.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -8386,7 +8386,7 @@ export namespace Prisma {
      * Find zero or more OneOptionals that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OneOptionalFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {OneOptionalFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OneOptionals
      * const oneOptionals = await prisma.oneOptional.findMany()
@@ -8424,9 +8424,9 @@ export namespace Prisma {
      * @example
      * // Create many OneOptionals
      * const oneOptional = await prisma.oneOptional.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -9501,7 +9501,7 @@ export namespace Prisma {
      * Find zero or more ManyRequireds that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {ManyRequiredFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {ManyRequiredFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all ManyRequireds
      * const manyRequireds = await prisma.manyRequired.findMany()
@@ -9539,9 +9539,9 @@ export namespace Prisma {
      * @example
      * // Create many ManyRequireds
      * const manyRequired = await prisma.manyRequired.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -10612,7 +10612,7 @@ export namespace Prisma {
      * Find zero or more OptionalSide1s that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide1FindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {OptionalSide1FindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OptionalSide1s
      * const optionalSide1s = await prisma.optionalSide1.findMany()
@@ -10650,9 +10650,9 @@ export namespace Prisma {
      * @example
      * // Create many OptionalSide1s
      * const optionalSide1 = await prisma.optionalSide1.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -11713,7 +11713,7 @@ export namespace Prisma {
      * Find zero or more OptionalSide2s that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide2FindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {OptionalSide2FindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OptionalSide2s
      * const optionalSide2s = await prisma.optionalSide2.findMany()
@@ -11751,9 +11751,9 @@ export namespace Prisma {
      * @example
      * // Create many OptionalSide2s
      * const optionalSide2 = await prisma.optionalSide2.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -12746,7 +12746,7 @@ export namespace Prisma {
      * Find zero or more As that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {AFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {AFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all As
      * const as = await prisma.a.findMany()
@@ -12784,9 +12784,9 @@ export namespace Prisma {
      * @example
      * // Create many As
      * const a = await prisma.a.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -13676,7 +13676,7 @@ export namespace Prisma {
      * Find zero or more Bs that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {BFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {BFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Bs
      * const bs = await prisma.b.findMany()
@@ -13714,9 +13714,9 @@ export namespace Prisma {
      * @example
      * // Create many Bs
      * const b = await prisma.b.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -14605,7 +14605,7 @@ export namespace Prisma {
      * Find zero or more Cs that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {CFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Cs
      * const cs = await prisma.c.findMany()
@@ -14643,9 +14643,9 @@ export namespace Prisma {
      * @example
      * // Create many Cs
      * const c = await prisma.c.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -15560,7 +15560,7 @@ export namespace Prisma {
      * Find zero or more Ds that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {DFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {DFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ds
      * const ds = await prisma.d.findMany()
@@ -15598,9 +15598,9 @@ export namespace Prisma {
      * @example
      * // Create many Ds
      * const d = await prisma.d.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
@@ -16463,7 +16463,7 @@ export namespace Prisma {
      * Find zero or more Es that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {EFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @param {EFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Es
      * const es = await prisma.e.findMany()
@@ -16501,9 +16501,9 @@ export namespace Prisma {
      * @example
      * // Create many Es
      * const e = await prisma.e.createMany({
-     *   data: {
+     *   data: [
      *     // ... provide data here
-     *   }
+     *   ]
      * })
      *     
     **/
