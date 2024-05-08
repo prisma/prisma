@@ -251,8 +251,8 @@ Please make sure they have the same version.`
             : ''
 
             const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
-            Try Prisma Accelerate for connection pooling and caching.
-            ${link('https://pris.ly/cli/--accelerate')}`
+Try Prisma Accelerate for connection pooling and caching.
+${link('https://pris.ly/cli/--accelerate')}`
 
         const boxedTryAccelerateMessage = drawBox({
           height: tryAccelerateMessage.split('\n').length,
