@@ -4,7 +4,6 @@ import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
-import path from 'path'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
@@ -152,8 +151,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
         return panic
       }
 
-      let errorOutput = e.error.message
-      errorOutput = errorOutput.replaceAll(process.cwd() + path.sep, '')
+      const errorOutput = e.error.message
       return new GetConfigError(parseQueryEngineError({ errorOutput, reason: e.reason }))
     })
     .otherwise((e) => {
