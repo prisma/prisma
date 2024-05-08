@@ -115,7 +115,9 @@ Set composite types introspection depth to 2 levels
 
     const url: string | undefined = args['--url']
     // getSchemaPathAndPrint is not flexible enough for this use case
-    let schemaPath = await getSchemaPath(args['--schema'])
+    const schemaPathResult = await getSchemaPath(args['--schema'])
+    let schemaPath = schemaPathResult?.schemaPath ?? null
+    debug('schemaPathResult', schemaPathResult)
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
@@ -269,11 +271,10 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
 
     if (schemaPath) {
       // Re-Introspection is not supported on MongoDB
-      const schema = await getSchema(args['--schema'])
+      const schemas = await getSchema(args['--schema'])
 
       const modelRegex = /\s*model\s*(\w+)\s*{/
-      const modelMatch = modelRegex.exec(schema)
-      const isReintrospection = modelMatch
+      const isReintrospection = schemas.some(([_, schema]) => !!modelRegex.exec(schema as string))
 
       if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
         throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.

@@ -1,10 +1,10 @@
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
-import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { isRustPanic, validate } from '../..'
-import type { Datamodel } from '../../utils/datamodel'
+import { readSchemaFromSingleFile } from '../../cli/getSchema'
+import type { MultipleSchemas, SchemaFileInput } from '../../utils/schemaFileInput'
 import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
@@ -34,12 +34,13 @@ describe('validate', () => {
 
     test('failures should have colors by default', () => {
       expect.assertions(1)
-      const datamodel = `
+      const schema = `
         datasource db {
       `
+      const schemas: MultipleSchemas = [['/* schemaPath */', schema]]
 
       try {
-        validate({ datamodel })
+        validate({ schemas })
       } catch (e) {
         expect(e.message).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
@@ -66,12 +67,13 @@ describe('validate', () => {
     test('failures should not have colors when the NO_COLOR env var is set', () => {
       process.env.NO_COLOR = '1'
       expect.assertions(1)
-      const datamodel = `
+      const schema = `
         datasource db {
       `
+      const schemas: MultipleSchemas = [['/* schemaPath */', schema]]
 
       try {
-        validate({ datamodel })
+        validate({ schemas })
       } catch (e) {
         expect(e.message).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
@@ -97,7 +99,7 @@ describe('validate', () => {
     describe('single file', () => {
       test('model with autoincrement should fail if sqlite', () => {
         expect.assertions(1)
-        const datamodel = `
+        const schema = `
           datasource db {
             provider = "sqlite"
             url      = "file:dev.db"
@@ -107,9 +109,10 @@ describe('validate', () => {
             email     String   @unique
             @@map("users")
           }`
+        const schemas: MultipleSchemas = [['schema.prisma', schema]]
 
         try {
-          validate({ datamodel })
+          validate({ schemas })
         } catch (e) {
           expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
@@ -139,7 +142,7 @@ describe('validate', () => {
 
       test('model with autoincrement should fail if mysql', () => {
         expect.assertions(1)
-        const datamodel = `
+        const schema = `
           datasource db {
             provider = "mysql"
             url      = env("MY_MYSQL_DB")
@@ -149,9 +152,10 @@ describe('validate', () => {
             email     String   @unique
             @@map("users")
           }`
+        const schemas: MultipleSchemas = [['schema.prisma', schema]]
 
         try {
-          validate({ datamodel })
+          validate({ schemas })
         } catch (e) {
           expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
@@ -172,25 +176,24 @@ describe('validate', () => {
         }
       })
 
-      test(`panics when the given datamodel isn't a string`, () => {
-        expect.assertions(3)
+      test(`throws an error when the given datamodel is of the wrong type`, () => {
+        expect.assertions(2)
 
         try {
           // @ts-expect-error
-          validate({ datamodel: true })
+          validate({ schemas: [[true, true]] })
         } catch (e) {
           expect(isRustPanic(e)).toBe(true)
           expect(serialize(e.message)).toMatchInlineSnapshot(`
             ""RuntimeError: panicked at prisma-fmt/src/validate.rs:0:0:
-            Failed to deserialize ValidateParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 20""
+            Failed to deserialize ValidateParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 29""
           `)
-          expect(e.rustStack).toBeTruthy()
         }
       })
 
       test('validation errors', () => {
         expect.assertions(1)
-        const datamodel = `generator client {
+        const schema = `generator client {
           provider = "prisma-client-js"
         }
         
@@ -226,8 +229,9 @@ describe('validate', () => {
           COLLABORATOR
         }
         `
+        const schemas: MultipleSchemas = [['schema.prisma', schema]]
         try {
-          validate({ datamodel })
+          validate({ schemas })
         } catch (e) {
           expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
@@ -266,7 +270,7 @@ describe('validate', () => {
 
         try {
           // @ts-expect-error
-          validate({ datamodel: [['schema.prisma', true]] })
+          validate({ schemas: [['schema.prisma', true]] })
         } catch (e) {
           expect(isRustPanic(e)).toBe(true)
           expect(serialize(e.message)).toMatchInlineSnapshot(`
@@ -320,13 +324,13 @@ describe('validate', () => {
           }
         `
 
-        const datamodel: Datamodel = [
+        const datamodel: SchemaFileInput = [
           ['schema.prisma', datamodel1],
           ['schema2.prisma', datamodel2],
         ]
 
         try {
-          validate({ datamodel })
+          validate({ schemas: datamodel })
         } catch (e) {
           // TODO: patch engines to fix this message, it should group errors by the different filenames.
           expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
@@ -363,40 +367,37 @@ describe('validate', () => {
 
   describe('success', () => {
     test('simple model, no datasource', () => {
-      validate({
-        datamodel: `model A {
-          id Int @id
-          name String
-        }`,
-      })
+      const schema /* prisma */ = `model A {
+        id Int @id
+        name String
+      }`
+      const schemas: MultipleSchemas = [['schema.prisma', schema]]
+
+      validate({ schemas })
     })
 
     test('simple model, sqlite', () => {
-      validate({
-        datamodel: `
-        datasource db {
-          provider = "sqlite"
-          url      = "file:dev.db"
-        }
-        model A {
-          id Int @id
-          name String
-        }`,
-      })
+      const schema /* prisma */ = `datasource db {
+        provider = "sqlite"
+        url      = "file:dev.db"
+      }
+      model A {
+        id Int @id
+        name String
+      }`
+      const schemas: MultipleSchemas = [['schema.prisma', schema]]
+
+      validate({ schemas })
     })
 
     test('chinook introspected schema', async () => {
-      const file = await fs.promises.readFile(path.join(fixturesPath, 'chinook.prisma'), 'utf-8')
-      validate({
-        datamodel: file,
-      })
+      const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'chinook.prisma'))
+      validate({ schemas })
     })
 
     test('odoo introspected schema', async () => {
-      const file = await fs.promises.readFile(path.join(fixturesPath, 'odoo.prisma'), 'utf-8')
-      validate({
-        datamodel: file,
-      })
+      const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'odoo.prisma'))
+      validate({ schemas })
     })
   })
 })

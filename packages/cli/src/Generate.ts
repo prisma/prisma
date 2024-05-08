@@ -126,12 +126,12 @@ ${bold('Examples')}
 
     loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
+    const schemaResult = await getSchemaPathAndPrint(args['--schema'], cwd)
 
-    if (!schemaPath) return ''
+    if (!schemaResult) return ''
 
-    const datamodel = await fs.promises.readFile(schemaPath, 'utf-8')
-    const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+    const { schemas, schemaPath } = schemaResult
+    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
     let hasJsClient
@@ -139,6 +139,7 @@ ${bold('Examples')}
     let clientGeneratorVersion: string | null = null
     try {
       generators = await getGenerators({
+        // TODO: pass the schemas rather than the schemaPath
         schemaPath,
         printDownloadProgress: !watchMode,
         version: enginesVersion,

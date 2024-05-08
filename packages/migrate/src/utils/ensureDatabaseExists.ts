@@ -27,6 +27,8 @@ export type DatasourceInfo = {
   schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
 }
 
+// TODO: sometimes this function is called with a `schemaPath`, even though the schema(s) have already been read from disk.
+// (e.g., check `MigrateDev.ts`).
 export async function getDatasourceInfo({
   schemaPath,
   throwIfEnvError,
@@ -147,8 +149,9 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 }
 
 export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
-  const schema = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+  const schemas = await getSchema(schemaPath)
+
+  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
