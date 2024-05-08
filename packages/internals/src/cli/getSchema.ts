@@ -24,14 +24,17 @@ export type GetSchemaResult = {
  * Async
  */
 
-type ReturnWithNonNullArg<In, Out> = In extends undefined ? Out | null : Out
-
+export async function getSchemaPath(
+  schemaPathFromArgs?: string,
+  opts?: { cwd: string },
+): Promise<GetSchemaResult | null>
+export async function getSchemaPath(schemaPathFromArgs: string, opts?: { cwd: string }): Promise<GetSchemaResult>
 export async function getSchemaPath(
   schemaPathFromArgs?: string,
   opts: { cwd: string } = {
     cwd: process.cwd(),
   },
-): Promise<ReturnWithNonNullArg<typeof schemaPathFromArgs, GetSchemaResult>> {
+) {
   return getSchemaPathInternal(schemaPathFromArgs, {
     cwd: opts.cwd,
   })
@@ -68,10 +71,18 @@ async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaRe
 // This function only throws when `schemaPathFromArgs` is provided, yet the schema doesn't exist.
 export async function getSchemaPathInternal(
   schemaPathFromArgs?: string,
+  opts?: { cwd: string },
+): Promise<GetSchemaResult | null>
+export async function getSchemaPathInternal(
+  schemaPathFromArgs: string,
+  opts?: { cwd: string },
+): Promise<GetSchemaResult>
+export async function getSchemaPathInternal(
+  schemaPathFromArgs?: string,
   opts: { cwd: string } = {
     cwd: process.cwd(),
   },
-): Promise<ReturnWithNonNullArg<typeof schemaPathFromArgs, GetSchemaResult>> {
+) {
   async function getSchemaResult(schemaPath: string) {
     // a. If it's a single file, read it and return it
     return (

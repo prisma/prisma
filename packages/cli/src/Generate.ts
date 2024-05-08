@@ -139,7 +139,7 @@ ${bold('Examples')}
     let clientGeneratorVersion: string | null = null
     try {
       generators = await getGenerators({
-        // TODO: pass the schemas rather than the schemaPath
+        schemas,
         schemaPath,
         printDownloadProgress: !watchMode,
         version: enginesVersion,
@@ -331,6 +331,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           let generatorsWatch: Generator[] | undefined
           try {
             generatorsWatch = await getGenerators({
+              schemas,
               schemaPath,
               printDownloadProgress: !watchMode,
               version: enginesVersion,

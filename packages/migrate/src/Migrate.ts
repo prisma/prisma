@@ -1,5 +1,5 @@
 import { enginesVersion } from '@prisma/engines-version'
-import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
+import { getGenerators, getGeneratorSuccessMessage, getSchemaPath, getSchemaPathSync } from '@prisma/internals'
 import fs from 'fs'
 import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
@@ -154,7 +154,10 @@ export class Migrate {
     process.stdout.write('\n') // empty line
     logUpdate(`Running generate... ${dim('(Use --skip-generate to skip the generators)')}`)
 
+    const { schemas } = (await getSchemaPath(this.schemaPath))!
+
     const generators = await getGenerators({
+      schemas,
       schemaPath: this.schemaPath,
       printDownloadProgress: true,
       version: enginesVersion,

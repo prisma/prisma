@@ -5,12 +5,13 @@ import { download } from '@prisma/fetch-engine'
 import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+import { mergeSchemas } from '@prisma/internals'
 import fs from 'fs'
 import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF, vercelPkgPathRegex } from '..'
+import { getConfig, getDMMF, type MultipleSchemas, vercelPkgPathRegex } from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -41,6 +42,7 @@ type BinaryPathsOverride = {
 // version: enginesVersion,
 // cliVersion: pkg.version,
 export type GetGeneratorOptions = {
+  schemas: MultipleSchemas
   schemaPath: string
   providerAliases?: ProviderAliases
   cliVersion?: string
@@ -63,6 +65,7 @@ export type GetGeneratorOptions = {
  */
 export async function getGenerators(options: GetGeneratorOptions): Promise<Generator[]> {
   const {
+    schemas,
     schemaPath,
     providerAliases: aliases, // do you get the pun?
     version,
@@ -111,12 +114,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     }
   }
 
-  // TODO: don't read the schema here, but get it as an argument.
-  // We likely already use `getSchema` in the CLI anyway.
-  const datamodel = fs.readFileSync(schemaPath, 'utf-8')
-
   const config = await getConfig({
-    datamodel,
+    datamodel: schemas,
     datamodelPath: schemaPath,
     prismaPath,
     ignoreEnvVarErrors: true,
@@ -131,7 +130,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   const previewFeatures = extractPreviewFeatures(config)
 
   const dmmf = await getDMMF({
-    datamodel,
+    datamodel: schemas,
     datamodelPath: schemaPath,
     prismaPath,
     previewFeatures,
@@ -205,6 +204,8 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
             fromEnvVar: 'null',
           }
         }
+
+        const datamodel = mergeSchemas({ schemas })
 
         const options: GeneratorOptions = {
           datamodel,
@@ -313,7 +314,7 @@ generator gen {
           generatorBinaryPaths[queryEngineType]?.[binaryTarget]
         ) {
           const customDmmf = await getDMMF({
-            datamodel,
+            datamodel: schemas,
             datamodelPath: schemaPath,
             prismaPath: generatorBinaryPaths[queryEngineType]?.[binaryTarget],
             previewFeatures,
