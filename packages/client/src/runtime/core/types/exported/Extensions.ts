@@ -395,7 +395,7 @@ export type { UserArgs }
 
 // TODO snippet for replacing PrismaClient text generated definition to reuse the full-dynamic type logic
 // export class PrismaClient<
-//   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+//   const T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
 //   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
 // > {
 //   constructor(options?: Prisma.Subset<T, Prisma.PrismaClientOptions>)
@@ -404,6 +404,6 @@ export type { UserArgs }
 //   ${metricDefinition.bind(this)()}
 // }
 // export interface PrismaClient<
-//   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+//   const T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
 //   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
 // > extends $Extensions.DynamicClientExtensionThis<Prisma.TypeMap, Prisma.TypeMapCb, $Extensions.DefaultArgs> {}
