@@ -1,7 +1,7 @@
 import type { ExecaChildProcess } from 'execa'
 import execa from 'execa'
 import fs from 'fs-jetpack'
-import type { FSJetpack } from 'fs-jetpack/types'
+import type { FSJetpack, InspectTreeResult } from 'fs-jetpack/types'
 import path from 'path'
 import tempy from 'tempy'
 
@@ -11,6 +11,7 @@ import tempy from 'tempy'
 export type BaseContext = {
   tmpDir: string
   fs: FSJetpack
+  tree: (itemPath?: string, indent?: string) => void
   mocked: {
     cwd: string
   }
@@ -47,6 +48,31 @@ export const jestContext = {
 
       c.tmpDir = tempy.directory()
       c.fs = fs.cwd(c.tmpDir)
+      c.tree = (startFrom = c.tmpDir, indent = '') => {
+        function* generateDirectoryTree(children: InspectTreeResult[], indent = ''): Generator<String> {
+          for (const child of children) {
+            if (child.name === 'node_modules') {
+              continue
+            }
+
+            if (child.type === 'dir') {
+              yield `${indent}└── ${child.name}/`
+              yield* generateDirectoryTree(child.children, indent + '    ')
+            } else if (child.type === 'symlink') {
+              yield `${indent} -> ${child.relativePath}`
+            } else {
+              yield `${indent}└── ${child.name}`
+            }
+          }
+        }
+
+        const children = c.fs.inspectTree(startFrom, { relativePath: true, symlinks: 'report' })?.children || []
+
+        return `
+${[...generateDirectoryTree(children, indent)].join('\n')}
+`
+      }
+
       c.fixture = (name: string) => {
         // copy the specific fixture directory in isolated tmp directory
         c.fs.copy(path.join(originalCwd, 'src', '__tests__', 'fixtures', name), '.', {
