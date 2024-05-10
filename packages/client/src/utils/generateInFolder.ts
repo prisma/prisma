@@ -46,7 +46,7 @@ export async function generateInFolder({
   const schemaNotFoundError = new Error(`Could not find any schema.prisma in ${projectDir} or sub directories.`)
 
   try {
-    schemaPathResult = await getSchemaPath(projectDir)
+    schemaPathResult = await getSchemaPath(undefined, { cwd: projectDir })
   } catch (e) {
     debug('Error in getSchemaPath', e)
   }
