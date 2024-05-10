@@ -19,7 +19,6 @@ export class SourceFileSlice {
   static read(filePath: string): SourceFileSlice | null {
     let content: string
     try {
-      // TODO: consider using `getSchemaPath` here?
       content = fs.readFileSync(filePath, 'utf-8')
     } catch (e) {
       return null
