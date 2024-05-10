@@ -2,7 +2,6 @@ import type { BinaryTarget } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import crypto from 'crypto'
-import { readFile } from 'fs/promises'
 import indent from 'indent-string'
 import path from 'path'
 import { O } from 'ts-toolbelt'
@@ -27,7 +26,7 @@ import { Count } from './Count'
 import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
-import { type Generatable } from './Generatable'
+import { type Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
@@ -52,7 +51,7 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   reusedJs?: string // the entrypoint to reuse
 }
 
-export class TSClient implements Generatable {
+export class TSClient implements Generable {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo
 
@@ -61,7 +60,7 @@ export class TSClient implements Generatable {
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
   }
 
-  public async toJS(): Promise<string> {
+  public toJS(): string {
     const {
       edge,
       wasm,
@@ -69,6 +68,7 @@ export class TSClient implements Generatable {
       generator,
       outputDir,
       schemaPath,
+      datamodel: inlineSchema,
       runtimeBase,
       runtimeNameJs,
       datasources,
@@ -97,7 +97,6 @@ export class TSClient implements Generatable {
         ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
         : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
-    const inlineSchema = await readFile(schemaPath, 'utf8')
     const inlineSchemaHash = crypto
       .createHash('sha256')
       .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))

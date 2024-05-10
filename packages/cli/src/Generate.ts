@@ -139,7 +139,6 @@ ${bold('Examples')}
     let clientGeneratorVersion: string | null = null
     try {
       generators = await getGenerators({
-        // TODO: pass the schemas rather than the schemaPath
         schemaPath,
         printDownloadProgress: !watchMode,
         version: enginesVersion,

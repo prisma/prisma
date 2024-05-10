@@ -5,11 +5,11 @@ import * as ts from '../ts-builders'
 import { capitalize, getFieldArgName, getSelectName } from '../utils'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { buildOutputType } from './Output'
 
-export class Count implements Generatable {
+export class Count implements Generable {
   constructor(protected readonly type: DMMF.OutputType, protected readonly context: GenerateContext) {}
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
     const argsTypes: ts.Export<ts.TypeDeclaration>[] = []

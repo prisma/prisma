@@ -1,8 +1,8 @@
 import { DMMF } from '../dmmf-types'
 import { getFieldRefsTypeName, getRefAllowedTypeName } from '../utils'
-import { Generatable } from './Generatable'
+import { Generable } from './Generable'
 
-export class ModelFieldRefs implements Generatable {
+export class ModelFieldRefs implements Generable {
   constructor(protected outputType: DMMF.OutputType) {}
   toTS() {
     const { name } = this.outputType

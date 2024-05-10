@@ -13,6 +13,7 @@ async function main() {
 
     process.chdir(dirPath)
 
+    // TODO: update with `getSchema`.
     const schemaPath = path.join(dirPath, 'schema.prisma')
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 

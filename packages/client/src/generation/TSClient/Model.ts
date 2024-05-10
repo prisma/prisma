@@ -29,7 +29,7 @@ import {
 import { InputField } from './../TSClient'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
@@ -39,7 +39,7 @@ import { buildModelPayload } from './Payload'
 import { buildIncludeType, buildOmitType, buildScalarSelectType, buildSelectType } from './SelectIncludeOmit'
 import { getModelActions } from './utils/getModelActions'
 
-export class Model implements Generatable {
+export class Model implements Generable {
   protected type: DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
@@ -357,7 +357,7 @@ ${this.argsTypes.map((type) => ts.stringify(type)).join('\n\n')}
 `
   }
 }
-export class ModelDelegate implements Generatable {
+export class ModelDelegate implements Generable {
   constructor(protected readonly outputType: DMMF.OutputType, protected readonly context: GenerateContext) {}
 
   /**

@@ -4,9 +4,9 @@ import { objectEnumNames } from '../../runtime/core/types/exported/ObjectEnums'
 import { strictEnumNames } from '../../runtime/strictEnum'
 import type { DMMF } from '../dmmf-types'
 import { TAB_SIZE } from './constants'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
 
-export class Enum implements Generatable {
+export class Enum implements Generable {
   constructor(protected readonly type: DMMF.SchemaEnum, protected readonly useNamespace: boolean) {}
 
   private isObjectEnum(): boolean {

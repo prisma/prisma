@@ -1,8 +1,8 @@
 import type { DMMF } from '../dmmf-types'
 import { getRefAllowedTypeName } from '../utils'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
 
-export class FieldRefInput implements Generatable {
+export class FieldRefInput implements Generable {
   constructor(private type: DMMF.FieldRefType) {}
 
   toTS() {
