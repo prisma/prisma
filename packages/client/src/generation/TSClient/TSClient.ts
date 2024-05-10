@@ -26,7 +26,7 @@ import { Count } from './Count'
 import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
-import { type Generatable } from './Generatable'
+import { type Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
@@ -51,7 +51,7 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   reusedJs?: string // the entrypoint to reuse
 }
 
-export class TSClient implements Generatable {
+export class TSClient implements Generable {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo
 
@@ -60,8 +60,7 @@ export class TSClient implements Generatable {
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await -- must be async to match previous interface
-  public async toJS(): Promise<string> {
+  public toJS(): string {
     const {
       edge,
       wasm,

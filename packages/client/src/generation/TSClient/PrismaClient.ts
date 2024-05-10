@@ -18,7 +18,7 @@ import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
 import { TSClientOptions } from './TSClient'
 import { getModelActions } from './utils/getModelActions'
 
@@ -331,7 +331,7 @@ function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runt
   }
 }
 
-export class PrismaClientClass implements Generatable {
+export class PrismaClientClass implements Generable {
   protected clientExtensionsDefinitions: {
     prismaNamespaceDefinitions: string
     prismaClientDefinitions: string
