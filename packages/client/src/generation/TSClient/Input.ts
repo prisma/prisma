@@ -6,9 +6,9 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
 
-export class InputField implements Generatable {
+export class InputField implements Generable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly genericsInfo: GenericArgsInfo,
@@ -119,7 +119,7 @@ function xorTypes(types: ts.TypeBuilder[]) {
   return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
-export class InputType implements Generatable {
+export class InputType implements Generable {
   private generatedName: string
   constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {
     this.generatedName = type.name
