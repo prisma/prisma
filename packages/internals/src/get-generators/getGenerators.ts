@@ -5,12 +5,11 @@ import { download } from '@prisma/fetch-engine'
 import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import fs from 'fs'
 import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF, getSchemaPath, mergeSchemas, vercelPkgPathRegex } from '..'
+import { getConfig, getDMMF, getSchemaPath, GetSchemaResult, mergeSchemas, vercelPkgPathRegex } from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -82,11 +81,15 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
   }
 
-  if (!fs.existsSync(schemaPath)) {
+  let schemaResult: GetSchemaResult | null = null
+
+  try {
+    schemaResult = await getSchemaPath(schemaPath)
+  } catch (_) {
     throw new Error(`${schemaPath} does not exist`)
   }
 
-  const schemas = (await getSchemaPath(schemaPath))!.schemas
+  const { schemas } = schemaResult
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
   const queryEngineBinaryType = getCliQueryEngineBinaryType()
