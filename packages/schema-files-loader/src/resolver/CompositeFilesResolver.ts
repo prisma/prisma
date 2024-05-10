@@ -4,7 +4,8 @@ import { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
 /**
  * Files resolver that combines two other resolvers
  * together. Files existing in either one of those will be
- * reported. Content existing in
+ * reported. If content exist in both, primary resolver takes
+ * precedence
  */
 export class CompositeFilesResolver implements FilesResolver {
   private _fileNameToKey: FileNameToKeyMapper
