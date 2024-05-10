@@ -411,9 +411,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
-  if (schemaPath !== schemaTargetPath) {
-    await fs.copyFile(schemaPath, schemaTargetPath)
-  }
+  await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (

@@ -24,6 +24,7 @@ export type GetSchemaResult = {
  * Async
  */
 
+export async function getSchemaPath(): Promise<GetSchemaResult | null>
 export async function getSchemaPath(
   schemaPathFromArgs?: string,
   opts?: { cwd: string },

@@ -10,7 +10,7 @@ import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF, mergeSchemas, type MultipleSchemas, vercelPkgPathRegex } from '..'
+import { getConfig, getDMMF, getSchemaPath, mergeSchemas, vercelPkgPathRegex } from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -41,7 +41,7 @@ type BinaryPathsOverride = {
 // version: enginesVersion,
 // cliVersion: pkg.version,
 export type GetGeneratorOptions = {
-  schemas: MultipleSchemas
+  // schemas: MultipleSchemas
   schemaPath: string
   providerAliases?: ProviderAliases
   cliVersion?: string
@@ -64,7 +64,6 @@ export type GetGeneratorOptions = {
  */
 export async function getGenerators(options: GetGeneratorOptions): Promise<Generator[]> {
   const {
-    schemas,
     schemaPath,
     providerAliases: aliases, // do you get the pun?
     version,
@@ -86,6 +85,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
   }
+
+  const schemas = (await getSchemaPath(schemaPath))!.schemas
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
   const queryEngineBinaryType = getCliQueryEngineBinaryType()

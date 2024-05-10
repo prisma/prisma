@@ -2,7 +2,6 @@ import type { BinaryTarget } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import crypto from 'crypto'
-import { readFile } from 'fs/promises'
 import indent from 'indent-string'
 import path from 'path'
 import { O } from 'ts-toolbelt'
@@ -61,6 +60,7 @@ export class TSClient implements Generatable {
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- must be async to match previous interface
   public async toJS(): Promise<string> {
     const {
       edge,
@@ -69,6 +69,7 @@ export class TSClient implements Generatable {
       generator,
       outputDir,
       schemaPath,
+      datamodel: inlineSchema,
       runtimeBase,
       runtimeNameJs,
       datasources,
@@ -97,7 +98,6 @@ export class TSClient implements Generatable {
         ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
         : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
-    const inlineSchema = await readFile(schemaPath, 'utf8')
     const inlineSchemaHash = crypto
       .createHash('sha256')
       .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
