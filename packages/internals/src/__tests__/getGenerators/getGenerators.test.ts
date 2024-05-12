@@ -823,4 +823,42 @@ describe('getGenerators', () => {
       )
     }
   })
+
+  test('pass if no model(s) found but allow-no-models flag is passed - sqlite', async () => {
+    expect.assertions(1)
+
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+      providerAliases: aliases,
+      allowNoModels: true,
+    })
+
+    return expect(generators.length).toBeGreaterThanOrEqual(1)
+  })
+
+  test('pass if no model(s) found but allow-no-models flag is passed - mongodb', async () => {
+    expect.assertions(1)
+
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
+      providerAliases: aliases,
+      allowNoModels: true,
+    })
+
+    expect(generators.length).toBeGreaterThanOrEqual(1)
+  })
 })
