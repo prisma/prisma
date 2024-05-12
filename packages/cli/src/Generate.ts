@@ -49,11 +49,11 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-    -h, --help         Display this help message
-      --schema         Custom path to your Prisma schema
-       --watch         Watch the Prisma schema and rerun after a change
-   --generator         Generator to use (may be provided multiple times)
-   --no-engine         Generate a client for use with Accelerate only
+          -h, --help   Display this help message
+            --schema   Custom path to your Prisma schema
+             --watch   Watch the Prisma schema and rerun after a change
+         --generator   Generator to use (may be provided multiple times)
+         --no-engine   Generate a client for use with Accelerate only
    --allow-no-models   Allow generating a client without models
 
 ${bold('Examples')}
