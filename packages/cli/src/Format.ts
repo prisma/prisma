@@ -1,6 +1,7 @@
+import fs from 'node:fs/promises'
+
 import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import fs from 'fs'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -50,16 +51,19 @@ Or specify a Prisma schema path
       return this.help()
     }
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
-    const output = await formatSchema({ schemaPath })
+    const formattedDatamodel = await formatSchema({ schemas })
 
     // Validate whether the formatted output is a valid schema
     validate({
-      datamodel: output,
+      schemas: formattedDatamodel,
     })
 
-    fs.writeFileSync(schemaPath, output)
+    for (const [filename, data] of formattedDatamodel) {
+      await fs.writeFile(filename, data)
+    }
+
     const after = Math.round(performance.now())
 
     return `Formatted ${underline(schemaPath)} in ${formatms(after - before)} 🚀`

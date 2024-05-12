@@ -156,7 +156,9 @@ jobs:
           contains(inputs.jobsToRun, '-client-')
         working-directory: packages/client
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
@@ -166,7 +168,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -224,7 +226,9 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
@@ -234,7 +238,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -289,7 +293,9 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
@@ -299,7 +305,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -515,7 +521,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -553,7 +559,9 @@ jobs:
       - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
@@ -629,7 +637,9 @@ jobs:
       - run: pnpm run test
         working-directory: packages/integration-tests
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/integration-tests/src/__tests__/coverage/clover.xml
@@ -682,7 +692,9 @@ jobs:
       - run: pnpm run test
         working-directory: packages/internals
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/internals/src/__tests__/coverage/clover.xml
@@ -735,7 +747,9 @@ jobs:
       - run: pnpm run test
         working-directory: packages/migrate
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
@@ -788,7 +802,9 @@ jobs:
       - run: pnpm run test
         working-directory: packages/cli
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/cli/src/__tests__/coverage/clover.xml
@@ -829,7 +845,9 @@ jobs:
       - run: pnpm run test:platform
         working-directory: packages/cli
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/cli/src/__tests__/coverage/clover.xml
@@ -864,7 +882,9 @@ jobs:
         name: 'debug'
         working-directory: packages/debug
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/debug/src/__tests__/coverage/clover.xml
@@ -875,7 +895,9 @@ jobs:
         name: 'generator-helper'
         working-directory: packages/generator-helper
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
@@ -886,7 +908,9 @@ jobs:
         name: 'get-platform'
         working-directory: packages/get-platform
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
@@ -897,7 +921,9 @@ jobs:
         name: 'fetch-engine'
         working-directory: packages/fetch-engine
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
@@ -908,7 +934,9 @@ jobs:
         name: 'engines'
         working-directory: packages/engines
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/engines/src/__tests__/coverage/clover.xml
@@ -927,7 +955,9 @@ jobs:
         name: 'adapter-pg'
         working-directory: packages/adapter-pg
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/adapter-planetscale/src/__tests__/coverage/clover.xml
@@ -938,7 +968,9 @@ jobs:
         name: 'instrumentation'
         working-directory: packages/instrumentation
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
@@ -949,7 +981,9 @@ jobs:
         name: 'schema-files-loader'
         working-directory: packages/schema-files-loader
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/schema-files-loader/src/__tests__/coverage/clover.xml
@@ -1021,7 +1055,9 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
@@ -1031,7 +1067,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason =='buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason =='buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
@@ -1092,8 +1128,9 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'internals'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-')) && github.repository == 'prisma/prisma'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/internals/src/__tests__/coverage/clover.xml
@@ -1111,8 +1148,9 @@ jobs:
           NODE_OPTIONS: "${{ matrix.os == 'macos-14' && '--max-old-space-size=14336' || '--max-old-space-size=3072' }}"
           JEST_JUNIT_SUITE_NAME: 'client/old'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-'))
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/client/src/__tests__/coverage/clover.xml
@@ -1126,8 +1164,8 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'migrate'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-')
+      - uses: codecov/codecov-action@v4
+        if: success() && (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-'))
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
@@ -1141,8 +1179,9 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'cli'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-'))
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/cli/src/__tests__/coverage/clover.xml
@@ -1156,8 +1195,9 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'debug'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && contains(inputs.jobsToRun, '-all-')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/debug/src/__tests__/coverage/clover.xml
@@ -1171,8 +1211,9 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'generator-helper'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && contains(inputs.jobsToRun, '-all-')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
@@ -1180,14 +1221,16 @@ jobs:
           name: generator-helper-${{ matrix.os }}
 
       - name: Test packages/get-platform
-        if: contains(inputs.jobsToRun, '-all-')
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && contains(inputs.jobsToRun, '-all-')
         run: pnpm run test
         working-directory: packages/get-platform
         env:
           JEST_JUNIT_SUITE_NAME: 'get-platform'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && contains(inputs.jobsToRun, '-all-')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
@@ -1195,14 +1238,16 @@ jobs:
           name: get-platform-${{ matrix.os }}
 
       - name: Test packages/fetch-engine
-        if: contains(inputs.jobsToRun, '-all-')
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && contains(inputs.jobsToRun, '-all-')
         run: pnpm run test
         working-directory: packages/fetch-engine
         env:
           JEST_JUNIT_SUITE_NAME: 'fetch-engine'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && contains(inputs.jobsToRun, '-all-')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
@@ -1216,8 +1261,9 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'engines'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && contains(inputs.jobsToRun, '-all-')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/engines/src/__tests__/coverage/clover.xml
@@ -1232,8 +1278,9 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'schema-files-loader'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v3
-        if: contains(inputs.jobsToRun, '-all-')
+      - uses: codecov/codecov-action@v4
+        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
+        if: success() && contains(inputs.jobsToRun, '-all-')
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/engines/src/__tests__/coverage/clover.xml
@@ -1243,7 +1290,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
         uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288

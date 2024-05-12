@@ -83,14 +83,14 @@ ${bold('Examples')}
 
     loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath } = await getSchemaPathAndPrint(args['--schema'])
 
     const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
     printDatasource({ datasourceInfo })
 
     const schemaDir = (await getSchemaDir(schemaPath))!
 
-    console.info() // empty line
+    process.stdout.write('\n') // empty line
 
     if (!args['--force']) {
       if (!canPrompt()) {
@@ -104,10 +104,10 @@ ${bold('Examples')}
           datasourceInfo.dbName
         }" to drop it.\nLocation: "${datasourceInfo.dbLocation}".\n${red('All data will be lost')}.`,
       })
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
 
       if (!confirmation.value) {
-        console.info('Drop cancelled.')
+        process.stdout.write('Drop cancelled.\n')
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
       } else if (confirmation.value !== datasourceInfo.dbName) {

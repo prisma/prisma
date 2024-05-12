@@ -44,7 +44,8 @@ More information about this limitation: ${link('https://pris.ly/d/accelerate-lim
 async function checkUnsupportedDataProxyMessage(command: string, args: Args, implicitSchema: boolean) {
   // when the schema can be implicit, we use its default location
   if (implicitSchema === true) {
-    args['--schema'] = (await getSchemaPath(args['--schema'])) ?? undefined
+    // TODO: Why do we perform this mutation?
+    args['--schema'] = (await getSchemaPath(args['--schema']))?.schemaPath ?? undefined
   }
 
   const argList = Object.entries(args)

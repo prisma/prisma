@@ -61,10 +61,10 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(value).toMatchInlineSnapshot(`
       {
-        _all: 1,
-        age: 1,
-        email: 1,
-        name: 1,
+        "_all": 1,
+        "age": 1,
+        "email": 1,
+        "name": 1,
       }
     `)
   })
@@ -98,10 +98,10 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(value).toMatchInlineSnapshot(`
       {
-        _all: 3,
-        age: 3,
-        email: 3,
-        name: 3,
+        "_all": 3,
+        "age": 3,
+        "email": 3,
+        "name": 3,
       }
     `)
   })
@@ -119,7 +119,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
     })
 
     await expect(err).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.count()\` invocation in
       /client/tests/functional/methods/count/tests.ts:0:0
 
@@ -142,7 +142,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 })

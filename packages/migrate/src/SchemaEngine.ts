@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import Debug from '@prisma/debug'
 import {
   BinaryType,
@@ -11,7 +13,6 @@ import {
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 import { bold, red } from 'kleur/colors'
-import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
@@ -185,6 +186,7 @@ export class SchemaEngine {
       const { views } = introspectResult
 
       if (views) {
+        // TODO: this needs to call `getSchemaPath` instead
         const schemaPath = this.schemaPath ?? path.join(process.cwd(), 'prisma')
         await handleViewsIO({ views, schemaPath })
       }
@@ -300,7 +302,7 @@ export class SchemaEngine {
           if (result.method === 'print' && result.params?.content !== undefined) {
             // Here we print the content from the Schema Engine to stdout directly
             // (it is not returned to the caller)
-            console.info(result.params.content)
+            process.stdout.write(result.params.content + '\n')
 
             // Send an empty response back as ACK.
             const response: RpcSuccessResponse<{}> = {

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`getConfig datasource with env var - ignoreEnvVarErrors 1`] = `
-"{
+""{
   "generators": [],
   "datasources": [
     {
@@ -16,11 +16,11 @@ exports[`getConfig datasource with env var - ignoreEnvVarErrors 1`] = `
     }
   ],
   "warnings": []
-}"
+}""
 `;
 
 exports[`getConfig datasource with env var 1`] = `
-"{
+""{
   "generators": [],
   "datasources": [
     {
@@ -35,11 +35,11 @@ exports[`getConfig datasource with env var 1`] = `
     }
   ],
   "warnings": []
-}"
+}""
 `;
 
 exports[`getConfig empty config 1`] = `
-"{
+""{
   "generators": [],
   "datasources": [
     {
@@ -54,11 +54,11 @@ exports[`getConfig empty config 1`] = `
     }
   ],
   "warnings": []
-}"
+}""
 `;
 
 exports[`getConfig with generator and datasource 1`] = `
-"{
+""{
   "generators": [
     {
       "name": "gen",
@@ -91,5 +91,5 @@ exports[`getConfig with generator and datasource 1`] = `
     }
   ],
   "warnings": []
-}"
+}""
 `;

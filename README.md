@@ -221,7 +221,7 @@ Note that when using TypeScript, the result of this query will be _statically ty
 
 ## Community
 
-Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io), [Discord](https://pris.ly/discord), and here on [GitHub](https://github.com/prisma/prisma/discussions).
+Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Discord](https://pris.ly/discord) and here on [GitHub](https://github.com/prisma/prisma/discussions).
 
 ## Security
 

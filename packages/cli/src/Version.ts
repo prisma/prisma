@@ -113,7 +113,7 @@ export class Version implements Command {
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
-    const schemaPath = await getSchemaPath()
+    const schemaPath = (await getSchemaPath())?.schemaPath ?? null
     const featureFlags = await this.getFeatureFlags(schemaPath)
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])

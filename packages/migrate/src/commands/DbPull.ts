@@ -115,11 +115,13 @@ Set composite types introspection depth to 2 levels
 
     const url: string | undefined = args['--url']
     // getSchemaPathAndPrint is not flexible enough for this use case
-    let schemaPath = await getSchemaPath(args['--schema'])
+    const schemaPathResult = await getSchemaPath(args['--schema'])
+    let schemaPath = schemaPathResult?.schemaPath ?? null
+    debug('schemaPathResult', schemaPathResult)
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
-      console.info(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+      process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 
       // Load and print where the .env was loaded (if loaded)
       loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
@@ -269,11 +271,10 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
 
     if (schemaPath) {
       // Re-Introspection is not supported on MongoDB
-      const schema = await getSchema(args['--schema'])
+      const schemas = await getSchema(args['--schema'])
 
       const modelRegex = /\s*model\s*(\w+)\s*{/
-      const modelMatch = modelRegex.exec(schema)
-      const isReintrospection = modelMatch
+      const isReintrospection = schemas.some(([_, schema]) => !!modelRegex.exec(schema as string))
 
       if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
         throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
@@ -359,7 +360,7 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
-        console.info() // empty line
+        process.stdout.write('\n') // empty line
 
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
@@ -375,14 +376,14 @@ Or run this command with the ${green(
         )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
 
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
       throw e
     }
 
     const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings)
 
     if (args['--print']) {
-      console.log(introspectionSchema)
+      process.stdout.write(introspectionSchema + '\n')
 
       if (introspectionWarningsMessage.trim().length > 0) {
         // Replace make it a // comment block

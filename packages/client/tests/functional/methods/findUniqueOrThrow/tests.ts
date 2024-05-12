@@ -37,7 +37,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
         prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } }),
       ])
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"No User found"`)
 
       const record = await prisma.user.findUnique({ where: { email: newEmail } })
       expect(record).toBeNull()
@@ -53,7 +53,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
         await prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } })
       })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"No User found"`)
 
       const record = await prisma.user.findUnique({ where: { email: newEmail } })
       expect(record).toBeNull()

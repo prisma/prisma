@@ -3,7 +3,10 @@ import type { KeyType } from './KeyType'
 import { Writer } from './Writer'
 
 export abstract class TypeBuilder implements BasicBuilder {
+  // TODO(@SevInf): this should be replaced with precedence system that would
+  // automatically add parenthesis where they are needed
   needsParenthesisWhenIndexed = false
+  needsParenthesisInKeyof = false
 
   abstract write(writer: Writer): void
 

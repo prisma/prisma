@@ -46,7 +46,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.requiredJsonField.create()\` invocation in
           /client/tests/functional/json-null-types/tests.ts:0:0
 
@@ -60,7 +60,7 @@ testMatrix.setupTestSuite(
                      }
                    })
 
-          Invalid value for argument \`json\`. Expected JsonNullValueInput.
+          Invalid value for argument \`json\`. Expected JsonNullValueInput."
         `)
       })
     })
@@ -80,7 +80,7 @@ testMatrix.setupTestSuite(
               json: new Prisma.NullTypes.JsonNull(),
             },
           }),
-        ).rejects.toMatchPrismaErrorInlineSnapshot(`Invalid ObjectEnumValue`)
+        ).rejects.toMatchPrismaErrorInlineSnapshot(`"Invalid ObjectEnumValue"`)
       })
     })
   },

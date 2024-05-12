@@ -1,3 +1,5 @@
+import { Debug } from '@prisma/debug'
+import { loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
 import execa from 'execa'
 import fs from 'fs'
 import { bold, green } from 'kleur/colors'
@@ -5,49 +7,137 @@ import path from 'path'
 import { PackageJson, readPackageUp, readPackageUpSync } from 'read-package-up'
 import { promisify } from 'util'
 
+import { getConfig } from '../engine-commands'
+import type { MultipleSchemas, MultipleSchemaTuple } from '../utils/schemaFileInput'
+
 const exists = promisify(fs.exists)
+const readFile = promisify(fs.readFile)
+
+const debug = Debug('prisma:getSchema')
+
+export type GetSchemaResult = {
+  schemaPath: string
+  schemas: MultipleSchemas
+}
 
 /**
  * Async
  */
 
+export async function getSchemaPath(): Promise<GetSchemaResult | null>
+export async function getSchemaPath(schemaPathFromArgs: string, opts?: { cwd: string }): Promise<GetSchemaResult>
+export async function getSchemaPath(
+  schemaPathFromArgs?: string,
+  opts?: { cwd: string },
+): Promise<GetSchemaResult | null>
 export async function getSchemaPath(
   schemaPathFromArgs?: string,
   opts: { cwd: string } = {
     cwd: process.cwd(),
   },
-): Promise<string | null> {
+) {
   return getSchemaPathInternal(schemaPathFromArgs, {
     cwd: opts.cwd,
   })
 }
 
+export async function readSchemaFromSingleFile(schemaPath: string): Promise<GetSchemaResult> {
+  debug('Reading schema from single file', schemaPath)
+  const file = await readFile(schemaPath, { encoding: 'utf-8' })
+  const schemaTuple: MultipleSchemaTuple = [schemaPath, file]
+  return { schemaPath, schemas: [schemaTuple] } as const
+}
+
+async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaResult | null> {
+  debug('Reading schema from multiple files', schemaPath)
+  const files = await loadSchemaFiles(schemaPath)
+
+  // TODO: problem: if the Prisma config isn't valid, we currently get a
+  // `Error: Could not find a schema.prisma file that is required for this command.` error
+  // in the multi-file case.
+  debug('Loading config')
+  const config = await getConfig({
+    datamodel: files,
+    ignoreEnvVarErrors: true,
+  })
+  debug('Ok')
+
+  if (usesPrismaSchemaFolder(config)) {
+    return { schemaPath, schemas: files } as const
+  }
+
+  return null
+}
+
+// This function only throws when `schemaPathFromArgs` is provided, yet the schema doesn't exist.
+export async function getSchemaPathInternal(
+  schemaPathFromArgs?: string,
+  opts?: { cwd: string },
+): Promise<GetSchemaResult | null>
+export async function getSchemaPathInternal(
+  schemaPathFromArgs: string,
+  opts?: { cwd: string },
+): Promise<GetSchemaResult>
 export async function getSchemaPathInternal(
   schemaPathFromArgs?: string,
   opts: { cwd: string } = {
     cwd: process.cwd(),
   },
-): Promise<string | null> {
+) {
+  async function getSchemaResult(schemaPath: string) {
+    // a. If it's a single file, read it and return it
+    return (
+      readSchemaFromSingleFile(schemaPath)
+        // b. If it's a directory, load all files and return them, but only if the `prismaSchemaFolder` preview feature is used.
+        .catch(() => readSchemaFromMultiFiles(schemaPath))
+        // c. If it's neither, return null
+        .catch(() => null)
+    )
+  }
+
+  // 1. Try the user custom path, when provided.
   if (schemaPathFromArgs) {
-    // 1. try the user custom path
     const customSchemaPath = await getAbsoluteSchemaPath(path.resolve(schemaPathFromArgs))
-    if (!customSchemaPath) {
+    const onError = () => {
       throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
     }
 
-    return customSchemaPath
+    if (!customSchemaPath) {
+      return onError()
+    }
+
+    const customSchemaResult = await getSchemaResult(path.resolve(opts.cwd ?? process.cwd(), customSchemaPath))
+    if (!customSchemaResult) {
+      return onError()
+    }
+
+    return customSchemaResult
   }
 
-  // 2. Try the package.json `prisma.schema` custom path
-  // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths
-  // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
-  const schemaPath =
-    (await getSchemaPathFromPackageJson(opts.cwd)) ??
-    (await getRelativeSchemaPath(opts.cwd)) ??
-    (await resolveYarnSchema(opts.cwd))
+  const trials = [
+    // 2. Try the package.json `prisma.schema` custom path.
+    { strategy: 'package.json', fn: getSchemaPathFromPackageJson, sourcePath: opts.cwd },
+    // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths.
+    { strategy: 'relative', fn: getRelativeSchemaPath, sourcePath: opts.cwd },
+    // 4. Try resolving yarn workspaces and looking for a schema.prisma file there.
+    { strategy: 'yarn', fn: resolveYarnSchema, sourcePath: opts.cwd },
+  ] as const
 
-  if (schemaPath) {
-    return schemaPath
+  for (const { strategy, sourcePath, fn } of trials) {
+    debug(`Trying ${strategy}...`)
+
+    const schemaPath = await fn(sourcePath!)
+    debug(`${strategy} resolved to ${schemaPath}`)
+
+    if (!schemaPath) {
+      continue
+    }
+
+    const schemaPathResult = await getSchemaResult(path.resolve(sourcePath, schemaPath))
+
+    if (schemaPathResult) {
+      return schemaPathResult
+    }
   }
 
   return null
@@ -77,8 +167,9 @@ export async function getPrismaConfigFromPackageJson(cwd: string) {
   }
 }
 
-export async function getSchemaPathFromPackageJson(cwd: string): Promise<string | null> {
+async function getSchemaPathFromPackageJson(cwd: string): Promise<string | null> {
   const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+  debug('prismaConfig', prismaConfig)
 
   if (!prismaConfig || !prismaConfig.data?.schema) {
     return null
@@ -212,16 +303,19 @@ async function getAbsoluteSchemaPath(schemaPath: string): Promise<string | null>
 }
 
 export async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
-  let schemaPath: string | undefined
+  const relativeSchemaPaths = [
+    'schema.prisma',
+    path.join('prisma', 'schema.prisma'),
+    path.join('prisma', 'schema'),
+  ] as const
 
-  schemaPath = path.join(cwd, 'schema.prisma')
-  if (await exists(schemaPath)) {
-    return schemaPath
-  }
-
-  schemaPath = path.join(cwd, `prisma/schema.prisma`)
-  if (await exists(schemaPath)) {
-    return schemaPath
+  for (const relativeSchemaPath of relativeSchemaPaths) {
+    const relativePath = path.join(cwd, relativeSchemaPath)
+    debug(`Checking existence of ${relativePath}`)
+    if (await exists(relativePath)) {
+      debug('Found schema at', relativeSchemaPath)
+      return relativeSchemaPath
+    }
   }
 
   return null
@@ -235,19 +329,18 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
     return path.resolve(path.dirname(schemaPathFromArgs))
   }
 
-  const schemaPath = await getSchemaPath(schemaPathFromArgs)
-
-  if (!schemaPath) {
+  const schemaPathResult = await getSchemaPath()
+  if (!schemaPathResult) {
     return null
   }
 
-  return path.dirname(schemaPath)
+  return path.dirname(schemaPathResult.schemaPath)
 }
 
-export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
-  const schemaPath = await getSchemaPath(schemaPathFromArgs)
+export async function getSchema(schemaPathFromArgs?: string): Promise<MultipleSchemas> {
+  const schemaPathResult = await getSchemaPath(schemaPathFromArgs)
 
-  if (!schemaPath) {
+  if (!schemaPathResult) {
     throw new Error(
       `Could not find a ${bold(
         'schema.prisma',
@@ -259,11 +352,12 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
     )
   }
 
-  return fs.promises.readFile(schemaPath, 'utf-8')
+  return schemaPathResult.schemas
 }
 
 /**
- * Sync
+ * Sync.
+ * TODO: this is only used by `Migrate` to synchronously read the schema path from its (sync) constructor.
  */
 
 export function getSchemaPathSync(schemaPathFromArgs?: string): string | null {
