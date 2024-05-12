@@ -758,7 +758,7 @@ describe('getGenerators', () => {
   test('fail if no model(s) found - mongodb', async () => {
     expect.assertions(5)
     const aliases = {
-      'predefined-generator': {
+      'prisma-client-js': {
         generatorPath: generatorPath,
         outputPath: __dirname,
       },
@@ -847,7 +847,7 @@ describe('getGenerators', () => {
     expect.assertions(1)
 
     const aliases = {
-      'predefined-generator': {
+      'prisma-client-js': {
         generatorPath: generatorPath,
         outputPath: __dirname,
       },
