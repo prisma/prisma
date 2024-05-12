@@ -129,7 +129,7 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
@@ -193,7 +193,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toTS())
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
@@ -210,7 +210,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
     const fieldRefs = this.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
-      .filter((t) => t.name.endsWith('CountOutputType'))
+      ?.filter((t) => t.name.endsWith('CountOutputType'))
       .map((t) => new Count(t, context))
 
     const code = `
@@ -268,7 +268,7 @@ ${modelAndTypes.map((model) => model.toTS()).join('\n')}
  * Enums
  */
 
-${prismaEnums.join('\n\n')}
+${prismaEnums?.join('\n\n')}
 ${
   fieldRefs.length > 0
     ? `
