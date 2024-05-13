@@ -171,17 +171,17 @@ export async function buildClient({
 
   // we store the generated contents here
   const fileMap: Record<string, string> = {}
-  fileMap['index.js'] = await JS(nodeClient)
-  fileMap['index.d.ts'] = await TS(nodeClient)
-  fileMap['default.js'] = await JS(defaultClient)
-  fileMap['default.d.ts'] = await TS(defaultClient)
-  fileMap['index-browser.js'] = await BrowserJS(nodeClient)
-  fileMap['edge.js'] = await JS(edgeClient)
-  fileMap['edge.d.ts'] = await TS(edgeClient)
+  fileMap['index.js'] = JS(nodeClient)
+  fileMap['index.d.ts'] = TS(nodeClient)
+  fileMap['default.js'] = JS(defaultClient)
+  fileMap['default.d.ts'] = TS(defaultClient)
+  fileMap['index-browser.js'] = BrowserJS(nodeClient)
+  fileMap['edge.js'] = JS(edgeClient)
+  fileMap['edge.d.ts'] = TS(edgeClient)
 
   if (generator.previewFeatures.includes('reactNative')) {
-    fileMap['react-native.js'] = await JS(rnTsClient)
-    fileMap['react-native.d.ts'] = await TS(rnTsClient)
+    fileMap['react-native.js'] = JS(rnTsClient)
+    fileMap['react-native.d.ts'] = TS(rnTsClient)
   }
 
   if (generator.previewFeatures.includes('driverAdapters')) {
@@ -198,8 +198,8 @@ export async function buildClient({
     //   - Always using #main-entry-point is kept for GA (small breaking change).
     //   - exportsMapDefault can be inlined down below and MUST be removed elsewhere.
     // In short: A lot can be simplified, but can only happen in GA & P6.
-    fileMap['default.js'] = await JS(trampolineTsClient)
-    fileMap['default.d.ts'] = await TS(trampolineTsClient)
+    fileMap['default.js'] = JS(trampolineTsClient)
+    fileMap['default.d.ts'] = TS(trampolineTsClient)
     fileMap['wasm-worker-loader.js'] = `export default import('./query_engine_bg.wasm')`
     fileMap['wasm-edge-light-loader.js'] = `export default import('./query_engine_bg.wasm?module')`
     pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
@@ -224,8 +224,8 @@ export async function buildClient({
       wasm: true,
     })
 
-    fileMap['wasm.js'] = await JS(wasmClient)
-    fileMap['wasm.d.ts'] = await TS(wasmClient)
+    fileMap['wasm.js'] = JS(wasmClient)
+    fileMap['wasm.d.ts'] = TS(wasmClient)
   } else {
     fileMap['wasm.js'] = fileMap['index-browser.js']
     fileMap['wasm.d.ts'] = fileMap['default.d.ts']
@@ -242,8 +242,8 @@ export async function buildClient({
       edge: true,
     })
 
-    fileMap['deno/edge.js'] = await JS(denoEdgeClient)
-    fileMap['deno/index.d.ts'] = await TS(denoEdgeClient)
+    fileMap['deno/edge.js'] = JS(denoEdgeClient)
+    fileMap['deno/index.d.ts'] = TS(denoEdgeClient)
     fileMap['deno/edge.ts'] = `
 import './polyfill.js'
 // @deno-types="./index.d.ts"
@@ -411,9 +411,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
-  if (schemaPath !== schemaTargetPath) {
-    await fs.copyFile(schemaPath, schemaTargetPath)
-  }
+  await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (

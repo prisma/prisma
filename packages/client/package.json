@@ -183,7 +183,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85",
+    "@prisma/engines-version": "5.14.0-23.079da82321947525558fa7146f7737149538f523",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -192,7 +192,7 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
-    "@prisma/query-engine-wasm": "5.14.0-17.56ca112d5a19c9925b53af75c3c6b7ada97f9f85",
+    "@prisma/query-engine-wasm": "5.14.0-23.079da82321947525558fa7146f7737149538f523",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.9.1",
     "@swc/core": "1.5.3",
@@ -250,7 +250,7 @@
     "tsd": "0.31.0",
     "typescript": "5.4.5",
     "undici": "5.28.4",
-    "wrangler": "3.53.1",
+    "wrangler": "3.55.0",
     "zx": "7.2.3"
   },
   "peerDependencies": {

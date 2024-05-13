@@ -126,7 +126,7 @@ describe('generator', () => {
         "Prisma schema validation - (get-dmmf wasm)
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:10
+          -->  src/__tests__/generation/denylist.prisma:10
            | 
          9 | 
         10 | model public {
@@ -134,7 +134,7 @@ describe('generator', () => {
         12 | }
            | 
         error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:14
+          -->  src/__tests__/generation/denylist.prisma:14
            | 
         13 | 
         14 | model return {
