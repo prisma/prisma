@@ -37,7 +37,7 @@ describe('canConnectToDatabase', () => {
     await expect(canConnectToDatabase('file:./doesnotexist.db')).resolves.toMatchInlineSnapshot(`
       {
         "code": "P1003",
-        "message": "Database doesnotexist.db does not exist at ./doesnotexist.db",
+        "message": "Database \`doesnotexist.db\` does not exist at \`./doesnotexist.db\`.",
       }
     `)
   })
@@ -48,9 +48,9 @@ describe('canConnectToDatabase', () => {
     ).resolves.toMatchInlineSnapshot(`
       {
         "code": "P1001",
-        "message": "Can't reach database server at \`doesnotexist\`:\`5432\`
+        "message": "Can't reach database server at \`doesnotexist:5432\`
 
-      Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
+      Please make sure your database server is running at \`doesnotexist:5432\`.",
       }
     `)
   }, 10_000)
@@ -94,9 +94,9 @@ describe('createDatabase', () => {
   test('postgresql - server does not exist', async () => {
     await expect(createDatabase('postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', __dirname))
       .rejects.toThrowErrorMatchingInlineSnapshot(`
-            "P1001: Can't reach database server at \`doesnotexist\`:\`5432\`
+            "P1001: Can't reach database server at \`doesnotexist:5432\`
 
-            Please make sure your database server is running at \`doesnotexist\`:\`5432\`."
+            Please make sure your database server is running at \`doesnotexist:5432\`."
           `)
   }, 30_000)
 

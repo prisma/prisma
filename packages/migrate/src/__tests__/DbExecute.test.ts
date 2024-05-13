@@ -295,9 +295,9 @@ DROP SCHEMA "test-dbexecute";`
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1001
 
-        Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+        Can't reach database server at \`fromdotenvdoesnotexist:5432\`
 
-        Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
+        Please make sure your database server is running at \`fromdotenvdoesnotexist:5432\`.
         "
       `)
     })
@@ -416,9 +416,9 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1001
 
-          Can't reach database server at \`doesnotexist\`:\`5432\`
+          Can't reach database server at \`doesnotexist:5432\`
 
-          Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+          Please make sure your database server is running at \`doesnotexist:5432\`.
           "
         `)
       }
@@ -516,9 +516,9 @@ DROP SCHEMA "test-dbexecute";`
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1001
 
-        Can't reach database server at \`fromdotenvdoesnotexist\`:\`26257\`
+        Can't reach database server at \`fromdotenvdoesnotexist:26257\`
 
-        Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`26257\`.
+        Please make sure your database server is running at \`fromdotenvdoesnotexist:26257\`.
         "
       `)
     }, 10_000)
@@ -630,9 +630,9 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1001
 
-          Can't reach database server at \`doesnotexist\`:\`5432\`
+          Can't reach database server at \`doesnotexist:5432\`
 
-          Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+          Please make sure your database server is running at \`doesnotexist:5432\`.
           "
         `)
       }
@@ -790,9 +790,9 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1001
 
-          Can't reach database server at \`doesnotexist\`:\`3306\`
+          Can't reach database server at \`doesnotexist:3306\`
 
-          Please make sure your database server is running at \`doesnotexist\`:\`3306\`.
+          Please make sure your database server is running at \`doesnotexist:3306\`.
           "
         `)
       }
@@ -993,9 +993,9 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1001
 
-          Can't reach database server at \`doesnotexist\`:\`1433\`
+          Can't reach database server at \`doesnotexist:1433\`
 
-          Please make sure your database server is running at \`doesnotexist\`:\`1433\`.
+          Please make sure your database server is running at \`doesnotexist:1433\`.
           "
         `)
       }
