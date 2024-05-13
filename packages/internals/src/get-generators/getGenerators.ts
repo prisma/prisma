@@ -53,6 +53,7 @@ export type GetGeneratorOptions = {
   generatorNames?: string[]
   postinstall?: boolean
   noEngine?: boolean
+  allowNoModels?: boolean
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -75,6 +76,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     generatorNames = [],
     postinstall,
     noEngine,
+    allowNoModels,
   } = options
 
   if (!schemaPath) {
@@ -139,7 +141,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     previewFeatures,
   })
 
-  if (dmmf.datamodel.models.length === 0) {
+  if (dmmf.datamodel.models.length === 0 && !allowNoModels) {
     // MongoDB needs extras for @id: @map("_id") @db.ObjectId
     if (config.datasources.some((d) => d.provider === 'mongodb')) {
       throw new Error(missingModelMessageMongoDB)
@@ -220,6 +222,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
           postinstall,
           noEngine,
+          allowNoModels,
         }
 
         // we set the options here a bit later after instantiating the Generator,
