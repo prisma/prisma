@@ -33,7 +33,7 @@ describe('sqlite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'])
-    await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database dev.db does not exist at dev.db"`)
+    await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist at \`dev.db\`."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/empty.prisma
@@ -253,9 +253,9 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-      "P1001: Can't reach database server at \`doesnotexist\`:\`5432\`
+      "P1001: Can't reach database server at \`doesnotexist:5432\`
 
-      Please make sure your database server is running at \`doesnotexist\`:\`5432\`."
+      Please make sure your database server is running at \`doesnotexist:5432\`."
     `)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`

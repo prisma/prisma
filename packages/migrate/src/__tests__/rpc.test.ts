@@ -280,7 +280,7 @@ describe('ensureConnectionValidity', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1003
 
-      Database dev.db does not exist at dev.db
+      Database \`dev.db\` does not exist at \`dev.db\`.
       "
     `)
     migrate.stop()
@@ -299,9 +299,9 @@ describe('ensureConnectionValidity', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001
 
-      Can't reach database server at \`server-does-not-exist\`:\`5432\`
+      Can't reach database server at \`server-does-not-exist:5432\`
 
-      Please make sure your database server is running at \`server-does-not-exist\`:\`5432\`.
+      Please make sure your database server is running at \`server-does-not-exist:5432\`.
       "
     `)
     migrate.stop()
