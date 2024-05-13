@@ -280,7 +280,7 @@ describe('ensureConnectionValidity', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1003
 
-      Database \`dev.db\` does not exist at \`dev.db\`
+      Database \`dev.db\` does not exist at \`dev.db\`.
       "
     `)
     migrate.stop()
