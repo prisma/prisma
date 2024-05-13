@@ -253,9 +253,9 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-      "P1001: Can't reach database server at \`doesnotexist\`:\`5432\`
+      "P1001: Can't reach database server at \`doesnotexist:5432\`
 
-      Please make sure your database server is running at \`doesnotexist\`:\`5432\`."
+      Please make sure your database server is running at \`doesnotexist:5432\`."
     `)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`

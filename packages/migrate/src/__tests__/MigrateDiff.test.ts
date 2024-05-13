@@ -632,9 +632,9 @@ describe('migrate diff', () => {
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1001
 
-        Can't reach database server at \`fromdotenvdoesnotexist\`:\`26257\`
+        Can't reach database server at \`fromdotenvdoesnotexist:26257\`
 
-        Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`26257\`.
+        Please make sure your database server is running at \`fromdotenvdoesnotexist:26257\`.
         "
       `)
     })
@@ -709,9 +709,9 @@ describe('migrate diff', () => {
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1001
 
-        Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+        Can't reach database server at \`fromdotenvdoesnotexist:5432\`
 
-        Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
+        Please make sure your database server is running at \`fromdotenvdoesnotexist:5432\`.
         "
       `)
     })
