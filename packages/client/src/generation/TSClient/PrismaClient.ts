@@ -355,7 +355,7 @@ export class PrismaClientClass implements Generable {
     if (dmmf.mappings.modelOperations.length) {
       example = dmmf.mappings.modelOperations[0]
     } else {
-      // because generator modelss is empty we need to create a fake example
+      // because generator models is empty we need to create a fake example
       example = {
         model: 'User',
         plural: 'users',
