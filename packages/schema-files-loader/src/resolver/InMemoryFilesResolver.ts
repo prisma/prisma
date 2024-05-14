@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import { createFileNameToKeyMapper, FileNameToKeyMapper } from './caseSensitivity'
 import { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
 
@@ -58,7 +56,7 @@ export class InMemoryFilesResolver implements FilesResolver {
   }
 
   private getInMemoryContent(absolutePath: string): InMemoryTree | string | undefined {
-    const keys = absolutePath.split(path.sep).map((fileName) => this._fileNameToKey(fileName))
+    const keys = absolutePath.split(/[\\/]/).map((fileName) => this._fileNameToKey(fileName))
     let currentRecord: InMemoryTree | string | undefined = this._tree
     for (const key of keys) {
       if (typeof currentRecord !== 'object') {
