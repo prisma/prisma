@@ -219,7 +219,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
                                     // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
                                     //   - transactional_some_table
                                     // 
-                                    // These items were renamed due to their names being duplicates in the Prisma Schema Language:
+                                    // These items were renamed due to their names being duplicates in the Prisma schema:
                                     //   - type: model, name: base_some_table
                                     //   - type: model, name: transactional_some_table
                                     // 
