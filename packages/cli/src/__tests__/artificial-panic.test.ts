@@ -31,15 +31,15 @@ describe('artificial-panic introspection', () => {
       await command.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
-        Error in Schema engine.
+        "Error in Schema engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
-
+        "
       `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
-        // This is your Prisma schema file,
+        "// This is your Prisma schema file,
         // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
         generator client {
@@ -50,7 +50,7 @@ describe('artificial-panic introspection', () => {
           provider = "postgresql"
           url      = "postgres://user:password@randomhost:5432"
         }
-
+        "
       `),
         expect(e).toMatchObject({
           area: 'LIFT_CLI',
@@ -76,16 +76,27 @@ describe('artificial-panic formatter', () => {
       await command.parse([])
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
-        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
-        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+        ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`""
       `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath.replace(/\\/g, '/')) // replace due to Windows CI
         .toContain('prisma/schema.prisma')
-      expect(e).toMatchObject({
-        schema: undefined,
-      })
+      expect(e.schema).toMatchInlineSnapshot(`
+        "// This is your Prisma schema file,
+        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+        generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "postgresql"
+          url      = "postgres://user:password@randomhost:5432"
+        }
+        "
+      `)
     }
   })
 })
@@ -107,13 +118,13 @@ describe('artificial-panic get-config', () => {
       await command.parse([])
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
-        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
-        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+        ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`""
       `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
-        // This is your Prisma schema file,
+        "// This is your Prisma schema file,
         // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
         generator client {
@@ -124,7 +135,7 @@ describe('artificial-panic get-config', () => {
           provider = "postgresql"
           url      = "postgres://user:password@randomhost:5432"
         }
-
+        "
       `)
       expect(e).toMatchObject({
         schemaPath: undefined,
@@ -150,13 +161,13 @@ describe('artificial-panic validate', () => {
       await command.parse([])
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
-        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
-        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+        ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`""
       `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
-        // This is your Prisma schema file,
+        "// This is your Prisma schema file,
         // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
         generator client {
@@ -167,11 +178,9 @@ describe('artificial-panic validate', () => {
           provider = "postgresql"
           url      = "postgres://user:password@randomhost:5432"
         }
-
+        "
       `)
-      expect(e).toMatchObject({
-        schemaPath: undefined,
-      })
+      expect(e.schemaPath).toBeTruthy()
     }
   })
 
@@ -185,13 +194,13 @@ describe('artificial-panic validate', () => {
       await command.parse([])
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
-        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
-        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+        ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`""
       `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
-        // This is your Prisma schema file,
+        "// This is your Prisma schema file,
         // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
         generator client {
@@ -202,11 +211,9 @@ describe('artificial-panic validate', () => {
           provider = "postgresql"
           url      = "postgres://user:password@randomhost:5432"
         }
-
+        "
       `)
-      expect(e).toMatchObject({
-        schemaPath: undefined,
-      })
+      expect(e.schemaPath).toBeTruthy()
     }
   })
 })
@@ -231,15 +238,15 @@ describe('artificial-panic getDMMF', () => {
       })
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
-        RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
-        This is the panic triggered by \`prisma_fmt::debug_panic()\`
+        ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
+        This is the panic triggered by \`prisma_fmt::debug_panic()\`""
       `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
-        generator client {
+        "generator client {
           provider = "prisma-client-js"
-        }
+        }"
       `)
       expect(e).toMatchObject({
         schemaPath: undefined,

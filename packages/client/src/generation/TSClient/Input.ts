@@ -6,9 +6,9 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
 
-export class InputField implements Generatable {
+export class InputField implements Generable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly genericsInfo: GenericArgsInfo,
@@ -20,7 +20,7 @@ export class InputField implements Generatable {
   }
 }
 
-function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, source?: string) {
+export function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, source?: string): ts.Property {
   const tsType = buildAllFieldTypes(field.inputTypes, genericsInfo, source)
 
   const tsProperty = ts.property(field.name, tsType)
@@ -60,10 +60,6 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
     type = namedInputType(scalarType ?? t.type)
   }
 
-  if (type.name.endsWith('Select') || type.name.endsWith('Include')) {
-    type.addGenericArgument(ts.namedType('ExtArgs'))
-  }
-
   if (genericsInfo.typeRefNeedsGenericModelArg(t)) {
     if (source) {
       type.addGenericArgument(ts.stringLiteral(source))
@@ -96,7 +92,7 @@ function namedInputType(typeName: string) {
  * 2. Generate them out and `|` them
  */
 function buildAllFieldTypes(
-  inputTypes: DMMF.InputTypeRef[],
+  inputTypes: readonly DMMF.InputTypeRef[],
   genericsInfo: GenericArgsInfo,
   source?: string,
 ): ts.TypeBuilder {
@@ -123,7 +119,7 @@ function xorTypes(types: ts.TypeBuilder[]) {
   return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
-export class InputType implements Generatable {
+export class InputType implements Generable {
   private generatedName: string
   constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {
     this.generatedName = type.name

@@ -1,11 +1,16 @@
-import { ProviderFlavors, Providers } from './providers'
+import { ClientEngineType } from '@prisma/internals'
 
-export type MatrixOptions = {
+import { TestsFactoryFnParams } from './defineMatrix'
+import { TestSuiteMatrix } from './getTestSuiteInfo'
+import { AdapterProviders, Providers } from './providers'
+
+export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
   optOut?: {
     from: `${Providers}`[]
     reason: string
   }
-  skipBinary?: {
+  skipEngine?: {
+    from: `${ClientEngineType}`[]
     reason: string
   }
   skipDefaultClientInstance?: boolean
@@ -13,10 +18,14 @@ export type MatrixOptions = {
     runtimes: ClientRuntime[]
     reason: string
   }
-  skipProviderFlavor?: {
-    from: `${ProviderFlavors}`[]
+  skipDriverAdapter?: {
+    from: `${AdapterProviders}`[]
     reason: string
   }
+  skip?: (
+    when: (predicate: boolean | (() => boolean), reason: string) => void,
+    suiteConfig: TestsFactoryFnParams<MatrixT>[0],
+  ) => void
   skipDb?: boolean
   // SQL Migration to apply after initial generated migration
   alterStatementCallback?: AlterStatementCallback
@@ -31,17 +40,19 @@ export type Db = {
   dropDb: () => Promise<void>
 }
 
-export type ClientRuntime = 'node' | 'edge'
+export type ClientRuntime = 'node' | 'edge' | 'wasm'
 
-export type TestCliMeta = {
+export type CliMeta = {
   dataProxy: boolean
-  runtime: 'node' | 'edge'
+  runtime: ClientRuntime
+  previewFeatures: string[]
+  engineType: `${ClientEngineType}` | undefined
 }
 
 export type ClientMeta = {
   driverAdapter: boolean
   dataProxy: boolean
-  runtime: 'node' | 'edge'
+  runtime: ClientRuntime
 }
 
 export type AlterStatementCallback = (provider: Providers) => string

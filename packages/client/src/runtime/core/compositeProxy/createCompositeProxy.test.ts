@@ -72,7 +72,7 @@ test('logs proxy properties if used in console.log/util.inspect', () => {
     },
   ])
 
-  expect(util.inspect(proxy)).toMatchInlineSnapshot(`{ first: 1, second: 2 }`)
+  expect(util.inspect(proxy)).toMatchInlineSnapshot(`"{ first: 1, second: 2 }"`)
 })
 
 test('allows to set property descriptor via layer', () => {

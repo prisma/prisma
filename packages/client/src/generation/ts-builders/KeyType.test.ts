@@ -11,22 +11,22 @@ const B = namedType('B')
 const C = namedType('C')
 
 test('simple only', () => {
-  expect(stringify(keyType(A, 'foo'))).toMatchInlineSnapshot(`A["foo"]`)
+  expect(stringify(keyType(A, 'foo'))).toMatchInlineSnapshot(`"A["foo"]"`)
 })
 
 test('with object type', () => {
-  expect(stringify(keyType(objectType(), 'toString'))).toMatchInlineSnapshot(`({})["toString"]`)
+  expect(stringify(keyType(objectType(), 'toString'))).toMatchInlineSnapshot(`"({})["toString"]"`)
 })
 
 test('with array type', () => {
-  expect(stringify(keyType(array(A), 'length'))).toMatchInlineSnapshot(`A[]["length"]`)
+  expect(stringify(keyType(array(A), 'length'))).toMatchInlineSnapshot(`"A[]["length"]"`)
 })
 
 test('with function type', () => {
-  expect(stringify(keyType(functionType(), 'length'))).toMatchInlineSnapshot(`(() => void)["length"]`)
+  expect(stringify(keyType(functionType(), 'length'))).toMatchInlineSnapshot(`"(() => void)["length"]"`)
 })
 
 test('with union type', () => {
   const union = unionType(A).addVariant(B).addVariant(C)
-  expect(stringify(keyType(union, 'foo'))).toMatchInlineSnapshot(`(A | B | C)["foo"]`)
+  expect(stringify(keyType(union, 'foo'))).toMatchInlineSnapshot(`"(A | B | C)["foo"]"`)
 })

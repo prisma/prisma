@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import Debug from '@prisma/debug'
 import {
   BinaryType,
@@ -11,7 +13,6 @@ import {
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 import { bold, red } from 'kleur/colors'
-import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
@@ -185,6 +186,7 @@ export class SchemaEngine {
       const { views } = introspectResult
 
       if (views) {
+        // TODO: this needs to call `getSchemaPath` instead
         const schemaPath = this.schemaPath ?? path.join(process.cwd(), 'prisma')
         await handleViewsIO({ views, schemaPath })
       }
@@ -298,7 +300,9 @@ export class SchemaEngine {
         // This is a request.
         if (result.id !== undefined) {
           if (result.method === 'print' && result.params?.content !== undefined) {
-            console.info(result.params.content)
+            // Here we print the content from the Schema Engine to stdout directly
+            // (it is not returned to the caller)
+            process.stdout.write(result.params.content + '\n')
 
             // Send an empty response back as ACK.
             const response: RpcSuccessResponse<{}> = {
@@ -458,7 +462,7 @@ export class SchemaEngine {
     await this.init()
 
     if (this.child?.killed) {
-      throw new Error(`Can't execute ${JSON.stringify(request)} because Schema engine  already exited.`)
+      throw new Error(`Can't execute ${JSON.stringify(request)} because Schema engine already exited.`)
     }
 
     return new Promise((resolve, reject) => {
@@ -530,7 +534,7 @@ export class SchemaEngine {
     })
   }
 
-  private getRPCPayload(method: string, params: unknown | undefined): RPCPayload {
+  private getRPCPayload(method: string, params: unknown): RPCPayload {
     return {
       id: messageId++,
       jsonrpc: '2.0',

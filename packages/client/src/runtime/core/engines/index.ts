@@ -1,15 +1,14 @@
 export { BinaryEngine } from './binary/BinaryEngine'
 export {
   type BatchTransactionOptions,
-  Engine,
+  type Engine,
   type EngineConfig,
-  type EngineEventType,
   type GraphQLQuery,
   type InteractiveTransactionOptions,
   type TransactionOptions,
 } from './common/Engine'
 export * from './common/types/EngineValidationError'
-export type { EventEmitter } from './common/types/Events'
+export type { LogEmitter } from './common/types/Events'
 export * from './common/types/JsonProtocol'
 export type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from './common/types/Metrics'
 export type { IsolationLevel, Options, TransactionHeaders } from './common/types/Transaction'

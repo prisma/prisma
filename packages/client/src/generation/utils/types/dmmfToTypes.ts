@@ -5,17 +5,32 @@ import { TSClient } from '../../TSClient/TSClient'
  * @internal
  * @remarks Used by, for example, the PDP to avoid child process calls to the CLI.
  */
-export function dmmfToTypes(document: DMMF.Document) {
+export function dmmfToTypes(dmmf: DMMF.Document) {
   return new TSClient({
-    document: document,
+    dmmf,
     datasources: [],
-    projectRoot: '',
     clientVersion: '',
     engineVersion: '',
-    runtimeDir: '',
-    runtimeName: '',
+    runtimeBase: '@prisma/client',
+    runtimeNameJs: 'library',
+    runtimeNameTs: 'library',
     schemaPath: '',
     outputDir: '',
     activeProvider: '',
+    binaryPaths: {},
+    generator: {
+      binaryTargets: [],
+      config: {},
+      name: 'prisma-client-js',
+      output: null,
+      provider: { value: 'prisma-client-js', fromEnvVar: null },
+      previewFeatures: [],
+      isCustomOutput: false,
+    },
+    datamodel: '',
+    browser: false,
+    deno: false,
+    edge: false,
+    wasm: false,
   }).toTS()
 }

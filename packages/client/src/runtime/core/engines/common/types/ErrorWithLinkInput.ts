@@ -5,7 +5,7 @@ export interface ErrorWithLinkInput {
   engineVersion?: string
   database?: ConnectorType
   query?: string
-  platform?: string
+  binaryTarget?: string
   title: string
   description?: string
 }

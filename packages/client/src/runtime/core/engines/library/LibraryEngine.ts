@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import type { Platform } from '@prisma/get-platform'
-import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
+import { ErrorRecord } from '@prisma/driver-adapter-utils'
+import type { BinaryTarget } from '@prisma/get-platform'
+import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineSpanEvent } from '@prisma/internals'
-import fs from 'fs'
 import { bold, green, red, yellow } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -10,15 +10,9 @@ import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownReq
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import type {
-  BatchQueryEngineResult,
-  EngineConfig,
-  EngineEventType,
-  RequestBatchOptions,
-  RequestOptions,
-} from '../common/Engine'
+import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { EventEmitter } from '../common/types/Events'
+import { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
@@ -32,10 +26,12 @@ import type {
 import { RequestError } from '../common/types/RequestError'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
-import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
+import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
-import { DefaultLibraryLoader } from './DefaultLibraryLoader'
+import { defaultLibraryLoader } from './DefaultLibraryLoader'
+import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
+import { wasmLibraryLoader } from './WasmLibraryLoader'
 
 const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
 const debug = Debug('prisma:client:libraryEngine')
@@ -51,23 +47,24 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   }
 }
 
-const knownPlatforms: Platform[] = [...platforms, 'native']
+const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 let engineInstanceCount = 0
 
-export class LibraryEngine extends Engine<undefined> {
-  private engine?: QueryEngineInstance
-  private libraryInstantiationPromise?: Promise<void>
-  private libraryStartingPromise?: Promise<void>
-  private libraryStoppingPromise?: Promise<void>
-  private libraryStarted: boolean
-  private executingQueryPromise?: Promise<any>
-  private config: EngineConfig
-  private QueryEngineConstructor?: QueryEngineConstructor
-  private libraryLoader: LibraryLoader
-  private library?: Library
-  private logEmitter: EventEmitter
+export class LibraryEngine implements Engine<undefined> {
+  name = 'LibraryEngine' as const
+  engine?: QueryEngineInstance
+  libraryInstantiationPromise?: Promise<void>
+  libraryStartingPromise?: Promise<void>
+  libraryStoppingPromise?: Promise<void>
+  libraryStarted: boolean
+  executingQueryPromise?: Promise<any>
+  config: EngineConfig
+  QueryEngineConstructor?: QueryEngineConstructor
+  libraryLoader: LibraryLoader
+  library?: Library
+  logEmitter: LogEmitter
   libQueryEnginePath?: string
-  platform?: Platform
+  binaryTarget?: BinaryTarget
   datasourceOverrides?: Record<string, string>
   datamodel: string
   logQueries: boolean
@@ -80,36 +77,29 @@ export class LibraryEngine extends Engine<undefined> {
     version: string
   }
 
-  constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
-    super()
+  constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
+    if (TARGET_BUILD_TYPE === 'react-native') {
+      this.libraryLoader = reactNativeLibraryLoader
+    } else if (TARGET_BUILD_TYPE === 'library') {
+      this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
-    try {
-      // we try to handle the case where the datamodel is not found
-      this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
-    } catch (e) {
-      if ((e.stack as string).match(/\/\.next|\/next@|\/next\//)) {
-        throw new PrismaClientInitializationError(
-          `Your schema.prisma could not be found, and we detected that you are using Next.js.
-Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextjs`,
-          config.clientVersion!,
-        )
-      } else if (config.isBundled === true) {
-        throw new PrismaClientInitializationError(
-          `Prisma Client could not find its \`schema.prisma\`. This is likely caused by a bundling step, which leads to \`schema.prisma\` not being copied near the resulting bundle. We would appreciate if you could take the time to share some information with us.
-Please help us by answering a few questions: https://pris.ly/bundler-investigation-error`,
-          config.clientVersion!,
-        )
+      // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
+      if (config.engineWasm !== undefined) {
+        this.libraryLoader = libraryLoader ?? wasmLibraryLoader
       }
-
-      throw e
+    } else if (TARGET_BUILD_TYPE === 'wasm') {
+      this.libraryLoader = libraryLoader ?? wasmLibraryLoader
+    } else {
+      throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
     }
 
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
-    this.libraryLoader = loader
     this.logEmitter = config.logEmitter
+    this.datamodel = config.inlineSchema
+
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
     }
@@ -136,10 +126,19 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     }
   }
 
+  async applyPendingMigrations(): Promise<void> {
+    if (TARGET_BUILD_TYPE === 'react-native') {
+      await this.start()
+      await this.engine?.applyPendingMigrations()
+    } else {
+      throw new Error('Cannot call this method from this type of engine instance')
+    }
+  }
+
   async transaction(
     action: 'start',
     headers: Tx.TransactionHeaders,
-    options?: Tx.Options,
+    options: Tx.Options,
   ): Promise<Tx.InteractiveTransactionInfo<undefined>>
   async transaction(
     action: 'commit',
@@ -159,9 +158,9 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     let result: string | undefined
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-        isolation_level: arg?.isolationLevel,
+        max_wait: arg.maxWait,
+        timeout: arg.timeout,
+        isolation_level: arg.isolationLevel,
       })
 
       result = await this.engine?.startTransaction(jsonOptions, headerStr)
@@ -173,11 +172,15 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
-    if (response.error_code) {
-      throw new PrismaClientKnownRequestError(response.message as string, {
+    if (isUserFacingError(response)) {
+      const externalError = this.getExternalAdapterError(response)
+      if (externalError) {
+        throw externalError.error
+      }
+      throw new PrismaClientKnownRequestError(response.message, {
         code: response.error_code as string,
         clientVersion: this.config.clientVersion as string,
-        meta: response.meta as Record<string, unknown>,
+        meta: response.meta,
       })
     }
 
@@ -190,25 +193,35 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
       return this.libraryInstantiationPromise
     }
 
-    assertNodeAPISupported()
-    this.platform = await this.getPlatform()
+    if (TARGET_BUILD_TYPE === 'library') {
+      assertNodeAPISupported()
+    }
+
+    this.binaryTarget = await this.getCurrentBinaryTarget()
+
     await this.loadEngine()
+
     this.version()
   }
 
-  private async getPlatform() {
-    if (this.platform) return this.platform
-    const platform = await getPlatform()
-    if (!knownPlatforms.includes(platform)) {
-      throw new PrismaClientInitializationError(
-        `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${green(
-          knownPlatforms.join(', '),
-        )} or a path to the query engine library.
+  private async getCurrentBinaryTarget() {
+    if (TARGET_BUILD_TYPE === 'library') {
+      if (this.binaryTarget) return this.binaryTarget
+      const binaryTarget = await getBinaryTargetForCurrentPlatform()
+      if (!knownBinaryTargets.includes(binaryTarget)) {
+        throw new PrismaClientInitializationError(
+          `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(binaryTarget))}. Possible binaryTargets: ${green(
+            knownBinaryTargets.join(', '),
+          )} or a path to the query engine library.
 You may have to run ${green('prisma generate')} for your changes to take effect.`,
-        this.config.clientVersion!,
-      )
+          this.config.clientVersion!,
+        )
+      }
+
+      return binaryTarget
     }
-    return platform
+
+    return undefined
   }
 
   private parseEngineResponse<T>(response?: string): T {
@@ -228,48 +241,50 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private async loadEngine(): Promise<void> {
-    if (!this.engine) {
-      if (!this.QueryEngineConstructor) {
-        this.library = await this.libraryLoader.loadLibrary()
-        this.QueryEngineConstructor = this.library.QueryEngine
+    if (this.engine) {
+      return
+    }
+
+    if (!this.QueryEngineConstructor) {
+      this.library = await this.libraryLoader.loadLibrary(this.config)
+      this.QueryEngineConstructor = this.library.QueryEngine
+    }
+    try {
+      // Using strong reference to `this` inside of log callback will prevent
+      // this instance from being GCed while native engine is alive. At the
+      // same time, `this.engine` field will prevent native instance from
+      // being GCed. Using weak ref helps to avoid this cycle
+      const weakThis = new WeakRef(this)
+      const { adapter } = this.config
+
+      if (adapter) {
+        debug('Using driver adapter: %O', adapter)
       }
-      try {
-        // Using strong reference to `this` inside of log callback will prevent
-        // this instance from being GCed while native engine is alive. At the
-        // same time, `this.engine` field will prevent native instance from
-        // being GCed. Using weak ref helps to avoid this cycle
-        const weakThis = new WeakRef(this)
-        const { adapter } = this.config
 
-        if (adapter) {
-          debug('Using driver adapter: %O', adapter)
-        }
-
-        this.engine = new this.QueryEngineConstructor(
-          {
-            datamodel: this.datamodel,
-            env: process.env,
-            logQueries: this.config.logQueries ?? false,
-            ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverrides ?? {},
-            logLevel: this.logLevel,
-            configDir: this.config.cwd,
-            engineProtocol: 'json',
-          },
-          (log) => {
-            weakThis.deref()?.logger(log)
-          },
-          adapter,
-        )
-        engineInstanceCount++
-      } catch (_e) {
-        const e = _e as Error
-        const error = this.parseInitError(e.message)
-        if (typeof error === 'string') {
-          throw e
-        } else {
-          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
-        }
+      this.engine = new this.QueryEngineConstructor(
+        {
+          datamodel: this.datamodel,
+          env: process.env,
+          logQueries: this.config.logQueries ?? false,
+          ignoreEnvVarErrors: true,
+          datasourceOverrides: this.datasourceOverrides ?? {},
+          logLevel: this.logLevel,
+          configDir: this.config.cwd,
+          engineProtocol: 'json',
+        },
+        (log) => {
+          weakThis.deref()?.logger(log)
+        },
+        adapter,
+      )
+      engineInstanceCount++
+    } catch (_e) {
+      const e = _e as Error
+      const error = this.parseInitError(e.message)
+      if (typeof error === 'string') {
+        throw e
+      } else {
+        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
       }
     }
   }
@@ -293,32 +308,22 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         duration: Number(event.duration_ms),
         target: event.module_path,
       })
-    } else if (isPanicEvent(event)) {
+    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm') {
       // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
-        this.getErrorMessageWithLink(
+        getErrorMessageWithLink(
+          this,
           `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
         ),
         this.config.clientVersion!,
       )
     } else {
-      this.logEmitter.emit(event.level, {
+      this.logEmitter.emit(event.level as LogEventType, {
         timestamp: new Date(),
         message: event.message,
         target: event.module_path,
       })
     }
-  }
-
-  private getErrorMessageWithLink(title: string) {
-    return getErrorMessageWithLink({
-      platform: this.platform,
-      title,
-      version: this.config.clientVersion!,
-      engineVersion: this.versionInfo?.commit,
-      database: this.config.activeProvider as any,
-      query: this.lastQuery!,
-    })
   }
 
   private parseInitError(str: string): SyncRustError | string {
@@ -341,14 +346,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return str
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
-    if (event === 'beforeExit') {
-      throw new Error(
-        '"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.',
-      )
-    } else {
-      this.logEmitter.on(event, listener)
-    }
+  onBeforeExit() {
+    throw new Error(
+      '"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.',
+    )
   }
 
   async start(): Promise<void> {
@@ -453,6 +454,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     try {
       await this.start()
+
       this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
       this.lastQuery = queryStr
@@ -475,8 +477,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (e instanceof PrismaClientInitializationError) {
         throw e
       }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:')) {
-        throw new PrismaClientRustPanicError(this.getErrorMessageWithLink(e.message), this.config.clientVersion!)
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
+        throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
       }
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
@@ -498,11 +500,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
+
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
     )
+
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 
@@ -536,22 +540,29 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private buildQueryError(error: RequestError) {
-    if (error.user_facing_error.is_panic) {
+    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm') {
       return new PrismaClientRustPanicError(
-        this.getErrorMessageWithLink(error.user_facing_error.message),
+        getErrorMessageWithLink(this, error.user_facing_error.message),
         this.config.clientVersion!,
       )
     }
 
-    if (error.user_facing_error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
-      const id = error.user_facing_error.meta?.id
+    const externalError = this.getExternalAdapterError(error.user_facing_error)
+
+    return externalError
+      ? externalError.error
+      : prismaGraphQLToJSError(error, this.config.clientVersion!, this.config.activeProvider!)
+  }
+
+  private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {
+    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
+      const id = error.meta?.id
       assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
       const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
       assertAlways(errorRecord, `External error with reported id was not registered`)
-      return errorRecord.error
+      return errorRecord
     }
-
-    return prismaGraphQLToJSError(error, this.config.clientVersion!)
+    return undefined
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
@@ -564,4 +575,19 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
     return this.parseEngineResponse(responseString)
   }
+}
+
+function isUserFacingError(e: unknown): e is RequestError['user_facing_error'] {
+  return typeof e === 'object' && e !== null && e['error_code'] !== undefined
+}
+
+function getErrorMessageWithLink(engine: LibraryEngine, title: string) {
+  return genericGetErrorMessageWithLink({
+    binaryTarget: engine.binaryTarget,
+    title,
+    version: engine.config.clientVersion!,
+    engineVersion: engine.versionInfo?.commit,
+    database: engine.config.activeProvider as any,
+    query: engine.lastQuery!,
+  })
 }

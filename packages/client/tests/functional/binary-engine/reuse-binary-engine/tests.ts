@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
@@ -9,9 +9,9 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 // https://github.com/prisma/prisma/issues/12507
 testMatrix.setupTestSuite(
-  () => {
+  ({ engineType }) => {
     test('should create data using one PrismaClient and read using another', async () => {
-      if (getClientEngineType() !== ClientEngineType.Binary) {
+      if (engineType !== ClientEngineType.Binary) {
         return
       }
 

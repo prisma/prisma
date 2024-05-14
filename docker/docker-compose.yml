@@ -18,7 +18,29 @@ services:
     ports:
       - '5432:5432'
     healthcheck:
-      test: ['CMD', 'pg_isready']
+      # specifying user and database is needed to avoid `FATAL:  role "root" does not exist`
+      # spam in the logs
+      test: ['CMD', 'pg_isready', '-U', 'prisma', '-d', 'tests']
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
+  postgres-16:
+    image: postgres:16
+    restart: unless-stopped
+    # Uncomment the following line to enable query logging
+    # Then restart the container.
+    # command: ['postgres', '-c', 'log_statement=all']
+    environment:
+      - POSTGRES_DB=tests
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    ports:
+      - '15432:5432'
+    healthcheck:
+      # specifying user and database is needed to avoid `FATAL:  role "root" does not exist`
+      # spam in the logs
+      test: ['CMD', 'pg_isready', '-U', 'prisma', '-d', 'tests']
       interval: 5s
       timeout: 2s
       retries: 20
@@ -53,7 +75,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:66266b9fb26c1ac8841798c054b0129c1dc3dc677315d314fa42ad84556ba6e4
+    image: vitess/vttestserver:mysql80@sha256:ed369e382dbaff4041ee30ae716d157d893cf4c6ccac4da017dff5fb22737212
     restart: unless-stopped
     ports:
       - 33807:33807
@@ -73,12 +95,13 @@ services:
 
   mysql:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
+    command: --lower_case_table_names=1
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
-      - MYSQL_USER=prisma
+      - MYSQL_USER=prisma # not used
+      - MYSQL_PASSWORD=prisma
     ports:
       - '3306:3306'
     healthcheck:
@@ -89,12 +112,12 @@ services:
 
   mysql_isolated:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
+    command: --lower_case_table_names=1
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
-      - MYSQL_USER=prisma
+      - MYSQL_USER=prisma # not used
       - MYSQL_PASSWORD=prisma
     ports:
       - '3307:3306'
@@ -110,7 +133,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
-      - MYSQL_USER=prisma
+      - MYSQL_USER=prisma # not used
       - MYSQL_PASSWORD=prisma
     ports:
       - '4306:3306'
@@ -138,35 +161,61 @@ services:
     image: mongo:4
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: prisma
       MONGO_INITDB_DATABASE: tests-migrate
     ports:
       - '27017:27017'
     healthcheck:
-      test: ['CMD', 'mongo', 'admin', '--port', '27017', '--eval', "db.adminCommand('ping')"]
+      # Use "mongo" instead of "mongosh" before v5.0
+      test: ['CMD', 'mongo', 'admin', '--port', '27017', '--eval', "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+      start_period: 20s
+    volumes:
+      - ./mongodb_migrate_seed:/mongodb_migrate_seed
+      - ./mongodb_migrate_seed:/docker-entrypoint-initdb.d
+
+  # This config is for MongoDB v4
+  # It's a Replica Set (required for Prisma Client)
+  mongo:
+    build:
+      context: ./mongodb_replica
+      args:
+        MONGO_VERSION: 4
+    environment:
+      MONGO_REPLICA_HOST: 127.0.0.1
+      MONGO_REPLICA_PORT: 27018
+      # Use "mongo" instead of "mongosh" before v5.0
+      MONGO_COMMAND: 'mongo'
+    ports:
+      - '27018:27018'
+    restart: unless-stopped
+    healthcheck:
+      # Use "mongo" instead of "mongosh" before v5.0
+      test: ['CMD', 'mongo', 'admin', '--port', '27018', '--eval', "db.adminCommand('ping').ok"]
       interval: 5s
       timeout: 2s
       retries: 20
 
-  mongodb_migrate_seed:
-    build: ./mongodb_migrate_seed
-    depends_on:
-      - mongodb_migrate
-
-  # Replica Set (required for Prisma Client)
-  mongo:
-    build: ./mongodb_replica
+  # -> only used for manual testing locally
+  # This config is for MongoDB v5+
+  # It's a Replica Set (required for Prisma Client)
+  mongo6:
+    build:
+      context: ./mongodb_replica
+      args:
+        MONGO_VERSION: 6
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: prisma
       MONGO_REPLICA_HOST: 127.0.0.1
-      MONGO_REPLICA_PORT: 27018
+      MONGO_REPLICA_PORT: 27019
+      # Use "mongo" instead of "mongosh" before v5.0
+      MONGO_COMMAND: 'mongosh'
     ports:
-      - '27018:27018'
-    restart: always # restart between reboots
+      - '27019:27019'
+    restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'mongo', 'admin', '--port', '27018', '--eval', "db.adminCommand('ping')"]
+      # Use "mongo" instead of "mongosh" before v5.0
+      test: ['CMD', 'mongosh', 'admin', '--port', '27019', '--eval', "db.adminCommand('ping').ok"]
       interval: 5s
       timeout: 2s
       retries: 20
@@ -174,15 +223,15 @@ services:
   neon_wsproxy:
     image: ghcr.io/neondatabase/wsproxy:latest
     environment:
-      APPEND_PORT: 'postgres:5432'
+      APPEND_PORT: 'postgres-16:5432'
       ALLOW_ADDR_REGEX: '.*'
       LOG_TRAFFIC: 'true'
       LOG_CONN_INFO: 'true'
     ports:
       - '5488:80'
     depends_on:
-      - postgres
-    restart: always
+      - postgres-16
+    restart: unless-stopped
     healthcheck:
       test: ['CMD', 'nc', '-z', '127.0.0.1', '80']
       interval: 5s
@@ -199,7 +248,7 @@ services:
       - '8085:8085'
     depends_on:
       - vitess-8
-    restart: always
+    restart: unless-stopped
     healthcheck:
       test: ['CMD', 'nc', '-z', '127.0.0.1', '8085']
       interval: 5s

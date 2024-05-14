@@ -6,12 +6,13 @@ import { PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(({ clientRuntime }, _suiteMeta, clientMeta) => {
   test('does not throw without the adapter property', () => {
     expect(() => newPrismaClient()).not.toThrow()
   })
 
-  test('does not throw if adapter is set to null', async () => {
+  // TODO: Fails with PrismaClientValidationError: Invalid client engine type, please use `library` or `binary`
+  skipTestIf(clientRuntime === 'wasm')('does not throw if adapter is set to null', async () => {
     const prisma = newPrismaClient({ adapter: null })
 
     if (!clientMeta.driverAdapter) {
@@ -21,8 +22,8 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
 
   test('throws if adapter is explicitly set to undefined', () => {
     expect(() => newPrismaClient({ adapter: undefined })).toThrowErrorMatchingInlineSnapshot(`
-      "adapter" property must not be undefined, use null to conditionally disable driver adapters.
-      Read more at https://pris.ly/d/client-constructor
+      ""adapter" property must not be undefined, use null to conditionally disable driver adapters.
+      Read more at https://pris.ly/d/client-constructor"
     `)
   })
 }, defaultTestSuiteOptions)

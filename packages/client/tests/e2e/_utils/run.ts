@@ -1,25 +1,29 @@
 import { arg } from '@prisma/internals'
+import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import glob from 'globby'
-import os from 'os'
 import path from 'path'
 import { $, ProcessOutput, sleep } from 'zx'
 
 const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
+const e2eRoot = path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')
 
 const args = arg(
   process.argv.slice(2),
   {
-    // see which comman,ds are run and the outputs of the failures
+    // see which commands are run and the outputs of the failures
     '--verbose': Boolean,
     // like run jest in band, useful for debugging and CI
     '--runInBand': Boolean,
-    // do not fully build cli and client packages before packing
-    '--skipBuild': Boolean,
+    '--run-in-band': '--runInBand',
     // do not fully pack cli and client packages before packing
     '--skipPack': Boolean,
+    '--skip-pack': '--skipPack',
     // a way to cleanup created files that also works on linux
     '--clean': Boolean,
+    // number of workers to use for parallel tests
+    '--maxWorkers': Number,
+    '--max-workers': '--maxWorkers',
   },
   true,
   true,
@@ -31,9 +35,10 @@ async function main() {
     process.exit(1)
   }
 
+  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
   args['--runInBand'] = args['--runInBand'] ?? false
+  args['--skipPack'] = args['--skipPack'] ?? false
   args['--verbose'] = args['--verbose'] ?? false
-  args['--skipBuild'] = args['--skipBuild'] ?? false
   args['--clean'] = args['--clean'] ?? false
   $.verbose = args['--verbose']
 
@@ -45,84 +50,36 @@ async function main() {
   if (args['--clean'] === true) {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml up clean`
-  } else {
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up pre-clean`
   }
 
   console.log('🎠 Preparing e2e tests')
-  // we first get all the paths we are going to need to run e2e tests
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))
 
-  const cliPkgPath = path.join(monorepoRoot, 'packages', 'cli')
-  const wpPluginPkgPath = path.join(monorepoRoot, 'packages', 'nextjs-monorepo-workaround-plugin')
-  const clientPkgPath = path.join(monorepoRoot, 'packages', 'client')
-  const enginesPkgPath = path.join(monorepoRoot, 'packages', 'engines')
-  const debugPkgPath = path.join(monorepoRoot, 'packages', 'debug')
-  const generatorHelperPkgPath = path.join(monorepoRoot, 'packages', 'generator-helper')
+  let allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
+  allPackageFolderNames = allPackageFolderNames.filter((p) => !p.includes('DS_Store'))
 
-  const cliPkgJsonPath = path.join(cliPkgPath, 'package.json')
-  const clientPkgJsonPath = path.join(clientPkgPath, 'package.json')
-  const generatorHelperPkgJsonPath = path.join(generatorHelperPkgPath, 'package.json')
+  if (args['--skipPack'] === false) {
+    // this process will need to modify some package.json, we save copies
+    await $`pnpm -r exec cp package.json package.copy.json`
 
-  const cliPkgJson = require(cliPkgJsonPath)
-  const clientPkgJson = require(clientPkgJsonPath)
-  const generatorHelperPkgJson = require(generatorHelperPkgJsonPath)
-
-  // this process will need to modify some package.json, we save copies
-  await $`cd ${tmpDir} && cp ${cliPkgJsonPath} cli.package.json`
-  await $`cd ${tmpDir} && cp ${clientPkgJsonPath} client.package.json`
-  await $`cd ${tmpDir} && cp ${generatorHelperPkgJsonPath} generator-helper.package.json`
-
-  // we provide a function that can revert modified package.json back
-  const restoreOriginal = async () => {
-    await $`cd ${tmpDir} && cp cli.package.json ${cliPkgJsonPath}`
-    await $`cd ${tmpDir} && cp client.package.json ${clientPkgJsonPath}`
-    await $`cd ${tmpDir} && cp generator-helper.package.json ${generatorHelperPkgJsonPath}`
-  }
-
-  // if process is killed by hand, ensure that package.json is restored
-  process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
-
-  for (const pkgJsonWithRuntimeDeps of [cliPkgJson, clientPkgJson, generatorHelperPkgJson]) {
-    const dependencies = pkgJsonWithRuntimeDeps.dependencies as Record<string, string>
+    // we prepare to replace references to local packages with their tarballs names
+    const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma']
+    const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
+    const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
+    const allPkgJson = allPkgJsonPaths.map((p) => require(p))
 
     // replace references to unbundled local packages with built and packaged tarballs
-    if (dependencies['@prisma/engines']) dependencies['@prisma/engines'] = '/tmp/prisma-engines-0.0.0.tgz'
-    if (dependencies['@prisma/debug']) dependencies['@prisma/debug'] = '/tmp/prisma-debug-0.0.0.tgz'
-  }
+    for (let i = 0; i < allPkgJson.length; i++) {
+      for (const key of Object.keys(allPkgJson[i].dependencies ?? {})) {
+        if (localPackageNames.includes(key)) {
+          allPkgJson[i].dependencies[key] = `/tmp/${key.replace('@prisma/', 'prisma-')}-0.0.0.tgz`
+        }
+      }
 
-  // write the modified package.json to overwrite the original package.json
-  await fs.writeFile(cliPkgJsonPath, JSON.stringify(cliPkgJson, null, 2))
-  await fs.writeFile(clientPkgJsonPath, JSON.stringify(clientPkgJson, null, 2))
-  await fs.writeFile(generatorHelperPkgJsonPath, JSON.stringify(generatorHelperPkgJson, null, 2))
-
-  try {
-    if (args['--skipBuild'] !== true) {
-      console.log('📦 Packing package tarballs')
-
-      await $`cd ${clientPkgPath} && pnpm build`
-      await $`cd ${cliPkgPath} && pnpm build`
-      await $`cd ${debugPkgPath} && pnpm build`
-      await $`cd ${enginesPkgPath} && pnpm build`
-      await $`cd ${generatorHelperPkgPath} && pnpm build`
+      await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
     }
 
-    if (args['--skipPack'] !== true) {
-      await $`cd ${clientPkgPath} && pnpm pack --pack-destination /tmp/`
-      await $`cd ${cliPkgPath} && pnpm pack --pack-destination /tmp/`
-      await $`cd ${enginesPkgPath} && pnpm pack --pack-destination /tmp/`
-      await $`cd ${debugPkgPath} && pnpm pack --pack-destination /tmp/`
-      await $`cd ${generatorHelperPkgPath} && pnpm pack --pack-destination /tmp/`
-      await $`cd ${wpPluginPkgPath} && pnpm pack --pack-destination /tmp/`
-    }
-  } catch (e) {
-    console.log(e.message)
-    console.log('🛑 Failed to pack one or more of the packages')
-    console.log('💡 Make sure to run `watch`, `dev` or `build`')
-    throw e
-  } finally {
-    await restoreOriginal() // when done, we restore the original package.json
+    await $`pnpm -r --parallel exec pnpm pack --pack-destination /tmp/`
+    await restoreOriginalState()
   }
 
   console.log('🐳 Starting tests in docker')
@@ -135,28 +92,38 @@ async function main() {
   }
 
   const dockerVolumes = [
-    `/tmp/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`,
-    `/tmp/prisma-debug-0.0.0.tgz:/tmp/prisma-debug-0.0.0.tgz`,
-    `/tmp/prisma-client-0.0.0.tgz:/tmp/prisma-client-0.0.0.tgz`,
-    `/tmp/prisma-engines-0.0.0.tgz:/tmp/prisma-engines-0.0.0.tgz`,
-    `/tmp/prisma-generator-helper-0.0.0.tgz:/tmp/prisma-generator-helper-0.0.0.tgz`,
-    `/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz:/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz`,
+    `/tmp/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`, // hardcoded because folder doesn't match name
+    ...allPackageFolderNames.map((p) => `/tmp/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
     `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
-    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
-    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,
+    `${e2eRoot}:/e2e`,
+    `${path.join(e2eRoot, '.cache')}:/root/.cache`,
     `${(await $`pnpm store path`.quiet()).stdout.trim()}:/root/.local/share/pnpm/store/v3`,
   ]
-  const dockerVolumeArgs = dockerVolumes.map((v) => `-v ${v}`).join(' ')
+  const dockerVolumeArgs = dockerVolumes.flatMap((v) => ['-v', v])
 
-  await $`docker build -f ${__dirname}/standard.dockerfile -t prisma-e2e-test-runner .`
+  await $`docker compose -f ${__dirname}/docker-compose.yaml build test-e2e`
 
-  const dockerJobs = e2eTestNames.map((path) => {
-    return async () =>
-      await $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
+  const dockerJobs = e2eTestNames.map((testPath) => {
+    const composeFileArgs = ['-f', `${__dirname}/docker-compose.yaml`]
+    const localComposePath = path.join(e2eRoot, testPath, 'docker-compose.yaml')
+    if (existsSync(localComposePath)) {
+      composeFileArgs.push('-f', localComposePath)
+    }
+
+    const projectName = testPath.toLocaleLowerCase().replace(/[^0-9a-z_-]/g, '-')
+    const networkName = `${projectName}_default`
+    return async () => {
+      const result =
+        await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+      await $`docker compose ${composeFileArgs} -p ${projectName} stop`
+      await $`docker compose ${composeFileArgs} -p ${projectName} rm -f`
+      await $`docker network rm -f ${networkName}`
+      return result
+    }
   })
 
-  let jobResults: (ProcessOutput & { name: string })[] = []
+  const jobResults: (ProcessOutput & { name: string })[] = []
   if (args['--runInBand'] === true) {
     console.log('🏃 Running tests in band')
     for (const [i, job] of dockerJobs.entries()) {
@@ -165,9 +132,25 @@ async function main() {
     }
   } else {
     console.log('🏃 Running tests in parallel')
-    jobResults = (await Promise.all(dockerJobs.map((job) => job()))).map((result, i) => {
-      return Object.assign(result, { name: e2eTestNames[i] })
-    })
+
+    const pendingJobResults = [] as Promise<void>[]
+    let availableWorkers = args['--maxWorkers']
+    for (const [i, job] of dockerJobs.entries()) {
+      while (availableWorkers === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+
+      --availableWorkers // borrow worker
+      const pendingJob = (async () => {
+        console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
+        jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
+        ++availableWorkers // return worker
+      })()
+
+      pendingJobResults.push(pendingJob)
+    }
+
+    await Promise.allSettled(pendingJobResults)
   }
 
   const failedJobResults = jobResults.filter((r) => r.exitCode !== 0)
@@ -193,7 +176,19 @@ async function main() {
   }
 }
 
+async function restoreOriginalState() {
+  if (args['--skipPack'] === false) {
+    await $`pnpm -r exec cp package.copy.json package.json`
+  }
+}
+
+process.on('SIGINT', async () => {
+  await restoreOriginalState()
+  process.exit(0)
+})
+
 void main().catch((e) => {
   console.log(e)
+  void restoreOriginalState()
   process.exit(1)
 })

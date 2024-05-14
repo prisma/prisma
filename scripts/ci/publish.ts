@@ -1,3 +1,4 @@
+import { dependencies as dependenciesPrismaEnginesPkg } from '@prisma/engines/package.json'
 import slugify from '@sindresorhus/slugify'
 import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
@@ -6,7 +7,6 @@ import execa from 'execa'
 import fs from 'fs'
 import globby from 'globby'
 import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
-import fetch from 'node-fetch'
 import pRetry from 'p-retry'
 import path from 'path'
 import redis from 'redis'
@@ -106,6 +106,7 @@ export async function getPackages(): Promise<RawPackages> {
 }
 
 interface Package {
+  private?: boolean
   name: string
   path: string
   version: string
@@ -122,6 +123,7 @@ export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>((acc, [name, pkg]) => {
     const usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
     acc[name] = {
+      private: pkg.packageJson.private,
       version: pkg.packageJson.version,
       name,
       path: pkg.path,
@@ -612,7 +614,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
 
-      const enginesCommitHash = await getEnginesCommitHash()
+      const enginesCommitHash = getEnginesCommitHash()
       const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
       const prismaCommitHash = await getLatestCommitHash('.')
       const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
@@ -622,17 +624,17 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
       }
 
-      try {
-        await sendSlackMessage({
-          version: prismaVersion,
-          enginesCommitInfo,
-          prismaCommitInfo,
-        })
-      } catch (e) {
-        console.error(e)
-      }
-
       if (!args['--dry-run']) {
+        try {
+          await sendSlackMessage({
+            version: prismaVersion,
+            enginesCommitInfo,
+            prismaCommitInfo,
+          })
+        } catch (e) {
+          console.error(e)
+        }
+
         try {
           await tagEnginesRepo(prismaVersion, enginesCommitHash, patchBranch, dryRun)
         } catch (e) {
@@ -654,13 +656,12 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
   }
 }
 
-async function getEnginesCommitHash(): Promise<string> {
-  const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
-  const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
-  // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
+function getEnginesCommitHash(): string {
+  const npmEnginesVersion = dependenciesPrismaEnginesPkg['@prisma/engines-version']
+  const sha1Pattern = /\b[0-9a-f]{5,40}\b/
+  const commitHash = npmEnginesVersion.match(sha1Pattern)![0]
 
-  return engineVersion
+  return commitHash
 }
 
 async function tagEnginesRepo(
@@ -857,7 +858,8 @@ async function publishPackages(
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
 
-      if (pkg.name === '@prisma/integration-tests') {
+      if (pkg.private) {
+        console.log(`Skipping ${magenta(pkg.name)} as it's private`)
         continue
       }
 
@@ -1069,14 +1071,33 @@ function getLines(str: string): string[] {
   return str.split(/\r?\n|\r/)
 }
 
-async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
-  const response = await fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
+type GitHubCommitInfo = {
+  sha: string
+  commit: {
+    author: {
+      name: string
+      email: string
+      date: string
+    } | null
+    committer: {
+      name: string
+      email: string
+      date: string
+    } | null
+    message: string
+    url: string
+  }
+}
 
-  const jsonData = await response.json()
+async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
+  // Example https://api.github.com/repos/prisma/prisma/commits/9d23845e98e34ec97f3013f5c2a3f85f57a828e2
+  // Doc https://docs.github.com/en/free-pro-team@latest/rest/commits/commits?apiVersion=2022-11-28#get-a-commit
+  const response = await fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
+  const jsonData = (await response.json()) as GitHubCommitInfo
 
   return {
     message: jsonData.commit?.message || '',
-    author: jsonData.commit?.author.name || '',
+    author: jsonData.commit?.author?.name || '',
     hash,
   }
 }

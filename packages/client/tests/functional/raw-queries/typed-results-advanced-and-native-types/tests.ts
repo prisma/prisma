@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -5,7 +6,15 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
+    function getAllEntries() {
+      if (provider === Providers.MYSQL) {
+        return prisma.$queryRaw`SELECT * FROM \`TestModel\`;`
+      } else {
+        return prisma.$queryRaw`SELECT * FROM "TestModel";`
+      }
+    }
+
     test('query model with multiple fields', async () => {
       await prisma.testModel.create({
         data: {
@@ -18,7 +27,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const testModel = await prisma.$queryRaw`SELECT * FROM "TestModel"`
+      const testModel = await getAllEntries()
 
       expect(testModel).toEqual([
         {
@@ -42,15 +51,11 @@ testMatrix.setupTestSuite(
       from: ['mongodb', 'mysql', 'sqlite', 'sqlserver'],
       reason: `
         $queryRaw only works on SQL based providers
-        mySql: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '"TestModel"'
+        mysql: error: Field "string_list" (String[]) in model "TestModel" can't be a list. The current connector does not support lists of primitive types. 
+                      Field "bInt_list" (BigInt[]) in model "TestModel" can't be a list. The current connector does not support lists of primitive types.
         sqlite: The current connector does not support lists of primitive types
         sqlserver: The current connector does not support the Json type.
       `,
-    },
-    skipProviderFlavor: {
-      from: ['js_neon', 'js_pg'],
-      reason:
-        "Something is off with date insertion. invalid input syntax for type time: '2022-05-04T14:40:06.617+00:00'",
     },
   },
 )

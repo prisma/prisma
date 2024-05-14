@@ -1,5 +1,6 @@
 import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 
+import { EngineConfig } from '../../common/Engine'
 import type { QueryEngineConfig } from '../../common/types/QueryEngine'
 
 export type QueryEngineInstance = {
@@ -16,6 +17,7 @@ export type QueryEngineInstance = {
   commitTransaction(id: string, traceHeaders: string): Promise<string>
   rollbackTransaction(id: string, traceHeaders: string): Promise<string>
   metrics(options: string): Promise<string>
+  applyPendingMigrations(): Promise<void>
 }
 
 export interface QueryEngineConstructor {
@@ -27,7 +29,7 @@ export interface QueryEngineConstructor {
 }
 
 export interface LibraryLoader {
-  loadLibrary(): Promise<Library>
+  loadLibrary(config: EngineConfig): Promise<Library>
 }
 
 // Main

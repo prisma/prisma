@@ -104,7 +104,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], false)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {
@@ -164,13 +164,12 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     else {
       // validate that schema file exists
       // throws an error if it doesn't
-      const schemaPath = await getSchemaPath(args['--schema'])
+      const { schemaPath } = (await getSchemaPath(args['--schema']))!
 
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        // if schemaPath is undefined, getSchemaPath will error
-        schema: schemaPath!,
+        schema: schemaPath,
       }
     }
 

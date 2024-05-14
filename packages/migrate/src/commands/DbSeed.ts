@@ -51,15 +51,15 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
     if (!seedCommandFromPkgJson) {
       // Only used to help users to set up their seeds from old way to new package.json config
-      const schemaPath = await getSchemaPath(args['--schema'])
+      const schemaResult = await getSchemaPath(args['--schema'])
 
-      const message = await verifySeedConfigAndReturnMessage(schemaPath)
+      const message = await verifySeedConfigAndReturnMessage(schemaResult?.schemaPath ?? null)
       // Error because setup of the feature needs to be done
       if (message) {
         throw new Error(message)

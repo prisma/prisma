@@ -15,7 +15,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.delete()\` invocation in
       /client/tests/functional/extended-where/validation.ts:0:0
 
@@ -36,7 +36,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                  }
                })
 
-      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are marked with ?.
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are marked with ?."
     `)
   })
 
@@ -49,7 +49,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.delete()\` invocation in
       /client/tests/functional/extended-where/validation.ts:0:0
 
@@ -70,7 +70,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                }
              })
 
-      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are marked with ?.
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are marked with ?."
     `)
   })
 

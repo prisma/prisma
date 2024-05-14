@@ -8,90 +8,87 @@
     "pnpm": ">=8.6.7 <9"
   },
   "scripts": {
-    "setup": "ts-node scripts/setup.ts",
-    "build": "ts-node scripts/setup.ts --build",
+    "build": "pnpm -r build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
-    "publish-all-dryrun": "ts-node scripts/ci/publish.ts --publish --dry-run",
-    "publish-all": "ts-node scripts/ci/publish.ts --publish",
-    "bump-engines": "ts-node scripts/bump-engines.ts",
-    "test": "dotenv -e ../../.db.env -- ts-node scripts/ci/publish.ts --test",
-    "status": "ts-node scripts/ci/publish.ts --status",
-    "pull": "ts-node scripts/ci/publish.ts --pull",
+    "publish-all-dryrun": "tsx scripts/ci/publish.ts --publish --dry-run",
+    "publish-all": "tsx scripts/ci/publish.ts --publish",
+    "bump-engines": "tsx scripts/bump-engines.ts",
+    "test": "dotenv -e ../../.db.env -- tsx scripts/ci/publish.ts --test",
+    "status": "tsx scripts/ci/publish.ts --status",
+    "pull": "tsx scripts/ci/publish.ts --pull",
     "preinstall": "node ./scripts/only-allow-pnpm.js pnpm",
     "precommit": "lint-staged",
     "eslint": "eslint",
     "lint": "eslint --fix --ext .ts .",
-    "check-engines-override": "node -r esbuild-register scripts/check-engines-override.ts",
+    "check-engines-override": "tsx scripts/check-engines-override.ts",
     "format": "prettier --write .",
     "prettier-check": "prettier --check .",
-    "bench": "ts-node scripts/bench.ts | tee output.txt",
-    "bench-stdout-only": "ts-node scripts/bench.ts",
-    "prepare": "is-ci || husky install",
-    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /reproductions",
-    "size": "pnpm run build && pnpm size-limit"
+    "bench": "tsx scripts/bench.ts | tee output.txt",
+    "bench-stdout-only": "tsx scripts/bench.ts",
+    "prepare": "is-ci || husky",
+    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
+    "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.38.0",
+    "@microsoft/api-extractor": "7.43.2",
+    "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "9.0.0",
-    "@slack/webhook": "6.1.0",
-    "@types/benchmark": "2.1.4",
+    "@slack/webhook": "7.0.2",
+    "@types/benchmark": "2.1.5",
     "@types/fs-extra": "9.0.13",
-    "@types/graphviz": "0.0.37",
-    "@types/jest": "29.5.6",
-    "@types/node": "18.18.6",
-    "@types/node-fetch": "2.6.7",
+    "@types/graphviz": "0.0.39",
+    "@types/jest": "29.5.12",
+    "@types/node": "20.12.7",
     "@types/redis": "2.8.32",
-    "@types/resolve": "1.20.4",
-    "@typescript-eslint/eslint-plugin": "5.62.0",
-    "@typescript-eslint/parser": "5.62.0",
-    "@typescript-eslint/utils": "6.9.0",
+    "@types/resolve": "1.20.6",
+    "@typescript-eslint/eslint-plugin": "7.8.0",
+    "@typescript-eslint/parser": "7.8.0",
+    "@typescript-eslint/utils": "7.8.0",
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
     "buffer": "6.0.3",
-    "chokidar": "3.5.3",
-    "dotenv-cli": "7.3.0",
-    "esbuild": "0.19.5",
+    "chokidar": "3.6.0",
+    "decimal.js-light": "2.5.1",
+    "dotenv-cli": "7.4.2",
+    "esbuild": "0.21.1",
     "esbuild-register": "3.5.0",
-    "eslint": "8.52.0",
-    "eslint-config-prettier": "9.0.0",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "9.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-import": "2.29.0",
-    "eslint-plugin-jest": "27.4.3",
-    "eslint-plugin-local-rules": "2.0.0",
+    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-jest": "28.5.0",
+    "eslint-plugin-local-rules": "2.0.1",
     "eslint-plugin-prettier": "4.2.1",
-    "eslint-plugin-simple-import-sort": "10.0.0",
-    "eventemitter3": "5.0.1",
+    "eslint-plugin-simple-import-sort": "12.1.0",
     "execa": "5.1.1",
+    "format-util": "1.0.5",
     "fs-extra": "11.1.1",
     "globby": "11.1.0",
     "graphviz-mit": "0.0.9",
-    "husky": "8.0.3",
+    "husky": "9.0.11",
     "is-ci": "3.0.1",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
-    "lint-staged": "15.0.2",
-    "node-fetch": "2.7.0",
+    "lint-staged": "15.2.2",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
     "p-retry": "4.6.2",
-    "path-browserify": "1.0.1",
     "prettier": "2.8.8",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
-    "regenerator-runtime": "0.14.0",
+    "regenerator-runtime": "0.14.1",
     "resolve": "1.22.8",
     "safe-buffer": "5.2.1",
-    "semver": "7.5.4",
+    "semver": "7.6.1",
     "size-limit": "9.0.0",
-    "spdx-exceptions": "2.3.0",
-    "spdx-license-ids": "3.0.16",
+    "spdx-exceptions": "2.5.0",
+    "spdx-license-ids": "3.0.17",
     "staged-git-files": "1.3.0",
-    "ts-node": "10.9.1",
+    "ts-node": "10.9.2",
     "ts-toolbelt": "9.6.0",
-    "tty-browserify": "0.0.1",
-    "typescript": "5.2.2",
-    "util": "0.12.5",
+    "tsx": "4.10.1",
+    "typescript": "5.4.5",
     "zx": "7.2.3"
   },
   "pnpm": {
@@ -109,11 +106,11 @@
   },
   "size-limit": [
     {
-      "path": "packages/client/runtime/library.d.ts",
+      "path": "packages/client/runtime/library.js",
       "gzip": false
     },
     {
-      "path": "packages/client/runtime/library.js",
+      "path": "packages/client/runtime/library.d.ts",
       "gzip": false
     },
     {
@@ -121,11 +118,63 @@
       "gzip": false
     },
     {
+      "path": "packages/client/runtime/binary.d.ts",
+      "gzip": false
+    },
+    {
       "path": "packages/client/runtime/edge.js",
       "gzip": false
     },
     {
+      "path": "packages/client/runtime/edge-esm.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/wasm.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/index-browser.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/runtime/index-browser.d.ts",
+      "gzip": false
+    },
+    {
       "path": "packages/cli/build/index.js",
+      "gzip": false
+    },
+    {
+      "path": "packages/client/prisma-client-0.0.0.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/cli/prisma-0.0.0.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-libsql/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-neon/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-pg/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-pg-worker/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
+      "gzip": false
+    },
+    {
+      "path": "packages/bundle-size/da-workers-d1/output.tgz",
       "gzip": false
     }
   ]

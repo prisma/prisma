@@ -27,20 +27,19 @@ import {
   getSumAggregateName,
 } from '../utils'
 import { InputField } from './../TSClient'
-import { ArgsType, MinimalArgsType } from './Args'
+import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
-import type { Generatable } from './Generatable'
-import { TS } from './Generatable'
+import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
 import { buildOutputType } from './Output'
 import { buildModelPayload } from './Payload'
-import { buildIncludeType, buildScalarSelectType, buildSelectType } from './SelectInclude'
+import { buildIncludeType, buildOmitType, buildScalarSelectType, buildSelectType } from './SelectIncludeOmit'
 import { getModelActions } from './utils/getModelActions'
 
-export class Model implements Generatable {
+export class Model implements Generable {
   protected type: DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
@@ -51,8 +50,9 @@ export class Model implements Generatable {
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
-  protected get argsTypes(): Generatable[] {
-    const argsTypes: Generatable[] = []
+
+  protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
+    const argsTypes: ts.Export<ts.TypeDeclaration>[] = []
     for (const action of Object.keys(DMMF.ModelAction)) {
       const fieldName = this.rootFieldNameForAction(action as DMMF.ModelAction)
       if (!fieldName) {
@@ -63,12 +63,27 @@ export class Model implements Generatable {
         throw new Error(`Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`)
       }
 
-      if (action === 'updateMany' || action === 'deleteMany' || action === 'createMany') {
-        argsTypes.push(new MinimalArgsType(field.args, this.type, this.context, action as DMMF.ModelAction))
-      } else if (action === 'findRaw' || action === 'aggregateRaw') {
-        argsTypes.push(new MinimalArgsType(field.args, this.type, this.context, action as DMMF.ModelAction))
+      if (
+        action === 'updateMany' ||
+        action === 'deleteMany' ||
+        action === 'createMany' ||
+        action === 'findRaw' ||
+        action === 'aggregateRaw'
+      ) {
+        argsTypes.push(
+          new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
+            .addSchemaArgs(field.args)
+            .createExport(),
+        )
       } else if (action !== 'groupBy' && action !== 'aggregate') {
-        argsTypes.push(new ArgsType(field.args, this.type, this.context, action as DMMF.ModelAction))
+        argsTypes.push(
+          new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
+            .addSelectArg()
+            .addOmitArg()
+            .addIncludeArgIfHasRelations()
+            .addSchemaArgs(field.args)
+            .createExport(),
+        )
       }
     }
 
@@ -81,13 +96,24 @@ export class Model implements Generatable {
         continue
       }
       argsTypes.push(
-        new ArgsType(field.args, fieldOutput, this.context)
+        new ArgsTypeBuilder(fieldOutput, this.context)
+          .addSelectArg()
+          .addOmitArg()
+          .addIncludeArgIfHasRelations()
+          .addSchemaArgs(field.args)
           .setGeneratedName(getModelFieldArgsName(field, this.model.name))
-          .setComment(`${this.model.name}.${field.name}`),
+          .setComment(`${this.model.name}.${field.name}`)
+          .createExport(),
       )
     }
 
-    argsTypes.push(new ArgsType([], this.type, this.context))
+    argsTypes.push(
+      new ArgsTypeBuilder(this.type, this.context)
+        .addSelectArg()
+        .addOmitArg()
+        .addIncludeArgIfHasRelations()
+        .createExport(),
+    )
 
     return argsTypes
   }
@@ -119,8 +145,8 @@ export type ${groupByArgsName}<ExtArgs extends $Extensions.InternalArgs = $Exten
 ${indent(
   groupByRootField.args
     .map((arg) => {
-      arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg)
-      return new InputField(arg, this.genericsInfo).toTS()
+      const updatedArg = { ...arg, comment: getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg) }
+      return new InputField(updatedArg, this.genericsInfo).toTS()
     })
     .concat(
       groupByType.fields
@@ -237,8 +263,8 @@ export type ${aggregateArgsName}<ExtArgs extends $Extensions.InternalArgs = $Ext
 ${indent(
   aggregateRootField.args
     .map((arg) => {
-      arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg)
-      return new InputField(arg, this.genericsInfo).toTS()
+      const updatedArg = { ...arg, comment: getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg) }
+      return new InputField(updatedArg, this.genericsInfo).toTS()
     })
     .concat(
       aggregateType.fields.map((f) => {
@@ -288,6 +314,12 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     const { model } = this
     const isComposite = this.dmmf.isComposite(model.name)
 
+    const omitType = this.context.isPreviewFeatureOn('omitApi')
+      ? ts.stringify(buildOmitType({ modelName: this.model.name, dmmf: this.dmmf, fields: this.type.fields }), {
+          newLine: 'both',
+        })
+      : ''
+
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
       ? ts.stringify(buildIncludeType({ modelName: this.model.name, dmmf: this.dmmf, fields: this.type.fields }), {
@@ -308,6 +340,7 @@ ${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.type.f
 ${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.type.fields }), {
   newLine: 'leading',
 })}
+${omitType}
 ${includeType}
 ${ts.stringify(buildModelPayload(this.model, this.dmmf), { newLine: 'both' })}
 
@@ -320,11 +353,11 @@ ${isComposite ? '' : new ModelDelegate(this.type, this.context).toTS()}
 ${new ModelFieldRefs(this.type).toTS()}
 
 // Custom InputTypes
-${this.argsTypes.map((gen) => TS(gen)).join('\n')}
+${this.argsTypes.map((type) => ts.stringify(type)).join('\n\n')}
 `
   }
 }
-export class ModelDelegate implements Generatable {
+export class ModelDelegate implements Generable {
   constructor(protected readonly outputType: DMMF.OutputType, protected readonly context: GenerateContext) {}
 
   /**
@@ -335,7 +368,9 @@ export class ModelDelegate implements Generatable {
    * @returns
    */
   private getNonAggregateActions(availableActions: DMMF.ModelAction[]): DMMF.ModelAction[] {
-    const actions = availableActions.filter((key) => key !== 'aggregate' && key !== 'groupBy' && key !== 'count')
+    const actions = availableActions.filter(
+      (key) => key !== DMMF.ModelAction.aggregate && key !== DMMF.ModelAction.groupBy && key !== DMMF.ModelAction.count,
+    )
 
     return actions
   }
@@ -353,11 +388,20 @@ export class ModelDelegate implements Generatable {
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     this.context.defaultArgsAliases.registerArgName(countArgsName)
 
+    const excludedArgsForCount = ['select', 'include', 'distinct']
+    if (this.context.isPreviewFeatureOn('omitApi')) {
+      excludedArgsForCount.push('omit')
+    }
+    if (this.context.isPreviewFeatureOn('relationJoins')) {
+      excludedArgsForCount.push('relationLoadStrategy')
+    }
+    const excludedArgsForCountType = excludedArgsForCount.map((name) => `'${name}'`).join(' | ')
+
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
     ? `type ${countArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include' | 'distinct' > & {
+  Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, ${excludedArgsForCountType}> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
 `

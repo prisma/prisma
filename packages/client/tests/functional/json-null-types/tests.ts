@@ -1,4 +1,3 @@
-import { ProviderFlavors } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -7,7 +6,7 @@ declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ providerFlavor }, _suiteMeta, clientMeta) => {
+  (_config, _suiteMeta, _clientMeta) => {
     describe('nullableJsonField', () => {
       test('JsonNull', async () => {
         const data = await prisma.nullableJsonField.create({
@@ -29,8 +28,7 @@ testMatrix.setupTestSuite(
     })
 
     describe('requiredJsonField', () => {
-      // TODO Error converting field "json" of expected non-nullable type "Json", found incompatible value of "null".
-      skipTestIf(providerFlavor === ProviderFlavors.JS_PLANETSCALE)('JsonNull', async () => {
+      test('JsonNull', async () => {
         const data = await prisma.requiredJsonField.create({
           data: {
             json: Prisma.JsonNull,
@@ -39,8 +37,7 @@ testMatrix.setupTestSuite(
         expect(data.json).toBe(null)
       })
 
-      // TODO: Edge: skipped because of the error snapshot
-      testIf(clientMeta.runtime !== 'edge')('DbNull', async () => {
+      test('DbNull', async () => {
         await expect(
           prisma.requiredJsonField.create({
             data: {
@@ -49,12 +46,12 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.requiredJsonField.create()\` invocation in
           /client/tests/functional/json-null-types/tests.ts:0:0
 
-            XX // TODO: Edge: skipped because of the error snapshot
-            XX testIf(clientMeta.runtime !== 'edge')('DbNull', async () => {
+            XX 
+            XX test('DbNull', async () => {
             XX   await expect(
           → XX     prisma.requiredJsonField.create({
                      data: {
@@ -63,7 +60,7 @@ testMatrix.setupTestSuite(
                      }
                    })
 
-          Invalid value for argument \`json\`. Expected JsonNullValueInput.
+          Invalid value for argument \`json\`. Expected JsonNullValueInput."
         `)
       })
     })
@@ -75,8 +72,7 @@ testMatrix.setupTestSuite(
         expect(Prisma.AnyNull).toBeInstanceOf(Prisma.NullTypes.AnyNull)
       })
 
-      // TODO: Edge: skipped because of the error snapshot
-      testIf(clientMeta.runtime !== 'edge')('custom instances are not allowed', async () => {
+      test('custom instances are not allowed', async () => {
         await expect(
           prisma.requiredJsonField.create({
             data: {
@@ -84,7 +80,7 @@ testMatrix.setupTestSuite(
               json: new Prisma.NullTypes.JsonNull(),
             },
           }),
-        ).rejects.toMatchPrismaErrorInlineSnapshot(`Invalid ObjectEnumValue`)
+        ).rejects.toMatchPrismaErrorInlineSnapshot(`"Invalid ObjectEnumValue"`)
       })
     })
   },

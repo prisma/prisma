@@ -67,6 +67,10 @@ export function getIncludeName(modelName: string): string {
   return `${modelName}Include`
 }
 
+export function getOmitName(modelName: string): string {
+  return `${modelName}Omit`
+}
+
 export function getFieldArgName(field: DMMF.SchemaField, modelName: string): string {
   if (field.args.length) {
     return getModelFieldArgsName(field, modelName)
@@ -113,6 +117,8 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
       return `${modelName}CreateArgs`
     case DMMF.ModelAction.createMany:
       return `${modelName}CreateManyArgs`
+    case DMMF.ModelAction.createManyAndReturn:
+      return `${modelName}CreateManyAndReturnArgs`
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
     case DMMF.ModelAction.groupBy:
@@ -126,7 +132,7 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
     case DMMF.ModelAction.aggregateRaw:
       return `${modelName}AggregateRawArgs`
     default:
-      assertNever(action, 'Unknown action')
+      assertNever(action, `Unknown action: ${action}`)
   }
 }
 
@@ -168,18 +174,22 @@ export function getReturnType({
   isChaining = false,
   isNullable = false,
 }: SelectReturnTypeOptions): string {
-  if (actionName === 'count') {
+  if (actionName === DMMF.ModelAction.count) {
     return `Promise<number>`
   }
-  if (actionName === 'aggregate') return `Promise<${getAggregateGetName(name)}<T>>`
+  if (actionName === DMMF.ModelAction.aggregate) return `Promise<${getAggregateGetName(name)}<T>>`
 
-  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
     return `Prisma.PrismaPromise<JsonObject>`
   }
 
-  const isList = actionName === DMMF.ModelAction.findMany
+  const isList = actionName === DMMF.ModelAction.findMany || actionName === DMMF.ModelAction.createManyAndReturn
 
-  if (actionName === 'deleteMany' || actionName === 'updateMany' || actionName === 'createMany') {
+  if (
+    actionName === DMMF.ModelAction.deleteMany ||
+    actionName === DMMF.ModelAction.updateMany ||
+    actionName === DMMF.ModelAction.createMany
+  ) {
     return `Prisma.PrismaPromise<BatchPayload>`
   }
 
@@ -195,21 +205,21 @@ export function getReturnType({
     }${promiseClose}`
   }
 
-  if (isChaining && actionName === 'findUniqueOrThrow') {
+  if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
     return `Prisma__${name}Client<${getType(
       `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )} | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
   }
 
-  if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
+  if (actionName === DMMF.ModelAction.findFirstOrThrow || actionName === DMMF.ModelAction.findUniqueOrThrow) {
     return `Prisma__${name}Client<${getType(
       `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )}, never, ExtArgs>`
   }
 
-  if (actionName === 'findFirst' || actionName === 'findUnique') {
+  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
     return `Prisma__${name}Client<${getType(
       `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,

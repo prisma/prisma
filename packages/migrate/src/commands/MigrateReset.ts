@@ -74,20 +74,19 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], true)
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
     if (wasDbCreated) {
-      console.info() // empty line
-      console.info(wasDbCreated)
+      process.stdout.write('\n' + wasDbCreated + '\n')
     }
 
-    console.info() // empty line
+    process.stdout.write('\n')
     if (!args['--force']) {
       if (!canPrompt()) {
         throw new MigrateResetEnvNonInteractiveError()
@@ -99,10 +98,10 @@ ${bold('Examples')}
         message: `Are you sure you want to reset your database? ${red('All data will be lost')}.`,
       })
 
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
 
       if (!confirmation.value) {
-        console.info('Reset cancelled.')
+        process.stdout.write('Reset cancelled.\n')
         // Return SIGINT exit code to signal that the process was cancelled
         process.exit(130)
       }
@@ -122,15 +121,15 @@ ${bold('Examples')}
     }
 
     if (migrationIds.length === 0) {
-      console.info(`${green('Database reset successful\n')}`)
+      process.stdout.write(`${green('Database reset successful\n')}\n`)
     } else {
-      console.info() // empty line
-      console.info(
+      process.stdout.write('\n') // empty line
+      process.stdout.write(
         `${green('Database reset successful')}
 
 The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
           'migration.sql': '',
-        })}`,
+        })}\n`,
       )
     }
 
@@ -144,16 +143,16 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
       const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
       if (seedCommandFromPkgJson) {
-        console.info() // empty line
+        process.stdout.write('\n') // empty line
         const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
         if (successfulSeeding) {
-          console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
+          process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
         } else {
           process.exit(1)
         }
       } else {
         // Only used to help users to set up their seeds from old way to new package.json config
-        const schemaPath = await getSchemaPath(args['--schema'])
+        const { schemaPath } = (await getSchemaPath(args['--schema']))!
         // we don't want to output the returned warning message
         // but we still want to run it for `legacyTsNodeScriptWarning()`
         await verifySeedConfigAndReturnMessage(schemaPath)

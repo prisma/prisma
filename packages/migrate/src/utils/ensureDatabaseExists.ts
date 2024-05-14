@@ -19,7 +19,7 @@ export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 
 
 export type DatasourceInfo = {
   name?: string // from datasource name
-  prettyProvider?: PrettyProvider | string // pretty name for the provider
+  prettyProvider?: PrettyProvider // pretty name for the provider
   url?: string // from getConfig
   dbLocation?: string // host without credentials
   dbName?: string // database name
@@ -27,6 +27,8 @@ export type DatasourceInfo = {
   schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
 }
 
+// TODO: sometimes this function is called with a `schemaPath`, even though the schema(s) have already been read from disk.
+// (e.g., check `MigrateDev.ts`).
 export async function getDatasourceInfo({
   schemaPath,
   throwIfEnvError,
@@ -147,8 +149,9 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 }
 
 export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
-  const schema = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+  const schemas = await getSchema(schemaPath)
+
+  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
@@ -219,9 +222,9 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
 /**
  * Return a pretty version of a "provider" (with uppercase characters)
  * @param provider
- * @returns PrettyProvider | string
+ * @returns PrettyProvider
  */
-export function prettifyProvider(provider: ConnectorType): PrettyProvider | string {
+export function prettifyProvider(provider: ConnectorType): PrettyProvider {
   switch (provider) {
     case 'mysql':
       return `MySQL`
@@ -236,7 +239,5 @@ export function prettifyProvider(provider: ConnectorType): PrettyProvider | stri
       return `SQL Server`
     case 'mongodb':
       return `MongoDB`
-    default:
-      return provider
   }
 }

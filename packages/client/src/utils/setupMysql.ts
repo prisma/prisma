@@ -23,6 +23,7 @@ export async function setupMysql(options: SetupParams): Promise<void> {
     user: credentials.user,
     password: credentials.password,
     multipleStatements: true,
+    allowPublicKeyRetrieval: true,
   })
 
   await db.query(schema)
@@ -42,6 +43,7 @@ export async function tearDownMysql(connectionString: string) {
     user: credentialsClone.user,
     password: credentialsClone.password,
     multipleStatements: true,
+    allowPublicKeyRetrieval: true,
   })
 
   await db.query(`

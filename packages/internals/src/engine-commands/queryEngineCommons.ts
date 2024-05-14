@@ -5,6 +5,8 @@ import fs from 'fs'
 import { bold, red } from 'kleur/colors'
 import { match, P } from 'ts-pattern'
 
+import { relativizePathInPSLError } from './relativizePathInPSLError'
+
 export function unlinkTempDatamodelPath(options: { datamodelPath?: string }, tempDatamodelPath: string | undefined) {
   return TE.tryCatch(
     () => {
@@ -67,7 +69,7 @@ export function parseQueryEngineError({ errorOutput, reason }: ParseQueryEngineE
       () => ({ _tag: 'unparsed' as const, message: errorOutput, reason }),
     ),
     E.map((errorOutputAsJSON: Record<string, string>) => {
-      const defaultMessage = red(bold(errorOutputAsJSON.message))
+      const defaultMessage = red(bold(relativizePathInPSLError(errorOutputAsJSON.message)))
       const getConfigErrorInit = match(errorOutputAsJSON)
         .with({ error_code: 'P1012' }, (eJSON) => {
           return {

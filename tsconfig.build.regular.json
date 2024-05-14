@@ -21,9 +21,8 @@
   "exclude": [
     "**/tests",
     "**/__tests__",
-    "./reproductions",
+    "./sandbox",
     "./eslint-local-rules",
-
     "**/dist",
     "**/build",
     "**/fixtures",

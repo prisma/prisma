@@ -16,7 +16,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     id ${idForProvider(provider)}
     email String @unique
     firstName String
-    lastName String
+    lastName String @map("last_name")
     posts Post[]
   }
 
