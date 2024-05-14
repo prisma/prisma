@@ -26,7 +26,7 @@ export class InMemoryFilesResolver implements FilesResolver {
   }
 
   addFile(absolutePath: string, content: string): void {
-    const dirs = absolutePath.split(path.sep)
+    const dirs = absolutePath.split(/[\\/]/)
     const fileName = dirs.pop()
     if (!fileName) {
       throw new Error(`Path is empty`)
