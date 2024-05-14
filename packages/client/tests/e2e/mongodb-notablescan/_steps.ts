@@ -4,7 +4,6 @@ import { executeSteps } from '../_utils/executeSteps'
 
 void executeSteps({
   setup: async () => {
-    await $`echo "rs.status()" | mongosh --port 27017`
     await $`pnpm install`
     await $`pnpm prisma generate`
     await $`pnpm prisma db push --force-reset --skip-generate`
@@ -15,5 +14,5 @@ void executeSteps({
   finish: async () => {
     await $`echo "done"`
   },
-  keep: true, // keep docker open to debug it
+  // keep: true, // keep docker open to debug it
 })

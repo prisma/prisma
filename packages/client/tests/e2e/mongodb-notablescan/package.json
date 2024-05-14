@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
+    "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
+    "mongodb": "6.5"
   },
   "devDependencies": {
     "@types/jest": "29.5.12",

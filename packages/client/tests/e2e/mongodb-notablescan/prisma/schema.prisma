@@ -11,7 +11,6 @@ model User {
   id       String @id @default(auto()) @map("_id") @db.ObjectId
   username String
   post     Post[]
-  matrix   Int[]
 }
 
 model Post {
