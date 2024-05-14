@@ -114,7 +114,7 @@ describe('postgresql-multischema', () => {
       "
       // *** WARNING ***
       // 
-      // These items were renamed due to their names being duplicates in the Prisma Schema Language:
+      // These items were renamed due to their names being duplicates in the Prisma schema:
       //   - Type: "enum", name: "base_status"
       //   - Type: "enum", name: "transactional_status"
       //   - Type: "model", name: "base_some_table"
@@ -226,7 +226,7 @@ describe('postgresql-multischema', () => {
       "
       // *** WARNING ***
       // 
-      // These items were renamed due to their names being duplicates in the Prisma Schema Language:
+      // These items were renamed due to their names being duplicates in the Prisma schema:
       //   - Type: "enum", name: "base_status"
       //   - Type: "enum", name: "transactional_status"
       //   - Type: "model", name: "base_some_table"
