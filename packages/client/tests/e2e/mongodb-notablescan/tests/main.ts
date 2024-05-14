@@ -6,7 +6,7 @@ afterAll(async () => {
   await prisma.$disconnect()
 })
 
-test('testy test', async () => {
+test('filters on fields with indexes', async () => {
   const users = []
   for (let i = 0; i < 10_000; i++) {
     users.push({ username: 'username' })
@@ -43,6 +43,4 @@ test('testy test', async () => {
       post: true,
     },
   })
-
-  console.log('Everything is fine!')
 })
