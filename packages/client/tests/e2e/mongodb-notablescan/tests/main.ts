@@ -33,6 +33,7 @@ test('filters on fields with indexes', async () => {
   await prisma.user.findMany({ where: { id: userId } })
   await prisma.user.findMany({ where: { id: { in: [userId] } } })
   await prisma.user.findMany({ where: { id: { in: subset.map((user) => user.id) } } })
+  // this will trigger the `update` case, which was a problem in the past: https://github.com/prisma/prisma/issues/12793
   await prisma.user.upsert({
     where: { id: userId },
     create: { id: userId, username: 'username1' },
