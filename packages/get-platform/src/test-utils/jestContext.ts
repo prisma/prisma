@@ -8,7 +8,7 @@ import tempy from 'tempy'
 /**
  * Base test context.
  */
-type BaseContext = {
+export type BaseContext = {
   tmpDir: string
   fs: FSJetpack
   mocked: {

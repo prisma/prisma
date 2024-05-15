@@ -1,1 +1,1 @@
-export { jestConsoleContext, jestContext, jestProcessContext } from './jestContext'
+export { jestConsoleContext, jestContext, jestProcessContext, type BaseContext } from './jestContext'
