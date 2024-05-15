@@ -22,6 +22,6 @@
     "@prisma/adapter-pg-worker": "workspace:*",
     "pg": "8.11.5",
     "prisma": "workspace:*",
-    "wrangler": "3.55.0"
+    "wrangler": "3.56.0"
   }
 }
