@@ -26,12 +26,19 @@ test('filters on fields with indexes', async () => {
   // This query does not use any indexes, but `notablescan` option permits
   // this kind of query because it does not contain any filters.
   const subset = await prisma.user.findMany({ take: 10 })
+  const userId = subset[0].id
 
-  // Three queries below must use an index on `_id`, which is created by
+  // Queries below must use an index on `_id`, which is created by
   // default for all MongoDB collections.
-  await prisma.user.findMany({ where: { id: subset[0].id } })
-  await prisma.user.findMany({ where: { id: { in: [subset[0].id] } } })
+  await prisma.user.findMany({ where: { id: userId } })
+  await prisma.user.findMany({ where: { id: { in: [userId] } } })
   await prisma.user.findMany({ where: { id: { in: subset.map((user) => user.id) } } })
+  // this will trigger the `update` case, which was a problem in the past: https://github.com/prisma/prisma/issues/12793
+  await prisma.user.upsert({
+    where: { id: userId },
+    create: { id: userId, username: 'username1' },
+    update: { username: 'username1' },
+  })
 
   // This query must use an index on `authorId` field we defined in Prisma Schema when
   // fetching the `Post` relation.

@@ -49,7 +49,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
   '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz':
-    resolution: {integrity: sha512-4jZ7hH/Zl+YmNNvHbdfUC5cNlOA4CM2uaa79WIJAGzj0NEZ50KYFqTZ7QVW3yw70mzC0Qol388VHVFFLGjUmBg==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-mi6XilOllFb0JERfnoh1Ui2f+bekgpXS54SMRwtOb1rJ+eBdoYfds8V+OLDK58edu262f+xJXBcFJKpKomR8UQ==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=16.13'}
     peerDependencies:
@@ -219,7 +219,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
   prisma@file:../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-kiFeRqGsLewjWWBMBvK61yhHREZfhJshpo6g6fHfuONGUyn2uNdQb5aP+cJCG5aKSHWPHvaxOk43OVVe7rdztQ==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-fKHLwm4RLyzAZZiwa8V8wu/OmnwOrsxIpBtyD5wbSCd5iIqnw/0ccuu4e6o8asrijpR1ghyulfnRQBs8OIXFZA==, tarball: file:../../tmp/prisma-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=16.13'}
     hasBin: true
