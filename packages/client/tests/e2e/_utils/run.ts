@@ -1,8 +1,9 @@
 import { arg } from '@prisma/internals'
-import { existsSync } from 'fs'
+import { createReadStream, existsSync } from 'fs'
 import fs from 'fs/promises'
 import glob from 'globby'
 import path from 'path'
+import { pipeline } from 'stream/promises'
 import { $, ProcessOutput, sleep } from 'zx'
 
 const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
@@ -116,6 +117,12 @@ async function main() {
     return async () => {
       const result =
         await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+
+      await $`docker compose ${composeFileArgs} -p ${projectName} logs > ${path.join(
+        e2eRoot,
+        testPath,
+        'LOGS.docker.txt',
+      )}`
       await $`docker compose ${composeFileArgs} -p ${projectName} stop`
       await $`docker compose ${composeFileArgs} -p ${projectName} rm -f`
       await $`docker network rm -f ${networkName}`
@@ -159,7 +166,15 @@ async function main() {
   if (args['--verbose'] === true) {
     for (const result of failedJobResults) {
       console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
-      await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
+
+      const logsPath = path.resolve(__dirname, '..', result.name, 'LOGS.txt')
+      const dockerLogsPath = path.resolve(__dirname, '..', result.name, 'LOGS.docker.txt')
+
+      if (await isFile(logsPath)) {
+        await printFile(logsPath)
+      } else if (await isFile(dockerLogsPath)) {
+        await printFile(dockerLogsPath)
+      }
       await sleep(50) // give some time for the logs to be printed (CI issue)
     }
   }
@@ -179,6 +194,22 @@ async function main() {
 async function restoreOriginalState() {
   if (args['--skipPack'] === false) {
     await $`pnpm -r exec cp package.copy.json package.json`
+  }
+}
+
+async function printFile(filePath: string) {
+  await pipeline(createReadStream(filePath), process.stdout)
+}
+
+async function isFile(filePath: string) {
+  try {
+    const stat = await fs.stat(filePath)
+    return stat.isFile()
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return false
+    }
+    throw e
   }
 }
 
