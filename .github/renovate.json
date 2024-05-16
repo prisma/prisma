@@ -249,6 +249,17 @@
       "matchPackageNames": ["checkpoint-client"],
       "matchUpdateTypes": ["patch", "minor"],
       "schedule": ["at any time"]
+    },
+    {
+      "groupName": "JS drivers",
+      "matchPackageNames": [
+        "@libsql/client",
+        "@neondatabase/serverless",
+        "@planetscale/database",
+        "pg",
+        "@types/pg"
+      ],
+      "schedule": ["before 7am on Wednesday"]
     }
   ]
 }
