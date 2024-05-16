@@ -1,5 +1,3 @@
-version: '3.8'
-
 name: prisma-prisma
 
 # For connection urls to the following instances, see
