@@ -3,7 +3,6 @@ import { D1Database } from '@cloudflare/workers-types'
 import { neon, neonConfig, Pool as NeonPool } from '@neondatabase/serverless'
 import { Client as PlanetScaleClient } from '@planetscale/database'
 import { PrismaD1 } from '@prisma/adapter-d1'
-// import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { PrismaNeon, PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPg as PrismaPgWorker } from '@prisma/adapter-pg-worker'
@@ -72,21 +71,3 @@ export const planetScalePrismaClient = new PrismaClient({
   adapter: new PrismaPlanetScale(planetScaleClient),
 })
 void planetScalePrismaClient.user.findMany()
-
-// The normal import fails with
-// The current file is a CommonJS module whose imports will produce 'require' calls; however, the referenced file is an ECMAScript module and cannot be imported with 'require'. Consider writing a dynamic 'import("@libsql/client")' call instead.
-// import { createClient } from '@libsql/client'
-// So here is a dynamic import:
-// The function is needed because top-level await is not allowed in all cases tested
-// async function libsql() {
-//   // Dynamic imports are only supported when the '--module' flag is set to 'es2020', 'es2022', 'esnext', 'commonjs', 'amd', 'system', 'umd', 'node16', or 'nodenext'.",
-//   const libsql = await import('@libsql/client')
-//   const libsqlClient = libsql.createClient({
-//     url: connectionString,
-//     authToken: '',
-//   })
-// }
-// export const libsqlPrismaClient = new PrismaClient({
-//   adapter: new PrismaLibSQL(libsqlClient),
-// })
-// void libsqlPrismaClient.user.findMany()
