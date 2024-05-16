@@ -113,33 +113,35 @@ describe('e2e sqlite', () => {
   describe('d1 migration workflow', () => {
     // See changing_all_referenced_columns_of_foreign_key_works
     // in https://github.com/prisma/prisma-engines/blob/f8f78f335fd86dea323d7fbc581fdf500d745e9a/schema-engine/sql-migration-tests/tests/migrations/foreign_keys.rs#L287-L318.
-    it('changing_all_referenced_columns_of_foreign_key_works', async () => {
-      ctx.fixture('migrate/schema-sqlite-d1-change-all-referenced-columns')
+    it.failing(
+      'changing_all_referenced_columns_of_foreign_key_works',
+      async () => {
+        ctx.fixture('migrate/schema-sqlite-d1-change-all-referenced-columns')
 
-      // Create D1 database
-      const wranglerCreateD1 = await executeWranglerD1Command(ctx, { command: 'SELECT 1;' })
-      expect(wranglerCreateD1.exitCode).toBe(0)
+        // Create D1 database
+        const wranglerCreateD1 = await executeWranglerD1Command(ctx, { command: 'SELECT 1;' })
+        expect(wranglerCreateD1.exitCode).toBe(0)
 
-      // Create `init` migration file for D1 using `wrangler d1 migrations`
-      const wranglerCreateInitMigration = await createWranglerD1Migration(ctx, { name: 'init' })
-      expect(wranglerCreateInitMigration.exitCode).toBe(0)
+        // Create `init` migration file for D1 using `wrangler d1 migrations`
+        const wranglerCreateInitMigration = await createWranglerD1Migration(ctx, { name: 'init' })
+        expect(wranglerCreateInitMigration.exitCode).toBe(0)
 
-      // Create `init` SQL migration using `prisma migrate diff`
-      const prismaCreateInitMigration = cliInstance.parse([
-        'migrate',
-        'diff',
-        '--from-empty',
-        '--to-schema-datamodel',
-        './prisma/schema.prisma',
-        '--script',
-        '--output',
-        './migrations/0001_init.sql',
-      ])
-      await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
+        // Create `init` SQL migration using `prisma migrate diff`
+        const prismaCreateInitMigration = cliInstance.parse([
+          'migrate',
+          'diff',
+          '--from-empty',
+          '--to-schema-datamodel',
+          './prisma/schema.prisma',
+          '--script',
+          '--output',
+          './migrations/0001_init.sql',
+        ])
+        await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
-      // Print the `init` SQL migration file
-      const initMigrationSQL = ctx.fs.readAsync('./migrations/0001_init.sql')
-      await expect(initMigrationSQL).resolves.toMatchInlineSnapshot(`
+        // Print the `init` SQL migration file
+        const initMigrationSQL = ctx.fs.readAsync('./migrations/0001_init.sql')
+        await expect(initMigrationSQL).resolves.toMatchInlineSnapshot(`
         "-- CreateTable
         CREATE TABLE "Post" (
             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -154,39 +156,39 @@ describe('e2e sqlite', () => {
         "
       `)
 
-      // Apply `init` migration to D1
-      const wranglerExecuteInitMigration = await applyWranglerD1Migration(ctx)
-      expect(wranglerExecuteInitMigration.exitCode).toBe(0)
+        // Apply `init` migration to D1
+        const wranglerExecuteInitMigration = await applyWranglerD1Migration(ctx)
+        expect(wranglerExecuteInitMigration.exitCode).toBe(0)
 
-      //
-      // Evolve the Prisma data model
-      //
+        //
+        // Evolve the Prisma data model
+        //
 
-      // Create `change_all_referenced_columns` migration file for D1 using `wrangler d1 migrations`
-      const wrangler2ndMigration = await createWranglerD1Migration(ctx, {
-        name: 'change_all_referenced_columns',
-      })
-      expect(wrangler2ndMigration.exitCode).toBe(0)
+        // Create `change_all_referenced_columns` migration file for D1 using `wrangler d1 migrations`
+        const wrangler2ndMigration = await createWranglerD1Migration(ctx, {
+          name: 'change_all_referenced_columns',
+        })
+        expect(wrangler2ndMigration.exitCode).toBe(0)
 
-      // Create `change_all_referenced_columns` migration SQL using `prisma migrate diff`
-      const prisma2ndMigration = cliInstance.parse([
-        'migrate',
-        'diff',
-        '--from-local-d1',
-        '--to-schema-datamodel',
-        './prisma/schema-0002_change_all_referenced_columns.prisma',
-        '--script',
-        '--output',
-        './migrations/0002_change_all_referenced_columns.sql',
-      ])
-      await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
+        // Create `change_all_referenced_columns` migration SQL using `prisma migrate diff`
+        const prisma2ndMigration = cliInstance.parse([
+          'migrate',
+          'diff',
+          '--from-local-d1',
+          '--to-schema-datamodel',
+          './prisma/schema-0002_change_all_referenced_columns.prisma',
+          '--script',
+          '--output',
+          './migrations/0002_change_all_referenced_columns.sql',
+        ])
+        await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
-      // Print the `change_all_referenced_columns` SQL migration file
-      const prisma2ndMigrationSQL = ctx.fs.readAsync('./migrations/0002_change_all_referenced_columns.sql')
-      await expect(prisma2ndMigrationSQL).resolves.toMatchInlineSnapshot(`
+        // Print the `change_all_referenced_columns` SQL migration file
+        const prisma2ndMigrationSQL = ctx.fs.readAsync('./migrations/0002_change_all_referenced_columns.sql')
+        await expect(prisma2ndMigrationSQL).resolves.toMatchInlineSnapshot(`
         "-- RedefineTables
-        PRAGMA foreign_keys=OFF;
         PRAGMA defer_foreign_keys=ON;
+        PRAGMA foreign_keys=OFF;
         CREATE TABLE "new_Post" (
             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             "authorId" INTEGER,
@@ -200,17 +202,17 @@ describe('e2e sqlite', () => {
         );
         DROP TABLE "User";
         ALTER TABLE "new_User" RENAME TO "User";
-        PRAGMA foreign_key_check("Post");
-        PRAGMA foreign_key_check("User");
-        PRAGMA defer_foreign_keys=OFF;
         PRAGMA foreign_keys=ON;
+        PRAGMA defer_foreign_keys=OFF;
         "
       `)
 
-      // Apply `change_all_referenced_columns` migration to D1
-      // TODO: Currently failing with `foreign key mismatch - "new_Post" referencing "User"`
-      await applyWranglerD1Migration(ctx)
-    }, 60_000)
+        // Apply `change_all_referenced_columns` migration to D1
+        // TODO: Currently failing with `foreign key mismatch - "new_Post" referencing "User"`
+        await applyWranglerD1Migration(ctx)
+      },
+      60_000,
+    )
 
     // See migration_tests::existing_data::primary_key_migrations_do_not_cause_data_loss
     // in https://github.com/prisma/prisma-engines/blob/6e26301fe272ba4ba0598fe43eb5d8df030be4db/schema-engine/sql-migration-tests/tests/existing_data/mod.rs#L784-L866.
@@ -302,8 +304,8 @@ describe('e2e sqlite', () => {
       const prisma2ndMigrationSQL = ctx.fs.readAsync('./migrations/0002_passport_number_to_string.sql')
       await expect(prisma2ndMigrationSQL).resolves.toMatchInlineSnapshot(`
         "-- RedefineTables
-        PRAGMA foreign_keys=OFF;
         PRAGMA defer_foreign_keys=ON;
+        PRAGMA foreign_keys=OFF;
         CREATE TABLE "new_Dog" (
             "name" TEXT NOT NULL,
             "passportNumber" TEXT NOT NULL,
@@ -322,10 +324,8 @@ describe('e2e sqlite', () => {
         INSERT INTO "new_Puppy" ("id", "motherName", "motherPassportNumber") SELECT "id", "motherName", "motherPassportNumber" FROM "Puppy";
         DROP TABLE "Puppy";
         ALTER TABLE "new_Puppy" RENAME TO "Puppy";
-        PRAGMA foreign_key_check("Dog");
-        PRAGMA foreign_key_check("Puppy");
-        PRAGMA defer_foreign_keys=OFF;
         PRAGMA foreign_keys=ON;
+        PRAGMA defer_foreign_keys=OFF;
         "
       `)
 
@@ -335,33 +335,35 @@ describe('e2e sqlite', () => {
 
     // See `migration_tests::migrations::relations::adding_mutual_references_on_existing_tables_works`
     // in https://github.com/prisma/prisma-engines/blob/main/schema-engine/sql-migration-tests/tests/migrations/relations.rs.
-    it('relations::adding_mutual_references_on_existing_tables_works', async () => {
-      ctx.fixture('migrate/schema-sqlite-d1-mutual-references')
+    it.failing(
+      'relations::adding_mutual_references_on_existing_tables_works',
+      async () => {
+        ctx.fixture('migrate/schema-sqlite-d1-mutual-references')
 
-      // Create D1 database
-      const wranglerCreateD1 = await executeWranglerD1Command(ctx, { command: 'SELECT 1;' })
-      expect(wranglerCreateD1.exitCode).toBe(0)
+        // Create D1 database
+        const wranglerCreateD1 = await executeWranglerD1Command(ctx, { command: 'SELECT 1;' })
+        expect(wranglerCreateD1.exitCode).toBe(0)
 
-      // Create `init` migration file for D1 using `wrangler d1 migrations`
-      const wranglerCreateInitMigration = await createWranglerD1Migration(ctx, { name: 'init' })
-      expect(wranglerCreateInitMigration.exitCode).toBe(0)
+        // Create `init` migration file for D1 using `wrangler d1 migrations`
+        const wranglerCreateInitMigration = await createWranglerD1Migration(ctx, { name: 'init' })
+        expect(wranglerCreateInitMigration.exitCode).toBe(0)
 
-      // Create `init` SQL migration using `prisma migrate diff`
-      const prismaCreateInitMigration = cliInstance.parse([
-        'migrate',
-        'diff',
-        '--from-empty',
-        '--to-schema-datamodel',
-        './prisma/schema.prisma',
-        '--script',
-        '--output',
-        './migrations/0001_init.sql',
-      ])
-      await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
+        // Create `init` SQL migration using `prisma migrate diff`
+        const prismaCreateInitMigration = cliInstance.parse([
+          'migrate',
+          'diff',
+          '--from-empty',
+          '--to-schema-datamodel',
+          './prisma/schema.prisma',
+          '--script',
+          '--output',
+          './migrations/0001_init.sql',
+        ])
+        await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
-      // Print the `init` SQL migration file
-      const initMigrationSQL = ctx.fs.readAsync('./migrations/0001_init.sql')
-      await expect(initMigrationSQL).resolves.toMatchInlineSnapshot(`
+        // Print the `init` SQL migration file
+        const initMigrationSQL = ctx.fs.readAsync('./migrations/0001_init.sql')
+        await expect(initMigrationSQL).resolves.toMatchInlineSnapshot(`
         "-- CreateTable
         CREATE TABLE "A" (
             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
@@ -374,39 +376,39 @@ describe('e2e sqlite', () => {
         "
       `)
 
-      // Apply `init` migration to D1
-      const wranglerExecuteInitMigration = await applyWranglerD1Migration(ctx)
-      expect(wranglerExecuteInitMigration.exitCode).toBe(0)
+        // Apply `init` migration to D1
+        const wranglerExecuteInitMigration = await applyWranglerD1Migration(ctx)
+        expect(wranglerExecuteInitMigration.exitCode).toBe(0)
 
-      //
-      // Evolve the Prisma data model
-      //
+        //
+        // Evolve the Prisma data model
+        //
 
-      // Create `add_mutual_references` migration file for D1 using `wrangler d1 migrations`
-      const wrangler2ndMigration = await createWranglerD1Migration(ctx, {
-        name: 'add_mutual_references',
-      })
-      expect(wrangler2ndMigration.exitCode).toBe(0)
+        // Create `add_mutual_references` migration file for D1 using `wrangler d1 migrations`
+        const wrangler2ndMigration = await createWranglerD1Migration(ctx, {
+          name: 'add_mutual_references',
+        })
+        expect(wrangler2ndMigration.exitCode).toBe(0)
 
-      // Create `add_mutual_references` migration SQL using `prisma migrate diff`
-      const prisma2ndMigration = cliInstance.parse([
-        'migrate',
-        'diff',
-        '--from-local-d1',
-        '--to-schema-datamodel',
-        './prisma/schema-0002_add_mutual_references.prisma',
-        '--script',
-        '--output',
-        './migrations/0002_add_mutual_references.sql',
-      ])
-      await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
+        // Create `add_mutual_references` migration SQL using `prisma migrate diff`
+        const prisma2ndMigration = cliInstance.parse([
+          'migrate',
+          'diff',
+          '--from-local-d1',
+          '--to-schema-datamodel',
+          './prisma/schema-0002_add_mutual_references.prisma',
+          '--script',
+          '--output',
+          './migrations/0002_add_mutual_references.sql',
+        ])
+        await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
-      // Print the `add_mutual_references` SQL migration file
-      const prisma2ndMigrationSQL = ctx.fs.readAsync('./migrations/0002_add_mutual_references.sql')
-      await expect(prisma2ndMigrationSQL).resolves.toMatchInlineSnapshot(`
+        // Print the `add_mutual_references` SQL migration file
+        const prisma2ndMigrationSQL = ctx.fs.readAsync('./migrations/0002_add_mutual_references.sql')
+        await expect(prisma2ndMigrationSQL).resolves.toMatchInlineSnapshot(`
         "-- RedefineTables
-        PRAGMA foreign_keys=OFF;
         PRAGMA defer_foreign_keys=ON;
+        PRAGMA foreign_keys=OFF;
         CREATE TABLE "new_A" (
             "id" INTEGER NOT NULL,
             "name" TEXT NOT NULL,
@@ -427,17 +429,17 @@ describe('e2e sqlite', () => {
         DROP TABLE "B";
         ALTER TABLE "new_B" RENAME TO "B";
         CREATE UNIQUE INDEX "B_email_key" ON "B"("email");
-        PRAGMA foreign_key_check("A");
-        PRAGMA foreign_key_check("B");
-        PRAGMA defer_foreign_keys=OFF;
         PRAGMA foreign_keys=ON;
+        PRAGMA defer_foreign_keys=OFF;
         "
       `)
 
-      // Apply `add_mutual_references` migration to D1
-      // TODO: currently fails with `foreign key mismatch - "new_A" referencing "B"`
-      await applyWranglerD1Migration(ctx)
-    }, 60_000)
+        // Apply `add_mutual_references` migration to D1
+        // TODO: currently fails with `foreign key mismatch - "new_A" referencing "B"`
+        await applyWranglerD1Migration(ctx)
+      },
+      60_000,
+    )
 
     it('issue #24208', async () => {
       ctx.fixture('migrate/schema-sqlite-d1-24208')
@@ -533,8 +535,8 @@ describe('e2e sqlite', () => {
       const prisma2ndMigrationSQL = ctx.fs.readAsync('./migrations/0002_rename_new_field.sql')
       await expect(prisma2ndMigrationSQL).resolves.toMatchInlineSnapshot(`
         "-- RedefineTables
-        PRAGMA foreign_keys=OFF;
         PRAGMA defer_foreign_keys=ON;
+        PRAGMA foreign_keys=OFF;
         CREATE TABLE "new_User" (
             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -546,9 +548,8 @@ describe('e2e sqlite', () => {
         DROP TABLE "User";
         ALTER TABLE "new_User" RENAME TO "User";
         CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-        PRAGMA foreign_key_check("User");
-        PRAGMA defer_foreign_keys=OFF;
         PRAGMA foreign_keys=ON;
+        PRAGMA defer_foreign_keys=OFF;
         "
       `)
 
@@ -634,8 +635,8 @@ describe('e2e sqlite', () => {
       const prisma2ndMigrationSQL = ctx.fs.readAsync('./migrations/0002_add_count_to_user_table.sql')
       await expect(prisma2ndMigrationSQL).resolves.toMatchInlineSnapshot(`
         "-- RedefineTables
-        PRAGMA foreign_keys=OFF;
         PRAGMA defer_foreign_keys=ON;
+        PRAGMA foreign_keys=OFF;
         CREATE TABLE "new_User" (
             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             "email" TEXT NOT NULL,
@@ -646,9 +647,8 @@ describe('e2e sqlite', () => {
         DROP TABLE "User";
         ALTER TABLE "new_User" RENAME TO "User";
         CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-        PRAGMA foreign_key_check("User");
-        PRAGMA defer_foreign_keys=OFF;
         PRAGMA foreign_keys=ON;
+        PRAGMA defer_foreign_keys=OFF;
         "
       `)
 
@@ -693,8 +693,8 @@ describe('e2e sqlite', () => {
       const prisma3dMigrationSQL = ctx.fs.readAsync('./migrations/0003_change_user_id_to_count.sql')
       await expect(prisma3dMigrationSQL).resolves.toMatchInlineSnapshot(`
         "-- RedefineTables
-        PRAGMA foreign_keys=OFF;
         PRAGMA defer_foreign_keys=ON;
+        PRAGMA foreign_keys=OFF;
         CREATE TABLE "new_Post" (
             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             "title" TEXT NOT NULL,
@@ -716,10 +716,8 @@ describe('e2e sqlite', () => {
         DROP TABLE "User";
         ALTER TABLE "new_User" RENAME TO "User";
         CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-        PRAGMA foreign_key_check("Post");
-        PRAGMA foreign_key_check("User");
-        PRAGMA defer_foreign_keys=OFF;
         PRAGMA foreign_keys=ON;
+        PRAGMA defer_foreign_keys=OFF;
         "
       `)
 
