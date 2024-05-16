@@ -210,7 +210,9 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
     return credentials.uri!
   }
 
-  if (credentials.host && credentials.port) {
+  if (credentials.socket) {
+    return `unix:${credentials.socket}`
+  } else if (credentials.host && credentials.port) {
     return `${credentials.host}:${credentials.port}`
   } else if (credentials.host) {
     return `${credentials.host}`
