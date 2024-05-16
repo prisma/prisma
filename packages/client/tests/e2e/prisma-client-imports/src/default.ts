@@ -3,7 +3,6 @@ import { D1Database } from '@cloudflare/workers-types'
 import { neon, neonConfig, Pool as NeonPool } from '@neondatabase/serverless'
 import { Client as PlanetScaleClient } from '@planetscale/database'
 import { PrismaD1 } from '@prisma/adapter-d1'
-// import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { PrismaNeon, PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPg as PrismaPgWorker } from '@prisma/adapter-pg-worker'
@@ -79,4 +78,3 @@ export const planetScalePrismaClient = new PrismaClient({
 })
 void planetScalePrismaClient.user.findMany()
 
-// TODO libsql
