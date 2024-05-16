@@ -33,22 +33,24 @@ const allOptions = [
   { module: 'ESNext', moduleResolution: 'Bundler' },
 ]
 
-test('custom import via dependency', () => {
-  for (const options of allOptions) {
-    typeCheck(depTs, options)
-  }
-})
+describe('Typechecking', () => {
+  test('custom import via dependency', () => {
+    for (const options of allOptions) {
+      typeCheck(depTs, options)
+    }
+  })
 
-test('custom direct import', () => {
-  for (const options of allOptions) {
-    typeCheck(noDepTs, options)
-  }
-})
+  test('custom direct import', () => {
+    for (const options of allOptions) {
+      typeCheck(noDepTs, options)
+    }
+  })
 
-test('default import', () => {
-  for (const options of allOptions) {
-    typeCheck(defaultTs, options)
-  }
+  test('default import', () => {
+    for (const options of allOptions) {
+      typeCheck(defaultTs, options)
+    }
+  })
 })
 
 /*
@@ -56,7 +58,7 @@ test('default import', () => {
  * Some options needs to be filtered out because they would fail with:
  * The current file is a CommonJS module whose imports will produce 'require' calls; however, the referenced file is an ECMAScript module and cannot be imported with 'require'. Consider writing a dynamic 'import("@libsql/client")' call instead.
  */
-describe('ESM only packages', () => {
+describe('Typechecking: ESM only packages', () => {
   const esmCompatibleOptions = allOptions.filter((options) => {
     return (
       options.module !== 'Node16' &&
