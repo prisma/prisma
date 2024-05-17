@@ -174,7 +174,9 @@ async function main(): Promise<number> {
   }
 
   // Success
-  console.log(result)
+  if (result.length > 0) {
+    console.log(result)
+  }
 
   /**
    * Prepare data and run the Checkpoint Client

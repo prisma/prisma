@@ -54,6 +54,7 @@ describe('--early-access flag', () => {
 
          --early-access    Enable early access features
                 --token    Specify a token to use for authentication
+                --quiet    Omit all non-error output
 
       Examples
 

@@ -25,6 +25,8 @@ export class CLI implements Command {
       '--preview-feature': Boolean,
       '--early-access': Boolean,
       '--telemetry-information': String,
+      '--quiet': Boolean,
+      '--silent': '--quiet',
     })
 
     if (isError(args)) {
@@ -58,6 +60,8 @@ export class CLI implements Command {
       logger.warn('')
     }
 
+    const isQuietMode = args['--quiet']
+
     const cmd = this.cmds[cmdName]
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
@@ -76,7 +80,13 @@ export class CLI implements Command {
         argsForCmd = args._.slice(1)
       }
 
-      return cmd.parse(argsForCmd)
+      const message = await cmd.parse(argsForCmd)
+
+      if (isQuietMode) {
+        return isError(message) ? message : ''
+      } else {
+        return message
+      }
     }
     // unknown command
     return unknownCommand(this.help() as string, args._[0])

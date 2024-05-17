@@ -1,9 +1,22 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { Command } from '@prisma/internals'
 import { DbPull } from '@prisma/migrate'
 
 import { CLI } from '../../CLI'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+
+class FakeCommand implements Command {
+  public static mockParse = jest.fn()
+
+  public static new(): FakeCommand {
+    return new FakeCommand()
+  }
+
+  public async parse(_argv: string[]): Promise<string | Error> {
+    return await FakeCommand.mockParse()
+  }
+}
 
 const cliInstance = CLI.new(
   {
@@ -32,6 +45,7 @@ const cliInstance = CLI.new(
     // validate: Validate.new(),
     // format: Format.new(),
     // telemetry: Telemetry.new(),
+    fake_command: FakeCommand.new(),
   },
   ['version', 'init', 'migrate', 'db', 'introspect', 'dev', 'studio', 'generate', 'validate', 'format', 'telemetry'],
 )
@@ -79,4 +93,22 @@ it('introspect should include deprecation warning', async () => {
     prisma:warn "
   `)
   expect(ctx.mocked['console.error'].mock.calls).toHaveLength(0)
+})
+
+describe('quiet flag', () => {
+  it('ignores command output if it succeeds', async () => {
+    FakeCommand.mockParse.mockResolvedValue('fake_command result')
+
+    await cliInstance.parse(['--quiet', 'fake_command'])
+
+    expect(ctx.mocked['console.log'].mock.calls).toHaveLength(0)
+  })
+
+  it('still logs errors if the command throws', async () => {
+    FakeCommand.mockParse.mockRejectedValue('error in fake_command')
+
+    const result = cliInstance.parse(['--quiet', 'fake_command'])
+
+    await expect(result).rejects.toMatchInlineSnapshot(`"error in fake_command"`)
+  })
 })

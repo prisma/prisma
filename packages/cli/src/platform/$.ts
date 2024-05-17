@@ -26,6 +26,7 @@ export class $ implements Command {
     options: [
       ['--early-access', '', 'Enable early access features'],
       ['--token', '', 'Specify a token to use for authentication'],
+      ['--quiet', '', 'Omit all non-error output'],
     ],
     examples: ['prisma platform auth login', 'prisma platform project create --workspace <id>'],
     additionalContent: [
