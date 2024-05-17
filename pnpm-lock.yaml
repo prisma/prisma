@@ -606,8 +606,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
-        version: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
+        specifier: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
+        version: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -633,8 +633,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
-        version: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
+        specifier: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
+        version: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -852,8 +852,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
-        version: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
+        specifier: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
+        version: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -889,8 +889,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
-        version: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
+        specifier: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
+        version: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1214,8 +1214,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
-        version: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
+        specifier: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
+        version: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1374,8 +1374,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
-        version: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
+        specifier: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
+        version: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1526,8 +1526,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
-        version: 5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff
+        specifier: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
+        version: 5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -3602,8 +3602,8 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff:
-    resolution: {integrity: sha512-LaVw8tpyzeG/QSN5ANkB5MWLWrO7xnB77NHNSMNf9s9pBachwO+0y70i483A9LGYPasYFOdQsIRB/p6b8lsSAg==}
+  /@prisma/engines-version@5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d:
+    resolution: {integrity: sha512-+M1lOtivlNsCp9wBZPg1vFD66NiTyQ5ank0p++nNKC0Vjio63tw4aOeKtzci3veJnupuL6C2Wqih0GwbtX2c1w==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3611,12 +3611,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff:
-    resolution: {integrity: sha512-FGyf9R/qipmCmZ8H7xb1EfH2KfYz5akfXTtON32k9PgrKA2k7h1PAlZXI7JWAYB06HTb5KNRJcpxaNih1W8ueQ==}
+  /@prisma/prisma-schema-wasm@5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d:
+    resolution: {integrity: sha512-PekaBeJMyLRvJKs4q3IGDciEo1fHi++S6c0i4EcHx9lW1wDoxYKcIjPLWTIATElVHwzkUr+SG+tMEOKFevtwng==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff:
-    resolution: {integrity: sha512-KC+iqRmAmyZEuLWWuO3LWAOsZJxrxOr1QtMCKaSAoTkQtyplAvQ/5PNJGiIxSiBmn94T9drZwttVcfZAspdTIg==}
+  /@prisma/query-engine-wasm@5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d:
+    resolution: {integrity: sha512-lWxJT77m4wj1EznqODQCppVzRocrG3ts+wViOcrhftJgl5Rmep4jLHTcPm4+KSCcT3sEv1DfNhegY2zsLzbq3Q==}
     dev: true
 
   /@prisma/studio-common@0.500.0:

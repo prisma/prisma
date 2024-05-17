@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.15.0-3.97f638f5e0f371a1a553cf726f9d597bbe811bff",
+    "@prisma/prisma-schema-wasm": "5.15.0-4.integration-fix-sqlite-d1-migrations-93d288241fddb3768c310aeceb6b0120145c6f6d",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
