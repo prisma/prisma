@@ -6,6 +6,7 @@ import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import {
+  extArgsParam,
   getAggregateArgsName,
   getAggregateGetName,
   getAggregateInputType,
@@ -18,12 +19,14 @@ import {
   getGroupByArgsName,
   getGroupByName,
   getGroupByPayloadName,
+  getIncludeName,
   getMaxAggregateName,
   getMinAggregateName,
   getModelArgName,
   getModelFieldArgsName,
   getPayloadName,
   getReturnType,
+  getSelectName,
   getSumAggregateName,
 } from '../utils'
 import { InputField } from './../TSClient'
@@ -72,6 +75,25 @@ export class Model implements Generable {
       ) {
         argsTypes.push(
           new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
+            .addSchemaArgs(field.args)
+            .createExport(),
+        )
+      } else if (action === 'createManyAndReturn') {
+        argsTypes.push(
+          new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
+            .addSelectArg(
+              ts.omit(
+                ts.namedType(getSelectName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
+                ts.stringLiteral('_count'),
+              ),
+            )
+            .addOmitArg()
+            .addIncludeArgIfHasRelations(
+              ts.omit(
+                ts.namedType(getIncludeName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
+                ts.stringLiteral('_count'),
+              ),
+            )
             .addSchemaArgs(field.args)
             .createExport(),
         )

@@ -133,6 +133,111 @@ testMatrix.setupTestSuite(
         },
       ])
     })
+
+    test.only('should fail include on the user side', async () => {
+      const email1 = faker.internet.email()
+
+      const users = await prisma.user.createManyAndReturn({
+        include: {
+          posts: true,
+        },
+        data: [
+          {
+            email: email1,
+          },
+        ],
+      })
+    })
+
+    test('take should fail', async () => {
+      const email1 = faker.internet.email()
+
+      await expect(
+        prisma.user.createManyAndReturn({
+          // @ts-expect-error
+          take: 1,
+          data: [
+            {
+              email: email1,
+            },
+          ],
+        }),
+      ).rejects.toThrow('Unknown argument `take`')
+    })
+
+    test('orderBy should fail', async () => {
+      const email1 = faker.internet.email()
+
+      await expect(
+        prisma.user.createManyAndReturn({
+          // @ts-expect-error
+          orderBy: {
+            email: 'asc',
+          },
+          data: [
+            {
+              email: email1,
+            },
+          ],
+        }),
+      ).rejects.toThrow('Unknown argument `orderBy`.')
+    })
+
+    test('distinct should fail', async () => {
+      const email1 = faker.internet.email()
+
+      await expect(
+        prisma.user.createManyAndReturn({
+          // @ts-expect-error
+          distinct: 'id',
+          data: [
+            {
+              email: email1,
+            },
+          ],
+        }),
+      ).rejects.toThrow('Unknown argument `distinct`.')
+    })
+
+    test('select _count should fail', async () => {
+      const email1 = faker.internet.email()
+
+      await expect(
+        prisma.user.createManyAndReturn({
+          select: {
+            // @ts-expect-error
+            _count: true,
+          },
+          data: [
+            {
+              email: email1,
+            },
+          ],
+        }),
+      ).rejects.toThrow(
+        'Unknown field `_count` for select statement on model `CreateManyUserAndReturnOutputType`. Available options are marked with ?.',
+      )
+    })
+
+    test('include _count should fail', async () => {
+      const email1 = faker.internet.email()
+
+      await expect(
+        prisma.user.createManyAndReturn({
+          include: {
+            // @ts-expect-error
+            _count: true,
+          },
+          data: [
+            {
+              email: email1,
+            },
+          ],
+        }),
+      ).rejects.toThrow(
+        'Unknown field `_count` for include statement on model `CreateManyUserAndReturnOutputType`. Available options are marked with ?.',
+      )
+    })
   },
   {
     skipDriverAdapter: {
