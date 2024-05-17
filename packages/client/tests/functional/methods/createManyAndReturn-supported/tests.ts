@@ -134,19 +134,22 @@ testMatrix.setupTestSuite(
       ])
     })
 
-    test.only('should fail include on the user side', async () => {
+    test('should fail include on the user side', async () => {
       const email1 = faker.internet.email()
 
-      const users = await prisma.user.createManyAndReturn({
-        include: {
-          posts: true,
-        },
-        data: [
-          {
-            email: email1,
+      await expect(
+        prisma.user.createManyAndReturn({
+          // @ts-expect-error
+          include: {
+            posts: true,
           },
-        ],
-      })
+          data: [
+            {
+              email: email1,
+            },
+          ],
+        }),
+      ).rejects.toThrow('Unknown field `posts` for include statement on model `CreateManyUserAndReturnOutputType`.')
     })
 
     test('take should fail', async () => {
@@ -224,8 +227,8 @@ testMatrix.setupTestSuite(
 
       await expect(
         prisma.user.createManyAndReturn({
+          // @ts-expect-error
           include: {
-            // @ts-expect-error
             _count: true,
           },
           data: [
