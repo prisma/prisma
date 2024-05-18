@@ -39,7 +39,7 @@
     "log-update": "4.0.0",
     "mariadb": "3.3.0",
     "mock-stdin": "1.0.0",
-    "mongoose": "8.3.4",
+    "mongoose": "8.4.0",
     "mssql": "10.0.2",
     "ora": "5.4.1",
     "pg": "8.11.5",
