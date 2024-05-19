@@ -123,7 +123,7 @@ export class MigrateNew implements Command {
       process.stdout.write(
         `\nThe following migration have been created:\n\n${printMigrationId(
           createMigrationResult.generatedMigrationName!,
-        )}\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor('prisma migrate dev'))}`,
+        )}\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor('prisma migrate deploy'))}`,
       )
     } finally {
       migrate.stop()

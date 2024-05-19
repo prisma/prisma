@@ -135,7 +135,7 @@ describe('sqlite', () => {
 
     20201231000000_first
 
-    You can now edit it and apply it by running prisma migrate dev"
+    You can now edit it and apply it by running prisma migrate deploy"
     `)
   })
 
@@ -157,7 +157,7 @@ describe('sqlite', () => {
 
       20201231000000_first
 
-      You can now edit it and apply it by running prisma migrate dev"
+      You can now edit it and apply it by running prisma migrate deploy"
     `)
   })
 })
@@ -213,7 +213,7 @@ describe('postgresql', () => {
 
       20201231000000_
 
-      You can now edit it and apply it by running prisma migrate dev"
+      You can now edit it and apply it by running prisma migrate deploy"
     `)
   })
 
@@ -232,7 +232,7 @@ describe('postgresql', () => {
 
       20201231000000_
 
-      You can now edit it and apply it by running prisma migrate dev"
+      You can now edit it and apply it by running prisma migrate deploy"
     `)
   })
 
@@ -251,7 +251,7 @@ describe('postgresql', () => {
 
       20201231000000_
 
-      You can now edit it and apply it by running prisma migrate dev"
+      You can now edit it and apply it by running prisma migrate deploy"
     `)
   })
 })
@@ -306,7 +306,7 @@ describe('mysql', () => {
 
       20201231000000_
 
-      You can now edit it and apply it by running prisma migrate dev"
+      You can now edit it and apply it by running prisma migrate deploy"
     `)
   })
 
@@ -324,7 +324,7 @@ describe('mysql', () => {
 
       20201231000000_
 
-      You can now edit it and apply it by running prisma migrate dev"
+      You can now edit it and apply it by running prisma migrate deploy"
     `)
   })
 
@@ -342,7 +342,7 @@ describe('mysql', () => {
 
       20201231000000_
 
-      You can now edit it and apply it by running prisma migrate dev"
+      You can now edit it and apply it by running prisma migrate deploy"
     `)
   })
 })
