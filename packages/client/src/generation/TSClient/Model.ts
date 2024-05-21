@@ -52,7 +52,7 @@ export class Model implements Generable {
     this.genericsInfo = context.genericArgsInfo
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
 
-    this.createManyAndReturnType = this.context.dmmf.outputTypeMap.model[`CreateMany${model.name}AndReturnOutputType`]
+    this.createManyAndReturnType = this.context.dmmf.outputTypeMap.model[getSelectCreateManyAndReturnName(model.name)]
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
 

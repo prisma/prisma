@@ -19,6 +19,10 @@ export function getIncludeCreateManyAndReturnName(modelName: string): string {
   return `${modelName}IncludeCreateManyAndReturn`
 }
 
+export function getCreateManyAndReturnOutputType(modelName: string): string {
+  return `CreateMany${modelName}AndReturnOutputType`
+}
+
 export function getOmitName(modelName: string): string {
   return `${modelName}Omit`
 }
