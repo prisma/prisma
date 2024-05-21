@@ -11,6 +11,7 @@ import {
 import { bold } from 'kleur/colors'
 
 import { ConnectorType } from './printDatasources'
+import { getSocketFromDatabaseCredentials } from './unixSocket'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB' | 'MongoDB'
@@ -210,8 +211,10 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
     return credentials.uri!
   }
 
-  if (credentials.socket) {
-    return `unix:${credentials.socket}`
+  const socket = getSocketFromDatabaseCredentials(credentials)
+
+  if (socket) {
+    return `unix:${socket}`
   } else if (credentials.host && credentials.port) {
     return `${credentials.host}:${credentials.port}`
   } else if (credentials.host) {
