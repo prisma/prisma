@@ -117,6 +117,12 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   private checkForTooManyEngines() {
+    // We don't show this warning for Driver Adapters,
+    // see https://github.com/prisma/team-orm/issues/1094.
+    if (this.config.adapter && ['wasm', 'edge'].includes(TARGET_BUILD_TYPE)) {
+      return
+    }
+
     if (engineInstanceCount === 10) {
       console.warn(
         `${yellow(
