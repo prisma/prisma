@@ -58,6 +58,22 @@ describe('utils', () => {
           port: 5432,
         }),
       ).toBe(null)
+
+      expect(
+        getSocketFromDatabaseCredentials({
+          type: 'postgresql',
+          host: '111.222.333.444',
+          port: 5432,
+        }),
+      ).toBe(null)
+
+      expect(
+        getSocketFromDatabaseCredentials({
+          type: 'postgresql',
+          host: '0000:1111:2222:3333:4444:5555:6666:7777',
+          port: 5432,
+        }),
+      ).toBe(null)
     })
   })
 })
