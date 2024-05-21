@@ -13,6 +13,7 @@ import {
   getAvgAggregateName,
   getCountAggregateInputName,
   getCountAggregateOutputName,
+  getCreateManyAndReturnOutputType,
   getFieldArgName,
   getFieldRefsTypeName,
   getGroupByArgsName,
@@ -52,7 +53,7 @@ export class Model implements Generable {
     this.genericsInfo = context.genericArgsInfo
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
 
-    this.createManyAndReturnType = this.context.dmmf.outputTypeMap.model[getSelectCreateManyAndReturnName(model.name)]
+    this.createManyAndReturnType = this.context.dmmf.outputTypeMap.model[getCreateManyAndReturnOutputType(model.name)]
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
 
