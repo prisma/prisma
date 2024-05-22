@@ -47,7 +47,7 @@ testMatrix.setupTestSuite(
           await client.$connect()
         }
 
-        expect(warnings.join('')).toMatchInlineSnapshot('')
+        expect(warnings.join('')).toMatchInlineSnapshot(`""`)
       },
       TIMEOUT,
     )
