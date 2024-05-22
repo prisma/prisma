@@ -227,8 +227,8 @@ importers:
         version: 3.0.2
     devDependencies:
       '@neondatabase/serverless':
-        specifier: 0.9.1
-        version: 0.9.1
+        specifier: 0.9.3
+        version: 0.9.3
       '@swc/core':
         specifier: 1.5.3
         version: 1.5.3
@@ -258,8 +258,8 @@ importers:
         specifier: 0.2.36
         version: 0.2.36(@swc/core@1.5.3)
       '@types/pg':
-        specifier: 8.11.5
-        version: 8.11.5
+        specifier: 8.11.6
+        version: 8.11.6
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2)
@@ -377,8 +377,8 @@ importers:
         specifier: 1.18.0
         version: 1.18.0
       '@types/pg':
-        specifier: 8.11.5
-        version: 8.11.5
+        specifier: 8.11.6
+        version: 8.11.6
       pg:
         specifier: 8.11.5
         version: 8.11.5
@@ -552,8 +552,8 @@ importers:
         specifier: 0.6.0
         version: 0.6.0
       '@neondatabase/serverless':
-        specifier: 0.9.1
-        version: 0.9.1
+        specifier: 0.9.3
+        version: 0.9.3
       '@opentelemetry/api':
         specifier: 1.8.0
         version: 1.8.0
@@ -666,8 +666,8 @@ importers:
         specifier: 18.19.31
         version: 18.19.31
       '@types/pg':
-        specifier: 8.11.5
-        version: 8.11.5
+        specifier: 8.11.6
+        version: 8.11.6
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -1139,8 +1139,8 @@ importers:
         specifier: 18.19.31
         version: 18.19.31
       '@types/pg':
-        specifier: 8.11.5
-        version: 8.11.5
+        specifier: 8.11.6
+        version: 8.11.6
       '@types/sqlite3':
         specifier: 3.1.11
         version: 3.1.11
@@ -1402,8 +1402,8 @@ importers:
         specifier: 18.19.31
         version: 18.19.31
       '@types/pg':
-        specifier: 8.11.5
-        version: 8.11.5
+        specifier: 8.11.6
+        version: 8.11.6
       '@types/prompts':
         specifier: 2.4.9
         version: 2.4.9
@@ -1492,8 +1492,8 @@ importers:
   packages/pg-worker:
     dependencies:
       '@types/pg':
-        specifier: 8.11.5
-        version: 8.11.5
+        specifier: 8.11.6
+        version: 8.11.6
     devDependencies:
       '@types/jest':
         specifier: 29.5.12
@@ -3447,17 +3447,10 @@ packages:
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
     requiresBuild: true
 
-  /@neondatabase/serverless@0.9.1:
-    resolution: {integrity: sha512-Xi+tVIXuaeB24BHzhr0W/4vcbb9WwIaB6yK0RsMIteLtzNB86+am6EDFovd3rYCYM1ea7rWcwte2dLOrzW7eqA==}
-    dependencies:
-      '@types/pg': 8.6.6
-    dev: true
-
   /@neondatabase/serverless@0.9.3:
     resolution: {integrity: sha512-6ZBK8asl2Z3+ADEaELvbaVVGVlmY1oAzkxxZfpmXPKFuJhbDN+5fU3zYBamsahS/Ch1zE+CVWB3R+8QEI2LMSw==}
     dependencies:
       '@types/pg': 8.11.6
-    dev: false
 
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -4338,28 +4331,12 @@ packages:
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
     dev: true
 
-  /@types/pg@8.11.5:
-    resolution: {integrity: sha512-2xMjVviMxneZHDHX5p5S6tsRRs7TpDHeeK7kTTMe/kAC/mRRNjWHjZg0rkiY+e17jXSZV3zJYDxXV8Cy72/Vuw==}
-    dependencies:
-      '@types/node': 20.12.7
-      pg-protocol: 1.6.1
-      pg-types: 4.0.2
-
   /@types/pg@8.11.6:
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
     dependencies:
       '@types/node': 20.12.7
       pg-protocol: 1.6.1
       pg-types: 4.0.2
-    dev: false
-
-  /@types/pg@8.6.6:
-    resolution: {integrity: sha512-O2xNmXebtwVekJDD+02udOncjVcMZQuTEQEMpKJ0ZRf5E7/9JJX3izhKUcUifBkyKpljyUM6BTgy2trmviKlpw==}
-    dependencies:
-      '@types/node': 20.12.7
-      pg-protocol: 1.6.1
-      pg-types: 2.2.0
-    dev: true
 
   /@types/progress@2.0.7:
     resolution: {integrity: sha512-iadjw02vte8qWx7U0YM++EybBha2CQLPGu9iJ97whVgJUT5Zq9MjAPYUnbfRI2Kpehimf1QjFJYxD0t8nqzu5w==}
