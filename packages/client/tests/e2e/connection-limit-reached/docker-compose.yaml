@@ -7,7 +7,7 @@ services:
         condition: service_healthy
 
   mysql:
-    image: mysql:8.3
+    image: mysql:lts
     command: --lower_case_table_names=1 --max_connections=2
     environment:
       - MYSQL_ROOT_PASSWORD=root
