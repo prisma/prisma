@@ -107,6 +107,13 @@ export class DMMFHelper implements DMMF.Document {
   }
 
   private buildMergedOutputTypeMap(): NamespacedTypeMap<DMMF.OutputType> {
+    if (!this.schema.outputObjectTypes.prisma) {
+      return {
+        model: keyBy(this.schema.outputObjectTypes.model, 'name'),
+        prisma: keyBy([], 'name'),
+      }
+    }
+
     return {
       model: keyBy(this.schema.outputObjectTypes.model, 'name'),
       prisma: keyBy(this.schema.outputObjectTypes.prisma, 'name'),

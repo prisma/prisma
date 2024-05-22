@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
+import { Command, arg, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
 import http from 'http'
 import { green } from 'kleur/colors'
@@ -27,7 +27,14 @@ export class Login implements Command {
     return new Login()
   }
 
-  public async parse() {
+  public async parse(argv: string[]) {
+    const args = arg(argv, {
+      // internal optimize flag to track signup attribution
+      '--optimize': Boolean,
+    })
+    if (isError(args)) return args
+
+    const optimize = args['--optimize'] ?? false
     const credentials = await credentialsFile.load()
     if (isError(credentials)) throw credentials
     if (credentials) return `Already authenticated. Run ${green(getCommandWithExecutor('prisma platform auth show --early-access'),)} to see the current user.` // prettier-ignore
@@ -40,7 +47,7 @@ export class Login implements Command {
      */
     const randomPort = 0
     const redirectUrl = await listen(server, randomPort, '127.0.0.1')
-    const loginUrl = await createLoginUrl({ connection: `github`, redirectTo: redirectUrl.href })
+    const loginUrl = await createLoginUrl({ connection: `github`, redirectTo: redirectUrl.href }, optimize)
 
     console.info('Visit the following URL in your browser to authenticate:')
     console.info(link(loginUrl.href))
@@ -53,7 +60,7 @@ export class Login implements Command {
           const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
           const token = searchParams.get('token') ?? ''
           const error = searchParams.get('error')
-          const location = new URL('/auth/cli', consoleUrl)
+          const location = new URL(getAuthPath(optimize), consoleUrl)
 
           if (error) {
             location.pathname += '/error'
@@ -101,15 +108,22 @@ export class Login implements Command {
   }
 }
 
-const createLoginUrl = async (params: { connection: string; redirectTo: string }) => {
+const getAuthPath = (optimize: boolean) => (optimize ? '/auth/optimize' : '/auth/cli')
+
+const createLoginUrl = async (params: { connection: string; redirectTo: string }, optimize: boolean) => {
   const userAgent = await getUserAgent()
   const state: State = {
     client: userAgent,
     ...params,
   }
   const stateEncoded = encodeState(state)
-  const url = new URL('/auth/cli', consoleUrl)
+  const url = new URL(getAuthPath(optimize), consoleUrl)
   url.searchParams.set('state', stateEncoded)
+
+  if (optimize) {
+    url.searchParams.set('source', 'cli')
+  }
+  
   return url
 }
 interface State {

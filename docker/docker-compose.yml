@@ -1,5 +1,3 @@
-version: '3.8'
-
 name: prisma-prisma
 
 # For connection urls to the following instances, see
@@ -75,7 +73,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:ed369e382dbaff4041ee30ae716d157d893cf4c6ccac4da017dff5fb22737212
+    image: vitess/vttestserver:mysql80@sha256:ed7f91f657b9d44e2123e029422761bfdb525df51b19917e8ccded26df313792
     restart: unless-stopped
     ports:
       - 33807:33807
