@@ -47,7 +47,7 @@ testMatrix.setupTestSuite(() => {
           posts: true,
         },
       }),
-    ).resolves.toBeArrayOfSize(numberOfUsers)
+    ).resolves.toHaveLength(numberOfUsers)
   })
 
   // It used to error on D1 with
