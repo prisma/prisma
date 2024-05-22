@@ -67,6 +67,9 @@ testMatrix.setupTestSuite(() => {
           posts: true,
         },
       }),
-    ).resolves.toBeObject()
+    ).resolves.toMatchObject({
+      id: expect.any(String),
+      // ...
+    })
   })
 })
