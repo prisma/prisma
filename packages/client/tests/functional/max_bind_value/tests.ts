@@ -6,10 +6,11 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   const posts: Pick<Post, 'id'>[] = []
+  const numberOfUsers = 200
 
   beforeAll(async () => {
     // Create x users with 2 posts each
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < numberOfUsers; i++) {
       await prisma.user.create({
         data: {
           email: `user${i}@example.com`,
@@ -46,7 +47,7 @@ testMatrix.setupTestSuite(() => {
           posts: true,
         },
       }),
-    ).resolves.toHaveLength(1)
+    ).resolves.toBeArrayOfSize(numberOfUsers)
   })
 
   // It used to error on D1 with
@@ -66,6 +67,6 @@ testMatrix.setupTestSuite(() => {
           posts: true,
         },
       }),
-    ).resolves.toHaveLength(1)
+    ).resolves.toBeObject()
   })
 })
