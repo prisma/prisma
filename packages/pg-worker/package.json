@@ -35,7 +35,7 @@
     "dist"
   ],
   "dependencies": {
-    "@types/pg": "8.11.5"
+    "@types/pg": "8.11.6"
   },
   "sideEffects": false
 }

@@ -21,7 +21,7 @@
     "@types/jest": "29.5.12",
     "@types/mssql": "9.1.5",
     "@types/node": "18.19.31",
-    "@types/pg": "8.11.5",
+    "@types/pg": "8.11.6",
     "@types/sqlite3": "3.1.11",
     "decimal.js": "10.4.3",
     "esbuild": "0.21.2",
