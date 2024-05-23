@@ -373,21 +373,12 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
+    expect(data.stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-        "
-      `)
-    } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
-        "
-      `)
-    }
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+      "
+    `)
   })
 
   it('should work and not show hints with --no-hint and --no-engine', async () => {
@@ -398,21 +389,12 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
+    expect(data.stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-        "
-      `)
-    } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-        "
-      `)
-    }
+      ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
+      "
+    `)
   })
 
   it('should warn when `url` is hardcoded', async () => {
