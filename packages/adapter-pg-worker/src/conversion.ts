@@ -1,4 +1,4 @@
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import * as pg from '@prisma/pg-worker'
 import { parse as parseArray } from 'postgres-array'
 
@@ -353,7 +353,7 @@ setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money))
  * convert it to QuaintValue::Json(Some(Null)).
  */
 function toJson(json: string): unknown {
-  return json === 'null' ? JsonNullMarker : JSON.parse(json)
+  return json
 }
 
 setTypeParser(ScalarColumnType.JSONB, toJson)

@@ -1,4 +1,4 @@
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
@@ -354,7 +354,7 @@ setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money))
  * convert it to QuaintValue::Json(Some(Null)).
  */
 function toJson(json: string): unknown {
-  return json === 'null' ? JsonNullMarker : json
+  return json
 }
 
 setTypeParser(ScalarColumnType.JSONB, toJson)

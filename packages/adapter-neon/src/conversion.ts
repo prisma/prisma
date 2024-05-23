@@ -1,5 +1,5 @@
 import { types } from '@neondatabase/serverless'
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import { parse as parseArray } from 'postgres-array'
 
 const ScalarColumnType = types.builtins
@@ -352,7 +352,7 @@ types.setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money
  * convert it to QuaintValue::Json(Some(Null)).
  */
 function toJson(json: string): unknown {
-  return json === 'null' ? JsonNullMarker : json
+  return json
 }
 
 types.setTypeParser(ScalarColumnType.JSONB, toJson)
