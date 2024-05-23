@@ -16,7 +16,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.5.3",
+    "@swc/core": "1.5.7",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/mssql": "9.1.5",

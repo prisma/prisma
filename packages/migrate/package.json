@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.5.3",
+    "@swc/core": "1.5.7",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
@@ -28,7 +28,7 @@
     "arg": "5.0.2",
     "esbuild": "0.21.3",
     "execa": "5.1.1",
-    "fp-ts": "2.16.5",
+    "fp-ts": "2.16.6",
     "fs-jetpack": "5.1.0",
     "get-stdin": "8.0.0",
     "has-yarn": "2.1.0",
