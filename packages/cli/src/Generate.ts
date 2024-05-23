@@ -51,12 +51,12 @@ ${bold('Usage')}
   ${dim('$')} prisma generate [options]
 
 ${bold('Options')}
-
           -h, --help   Display this help message
             --schema   Custom path to your Prisma schema
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
+        --no-hint     Hides the hint messages but still outputs errors and warnings
    --allow-no-models   Allow generating a client without models
 
 ${bold('Examples')}
@@ -107,6 +107,8 @@ ${bold('Examples')}
       '--data-proxy': Boolean,
       '--accelerate': Boolean,
       '--no-engine': Boolean,
+      // https://github.com/prisma/prisma/issues/22513
+      '--no-hint': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -220,8 +222,12 @@ Please run \`prisma generate\` manually.`
 
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
-        (g) => g.options?.generator.provider && parseEnvValue(g.options?.generator.provider) === 'prisma-client-js',
+        ({ options }) =>
+          options?.generator.provider && parseEnvValue(options?.generator.provider) === 'prisma-client-js',
       )
+
+      const hideHintsMode = args['--no-hint'] || false
+
       let hint = ''
       if (prismaClientJSGenerator) {
         const generator = prismaClientJSGenerator.options?.generator
@@ -240,6 +246,7 @@ When using Deno, you need to define \`output\` in the client generator section o
               ),
             )
           : '@prisma/client'
+
         const breakingChangesStr = printBreakingChangesMessage
           ? `
 
@@ -285,6 +292,7 @@ See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-cl
 
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+
         if (generator?.previewFeatures.includes('driverAdapters')) {
           if (generator?.isCustomOutput && isDeno) {
             hint = `
@@ -313,6 +321,7 @@ More information: https://pris.ly/d/client`
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         }
+        if (hideHintsMode) hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
