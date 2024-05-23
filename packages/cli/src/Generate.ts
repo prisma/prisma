@@ -252,7 +252,7 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-            const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
+        const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
 Try Prisma Accelerate for connection pooling and caching.
 ${link('https://pris.ly/cli/--accelerate')}`
 
@@ -360,7 +360,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           }
         }
       })
-      await new Promise((_) => null) // eslint-disable-line @typescript-eslint/no-unused-vars
+      await new Promise((_) => null)
     }
 
     return ''
