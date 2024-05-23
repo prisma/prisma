@@ -354,7 +354,7 @@ setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money))
  * convert it to QuaintValue::Json(Some(Null)).
  */
 function toJson(json: string): unknown {
-  return json === 'null' ? JsonNullMarker : JSON.parse(json)
+  return json === 'null' ? JsonNullMarker : json
 }
 
 setTypeParser(ScalarColumnType.JSONB, toJson)
