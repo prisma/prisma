@@ -342,14 +342,9 @@ types.setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money
 /*****************/
 
 /**
- * JsonNull are stored in JSON strings as the string "null", distinguishable from
- * the `null` value which is used by the driver to represent the database NULL.
- * By default, JSON and JSONB columns use JSON.parse to parse a JSON column value
- * and this will lead to serde_json::Value::Null in Rust, which will be interpreted
- * as DbNull.
- *
- * By converting "null" to JsonNullMarker, we can signal JsonNull in Rust side and
- * convert it to QuaintValue::Json(Some(Null)).
+ * We hand off JSON handling entirely to engines, so we keep it
+ * stringified here. This function needs to exist as otherwise
+ * the default type parser attempts to deserialise it.
  */
 function toJson(json: string): unknown {
   return json
