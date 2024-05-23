@@ -1,0 +1,9 @@
+name = "prisma-vitest-miniflare"
+main = "src/index.ts"
+compatibility_date = "2024-01-29"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "test"
+database_id = "13fe9a80-b19b-4f62-84b1-cd4e3afc3d35"

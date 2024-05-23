@@ -1,0 +1,28 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.js",
+  "scripts": {
+    "itest": "NODE_OPTIONS='--experimental-vm-modules' vitest --config ./vitest.config.integration.ts",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' vitest --config ./vitest.config.unit.ts",
+    "ts": "tsc --noEmit",
+    "db-create-migration": "tsx ./src/createMigration.mts",
+    "db-migrate": "npx wrangler d1 migrations apply test --local"
+  },
+  "dependencies": {
+    "@prisma/adapter-d1": "/tmp/prisma-adapter-d1-0.0.0.tgz",
+    "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.12",
+    "@types/node": "16.18.96",
+    "@cloudflare/vitest-pool-workers": "0.2.12",
+    "@cloudflare/workers-types": "4.20240512.0",
+    "tsx": "4.10.5",
+    "typescript": "5.4.5",
+    "vitest": "1.5",
+    "wrangler": "3.57.1",
+    "zx": "8.1.0",
+    "prisma": "/tmp/prisma-0.0.0.tgz"
+  }
+}
