@@ -56,7 +56,7 @@ ${bold('Options')}
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
-        --no-hint     Hides the hint messages but still outputs errors and warnings
+         --no-hint     Hides the hint messages but still outputs errors and warnings
    --allow-no-models   Allow generating a client without models
 
 ${bold('Examples')}
@@ -107,7 +107,6 @@ ${bold('Examples')}
       '--data-proxy': Boolean,
       '--accelerate': Boolean,
       '--no-engine': Boolean,
-      // https://github.com/prisma/prisma/issues/22513
       '--no-hint': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
@@ -161,6 +160,7 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
         allowNoModels: Boolean(args['--allow-no-models']),
+        noHints: Boolean(args['--no-hints']),
       })
 
       if (!generators || generators.length === 0) {
