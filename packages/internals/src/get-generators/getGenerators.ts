@@ -85,8 +85,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     generatorNames = [],
     postinstall,
     noEngine,
-    allowNoModels,
     noHints,
+    allowNoModels,
   } = options
 
   if (!schemaPath) {
