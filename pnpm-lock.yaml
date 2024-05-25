@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@microsoft/api-extractor':
-        specifier: 7.43.8
-        version: 7.43.8(@types/node@20.12.7)
+        specifier: 7.44.1
+        version: 7.44.1(@types/node@20.12.7)
       '@prisma/engines':
         specifier: workspace:*
         version: link:packages/engines
@@ -3393,27 +3393,27 @@ packages:
       - supports-color
     dev: true
 
-  /@microsoft/api-extractor-model@7.28.18(@types/node@20.12.7):
-    resolution: {integrity: sha512-5j8Vp4IiXD68Auccf9wP/VQ0GYfI5x3bW447SLwJOqinvnnXfNZlaYp7sj3u/LyzhrJFsynJ+tBJlN/koDGfZg==}
+  /@microsoft/api-extractor-model@7.28.19(@types/node@20.12.7):
+    resolution: {integrity: sha512-WZpzi/BWcKVTwr9owCpk8/JVdrkwSde9D9kmBzXv3KAyHWWcyo5Z32I1NfoDD1Yr1Vybk4xoeKcT3sn87kJ/0g==}
     dependencies:
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
-      '@rushstack/node-core-library': 5.0.0(@types/node@20.12.7)
+      '@rushstack/node-core-library': 5.1.0(@types/node@20.12.7)
     transitivePeerDependencies:
       - '@types/node'
     dev: true
 
-  /@microsoft/api-extractor@7.43.8(@types/node@20.12.7):
-    resolution: {integrity: sha512-rGEFjr9xnjP/5YwDpPL10BBPQnWEz7X7sSF8twHevZVJTlBFKRetMLE7v8tIw6CX1iIJeYO6NWQcUz23cGthdA==}
+  /@microsoft/api-extractor@7.44.1(@types/node@20.12.7):
+    resolution: {integrity: sha512-y070iI8RVBJrTgvjpVj2WMFlQNIJ529sbz/VQBjgKjkTCmbnn5n+o52W6cAFS8eAFt/NaHMyuvtgo6Fitecg/A==}
     hasBin: true
     dependencies:
-      '@microsoft/api-extractor-model': 7.28.18(@types/node@20.12.7)
+      '@microsoft/api-extractor-model': 7.28.19(@types/node@20.12.7)
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
-      '@rushstack/node-core-library': 5.0.0(@types/node@20.12.7)
+      '@rushstack/node-core-library': 5.1.0(@types/node@20.12.7)
       '@rushstack/rig-package': 0.5.2
-      '@rushstack/terminal': 0.11.1(@types/node@20.12.7)
-      '@rushstack/ts-command-line': 4.21.1(@types/node@20.12.7)
+      '@rushstack/terminal': 0.12.0(@types/node@20.12.7)
+      '@rushstack/ts-command-line': 4.21.2(@types/node@20.12.7)
       lodash: 4.17.21
       minimatch: 3.0.8
       resolve: 1.22.8
@@ -3656,8 +3656,8 @@ packages:
     resolution: {integrity: sha512-86kZ00QhvGud8jIQoOGOriwa6kDIMRj5JG6rW88unallBe7t+KbcSb/JmO5F8PIKj5m8VWnJ3xtAmkVFOeiLsQ==}
     dev: true
 
-  /@rushstack/node-core-library@5.0.0(@types/node@20.12.7):
-    resolution: {integrity: sha512-5VpOqJ48ADNTl3AOQlFbck6ig0fFGxT22eXAFtW0zOfCtrqJi50lyzEWjhJ8o+xyfEh+mD6ay0cJImkWJYoshg==}
+  /@rushstack/node-core-library@5.1.0(@types/node@20.12.7):
+    resolution: {integrity: sha512-SrBLOc4TkCAlDmO4bKxXCwaGL9LtD+azN5B9/8MH/db5/cJM3KX1bLzj4lZSldX7dhW7Rv5zPrX/N0UZo4JDNA==}
     peerDependencies:
       '@types/node': '*'
     peerDependenciesMeta:
@@ -3682,23 +3682,23 @@ packages:
       strip-json-comments: 3.1.1
     dev: true
 
-  /@rushstack/terminal@0.11.1(@types/node@20.12.7):
-    resolution: {integrity: sha512-DtTYA8ujZFJZUYD+dJkH3soAeOJ710Bu/5sLO5T0QBoMFR1PkCUUBYsGo9r8f2vLKSATbAJCeWH9ijoP7hhN9w==}
+  /@rushstack/terminal@0.12.0(@types/node@20.12.7):
+    resolution: {integrity: sha512-29wKzh+iW42Q2+vPit+NvkD7bhz73Iigu/LjeKWMS/393IXKepX+XbaIbjwe2VK6BB3kBIgBJzDwtd8eZAuirw==}
     peerDependencies:
       '@types/node': '*'
     peerDependenciesMeta:
       '@types/node':
         optional: true
     dependencies:
-      '@rushstack/node-core-library': 5.0.0(@types/node@20.12.7)
+      '@rushstack/node-core-library': 5.1.0(@types/node@20.12.7)
       '@types/node': 20.12.7
       supports-color: 8.1.1
     dev: true
 
-  /@rushstack/ts-command-line@4.21.1(@types/node@20.12.7):
-    resolution: {integrity: sha512-D4sNIzGqgPRPSJ3UirnpMmxlVzs+x7vL+hwC0b73CE0aflFoU87P/93Fm2QJFGYM099ErM4Usxa1JR4eICIiKw==}
+  /@rushstack/ts-command-line@4.21.2(@types/node@20.12.7):
+    resolution: {integrity: sha512-paVZW7JvhFYek5Qf5aBmSpSsmcwU8pQlmhawJbfgGhApnGq2JO2S5Vzm/SMLo2HA/rNKz/ug+BxI8dqSQ7wiRg==}
     dependencies:
-      '@rushstack/terminal': 0.11.1(@types/node@20.12.7)
+      '@rushstack/terminal': 0.12.0(@types/node@20.12.7)
       '@types/argparse': 1.0.38
       argparse: 1.0.10
       string-argv: 0.3.2
