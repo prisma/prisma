@@ -88,7 +88,7 @@ describe('postgresql-multischema', () => {
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
-        -->  schema.prisma:4
+        -->  with-schemas-in-datasource-0-value.prisma:4
          | 
        3 |   url      = env("TEST_POSTGRES_URI_MIGRATE")
        4 |   schemas  = []

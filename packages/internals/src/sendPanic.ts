@@ -9,6 +9,7 @@ import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
 
+import { getSchema } from './cli/getSchema'
 import {
   createErrorReport,
   type CreateErrorReportInput,
@@ -19,7 +20,9 @@ import {
 import type { MigrateTypes } from './migrateTypes'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
-import { mapScalarValues, maskSchema } from './utils/maskSchema'
+import { mapScalarValues, maskSchema, maskSchemas } from './utils/maskSchema'
+import { MultipleSchemas } from './utils/schemaFileInput'
+import { toSchemasContainer } from './utils/toSchemasContainer'
 
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
@@ -30,7 +33,7 @@ type SendPanic = {
   enginesVersion: string
 
   // retrieve the database version for the given schema or url, without throwing any error
-  getDatabaseVersionSafe: (args: MigrateTypes.GetDatabaseVersionParams) => Promise<string | undefined>
+  getDatabaseVersionSafe: (args: MigrateTypes.GetDatabaseVersionParams | undefined) => Promise<string | undefined>
 }
 export async function sendPanic({
   error,
@@ -38,14 +41,14 @@ export async function sendPanic({
   enginesVersion,
   getDatabaseVersionSafe,
 }: SendPanic): Promise<number> {
-  const schema: string | undefined = match(error)
+  const schema: MultipleSchemas | undefined = await match(error)
     .with({ schemaPath: P.not(P.nullish) }, (err) => {
-      return fs.readFileSync(err.schemaPath, 'utf-8')
+      return getSchema(err.schemaPath)
     })
-    .with({ schema: P.not(P.nullish) }, (err) => err.schema)
+    .with({ schema: P.not(P.nullish) }, (err) => Promise.resolve(err.schema))
     .otherwise(() => undefined)
 
-  const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
+  const maskedSchema: MultipleSchemas | undefined = schema ? maskSchemas(schema) : undefined
 
   let dbVersion: string | undefined
   if (error.area === ErrorArea.LIFT_CLI) {
@@ -57,8 +60,8 @@ export async function sendPanic({
       .with({ schema: P.not(undefined) }, ({ schema }) => {
         return {
           datasource: {
-            tag: 'SchemaString',
-            schema,
+            tag: 'Schema',
+            ...toSchemasContainer(schema),
           },
         } as const
       })
@@ -97,7 +100,7 @@ export async function sendPanic({
     operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
     platform: await getBinaryTargetForCurrentPlatform(),
     liftRequest: migrateRequest,
-    schemaFile: maskedSchema,
+    schemaFile: concatSchemaForReport(maskedSchema),
     fingerprint: await checkpoint.getSignature(),
     sqlDump: undefined,
     dbVersion: dbVersion,
@@ -121,6 +124,13 @@ export async function sendPanic({
   const id = await makeErrorReportCompleted(signedUrl)
 
   return id
+}
+
+function concatSchemaForReport(schemaFiles: MultipleSchemas | undefined) {
+  if (!schemaFiles) {
+    return undefined
+  }
+  return schemaFiles.map(([path, content]) => `// ${path}\n${content}`).join('\n')
 }
 
 function getCommand(): string {

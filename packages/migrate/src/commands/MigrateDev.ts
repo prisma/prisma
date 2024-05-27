@@ -7,10 +7,11 @@ import {
   format,
   getCommandWithExecutor,
   getConfig,
-  getSchemaPath,
+  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
+  toSchemasContainer,
   validate,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -253,7 +254,7 @@ ${bold('Examples')}
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
-        prismaSchema: migrate.getPrismaSchema(),
+        schema: toSchemasContainer((await migrate.getPrismaSchema()).schemas),
       })
       debug({ createMigrationResult })
 
@@ -322,7 +323,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
           }
         } else {
           // Only used to help users to set up their seeds from old way to new package.json config
-          const { schemaPath } = (await getSchemaPath(args['--schema']))!
+          const { schemaPath } = (await getSchemaWithPath(args['--schema']))!
           // we don't want to output the returned warning message
           // but we still want to run it for `legacyTsNodeScriptWarning()`
           await verifySeedConfigAndReturnMessage(schemaPath)
