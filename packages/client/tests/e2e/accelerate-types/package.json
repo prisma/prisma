@@ -5,7 +5,7 @@
   "scripts": {},
   "dependencies": {
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
-    "@prisma/extension-accelerate": "1.0.0"
+    "@prisma/extension-accelerate": "1.1.0"
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
