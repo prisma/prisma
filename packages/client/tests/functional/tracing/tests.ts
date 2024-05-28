@@ -10,7 +10,7 @@ import {
   SimpleSpanProcessor,
   SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { ClientEngineType } from '@prisma/internals'
 
@@ -66,8 +66,8 @@ beforeAll(() => {
 
   const basicTracerProvider = new BasicTracerProvider({
     resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: `test-name`,
-      [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
+      [SEMRESATTRS_SERVICE_NAME]: 'test-name',
+      [SEMRESATTRS_SERVICE_VERSION]: '1.0.0',
     }),
   })
 
