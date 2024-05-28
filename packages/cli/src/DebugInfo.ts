@@ -2,7 +2,7 @@ import type { Command } from '@prisma/internals'
 import {
   arg,
   format,
-  getSchemaPath,
+  getSchemaWithPath,
   HelpError,
   isCi,
   isError,
@@ -65,7 +65,7 @@ export class DebugInfo implements Command {
 
     let schemaPath
     try {
-      schemaPath = link((await getSchemaPath(args['--schema']))?.schemaPath)
+      schemaPath = link((await getSchemaWithPath(args['--schema']))?.schemaPath)
     } catch (e) {
       schemaPath = e.message
     }

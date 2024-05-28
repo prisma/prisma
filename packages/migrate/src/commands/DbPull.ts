@@ -8,12 +8,15 @@ import {
   getCommandWithExecutor,
   getConfig,
   getSchema,
-  getSchemaPath,
+  getSchemaWithPath,
   HelpError,
   link,
   loadEnvFile,
   locateLocalCloudflareD1,
+  type MultipleSchemas,
   protocolToConnectorType,
+  relativizePathInPSLError,
+  toSchemasContainer,
 } from '@prisma/internals'
 import fs from 'fs'
 import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
@@ -27,7 +30,7 @@ import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
 import { printDatasources } from '../utils/printDatasources'
-import { removeDatasource } from '../utils/removeDatasource'
+import { replaceDatasource } from '../utils/replaceDatasource'
 import { createSpinner } from '../utils/spinner'
 
 const debug = Debug('prisma:db:pull')
@@ -115,7 +118,7 @@ Set composite types introspection depth to 2 levels
 
     const url: string | undefined = args['--url']
     // getSchemaPathAndPrint is not flexible enough for this use case
-    const schemaPathResult = await getSchemaPath(args['--schema'])
+    const schemaPathResult = await getSchemaWithPath(args['--schema'])
     let schemaPath = schemaPathResult?.schemaPath ?? null
     debug('schemaPathResult', schemaPathResult)
 
@@ -155,7 +158,7 @@ Set composite types introspection depth to 2 levels
       .when(
         (input): input is { url: string | undefined; schemaPath: string; fromD1: boolean } => input.schemaPath !== null,
         async (input) => {
-          const rawSchema = fs.readFileSync(input.schemaPath, 'utf-8')
+          const rawSchema = await getSchema(input.schemaPath)
           const config = await getConfig({
             datamodel: rawSchema,
             ignoreEnvVarErrors: true,
@@ -176,7 +179,7 @@ Set composite types introspection depth to 2 levels
             // TODO: better error handling with better error message
             // Related https://github.com/prisma/prisma/issues/14732
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
-            const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n\n${removeDatasource(rawSchema)}`
+            const schema = replaceDatasource(this.urlToDatasource(input.url, providerFromSchema), rawSchema)
 
             // if providers are different the engine would return a misleading error
             // So we check here and return a better error
@@ -194,18 +197,20 @@ Set composite types introspection depth to 2 levels
               )
             }
 
-            return { firstDatasource, schema }
+            return { firstDatasource, schema, validationWarning: undefined }
           } else if (input.fromD1) {
             const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
             const pathToSQLiteFile = path.relative(path.dirname(input.schemaPath), d1Database)
 
-            const schema = this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')
+            const schema: MultipleSchemas = [
+              ['schema.prisma', this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')],
+            ]
             const config = await getConfig({
               datamodel: schema,
               ignoreEnvVarErrors: true,
             })
 
-            const result = { firstDatasource: config.datasources[0], schema }
+            const result = { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
 
             const hasDriverAdaptersPreviewFeature = (previewFeatures || []).includes('driverAdapters')
             const validationWarning = `Without the ${bold(
@@ -239,17 +244,18 @@ Set composite types introspection depth to 2 levels
 
           // TODO: `urlToDatasource(..)` doesn't generate a `generator client` block. Should it?
           // TODO: Should we also add the `Try Prisma Accelerate` comment like we do in `prisma init`?
-          const schema = `generator client {
+          const schemaContent = `generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
+          const schema: MultipleSchemas = [['schema.prisma', schemaContent]]
           const config = await getConfig({
             datamodel: schema,
             ignoreEnvVarErrors: true,
           })
 
-          return { firstDatasource: config.datasources[0], schema }
+          return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
         },
       )
       .when(
@@ -259,12 +265,12 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
           // TODO: better error handling with better error message
           // Related https://github.com/prisma/prisma/issues/14732
           protocolToConnectorType(`${input.url.split(':')[0]}:`)
-          const schema = this.urlToDatasource(input.url)
+          const schema: MultipleSchemas = [['schema.prisma', this.urlToDatasource(input.url)]]
           const config = await getConfig({
             datamodel: schema,
             ignoreEnvVarErrors: true,
           })
-          return { firstDatasource: config.datasources[0], schema }
+          return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
         },
       )
       .run()
@@ -303,10 +309,10 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
     try {
       const introspectionResult = await engine.introspect({
-        schema,
+        schema: toSchemasContainer(schema),
         force: args['--force'],
         compositeTypeDepth: args['--composite-type-depth'],
-        schemas: args['--schemas']?.split(','),
+        namespaces: args['--schemas']?.split(','),
       })
 
       introspectionSchema = introspectionResult.datamodel
@@ -362,10 +368,12 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
         /* P1012: Schema parsing error */
         process.stdout.write('\n') // empty line
 
+        const message = relativizePathInPSLError(e.message)
+
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
         // We should throw another error earlier in case the URL protocol is not compatible with the schema provider.
-        throw new Error(`${red(`${e.message}`)}
+        throw new Error(`${red(message)}
 Introspection failed as your current Prisma schema file is invalid
 
 Please fix your current schema manually (using either ${green(

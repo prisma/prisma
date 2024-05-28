@@ -375,7 +375,7 @@ describe('common/sqlite', () => {
       "P1012
 
       error: Error validating model "something": Each model must have at least one unique criteria that has only required fields. Either mark a single field with \`@id\`, \`@unique\` or add a multi field criterion with \`@@id([])\` or \`@@unique([])\` to the model.
-        -->  schema.prisma:11
+        -->  prisma/invalid.prisma:11
          | 
       10 | 
       11 | model something {

@@ -185,6 +185,32 @@ describe('sqlite', () => {
     `)
   })
 
+  it('first migration (--name) (folder)', async () => {
+    ctx.fixture('schema-folder-sqlite')
+    const result = MigrateDev.new().parse(['--name=first'])
+
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
+
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      SQLite database dev.db created at file:dev.db
+
+      Applying migration \`20201231000000_first\`
+
+      The following migration(s) have been created and applied from new schema changes:
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+
+      Your database is now in sync with your schema.
+      "
+    `)
+  })
+
   //
   // TODO: Windows: test fails with:
   //
