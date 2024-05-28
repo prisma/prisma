@@ -365,9 +365,9 @@ describe('using cli', () => {
     }
   })
 
-  it('should hide hints with --no-hint', async () => {
+  it('should hide hints with --no-hints', async () => {
     ctx.fixture('example-project')
-    const data = await ctx.cli('generate', '--no-hint')
+    const data = await ctx.cli('generate', '--no-hints')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -403,9 +403,9 @@ describe('using cli', () => {
     }
   })
 
-  it('should work and not show hints with --no-hint and --no-engine', async () => {
+  it('should work and not show hints with --no-hints and --no-engine', async () => {
     ctx.fixture('example-project')
-    const data = await ctx.cli('generate', '--no-hint', '--no-engine')
+    const data = await ctx.cli('generate', '--no-hints', '--no-engine')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)

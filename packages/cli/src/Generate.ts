@@ -56,7 +56,7 @@ ${bold('Options')}
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
-         --no-hint     Hides the hint messages but still outputs errors and warnings
+         --no-hints    Hides the hint messages but still outputs errors and warnings
    --allow-no-models   Allow generating a client without models
 
 ${bold('Examples')}
@@ -107,7 +107,7 @@ ${bold('Examples')}
       '--data-proxy': Boolean,
       '--accelerate': Boolean,
       '--no-engine': Boolean,
-      '--no-hint': Boolean,
+      '--no-hints': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -226,8 +226,6 @@ Please run \`prisma generate\` manually.`
           options?.generator.provider && parseEnvValue(options?.generator.provider) === 'prisma-client-js',
       )
 
-      const hideHintsMode = args['--no-hint'] || false
-
       let hint = ''
       if (prismaClientJSGenerator) {
         const generator = prismaClientJSGenerator.options?.generator
@@ -321,7 +319,8 @@ More information: https://pris.ly/d/client`
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         }
-        if (hideHintsMode) hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+        const hideHintMode = args['--no-hints'] || false
+        if (hideHintMode) hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
@@ -413,7 +412,6 @@ function getCurrentClientVersion(): string | null {
       }
     }
   } catch (e) {
-    //
     return null
   }
 
