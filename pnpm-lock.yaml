@@ -1482,6 +1482,9 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
+      wrangler:
+        specifier: 3.57.1
+        version: 3.57.1(@cloudflare/workers-types@4.20240524.0)
 
   packages/nextjs-monorepo-workaround-plugin:
     devDependencies:
