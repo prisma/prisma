@@ -3,10 +3,17 @@ import * as ts from 'typescript'
 
 const baseTsConfig = require('../../tsconfig.base.json').compilerOptions
 
-const depTs = path.resolve(__dirname, '..', 'src', 'dep.ts')
-const noDepTs = path.resolve(__dirname, '..', 'src', 'no-dep.ts')
-const defaultTs = path.resolve(__dirname, '..', 'src', 'default.ts')
+const dirPath = path.join(__dirname, '..', 'src')
+const depTs = path.resolve(dirPath, 'dep.ts')
+const noDepTs = path.resolve(dirPath, 'no-dep.ts')
+const defaultTs = path.resolve(dirPath, 'default.ts')
 
+const dirPathEsm = path.join(__dirname, '..', 'src', 'esm-only-pkgs')
+const depEsmTs = path.resolve(dirPathEsm, 'dep.ts')
+const noDepEsmTs = path.resolve(dirPathEsm, 'no-dep.ts')
+const defaultEsmTs = path.resolve(dirPathEsm, 'default.ts')
+
+// https://www.typescriptlang.org/tsconfig/#high-level-libraries
 const allOptions = [
   { module: 'commonjs', moduleResolution: 'Node' },
   { module: 'ES2015', moduleResolution: 'Node' },
@@ -26,25 +33,64 @@ const allOptions = [
   { module: 'ESNext', moduleResolution: 'Bundler' },
 ]
 
-test('custom import via dependency', () => {
-  for (const options of allOptions) {
-    typeCheck(depTs, options)
-  }
+describe('Typechecking', () => {
+  test('custom import via dependency', () => {
+    for (const options of allOptions) {
+      typeCheck(depTs, options)
+    }
+  })
+
+  test('custom direct import', () => {
+    for (const options of allOptions) {
+      typeCheck(noDepTs, options)
+    }
+  })
+
+  test('default import', () => {
+    for (const options of allOptions) {
+      typeCheck(defaultTs, options)
+    }
+  })
 })
 
-test('custom direct import', () => {
-  for (const options of allOptions) {
-    typeCheck(noDepTs, options)
-  }
-})
+/*
+ * @libsql/client is an ECMAScript module
+ * Some options needs to be filtered out because they would fail with:
+ * The current file is a CommonJS module whose imports will produce 'require' calls; however, the referenced file is an ECMAScript module and cannot be imported with 'require'. Consider writing a dynamic 'import("@libsql/client")' call instead.
+ */
+describe('Typechecking: ESM only packages', () => {
+  const esmCompatibleOptions = allOptions.filter((options) => {
+    return (
+      options.module !== 'Node16' &&
+      options.moduleResolution !== 'Node16' &&
+      options.module !== 'NodeNext' &&
+      options.moduleResolution !== 'NodeNext' &&
+      options.module !== 'commonjs'
+    )
+  })
 
-test('default import', () => {
-  for (const options of allOptions) {
-    typeCheck(defaultTs, options)
-  }
+  test('custom import via dependency', () => {
+    for (const options of esmCompatibleOptions) {
+      typeCheck(depEsmTs, options)
+    }
+  })
+
+  test('custom direct import', () => {
+    for (const options of esmCompatibleOptions) {
+      typeCheck(noDepEsmTs, options)
+    }
+  })
+
+  test('default import', () => {
+    for (const options of esmCompatibleOptions) {
+      typeCheck(defaultEsmTs, options)
+    }
+  })
 })
 
 function typeCheck(fileName: string, options: any) {
+  console.info(`Typechecking ${fileName} with options:`, options)
+
   const fullOptions = ts.convertCompilerOptionsFromJson(
     { ...baseTsConfig, ...options },
     path.resolve(__dirname, '..', 'tsconfig.json'),

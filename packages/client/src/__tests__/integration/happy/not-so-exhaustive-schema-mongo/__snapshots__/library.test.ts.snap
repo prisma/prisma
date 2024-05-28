@@ -2565,15 +2565,14 @@ export namespace Prisma {
     scalarList?: boolean
   }, ExtArgs["result"]["embed"]>
 
+
   export type EmbedSelectScalar = {
     text?: boolean
     boolean?: boolean
     scalarList?: boolean
   }
 
-
   export type EmbedInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
-
 
   export type $EmbedPayload = {
     name: "Embed"
@@ -2589,7 +2588,6 @@ export namespace Prisma {
       optionalEmbedEmbed: Prisma.$EmbedEmbedPayload | null
     }
   }
-
 
   type EmbedGetPayload<S extends boolean | null | undefined | EmbedDefaultArgs> = $Result.GetResult<Prisma.$EmbedPayload, S>
 
@@ -2636,11 +2634,11 @@ export namespace Prisma {
     boolean?: boolean
   }, ExtArgs["result"]["embedEmbed"]>
 
+
   export type EmbedEmbedSelectScalar = {
     text?: boolean
     boolean?: boolean
   }
-
 
 
   export type $EmbedEmbedPayload = {
@@ -2652,7 +2650,6 @@ export namespace Prisma {
     }
     composites: {}
   }
-
 
   type EmbedEmbedGetPayload<S extends boolean | null | undefined | EmbedEmbedDefaultArgs> = $Result.GetResult<Prisma.$EmbedEmbedPayload, S>
 
@@ -2856,6 +2853,7 @@ export namespace Prisma {
     author?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["post"]>
 
+
   export type PostSelectScalar = {
     id?: boolean
     createdAt?: boolean
@@ -2865,11 +2863,9 @@ export namespace Prisma {
     authorId?: boolean
   }
 
-
   export type PostInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     author?: boolean | UserDefaultArgs<ExtArgs>
   }
-
 
   export type $PostPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Post"
@@ -2886,7 +2882,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["post"]>
     composites: {}
   }
-
 
   type PostGetPayload<S extends boolean | null | undefined | PostDefaultArgs> = $Result.GetResult<Prisma.$PostPayload, S>
 
@@ -3938,6 +3933,7 @@ export namespace Prisma {
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
+
   export type UserSelectScalar = {
     id?: boolean
     email?: boolean
@@ -3956,13 +3952,11 @@ export namespace Prisma {
     embedHolderId?: boolean
   }
 
-
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     posts?: boolean | User$postsArgs<ExtArgs>
     embedHolder?: boolean | EmbedHolderDefaultArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
-
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
@@ -3989,7 +3983,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
-
 
   type UserGetPayload<S extends boolean | null | undefined | UserDefaultArgs> = $Result.GetResult<Prisma.$UserPayload, S>
 
@@ -4948,6 +4941,7 @@ export namespace Prisma {
     _count?: boolean | EmbedHolderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["embedHolder"]>
 
+
   export type EmbedHolderSelectScalar = {
     id?: boolean
     time?: boolean
@@ -4955,12 +4949,10 @@ export namespace Prisma {
     boolean?: boolean
   }
 
-
   export type EmbedHolderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     User?: boolean | EmbedHolder$UserArgs<ExtArgs>
     _count?: boolean | EmbedHolderCountOutputTypeDefaultArgs<ExtArgs>
   }
-
 
   export type $EmbedHolderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "EmbedHolder"
@@ -4979,7 +4971,6 @@ export namespace Prisma {
       optionalEmbed: Prisma.$EmbedPayload | null
     }
   }
-
 
   type EmbedHolderGetPayload<S extends boolean | null | undefined | EmbedHolderDefaultArgs> = $Result.GetResult<Prisma.$EmbedHolderPayload, S>
 
@@ -6036,6 +6027,7 @@ export namespace Prisma {
     _count?: boolean | MCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["m"]>
 
+
   export type MSelectScalar = {
     id?: boolean
     n_ids?: boolean
@@ -6053,12 +6045,10 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
-
   export type MInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     n?: boolean | M$nArgs<ExtArgs>
     _count?: boolean | MCountOutputTypeDefaultArgs<ExtArgs>
   }
-
 
   export type $MPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "M"
@@ -6083,7 +6073,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["m"]>
     composites: {}
   }
-
 
   type MGetPayload<S extends boolean | null | undefined | MDefaultArgs> = $Result.GetResult<Prisma.$MPayload, S>
 
@@ -7150,6 +7139,7 @@ export namespace Prisma {
     _count?: boolean | NCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["n"]>
 
+
   export type NSelectScalar = {
     id?: boolean
     m_ids?: boolean
@@ -7167,12 +7157,10 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
-
   export type NInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     m?: boolean | N$mArgs<ExtArgs>
     _count?: boolean | NCountOutputTypeDefaultArgs<ExtArgs>
   }
-
 
   export type $NPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "N"
@@ -7197,7 +7185,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["n"]>
     composites: {}
   }
-
 
   type NGetPayload<S extends boolean | null | undefined | NDefaultArgs> = $Result.GetResult<Prisma.$NPayload, S>
 
@@ -8260,6 +8247,7 @@ export namespace Prisma {
     _count?: boolean | OneOptionalCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["oneOptional"]>
 
+
   export type OneOptionalSelectScalar = {
     id?: boolean
     int?: boolean
@@ -8276,12 +8264,10 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
-
   export type OneOptionalInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     many?: boolean | OneOptional$manyArgs<ExtArgs>
     _count?: boolean | OneOptionalCountOutputTypeDefaultArgs<ExtArgs>
   }
-
 
   export type $OneOptionalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "OneOptional"
@@ -8305,7 +8291,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["oneOptional"]>
     composites: {}
   }
-
 
   type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalDefaultArgs> = $Result.GetResult<Prisma.$OneOptionalPayload, S>
 
@@ -9374,6 +9359,7 @@ export namespace Prisma {
     one?: boolean | ManyRequired$oneArgs<ExtArgs>
   }, ExtArgs["result"]["manyRequired"]>
 
+
   export type ManyRequiredSelectScalar = {
     id?: boolean
     oneOptionalId?: boolean
@@ -9391,11 +9377,9 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
-
   export type ManyRequiredInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     one?: boolean | ManyRequired$oneArgs<ExtArgs>
   }
-
 
   export type $ManyRequiredPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ManyRequired"
@@ -9420,7 +9404,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["manyRequired"]>
     composites: {}
   }
-
 
   type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredDefaultArgs> = $Result.GetResult<Prisma.$ManyRequiredPayload, S>
 
@@ -10485,6 +10468,7 @@ export namespace Prisma {
     opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
   }, ExtArgs["result"]["optionalSide1"]>
 
+
   export type OptionalSide1SelectScalar = {
     id?: boolean
     optionalSide2Id?: boolean
@@ -10502,11 +10486,9 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
-
   export type OptionalSide1Include<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
   }
-
 
   export type $OptionalSide1Payload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "OptionalSide1"
@@ -10531,7 +10513,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["optionalSide1"]>
     composites: {}
   }
-
 
   type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1DefaultArgs> = $Result.GetResult<Prisma.$OptionalSide1Payload, S>
 
@@ -11588,6 +11569,7 @@ export namespace Prisma {
     opti?: boolean | OptionalSide2$optiArgs<ExtArgs>
   }, ExtArgs["result"]["optionalSide2"]>
 
+
   export type OptionalSide2SelectScalar = {
     id?: boolean
     int?: boolean
@@ -11604,11 +11586,9 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
-
   export type OptionalSide2Include<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     opti?: boolean | OptionalSide2$optiArgs<ExtArgs>
   }
-
 
   export type $OptionalSide2Payload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "OptionalSide2"
@@ -11632,7 +11612,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["optionalSide2"]>
     composites: {}
   }
-
 
   type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2DefaultArgs> = $Result.GetResult<Prisma.$OptionalSide2Payload, S>
 
@@ -12635,6 +12614,7 @@ export namespace Prisma {
     bInt?: boolean
   }, ExtArgs["result"]["a"]>
 
+
   export type ASelectScalar = {
     id?: boolean
     email?: boolean
@@ -12643,7 +12623,6 @@ export namespace Prisma {
     sInt?: boolean
     bInt?: boolean
   }
-
 
 
   export type $APayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12665,7 +12644,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["a"]>
     composites: {}
   }
-
 
   type AGetPayload<S extends boolean | null | undefined | ADefaultArgs> = $Result.GetResult<Prisma.$APayload, S>
 
@@ -13577,12 +13555,12 @@ export namespace Prisma {
     dFloat?: boolean
   }, ExtArgs["result"]["b"]>
 
+
   export type BSelectScalar = {
     id?: boolean
     float?: boolean
     dFloat?: boolean
   }
-
 
 
   export type $BPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13595,7 +13573,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["b"]>
     composites: {}
   }
-
 
   type BGetPayload<S extends boolean | null | undefined | BDefaultArgs> = $Result.GetResult<Prisma.$BPayload, S>
 
@@ -14498,6 +14475,7 @@ export namespace Prisma {
     uuid?: boolean
   }, ExtArgs["result"]["c"]>
 
+
   export type CSelectScalar = {
     id?: boolean
     char?: boolean
@@ -14507,7 +14485,6 @@ export namespace Prisma {
     vBit?: boolean
     uuid?: boolean
   }
-
 
 
   export type $CPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14524,7 +14501,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["c"]>
     composites: {}
   }
-
 
   type CGetPayload<S extends boolean | null | undefined | CDefaultArgs> = $Result.GetResult<Prisma.$CPayload, S>
 
@@ -15453,6 +15429,7 @@ export namespace Prisma {
     list?: boolean
   }, ExtArgs["result"]["d"]>
 
+
   export type DSelectScalar = {
     id?: boolean
     bool?: boolean
@@ -15462,7 +15439,6 @@ export namespace Prisma {
     jsonb?: boolean
     list?: boolean
   }
-
 
 
   export type $DPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -15479,7 +15455,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["d"]>
     composites: {}
   }
-
 
   type DGetPayload<S extends boolean | null | undefined | DDefaultArgs> = $Result.GetResult<Prisma.$DPayload, S>
 
@@ -16362,13 +16337,13 @@ export namespace Prisma {
     ts?: boolean
   }, ExtArgs["result"]["e"]>
 
+
   export type ESelectScalar = {
     id?: boolean
     date?: boolean
     time?: boolean
     ts?: boolean
   }
-
 
 
   export type $EPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -16382,7 +16357,6 @@ export namespace Prisma {
     }, ExtArgs["result"]["e"]>
     composites: {}
   }
-
 
   type EGetPayload<S extends boolean | null | undefined | EDefaultArgs> = $Result.GetResult<Prisma.$EPayload, S>
 

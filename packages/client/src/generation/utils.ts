@@ -7,6 +7,26 @@ export function getSelectName(modelName: string): string {
   return `${modelName}Select`
 }
 
+export function getSelectCreateManyAndReturnName(modelName: string): string {
+  return `${modelName}SelectCreateManyAndReturn`
+}
+
+export function getIncludeName(modelName: string): string {
+  return `${modelName}Include`
+}
+
+export function getIncludeCreateManyAndReturnName(modelName: string): string {
+  return `${modelName}IncludeCreateManyAndReturn`
+}
+
+export function getCreateManyAndReturnOutputType(modelName: string): string {
+  return `CreateMany${modelName}AndReturnOutputType`
+}
+
+export function getOmitName(modelName: string): string {
+  return `${modelName}Omit`
+}
+
 export function getAggregateName(modelName: string): string {
   return `Aggregate${capitalize(modelName)}`
 }
@@ -61,14 +81,6 @@ export function getAggregateGetName(modelName: string): string {
 
 export function getAggregateScalarGetName(modelName: string): string {
   return `Get${capitalize(modelName)}AggregateScalarType`
-}
-
-export function getIncludeName(modelName: string): string {
-  return `${modelName}Include`
-}
-
-export function getOmitName(modelName: string): string {
-  return `${modelName}Omit`
 }
 
 export function getFieldArgName(field: DMMF.SchemaField, modelName: string): string {

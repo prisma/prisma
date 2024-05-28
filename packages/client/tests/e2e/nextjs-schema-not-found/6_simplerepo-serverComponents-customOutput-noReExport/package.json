@@ -12,8 +12,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "18.19.31",
-    "@types/react": "18.3.1",
+    "@types/node": "18.19.33",
+    "@types/react": "18.3.2",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   },
   "dependencies": {
