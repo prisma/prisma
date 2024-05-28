@@ -26,7 +26,6 @@ export class CLI implements Command {
       '--early-access': Boolean,
       '--telemetry-information': String,
       '--quiet': Boolean,
-      '--silent': '--quiet',
     })
 
     if (isError(args)) {
@@ -43,8 +42,12 @@ export class CLI implements Command {
       return this.help()
     }
 
+    const nonQuietCommands = ['init', 'studio', 'validate', 'version', 'debug']
+    const isQuietMode = args['--quiet']
+
     // check if we have that subcommand
     const cmdName = args._[0]
+
     // Throw if "lift"
     if (cmdName === 'lift') {
       throw new Error(`${red('prisma lift')} has been renamed to ${green('prisma migrate')}`)
@@ -58,9 +61,9 @@ export class CLI implements Command {
         )}`,
       )
       logger.warn('')
+    } else if (isQuietMode && nonQuietCommands.includes(cmdName)) {
+      throw new Error(`The ${cmdName} command does not support --quiet`)
     }
-
-    const isQuietMode = args['--quiet']
 
     const cmd = this.cmds[cmdName]
     if (cmd) {
@@ -83,7 +86,11 @@ export class CLI implements Command {
       const message = await cmd.parse(argsForCmd)
 
       if (isQuietMode) {
-        return isError(message) ? message : ''
+        if (isError(message)) {
+          throw message
+        }
+
+        return ''
       } else {
         return message
       }

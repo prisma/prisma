@@ -111,4 +111,124 @@ describe('quiet flag', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`"error in fake_command"`)
   })
+
+  describe('fails for commands that require an output', () => {
+    it('init', async () => {
+      await expect(ctx.cli('--quiet', 'init').catch((e) => e)).resolves.toMatchObject({
+        exitCode: 1,
+        stderr: 'Error: The init command does not support --quiet',
+      })
+    })
+
+    it('studio', async () => {
+      await expect(ctx.cli('--quiet', 'studio').catch((e) => e)).resolves.toMatchObject({
+        exitCode: 1,
+        stderr: 'Error: The studio command does not support --quiet',
+      })
+    })
+
+    it('validate', async () => {
+      await expect(ctx.cli('--quiet', 'validate').catch((e) => e)).resolves.toMatchObject({
+        exitCode: 1,
+        stderr: 'Error: The validate command does not support --quiet',
+      })
+    })
+
+    it('version', async () => {
+      await expect(ctx.cli('--quiet', 'version').catch((e) => e)).resolves.toMatchObject({
+        exitCode: 1,
+        stderr: 'Error: The version command does not support --quiet',
+      })
+    })
+
+    it('debug', async () => {
+      await expect(ctx.cli('--quiet', 'debug').catch((e) => e)).resolves.toMatchObject({
+        exitCode: 1,
+        stderr: 'Error: The debug command does not support --quiet',
+      })
+    })
+  })
+
+  describe('prints nothing in real commands', () => {
+    it('generate', async () => {
+      ctx.fixture('example-project')
+
+      const data = await ctx.cli('--quiet', 'generate')
+
+      expect(data.stdout).toMatchInlineSnapshot('"Prisma schema loaded from prisma/schema.prisma"')
+    })
+
+    it('migrate dev', async () => {
+      ctx.fixture('schema-only')
+
+      const data = await ctx.cli('--quiet', 'migrate', 'dev', '-n', 'test_migration')
+
+      expect(data.stdout).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma
+        Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+        SQLite database dev.db created at file:dev.db
+
+        Applying migration \`20201231000000_test_migration\`
+
+        The following migration(s) have been created and applied from new schema changes:
+
+        migrations/
+          └─ 20201231000000_test_migration/
+            └─ migration.sql
+
+        Your database is now in sync with your schema.
+
+        Running generate... (Use --skip-generate to skip the generators)
+        Running generate... - Prisma Client
+        ✔ Generated Prisma Client (v0.0.0) to ./../../../../../../../Users/paulo/src/git
+        hub.com/prisma_cli_silent_flag/packages/client in XXXms
+        "
+      `)
+    })
+
+    it('db pull', async () => {
+      ctx.fixture('example-project')
+
+      const data = await ctx.cli('--quiet', 'db', 'pull')
+
+      expect(data.stdout).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma
+        Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+        - Introspecting based on datasource defined in prisma/schema.prisma
+        ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
+              
+        Run prisma generate to generate Prisma Client."
+      `)
+    })
+
+    it('db push', async () => {
+      ctx.fixture('schema-only')
+
+      const data = await ctx.cli('--quiet', 'db', 'push')
+
+      expect(data.stdout).toMatchInlineSnapshot(`
+        "Prisma schema loaded from prisma/schema.prisma
+        Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+        SQLite database dev.db created at file:dev.db
+
+        🚀  Your database is now in sync with your Prisma schema. Done in XXXms
+
+        Running generate... (Use --skip-generate to skip the generators)
+        Running generate... - Prisma Client
+        ✔ Generated Prisma Client (v0.0.0) to ./../../../../../../../Users/paulo/src/git
+        hub.com/prisma_cli_silent_flag/packages/client in XXXms"
+      `)
+    })
+
+    it('format', async () => {
+      ctx.fixture('schema-only')
+
+      const data = await ctx.cli('--quiet', 'format')
+
+      expect(data.stdout).toMatchInlineSnapshot('"Prisma schema loaded from prisma/schema.prisma"')
+    })
+  })
 })
