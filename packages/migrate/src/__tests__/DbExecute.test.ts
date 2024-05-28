@@ -145,6 +145,14 @@ DROP TABLE 'test-dbexecute';`
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
+    it('should pass with --file --schema folder', async () => {
+      ctx.fixture('schema-folder-sqlite')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+    })
+
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')
 
@@ -284,6 +292,14 @@ DROP SCHEMA "test-dbexecute";`
 
       fs.writeFileSync('script.sql', sqlScript)
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+    })
+
+    it('should pass with --file --schema folder', async () => {
+      ctx.fixture('schema-folder-postgres')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -508,6 +524,14 @@ DROP SCHEMA "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     }, 10_000)
 
+    it('should pass with --file --schema folder', async () => {
+      ctx.fixture('schema-folder-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+    }, 10_000)
+
     it('should use env var from .env file', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -699,6 +723,14 @@ DROP DATABASE \`test-dbexecute\`;`
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
+    it('should pass with --file --schema folder', async () => {
+      ctx.fixture('schema-folder-mysql')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+    })
+
     // Only fails on MySQL
     it('should fail with empty --file --schema', async () => {
       ctx.fixture('schema-only-mysql')
@@ -880,6 +912,14 @@ DROP DATABASE "test-dbexecute";`
 
       fs.writeFileSync('script.sql', sqlScript)
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+    })
+
+    it('should pass with --file --schema folder', async () => {
+      ctx.fixture('schema-folder-sqlserver')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 

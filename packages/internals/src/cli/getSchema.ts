@@ -24,19 +24,19 @@ export type GetSchemaResult = {
  * Async
  */
 
-export async function getSchemaPath(): Promise<GetSchemaResult | null>
-export async function getSchemaPath(schemaPathFromArgs: string, opts?: { cwd: string }): Promise<GetSchemaResult>
-export async function getSchemaPath(
+export async function getSchemaWithPath(): Promise<GetSchemaResult | null>
+export async function getSchemaWithPath(schemaPathFromArgs: string, opts?: { cwd: string }): Promise<GetSchemaResult>
+export async function getSchemaWithPath(
   schemaPathFromArgs?: string,
   opts?: { cwd: string },
 ): Promise<GetSchemaResult | null>
-export async function getSchemaPath(
+export async function getSchemaWithPath(
   schemaPathFromArgs?: string,
   opts: { cwd: string } = {
     cwd: process.cwd(),
   },
 ) {
-  return getSchemaPathInternal(schemaPathFromArgs, {
+  return getSchemaWithPathInternal(schemaPathFromArgs, {
     cwd: opts.cwd,
   })
 }
@@ -70,15 +70,15 @@ async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaRe
 }
 
 // This function only throws when `schemaPathFromArgs` is provided, yet the schema doesn't exist.
-export async function getSchemaPathInternal(
+export async function getSchemaWithPathInternal(
   schemaPathFromArgs?: string,
   opts?: { cwd: string },
 ): Promise<GetSchemaResult | null>
-export async function getSchemaPathInternal(
+export async function getSchemaWithPathInternal(
   schemaPathFromArgs: string,
   opts?: { cwd: string },
 ): Promise<GetSchemaResult>
-export async function getSchemaPathInternal(
+export async function getSchemaWithPathInternal(
   schemaPathFromArgs?: string,
   opts: { cwd: string } = {
     cwd: process.cwd(),
@@ -248,52 +248,6 @@ async function resolveYarnSchema(cwd: string): Promise<string | null> {
   return null
 }
 
-function resolveYarnSchemaSync(cwd: string): string | null {
-  if (process.env.npm_config_user_agent?.includes('yarn')) {
-    try {
-      const { stdout: version } = execa.commandSync('yarn --version', {
-        cwd,
-      })
-
-      if (version.startsWith('2')) {
-        return null
-      }
-
-      const { stdout } = execa.commandSync('yarn workspaces info --json', {
-        cwd,
-      })
-      const json = getJson(stdout)
-      const workspaces = Object.values<{ location: string }>(json)
-      const workspaceRootDir = findWorkspaceRootSync(cwd)
-
-      if (!workspaceRootDir) {
-        return null
-      }
-
-      // Iterate over the workspaces
-      for (const workspace of workspaces) {
-        const workspacePath = path.join(workspaceRootDir, workspace.location)
-        const workspaceSchemaPath =
-          getSchemaPathFromPackageJsonSync(workspacePath) ?? getRelativeSchemaPathSync(workspacePath)
-
-        if (workspaceSchemaPath) {
-          return workspaceSchemaPath
-        }
-      }
-
-      const workspaceSchemaPathFromRoot =
-        getSchemaPathFromPackageJsonSync(workspaceRootDir) ?? getRelativeSchemaPathSync(workspaceRootDir)
-
-      if (workspaceSchemaPathFromRoot) {
-        return workspaceSchemaPathFromRoot
-      }
-    } catch (e) {
-      return null
-    }
-  }
-  return null
-}
-
 async function getAbsoluteSchemaPath(schemaPath: string): Promise<string | null> {
   if (await exists(schemaPath)) {
     return schemaPath
@@ -329,7 +283,7 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
     return path.resolve(path.dirname(schemaPathFromArgs))
   }
 
-  const schemaPathResult = await getSchemaPath()
+  const schemaPathResult = await getSchemaWithPath()
   if (!schemaPathResult) {
     return null
   }
@@ -338,7 +292,7 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
 }
 
 export async function getSchema(schemaPathFromArgs?: string): Promise<MultipleSchemas> {
-  const schemaPathResult = await getSchemaPath(schemaPathFromArgs)
+  const schemaPathResult = await getSchemaWithPath(schemaPathFromArgs)
 
   if (!schemaPathResult) {
     throw new Error(
@@ -353,46 +307,6 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<MultipleSc
   }
 
   return schemaPathResult.schemas
-}
-
-/**
- * Sync.
- * TODO: this is only used by `Migrate` to synchronously read the schema path from its (sync) constructor.
- */
-
-export function getSchemaPathSync(schemaPathFromArgs?: string): string | null {
-  return getSchemaPathSyncInternal(schemaPathFromArgs, {
-    cwd: process.cwd(),
-  })
-}
-
-export function getSchemaPathSyncInternal(
-  schemaPathFromArgs?: string,
-  opts: { cwd: string } = {
-    cwd: process.cwd(),
-  },
-): string | null {
-  if (schemaPathFromArgs) {
-    // 1. Try the user custom path
-    const customSchemaPath = getAbsoluteSchemaPathSync(path.resolve(schemaPathFromArgs))
-    if (!customSchemaPath) {
-      throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
-    }
-
-    return customSchemaPath
-  }
-
-  // 2. Try the package.json `prisma.schema` custom path
-  // 3. Try the conventional `./schema.prisma` or `./prisma/schema.prisma` paths
-  // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
-  const schemaPath =
-    getSchemaPathFromPackageJsonSync(opts.cwd) ?? getRelativeSchemaPathSync(opts.cwd) ?? resolveYarnSchemaSync(opts.cwd)
-
-  if (schemaPath) {
-    return schemaPath
-  }
-
-  return null
 }
 
 export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
@@ -426,14 +340,6 @@ export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
   }
 
   return absoluteSchemaPath
-}
-
-function getAbsoluteSchemaPathSync(schemaPath: string): string | null {
-  if (fs.existsSync(schemaPath)) {
-    return schemaPath
-  }
-
-  return null
 }
 
 function getRelativeSchemaPathSync(cwd: string): string | null {
@@ -482,19 +388,6 @@ async function isNearestPkgJsonWorkspaceRoot(cwd: string) {
   }
 }
 
-function isNearestPkgJsonWorkspaceRootSync(cwd: string) {
-  const pkgJson = readPackageUpSync({ cwd, normalize: false })
-
-  if (!pkgJson) {
-    return null
-  }
-
-  return {
-    isRoot: isPkgJsonWorkspaceRoot(pkgJson.packageJson),
-    path: pkgJson.path,
-  }
-}
-
 async function findWorkspaceRoot(cwd: string): Promise<string | null> {
   let pkgJson = await isNearestPkgJsonWorkspaceRoot(cwd)
 
@@ -509,28 +402,6 @@ async function findWorkspaceRoot(cwd: string): Promise<string | null> {
   const pkgJsonParentDir = path.dirname(path.dirname(pkgJson.path))
 
   pkgJson = await isNearestPkgJsonWorkspaceRoot(pkgJsonParentDir)
-
-  if (!pkgJson || pkgJson.isRoot === false) {
-    return null
-  }
-
-  return path.dirname(pkgJson.path)
-}
-
-function findWorkspaceRootSync(cwd: string): string | null {
-  let pkgJson = isNearestPkgJsonWorkspaceRootSync(cwd)
-
-  if (!pkgJson) {
-    return null
-  }
-
-  if (pkgJson.isRoot === true) {
-    return path.dirname(pkgJson.path)
-  }
-
-  const pkgJsonParentDir = path.dirname(path.dirname(pkgJson.path))
-
-  pkgJson = isNearestPkgJsonWorkspaceRootSync(pkgJsonParentDir)
 
   if (!pkgJson || pkgJson.isRoot === false) {
     return null

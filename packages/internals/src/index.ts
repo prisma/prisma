@@ -5,10 +5,9 @@ export {
   getRelativeSchemaPath,
   getSchema,
   getSchemaDir,
-  getSchemaPath,
   getSchemaPathFromPackageJsonSync,
-  getSchemaPathSync,
   type GetSchemaResult,
+  getSchemaWithPath,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
@@ -29,6 +28,7 @@ export { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE, getClientEngineType } fro
 export { credentialsToUri, protocolToConnectorType, uriToCredentials } from './convertCredentials'
 export * from './engine-commands'
 export { resolveUrl } from './engine-commands/getConfig'
+export { relativizePathInPSLError } from './engine-commands/relativizePathInPSLError'
 export { Generator } from './Generator'
 export type { GeneratorPaths } from './get-generators/generatorResolvers/generatorResolvers'
 export { getPackageCmd } from './get-generators/generatorResolvers/prisma-client-js/auto-installation/getPackageCmd'
@@ -92,10 +92,12 @@ export {
   debugMultipleSchemas,
   extractSchemaContent,
   type SchemaFileInput,
+  toMultipleSchemas,
 } from './utils/schemaFileInput'
 export { type MultipleSchemas } from './utils/schemaFileInput'
 export { serializeQueryEngineName } from './utils/serializeQueryEngineName'
 export { setClassName } from './utils/setClassName'
+export { toSchemasContainer, toSchemasWithConfigDir } from './utils/toSchemasContainer'
 export type { Position } from './utils/trimBlocksFromSchema'
 export { trimBlocksFromSchema, trimNewLine } from './utils/trimBlocksFromSchema'
 export { type LoadedEnv, tryLoadEnvs } from './utils/tryLoadEnvs'

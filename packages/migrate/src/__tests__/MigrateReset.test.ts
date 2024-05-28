@@ -101,6 +101,30 @@ describe('reset', () => {
     `)
   })
 
+  it('should work with folder (--force)', async () => {
+    ctx.fixture('schema-folder-sqlite-migration-exists')
+
+    const result = MigrateReset.new().parse(['--force'])
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      SQLite database dev.db created at file:dev.db
+
+      Applying migration \`20201231000000_init\`
+
+      Database reset successful
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+      "
+    `)
+  })
+
   it('with missing db', async () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
