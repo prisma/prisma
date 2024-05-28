@@ -517,7 +517,7 @@ importers:
         version: 5.4.5
       wrangler:
         specifier: 3.56.0
-        version: 3.56.0(@cloudflare/workers-types@4.20240502.0)
+        version: 3.56.0
       xdg-app-paths:
         specifier: 8.3.0
         version: 8.3.0
@@ -636,6 +636,10 @@ importers:
         specifier: 5.15.0-10.009080f2d007e11c7faf5558cf7bb641d2eb1c23
         version: 5.15.0-10.009080f2d007e11c7faf5558cf7bb641d2eb1c23
       '@snaplet/copycat':
+        specifier: 0.17.3
+        version: 0.17.3
+      '@swc-node/register':
+        specifier: 1.9.1
         version: 1.9.1(@swc/core@1.5.7)(typescript@5.4.5)
       '@swc/core':
         specifier: 1.5.7
@@ -4786,6 +4790,9 @@ packages:
 
   /ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
+    peerDependenciesMeta:
+      ajv:
+        optional: true
     dependencies:
       ajv: 8.13.0
     dev: true
@@ -11612,6 +11619,38 @@ packages:
       '@cloudflare/workerd-linux-64': 1.20240512.0
       '@cloudflare/workerd-linux-arm64': 1.20240512.0
       '@cloudflare/workerd-windows-64': 1.20240512.0
+
+  /wrangler@3.56.0:
+    resolution: {integrity: sha512-YEUscEmg6F7nVPoNX5uaQ/KT0ztkPLLN4XGOl9uwgLCTHsyilzeh4WvEg6lelDi60EIXhuzWLjf0jBFN4wbnZw==}
+    engines: {node: '>=16.17.0'}
+    hasBin: true
+    peerDependencies:
+      '@cloudflare/workers-types': ^4.20240512.0
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.3.2
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      chokidar: 3.6.0
+      esbuild: 0.17.19
+      miniflare: 3.20240512.0
+      nanoid: 3.3.7
+      path-to-regexp: 6.2.1
+      resolve: 1.22.8
+      resolve.exports: 2.0.2
+      selfsigned: 2.4.1
+      source-map: 0.6.1
+      xxhash-wasm: 1.0.2
+    optionalDependencies:
+      fsevents: 2.3.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: true
 
   /wrangler@3.57.1(@cloudflare/workers-types@4.20240524.0):
     resolution: {integrity: sha512-M8YnWUwdrb8AFiRePtVnzlDn02OX4osWvdl8oVh6eyZqqkqXYg7lwlYBr14Qj92pMN4JvMBmDZoukkYHvwpJRg==}
