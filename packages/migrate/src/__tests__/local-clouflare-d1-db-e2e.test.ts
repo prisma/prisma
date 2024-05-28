@@ -354,7 +354,8 @@ describe('d1 local', () => {
       60_000,
     )
 
-    it('issue #24208', async () => {
+    // Based on: https://github.com/prisma/prisma/issues/24208
+    it('issue #24208 - broken migrations with relations', async () => {
       const cliInstance = MigrateDiff.new()
       ctx.fixture('schema-sqlite-d1-24208')
 
@@ -409,8 +410,6 @@ describe('d1 local', () => {
       expect(wranglerExecuteInitMigration.exitCode).toBe(0)
 
       // Seed some data into D1.
-      // Once we move the `PRIMARY KEY` from `User.id` to `User.count`, we would like to observe the `FOREIGN KEY` constraint failure,
-      // demonstrating that Prisma migrations check the integrity of the data, and rollback the migration if the data is not consistent.
 
       const wranglerSeedUsers = await executeWranglerD1Command(ctx, {
         command: `INSERT INTO User ('id', 'email', 'name') VALUES (1, 'test@test.de', 'Test Test');`,
