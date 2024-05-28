@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.15.0-10.009080f2d007e11c7faf5558cf7bb641d2eb1c23",
+    "@prisma/engines-version": "5.15.0-11.integration-fix-sqlite-d1-migrations-9cebc28b8d3cb5e1ebd8ad8d096e1cef4725d5ad",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
