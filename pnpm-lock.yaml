@@ -636,10 +636,6 @@ importers:
         specifier: 5.15.0-10.009080f2d007e11c7faf5558cf7bb641d2eb1c23
         version: 5.15.0-10.009080f2d007e11c7faf5558cf7bb641d2eb1c23
       '@snaplet/copycat':
-        specifier: 0.17.3
-        version: 0.17.3
-      '@swc-node/register':
-        specifier: 1.9.1
         version: 1.9.1(@swc/core@1.5.7)(typescript@5.4.5)
       '@swc/core':
         specifier: 1.5.7
