@@ -1,7 +1,5 @@
 import { assertAlways, MultipleSchemas } from '@prisma/internals'
 
-import { removeDatasource } from './removeDatasource'
-
 export function replaceOrAddDatasource(newDatasource: string, files: MultipleSchemas): MultipleSchemas {
   let replaced = false
   const result: MultipleSchemas = files.map(([path, content]) => {
@@ -29,11 +27,46 @@ function appendToFirstFile(newDatasource: string, files: MultipleSchemas) {
 }
 
 function replaceDatasourceSingle(newDatasource: string, content: string) {
-  const noDatasource = removeDatasource(content)
-  if (content === noDatasource) {
-    // no datasource in this file
+  const lines = content.split(/\r\n|\r|\n/g)
+  const existingDatasource = findDatasource(lines)
+  if (!existingDatasource) {
     return { replaced: false, content }
   }
+  lines.splice(existingDatasource.startLine, existingDatasource.endLine - existingDatasource.startLine + 1)
+  const noDatasource = lines.join('\n').trim()
 
-  return { replaced: true, content: `${newDatasource}\n${noDatasource.trim()}` }
+  return { replaced: true, content: `${newDatasource}\n\n${noDatasource}` }
+}
+
+type Position = {
+  startLine: number
+  endLine: number
+}
+
+function findDatasource(lines: string[]): Position | undefined {
+  if (lines.length <= 2) {
+    return undefined
+  }
+  const startLine = lines.findIndex((line) => {
+    const lineTrimmed = line.trim()
+    return lineTrimmed.startsWith('datasource') && lineTrimmed.endsWith('{')
+  })
+
+  if (startLine === -1) {
+    return undefined
+  }
+
+  let endLine = -1
+  for (let index = startLine; index < lines.length; index++) {
+    const lineTrimmed = lines[index].trim()
+    if (lineTrimmed.endsWith('}') && !lineTrimmed.startsWith('//')) {
+      endLine = index
+      break
+    }
+  }
+  if (endLine === -1) {
+    return undefined
+  }
+
+  return { startLine, endLine }
 }
