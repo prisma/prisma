@@ -56,7 +56,7 @@ ${bold('Options')}
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
-         --no-hints    Hides the hint messages but still outputs errors and warnings
+         --no-hints    Hides the hint messages but still outputs errors, warnings and update available messages
    --allow-no-models   Allow generating a client without models
 
 ${bold('Examples')}
