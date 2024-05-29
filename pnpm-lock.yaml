@@ -603,8 +603,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
-        version: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
+        specifier: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
+        version: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -630,8 +630,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
-        version: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
+        specifier: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
+        version: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -849,8 +849,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
-        version: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
+        specifier: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
+        version: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -886,8 +886,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
-        version: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
+        specifier: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
+        version: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1211,8 +1211,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
-        version: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
+        specifier: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
+        version: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1371,8 +1371,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
-        version: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
+        specifier: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
+        version: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1526,8 +1526,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
-        version: 5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168
+        specifier: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
+        version: 5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -3595,8 +3595,8 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168:
-    resolution: {integrity: sha512-FlFn2vlXV+YWQdPynzYYFgCRd7skSPofBdifeQAFM99b/eFroVWt5Zgc4wTkHg/oTzCqy6hRF1x/BNxJpJAP9A==}
+  /@prisma/engines-version@5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a:
+    resolution: {integrity: sha512-8TbOXrfUQ5HGXu0Q4d3OvlfeN9SbvBbGU7/A64V93ECVkh9+H+qVGBh04KHUO1F8OseZhnMzo52ql34VoybQFw==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3604,12 +3604,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168:
-    resolution: {integrity: sha512-rwJGGKPMr0xI2QxjCwRTH6nuezs19451a0tdvBTkdn7499CAYcf8etO4kkbndF8yxH1gA4L99pUn2qst/LA5TQ==}
+  /@prisma/prisma-schema-wasm@5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a:
+    resolution: {integrity: sha512-Lajai7Lj4CX/7cLZRkxSaiwA1N7yWWHQcYmLZe3j99kmqdnRiDuWRYfC46JvXWziwswtmxM8OQW4qxuABTnF2Q==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.15.0-13.bca2d360eb207900a78947d8843cf7ebc98e4168:
-    resolution: {integrity: sha512-khe4JVfvYtd7ayAVAWkLr2KAc6e2RWMc2CF2Q7OshIM8bjhvjijSzdmeErDc7OP0jAU+S9IEY6506oGRVhar2Q==}
+  /@prisma/query-engine-wasm@5.15.0-15.get-config-fault-tolerant-49eaa97e1de2cace3bd0d8016b165ad0012b7f1a:
+    resolution: {integrity: sha512-k+QUtTjP2cQQOY10zdGvDaRXOdH0qheY3iLwdLE7mEvs5icWh6pE9espFFx8KPmcMHyTv724F2esBeR8enLf2w==}
     dev: true
 
   /@prisma/studio-common@0.500.0:
@@ -7117,6 +7117,7 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8396,7 +8397,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
 
   /jsonwebtoken@8.5.1:
     resolution: {integrity: sha512-XjwVfRS6jTMsqYs0EsuJ4LGxXV14zQybNd4L2r0UvbVnSF9Af8x7p5MzbJ90Ioz/9TI41/hTCvznF/loiSzn8w==}
