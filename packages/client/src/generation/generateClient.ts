@@ -221,7 +221,7 @@ export async function buildClient({
 
         /**
          * (Old) Cloudflare Workers
-         * TODO: Is this still needed?
+         * @millsp It's a fallback, in case both other keys didn't work because we could be on a different edge platform. It's a hypothetical case rather than anything actually tested.
          */
         worker: './wasm-worker-loader.js',
 
