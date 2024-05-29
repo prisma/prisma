@@ -18,19 +18,24 @@ import {
   relativizePathInPSLError,
   toSchemasContainer,
 } from '@prisma/internals'
-import fs from 'fs'
+import { MigrateTypes } from '@prisma/internals'
 import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'
 
 import { SchemaEngine } from '../SchemaEngine'
 import type { EngineArgs } from '../types'
+import { countModelsAndTypes } from '../utils/countModelsAndTypes'
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
+import { isSchemaEmpty } from '../utils/isSchemaEmpty'
 import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
 import { printDatasources } from '../utils/printDatasources'
+import { printIntrospectedSchema } from '../utils/printIntrospectedSchema'
+import { removeSchemaFiles } from '../utils/removeSchemaFiles'
 import { replaceOrAddDatasource } from '../utils/replaceOrAddDatasource'
+import { saveSchemaFiles } from '../utils/saveSchemaFiles'
 import { createSpinner } from '../utils/spinner'
 
 const debug = Debug('prisma:db:pull')
@@ -120,6 +125,7 @@ Set composite types introspection depth to 2 levels
     // getSchemaPathAndPrint is not flexible enough for this use case
     const schemaPathResult = await getSchemaWithPath(args['--schema'])
     let schemaPath = schemaPathResult?.schemaPath ?? null
+    const rootDir = schemaPathResult?.schemaRootDir ?? process.cwd()
     debug('schemaPathResult', schemaPathResult)
 
     // Print to console if --print is not passed to only have the schema in stdout
@@ -276,9 +282,9 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
       .run()
 
     if (schemaPath) {
-      // Re-Introspection is not supported on MongoDB
       const schemas = await getSchema(args['--schema'])
 
+      // Re-Introspection is not supported on MongoDB
       const modelRegex = /\s*model\s*(\w+)\s*{/
       const isReintrospection = schemas.some(([_, schema]) => !!modelRegex.exec(schema as string))
 
@@ -305,17 +311,18 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
     const before = Math.round(performance.now())
-    let introspectionSchema = ''
+    let introspectionSchema: MigrateTypes.SchemasContainer | undefined = undefined
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
     try {
       const introspectionResult = await engine.introspect({
         schema: toSchemasContainer(schema),
+        baseDirectoryPath: rootDir,
         force: args['--force'],
         compositeTypeDepth: args['--composite-type-depth'],
         namespaces: args['--schemas']?.split(','),
       })
 
-      introspectionSchema = introspectionResult.datamodel
+      introspectionSchema = introspectionResult.schema
       introspectionWarnings = introspectionResult.warnings
       debug(`Introspection warnings`, introspectionWarnings)
     } catch (e: any) {
@@ -326,7 +333,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
        * https://www.prisma.io/docs/reference/api-reference/error-reference
        */
 
-      if (e.code === 'P4001' && introspectionSchema.trim() === '') {
+      if (e.code === 'P4001' && isSchemaEmpty(introspectionSchema)) {
         /* P4001: The introspected database was empty */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')}
 
@@ -391,7 +398,7 @@ Or run this command with the ${green(
     const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings)
 
     if (args['--print']) {
-      process.stdout.write(introspectionSchema + '\n')
+      printIntrospectedSchema(introspectionSchema, process.stdout)
 
       if (introspectionWarningsMessage.trim().length > 0) {
         // Replace make it a // comment block
@@ -399,11 +406,14 @@ Or run this command with the ${green(
       }
     } else {
       schemaPath = schemaPath || 'schema.prisma'
-      fs.writeFileSync(schemaPath, introspectionSchema)
+      if (args['--force']) {
+        await removeSchemaFiles(schema)
+      }
+      await saveSchemaFiles(introspectionSchema)
 
-      const modelsCount = (introspectionSchema.match(/^model\s+/gm) || []).length
+      const { modelsCount, typesCount } = countModelsAndTypes(introspectionSchema)
+
       const modelsCountMessage = `${modelsCount} ${modelsCount > 1 ? 'models' : 'model'}`
-      const typesCount = (introspectionSchema.match(/^type\s+/gm) || []).length
       const typesCountMessage = `${typesCount} ${typesCount > 1 ? 'embedded documents' : 'embedded document'}`
       let modelsAndTypesMessage: string
       if (typesCount > 0) {
