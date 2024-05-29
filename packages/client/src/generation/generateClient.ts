@@ -200,15 +200,34 @@ export async function buildClient({
     // In short: A lot can be simplified, but can only happen in GA & P6.
     fileMap['default.js'] = JS(trampolineTsClient)
     fileMap['default.d.ts'] = TS(trampolineTsClient)
-    fileMap['wasm-worker-loader.js'] = `export default (await import('./query_engine_bg.wasm')).default`
-    fileMap['wasm-edge-light-loader.js'] = `export default (await import('./query_engine_bg.wasm?module')).default`
+    fileMap['wasm-worker-loader.js'] = `export default import('./query_engine_bg.wasm')`
+    fileMap['wasm-edge-light-loader.js'] = `export default import('./query_engine_bg.wasm?module')`
+
     pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
     pkgJson['imports'] = {
       // when `import('#wasm-engine-loader')` is called, it will be resolved to the correct file
       '#wasm-engine-loader': {
+        // Keys reference: https://runtime-keys.proposal.wintercg.org/#keys
+
+        /**
+         * Vercel Edge Functions / Next.js Middlewares
+         */
         'edge-light': './wasm-edge-light-loader.js',
+
+        /**
+         * Cloudflare Workers, Cloudflare Pages
+         */
         workerd: './wasm-worker-loader.js',
+
+        /**
+         * (Old) Cloudflare Workers
+         * @millsp It's a fallback, in case both other keys didn't work because we could be on a different edge platform. It's a hypothetical case rather than anything actually tested.
+         */
         worker: './wasm-worker-loader.js',
+
+        /**
+         * Fallback for every other JavaScript runtime
+         */
         default: './wasm-worker-loader.js',
       },
       // when `require('#main-entry-point')` is called, it will be resolved to the correct file
