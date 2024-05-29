@@ -15,6 +15,11 @@ testMatrix.setupTestSuite(
       // parameter types - integer vs decimal. If prepared statement cache does not respect
       // parameter types, same prepared statement will be picked for both, resulting in a
       // type mismatch error from Postgres.
+      // Issues which were affected by this bug include:
+      // - https://github.com/prisma/prisma/issues/22482
+      // - https://github.com/prisma/prisma/issues/16611
+      // - https://github.com/prisma/prisma/issues/23872
+      // - https://github.com/prisma/prisma/issues/17110
       await prisma.$queryRaw`select * from version() where LENGTH("version") > ${1}`
       await prisma.$queryRaw`select * from version() where LENGTH("version") > ${1.1}`
     })
@@ -26,5 +31,6 @@ testMatrix.setupTestSuite(
       from: [Providers.MONGODB, Providers.COCKROACHDB, Providers.MYSQL, Providers.SQLITE, Providers.SQLSERVER],
       reason: 'Test exercises specific bug with Postgres prepared statement caching.',
     },
+    skipDriverAdapter: { from: ['js_pg', 'js_neon'], reason: 'https://github.com/prisma/team-orm/issues/1159' },
   },
 )
