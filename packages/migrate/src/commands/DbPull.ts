@@ -30,7 +30,7 @@ import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
 import { printDatasources } from '../utils/printDatasources'
-import { replaceDatasource } from '../utils/replaceDatasource'
+import { replaceOrAddDatasource } from '../utils/replaceOrAddDatasource'
 import { createSpinner } from '../utils/spinner'
 
 const debug = Debug('prisma:db:pull')
@@ -179,7 +179,7 @@ Set composite types introspection depth to 2 levels
             // TODO: better error handling with better error message
             // Related https://github.com/prisma/prisma/issues/14732
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
-            const schema = replaceDatasource(this.urlToDatasource(input.url, providerFromSchema), rawSchema)
+            const schema = replaceOrAddDatasource(this.urlToDatasource(input.url, providerFromSchema), rawSchema)
 
             // if providers are different the engine would return a misleading error
             // So we check here and return a better error
