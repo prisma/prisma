@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.15.0-16.64bb6b95cbf89b742d0a4cbcbebffc973942e7ad",
+    "@prisma/prisma-schema-wasm": "5.15.0-17.feat-multi-file-introspection-cli-1-27cfda7ab7d009c56e2bfb58badc16a348cbeefa",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
