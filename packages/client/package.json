@@ -160,7 +160,7 @@
     "@cloudflare/workers-types": "4.20240524.0",
     "@codspeed/benchmark.js-plugin": "3.1.0",
     "@faker-js/faker": "8.4.1",
-    "@fast-check/jest": "1.8.1",
+    "@fast-check/jest": "1.8.2",
     "@inquirer/prompts": "5.0.4",
     "@jest/create-cache-key-function": "29.7.0",
     "@jest/globals": "29.7.0",
