@@ -246,11 +246,11 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.1.1",
+    "ts-pattern": "5.1.2",
     "tsd": "0.31.0",
     "typescript": "5.4.5",
     "undici": "5.28.4",
-    "wrangler": "3.57.1",
+    "wrangler": "3.57.2",
     "zx": "7.2.3"
   },
   "peerDependencies": {
