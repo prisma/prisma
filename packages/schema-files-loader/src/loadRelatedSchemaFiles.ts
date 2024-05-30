@@ -4,7 +4,7 @@ import { get_config } from '@prisma/prisma-schema-wasm'
 
 import { LoadedFile, loadSchemaFiles } from './loadSchemaFiles'
 import { FilesResolver, realFsResolver } from './resolver'
-import { ConfigMetaFormat, usesPrismaSchemaFolder } from './usesPrismaSchemaFolder'
+import { GetConfigResponse, usesPrismaSchemaFolder } from './usesPrismaSchemaFolder'
 
 /**
  * Given a single file path, returns
@@ -38,8 +38,8 @@ function isPrismaFolderEnabled(files: LoadedFile[]): boolean {
   })
 
   try {
-    const response = JSON.parse(get_config(params)) as ConfigMetaFormat
-    return usesPrismaSchemaFolder(response)
+    const response = JSON.parse(get_config(params)) as GetConfigResponse
+    return usesPrismaSchemaFolder(response.config)
   } catch (e) {
     return false
   }
