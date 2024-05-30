@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.15.0-16.64bb6b95cbf89b742d0a4cbcbebffc973942e7ad",
+    "@prisma/engines-version": "5.15.0-18.feat-multi-file-introspection-cli-2-2161c3dd5f60d5d52f89724118f4b1328f7d161d",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
