@@ -30,7 +30,7 @@
     "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.45.0",
+    "@microsoft/api-extractor": "7.46.2",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "9.0.0",
