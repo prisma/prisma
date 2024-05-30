@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.15.0-16.64bb6b95cbf89b742d0a4cbcbebffc973942e7ad",
+    "@prisma/engines-version": "5.15.0-20.36ed37cc805e251229843a255ea2b8acf239a04b",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
