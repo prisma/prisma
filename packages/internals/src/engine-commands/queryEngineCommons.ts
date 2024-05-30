@@ -30,7 +30,7 @@ export const createDebugErrorType =
     debug(`error of type "${type}" in ${fnName}:\n`, { reason, error })
   }
 
-function createSchemaValidationError(reason: string) {
+export function createSchemaValidationError(reason: string) {
   return `${red(bold('Prisma schema validation'))} - ${reason}`
 }
 
