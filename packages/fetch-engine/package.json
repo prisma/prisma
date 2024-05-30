@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.15.0-20.36ed37cc805e251229843a255ea2b8acf239a04b",
+    "@prisma/engines-version": "5.15.0-21.feat-multi-file-introspection-cli-2-146af78f10dc7146469ce4d409ecaca820e74472",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
