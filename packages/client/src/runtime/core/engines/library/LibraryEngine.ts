@@ -455,16 +455,34 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
+    console.log('this is the json ', query)
+
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(query)
 
     try {
       await this.start()
 
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
+      console.log('foo', query.modelName)
+      if (
+        query.modelName == 'User' &&
+        query.action == 'findMany' /* TODO arguments == {} && selection == { '$composites': true, '$scalars': true } */
+      ) {
+        console.log('Yes, findMany in User!')
+        this.executingQueryPromise = new Promise((resolve) => {
+          setTimeout(() => {
+            resolve('{"foo": "bar"}')
+          }, 1000) // Simulates a 1 second delay
+        })
+      } else {
+        this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
+      }
 
       this.lastQuery = queryStr
-      const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
+      const engineResponse = await this.executingQueryPromise
+
+      console.log({ engineResponse })
+      const data = this.parseEngineResponse<any>(engineResponse)
 
       if (data.errors) {
         if (data.errors.length === 1) {

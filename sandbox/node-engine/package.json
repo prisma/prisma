@@ -1,0 +1,25 @@
+{
+  "private": true,
+  "name": "node-engine",
+  "description": "Prisma development playground",
+  "main": "index.ts",
+  "scripts": {
+    "dbpush": "prisma db push --skip-generate",
+    "generate": "PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
+    "start": "pnpm generate && DEBUG=\"prisma:client:libraryEngine\" pnpm test",
+    "test": "ts-node index.ts",
+    "debug": "node -r ts-node/register --enable-source-maps index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "../../packages/client"
+  },
+  "devDependencies": {
+    "@types/node": "18.18.9",
+    "prisma": "../../packages/cli",
+    "ts-node": "10.9.1",
+    "typescript": "5.2.2"
+  }
+}
