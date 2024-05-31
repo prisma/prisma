@@ -413,15 +413,11 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/invalid.prisma
-
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
 
-
-
       - Introspecting based on datasource defined in prisma/invalid.prisma
-
       ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
