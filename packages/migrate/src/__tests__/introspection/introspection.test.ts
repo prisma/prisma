@@ -23,10 +23,13 @@ test('introspection basic', async () => {
   })
   expect(dbVersion.length > 0).toBe(true)
 
-  const result = await engine.introspect({ schema })
+  const result = await engine.introspect({ schema, baseDirectoryPath: __dirname })
   expect(result).toMatchInlineSnapshot(`
     {
-      "datamodel": "datasource db {
+      "schema": {
+        "files": [
+          {
+            "content": "datasource db {
       provider = "sqlite"
       url      = "file:./blog.db"
     }
@@ -54,6 +57,10 @@ test('introspection basic', async () => {
       Post    Post[]
     }
     ",
+            "path": "schema.prisma",
+          },
+        ],
+      },
       "views": null,
       "warnings": null,
     }
