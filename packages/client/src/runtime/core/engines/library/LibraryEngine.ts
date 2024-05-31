@@ -468,7 +468,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       let data: any = {}
 
-      console.dir({ query }, { depth: null })
+      // console.dir({ query }, { depth: null })
       if (
         this.adapter &&
         query.modelName == 'User' &&
@@ -479,7 +479,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         query.query.selection.$composites === true &&
         query.query.selection.$scalars === true
       ) {
-        console.log('Yes, findMany in User!', this.adapter)
+        // console.log('Yes, findMany in User!', this.adapter)
 
         // const dmmf = await getDMMF({ datamodel: this.datamodel })
         // console.dir({ _runtimeDataModel: this.config._runtimeDataModel }, { depth: null })
@@ -534,14 +534,14 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         this.lastQuery = queryStr
         const engineResponse = await this.executingQueryPromise
-        console.log({ engineResponse })
+        // console.log({ engineResponse })
         data = [engineResponse]
       } else {
         this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
         this.lastQuery = queryStr
         const engineResponse = await this.executingQueryPromise
-        console.log({ engineResponse })
+        // console.log({ engineResponse })
         data = this.parseEngineResponse<any>(engineResponse)
       }
 
@@ -557,7 +557,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         throw this.loggerRustPanic
       }
       // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
-      console.dir({ data }, { depth: null })
+      // console.dir({ data }, { depth: null })
       return { data, elapsed: 0 }
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
