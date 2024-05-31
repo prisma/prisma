@@ -26,7 +26,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
-  constructor(protected readonly client: ClientT) {}
+  constructor(readonly client: ClientT) {}
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.

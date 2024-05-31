@@ -35,7 +35,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
-  constructor(protected client: ClientT) {}
+  constructor(readonly client: ClientT) {}
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
