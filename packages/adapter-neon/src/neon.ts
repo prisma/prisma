@@ -170,7 +170,7 @@ const adapter = new PrismaNeon(pool)
 }
 
 export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
-  constructor(private client: neon.NeonQueryFunction<any, any>) {
+  constructor(readonly client: neon.NeonQueryFunction<any, any>) {
     super()
   }
 
