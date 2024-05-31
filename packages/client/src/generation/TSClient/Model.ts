@@ -13,17 +13,20 @@ import {
   getAvgAggregateName,
   getCountAggregateInputName,
   getCountAggregateOutputName,
+  getCreateManyAndReturnOutputType,
   getFieldArgName,
   getFieldRefsTypeName,
   getGroupByArgsName,
   getGroupByName,
   getGroupByPayloadName,
+  getIncludeCreateManyAndReturnName,
   getMaxAggregateName,
   getMinAggregateName,
   getModelArgName,
   getModelFieldArgsName,
   getPayloadName,
   getReturnType,
+  getSelectCreateManyAndReturnName,
   getSumAggregateName,
 } from '../utils'
 import { InputField } from './../TSClient'
@@ -41,6 +44,7 @@ import { getModelActions } from './utils/getModelActions'
 
 export class Model implements Generable {
   protected type: DMMF.OutputType
+  protected createManyAndReturnType: undefined | DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
   private genericsInfo: GenericArgsInfo
@@ -48,6 +52,8 @@ export class Model implements Generable {
     this.dmmf = context.dmmf
     this.genericsInfo = context.genericArgsInfo
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
+
+    this.createManyAndReturnType = this.context.dmmf.outputTypeMap.model[getCreateManyAndReturnOutputType(model.name)]
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
 
@@ -75,6 +81,19 @@ export class Model implements Generable {
             .addSchemaArgs(field.args)
             .createExport(),
         )
+      } else if (action === 'createManyAndReturn') {
+        const args = new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
+          .addSelectArg(getSelectCreateManyAndReturnName(this.type.name))
+          .addOmitArg()
+          .addSchemaArgs(field.args)
+
+        if (this.createManyAndReturnType) {
+          args.addIncludeArgIfHasRelations(
+            getIncludeCreateManyAndReturnName(this.model.name),
+            this.createManyAndReturnType,
+          )
+        }
+        argsTypes.push(args.createExport())
       } else if (action !== 'groupBy' && action !== 'aggregate') {
         argsTypes.push(
           new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
@@ -316,16 +335,31 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
 
     const omitType = this.context.isPreviewFeatureOn('omitApi')
       ? ts.stringify(buildOmitType({ modelName: this.model.name, dmmf: this.dmmf, fields: this.type.fields }), {
-          newLine: 'both',
+          newLine: 'leading',
         })
       : ''
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
       ? ts.stringify(buildIncludeType({ modelName: this.model.name, dmmf: this.dmmf, fields: this.type.fields }), {
-          newLine: 'both',
+          newLine: 'leading',
         })
       : ''
+
+    const createManyAndReturnIncludeType =
+      hasRelationField && this.createManyAndReturnType
+        ? ts.stringify(
+            buildIncludeType({
+              typeName: getIncludeCreateManyAndReturnName(this.model.name),
+              modelName: this.model.name,
+              dmmf: this.dmmf,
+              fields: this.createManyAndReturnType.fields,
+            }),
+            {
+              newLine: 'leading',
+            },
+          )
+        : ''
 
     return `
 /**
@@ -337,12 +371,24 @@ ${!isComposite ? this.getAggregationTypes() : ''}
 ${!isComposite ? this.getGroupByTypes() : ''}
 
 ${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.type.fields }))}
+${
+  this.createManyAndReturnType
+    ? ts.stringify(
+        buildSelectType({
+          modelName: this.model.name,
+          fields: this.createManyAndReturnType.fields,
+          typeName: getSelectCreateManyAndReturnName(this.model.name),
+        }),
+        { newLine: 'leading' },
+      )
+    : ''
+}
 ${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.type.fields }), {
   newLine: 'leading',
 })}
-${omitType}
-${includeType}
-${ts.stringify(buildModelPayload(this.model, this.dmmf), { newLine: 'both' })}
+${omitType}${includeType}${createManyAndReturnIncludeType}
+
+${ts.stringify(buildModelPayload(this.model, this.dmmf), { newLine: 'none' })}
 
 type ${model.name}GetPayload<S extends boolean | null | undefined | ${getModelArgName(
       model.name,

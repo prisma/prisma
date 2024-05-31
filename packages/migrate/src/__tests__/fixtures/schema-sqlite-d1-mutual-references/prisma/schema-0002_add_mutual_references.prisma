@@ -1,0 +1,25 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model A {
+    id Int
+    name String @unique
+    b_email String
+    brel B @relation("AtoB", fields: [b_email], references: [email], onDelete: NoAction, onUpdate: NoAction)
+    b    B[] @relation("BtoA")
+}
+
+model B {
+    id Int
+    email String @unique
+    a_name String
+    arel A @relation("BtoA", fields: [a_name], references: [name], onDelete: NoAction, onUpdate: NoAction)
+    a    A[] @relation("AtoB")
+}

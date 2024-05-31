@@ -375,7 +375,7 @@ describe('common/sqlite', () => {
       "P1012
 
       error: Error validating model "something": Each model must have at least one unique criteria that has only required fields. Either mark a single field with \`@id\`, \`@unique\` or add a multi field criterion with \`@@id([])\` or \`@@unique([])\` to the model.
-        -->  schema.prisma:11
+        -->  prisma/invalid.prisma:11
          | 
       10 | 
       11 | model something {
@@ -413,15 +413,11 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/invalid.prisma
-
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
 
-
-
       - Introspecting based on datasource defined in prisma/invalid.prisma
-
       ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.

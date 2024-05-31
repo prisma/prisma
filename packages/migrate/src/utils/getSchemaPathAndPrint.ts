@@ -1,4 +1,4 @@
-import { getSchemaPath, type GetSchemaResult, link, logger } from '@prisma/internals'
+import { type GetSchemaResult, getSchemaWithPath, link, logger } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import path from 'path'
 
@@ -25,7 +25,7 @@ export async function getSchemaPathAndPrint(
   postinstallCwd?: string,
 ): Promise<GetSchemaResult | null> {
   const cwdOptions = postinstallCwd ? { cwd: postinstallCwd } : undefined
-  const schemaPathResult = await getSchemaPath(schemaPathProvided, cwdOptions)
+  const schemaPathResult = await getSchemaWithPath(schemaPathProvided, cwdOptions)
   if (!schemaPathResult) {
     // Special case for Generate command
     if (cwdOptions !== undefined) {

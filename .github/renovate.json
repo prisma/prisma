@@ -219,11 +219,6 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "Weekly vitess docker image version update",
-      "matchPackageNames": ["vitess/vttestserver"],
-      "schedule": ["before 7am on Wednesday"]
-    },
-    {
       "groupName": "Extension: Accelerate",
       "automerge": true,
       "matchPackageNames": ["@prisma/extension-accelerate"],
@@ -249,6 +244,28 @@
       "matchPackageNames": ["checkpoint-client"],
       "matchUpdateTypes": ["patch", "minor"],
       "schedule": ["at any time"]
+    },
+    {
+      "groupName": "JS drivers",
+      "matchPackageNames": [
+        "@libsql/client",
+        "@neondatabase/serverless",
+        "@planetscale/database",
+        "pg",
+        "@types/pg"
+      ],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "Vitess Docker image",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["vitess/vttestserver"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "MySQL Docker image",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["mysql"]
     }
   ]
 }
