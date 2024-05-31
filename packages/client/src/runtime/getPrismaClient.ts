@@ -439,6 +439,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           logEmitter,
           isBundled: config.isBundled,
           adapter,
+          _runtimeDataModel: this._runtimeDataModel,
         }
 
         this._accelerateEngineConfig = {

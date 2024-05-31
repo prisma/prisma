@@ -94,6 +94,7 @@ export class LibraryEngine implements Engine<undefined> {
       throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
     }
 
+    // console.log({config})
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
@@ -473,26 +474,56 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         query.modelName == 'User' &&
         query.action == 'findMany' &&
         // arguments = {}
-        Object.keys(query.query.arguments).length == 0 &&
+        Object.keys(query.query.arguments!).length == 0 &&
         // selection = { '$composites': true, '$scalars': true }
         query.query.selection.$composites === true &&
         query.query.selection.$scalars === true
       ) {
         console.log('Yes, findMany in User!', this.adapter)
+
+        // const dmmf = await getDMMF({ datamodel: this.datamodel })
+        // console.dir({ _runtimeDataModel: this.config._runtimeDataModel }, { depth: null })
+
         this.executingQueryPromise = (async () => {
           // TODO get table name via dmmf or something
-          const query = 'SELECT * FROM User'
+          const modelName = query.modelName
+
+          // console.log("dmmfFoo", modelName, this.config._runtimeDataModel.models[modelName!])
+          const tableName = this.config._runtimeDataModel.models[modelName!].dbName || modelName
+          // console.log({tableName})
+
+          const modelFields = this.config._runtimeDataModel.models[modelName!].fields
+          // console.log({modelFields})
+
+          const sql = `SELECT * FROM ${tableName}`
           try {
-            const result = await this.adapter.client.execute(query)
+            const result = await this.adapter.client.execute(sql)
 
             // turn returned data into expected format (with type indications for casting in /packages/client/src/runtime/core/jsonProtocol/deserializeJsonResponse.ts)
+            // TODO Long term most of this should not be necessary at all, as it is just from a to b and then back to a
             const transformedData = result.rows.map((row) => {
-              // console.log(row.createdAt, new Date(row.createdAt))
-              // row.createdAt = new Date(row.createdAt)
-              // row.updatedAt = new Date(row.updatedAt)
-              // TODO get type information from dmmf or something
-              row.createdAt = { $type: 'DateTime', value: row.createdAt }
-              row.updatedAt = { $type: 'DateTime', value: row.updatedAt }
+              // get type information from dmmf or something
+              for (const key in row) {
+                if (Object.prototype.hasOwnProperty.call(row, key)) {
+                  // console.dir(`${key}: ${row[key]}`);
+
+                  // TODO This loop is totally stupid of course
+                  for (const key2 in modelFields) {
+                    if (Object.prototype.hasOwnProperty.call(modelFields, key2)) {
+                      // console.log('-', key2, modelFields[key2])
+
+                      if (modelFields[key2].name == key) {
+                        if (modelFields[key2].type == 'DateTime' && row[key] != null) {
+                          row[key] = { $type: 'DateTime', value: row[key] }
+                          break
+                        }
+                        // TODO other types
+                      }
+                    }
+                  }
+                }
+              }
+
               return row
             })
             return transformedData

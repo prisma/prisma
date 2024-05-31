@@ -33,9 +33,9 @@ async function main() {
   const users = await prisma.user.findMany()
   console.log({ users })
 
-  console.log("findMany, filter")
-  const usersFiltered = await prisma.user.findMany({ where: { email: {  contains: "1" }}})
-  console.log({ usersFiltered })
+  // console.log("findMany, filter")
+  // const usersFiltered = await prisma.user.findMany({ where: { email: {  contains: "1" }}})
+  // console.log({ usersFiltered })
 }
 
 void main().catch((e) => {

@@ -174,6 +174,8 @@ export interface EngineConfig {
     engineVersion: string
     clientVersion: string
   }
+
+  _runtimeDataModel: any
 }
 
 export type WasmLoadingConfig = {
