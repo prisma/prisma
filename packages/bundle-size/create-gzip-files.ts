@@ -19,6 +19,8 @@ void (async () => {
 
   await $`pnpm install` // needs this for `pnpm prisma`
 
+  await $`pnpm list -r --depth -2` // print the versions of the dependencies installed
+
   for (const project of projects) {
     // `nodejs_compat` is only needed when using `pg`
     const compatFlags = project === 'da-workers-pg-worker' ? 'nodejs_compat' : ''
@@ -34,7 +36,13 @@ void (async () => {
     await $`rm -rf ${projectDir}/output.tgz`
 
     // Use wrangler to generate the function output
-    await $`pnpm wrangler deploy ${projectDir}/index.js --dry-run --outdir=${projectDir}/output --compatibility-date 2024-01-26 --compatibility-flags [${compatFlags}] ${nodeCompat} --name ${project} --tsconfig ${__dirname}/tsconfig.json`
+    await $`pnpm wrangler deploy ${projectDir}/index.js \
+      --dry-run \
+      --outdir=${projectDir}/output \
+      --compatibility-date 2024-01-26 \
+      --compatibility-flags [${compatFlags}] ${nodeCompat} \
+      --name ${project} \
+      --tsconfig ${__dirname}/tsconfig.json`
 
     // Delete *.js.map & Markdown files
     await $`rm ${projectDir}/output/*.js.map`

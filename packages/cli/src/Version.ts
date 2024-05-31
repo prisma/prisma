@@ -9,7 +9,7 @@ import {
   getConfig,
   getEnginesMetaInfo,
   getSchema,
-  getSchemaPath,
+  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
@@ -113,7 +113,7 @@ export class Version implements Command {
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
-    const schemaPath = (await getSchemaPath())?.schemaPath ?? null
+    const schemaPath = (await getSchemaWithPath())?.schemaPath ?? null
     const featureFlags = await this.getFeatureFlags(schemaPath)
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])

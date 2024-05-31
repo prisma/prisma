@@ -29,7 +29,9 @@ export function buildQueryEngineWasmModule(
     return `config.engineWasm = {
   getRuntime: () => require('./query_engine_bg.js'),
   getQueryEngineWasmModule: async () => {
-    return (await import('#wasm-engine-loader')).default
+    const loader = (await import('#wasm-engine-loader')).default
+    const engine = (await loader).default
+    return engine
   }
 }`
   }

@@ -76,7 +76,7 @@ describe('sendPanic should fail when the error report creation fails', () => {
     ).rejects.toThrow(createErrorReportTag)
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
-      schemaFile: expectedMaskedSchema,
+      schemaFile: expect.stringContaining(expectedMaskedSchema),
       rustStackTrace,
       cliVersion,
     })
@@ -102,7 +102,7 @@ datasource db {
       'test-request',
       ErrorArea.LIFT_CLI, // area
       undefined, // schemaPath
-      schema,
+      [['schema.prisma', schema]],
       undefined, // introspectionUrl
     )
 
@@ -116,7 +116,7 @@ datasource db {
     ).rejects.toThrow(createErrorReportTag)
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
-      schemaFile: maskedSchema,
+      schemaFile: expect.stringContaining(maskedSchema),
       rustStackTrace,
       cliVersion,
     })

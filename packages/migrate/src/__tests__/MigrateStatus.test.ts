@@ -122,6 +122,22 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
+  it('schema-folder-db-exists', async () => {
+    ctx.fixture('schema-folder-sqlite-db-exists')
+    const result = MigrateStatus.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
+
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      1 migration found in prisma/migrations
+
+      "
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+  })
+
   it('existing-db-1-migration-conflict', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {

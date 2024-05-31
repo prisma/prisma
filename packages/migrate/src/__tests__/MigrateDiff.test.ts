@@ -217,7 +217,7 @@ describe('migrate diff', () => {
         await MigrateDiff.new().parse(['--from-schema-datasource=./doesnoexists.prisma', '--to-empty'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
-        expect(e.message).toContain(`Error trying to read Prisma schema file at`)
+        expect(e.message).toMatch(/Provided --schema at (.+?)[/\\]doesnoexists.prisma doesn't exist/)
       }
     })
 
@@ -315,6 +315,21 @@ describe('migrate diff', () => {
         "
       `)
     })
+
+    it('should diff --from-empty --to-schema-datamodel=./prisma/schema (folder)', async () => {
+      ctx.fixture('schema-folder-sqlite')
+
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-schema-datamodel=./prisma/schema'])
+      await expect(result).resolves.toMatchInlineSnapshot(`""`)
+      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+        "
+        [+] Added tables
+          - Blog
+          - User
+        "
+      `)
+    })
+
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
 
@@ -346,6 +361,21 @@ describe('migrate diff', () => {
         "
       `)
     })
+
+    it('should diff --from-schema-datamodel=./prisma/schema (folder) --to-empty', async () => {
+      ctx.fixture('schema-folder-sqlite')
+
+      const result = MigrateDiff.new().parse(['--from-schema-datamodel=./prisma/schema', '--to-empty'])
+      await expect(result).resolves.toMatchInlineSnapshot(`""`)
+      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+        "
+        [-] Removed tables
+          - Blog
+          - User
+        "
+      `)
+    })
+
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
 
