@@ -414,11 +414,11 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/studio':
-        specifier: 0.500.0
-        version: 0.500.0
+        specifier: 0.501.0
+        version: 0.501.0
       '@prisma/studio-server':
-        specifier: 0.500.0
-        version: 0.500.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+        specifier: 0.501.0
+        version: 0.501.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       '@swc/core':
         specifier: 1.5.24
         version: 1.5.24
@@ -3612,15 +3612,15 @@ packages:
     resolution: {integrity: sha512-bxtCIF963JnNxwldImD5fEZlflOvkFdYt68x+9WtW9G89ywgPvA0DO8Hpy03QroghdA3RNez7ziSMLRbz39Rtw==}
     dev: true
 
-  /@prisma/studio-common@0.500.0:
-    resolution: {integrity: sha512-tYPxyALZ4qK4+ZZoLcWW2rFYQYh5T1iFy3wMcZ/VrIN+asbfA1E6DEdfxo69eIXWAz5Iu9xF7YuB08Jh5+9Xvw==}
+  /@prisma/studio-common@0.501.0:
+    resolution: {integrity: sha512-41sxCrSjpPYxKBUbl0rRqtwGnmT6VHU1sYsg58Ohev0ZylZiXZatFAvBUit1EtJ1ZcuX2CxQ+04ItwHrZXVlUA==}
     engines: {node: '>= 16.13'}
     dependencies:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw@0.500.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
-    resolution: {integrity: sha512-hLYiZOkyytXeQLoRjWMxM7DfWdgU8tJurgcimeWa7tTF5+xHlJPZ65CSKxzI4fPFnGT3nLYti3u35/pks2Smtg==}
+  /@prisma/studio-pcw@0.501.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
+    resolution: {integrity: sha512-osZrlJN+QNUm1xt92A0gExqxw10aidxeoDf+70vARprRqjv3afsKduvOWHYz0A1LUKAIA/QP+pNjv4XFyTjPaQ==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/client': '*'
@@ -3634,16 +3634,16 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-server@0.500.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
-    resolution: {integrity: sha512-rjxguLgHYoeFhnIBGUgcrIn41KQWg3JnJ4wVtJNoUFBIOccQG03OZV+yCqPyaP6MpPwtUgupB4SU4qD8EW4NoQ==}
+  /@prisma/studio-server@0.501.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
+    resolution: {integrity: sha512-TFg4gQC6QMn1+Mu0RVhNSvLdmGyCjR28t5vhp+nbjqQUC5LtFQuFxmVrAxS1wuCXbZ1pQFsMIGpXo90oO9yJ9g==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/internals': '*'
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.500.0
-      '@prisma/studio-common': 0.500.0
-      '@prisma/studio-pcw': 0.500.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+      '@prisma/studio': 0.501.0
+      '@prisma/studio-common': 0.501.0
+      '@prisma/studio-pcw': 0.501.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       checkpoint-client: 1.1.33
       cors: 2.8.5
       debug: 4.3.3
@@ -3655,8 +3655,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio@0.500.0:
-    resolution: {integrity: sha512-86kZ00QhvGud8jIQoOGOriwa6kDIMRj5JG6rW88unallBe7t+KbcSb/JmO5F8PIKj5m8VWnJ3xtAmkVFOeiLsQ==}
+  /@prisma/studio@0.501.0:
+    resolution: {integrity: sha512-Q2OfRUF6JTcGILhCYO2MV7CheqIZEJ0+GbqBFKmUC8AypBapOTeQ3+fPzDX8qT9a46aW3TYQ6rWKaJBGHTJHeA==}
     dev: true
 
   /@rushstack/node-core-library@5.4.1(@types/node@20.12.7):
@@ -4790,9 +4790,6 @@ packages:
 
   /ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
-    peerDependenciesMeta:
-      ajv:
-        optional: true
     dependencies:
       ajv: 8.13.0
     dev: true
@@ -7129,7 +7126,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8409,7 +8405,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@8.5.1:
     resolution: {integrity: sha512-XjwVfRS6jTMsqYs0EsuJ4LGxXV14zQybNd4L2r0UvbVnSF9Af8x7p5MzbJ90Ioz/9TI41/hTCvznF/loiSzn8w==}
@@ -10644,9 +10640,6 @@ packages:
   /sqlite3@5.1.2:
     resolution: {integrity: sha512-D0Reg6pRWAFXFUnZKsszCI67tthFD8fGPewRddDCX6w4cYwz3MbvuwRICbL+YQjBAh9zbw+lJ/V9oC8nG5j6eg==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.10
       node-addon-api: 4.3.0
