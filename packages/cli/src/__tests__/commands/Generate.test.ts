@@ -138,6 +138,15 @@ describe('using cli', () => {
         "
       `)
     }
+
+    const { main } = await import(ctx.fs.path('main.ts'))
+    await expect(main()).resolves.toMatchInlineSnapshot(`
+      [
+        {
+          "id": "123",
+        },
+      ]
+    `)
   })
 
   it('should display the right yarn command for custom outputs', async () => {

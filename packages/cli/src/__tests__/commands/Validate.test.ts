@@ -127,6 +127,53 @@ describe('validate', () => {
         `)
       })
 
+      it('reports multiple errors', async () => {
+        ctx.fixture('multi-schema-files/invalid/multiple-errors')
+        expect(ctx.tree()).toMatchInlineSnapshot(`
+          "
+          └── prisma/
+              └── schema/
+                  └── Blog.prisma
+                  └── config.prisma
+                  └── User.prisma
+          "
+        `)
+
+        await expect(Validate.new().parse([])).rejects.toMatchInlineSnapshot(`
+          "Prisma schema validation - (validate wasm)
+          Error code: P1012
+          error: Error validating model "User": Each model must have at least one unique criteria that has only required fields. Either mark a single field with \`@id\`, \`@unique\` or add a multi field criterion with \`@@id([])\` or \`@@unique([])\` to the model.
+            -->  prisma/schema/User.prisma:1
+             | 
+             | 
+           1 | model User {
+           2 |     id Int
+           3 | 
+           4 |     blogs Blog[]
+           5 | }
+             | 
+          error: Error parsing attribute "@relation": The relation field \`owner\` on Model \`Blog\` must specify the \`fields\` argument in the @relation attribute. You can run \`prisma format\` to fix this automatically.
+            -->  prisma/schema/Blog.prisma:5
+             | 
+           4 |     ownerId     Int
+           5 |     owner       User 
+           6 | }
+             | 
+          error: Error parsing attribute "@relation": The relation field \`owner\` on Model \`Blog\` must specify the \`references\` argument in the @relation attribute.
+            -->  prisma/schema/Blog.prisma:5
+             | 
+           4 |     ownerId     Int
+           5 |     owner       User 
+           6 | }
+             | 
+
+          Validation Error Count: 3
+          [Context: validate]
+
+          Prisma CLI Version : 0.0.0"
+        `)
+      })
+
       it('parses multi schemas when the file containing the config blocks (`generator`, `datasource`) is valid', async () => {
         ctx.fixture('multi-schema-files/invalid/invalid_config_file')
 
