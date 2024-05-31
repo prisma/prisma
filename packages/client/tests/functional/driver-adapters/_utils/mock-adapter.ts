@@ -20,5 +20,6 @@ export function mockAdapter(provider: Provider): DriverAdapter {
     queryRaw: () => Promise.reject(mockAdapterErrors.queryRaw),
     executeRaw: () => Promise.reject(mockAdapterErrors.executeRaw),
     startTransaction: () => Promise.reject(mockAdapterErrors.startTransaction),
+    client: {},
   }
 }
