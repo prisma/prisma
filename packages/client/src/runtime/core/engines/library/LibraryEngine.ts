@@ -465,31 +465,54 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     try {
       await this.start()
 
-      //console.log('foo', query.modelName)
+      let data: any = {}
+
+      console.dir({ query }, { depth: null })
       if (
         this.adapter &&
         query.modelName == 'User' &&
-        query.action == 'findMany' /* TODO arguments == {} && selection == { '$composites': true, '$scalars': true } */
+        query.action == 'findMany' &&
+        // arguments = {}
+        Object.keys(query.query.arguments).length == 0 &&
+        // selection = { '$composites': true, '$scalars': true }
+        query.query.selection.$composites === true &&
+        query.query.selection.$scalars === true
       ) {
         console.log('Yes, findMany in User!', this.adapter)
         this.executingQueryPromise = (async () => {
+          // TODO get table name via dmmf or something
           const query = 'SELECT * FROM User'
           try {
             const result = await this.adapter.client.execute(query)
-            return JSON.stringify(result.rows)
+
+            // turn returned data into expected format (with type indications for casting in /packages/client/src/runtime/core/jsonProtocol/deserializeJsonResponse.ts)
+            const transformedData = result.rows.map((row) => {
+              // console.log(row.createdAt, new Date(row.createdAt))
+              // row.createdAt = new Date(row.createdAt)
+              // row.updatedAt = new Date(row.updatedAt)
+              // TODO get type information from dmmf or something
+              row.createdAt = { $type: 'DateTime', value: row.createdAt }
+              row.updatedAt = { $type: 'DateTime', value: row.updatedAt }
+              return row
+            })
+            return transformedData
           } catch (error) {
             throw new Error(error)
           }
         })()
+
+        this.lastQuery = queryStr
+        const engineResponse = await this.executingQueryPromise
+        console.log({ engineResponse })
+        data = [engineResponse]
       } else {
         this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
+
+        this.lastQuery = queryStr
+        const engineResponse = await this.executingQueryPromise
+        console.log({ engineResponse })
+        data = this.parseEngineResponse<any>(engineResponse)
       }
-
-      this.lastQuery = queryStr
-      const engineResponse = await this.executingQueryPromise
-
-      console.log({ engineResponse })
-      const data = this.parseEngineResponse<any>(engineResponse)
 
       if (data.errors) {
         if (data.errors.length === 1) {
@@ -503,6 +526,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         throw this.loggerRustPanic
       }
       // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
+      console.dir({ data }, { depth: null })
       return { data, elapsed: 0 }
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
