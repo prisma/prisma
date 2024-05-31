@@ -1,7 +1,6 @@
 import path from 'node:path'
 
-import { FsEntryType } from '../declaration'
-import { FilesResolver, realFsResolver } from './resolver'
+import { FilesResolver, FsEntryType, realFsResolver } from './resolver'
 
 export type LoadedFile = [filePath: string, content: string]
 
