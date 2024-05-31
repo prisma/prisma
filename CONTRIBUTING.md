@@ -75,7 +75,7 @@ pnpm install
 # Ensure that the db and the schema are synced
 pnpm dbpush
 # Do some code changes, always re-generate the client, then try it out
-pnpm generate && pnpm dev
+pnpm generate && pnpm start
 ```
 
 To run the `index.ts` under debugger, do the following steps:
@@ -94,7 +94,7 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
 <details>
   <summary><b>Alternatives</b></summary>
   
-  #### Detailed steps for a locally-linked dev folder
+  #### Detailed steps for a manually creating a locally-linked sandbox
   ```sh
   cd sandbox
   mkdir my-repro
@@ -115,15 +115,15 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
   pnpm prisma generate && pnpm ts-node index.ts # Try it out
   ```
 
-#### Developing and working in the fixture folder
+  #### Developing and working in the fixture folder
 
-```sh
-cd packages/client
-ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
-cd fixtures/blog
-npx prisma db push --skip-generate
-ts-node main.ts # Try it out
-```
+  ```sh
+  cd packages/client
+  ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
+  cd fixtures/blog
+  npx prisma db push --skip-generate
+  ts-node main.ts # Try it out
+  ```
 
 </details>
 
