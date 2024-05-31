@@ -1,7 +1,14 @@
 import { PrismaClient } from './generated-client'
+import { PrismaLibSQL } from '@prisma/adapter-libsql'
+import { createClient } from '@libsql/client'
 
 async function main() {
-  const prisma = new PrismaClient()
+
+  const libsql = createClient({
+    url: 'file:prisma/dev.db',
+  })
+  const adapter = new PrismaLibSQL(libsql)
+  const prisma = new PrismaClient({ adapter })
 
   await prisma.user.deleteMany()
 
