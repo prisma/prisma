@@ -114,6 +114,8 @@ export interface DriverAdapter extends Queryable {
    * Optional method that returns extra connection info
    */
   getConnectionInfo?(): Result<ConnectionInfo>
+
+  client: any
 }
 
 export type TransactionOptions = {

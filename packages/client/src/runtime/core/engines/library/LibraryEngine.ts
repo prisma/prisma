@@ -76,6 +76,7 @@ export class LibraryEngine implements Engine<undefined> {
     commit: string
     version: string
   }
+  adapter: any
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
     if (TARGET_BUILD_TYPE === 'react-native') {
@@ -240,7 +241,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       const config = JSON.parse(response)
       return config as T
     } catch (err) {
-      throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine`, {
+      throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine ${err} ${response}`, {
         clientVersion: this.config.clientVersion!,
       })
     }
@@ -265,6 +266,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       if (adapter) {
         debug('Using driver adapter: %O', adapter)
+        this.adapter = adapter
       }
 
       this.engine = new this.QueryEngineConstructor(
@@ -468,12 +470,16 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         query.modelName == 'User' &&
         query.action == 'findMany' /* TODO arguments == {} && selection == { '$composites': true, '$scalars': true } */
       ) {
-        console.log('Yes, findMany in User!')
-        this.executingQueryPromise = new Promise((resolve) => {
-          setTimeout(() => {
-            resolve('{"foo": "bar"}')
-          }, 1000) // Simulates a 1 second delay
-        })
+        console.log('Yes, findMany in User!', this.adapter)
+        this.executingQueryPromise = (async () => {
+          const query = 'SELECT * FROM User'
+          try {
+            const result = await this.adapter.client.execute(query)
+            return JSON.stringify(result.rows)
+          } catch (error) {
+            throw new Error(error)
+          }
+        })()
       } else {
         this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
       }

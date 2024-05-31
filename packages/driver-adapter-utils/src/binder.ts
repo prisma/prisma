@@ -34,6 +34,7 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
       const result = await startTransaction(...args)
       return result.map((tx) => bindTransaction(errorRegistry, tx))
     },
+    client: adapter.client,
   }
 
   if (adapter.getConnectionInfo) {

@@ -21,7 +21,7 @@ async function main() {
 
   const users = await prisma.user.findMany()
 
-  console.log(users)
+  console.log("users", users)
 }
 
 void main().catch((e) => {

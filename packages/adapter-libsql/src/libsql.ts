@@ -32,7 +32,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 
   [LOCK_TAG] = new Mutex()
 
-  constructor(protected readonly client: ClientT) {}
+  constructor(readonly client: ClientT) {}
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
