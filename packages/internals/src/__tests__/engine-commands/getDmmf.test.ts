@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { getDMMF, isRustPanic } from '../..'
+import { getDMMF, isRustPanic, MultipleSchemas } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
@@ -330,6 +330,34 @@ describe('getDMMF', () => {
       })
 
       expect(dmmf.datamodel).toMatchSnapshot()
+      expect(dmmf).toMatchSnapshot()
+    })
+
+    test('multiple files', async () => {
+      const files: MultipleSchemas = [
+        [
+          'ds.prisma',
+          `datasource db {
+            provider = "sqlite"
+            url      = "file:dev.db"
+          }`,
+        ],
+        [
+          'A.prisma',
+          `model A {
+            id Int @id
+            name String
+          }`,
+        ],
+        [
+          'B.prisma',
+          `model B {
+            id String @id
+            title String
+          }`,
+        ],
+      ]
+      const dmmf = await getDMMF({ datamodel: files })
       expect(dmmf).toMatchSnapshot()
     })
 
