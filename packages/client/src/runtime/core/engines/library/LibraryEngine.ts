@@ -457,7 +457,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-    console.log('this is the json ', query)
+    // console.log('this is the json ', query)
 
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(query)
