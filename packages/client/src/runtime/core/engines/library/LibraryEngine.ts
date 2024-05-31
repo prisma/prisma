@@ -465,8 +465,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     try {
       await this.start()
 
-      console.log('foo', query.modelName)
+      //console.log('foo', query.modelName)
       if (
+        this.adapter &&
         query.modelName == 'User' &&
         query.action == 'findMany' /* TODO arguments == {} && selection == { '$composites': true, '$scalars': true } */
       ) {
