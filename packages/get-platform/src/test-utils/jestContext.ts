@@ -57,7 +57,7 @@ export const jestContext = {
       c.tree = (startFrom = c.tmpDir, indent = '') => {
         function* generateDirectoryTree(children: InspectTreeResult[], indent = ''): Generator<String> {
           for (const child of children) {
-            if (child.name === 'node_modules') {
+            if (child.name === 'node_modules' || child.name === '.git') {
               continue
             }
 
