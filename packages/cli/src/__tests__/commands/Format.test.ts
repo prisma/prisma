@@ -3,7 +3,7 @@
 import path from 'node:path'
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { extractSchemaContent, getSchemaPath } from '@prisma/internals'
+import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
 import fs from 'fs-jetpack'
 
 import { Format } from '../../Format'
@@ -257,7 +257,7 @@ describe('format', () => {
           `"The schemas at prisma/schema are valid 🚀"`,
         )
 
-        const { schemas } = (await getSchemaPath())!
+        const { schemas } = (await getSchemaWithPath())!
 
         // notice how the `Link` backrelation was added in the first schema file:
         expect(extractSchemaContent(schemas)).toMatchInlineSnapshot(`
