@@ -200,7 +200,8 @@ export function introspectionIntegrationTest<Client>(input: Input<Client>) {
       const { state, introspectionResult } = await setupScenario(kind, input, scenario)
       states[scenario.name] = state
 
-      expect(introspectionResult.datamodel).toMatchSnapshot(`datamodel`)
+      expect(introspectionResult.schema.files.length).toBe(1)
+      expect(introspectionResult.schema.files[0].content).toMatchSnapshot(`datamodel`)
       expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
 
       await teardownScenario(state)
@@ -308,11 +309,12 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     schema: {
       files: [{ path: 'schema.prisma', content: schemaBase }],
     },
+    baseDirectoryPath: process.cwd(),
   })
 
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
 
-  await fs.writeAsync(prismaSchemaPath, introspectionResult.datamodel)
+  await fs.writeAsync(prismaSchemaPath, introspectionResult.schema.files[0].content)
   return {
     introspectionResult,
     state,

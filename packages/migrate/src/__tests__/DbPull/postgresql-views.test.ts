@@ -103,6 +103,7 @@ describe('postgresql-views', () => {
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemas),
+          baseDirectoryPath: ctx.tmpDir,
           force: false,
         })
 
@@ -126,6 +127,7 @@ describe('postgresql-views', () => {
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemas),
+          baseDirectoryPath: ctx.tmpDir,
           force: false,
         })
 
@@ -154,6 +156,7 @@ describe('postgresql-views', () => {
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemas),
+          baseDirectoryPath: ctx.tmpDir,
           force: false,
         })
 
@@ -182,6 +185,7 @@ describe('postgresql-views', () => {
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemas),
+          baseDirectoryPath: ctx.tmpDir,
           force: false,
         })
 
