@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@cloudflare/workers-types": "4.20240524.0",
-    "@libsql/client": "0.6.0",
+    "@libsql/client": "0.6.1",
     "@neondatabase/serverless": "0.9.3",
     "@planetscale/database": "1.18.0",
     "@prisma/adapter-d1": "/tmp/prisma-adapter-d1-0.0.0.tgz",
