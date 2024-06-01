@@ -6,8 +6,10 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  // provider = "sqlite"
+  // url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = "postgres://prisma:prisma@localhost:5432/tests"
 }
 
 model Link {
@@ -21,11 +23,11 @@ model Link {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   name      String?
-  email     String   @unique
+  email     String    @unique
   links     Link[]
   date      DateTime?
   decimal   Decimal?

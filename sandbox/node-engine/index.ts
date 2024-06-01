@@ -1,15 +1,21 @@
 import { PrismaClient } from './generated-client'
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client'
+// import { PrismaLibSQL } from '@prisma/adapter-libsql'
+// import { createClient } from '@libsql/client'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 
 async function main() {
 
   // const prisma = new PrismaClient()
 
-  const libsql = createClient({
-    url: 'file:prisma/dev.db',
-  })
-  const adapter = new PrismaLibSQL(libsql)
+  // const libsql = createClient({
+  //   url: 'file:prisma/dev.db',
+  // })
+  // const adapter = new PrismaLibSQL(libsql)
+  
+  const pool = new Pool({ connectionString: "postgres://prisma:prisma@localhost:5432/tests" })
+  const adapter = new PrismaPg(pool)
+
   const prisma = new PrismaClient({ adapter })
 
   console.log("deleteMany")

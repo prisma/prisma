@@ -16,7 +16,9 @@
   "dependencies": {
     "@prisma/client": "../../packages/client",
     "@prisma/adapter-libsql": "../../packages/adapter-libsql",
-    "@libsql/client": "../../packages/adapter-libsql/node_modules/@libsql/client"
+    "@libsql/client": "../../packages/adapter-libsql/node_modules/@libsql/client",
+    "@prisma/adapter-pg": "../../packages/adapter-pg",
+    "pg": "../../packages/adapter-pg/node_modules/pg"
   },
   "devDependencies": {
     "@types/node": "18.18.9",

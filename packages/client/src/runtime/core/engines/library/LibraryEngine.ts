@@ -470,6 +470,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       // console.dir({ query }, { depth: null })
       if (
+        !interactiveTransaction?.id && // No support for interactive transactions yet as long as we can not handle all queries
         this.adapter &&
         query.modelName == 'User' &&
         query.action == 'findMany' &&
@@ -495,13 +496,25 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           const modelFields = this.config._runtimeDataModel.models[modelName!].fields
           // console.log({modelFields})
 
-          const sql = `SELECT * FROM ${tableName}`
+          const sql = `SELECT * FROM "${tableName}"`
+          // console.log({sql})
           try {
-            const result = await this.adapter.client.execute(sql)
+            const result = await this.adapter.queryRaw({ sql, args: [] })
+            // console.dir({ result }, { depth: null })
+
+            // combine separated keys and values from driver adapter
+            const combinedResult = result.value.rows.map((row) => {
+              const obj = {}
+              result.value.columnNames.forEach((colName, index) => {
+                obj[colName] = row[index]
+              })
+              return obj
+            })
+            // console.log({combinedResult})
 
             // turn returned data into expected format (with type indications for casting in /packages/client/src/runtime/core/jsonProtocol/deserializeJsonResponse.ts)
             // TODO Long term most of this should not be necessary at all, as it is just from a to b and then back to a
-            const transformedData = result.rows.map((row) => {
+            const transformedData = combinedResult.map((row) => {
               // get type information from dmmf or something
               for (const key in row) {
                 if (Object.prototype.hasOwnProperty.call(row, key)) {
