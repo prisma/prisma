@@ -42,6 +42,10 @@ async function main() {
   // console.log("findMany, filter")
   // const usersFiltered = await prisma.user.findMany({ where: { email: {  contains: "1" }}})
   // console.log({ usersFiltered })
+
+  console.log("findMany Link, no filter")
+  const links = await prisma.link.findMany()
+  console.log({ links })
 }
 
 void main().catch((e) => {

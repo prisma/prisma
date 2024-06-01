@@ -472,7 +472,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (
         !interactiveTransaction?.id && // No support for interactive transactions yet as long as we can not handle all queries
         this.adapter &&
-        query.modelName == 'User' &&
+        // query.modelName == 'User' &&
         query.action == 'findMany' &&
         // arguments = {}
         Object.keys(query.query.arguments!).length == 0 &&
