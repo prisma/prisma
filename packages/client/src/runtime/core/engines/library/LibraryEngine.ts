@@ -502,6 +502,16 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             const result = await this.adapter.queryRaw({ sql, args: [] })
             // console.dir({ result }, { depth: null })
 
+            if (this.logQueries) {
+              this.logEmitter.emit('query', {
+                timestamp: new Date(),
+                query: sql,
+                params: 'none', // TODO params
+                duration: Number(0), // TODO measure above
+                target: 'huh?', // TODO what is this even?
+              })
+            }
+
             // combine separated keys and values from driver adapter
             const combinedResult = result.value.rows.map((row) => {
               const obj = {}
