@@ -102,6 +102,7 @@ jobs:
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') || 
       contains(inputs.jobsToRun, '-client-')
     strategy:
@@ -185,6 +186,7 @@ jobs:
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     strategy:
@@ -322,6 +324,7 @@ jobs:
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     strategy:
@@ -417,6 +420,7 @@ jobs:
     timeout-minutes: 35
     runs-on: ${{ matrix.os }}
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-e2e-')
     strategy:
@@ -461,6 +465,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     strategy:
@@ -538,6 +543,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     strategy:
@@ -575,6 +581,8 @@ jobs:
     name: Workspace types
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, 'foobar')
     strategy:
       fail-fast: false
       matrix:
@@ -600,6 +608,7 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-integration-tests-')
     strategy:
@@ -654,6 +663,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-internals-')
     strategy:
@@ -709,6 +719,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-migrate-')
     strategy:
@@ -764,6 +775,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-cli-')
     strategy:
@@ -819,6 +831,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-cli-platform-')
     strategy:
@@ -861,7 +874,9 @@ jobs:
     name: Others
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
-    if: contains(inputs.jobsToRun, '-all-')
+    if: |
+      contains(inputs.jobsToRun, 'foobar') &&
+      contains(inputs.jobsToRun, '-all-')
     strategy:
       fail-fast: false
       matrix:
@@ -1014,6 +1029,7 @@ jobs:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     steps:
@@ -1081,6 +1097,7 @@ jobs:
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     if: |
+      contains(inputs.jobsToRun, 'foobar') &&
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-internals-') ||
       contains(inputs.jobsToRun, '-migrate-') ||
