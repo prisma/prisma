@@ -16,7 +16,7 @@ async function main() {
   const pool = new Pool({ connectionString: "postgres://prisma:prisma@localhost:5432/tests" })
   const adapter = new PrismaPg(pool)
 
-  const prisma = new PrismaClient({ adapter })
+  const prisma = new PrismaClient({ adapter, log: ['query'] })
 
   console.log("deleteMany")
   await prisma.user.deleteMany()
@@ -46,6 +46,10 @@ async function main() {
   console.log("findMany Link, no filter")
   const links = await prisma.link.findMany()
   console.log({ links })
+
+  console.log("findMany, no filter, count links")
+  const usersWithLinkCount = await prisma.user.findMany({ include: { _count: { select: { links: true }} }})
+  console.dir({ usersWithLinkCount }, { depth: null })
 }
 
 void main().catch((e) => {

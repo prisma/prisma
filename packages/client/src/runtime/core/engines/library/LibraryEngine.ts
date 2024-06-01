@@ -13,7 +13,7 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, LogEventType } from '../common/types/Events'
-import { JsonQuery } from '../common/types/JsonProtocol'
+import { JsonFieldSelection, JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
@@ -471,33 +471,117 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       // console.dir({ query }, { depth: null })
       if (
         !interactiveTransaction?.id && // No support for interactive transactions yet as long as we can not handle all queries
-        this.adapter &&
-        // query.modelName == 'User' &&
+        this.adapter && // trigger only for driverAdapters
+        // query.modelName == 'User' // trigger only for model User
         query.action == 'findMany' &&
         // arguments = {}
         Object.keys(query.query.arguments!).length == 0 &&
         // selection = { '$composites': true, '$scalars': true }
         query.query.selection.$composites === true &&
         query.query.selection.$scalars === true
+        // && !query.query.selection._count /* _count: { arguments: {}, selection: { links: true } } */
+
+        // && query.modelName == 'foobar' // comment in this line if you just want to skip the NodeEngine completely
       ) {
         // console.log('Yes, findMany in User!', this.adapter)
 
-        // const dmmf = await getDMMF({ datamodel: this.datamodel })
+        const getModelFieldDefinitionByFieldX = (x, modelFields, resultFieldX) => {
+          console.log('getModelFieldDefinitionByFieldX by ', x, ' for ', resultFieldX)
+          for (const modelField in modelFields) {
+            if (Object.prototype.hasOwnProperty.call(modelFields, modelField)) {
+              // console.log('-', modelField, modelFields[modelField])
+
+              if (modelFields[modelField][x] == resultFieldX) {
+                console.log('modelFieldDefinition found: ', modelFields[modelField])
+                return modelFields[modelField]
+              }
+            }
+          }
+        }
+        const getModelFieldDefinitionByFieldName = (modelFields, resultFieldName) => {
+          return getModelFieldDefinitionByFieldX('name', modelFields, resultFieldName)
+        }
+        const getModelFieldDefinitionByFieldRelatioName = (modelFields, resultFieldRelationName) => {
+          return getModelFieldDefinitionByFieldX('relationName', modelFields, resultFieldRelationName)
+        }
+
+        // "dmmf" like object that has information about datamodel
         // console.dir({ _runtimeDataModel: this.config._runtimeDataModel }, { depth: null })
 
         this.executingQueryPromise = (async () => {
-          // TODO get table name via dmmf or something
+          // get table name via "dmmf"
           const modelName = query.modelName
-
-          // console.log("dmmfFoo", modelName, this.config._runtimeDataModel.models[modelName!])
-          const tableName = this.config._runtimeDataModel.models[modelName!].dbName || modelName
+          const tableName = this.config._runtimeDataModel.models[modelName!].dbName || modelName // dbName == @@map
           // console.log({tableName})
 
+          // get table fields
+          // TODO consider @map
           const modelFields = this.config._runtimeDataModel.models[modelName!].fields
           // console.log({modelFields})
 
-          const sql = `SELECT * FROM "${tableName}"`
+          let sql = ''
+          if (query.query.selection._count) {
+            /* _count: { arguments: {}, selection: { links: true } } */
+
+            // get information from current model
+            const aggregationTargetRelation = Object.keys(
+              (query.query.selection._count as JsonFieldSelection).selection,
+            )[0] // 'links`
+            const aggregationFieldDefinition = getModelFieldDefinitionByFieldName(
+              modelFields,
+              aggregationTargetRelation,
+            ) // links object
+            const aggregationTargetRelationModelname = aggregationFieldDefinition.type // 'Link'
+            const aggregationTargetRelationTablename = aggregationTargetRelationModelname // TODO Actually get the table name for target model, not just the type of the relation
+
+            // get information from model the relation points to
+            const targetModelFields = this.config._runtimeDataModel.models[aggregationTargetRelationModelname!].fields
+            // console.dir({ targetModelFields }, { depth: null })
+            const aggregationTargetFieldDefinition = getModelFieldDefinitionByFieldRelatioName(
+              targetModelFields,
+              aggregationFieldDefinition.relationName,
+            )
+            const aggregationTargetType = aggregationTargetFieldDefinition.type
+            const relationFromField = aggregationTargetFieldDefinition.relationFromFields[0] // this only has content for 1-n, not m-n
+            if (relationFromField) {
+              // 1-n
+              sql = `SELECT "${tableName}".*, 
+                            COALESCE("aggr_selection_0_${aggregationTargetRelationTablename}"."_aggr_count_${aggregationTargetRelation}", 0) AS "_aggr_count_${aggregationTargetRelation}" 
+                    FROM "${tableName}"
+                    LEFT JOIN
+                      (SELECT "${aggregationTargetRelationTablename}"."${relationFromField}",
+                              COUNT(*) AS "_aggr_count_${aggregationTargetRelation}"
+                      FROM "${aggregationTargetRelationTablename}"
+                      WHERE 1=1
+                      GROUP BY "${aggregationTargetRelationTablename}"."${relationFromField}") 
+                        AS "aggr_selection_0_${aggregationTargetRelationTablename}" 
+                        ON ("${aggregationTargetType}"."id" = "aggr_selection_0_${aggregationTargetRelationTablename}"."${relationFromField}")
+                    WHERE 1=1
+                    OFFSET 0
+                `
+            } else {
+              // m-n
+              sql = `SELECT "${tableName}".*, 
+                            COALESCE("aggr_selection_0_${aggregationTargetRelationTablename}"."_aggr_count_${aggregationTargetRelation}", 0) AS "_aggr_count_${aggregationTargetRelation}"
+                    FROM "${tableName}"
+                    LEFT JOIN
+                      (SELECT "_${aggregationFieldDefinition.relationName}"."B",
+                              COUNT(("_${aggregationFieldDefinition.relationName}"."B")) AS "_aggr_count_${aggregationTargetRelation}"
+                        FROM "${aggregationTargetRelationTablename}"
+                        LEFT JOIN "_${aggregationFieldDefinition.relationName}" ON ("${aggregationTargetRelationTablename}"."id" = ("_${aggregationFieldDefinition.relationName}"."A"))
+                        WHERE 1=1
+                        GROUP BY "_${aggregationFieldDefinition.relationName}"."B") 
+                          AS "aggr_selection_0_${aggregationTargetRelationTablename}" 
+                          ON ("${aggregationTargetType}"."id" = "aggr_selection_0_${aggregationTargetRelationTablename}"."B")
+                    WHERE 1=1
+                    OFFSET 0
+                `
+            }
+          } else {
+            sql = `SELECT * FROM "${tableName}"`
+          }
           // console.log({sql})
+
           try {
             const result = await this.adapter.queryRaw({ sql, args: [] })
             // console.dir({ result }, { depth: null })
@@ -522,45 +606,54 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             })
             // console.log({combinedResult})
 
+            // RESULT VALUE TYPE INDICATION
             // turn returned data into expected format (with type indications for casting in /packages/client/src/runtime/core/jsonProtocol/deserializeJsonResponse.ts)
             // TODO Long term most of this should not be necessary at all, as it is just from a to b and then back to a
-            const transformedData = combinedResult.map((row) => {
-              // get type information from dmmf or something
-              for (const key in row) {
-                if (Object.prototype.hasOwnProperty.call(row, key)) {
-                  // console.dir(`${key}: ${row[key]}`);
+            let transformedData = combinedResult.map((resultRow) => {
+              // iterate over all fields of the row
+              for (const resultFieldName in resultRow) {
+                if (Object.prototype.hasOwnProperty.call(resultRow, resultFieldName)) {
+                  // console.dir(`${resultField}: ${resultRow[resultField]}`);
 
-                  // TODO This loop is totally stupid of course
-                  for (const key2 in modelFields) {
-                    if (Object.prototype.hasOwnProperty.call(modelFields, key2)) {
-                      // console.log('-', key2, modelFields[key2])
-
-                      if (modelFields[key2].name == key) {
-                        const type = modelFields[key2].type
-                        if (row[key] != null) {
-                          if (type == 'DateTime') {
-                            row[key] = { $type: 'DateTime', value: row[key] }
-                            break
-                          } else if (type == 'BigInt') {
-                            row[key] = { $type: 'BigInt', value: row[key] }
-                            break
-                          } else if (type == 'Bytes') {
-                            row[key] = { $type: 'Bytes', value: row[key] }
-                            break
-                          } else if (type == 'Decimal') {
-                            row[key] = { $type: 'Decimal', value: row[key] }
-                            break
-                          }
-                        }
-                        // TODO other types
+                  const modelFieldDefinition = getModelFieldDefinitionByFieldName(modelFields, resultFieldName)
+                  if (modelFieldDefinition) {
+                    const type = modelFieldDefinition.type
+                    if (resultRow[resultFieldName] != null) {
+                      // field is not empty
+                      if (type == 'DateTime') {
+                        resultRow[resultFieldName] = { $type: 'DateTime', value: resultRow[resultFieldName] }
+                      } else if (type == 'BigInt') {
+                        resultRow[resultFieldName] = { $type: 'BigInt', value: resultRow[resultFieldName] }
+                      } else if (type == 'Bytes') {
+                        resultRow[resultFieldName] = { $type: 'Bytes', value: resultRow[resultFieldName] }
+                      } else if (type == 'Decimal') {
+                        resultRow[resultFieldName] = { $type: 'Decimal', value: resultRow[resultFieldName] }
                       }
                     }
                   }
                 }
               }
 
+              return resultRow
+            })
+
+            // TRANSFORM AGGREGATIONS
+            transformedData = transformedData.map((row) => {
+              for (const key in row) {
+                if (Object.prototype.hasOwnProperty.call(row, key)) {
+                  // console.dir(`${key}: ${row[key]}`);
+
+                  // _count
+                  if (key.startsWith('_aggr_count_')) {
+                    const countKey = key.replace('_aggr_count_', '')
+                    row._count = { [countKey]: Number(row[key]) }
+                    delete row[key]
+                  }
+                }
+              }
               return row
             })
+
             return transformedData
           } catch (error) {
             throw new Error(error)
