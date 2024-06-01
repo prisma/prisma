@@ -536,9 +536,21 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
                       // console.log('-', key2, modelFields[key2])
 
                       if (modelFields[key2].name == key) {
-                        if (modelFields[key2].type == 'DateTime' && row[key] != null) {
-                          row[key] = { $type: 'DateTime', value: row[key] }
-                          break
+                        const type = modelFields[key2].type
+                        if (row[key] != null) {
+                          if (type == 'DateTime') {
+                            row[key] = { $type: 'DateTime', value: row[key] }
+                            break
+                          } else if (type == 'BigInt') {
+                            row[key] = { $type: 'BigInt', value: row[key] }
+                            break
+                          } else if (type == 'Bytes') {
+                            row[key] = { $type: 'Bytes', value: row[key] }
+                            break
+                          } else if (type == 'Decimal') {
+                            row[key] = { $type: 'Decimal', value: row[key] }
+                            break
+                          }
                         }
                         // TODO other types
                       }
