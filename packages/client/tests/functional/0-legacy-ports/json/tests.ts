@@ -22,9 +22,15 @@ testMatrix.setupTestSuite(
   (suiteConfig) => {
     beforeAll(async () => {
       await prisma.resource.deleteMany()
-    })
 
-    test('create required json', async () => {
+      // create unrelated entry so that test that want to filter down to specific entry actually fail if filters don't work
+      await prisma.resource.create({
+        data: {
+          id: copycat.uuid(17).replaceAll('-', '').slice(-24),
+          requiredJson: { foo: 'bar' },
+        },
+      })
+
       const result = await prisma.resource.create({
         data: {
           id: copycat.uuid(1).replaceAll('-', '').slice(-24),
@@ -65,12 +71,12 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(result).toHaveLength(1)
+      expect(result).toHaveLength(2)
       expect(result[0]).toHaveProperty('requiredJson')
     })
 
     testIf(['mysql', 'postgresql', 'cockroachdb'].includes(suiteConfig.provider))(
-      'select required json with where path',
+      'select required json with where equals and path',
       async () => {
         let result
 
@@ -123,7 +129,8 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(result).toHaveLength(0)
+      expect(result).toHaveLength(1)
+      expect(result[0].requiredJson).toEqual({ foo: 'bar' })
     })
 
     test('update required json with where equals', async () => {

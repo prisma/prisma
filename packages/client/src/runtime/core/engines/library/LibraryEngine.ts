@@ -469,7 +469,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       let data: any = {}
 
-      // console.dir({ query }, { depth: null })
+      console.dir({ query }, { depth: null })
       if (
         this.adapter && // trigger only for driverAdapters
         !interactiveTransaction?.id && // TODO implement interaction transactions support

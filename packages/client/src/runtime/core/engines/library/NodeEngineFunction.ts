@@ -48,6 +48,50 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
 
     if (query.query.selection._count) {
       sql = handleCountAggregations(query, modelFields, libraryEngine, tableName)
+    } else if (query.query.arguments.where) {
+      console.log('WHERE!')
+      /*
+        {
+          query: {
+            modelName: 'Resource',
+            action: 'findMany',
+            query: {
+              arguments: {
+                where: { requiredJson: { path: [ 'bar', 'baz' ], equals: 'qux' } }
+              },
+              selection: { '$composites': true, '$scalars': true }
+            }
+          }
+        }
+      */
+      /*
+        Query: SELECT "public"."Resource"."id", "public"."Resource"."requiredJson", "public"."Resource"."optionalJson" 
+          FROM "public"."Resource" 
+          WHERE ("public"."Resource"."requiredJson"#>ARRAY[$1, $2]::text[])::jsonb::jsonb = $3 
+          OFFSET $4
+        Params: ["bar","baz","qux",0]
+      */
+      const whereFields = query.query.arguments.where
+      let whereString = ''
+      for (const whereField in whereFields) {
+        // TODO Actually handle multple fields in where instead of overwriting
+        if (Object.prototype.hasOwnProperty.call(whereFields, whereField)) {
+          const whereFilter = whereFields[whereField]
+          // TODO Consider only for Json fields
+          // path + equals
+          if ('path' in whereFilter && 'equals' in whereFilter) {
+            whereString = `WHERE ("${tableName}"."${whereField}"#>ARRAY['${whereFilter.path.join(
+              "','",
+            )}']::text[])::jsonb::jsonb = '"${whereFilter.equals}"'`
+          }
+          // TODO handle other cases (only path etc)
+        }
+      }
+
+      sql = `SELECT * 
+              FROM "${tableName}"
+              ${whereString}
+            `
     } else {
       sql = `SELECT * FROM "${tableName}"`
     }
@@ -55,7 +99,7 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
 
     try {
       const result = await libraryEngine.adapter.queryRaw({ sql, args: [] })
-      // console.dir({ result }, { depth: null })
+      console.dir({ result }, { depth: null })
 
       // LOG SQL
       if (libraryEngine.logQueries) {
