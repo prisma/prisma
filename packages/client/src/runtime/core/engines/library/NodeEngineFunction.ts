@@ -205,6 +205,33 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
         return resultRow
       })
 
+      // DISTINCT
+      if (query.query.arguments.distinct) {
+        // single entry object => string
+        if (query.query.arguments.distinct.length == 1) {
+          query.query.arguments.distinct = query.query.arguments.distinct[0]
+        }
+        if (typeof query.query.arguments.distinct === 'string') {
+          console.log('distinct', query.query.arguments.distinct)
+          const distinctValues = {}
+          console.log('before', transformedData)
+          transformedData = transformedData.filter((resultRow) => {
+            for (const resultFieldName in resultRow) {
+              if (Object.prototype.hasOwnProperty.call(resultRow, resultFieldName)) {
+                // Check if the distinct value exists
+                if (resultFieldName == query.query.arguments.distinct && !distinctValues[resultRow[resultFieldName]]) {
+                  distinctValues[resultRow[resultFieldName]] = true
+                  return true // Keep this row
+                }
+              }
+            }
+            return false // Filter out this row
+          })
+          console.log('after', transformedData)
+        } else {
+        }
+      }
+
       return transformedData
     } catch (error) {
       throw new Error(error)

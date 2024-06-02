@@ -1,13 +1,20 @@
 import { copycat } from '@snaplet/copycat'
 
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
-// @ts-ignore
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// @ts-ignore this is just for type checks
 import type { PrismaClient } from './node_modules/@prisma/client'
 
-declare let prisma: PrismaClient
+declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(() => {
   beforeAll(async () => {
+    prisma = newPrismaClient({
+      log: ['query'],
+    })
+
     await prisma.user.create({
       data: {
         firstName: copycat.firstName(1),
