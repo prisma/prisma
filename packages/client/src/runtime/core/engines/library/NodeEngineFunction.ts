@@ -86,6 +86,9 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
             // equals only
           } else if ('equals' in whereFilter) {
             whereString = `WHERE "${tableName}"."${whereField}"::jsonb = '${JSON.stringify(whereFilter.equals)}'`
+            // not only
+          } else if ('not' in whereFilter) {
+            whereString = `WHERE "${tableName}"."${whereField}"::jsonb <> '${JSON.stringify(whereFilter.not)}'`
           }
           // TODO handle other cases (only path etc)
         }
@@ -148,6 +151,8 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
                   resultRow[resultFieldName] = { $type: 'Bytes', value: resultRow[resultFieldName] }
                 } else if (type == 'Decimal') {
                   resultRow[resultFieldName] = { $type: 'Decimal', value: resultRow[resultFieldName] }
+                } else if (type == 'Json') {
+                  resultRow[resultFieldName] = { $type: 'Json', value: resultRow[resultFieldName] }
                 }
               }
             }

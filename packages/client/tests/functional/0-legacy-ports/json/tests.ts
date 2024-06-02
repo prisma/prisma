@@ -5,7 +5,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
 
-declare let prisma: $.PrismaClient
+declare let prisma: $.PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+declare let newPrismaClient: NewPrismaClient<typeof $.PrismaClient>
 
 const requiredJson = {
   foo: 'bar',
@@ -21,6 +22,16 @@ const requiredJson = {
 testMatrix.setupTestSuite(
   (suiteConfig) => {
     beforeAll(async () => {
+      prisma = newPrismaClient({
+        log: [{ emit: 'event', level: 'query' }],
+      })
+
+      prisma.$on('query', (e) => {
+        console.log('Query: ' + e.query)
+        console.log('Params: ' + e.params)
+        console.log('Duration: ' + e.duration + 'ms')
+      })
+
       await prisma.resource.deleteMany()
 
       // create unrelated entry so that test that want to filter down to specific entry actually fail if filters don't work
