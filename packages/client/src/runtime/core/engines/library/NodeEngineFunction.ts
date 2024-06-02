@@ -28,7 +28,7 @@ const getModelFieldDefinitionByFieldIsId = (modelFields) => {
 
 export const executeViaNodeEngine = (libraryEngine, query) => {
   // console.log('Yes, NodeEngine!')
-  // console.dir({ query }, { depth: null })
+  console.dir({ query }, { depth: null })
 
   // "dmmf" like object that has information about datamodel
   // console.dir({ _runtimeDataModel: this.config._runtimeDataModel }, { depth: null })

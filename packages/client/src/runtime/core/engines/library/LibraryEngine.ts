@@ -474,12 +474,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         this.adapter && // trigger only for driverAdapters
         !interactiveTransaction?.id && // TODO implement interaction transactions support
         // query.modelName == 'User' // trigger only for model User
-        query.action == 'findMany' &&
+        query.action == 'findMany' // &&
         // No argument: /* arguments = {} */
-        Object.keys(query.query.arguments!).length == 0 &&
+        // Object.keys(query.query.arguments!).length == 0 &&
         // Select all composites and scalars /* selection = { '$composites': true, '$scalars': true } */
-        query.query.selection.$composites === true &&
-        query.query.selection.$scalars === true
+        // query.query.selection.$composites === true // &&
+        // query.query.selection.$scalars === true
 
         // Do not run for _count aggregations
         // && !query.query.selection._count /* _count: { arguments: {}, selection: { links: true } } */
