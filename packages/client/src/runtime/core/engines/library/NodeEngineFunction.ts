@@ -83,6 +83,9 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
             whereString = `WHERE ("${tableName}"."${whereField}"#>ARRAY['${whereFilter.path.join(
               "','",
             )}']::text[])::jsonb::jsonb = '"${whereFilter.equals}"'`
+            // equals only
+          } else if ('equals' in whereFilter) {
+            whereString = `WHERE "${tableName}"."${whereField}"::jsonb = '${JSON.stringify(whereFilter.equals)}'`
           }
           // TODO handle other cases (only path etc)
         }
