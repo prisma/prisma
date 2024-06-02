@@ -28,6 +28,21 @@ model Brand {
   categories Category[] 
 }
 
+
+model User {
+  uid ${idForProvider(provider)}
+
+  upVotedComments   Comment[] @relation("upVotes")
+  downVotedComments Comment[] @relation("downVotes")
+}
+
+model Comment {
+  id ${idForProvider(provider)}
+
+  upVotedUsers   User[] @relation("upVotes")
+  downVotedUsers User[] @relation("downVotes")
+}
+
     `
   return schema
 })

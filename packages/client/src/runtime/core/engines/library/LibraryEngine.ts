@@ -483,7 +483,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         // && query.modelName == 'foobar' // comment in this line if you just want to skip the NodeEngine completely
       ) {
-        // console.log('Yes, findMany in User!', this.adapter)
+        // console.log('Yes, NodeEngine!')
+        // console.dir({ query }, { depth: null })
 
         const getModelFieldDefinitionByFieldX = (x, modelFields, resultFieldX) => {
           // console.log('getModelFieldDefinitionByFieldX by ', x, ' for ', resultFieldX)
@@ -507,6 +508,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         const getModelFieldDefinitionByFieldDbName = (modelFields, resultFieldDbName) => {
           return getModelFieldDefinitionByFieldX('dbName', modelFields, resultFieldDbName)
         }
+        const getModelFieldDefinitionByFieldIsId = (modelFields) => {
+          return getModelFieldDefinitionByFieldX('isId', modelFields, true)
+        }
 
         // "dmmf" like object that has information about datamodel
         // console.dir({ _runtimeDataModel: this.config._runtimeDataModel }, { depth: null })
@@ -524,61 +528,105 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
           let sql = ''
           if (query.query.selection._count) {
-            /* _count: { arguments: {}, selection: { links: true } } */
+            /*
+              model Link {
+                id        String   @id @default(uuid())
+                user      User?    @relation(fields: [userId], references: [id])
+                userId    String?
+              }
+              model User {
+                id        String    @id @default(uuid())
+                links     Link[]
+              }
 
-            // get information from current model
-            const aggregationTargetRelation = Object.keys(
-              (query.query.selection._count as JsonFieldSelection).selection,
-            )[0] // 'links`
-            const aggregationFieldDefinition = getModelFieldDefinitionByFieldName(
-              modelFields,
-              aggregationTargetRelation,
-            ) // links object
-            const aggregationTargetRelationModelname = aggregationFieldDefinition.type // 'Link'
-            const aggregationTargetRelationTablename = aggregationTargetRelationModelname // TODO Actually get the table name for target model, not just the type of the relation
+              =>
+              _count: { arguments: {}, selection: { links: true } }
+            */
 
-            // get information from model the relation points to
-            const targetModelFields = this.config._runtimeDataModel.models[aggregationTargetRelationModelname!].fields
-            // console.dir({ targetModelFields }, { depth: null })
-            const aggregationTargetFieldDefinition = getModelFieldDefinitionByFieldRelatioName(
-              targetModelFields,
-              aggregationFieldDefinition.relationName,
-            )
-            const aggregationTargetType = aggregationTargetFieldDefinition.type
-            const relationFromField = aggregationTargetFieldDefinition.relationFromFields[0] // this only has content for 1-n, not m-n
-            if (relationFromField) {
-              // 1-n
-              sql = `SELECT "${tableName}".*, 
-                            COALESCE("aggr_selection_0_${aggregationTargetRelationTablename}"."_aggr_count_${aggregationTargetRelation}", 0) AS "_aggr_count_${aggregationTargetRelation}" 
-                    FROM "${tableName}"
-                    LEFT JOIN
-                      (SELECT "${aggregationTargetRelationTablename}"."${relationFromField}",
-                              COUNT(*) AS "_aggr_count_${aggregationTargetRelation}"
-                      FROM "${aggregationTargetRelationTablename}"
-                      WHERE 1=1
-                      GROUP BY "${aggregationTargetRelationTablename}"."${relationFromField}") 
-                        AS "aggr_selection_0_${aggregationTargetRelationTablename}" 
-                        ON ("${aggregationTargetType}"."id" = "aggr_selection_0_${aggregationTargetRelationTablename}"."${relationFromField}")
-                    WHERE 1=1
-                    OFFSET 0
-                `
-            } else {
-              // m-n
-              sql = `SELECT "${tableName}".*, 
-                            COALESCE("aggr_selection_0_${aggregationTargetRelationTablename}"."_aggr_count_${aggregationTargetRelation}", 0) AS "_aggr_count_${aggregationTargetRelation}"
-                    FROM "${tableName}"
-                    LEFT JOIN
-                      (SELECT "_${aggregationFieldDefinition.relationName}"."B",
-                              COUNT(("_${aggregationFieldDefinition.relationName}"."B")) AS "_aggr_count_${aggregationTargetRelation}"
-                        FROM "${aggregationTargetRelationTablename}"
-                        LEFT JOIN "_${aggregationFieldDefinition.relationName}" ON ("${aggregationTargetRelationTablename}"."id" = ("_${aggregationFieldDefinition.relationName}"."A"))
+            const selections = Object.keys((query.query.selection._count as JsonFieldSelection).selection)
+
+            // arrays to store generated data to add to the SQL statement
+            const _additionalSelections: String[] = []
+            const _additionalJoins: String[] = []
+
+            // loop over all selections
+            // const relationToCount = selections[0] // 'links`
+            for (let i = 0; i < selections.length; i++) {
+              const relationToCount = selections[i]
+              // get information from current model
+              const relationToCountFieldDefinition = getModelFieldDefinitionByFieldName(modelFields, relationToCount) // links object
+              // console.log({relationToCountFieldDefinition})
+
+              // PART 1: additional selection string
+              const relationToCountModelname = relationToCountFieldDefinition.type // 'Link'
+              const relationToCountTablename = relationToCountModelname // TODO Actually get the table name for target model, not just the type of the relation
+              const _selectionString = `COALESCE("aggr_selection_${i}_${relationToCountTablename}"."_aggr_count_${relationToCount}", 0) AS "_aggr_count_${relationToCount}"`
+              _additionalSelections.push(_selectionString)
+
+              // PART 2: additional JOIN
+              // get information from model the relation points to
+              const relationToCountModelFields = this.config._runtimeDataModel.models[relationToCountModelname!].fields
+              // console.dir({ relationToCountModelname, relationToCountModelFields }, { depth: null })
+              const targetModelFieldDefinition = getModelFieldDefinitionByFieldRelatioName(
+                relationToCountModelFields,
+                relationToCountFieldDefinition.relationName,
+              )
+              const aggregationTargetType = targetModelFieldDefinition.type // 'User'
+              const relationFromField = targetModelFieldDefinition.relationFromFields[0] // this only has content for 1-n, not m-n
+              // console.log({ relationFromField })
+
+              // primary key from first table for sql
+              const aggregationTargetTypeIdField = getModelFieldDefinitionByFieldIsId(modelFields)
+              // console.log({ aggregationTargetTypeIdField })
+              const aggregationTargetTypeIdFieldName = aggregationTargetTypeIdField.name // User.uid
+              // console.log( { aggregationTargetTypeIdFieldName })
+
+              if (relationFromField) {
+                // 1-n
+                const _joinString = `LEFT JOIN
+                        (SELECT "${relationToCountTablename}"."${relationFromField}",
+                                COUNT(*) AS "_aggr_count_${relationToCount}"
+                        FROM "${relationToCountTablename}"
                         WHERE 1=1
-                        GROUP BY "_${aggregationFieldDefinition.relationName}"."B") 
-                          AS "aggr_selection_0_${aggregationTargetRelationTablename}" 
-                          ON ("${aggregationTargetType}"."id" = "aggr_selection_0_${aggregationTargetRelationTablename}"."B")
-                    WHERE 1=1
-                    OFFSET 0
+                        GROUP BY "${relationToCountTablename}"."${relationFromField}") 
+                          AS "aggr_selection_${i}_${relationToCountTablename}" 
+                          ON ("${aggregationTargetType}".${aggregationTargetTypeIdFieldName} = "aggr_selection_${i}_${relationToCountTablename}"."${relationFromField}")
+                  `
+                _additionalJoins.push(_joinString)
+              } else {
+                // m-n
+
+                // need to get the primary key so we can properly join
+                const relationToCountTypeIdField = getModelFieldDefinitionByFieldIsId(relationToCountModelFields) // User details
+                console.log({ relationToCountTypeIdField })
+                const relationToCountTypeIdFieldName = relationToCountTypeIdField.name // User.uid
+                console.log({ relationToCountTypeIdFieldName })
+
+                // Correctly select A and B to match model/table names of relation
+                const char1 = relationToCountTablename.charAt(0)
+                const char2 = tableName.charAt(0)
+                const [mainForeignKeyName, otherForeignKeyName] =
+                  char1.charCodeAt(0) < char2.charCodeAt(0) ? ['B', 'A'] : ['A', 'B']
+
+                const _joinString = `
+                      LEFT JOIN
+                        (SELECT "_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}",
+                                COUNT(("_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}")) AS "_aggr_count_${relationToCount}"
+                          FROM "${relationToCountTablename}"
+                          LEFT JOIN "_${relationToCountFieldDefinition.relationName}" ON ("${relationToCountTablename}"."${relationToCountTypeIdFieldName}" = ("_${relationToCountFieldDefinition.relationName}"."${otherForeignKeyName}"))
+                          WHERE 1=1
+                          GROUP BY "_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}") 
+                            AS "aggr_selection_${i}_${relationToCountTablename}" 
+                            ON ("${aggregationTargetType}"."${aggregationTargetTypeIdFieldName}" = "aggr_selection_${i}_${relationToCountTablename}"."${mainForeignKeyName}")
                 `
+                _additionalJoins.push(_joinString)
+              }
+              sql = `SELECT "${tableName}".*, 
+                            ${_additionalSelections.join(',\n')}
+                      FROM "${tableName}"
+                      ${_additionalJoins.join('\n')}
+                      WHERE 1=1
+                        OFFSET 0`
             }
           } else {
             sql = `SELECT * FROM "${tableName}"`
@@ -598,6 +646,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
                 duration: Number(0), // TODO measure above
                 target: 'huh?', // TODO what is this even?
               })
+              console.log('nodeQuery', sql)
             }
 
             // INTERNAL: combine separated keys and values from driver adapter
@@ -642,6 +691,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             })
 
             // TRANSFORM AGGREGATIONS
+            // console.log("data before transformation", transformedData)
             transformedData = transformedData.map((resultRow) => {
               for (const resultFieldName in resultRow) {
                 if (Object.prototype.hasOwnProperty.call(resultRow, resultFieldName)) {
@@ -650,13 +700,17 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
                   // _count
                   if (resultFieldName.startsWith('_aggr_count_')) {
                     const countKey = resultFieldName.replace('_aggr_count_', '')
-                    resultRow._count = { [countKey]: Number(resultRow[resultFieldName]) }
+                    if (!resultRow._count) {
+                      resultRow._count = {}
+                    }
+                    resultRow._count[countKey] = Number(resultRow[resultFieldName])
                     delete resultRow[resultFieldName]
                   }
                 }
               }
               return resultRow
             })
+            // console.log("data before transformation", transformedData)
 
             // @map FIELD RENAMING
             // console.log({ modelFields })
@@ -666,7 +720,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
                   // console.dir(`${key}: ${row[key]}`);
 
                   const modelFieldDefinition = getModelFieldDefinitionByFieldDbName(modelFields, resultFieldName)
-                  console.log({ modelFieldDefinition })
+                  // console.log({ modelFieldDefinition })
                   if (modelFieldDefinition && modelFieldDefinition.name) {
                     // TODO do this in a way that the order of fields is not changed
                     resultRow[modelFieldDefinition.name] = resultRow[resultFieldName]
