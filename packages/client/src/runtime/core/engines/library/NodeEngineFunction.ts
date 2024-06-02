@@ -117,16 +117,13 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
           },
         }
 
-        SELECT "public"."Post"."id",
-              "public"."Post"."title",
-              "public"."Post"."authorId"
+        SELECT *
         FROM "public"."Post"
         WHERE "public"."Post"."id" >=
             (SELECT "public"."Post"."id"
             FROM "public"."Post"
             WHERE ("public"."Post"."id",
-                    "public"."Post"."title") = ($1,
-                                                $2))
+                    "public"."Post"."title") = ($1,$2))
         ORDER BY "public"."Post"."id" ASC
         OFFSET $3
       */
@@ -139,7 +136,7 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
         .join(', ')
       const whereString = `WHERE "${tableName}"."${cursorField}" >= 
                             (SELECT "${tableName}"."${cursorField}" FROM "${tableName}" WHERE (${columns}) = (${values})) 
-                            ORDER BY "public"."Post"."id" ASC `
+                            ORDER BY "${tableName}"."${cursorField}" ASC`
       sql = `SELECT * 
               FROM "${tableName}"
               ${whereString}
