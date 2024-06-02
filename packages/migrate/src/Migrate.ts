@@ -1,13 +1,17 @@
 import { enginesVersion } from '@prisma/engines-version'
-import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
-import fs from 'fs'
+import {
+  getGenerators,
+  getGeneratorSuccessMessage,
+  type GetSchemaResult,
+  getSchemaWithPath,
+  toSchemasContainer,
+} from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
 import path from 'path'
 
 import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
-import { NoSchemaFoundError } from './utils/errors'
 
 // TODO: `eval` is used so that the `version` field in package.json (resolved at compile-time) doesn't yield `0.0.0`.
 // We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.
@@ -18,9 +22,6 @@ export class Migrate {
   private schemaPath?: string
   public migrationsDirectoryPath?: string
 
-  // TODO: make the constructor private, and only allow instantiation via an async static method.
-  // This would allow us to do async work in the constructor (such as using the async version of `getSchemaPath`,
-  // which supports multiple schema files), which is currently not possible.
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
     // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
@@ -44,20 +45,10 @@ export class Migrate {
     this.engine.stop()
   }
 
-  public getSchemaPath(schemaPathFromOptions?): string {
-    const schemaPath = getSchemaPathSync(schemaPathFromOptions)
-
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    return schemaPath
-  }
-
-  public getPrismaSchema(): string {
+  public getPrismaSchema(): Promise<GetSchemaResult> {
     if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
 
-    return fs.readFileSync(this.schemaPath, 'utf-8')
+    return getSchemaWithPath(this.schemaPath)
   }
 
   public reset(): Promise<void> {
@@ -120,19 +111,19 @@ export class Migrate {
     })
   }
 
-  public evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
+  public async evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const schema = this.getPrismaSchema()
+    const schema = toSchemasContainer((await this.getPrismaSchema()).schemas)
 
     return this.engine.evaluateDataLoss({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
-      prismaSchema: schema,
+      schema: schema,
     })
   }
 
   public async push({ force = false }: { force?: boolean }): Promise<EngineResults.SchemaPush> {
-    const schema = this.getPrismaSchema()
+    const schema = toSchemasContainer((await this.getPrismaSchema()).schemas)
 
     const { warnings, unexecutable, executedSteps } = await this.engine.schemaPush({
       force,

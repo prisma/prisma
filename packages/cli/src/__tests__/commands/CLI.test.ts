@@ -9,6 +9,7 @@ const cliInstance = CLI.new(
   {
     // init: Init.new(),
     // migrate: MigrateCommand.new({
+    //   diff: MigrateDiff.new(),
     //   dev: MigrateDev.new(),
     //   status: MigrateStatus.new(),
     //   resolve: MigrateResolve.new(),

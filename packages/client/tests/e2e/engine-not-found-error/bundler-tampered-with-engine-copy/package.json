@@ -7,8 +7,8 @@
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
   },
   "devDependencies": {
-    "@types/node": "16.18.96",
-    "esbuild": "0.20.2",
+    "@types/node": "16.18.97",
+    "esbuild": "0.21.4",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   }
 }

@@ -9,7 +9,7 @@ import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF, getSchemaPath, GetSchemaResult, mergeSchemas, vercelPkgPathRegex } from '..'
+import { getConfig, getDMMF, GetSchemaResult, getSchemaWithPath, mergeSchemas, vercelPkgPathRegex } from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -86,7 +86,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   let schemaResult: GetSchemaResult | null = null
 
   try {
-    schemaResult = await getSchemaPath(schemaPath)
+    schemaResult = await getSchemaWithPath(schemaPath)
   } catch (_) {
     throw new Error(`${schemaPath} does not exist`)
   }

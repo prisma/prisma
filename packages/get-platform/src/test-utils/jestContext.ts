@@ -8,7 +8,7 @@ import tempy from 'tempy'
 /**
  * Base test context.
  */
-type BaseContext = {
+export type BaseContext = {
   tmpDir: string
   fs: FSJetpack
   mocked: {
@@ -26,6 +26,8 @@ type BaseContext = {
    * For this to work the source must be built
    */
   cli: (...input: string[]) => ExecaChildProcess<string>
+
+  printDir(dir: string, extensions: string[]): void
 }
 
 /**
@@ -62,6 +64,14 @@ export const jestContext = {
           stdio: 'pipe',
           all: true,
         })
+      }
+      c.printDir = (dir, extensions) => {
+        const content = c.fs.list(dir) ?? []
+        content.sort((a, b) => a.localeCompare(b))
+        return content
+          .filter((name) => extensions.includes(path.extname(name)))
+          .map((name) => `${name}:\n\n${c.fs.read(path.join(dir, name))}`)
+          .join('\n\n')
       }
       process.chdir(c.tmpDir)
     })

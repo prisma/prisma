@@ -46,15 +46,12 @@ export class ArgsTypeBuilder {
     return this
   }
 
-  addSelectArg(): this {
+  addSelectArg(selectTypeName: string = getSelectName(this.type.name)): this {
     this.addProperty(
       ts
         .property(
           'select',
-          ts.unionType([
-            ts.namedType(getSelectName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
-            ts.nullType,
-          ]),
+          ts.unionType([ts.namedType(selectTypeName).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
         )
         .optional()
         .setDocComment(ts.docComment(`Select specific fields to fetch from the ${this.type.name}`)),
@@ -63,8 +60,8 @@ export class ArgsTypeBuilder {
     return this
   }
 
-  addIncludeArgIfHasRelations(): this {
-    const hasRelationField = this.type.fields.some((f) => f.outputType.location === 'outputObjectTypes')
+  addIncludeArgIfHasRelations(includeTypeName = getIncludeName(this.type.name), type = this.type): this {
+    const hasRelationField = type.fields.some((f) => f.outputType.location === 'outputObjectTypes')
     if (!hasRelationField) {
       return this
     }
@@ -73,10 +70,7 @@ export class ArgsTypeBuilder {
       ts
         .property(
           'include',
-          ts.unionType([
-            ts.namedType(getIncludeName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
-            ts.nullType,
-          ]),
+          ts.unionType([ts.namedType(includeTypeName).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
         )
         .optional()
         .setDocComment(ts.docComment('Choose, which related nodes to fetch as well')),
