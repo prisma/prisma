@@ -77,17 +77,19 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
         // TODO Actually handle multple fields in where instead of overwriting
         if (Object.prototype.hasOwnProperty.call(whereFields, whereField)) {
           const whereFilter = whereFields[whereField]
-          // TODO Consider only for Json fields
-          // path + equals
-          if ('path' in whereFilter && 'equals' in whereFilter) {
+          if (typeof whereFilter === 'string') {
+            whereString = `WHERE "${tableName}"."${whereField}" = '${whereFilter}'`
+            // TODO Consider only for Json fields
+          } else if ('path' in whereFilter && 'equals' in whereFilter) {
+            // path + equals
             whereString = `WHERE ("${tableName}"."${whereField}"#>ARRAY['${whereFilter.path.join(
               "','",
             )}']::text[])::jsonb::jsonb = '"${whereFilter.equals}"'`
-            // equals only
           } else if ('equals' in whereFilter) {
+            // equals only
             whereString = `WHERE "${tableName}"."${whereField}"::jsonb = '${JSON.stringify(whereFilter.equals)}'`
-            // not only
           } else if ('not' in whereFilter) {
+            // not only
             whereString = `WHERE "${tableName}"."${whereField}"::jsonb <> '${JSON.stringify(whereFilter.not)}'`
           }
           // TODO handle other cases (only path etc)
@@ -116,8 +118,8 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
           duration: Number(0), // TODO measure above
           target: 'huh?', // TODO what is this even?
         })
-        console.log('nodeQuery', sql)
       }
+      console.log('nodeQuery', sql)
 
       // INTERNAL: combine separated keys and values from driver adapter
       const combinedResult = result.value.rows.map((row) => {

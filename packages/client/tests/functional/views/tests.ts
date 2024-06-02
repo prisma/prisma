@@ -32,6 +32,14 @@ testMatrix.setupTestSuite(
         },
       })
 
+      await prisma.user.create({
+        data: {
+          id: isMongoDb ? faker.database.mongodbObjectId() : faker.string.alphanumeric(77),
+          email: 'foo@example.org',
+          name: 'John Doe',
+        },
+      })
+
       if (isMongoDb) {
         // alterStatement doesn't work with mongodb because
         // - no support for DbExecute
@@ -74,8 +82,8 @@ testMatrix.setupTestSuite(
         },
       })
 
+      expect(users.length).toBe(1)
       expect(users[0]).toBeDefined()
-
       expect(users[0]?.id).toEqual(fakeUser.id)
     })
 
