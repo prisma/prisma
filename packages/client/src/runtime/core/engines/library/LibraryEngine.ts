@@ -486,13 +486,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         // console.log('Yes, findMany in User!', this.adapter)
 
         const getModelFieldDefinitionByFieldX = (x, modelFields, resultFieldX) => {
-          console.log('getModelFieldDefinitionByFieldX by ', x, ' for ', resultFieldX)
+          // console.log('getModelFieldDefinitionByFieldX by ', x, ' for ', resultFieldX)
           for (const modelField in modelFields) {
             if (Object.prototype.hasOwnProperty.call(modelFields, modelField)) {
               // console.log('-', modelField, modelFields[modelField])
 
               if (modelFields[modelField][x] == resultFieldX) {
-                console.log('modelFieldDefinition found: ', modelFields[modelField])
+                // console.log('modelFieldDefinition found: ', modelFields[modelField])
                 return modelFields[modelField]
               }
             }
@@ -503,6 +503,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         }
         const getModelFieldDefinitionByFieldRelatioName = (modelFields, resultFieldRelationName) => {
           return getModelFieldDefinitionByFieldX('relationName', modelFields, resultFieldRelationName)
+        }
+        const getModelFieldDefinitionByFieldDbName = (modelFields, resultFieldDbName) => {
+          return getModelFieldDefinitionByFieldX('dbName', modelFields, resultFieldDbName)
         }
 
         // "dmmf" like object that has information about datamodel
@@ -586,6 +589,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             const result = await this.adapter.queryRaw({ sql, args: [] })
             // console.dir({ result }, { depth: null })
 
+            // LOG SQL
             if (this.logQueries) {
               this.logEmitter.emit('query', {
                 timestamp: new Date(),
@@ -596,7 +600,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
               })
             }
 
-            // combine separated keys and values from driver adapter
+            // INTERNAL: combine separated keys and values from driver adapter
             const combinedResult = result.value.rows.map((row) => {
               const obj = {}
               result.value.columnNames.forEach((colName, index) => {
@@ -613,7 +617,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
               // iterate over all fields of the row
               for (const resultFieldName in resultRow) {
                 if (Object.prototype.hasOwnProperty.call(resultRow, resultFieldName)) {
-                  // console.dir(`${resultField}: ${resultRow[resultField]}`);
+                  // console.dir(`${resultFieldName}: ${resultRow[resultFieldName]}`);
 
                   const modelFieldDefinition = getModelFieldDefinitionByFieldName(modelFields, resultFieldName)
                   if (modelFieldDefinition) {
@@ -638,20 +642,39 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             })
 
             // TRANSFORM AGGREGATIONS
-            transformedData = transformedData.map((row) => {
-              for (const key in row) {
-                if (Object.prototype.hasOwnProperty.call(row, key)) {
-                  // console.dir(`${key}: ${row[key]}`);
+            transformedData = transformedData.map((resultRow) => {
+              for (const resultFieldName in resultRow) {
+                if (Object.prototype.hasOwnProperty.call(resultRow, resultFieldName)) {
+                  // console.dir(`${resultFieldName}: ${resultRow[resultFieldName]}`);
 
                   // _count
-                  if (key.startsWith('_aggr_count_')) {
-                    const countKey = key.replace('_aggr_count_', '')
-                    row._count = { [countKey]: Number(row[key]) }
-                    delete row[key]
+                  if (resultFieldName.startsWith('_aggr_count_')) {
+                    const countKey = resultFieldName.replace('_aggr_count_', '')
+                    resultRow._count = { [countKey]: Number(resultRow[resultFieldName]) }
+                    delete resultRow[resultFieldName]
                   }
                 }
               }
-              return row
+              return resultRow
+            })
+
+            // @map FIELD RENAMING
+            // console.log({ modelFields })
+            transformedData = transformedData.map((resultRow) => {
+              for (const resultFieldName in resultRow) {
+                if (Object.prototype.hasOwnProperty.call(resultRow, resultFieldName)) {
+                  // console.dir(`${key}: ${row[key]}`);
+
+                  const modelFieldDefinition = getModelFieldDefinitionByFieldDbName(modelFields, resultFieldName)
+                  console.log({ modelFieldDefinition })
+                  if (modelFieldDefinition && modelFieldDefinition.name) {
+                    // TODO do this in a way that the order of fields is not changed
+                    resultRow[modelFieldDefinition.name] = resultRow[resultFieldName]
+                    delete resultRow[resultFieldName]
+                  }
+                }
+              }
+              return resultRow
             })
 
             return transformedData

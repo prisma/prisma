@@ -26,7 +26,7 @@ model User {
   id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  name      String?
+  name      String?   @map("fullname")
   email     String    @unique
   links     Link[]
   date      DateTime?
