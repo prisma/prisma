@@ -1,0 +1,1 @@
+npm uninstall -g pnpm && npm install -g pnpm@8
