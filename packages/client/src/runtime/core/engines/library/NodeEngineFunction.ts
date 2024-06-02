@@ -87,7 +87,13 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
             )}']::text[])::jsonb::jsonb = '"${whereFilter.equals}"'`
           } else if ('equals' in whereFilter) {
             // equals only
-            whereString = `WHERE "${tableName}"."${whereField}"::jsonb = '${JSON.stringify(whereFilter.equals)}'`
+            const fieldDefinition = getModelFieldDefinitionByFieldName(modelFields, whereField)
+            // console.log({fieldDefinition})
+            if (fieldDefinition.type == 'Json') {
+              whereString = `WHERE "${tableName}"."${whereField}"::jsonb = '${JSON.stringify(whereFilter.equals)}'`
+            } else {
+              whereString = `WHERE "${tableName}"."${whereField}" = '${whereFilter.equals}'`
+            }
           } else if ('not' in whereFilter) {
             // not only
             whereString = `WHERE "${tableName}"."${whereField}"::jsonb <> '${JSON.stringify(whereFilter.not)}'`
