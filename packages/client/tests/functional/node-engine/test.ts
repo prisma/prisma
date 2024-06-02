@@ -10,7 +10,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     describe('findMany', () => {
-      describe('multiple _count (issue 11974)', () => {
+      describe('multiple _count (m:n relation) (issue 11974)', () => {
         beforeAll(async () => {
           prisma = newPrismaClient({
             log: ['query'],
@@ -36,7 +36,7 @@ testMatrix.setupTestSuite(
           await prisma.$disconnect()
         })
 
-        test('should not throw an error when counting two relation fields using find', async () => {
+        test('from the alphabetically lower model', async () => {
           const response = await prisma.comment.findMany({
             include: {
               _count: {
@@ -51,7 +51,7 @@ testMatrix.setupTestSuite(
           expect(response).toMatchObject([{ id: '1', _count: { upVotedUsers: 1, downVotedUsers: 1 } }])
         })
 
-        test('should not throw an error when counting two relation fields using find (other way around)', async () => {
+        test('from the alphabetically higher model', async () => {
           const response = await prisma.user.findMany({
             include: {
               _count: {
@@ -70,7 +70,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      describe('single _count (issue 12557)', () => {
+      describe('single _count (1-n relation) (issue 12557)', () => {
         beforeAll(() => {
           prisma = newPrismaClient({
             // log: [ 'query' ],
