@@ -49,6 +49,7 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
     if (query.query.selection._count) {
       sql = handleCountAggregations(query, modelFields, libraryEngine, tableName)
     } else if (query.query.arguments.where) {
+      // WHERE
       console.log('WHERE!')
       /*
         {
@@ -102,6 +103,43 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
         }
       }
 
+      sql = `SELECT * 
+              FROM "${tableName}"
+              ${whereString}
+            `
+    } else if (query.query.arguments.cursor) {
+      // CURSOR
+      console.log('CURSOR!')
+      /*
+        query: {
+          arguments: {
+            cursor: { id: '02ad3e6df869f486f75a4833', title: 'Hello World 2' }
+          },
+        }
+
+        SELECT "public"."Post"."id",
+              "public"."Post"."title",
+              "public"."Post"."authorId"
+        FROM "public"."Post"
+        WHERE "public"."Post"."id" >=
+            (SELECT "public"."Post"."id"
+            FROM "public"."Post"
+            WHERE ("public"."Post"."id",
+                    "public"."Post"."title") = ($1,
+                                                $2))
+        ORDER BY "public"."Post"."id" ASC
+        OFFSET $3
+      */
+      const cursorField = Object.keys(query.query.arguments.cursor)[0]
+      const columns = Object.keys(query.query.arguments.cursor)
+        .map((field) => `"${tableName}"."${field}"`)
+        .join(', ')
+      const values = Object.values(query.query.arguments.cursor)
+        .map((value) => `'${value}'`)
+        .join(', ')
+      const whereString = `WHERE "${tableName}"."${cursorField}" >= 
+                            (SELECT "${tableName}"."${cursorField}" FROM "${tableName}" WHERE (${columns}) = (${values})) 
+                            ORDER BY "public"."Post"."id" ASC `
       sql = `SELECT * 
               FROM "${tableName}"
               ${whereString}

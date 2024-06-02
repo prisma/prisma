@@ -1,13 +1,20 @@
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 import { setup } from './_setup'
-// @ts-ignore
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// @ts-ignore this is just for type checks
 import type { PrismaClient } from './node_modules/@prisma/client'
 
-declare let prisma: PrismaClient
+declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 let vars: Awaited<ReturnType<typeof setup>>
 testMatrix.setupTestSuite(() => {
   beforeAll(async () => {
+    prisma = newPrismaClient({
+      log: ['query'],
+    })
+
     vars = await setup(prisma)
   })
 
