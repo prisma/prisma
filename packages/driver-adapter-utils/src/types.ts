@@ -68,6 +68,7 @@ export type Error =
 
 export type ConnectionInfo = {
   schemaName?: string
+  maxBindValues?: number
 }
 
 // Current list of official Prisma adapters

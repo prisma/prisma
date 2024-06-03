@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import path from 'node:path'
 
 import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
@@ -65,8 +66,9 @@ Or specify a Prisma schema path
     }
 
     const after = Math.round(performance.now())
+    const schemaRelativePath = path.relative(process.cwd(), schemaPath)
 
-    return `Formatted ${underline(schemaPath)} in ${formatms(after - before)} 🚀`
+    return `Formatted ${underline(schemaRelativePath)} in ${formatms(after - before)} 🚀`
   }
 
   public help(error?: string): string | HelpError {
