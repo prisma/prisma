@@ -16,7 +16,21 @@ const readFile = promisify(fs.readFile)
 const debug = Debug('prisma:getSchema')
 
 export type GetSchemaResult = {
+  /**
+   * A path from which schema was loaded
+   * Can be either folder or a single file
+   */
   schemaPath: string
+  /**
+   * Base dir for all of the schema files.
+   * In-multi file mode, this is equal to `schemaPath`.
+   * In single-file mode, this is a parent directory of
+   * a file
+   */
+  schemaRootDir: string
+  /**
+   * All loaded schema files
+   */
   schemas: MultipleSchemas
 }
 
@@ -45,7 +59,7 @@ export async function readSchemaFromSingleFile(schemaPath: string): Promise<GetS
   debug('Reading schema from single file', schemaPath)
   const file = await readFile(schemaPath, { encoding: 'utf-8' })
   const schemaTuple: MultipleSchemaTuple = [schemaPath, file]
-  return { schemaPath, schemas: [schemaTuple] } as const
+  return { schemaPath, schemaRootDir: path.dirname(schemaPath), schemas: [schemaTuple] } as const
 }
 
 async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaResult | null> {
@@ -63,7 +77,7 @@ async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaRe
   debug('Ok')
 
   if (usesPrismaSchemaFolder(config)) {
-    return { schemaPath, schemas: files } as const
+    return { schemaPath, schemaRootDir: schemaPath, schemas: files } as const
   }
 
   return null

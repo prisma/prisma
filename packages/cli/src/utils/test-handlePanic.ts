@@ -18,7 +18,7 @@ async function main() {
       projectDir: dirPath,
     })
 
-    await engine.introspect({ schema: toSchemasContainer(schemas), force: false })
+    await engine.introspect({ schema: toSchemasContainer(schemas), baseDirectoryPath: dirPath, force: false })
     await engine.debugPanic()
   } catch (err) {
     console.debug({ err })
