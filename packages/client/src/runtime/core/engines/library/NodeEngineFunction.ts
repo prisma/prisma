@@ -75,12 +75,13 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
       const whereFields = query.query.arguments.where
       let whereString = ''
       for (const whereField in whereFields) {
-        // TODO Actually handle multple fields in where instead of overwriting
         if (Object.prototype.hasOwnProperty.call(whereFields, whereField)) {
+          // TODO Actually handle multple fields in where instead of overwriting the `whereString` in the loop
+
           const whereFilter = whereFields[whereField]
           if (typeof whereFilter === 'string') {
             whereString = `WHERE "${tableName}"."${whereField}" = '${whereFilter}'`
-            // TODO Consider only for Json fields
+            // TODO Below Consider only for Json fields
           } else if ('path' in whereFilter && 'equals' in whereFilter) {
             // path + equals
             whereString = `WHERE ("${tableName}"."${whereField}"#>ARRAY['${whereFilter.path.join(
@@ -88,16 +89,58 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
             )}']::text[])::jsonb::jsonb = '"${whereFilter.equals}"'`
           } else if ('equals' in whereFilter) {
             // equals only
-            const fieldDefinition = getModelFieldDefinitionByFieldName(modelFields, whereField)
-            // console.log({fieldDefinition})
-            if (fieldDefinition.type == 'Json') {
-              whereString = `WHERE "${tableName}"."${whereField}"::jsonb = '${JSON.stringify(whereFilter.equals)}'`
+            if (whereFilter.equals.$type == 'FieldRef') {
+              // field-reference
+              /*
+                where: {
+                  string: {
+                    equals: {
+                      '$type': 'FieldRef',
+                      value: { _ref: 'otherString', _container: 'Product' }
+                    }
+                  }
+                }
+
+                SELECT ...
+                FROM "public"."Product"
+                WHERE "public"."Product"."string" = "public"."Product"."otherString"
+                  OFFSET $1
+              */
+              const referenceField = whereFilter.equals.value._ref
+              const referenceModel = whereFilter.equals.value._container
+              whereString = `WHERE "${tableName}"."${whereField}" = "${referenceModel}"."${referenceField}"`
             } else {
-              whereString = `WHERE "${tableName}"."${whereField}" = '${whereFilter.equals}'`
+              // normal value (not a field-reference)
+              const fieldDefinition = getModelFieldDefinitionByFieldName(modelFields, whereField)
+              // console.log({fieldDefinition})
+              if (fieldDefinition.type == 'Json') {
+                whereString = `WHERE "${tableName}"."${whereField}"::jsonb = '${JSON.stringify(whereFilter.equals)}'`
+              } else {
+                whereString = `WHERE "${tableName}"."${whereField}" = '${whereFilter.equals}'`
+              }
             }
           } else if ('not' in whereFilter) {
             // not only
             whereString = `WHERE "${tableName}"."${whereField}"::jsonb <> '${JSON.stringify(whereFilter.not)}'`
+          } else if ('startsWith' in whereFilter) {
+            /*
+            where: {
+              string: {
+                startsWith: {
+                  '$type': 'FieldRef',
+                  value: { _ref: 'otherString', _container: 'Product' }
+                }
+              }
+            }
+
+            SELECT ...
+            FROM "public"."Product"
+            WHERE "public"."Product"."string"::text LIKE ("public"."Product"."otherString" || '%')
+              OFFSET $1
+            */
+            const referenceField = whereFilter.startsWith.value._ref
+            const referenceModel = whereFilter.startsWith.value._container
+            whereString = `WHERE "${tableName}"."${whereField}"::text LIKE ("${referenceModel}"."${referenceField}" || '%')`
           }
           // TODO handle other cases (only path etc)
         }
