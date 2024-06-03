@@ -29,7 +29,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
-import { executeViaNodeEngine } from './NodeEngineFunction'
+import { NodeQueryEngine } from './NodeQueryEngine'
 import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
@@ -78,6 +78,7 @@ export class LibraryEngine implements Engine<undefined> {
     version: string
   }
   adapter: any
+  nodeQueryEngine!: NodeQueryEngine
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
     if (TARGET_BUILD_TYPE === 'react-native') {
@@ -269,6 +270,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (adapter) {
         debug('Using driver adapter: %O', adapter)
         this.adapter = adapter
+        this.nodeQueryEngine = new NodeQueryEngine(this)
       }
 
       this.engine = new this.QueryEngineConstructor(
@@ -487,7 +489,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         // comment in this line if you just want to skip the NodeEngine completely
         // && query.modelName == 'foobar'
       ) {
-        this.executingQueryPromise = executeViaNodeEngine(this, query)
+        this.executingQueryPromise = this.nodeQueryEngine.execute(query)
         this.lastQuery = queryStr
         const engineResponse = await this.executingQueryPromise
         // console.log({ engineResponse })

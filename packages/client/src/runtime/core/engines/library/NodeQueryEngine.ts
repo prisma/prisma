@@ -1,53 +1,90 @@
 import { JsonFieldSelection } from '../common/types/JsonProtocol'
 
-const getModelFieldDefinitionByFieldX = (x, modelFields, resultFieldX) => {
-  // console.log('getModelFieldDefinitionByFieldX by ', x, ' for ', resultFieldX)
-  for (const modelField in modelFields) {
-    if (Object.prototype.hasOwnProperty.call(modelFields, modelField)) {
-      // console.log('-', modelField, modelFields[modelField])
+export class NodeQueryEngine {
+  libraryEngine: any
 
-      if (modelFields[modelField][x] == resultFieldX) {
-        // console.log('modelFieldDefinition found: ', modelFields[modelField])
-        return modelFields[modelField]
+  constructor(libraryEngine) {
+    this.libraryEngine = libraryEngine
+  }
+
+  getModelFieldDefinitionByFieldX = (x, modelFields, resultFieldX) => {
+    // console.log('getModelFieldDefinitionByFieldX by ', x, ' for ', resultFieldX)
+    for (const modelField in modelFields) {
+      if (Object.prototype.hasOwnProperty.call(modelFields, modelField)) {
+        // console.log('-', modelField, modelFields[modelField])
+
+        if (modelFields[modelField][x] == resultFieldX) {
+          // console.log('modelFieldDefinition found: ', modelFields[modelField])
+          return modelFields[modelField]
+        }
       }
     }
   }
-}
-const getModelFieldDefinitionByFieldName = (modelFields, resultFieldName) => {
-  return getModelFieldDefinitionByFieldX('name', modelFields, resultFieldName)
-}
-const getModelFieldDefinitionByFieldRelatioName = (modelFields, resultFieldRelationName) => {
-  return getModelFieldDefinitionByFieldX('relationName', modelFields, resultFieldRelationName)
-}
-const getModelFieldDefinitionByFieldDbName = (modelFields, resultFieldDbName) => {
-  return getModelFieldDefinitionByFieldX('dbName', modelFields, resultFieldDbName)
-}
-const getModelFieldDefinitionByFieldIsId = (modelFields) => {
-  return getModelFieldDefinitionByFieldX('isId', modelFields, true)
-}
+  getModelFieldDefinitionByFieldName = (modelFields, resultFieldName) => {
+    return this.getModelFieldDefinitionByFieldX('name', modelFields, resultFieldName)
+  }
+  getModelFieldDefinitionByFieldRelatioName = (modelFields, resultFieldRelationName) => {
+    return this.getModelFieldDefinitionByFieldX('relationName', modelFields, resultFieldRelationName)
+  }
+  getModelFieldDefinitionByFieldDbName = (modelFields, resultFieldDbName) => {
+    return this.getModelFieldDefinitionByFieldX('dbName', modelFields, resultFieldDbName)
+  }
+  getModelFieldDefinitionByFieldIsId = (modelFields) => {
+    return this.getModelFieldDefinitionByFieldX('isId', modelFields, true)
+  }
+  getTypeByFieldName = (modelDefinition, fieldName) => {
+    // TODO make this make sense
+    return { modelDefinition, fieldName }
+  }
+  getModelDefinition = (modelName) => {
+    return this.libraryEngine.config._runtimeDataModel.models[modelName!]
+  }
 
-export const executeViaNodeEngine = (libraryEngine, query) => {
-  // console.log('Yes, NodeEngine!')
-  console.dir({ query }, { depth: null })
+  async execute(query) {
+    // console.log('Yes, NodeEngine!')
+    console.dir({ query }, { depth: null })
 
-  // "dmmf" like object that has information about datamodel
-  // console.dir({ _runtimeDataModel: this.config._runtimeDataModel }, { depth: null })
+    // "dmmf" like object that has information about datamodel
+    // console.dir({ _runtimeDataModel: this.config._runtimeDataModel }, { depth: null })
 
-  const executingQueryPromise = (async () => {
     // get table name via "dmmf"
     const modelName = query.modelName
-    const tableName = libraryEngine.config._runtimeDataModel.models[modelName!].dbName || modelName // dbName == @@map
+    const tableName = this.libraryEngine.config._runtimeDataModel.models[modelName!].dbName || modelName // dbName == @@map
     // console.log({tableName})
 
-    // get table fields
+    // get model field data to work with
     // TODO consider @map
-    const modelFields = libraryEngine.config._runtimeDataModel.models[modelName!].fields
+    const modelDefinition = this.getModelDefintion(modelName)
+    const modelFields = modelDefinition.fields
     // console.log({modelFields})
+
+    /* VALIDATE QUERY */
+    if (query.query.arguments && query.query.arguments.where) {
+      // WHERE
+      const whereFields = query.query.arguments.where
+      for (const whereField in whereFields) {
+        if (Object.prototype.hasOwnProperty.call(whereFields, whereField)) {
+          const whereFilter = whereFields[whereField]
+          if ('equals' in whereFilter) {
+            // equals only
+            if (whereFilter.equals.$type == 'FieldRef') {
+              // field-reference
+              const referenceField = whereFilter.equals.value._ref
+              const referenceModel = whereFilter.equals.value._container
+              // compare type of ${whereField} and referenceField
+              console.log({ referenceField, referenceModel })
+            }
+          }
+        }
+      }
+    }
+
+    /* CRAFT SQL */
 
     let sql = ''
 
     if (query.query.selection._count) {
-      sql = handleCountAggregations(query, modelFields, libraryEngine, tableName)
+      sql = this.handleCountAggregations(query, modelFields, tableName)
     } else if (query.query.arguments.where) {
       // WHERE
       console.log('WHERE!')
@@ -111,7 +148,7 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
               whereString = `WHERE "${tableName}"."${whereField}" = "${referenceModel}"."${referenceField}"`
             } else {
               // normal value (not a field-reference)
-              const fieldDefinition = getModelFieldDefinitionByFieldName(modelFields, whereField)
+              const fieldDefinition = this.getModelFieldDefinitionByFieldName(modelFields, whereField)
               // console.log({fieldDefinition})
               if (fieldDefinition.type == 'Json') {
                 whereString = `WHERE "${tableName}"."${whereField}"::jsonb = '${JSON.stringify(whereFilter.equals)}'`
@@ -190,12 +227,12 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
     // console.log({sql})
 
     try {
-      const result = await libraryEngine.adapter.queryRaw({ sql, args: [] })
+      const result = await this.libraryEngine.adapter.queryRaw({ sql, args: [] })
       console.dir({ result }, { depth: null })
 
       // LOG SQL
-      if (libraryEngine.logQueries) {
-        libraryEngine.logEmitter.emit('query', {
+      if (this.libraryEngine.logQueries) {
+        this.libraryEngine.logEmitter.emit('query', {
           timestamp: new Date(),
           query: sql,
           params: 'none', // TODO params
@@ -224,7 +261,7 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
           if (Object.prototype.hasOwnProperty.call(resultRow, resultFieldName)) {
             // console.dir(`${resultFieldName}: ${resultRow[resultFieldName]}`);
 
-            const modelFieldDefinition = getModelFieldDefinitionByFieldName(modelFields, resultFieldName)
+            const modelFieldDefinition = this.getModelFieldDefinitionByFieldName(modelFields, resultFieldName)
             if (modelFieldDefinition) {
               const type = modelFieldDefinition.type
               if (resultRow[resultFieldName] != null) {
@@ -277,7 +314,7 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
           if (Object.prototype.hasOwnProperty.call(resultRow, resultFieldName)) {
             // console.dir(`${key}: ${row[key]}`);
 
-            const modelFieldDefinition = getModelFieldDefinitionByFieldDbName(modelFields, resultFieldName)
+            const modelFieldDefinition = this.getModelFieldDefinitionByFieldDbName(modelFields, resultFieldName)
             // console.log({ modelFieldDefinition })
             if (modelFieldDefinition && modelFieldDefinition.name) {
               // TODO do this in a way that the order of fields is not changed
@@ -312,115 +349,115 @@ export const executeViaNodeEngine = (libraryEngine, query) => {
         console.log('after', transformedData)
       }
 
+      // Return final data
       return transformedData
     } catch (error) {
       throw new Error(error)
     }
-  })()
-
-  return executingQueryPromise
-}
-
-function handleCountAggregations(query: any, modelFields: any, libraryEngine: any, tableName: any) {
-  /*
-    model Link {
-      id        String   @id @default(uuid())
-      user      User?    @relation(fields: [userId], references: [id])
-      userId    String?
-    }
-    model User {
-      id        String    @id @default(uuid())
-      links     Link[]
-    }
-
-    =>
-    _count: { arguments: {}, selection: { links: true } }
-  */
-
-  const selections = Object.keys((query.query.selection._count as JsonFieldSelection).selection)
-
-  // arrays to store generated data to add to the SQL statement
-  const _additionalSelections: String[] = []
-  const _additionalJoins: String[] = []
-
-  // loop over all selections
-  // const relationToCount = selections[0] // 'links`
-  for (let i = 0; i < selections.length; i++) {
-    const relationToCount = selections[i]
-    // get information from current model
-    const relationToCountFieldDefinition = getModelFieldDefinitionByFieldName(modelFields, relationToCount) // links object
-
-    // console.log({relationToCountFieldDefinition})
-    // PART 1: additional selection string
-    const relationToCountModelname = relationToCountFieldDefinition.type // 'Link'
-    const relationToCountTablename = relationToCountModelname // TODO Actually get the table name for target model, not just the type of the relation
-    const _selectionString = `COALESCE("aggr_selection_${i}_${relationToCountTablename}"."_aggr_count_${relationToCount}", 0) AS "_aggr_count_${relationToCount}"`
-    _additionalSelections.push(_selectionString)
-
-    // PART 2: additional JOIN
-    // get information from model the relation points to
-    const relationToCountModelFields = libraryEngine.config._runtimeDataModel.models[relationToCountModelname!].fields
-    // console.dir({ relationToCountModelname, relationToCountModelFields }, { depth: null })
-    const targetModelFieldDefinition = getModelFieldDefinitionByFieldRelatioName(
-      relationToCountModelFields,
-      relationToCountFieldDefinition.relationName,
-    )
-    const aggregationTargetType = targetModelFieldDefinition.type // 'User'
-    const relationFromField = targetModelFieldDefinition.relationFromFields[0] // this only has content for 1-n, not m-n
-
-    // console.log({ relationFromField })
-    // primary key from first table for sql
-    const aggregationTargetTypeIdField = getModelFieldDefinitionByFieldIsId(modelFields)
-    // console.log({ aggregationTargetTypeIdField })
-    const aggregationTargetTypeIdFieldName = aggregationTargetTypeIdField.name // User.uid
-
-    // console.log( { aggregationTargetTypeIdFieldName })
-    if (relationFromField) {
-      // 1-n
-      const _joinString = `LEFT JOIN
-                  (SELECT "${relationToCountTablename}"."${relationFromField}",
-                          COUNT(*) AS "_aggr_count_${relationToCount}"
-                  FROM "${relationToCountTablename}"
-                  WHERE 1=1
-                  GROUP BY "${relationToCountTablename}"."${relationFromField}") 
-                    AS "aggr_selection_${i}_${relationToCountTablename}" 
-                    ON ("${aggregationTargetType}".${aggregationTargetTypeIdFieldName} = "aggr_selection_${i}_${relationToCountTablename}"."${relationFromField}")
-            `
-      _additionalJoins.push(_joinString)
-    } else {
-      // m-n
-      // need to get the primary key so we can properly join
-      const relationToCountTypeIdField = getModelFieldDefinitionByFieldIsId(relationToCountModelFields) // User details
-      console.log({ relationToCountTypeIdField })
-      const relationToCountTypeIdFieldName = relationToCountTypeIdField.name // User.uid
-      console.log({ relationToCountTypeIdFieldName })
-
-      // Correctly select A and B to match model/table names of relation
-      const char1 = relationToCountTablename.charAt(0)
-      const char2 = tableName.charAt(0)
-      const [mainForeignKeyName, otherForeignKeyName] =
-        char1.charCodeAt(0) < char2.charCodeAt(0) ? ['B', 'A'] : ['A', 'B']
-
-      const _joinString = `
-                LEFT JOIN
-                  (SELECT "_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}",
-                          COUNT(("_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}")) AS "_aggr_count_${relationToCount}"
-                    FROM "${relationToCountTablename}"
-                    LEFT JOIN "_${relationToCountFieldDefinition.relationName}" ON ("${relationToCountTablename}"."${relationToCountTypeIdFieldName}" = ("_${relationToCountFieldDefinition.relationName}"."${otherForeignKeyName}"))
-                    WHERE 1=1
-                    GROUP BY "_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}") 
-                      AS "aggr_selection_${i}_${relationToCountTablename}" 
-                      ON ("${aggregationTargetType}"."${aggregationTargetTypeIdFieldName}" = "aggr_selection_${i}_${relationToCountTablename}"."${mainForeignKeyName}")
-          `
-      _additionalJoins.push(_joinString)
-    }
   }
 
-  const sql = `SELECT "${tableName}".*, 
-            ${_additionalSelections.join(',\n')}
-          FROM "${tableName}"
-            ${_additionalJoins.join('\n')}
-          WHERE 1=1
-            OFFSET 0`
-  return sql
+  handleCountAggregations(query: any, modelFields: any, tableName: any) {
+    /*
+      model Link {
+        id        String   @id @default(uuid())
+        user      User?    @relation(fields: [userId], references: [id])
+        userId    String?
+      }
+      model User {
+        id        String    @id @default(uuid())
+        links     Link[]
+      }
+
+      =>
+      _count: { arguments: {}, selection: { links: true } }
+    */
+
+    const selections = Object.keys((query.query.selection._count as JsonFieldSelection).selection)
+
+    // arrays to store generated data to add to the SQL statement
+    const _additionalSelections: String[] = []
+    const _additionalJoins: String[] = []
+
+    // loop over all selections
+    // const relationToCount = selections[0] // 'links`
+    for (let i = 0; i < selections.length; i++) {
+      const relationToCount = selections[i]
+      // get information from current model
+      const relationToCountFieldDefinition = this.getModelFieldDefinitionByFieldName(modelFields, relationToCount) // links object
+
+      // console.log({relationToCountFieldDefinition})
+      // PART 1: additional selection string
+      const relationToCountModelname = relationToCountFieldDefinition.type // 'Link'
+      const relationToCountTablename = relationToCountModelname // TODO Actually get the table name for target model, not just the type of the relation
+      const _selectionString = `COALESCE("aggr_selection_${i}_${relationToCountTablename}"."_aggr_count_${relationToCount}", 0) AS "_aggr_count_${relationToCount}"`
+      _additionalSelections.push(_selectionString)
+
+      // PART 2: additional JOIN
+      // get information from model the relation points to
+      const relationToCountModelFields =
+        this.libraryEngine.config._runtimeDataModel.models[relationToCountModelname!].fields
+      // console.dir({ relationToCountModelname, relationToCountModelFields }, { depth: null })
+      const targetModelFieldDefinition = this.getModelFieldDefinitionByFieldRelatioName(
+        relationToCountModelFields,
+        relationToCountFieldDefinition.relationName,
+      )
+      const aggregationTargetType = targetModelFieldDefinition.type // 'User'
+      const relationFromField = targetModelFieldDefinition.relationFromFields[0] // this only has content for 1-n, not m-n
+
+      // console.log({ relationFromField })
+      // primary key from first table for sql
+      const aggregationTargetTypeIdField = this.getModelFieldDefinitionByFieldIsId(modelFields)
+      // console.log({ aggregationTargetTypeIdField })
+      const aggregationTargetTypeIdFieldName = aggregationTargetTypeIdField.name // User.uid
+
+      // console.log( { aggregationTargetTypeIdFieldName })
+      if (relationFromField) {
+        // 1-n
+        const _joinString = `LEFT JOIN
+                    (SELECT "${relationToCountTablename}"."${relationFromField}",
+                            COUNT(*) AS "_aggr_count_${relationToCount}"
+                    FROM "${relationToCountTablename}"
+                    WHERE 1=1
+                    GROUP BY "${relationToCountTablename}"."${relationFromField}") 
+                      AS "aggr_selection_${i}_${relationToCountTablename}" 
+                      ON ("${aggregationTargetType}".${aggregationTargetTypeIdFieldName} = "aggr_selection_${i}_${relationToCountTablename}"."${relationFromField}")
+              `
+        _additionalJoins.push(_joinString)
+      } else {
+        // m-n
+        // need to get the primary key so we can properly join
+        const relationToCountTypeIdField = this.getModelFieldDefinitionByFieldIsId(relationToCountModelFields) // User details
+        console.log({ relationToCountTypeIdField })
+        const relationToCountTypeIdFieldName = relationToCountTypeIdField.name // User.uid
+        console.log({ relationToCountTypeIdFieldName })
+
+        // Correctly select A and B to match model/table names of relation
+        const char1 = relationToCountTablename.charAt(0)
+        const char2 = tableName.charAt(0)
+        const [mainForeignKeyName, otherForeignKeyName] =
+          char1.charCodeAt(0) < char2.charCodeAt(0) ? ['B', 'A'] : ['A', 'B']
+
+        const _joinString = `
+                  LEFT JOIN
+                    (SELECT "_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}",
+                            COUNT(("_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}")) AS "_aggr_count_${relationToCount}"
+                      FROM "${relationToCountTablename}"
+                      LEFT JOIN "_${relationToCountFieldDefinition.relationName}" ON ("${relationToCountTablename}"."${relationToCountTypeIdFieldName}" = ("_${relationToCountFieldDefinition.relationName}"."${otherForeignKeyName}"))
+                      WHERE 1=1
+                      GROUP BY "_${relationToCountFieldDefinition.relationName}"."${mainForeignKeyName}") 
+                        AS "aggr_selection_${i}_${relationToCountTablename}" 
+                        ON ("${aggregationTargetType}"."${aggregationTargetTypeIdFieldName}" = "aggr_selection_${i}_${relationToCountTablename}"."${mainForeignKeyName}")
+            `
+        _additionalJoins.push(_joinString)
+      }
+    }
+
+    const sql = `SELECT "${tableName}".*, 
+              ${_additionalSelections.join(',\n')}
+            FROM "${tableName}"
+              ${_additionalJoins.join('\n')}
+            WHERE 1=1
+              OFFSET 0`
+    return sql
+  }
 }
