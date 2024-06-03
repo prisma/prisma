@@ -162,7 +162,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
 
   getConnectionInfo(): Result<ConnectionInfo> {
     return ok({
-      maxBindValues: 100,
+      maxBindValues: 98,
     })
   }
 
