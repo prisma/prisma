@@ -1,0 +1,6 @@
+model Blog {
+    id          Int  @id
+    viewCount20 Int
+    ownerId     Int
+    owner       User 
+}
