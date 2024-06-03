@@ -6,32 +6,32 @@ export default defineMatrix(() => [
     {
       provider: Providers.SQLITE,
       id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'foo',
     },
     {
       provider: Providers.POSTGRESQL,
       id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'bar',
     },
     {
       provider: Providers.MYSQL,
       id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'baz',
     },
     {
       provider: Providers.SQLSERVER,
       id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'tele',
     },
     {
       provider: Providers.COCKROACHDB,
       id: 'BigInt @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'phone',
     },
     {
       provider: Providers.MONGODB,
       id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      providerFeatures: '"mongoDb", ',
+      randomString: 'book',
     },
   ],
   [
@@ -51,26 +51,27 @@ export default defineMatrix(() => [
     {
       'provider': 'sqlite',
       'id': 'Int @id @default(autoincrement())',
-      'providerFeatures': '',
-      'previewFeatures': '"previewFeatureFlag1"',
+      'randomString': 'foo',
+      'previewFeatures': '"tracing"',
     },
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      'providerFeatures': '"mongoDb", ',
-      'previewFeatures': '"previewFeatureFlag1"',
+      'randomString': '"book", ',
+      'previewFeatures': '"tracing"',
     },
     {
       'provider': 'sqlite',
       'id': 'Int @id @default(autoincrement())',
-      'providerFeatures': '',
-      'previewFeatures': '"previewFeatureFlag2"',
+      'randomString': 'foo',
+      'previewFeatures': '"referentialIntegrity"',
     },
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      'providerFeatures': '"mongoDb", ',
-      'previewFeatures': '"previewFeatureFlag2"',
+      'randomString': '"book", ',
+      'previewFeatures': '"referentialIntegrity"',
     },
+    ...
   ]
 */
