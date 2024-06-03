@@ -1,5 +1,6 @@
 import { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
+  ConnectionInfo,
   Debug,
   DriverAdapter,
   err,
@@ -152,11 +153,17 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
    * await prisma.$transaction([ ...moreQueries ])
    * ```
    */
-  warnOnce = (key: string, message: string, ...args: unknown[]) => {
+  private warnOnce = (key: string, message: string, ...args: unknown[]) => {
     if (!this.alreadyWarned.has(key)) {
       this.alreadyWarned.add(key)
       console.info(`${this.tags.warn} ${message}`, ...args)
     }
+  }
+
+  getConnectionInfo(): Result<ConnectionInfo> {
+    return ok({
+      maxBindValues: 100,
+    })
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
