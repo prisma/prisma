@@ -177,6 +177,7 @@ export class SchemaEngine {
   public async introspect({
     schema,
     force = false,
+    baseDirectoryPath,
     compositeTypeDepth = -1, // cannot be undefined
     namespaces,
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
@@ -184,8 +185,9 @@ export class SchemaEngine {
 
     try {
       const introspectResult: EngineArgs.IntrospectResult = await this.runCommand(
-        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, namespaces }),
+        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, namespaces, baseDirectoryPath }),
       )
+
       const { views } = introspectResult
 
       if (views) {
