@@ -54,7 +54,7 @@ export class NodeQueryEngine {
 
     // get model field data to work with
     // TODO consider @map
-    const modelDefinition = this.getModelDefintion(modelName)
+    const modelDefinition = this.getModelDefinition(modelName)
     const modelFields = modelDefinition.fields
     // console.log({modelFields})
 
