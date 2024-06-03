@@ -43,6 +43,31 @@ model Comment {
   downVotedUsers User[] @relation("downVotes")
 }
 
+model One {
+  id    Int @id
+  two   Two @relation(fields: [twoId], references: [id])
+  twoId Int @unique
+}
+
+model Two {
+  id      Int   @id
+  one     One?
+  three   Three? @relation(fields: [threeId], references: [id])
+  threeId Int?  @unique
+}
+
+model Three {
+  id     Int  @id
+  Two    Two?
+  four   Four @relation(fields: [fourId], references: [id])
+  fourId Int  @unique
+}
+
+model Four {
+  id    Int    @id
+  three Three?
+}
+
     `
   return schema
 })

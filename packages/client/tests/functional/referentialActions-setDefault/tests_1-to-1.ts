@@ -1,11 +1,13 @@
 import { AdapterProviders, Providers } from '../_utils/providers'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
-
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
-
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+import type { PrismaClient } from './node_modules/@prisma/client'
+
+declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 // @ts-ignore
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -20,6 +22,12 @@ testMatrix.setupTestSuite(
       .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', 'foreignKeys' as const)
+
+    beforeAll(() => {
+      prisma = newPrismaClient({
+        log: ['query'],
+      })
+    })
 
     describe('1:n mandatory (explicit)', () => {
       const userModel = 'userOneToOne'

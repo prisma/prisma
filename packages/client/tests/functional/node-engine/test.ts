@@ -10,6 +10,80 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     describe('findMany', () => {
+      describe('nesting', () => {
+        beforeAll(async () => {
+          prisma = newPrismaClient({
+            log: ['query'],
+          })
+
+          await prisma.one.create({
+            data: {
+              id: 1,
+              two: {
+                create: {
+                  id: 2,
+                  // three: {
+                  //   create: {
+                  //     id: 3,
+                  //     four: {
+                  //       create: {
+                  //         id: 4
+                  //       }
+                  //     }
+                  //   }
+                  // }
+                },
+              },
+            },
+          })
+        })
+        afterAll(async () => {
+          await prisma.$disconnect()
+        })
+
+        test('deep nesting', async () => {
+          const all = await prisma.one.findMany({
+            include: {
+              two: true,
+              // {
+              //   include: {
+              //     three: {
+              //       include: {
+              //         four: true
+              //       }
+              //     }
+              //   }
+              // }
+            },
+            where: {
+              id: 1,
+            },
+          })
+
+          expect(all).toEqual([
+            {
+              id: 1,
+              two: {
+                id: 2,
+                // "three": null,
+                threeId: null,
+              },
+              twoId: 2,
+            },
+          ])
+        })
+      })
+
+      describe('field-reference', () => {
+        test('simple equality', async () => {
+          const products = await prisma.product.findMany({
+            where: { string: { equals: prisma.product.fields.otherString } },
+          })
+
+          expect(products).toEqual([expect.objectContaining({ string: 'hello', otherString: 'hello' })])
+        })
+      })
+
       describe('multiple _count (m:n relation) (issue 11974)', () => {
         beforeAll(async () => {
           prisma = newPrismaClient({
