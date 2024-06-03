@@ -39,6 +39,22 @@ export class NodeQueryEngine {
   getModelDefinition = (modelName) => {
     return this.libraryEngine.config._runtimeDataModel.models[modelName!]
   }
+  createError = (internalError, isPanic, errorMessage, metaJson, errorCode) => {
+    const error = {
+      errors: [
+        {
+          error: internalError,
+          user_facing_error: {
+            is_panic: isPanic,
+            message: errorMessage,
+            meta: metaJson,
+            error_code: errorCode,
+          },
+        },
+      ],
+    }
+    return error
+  }
 
   async execute(query) {
     // console.log('Yes, NodeEngine!')
@@ -73,23 +89,13 @@ export class NodeQueryEngine {
               const referenceModel = whereFilter.equals.value._container
               const whereFieldType = this.getModelFieldDefinitionByFieldName(modelFields, whereField).type
               const referenceFieldType = this.getModelFieldDefinitionByFieldName(modelFields, referenceField).type
-              if (whereFieldType != referenceFieldType) {
-                const error = {
-                  errors: [
-                    {
-                      error: '...',
-                      user_facing_error: {
-                        is_panic: false,
-                        message: `Input error. Expected a referenced scalar field of type ${whereFieldType} but found ${referenceModel}.${referenceField} of type ${referenceFieldType}.`,
-                        meta: {
-                          // "details": "Expected a referenced scalar field of type String but found Product.notString of type Int."
-                        },
-                        error_code: 'P2019',
-                      },
-                    },
-                  ],
-                }
-                return error
+
+              if (modelName != referenceModel) {
+                const errorMessage = `Input error. Expected a referenced scalar field of model ${modelName}, but found a field of model ${referenceModel}.`
+                return this.createError('...', false, errorMessage, {}, 'P2019')
+              } else if (whereFieldType != referenceFieldType) {
+                const errorMessage = `Input error. Expected a referenced scalar field of type ${whereFieldType} but found ${referenceModel}.${referenceField} of type ${referenceFieldType}.`
+                return this.createError('...', false, errorMessage, {}, 'P2019')
               }
             }
           }

@@ -124,8 +124,8 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
-         XX 
-         XX // TODO: Edge: skipped because of the error snapshot
+        XX 
+        XX // TODO: Edge: skipped because of the error snapshot
         XX testIf(runtime !== 'edge')('wrong identical model', async () => {
       → XX   const products = prisma.product.findMany(
       Input error. Expected a referenced scalar field of model Product, but found a field of model IdenticalToProduct."
