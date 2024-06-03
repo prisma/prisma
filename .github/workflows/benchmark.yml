@@ -81,7 +81,7 @@ jobs:
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@jkomyno'
+          alert-comment-cc-users: '@millsp,@aqrln,@SevInf,@jkomyno'
 
       - name: Run benchmarks for Codspeed
         uses: CodSpeedHQ/action@v2
