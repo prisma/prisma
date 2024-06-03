@@ -6,7 +6,7 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   const posts: Pick<Post, 'id'>[] = []
-  const numberOfUsers = 200
+  const numberOfUsers = 20 // TODO: update after release
 
   beforeAll(async () => {
     // Create x users with 2 posts each
