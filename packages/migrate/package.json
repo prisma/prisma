@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.5.7",
+    "@swc/core": "1.5.24",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
@@ -49,7 +49,7 @@
     "tempy": "1.0.1",
     "ts-pattern": "5.1.2",
     "typescript": "5.4.5",
-    "wrangler": "3.57.2"
+    "wrangler": "3.58.0"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.15.0-25.3a14d17dcb78c25520f3798f2c5ef7f403b030e9",
+    "@prisma/engines-version": "5.15.0-27.d99d360a45b6c8582f83deadf81b73054afa9b12",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",

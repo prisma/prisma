@@ -1,18 +1,8 @@
 import path from 'node:path'
 
-import { FilesResolver, realFsResolver } from './resolver'
+import { FilesResolver, FsEntryType, realFsResolver } from './resolver'
 
 export type LoadedFile = [filePath: string, content: string]
-
-type InternalValidatedEntry =
-  | {
-      valid: false
-    }
-  | {
-      valid: true
-      fullPath: string
-      content: string
-    }
 
 /**
  * Given folder name, returns list of all files composing a single prisma schema
@@ -22,37 +12,46 @@ export async function loadSchemaFiles(
   folderPath: string,
   filesResolver: FilesResolver = realFsResolver,
 ): Promise<LoadedFile[]> {
-  const dirEntries = await filesResolver.listDirContents(folderPath)
-  const validatedList = await Promise.all(
-    dirEntries.map((filePath) => validateFilePath(path.join(folderPath, filePath), filesResolver)),
-  )
-  return validatedList.reduce((acc, entry) => {
-    if (entry.valid) {
-      acc.push([entry.fullPath, entry.content])
-    }
-    return acc
-  }, [] as LoadedFile[])
+  const type = await filesResolver.getEntryType(folderPath)
+  return processEntry(folderPath, type, filesResolver)
 }
 
-async function validateFilePath(fullPath: string, filesResolver: FilesResolver): Promise<InternalValidatedEntry> {
-  if (path.extname(fullPath) !== '.prisma') {
-    return { valid: false }
+async function processEntry(
+  entryPath: string,
+  entryType: FsEntryType | undefined,
+  filesResolver: FilesResolver,
+): Promise<LoadedFile[]> {
+  if (!entryType) {
+    return []
   }
-  const fileType = await filesResolver.getEntryType(fullPath)
+  if (entryType.kind === 'symlink') {
+    const realPath = entryType.realPath
+    const realType = await filesResolver.getEntryType(realPath)
+    return processEntry(realPath, realType, filesResolver)
+  }
 
-  if (!fileType) {
-    return { valid: false }
-  }
-  if (fileType.kind === 'file') {
-    const content = await filesResolver.getFileContents(fullPath)
-    if (typeof content === 'undefined') {
-      return { valid: false }
+  if (entryType.kind === 'file') {
+    if (path.extname(entryPath) !== '.prisma') {
+      return []
     }
-    return { valid: true, fullPath, content }
+    const content = await filesResolver.getFileContents(entryPath)
+    if (typeof content === 'undefined') {
+      return []
+    }
+    return [[entryPath, content]]
   }
-  if (fileType.kind === 'symlink') {
-    const realPath = fileType.realPath
-    return validateFilePath(realPath, filesResolver)
+
+  if (entryType.kind === 'directory') {
+    const dirEntries = await filesResolver.listDirContents(entryPath)
+    const nested = await Promise.all(
+      dirEntries.map(async (dirEntry) => {
+        const fullPath = path.join(entryPath, dirEntry)
+        const nestedEntryType = await filesResolver.getEntryType(fullPath)
+        return processEntry(fullPath, nestedEntryType, filesResolver)
+      }),
+    )
+    return nested.flat()
   }
-  return { valid: false }
+
+  return []
 }
