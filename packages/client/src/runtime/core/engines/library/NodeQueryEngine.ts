@@ -71,8 +71,26 @@ export class NodeQueryEngine {
               // field-reference
               const referenceField = whereFilter.equals.value._ref
               const referenceModel = whereFilter.equals.value._container
-              // compare type of ${whereField} and referenceField
-              console.log({ referenceField, referenceModel })
+              const whereFieldType = this.getModelFieldDefinitionByFieldName(modelFields, whereField).type
+              const referenceFieldType = this.getModelFieldDefinitionByFieldName(modelFields, referenceField).type
+              if (whereFieldType != referenceFieldType) {
+                const error = {
+                  errors: [
+                    {
+                      error: '...',
+                      user_facing_error: {
+                        is_panic: false,
+                        message: `Input error. Expected a referenced scalar field of type ${whereFieldType} but found ${referenceModel}.${referenceField} of type ${referenceFieldType}.`,
+                        meta: {
+                          // "details": "Expected a referenced scalar field of type String but found Product.notString of type Int."
+                        },
+                        error_code: 'P2019',
+                      },
+                    },
+                  ],
+                }
+                return error
+              }
             }
           }
         }
@@ -350,7 +368,7 @@ export class NodeQueryEngine {
       }
 
       // Return final data
-      return transformedData
+      return [transformedData]
     } catch (error) {
       throw new Error(error)
     }
