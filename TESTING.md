@@ -234,8 +234,7 @@ export default defineMatrix(
     ],
   ],
   {
-    exclude: ({ provider, previewFeatures }) =>
-      provider === Providers.SQLITE && previewFeatures === 'improvedQueryRaw',
+    exclude: ({ provider, previewFeatures }) => provider === Providers.SQLITE && previewFeatures === 'improvedQueryRaw',
   },
 )
 ```
