@@ -11,6 +11,16 @@ test('with feature enabled', async () => {
   expect(files).toEqual([loadedFile('related-feature', 'a.prisma'), loadedFile('related-feature', 'b.prisma')])
 })
 
+test('subfolder, starting from top level', async () => {
+  const files = await loadRelatedSchemaFiles(fixturePath('subfolder', 'a.prisma'))
+  expect(files).toEqual([loadedFile('subfolder', 'a.prisma'), loadedFile('subfolder', 'nested', 'b.prisma')])
+})
+
+test('subfolder, starting from nested level', async () => {
+  const files = await loadRelatedSchemaFiles(fixturePath('subfolder', 'nested', 'b.prisma'))
+  expect(files).toEqual([loadedFile('subfolder', 'a.prisma'), loadedFile('subfolder', 'nested', 'b.prisma')])
+})
+
 test('with feature enabled, starting from a file with no generator block', async () => {
   const files = await loadRelatedSchemaFiles(fixturePath('related-feature', 'b.prisma'))
   expect(files).toEqual([loadedFile('related-feature', 'a.prisma'), loadedFile('related-feature', 'b.prisma')])

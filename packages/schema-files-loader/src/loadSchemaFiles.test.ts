@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { loadSchemaFiles } from './loadSchemaFiles'
 import { CompositeFilesResolver, InMemoryFilesResolver, realFsResolver } from './resolver'
-import { fixturePath, line } from './testUtils'
+import { fixturePath, line, loadedFile } from './testUtils'
 
 test('simple list', async () => {
   const files = await loadSchemaFiles(fixturePath('simple'))
@@ -20,9 +20,12 @@ test('ignores non *.prisma files', async () => {
   ])
 })
 
-test('ignores subfolders *.prisma files', async () => {
+test('works with subfolders', async () => {
   const files = await loadSchemaFiles(fixturePath('subfolder'))
-  expect(files).toEqual([[fixturePath('subfolder', 'a.prisma'), line('// this is a')]])
+  expect(files).toEqual([
+    loadedFile('subfolder', 'a.prisma'),
+    [fixturePath('subfolder', 'nested', 'b.prisma'), line('// this is b')],
+  ])
 })
 
 test('ignores *.prisma directories', async () => {
