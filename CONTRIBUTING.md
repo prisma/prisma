@@ -115,15 +115,15 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
   pnpm prisma generate && pnpm ts-node index.ts # Try it out
   ```
 
-  #### Developing and working in the fixture folder
+#### Developing and working in the fixture folder
 
-  ```sh
-  cd packages/client
-  ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
-  cd fixtures/blog
-  npx prisma db push --skip-generate
-  ts-node main.ts # Try it out
-  ```
+```sh
+cd packages/client
+ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
+cd fixtures/blog
+npx prisma db push --skip-generate
+ts-node main.ts # Try it out
+```
 
 </details>
 
