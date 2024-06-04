@@ -18,8 +18,8 @@ importers:
         specifier: 9.3.0
         version: 9.3.0
       '@microsoft/api-extractor':
-        specifier: 7.46.2
-        version: 7.46.2(@types/node@20.12.7)
+        specifier: 7.47.0
+        version: 7.47.0(@types/node@20.12.7)
       '@prisma/engines':
         specifier: workspace:*
         version: link:packages/engines
@@ -3423,8 +3423,8 @@ packages:
       - '@types/node'
     dev: true
 
-  /@microsoft/api-extractor@7.46.2(@types/node@20.12.7):
-    resolution: {integrity: sha512-s3HjYoXKMVNmYO5rQl+z7MpRngGg9OugWgmGMIBlAeOaE0Lk7/CKX+UYt7Mk9pihV8DZWg/qCf+4Yega9IZMmQ==}
+  /@microsoft/api-extractor@7.47.0(@types/node@20.12.7):
+    resolution: {integrity: sha512-LT8yvcWNf76EpDC+8/ArTVSYePvuDQ+YbAUrsTcpg3ptiZ93HIcMCozP/JOxDt+rrsFfFHcpfoselKfPyRI0GQ==}
     hasBin: true
     dependencies:
       '@microsoft/api-extractor-model': 7.29.2(@types/node@20.12.7)
