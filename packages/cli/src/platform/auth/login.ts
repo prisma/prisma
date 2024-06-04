@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { Command, arg, getCommandWithExecutor, isError, link } from '@prisma/internals'
+import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
 import http from 'http'
 import { green } from 'kleur/colors'
@@ -123,7 +123,7 @@ const createLoginUrl = async (params: { connection: string; redirectTo: string }
   if (optimize) {
     url.searchParams.set('source', 'cli')
   }
-  
+
   return url
 }
 interface State {
