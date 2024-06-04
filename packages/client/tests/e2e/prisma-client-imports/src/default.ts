@@ -77,4 +77,3 @@ export const planetScalePrismaClient = new PrismaClient({
   adapter: new PrismaPlanetScale(planetScaleClient),
 })
 void planetScalePrismaClient.user.findMany()
-
