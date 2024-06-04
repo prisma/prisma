@@ -491,7 +491,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       ) {
         this.executingQueryPromise = this.nodeQueryEngine.execute(query)
         this.lastQuery = queryStr
-        const engineResponse = await this.executingQueryPromise
+        let engineResponse = await this.executingQueryPromise
+        engineResponse = { data: { foo: engineResponse } }
         console.log({ engineResponse })
         data = engineResponse
       } else {
@@ -502,6 +503,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         console.log({ engineResponse })
         data = this.parseEngineResponse<any>(engineResponse)
       }
+      console.log({ data })
       console.log({ errors: data.errors })
       if (data.errors) {
         if (data.errors.length === 1) {

@@ -21,19 +21,22 @@ export class Query {
     this.modelFields = this.modelDefinition.fields
     this.libraryEngine = libraryEngine
 
-    console.dir(datamodel.models, { depth: null })
+    // console.dir(datamodel.models, { depth: null })
   }
 
   /* Validate the query */
   validate() {
+    // arguments.where
     if (this.query.query.arguments && this.query.query.arguments.where) {
       // WHERE
       const whereFields = this.query.query.arguments.where
       for (const whereField in whereFields) {
         if (Object.prototype.hasOwnProperty.call(whereFields, whereField)) {
           const whereFilter = whereFields[whereField]
+          // where: { field: value }
           if (typeof whereFilter === 'string' || typeof whereFilter === 'number') {
             // nothing to do with string or number 'where'
+            // where.equals
           } else if ('equals' in whereFilter) {
             // equals only
             if (whereFilter.equals.$type == 'FieldRef') {
@@ -52,6 +55,7 @@ export class Query {
               }
             }
           }
+          // TODO other whereFilters
         }
       }
     }
@@ -87,6 +91,7 @@ export class Query {
       }
     }
     */
+    console.dir(this.datamodel, { depth: null })
     if (this._getRelationSelection(this.query.query.selection)) {
       const relationToSelect = Object.keys(this._getRelationSelection(this.query.query.selection))[0] // two
       console.log({ relationToSelect })
@@ -126,6 +131,7 @@ export class Query {
           selection: {
             $composites: true,
             $scalars: true,
+            // TODO extracted subquery might also need to include more relation selections, dynamically
             // three: {
             //   arguments: {},
             //   selection: { '$composites': true, '$scalars': true, four: true }
@@ -133,7 +139,6 @@ export class Query {
           },
         },
       }
-
       const query2 = new Query(otherQuery, this.datamodel, this.client, this.libraryEngine)
       query2.validate()
       const result2 = await query2.process()
@@ -154,10 +159,11 @@ export class Query {
   /* Craft the SQL */
   buildSql() {
     let sql = ''
+    // TODO This has to be additive, instead of if-else
     if (this.query.query.selection._count) {
       sql = this._handleCountAggregations(sql)
-    } else if (this._getRelationSelection(this.query.query.selection)) {
-      sql = this._handleRelationSelection(sql)
+      // } else if (this._getRelationSelection(this.query.query.selection)) {
+      //   sql = this._handleRelationSelection(sql)
     } else if (this.query.query.arguments.where) {
       sql = this._handleWhere(sql)
     } else if (this.query.query.arguments.cursor) {
@@ -242,6 +248,7 @@ export class Query {
             resultRow._count[countKey] = Number(resultRow[resultFieldName])
             delete resultRow[resultFieldName]
           }
+          // TODO others
         }
       }
       return resultRow
@@ -339,10 +346,22 @@ export class Query {
     return error
   }
   _getRelationSelection = (selection) => {
+    // remove _count selection
     if (selection._count) delete selection._count
+
+    // remove default selection
     if (selection['$composites']) delete selection['$composites']
     if (selection['$scalars']) delete selection['$scalars']
 
+    // remove remaining selection fields that are not for relations
+    for (const remainingSelectionField in selection) {
+      const fieldDefinition = this._getModelFieldDefinitionByFieldName(this.modelFields, remainingSelectionField)
+      if (!fieldDefinition.relationName) {
+        delete selection[remainingSelectionField]
+      }
+    }
+
+    // if anything is left, we have some relation selections!
     if (Object.keys(selection).length > 0) {
       return selection
     } else {
@@ -350,31 +369,31 @@ export class Query {
     }
   }
 
-  private _handleRelationSelection(sql: string) {
-    console.log('RELATIONSELECTION!')
-    const relationSelections = this._getRelationSelection(this.query.query.selection)
-    for (const relationSelection in relationSelections) {
-      if (Object.prototype.hasOwnProperty.call(relationSelections, relationSelection)) {
-        /*
-          query: {
-            modelName: 'UserOneToOne',
-            action: 'findMany',
-            query: {
-              arguments: { orderBy: { id: 'asc' } },
-              selection: { '$composites': true, '$scalars': true, profile: true }
-            }
-          }
- 
-          SELECT "public"."UserOneToOne"."id" FROM "public"."UserOneToOne" WHERE 1=1 ORDER BY "public"."UserOneToOne"."id" ASC OFFSET $1
-          SELECT "public"."ProfileOneToOne"."id", "public"."ProfileOneToOne"."userId" FROM "public"."ProfileOneToOne" WHERE "public"."ProfileOneToOne"."userId" IN ($1,$2) OFFSET $3
-        */
-        // const firstSql = this.craftSql(query, modelFields, tableName)
-      }
-    }
-    // handle other selections for relations
-    sql = `SELECT "public"."UserOneToOne"."id" FROM "public"."UserOneToOne" WHERE 1=1 ORDER BY "public"."UserOneToOne"."id" ASC OFFSET 0`
-    return sql
-  }
+  // private _handleRelationSelection(sql: string) {
+  //   console.log('RELATIONSELECTION!')
+  //   const relationSelections = this._getRelationSelection(this.query.query.selection)
+  //   for (const relationSelection in relationSelections) {
+  //     if (Object.prototype.hasOwnProperty.call(relationSelections, relationSelection)) {
+  //       /*
+  //         query: {
+  //           modelName: 'UserOneToOne',
+  //           action: 'findMany',
+  //           query: {
+  //             arguments: { orderBy: { id: 'asc' } },
+  //             selection: { '$composites': true, '$scalars': true, profile: true }
+  //           }
+  //         }
+
+  //         SELECT "public"."UserOneToOne"."id" FROM "public"."UserOneToOne" WHERE 1=1 ORDER BY "public"."UserOneToOne"."id" ASC OFFSET $1
+  //         SELECT "public"."ProfileOneToOne"."id", "public"."ProfileOneToOne"."userId" FROM "public"."ProfileOneToOne" WHERE "public"."ProfileOneToOne"."userId" IN ($1,$2) OFFSET $3
+  //       */
+  //       // const firstSql = this.craftSql(query, modelFields, tableName)
+  //     }
+  //   }
+  //   // handle other selections for relations
+  //   sql = `SELECT "public"."UserOneToOne"."id" FROM "public"."UserOneToOne" WHERE 1=1 ORDER BY "public"."UserOneToOne"."id" ASC OFFSET 0`
+  //   return sql
+  // }
 
   private _handleCursor(sql: string) {
     console.log('CURSOR!')
