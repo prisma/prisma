@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
-import { getSchemaPath, type GetSchemaResult, mergeSchemas } from '@prisma/internals'
+import { type GetSchemaResult, getSchemaWithPath, mergeSchemas } from '@prisma/internals'
 import {
   ClientEngineType,
   extractPreviewFeatures,
@@ -46,7 +46,7 @@ export async function generateInFolder({
   const schemaNotFoundError = new Error(`Could not find any schema.prisma in ${projectDir} or sub directories.`)
 
   try {
-    schemaPathResult = await getSchemaPath(undefined, { cwd: projectDir })
+    schemaPathResult = await getSchemaWithPath(undefined, { cwd: projectDir })
   } catch (e) {
     debug('Error in getSchemaPath', e)
   }

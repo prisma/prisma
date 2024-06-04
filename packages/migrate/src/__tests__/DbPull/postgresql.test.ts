@@ -90,6 +90,26 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
+  test('basic introspection --url + empty schema', async () => {
+    ctx.fixture('empty-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  test('basic introspection --url + schema with no linebreak after generator block', async () => {
+    ctx.fixture('generator-only')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
   test('introspection should load .env file with --print', async () => {
     ctx.fixture('schema-only-postgresql')
     expect.assertions(3)

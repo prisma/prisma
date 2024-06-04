@@ -9,6 +9,7 @@ import {
   HelpError,
   isError,
   loadEnvFile,
+  mergeSchemas,
   resolveUrl,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
@@ -104,11 +105,16 @@ ${bold('Examples')}
 
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
+    const mergedSchema = mergeSchemas({
+      schemas,
+    })
+
     const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
       schemaPath,
+      schemaText: mergedSchema,
       hostname,
       port,
       staticAssetDir,

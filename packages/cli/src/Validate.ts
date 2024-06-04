@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import {
   arg,
   Command,
@@ -89,7 +91,13 @@ ${bold('Examples')}
       ignoreEnvVarErrors: false,
     })
 
-    return `The schema at ${underline(schemaPath)} is valid 🚀`
+    const schemaRelativePath = path.relative(process.cwd(), schemaPath)
+
+    if (schemas.length > 1) {
+      return `The schemas at ${underline(schemaRelativePath)} are valid 🚀`
+    }
+
+    return `The schema at ${underline(schemaRelativePath)} is valid 🚀`
   }
 
   // help message

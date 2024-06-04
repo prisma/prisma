@@ -6,8 +6,8 @@
     "test": "jest --verbose"
   },
   "dependencies": {
-    "@cloudflare/workers-types": "4.20240512.0",
-    "@libsql/client": "0.6.0",
+    "@cloudflare/workers-types": "4.20240524.0",
+    "@libsql/client": "0.6.2",
     "@neondatabase/serverless": "0.9.3",
     "@planetscale/database": "1.18.0",
     "@prisma/adapter-d1": "/tmp/prisma-adapter-d1-0.0.0.tgz",
@@ -17,7 +17,7 @@
     "@prisma/adapter-pg-worker": "/tmp/prisma-adapter-pg-worker-0.0.0.tgz",
     "@prisma/adapter-planetscale": "/tmp/prisma-adapter-planetscale-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
-    "@prisma/extension-accelerate": "1.0.0",
+    "@prisma/extension-accelerate": "1.1.0",
     "@prisma/extension-read-replicas": "0.3.0",
     "@prisma/pg-worker": "/tmp/prisma-pg-worker-0.0.0.tgz",
     "db": "link:custom",

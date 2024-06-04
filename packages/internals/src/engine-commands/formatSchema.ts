@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 
 import { logger } from '..'
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
-import { debugMultipleSchemaPaths, debugMultipleSchemas, type MultipleSchemas } from '../utils/schemaFileInput'
+import { debugMultipleSchemaPaths, type MultipleSchemas } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
@@ -80,7 +80,7 @@ function handleFormatPanic<T>(tryCb: () => T, { schemas }: FormatSchemaParams) {
       /* request */ '@prisma/prisma-schema-wasm format',
       ErrorArea.FMT_CLI,
       /* schemaPath */ debugMultipleSchemaPaths(schemas),
-      /* schema */ debugMultipleSchemas(schemas),
+      /* schema */ schemas,
     )
 
     throw panic

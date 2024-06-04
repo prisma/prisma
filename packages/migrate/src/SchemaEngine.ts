@@ -4,6 +4,9 @@ import Debug from '@prisma/debug'
 import {
   BinaryType,
   ErrorArea,
+  getSchema,
+  type MigrateTypes,
+  relativizePathInPSLError,
   resolveBinary,
   RustPanic,
   SchemaEngineExitCode,
@@ -57,7 +60,7 @@ export class SchemaEngine {
   private enabledPreviewFeatures?: string[]
 
   // `latestSchema` is set to the latest schema that was used in `introspect()`
-  private latestSchema?: string
+  private latestSchema?: MigrateTypes.SchemasContainer
 
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
@@ -163,7 +166,7 @@ export class SchemaEngine {
    * If no argument is given, the version of the database associated to the Prisma schema provided
    * in the constructor will be returned.
    */
-  public getDatabaseVersion(args?: EngineArgs.GetDatabaseVersionParams): Promise<string> {
+  public getDatabaseVersion(args?: MigrateTypes.GetDatabaseVersionParams): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', args))
   }
 
@@ -174,15 +177,17 @@ export class SchemaEngine {
   public async introspect({
     schema,
     force = false,
+    baseDirectoryPath,
     compositeTypeDepth = -1, // cannot be undefined
-    schemas,
+    namespaces,
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
     this.latestSchema = schema
 
     try {
       const introspectResult: EngineArgs.IntrospectResult = await this.runCommand(
-        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, schemas }),
+        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, namespaces, baseDirectoryPath }),
       )
+
       const { views } = introspectResult
 
       if (views) {
@@ -253,7 +258,7 @@ export class SchemaEngine {
   /**
    * The command behind db push.
    */
-  public schemaPush(args: EngineArgs.SchemaPush): Promise<EngineResults.SchemaPush> {
+  public schemaPush(args: EngineArgs.SchemaPushInput): Promise<EngineResults.SchemaPush> {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
 
@@ -336,7 +341,9 @@ export class SchemaEngine {
         const args: string[] = []
 
         if (this.schemaPath) {
-          args.push(...['-d', this.schemaPath])
+          const schema = await getSchema(this.schemaPath)
+          const schemaArgs = schema.flatMap(([path]) => ['-d', path])
+          args.push(...schemaArgs)
         }
 
         if (
@@ -398,7 +405,7 @@ export class SchemaEngine {
                 this.lastRequest,
                 ErrorArea.LIFT_CLI,
                 /* schemaPath */ this.schemaPath,
-                /* schema */ this.latestSchema,
+                /* schema */ this.latestSchema?.files.map((schema) => [schema.path, schema.content]),
               ),
             )
           }
@@ -494,13 +501,13 @@ export class SchemaEngine {
                   this.lastRequest,
                   ErrorArea.LIFT_CLI,
                   /* schemaPath */ this.schemaPath,
-                  /* schema */ this.latestSchema,
+                  /* schema */ this.latestSchema?.files.map((schema) => [schema.path, schema.content]),
                 ),
               )
             } else if (response.error.data?.message) {
               // Print known error code & message from engine
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
-              let message = `${red(response.error.data.message)}\n`
+              let message = `${red(relativizePathInPSLError(response.error.data.message))}\n`
               if (response.error.data?.error_code) {
                 message = red(`${response.error.data.error_code}\n\n`) + message
                 reject(new EngineError(message, response.error.data.error_code))

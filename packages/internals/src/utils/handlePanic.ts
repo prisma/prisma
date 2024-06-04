@@ -15,7 +15,7 @@ type HandlePanic = {
   command: string
 
   // retrieve the database version for the given schema or url, without throwing any error
-  getDatabaseVersionSafe: (args: MigrateTypes.GetDatabaseVersionParams) => Promise<string | undefined>
+  getDatabaseVersionSafe: (args: MigrateTypes.GetDatabaseVersionParams | undefined) => Promise<string | undefined>
 }
 
 export async function handlePanic(args: HandlePanic): Promise<void> {

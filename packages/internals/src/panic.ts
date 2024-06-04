@@ -1,10 +1,12 @@
+import { MultipleSchemas } from './utils/schemaFileInput'
+
 export class RustPanic extends Error {
   public readonly __typename = 'RustPanic'
   public request: any
   public rustStack: string
   public area: ErrorArea
   public schemaPath?: string
-  public schema?: string
+  public schema?: MultipleSchemas
   public introspectionUrl?: string
   constructor(
     message: string,
@@ -12,7 +14,7 @@ export class RustPanic extends Error {
     request: any,
     area: ErrorArea,
     schemaPath?: string,
-    schema?: string,
+    schema?: MultipleSchemas,
     introspectionUrl?: string,
   ) {
     super(message)

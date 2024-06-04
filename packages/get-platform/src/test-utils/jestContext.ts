@@ -1,14 +1,14 @@
 import type { ExecaChildProcess } from 'execa'
 import execa from 'execa'
 import fs from 'fs-jetpack'
-import type { FSJetpack } from 'fs-jetpack/types'
+import type { FSJetpack, InspectTreeResult } from 'fs-jetpack/types'
 import path from 'path'
 import tempy from 'tempy'
 
 /**
  * Base test context.
  */
-type BaseContext = {
+export type BaseContext = {
   tmpDir: string
   fs: FSJetpack
   mocked: {
@@ -26,6 +26,15 @@ type BaseContext = {
    * For this to work the source must be built
    */
   cli: (...input: string[]) => ExecaChildProcess<string>
+
+  printDir(dir: string, extensions: string[]): void
+  /**
+   * JavaScript-friendly implementation of the `tree` command. It skips the `node_modules` directory.
+   * @param itemPath The path to start the tree from, defaults to the root of the temporary directory
+   * @param indent How much to indent each level of the tree, defaults to ''
+   * @returns String representation of the directory tree
+   */
+  tree: (itemPath?: string, indent?: string) => void
 }
 
 /**
@@ -45,6 +54,31 @@ export const jestContext = {
 
       c.tmpDir = tempy.directory()
       c.fs = fs.cwd(c.tmpDir)
+      c.tree = (startFrom = c.tmpDir, indent = '') => {
+        function* generateDirectoryTree(children: InspectTreeResult[], indent = ''): Generator<String> {
+          for (const child of children) {
+            if (child.name === 'node_modules' || child.name === '.git') {
+              continue
+            }
+
+            if (child.type === 'dir') {
+              yield `${indent}└── ${child.name}/`
+              yield* generateDirectoryTree(child.children, indent + '    ')
+            } else if (child.type === 'symlink') {
+              yield `${indent} -> ${child.relativePath}`
+            } else {
+              yield `${indent}└── ${child.name}`
+            }
+          }
+        }
+
+        const children = c.fs.inspectTree(startFrom, { relativePath: true, symlinks: 'report' })?.children || []
+
+        return `
+${[...generateDirectoryTree(children, indent)].join('\n')}
+`
+      }
+
       c.fixture = (name: string) => {
         // copy the specific fixture directory in isolated tmp directory
         c.fs.copy(path.join(originalCwd, 'src', '__tests__', 'fixtures', name), '.', {
@@ -62,6 +96,14 @@ export const jestContext = {
           stdio: 'pipe',
           all: true,
         })
+      }
+      c.printDir = (dir, extensions) => {
+        const content = c.fs.list(dir) ?? []
+        content.sort((a, b) => a.localeCompare(b))
+        return content
+          .filter((name) => extensions.includes(path.extname(name)))
+          .map((name) => `${name}:\n\n${c.fs.read(path.join(dir, name))}`)
+          .join('\n\n')
       }
       process.chdir(c.tmpDir)
     })
