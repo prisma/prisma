@@ -1,4 +1,3 @@
-/* eslint-disable import/no-duplicates */
 import { D1Database } from '@cloudflare/workers-types'
 import { neon, neonConfig, Pool as NeonPool } from '@neondatabase/serverless'
 import { Client as PlanetScaleClient } from '@planetscale/database'
