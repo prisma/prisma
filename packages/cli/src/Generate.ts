@@ -360,7 +360,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           }
         }
       })
-      await new Promise((_) => null) // eslint-disable-line @typescript-eslint/no-unused-vars
+      await new Promise((_) => null)
     }
 
     return ''
