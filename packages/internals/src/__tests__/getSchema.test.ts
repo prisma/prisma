@@ -1,6 +1,7 @@
 import path from 'path'
+import stripAnsi from 'strip-ansi'
 
-import { getSchemaWithPathInternal } from '../cli/getSchema'
+import { getSchemaWithPath } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'
 
 if (process.env.CI) {
@@ -25,7 +26,7 @@ async function testSchemaPath(fixtureName: string, schemaPathFromArgs?: string) 
   try {
     asyncResult =
       (
-        await getSchemaWithPathInternal(schemaPathFromArgs, {
+        await getSchemaWithPath(schemaPathFromArgs, {
           cwd,
         })
       )?.schemaPath ?? null
@@ -34,20 +35,30 @@ async function testSchemaPath(fixtureName: string, schemaPathFromArgs?: string) 
   }
 
   if (typeof asyncResult === 'string') {
-    asyncResult = toUnixPath(path.relative('.', asyncResult))
+    asyncResult = stripAnsi(toUnixPath(path.relative('.', asyncResult)))
   }
 
   if (asyncResult instanceof Error) {
-    asyncResult.message = toUnixPath(asyncResult.message.replace(__dirname, '.'))
+    asyncResult.message = stripAnsi(toUnixPath(asyncResult.message.replace(__dirname, '.')))
   }
 
   return asyncResult
 }
 
-it('returns null if no schema is found', async () => {
+it('throws error if schema is not found', async () => {
   const res = await testSchemaPath('no-schema')
 
-  expect(res).toMatchInlineSnapshot(`null`)
+  expect(res).toMatchInlineSnapshot(`
+    [Error: Could not find a schema.prisma file that is required for this command.
+    You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location.
+    Checked following paths:
+
+    schema.prisma: file not found
+    prisma/schema.prisma: file not found
+    prisma/schema: directory not found
+
+    See also https://pris.ly/d/prisma-schema-location]
+  `)
 })
 
 it('reads from --schema args first even if package.json is provided', async () => {
@@ -62,7 +73,9 @@ it('reads from --schema args first even if package.json is provided', async () =
 it('throws if schema args path is invalid', async () => {
   const res = await testSchemaPath('pkg-json-with-schema-args', path.resolve(FIXTURE_CWD, 'wrong_path'))
 
-  expect(res).toMatchInlineSnapshot(`[Error: Provided --schema at ./__fixtures__/getSchema/wrong_path doesn't exist.]`)
+  expect(res).toMatchInlineSnapshot(
+    `[Error: Could not load --schema from provided path ../wrong_path: file or directory not found]`,
+  )
 })
 
 it('reads relative schema path from the nearest package.json', async () => {
@@ -76,7 +89,9 @@ it('reads relative schema path from the nearest package.json', async () => {
 it('reads schema path from the nearest package.json and throws if path does not exist', async () => {
   const res = await testSchemaPath('pkg-json-invalid-path')
 
-  expect(res).toMatchInlineSnapshot(`[Error: Provided schema path \`wrong-path\` from \`package.json\` doesn't exist.]`)
+  expect(res).toMatchInlineSnapshot(
+    `[Error: Could not load schema from \`wrong-path\` provided by "prisma.schema" config of \`package.json\`: file or directory not found]`,
+  )
 })
 
 it('reads schema path from the nearest package.json and throws if path is not of type string', async () => {
@@ -101,6 +116,38 @@ it('finds the conventional prisma/schema path without configuration', async () =
   expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma"`)
 })
 
+it('throws error if both schema file and folder exist at default locations', async () => {
+  const res = await testSchemaPath('conventional-path-file-dir-conflict')
+
+  expect(res).toMatchInlineSnapshot(
+    `[Error: Schemas at prisma/schema.prisma and prisma/schema conflict with each other. Please, keep only one of the locations]`,
+  )
+})
+
+it('throws error if folder schema exists, but preview feature is not on', async () => {
+  const res = await testSchemaPath('no-schema-no-folder-preview')
+
+  expect(res).toMatchInlineSnapshot(`
+    [Error: Could not find a schema.prisma file that is required for this command.
+    You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location.
+    Checked following paths:
+
+    schema.prisma: file not found
+    prisma/schema.prisma: file not found
+    prisma/schema: "prismaSchemaFolder" preview feature must be enabled
+
+    See also https://pris.ly/d/prisma-schema-location]
+  `)
+})
+
+it('throws error if explicit --schema arg is used and preview feature is not on', async () => {
+  const res = await testSchemaPath('no-schema-no-folder-preview', './prisma/schema')
+
+  expect(res).toMatchInlineSnapshot(
+    `[Error: Could not load --schema from provided path prisma/schema: "prismaSchemaFolder" preview feature must be enabled]`,
+  )
+})
+
 it('finds the schema path in the root package.json of a yarn workspace from a child package', async () => {
   const res = await testSchemaPath('pkg-json-workspace-parent/packages/a')
 
@@ -113,4 +160,26 @@ it('finds the conventional schema path with yarn workspaces', async () => {
   expect(res).toMatchInlineSnapshot(
     `"src/__tests__/__fixtures__/getSchema/conventional-path-workspaces/packages/b/schema.prisma"`,
   )
+})
+
+it('fails with no schema in workspaces', async () => {
+  const res = await testSchemaPath('no-schema-workspaces')
+
+  expect(res).toMatchInlineSnapshot(`
+    [Error: Could not find a schema.prisma file that is required for this command.
+    You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location.
+    Checked following paths:
+
+    schema.prisma: file not found
+    prisma/schema.prisma: file not found
+    prisma/schema: directory not found
+    packages/a/schema.prisma: file not found
+    packages/a/prisma/schema.prisma: file not found
+    packages/a/prisma/schema: directory not found
+    packages/b/schema.prisma: file not found
+    packages/b/prisma/schema.prisma: file not found
+    packages/b/prisma/schema: directory not found
+
+    See also https://pris.ly/d/prisma-schema-location]
+  `)
 })

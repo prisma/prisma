@@ -74,9 +74,9 @@ describe('format', () => {
           "
         `)
 
-        // implicit: single schema file (`prisma/schema.prisma`)
-        await expect(Format.new().parse([])).resolves.toMatchInlineSnapshot(
-          `"Formatted prisma/schema.prisma in XXXms 🚀"`,
+        // implicit: conflict between folder and file
+        await expect(Format.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(
+          `"Schemas at prisma/schema.prisma and prisma/schema conflict with each other. Please, keep only one of the locations"`,
         )
 
         await ctx.fs.removeAsync(path.join('prisma', 'schema.prisma'))
@@ -156,7 +156,7 @@ describe('format', () => {
         `)
       })
 
-      it('fails to parse multi schemas when the config blocks (`generator`, `datasource`) are invalid', async () => {
+      it('reports error when schemas when the config blocks (`generator`, `datasource`) are invalid', async () => {
         ctx.fixture('multi-schema-files/invalid/invalid_config_blocks')
 
         // - `prisma/schema/config.prisma` is invalid (it contains invalid attributes)
@@ -170,13 +170,24 @@ describe('format', () => {
           "
         `)
 
-        await expect(Format.new().parse([])).rejects.toMatchInlineSnapshot(`
-          "Could not find a schema.prisma file that is required for this command.
-          You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+        await expect(Format.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(`
+          "Prisma schema validation - (get-config wasm)
+          Error code: P1012
+          error: Property not known: "custom".
+            -->  prisma/schema/config.prisma:8
+             | 
+           7 |   provider = "sqlite"
+           8 |   custom   = "attr"
+             | 
+
+          Validation Error Count: 1
+          [Context: getConfig]
+
+          Prisma CLI Version : 0.0.0"
         `)
       })
 
-      it('should prefer single file to the multi-schema alternatives (even when invalid)', async () => {
+      it('should throw when both schema file and folder exist (even when invalid)', async () => {
         ctx.fixture('multi-schema-files/invalid/default_schema_invalid-multi_schema_valid')
         expect(ctx.tree()).toMatchInlineSnapshot(`
           "
@@ -190,21 +201,9 @@ describe('format', () => {
         `)
 
         // implicit: single schema file (`prisma/schema.prisma`)
-        await expect(Format.new().parse([])).rejects.toMatchInlineSnapshot(`
-          "Prisma schema validation - (validate wasm)
-          Error code: P1012
-          error: Argument "value" is missing.
-            -->  prisma/schema.prisma:12
-             | 
-          11 |   id        String   @id @default(uuid())
-          12 |   createdAt DateTime @default()
-             | 
-
-          Validation Error Count: 1
-          [Context: validate]
-
-          Prisma CLI Version : 0.0.0"
-        `)
+        await expect(Format.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(
+          `"Schemas at prisma/schema.prisma and prisma/schema conflict with each other. Please, keep only one of the locations"`,
+        )
 
         await ctx.fs.removeAsync(path.join('prisma', 'schema.prisma'))
         expect(ctx.tree()).toMatchInlineSnapshot(`

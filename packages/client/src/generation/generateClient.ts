@@ -1,7 +1,14 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, ConnectorType, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
+import {
+  assertNever,
+  ClientEngineType,
+  EnvPaths,
+  getClientEngineType,
+  pathToPosix,
+  setClassName,
+} from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
@@ -50,6 +57,7 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: string
+  envPaths?: EnvPaths
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
   /** When --no-engine is passed via CLI */
@@ -76,11 +84,13 @@ export async function buildClient({
   activeProvider,
   postinstall,
   copyEngine,
+  envPaths,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
   const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
     dmmf: getPrismaClientDMMF(dmmf),
+    envPaths: envPaths ?? { rootEnvPath: null, schemaEnvPath: undefined },
     datasources,
     generator,
     binaryPaths,
@@ -318,6 +328,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
+    envPaths,
     copyEngine = true,
   } = options
 
@@ -339,6 +350,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     postinstall,
     copyEngine,
     testMode,
+    envPaths,
   })
 
   const provider = datasources[0].provider

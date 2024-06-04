@@ -84,7 +84,9 @@ describe('db execute', () => {
         await DbExecute.new().parse(['--file=./script.sql', '--schema=./doesnoexists.schema'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(`"Provided --schema at ./doesnoexists.schema doesn't exist."`)
+        expect(e.message).toMatchInlineSnapshot(
+          `"Could not load --schema from provided path doesnoexists.schema: file or directory not found"`,
+        )
       }
     })
   })

@@ -436,7 +436,7 @@ describe('debug', () => {
 
   it('should succeed with incorrect --schema path', async () => {
     await expect(DebugInfo.new().parse(['--schema=does-not-exists.prisma'])).resolves.toContain(
-      "Path: Provided --schema at does-not-exists.prisma doesn't exist.",
+      'Could not load --schema from provided path does-not-exists.prisma: file or directory not found',
     )
   })
 })

@@ -4,16 +4,94 @@ import execa from 'execa'
 import fs from 'fs'
 import { bold, green } from 'kleur/colors'
 import path from 'path'
-import { PackageJson, readPackageUp, readPackageUpSync } from 'read-package-up'
+import { PackageJson, readPackageUp } from 'read-package-up'
 import { promisify } from 'util'
 
 import { getConfig } from '../engine-commands'
 import type { MultipleSchemas, MultipleSchemaTuple } from '../utils/schemaFileInput'
 
-const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
+const stat = promisify(fs.stat)
 
 const debug = Debug('prisma:getSchema')
+
+type PathType = 'file' | 'directory'
+type DefaultLocationPath = {
+  path: string
+  kind: PathType
+}
+
+type DefaultLookupRule = {
+  schemaPath: DefaultLocationPath
+  conflictsWith?: DefaultLocationPath
+}
+
+type SuccessfulLookupResult = {
+  ok: true
+  schema: GetSchemaResult
+}
+
+/// Non fatal error does not cause
+/// abort of the lookup process and usually
+/// means we should try next option. It will be turned into exception
+/// only if all options are exhausted
+type NonFatalLookupError =
+  | {
+      kind: 'NotFound'
+      expectedType?: PathType
+      path: string
+    }
+  | {
+      kind: 'WrongType'
+      path: string
+      expectedTypes: PathType[]
+    }
+  | {
+      kind: 'FolderPreviewNotEnabled'
+      path: string
+    }
+
+type LookupResult =
+  | SuccessfulLookupResult
+  | {
+      ok: false
+      error: NonFatalLookupError
+    }
+
+type DefaultLookupRuleFailure = {
+  rule: DefaultLookupRule
+  error: NonFatalLookupError
+}
+
+type DefaultLookupError = {
+  kind: 'NotFoundMultipleLocations'
+  failures: DefaultLookupRuleFailure[]
+}
+
+type DefaultLookupResult =
+  | SuccessfulLookupResult
+  | {
+      ok: false
+      error: DefaultLookupError
+    }
+
+type PackageJsonLookupResult =
+  | SuccessfulLookupResult
+  | {
+      ok: false
+      error: {
+        kind: 'PackageJsonNotConfigured'
+      }
+    }
+
+type YarnWorkspaceLookupResult =
+  | DefaultLookupResult
+  | {
+      ok: false
+      error: {
+        kind: 'Yarn1WorkspaceSchemaNotFound'
+      }
+    }
 
 export type GetSchemaResult = {
   /**
@@ -34,36 +112,70 @@ export type GetSchemaResult = {
   schemas: MultipleSchemas
 }
 
-/**
- * Async
- */
-
-export async function getSchemaWithPath(): Promise<GetSchemaResult | null>
-export async function getSchemaWithPath(schemaPathFromArgs: string, opts?: { cwd: string }): Promise<GetSchemaResult>
-export async function getSchemaWithPath(
-  schemaPathFromArgs?: string,
-  opts?: { cwd: string },
-): Promise<GetSchemaResult | null>
-export async function getSchemaWithPath(
-  schemaPathFromArgs?: string,
-  opts: { cwd: string } = {
-    cwd: process.cwd(),
-  },
-) {
-  return getSchemaWithPathInternal(schemaPathFromArgs, {
-    cwd: opts.cwd,
-  })
+type GetSchemaOptions = {
+  cwd?: string
+  argumentName?: string
 }
 
-export async function readSchemaFromSingleFile(schemaPath: string): Promise<GetSchemaResult> {
+type GetSchemaInternalOptions = Required<GetSchemaOptions>
+
+/**
+ * Loads the schema, throws an error if it is not found
+ * @param schemaPathFromArgs
+ * @param opts
+ */
+export async function getSchemaWithPath(
+  schemaPathFromArgs?: string,
+  { cwd = process.cwd(), argumentName = '--schema' }: GetSchemaOptions = {},
+): Promise<GetSchemaResult> {
+  const result = await getSchemaWithPathInternal(schemaPathFromArgs, { cwd, argumentName })
+  if (result.ok) {
+    return result.schema
+  }
+  throw new Error(renderDefaultLookupError(result.error, cwd))
+}
+
+/**
+ * Loads the schema, returns null if it is not found
+ * Throws an error if schema is specified explicitly in
+ * any of the available ways (argument, package.json config), but
+ * can not be loaded
+ * @param schemaPathFromArgs
+ * @param param1
+ * @returns
+ */
+export async function getSchemaWithPathOptional(
+  schemaPathFromArgs?: string,
+  { cwd = process.cwd(), argumentName = '--schema' }: GetSchemaOptions = {},
+): Promise<GetSchemaResult | null> {
+  const result = await getSchemaWithPathInternal(schemaPathFromArgs, { cwd, argumentName })
+  if (result.ok) {
+    return result.schema
+  }
+  return null
+}
+
+export async function readSchemaFromSingleFile(schemaPath: string): Promise<LookupResult> {
   debug('Reading schema from single file', schemaPath)
+
+  const typeError = await ensureType(schemaPath, 'file')
+  if (typeError) {
+    return { ok: false, error: typeError }
+  }
   const file = await readFile(schemaPath, { encoding: 'utf-8' })
   const schemaTuple: MultipleSchemaTuple = [schemaPath, file]
-  return { schemaPath, schemaRootDir: path.dirname(schemaPath), schemas: [schemaTuple] } as const
+  return {
+    ok: true,
+    schema: { schemaPath, schemaRootDir: path.dirname(schemaPath), schemas: [schemaTuple] },
+  } as const
 }
 
-async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaResult | null> {
+async function readSchemaFromDirectory(schemaPath: string): Promise<LookupResult> {
   debug('Reading schema from multiple files', schemaPath)
+  const typeError = await ensureType(schemaPath, 'directory')
+  if (typeError) {
+    return { ok: false, error: typeError }
+  }
   const files = await loadSchemaFiles(schemaPath)
 
   // TODO: problem: if the Prisma config isn't valid, we currently get a
@@ -76,85 +188,135 @@ async function readSchemaFromMultiFiles(schemaPath: string): Promise<GetSchemaRe
   })
   debug('Ok')
 
-  if (usesPrismaSchemaFolder(config)) {
-    return { schemaPath, schemaRootDir: schemaPath, schemas: files } as const
+  if (!usesPrismaSchemaFolder(config)) {
+    return { ok: false, error: { kind: 'FolderPreviewNotEnabled', path: schemaPath } }
   }
 
-  return null
+  return { ok: true, schema: { schemaPath, schemaRootDir: schemaPath, schemas: files } }
 }
 
-// This function only throws when `schemaPathFromArgs` is provided, yet the schema doesn't exist.
-export async function getSchemaWithPathInternal(
-  schemaPathFromArgs?: string,
-  opts?: { cwd: string },
-): Promise<GetSchemaResult | null>
-export async function getSchemaWithPathInternal(
-  schemaPathFromArgs: string,
-  opts?: { cwd: string },
-): Promise<GetSchemaResult>
-export async function getSchemaWithPathInternal(
-  schemaPathFromArgs?: string,
-  opts: { cwd: string } = {
-    cwd: process.cwd(),
-  },
-) {
-  async function getSchemaResult(schemaPath: string) {
-    // a. If it's a single file, read it and return it
-    return (
-      readSchemaFromSingleFile(schemaPath)
-        // b. If it's a directory, load all files and return them, but only if the `prismaSchemaFolder` preview feature is used.
-        .catch(() => readSchemaFromMultiFiles(schemaPath))
-        // c. If it's neither, return null
-        .catch(() => null)
-    )
+async function ensureType(entryPath: string, expectedType: PathType): Promise<NonFatalLookupError | undefined> {
+  try {
+    const pathStat = await stat(entryPath)
+    if (expectedType === 'file' && pathStat.isFile()) {
+      return undefined
+    }
+
+    if (expectedType === 'directory' && pathStat.isDirectory()) {
+      return undefined
+    }
+
+    return { kind: 'WrongType', path: entryPath, expectedTypes: [expectedType] }
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return { kind: 'NotFound', path: entryPath, expectedType }
+    }
+    throw e
+  }
+}
+
+async function readSchemaFromFileOrDirectory(schemaPath: string): Promise<LookupResult> {
+  let stats: fs.Stats
+  try {
+    stats = await stat(schemaPath)
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return { ok: false, error: { kind: 'NotFound', path: schemaPath } }
+    }
+    throw e
   }
 
+  if (stats.isFile()) {
+    return readSchemaFromSingleFile(schemaPath)
+  }
+
+  if (stats.isDirectory()) {
+    return readSchemaFromDirectory(schemaPath)
+  }
+
+  return { ok: false, error: { kind: 'WrongType', path: schemaPath, expectedTypes: ['file', 'directory'] } }
+}
+
+/**
+ * Tries to load schema from either provided
+ * arg, package.json configured location, default location
+ * relative to cwd or any of the Yarn1Workspaces.
+ *
+ * If schema is specified explicitly with any of the methods but can
+ * not be loaded, error will be thrown. If no explicit schema is given, than
+ * error value will be returned instead
+ */
+async function getSchemaWithPathInternal(
+  schemaPathFromArgs: string | undefined,
+  { cwd, argumentName }: GetSchemaInternalOptions,
+) {
   // 1. Try the user custom path, when provided.
   if (schemaPathFromArgs) {
-    const customSchemaPath = await getAbsoluteSchemaPath(path.resolve(schemaPathFromArgs))
-    const onError = () => {
-      throw new Error(`Provided --schema at ${schemaPathFromArgs} doesn't exist.`)
-    }
-
-    if (!customSchemaPath) {
-      return onError()
-    }
-
-    const customSchemaResult = await getSchemaResult(path.resolve(opts.cwd ?? process.cwd(), customSchemaPath))
-    if (!customSchemaResult) {
-      return onError()
+    const absPath = path.resolve(cwd, schemaPathFromArgs)
+    const customSchemaResult = await readSchemaFromFileOrDirectory(absPath)
+    if (!customSchemaResult.ok) {
+      const relPath = path.relative(cwd, absPath)
+      throw new Error(
+        `Could not load ${argumentName} from provided path ${relPath}: ${renderLookupError(customSchemaResult.error)}`,
+      )
     }
 
     return customSchemaResult
   }
 
-  const trials = [
-    // 2. Try the package.json `prisma.schema` custom path.
-    { strategy: 'package.json', fn: getSchemaPathFromPackageJson, sourcePath: opts.cwd },
-    // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths.
-    { strategy: 'relative', fn: getRelativeSchemaPath, sourcePath: opts.cwd },
-    // 4. Try resolving yarn workspaces and looking for a schema.prisma file there.
-    { strategy: 'yarn', fn: resolveYarnSchema, sourcePath: opts.cwd },
-  ] as const
-
-  for (const { strategy, sourcePath, fn } of trials) {
-    debug(`Trying ${strategy}...`)
-
-    const schemaPath = await fn(sourcePath!)
-    debug(`${strategy} resolved to ${schemaPath}`)
-
-    if (!schemaPath) {
-      continue
-    }
-
-    const schemaPathResult = await getSchemaResult(path.resolve(sourcePath, schemaPath))
-
-    if (schemaPathResult) {
-      return schemaPathResult
-    }
+  const pkgJsonResult = await getSchemaFromPackageJson(cwd)
+  if (pkgJsonResult.ok) {
+    return pkgJsonResult
   }
 
-  return null
+  const defaultResult = await getDefaultSchema(cwd)
+  if (defaultResult.ok) {
+    return defaultResult
+  }
+
+  const yarnResult = await getSchemaFromYarn1Workspace(cwd, defaultResult.error.failures)
+  if (yarnResult.ok) {
+    return yarnResult
+  }
+
+  const finalError = yarnResult.error.kind === 'Yarn1WorkspaceSchemaNotFound' ? defaultResult.error : yarnResult.error
+  return {
+    ok: false as const,
+    error: finalError,
+  }
+}
+
+function renderLookupError(error: NonFatalLookupError) {
+  switch (error.kind) {
+    case 'NotFound': {
+      const expected = error.expectedType ?? 'file or directory'
+      return `${expected} not found`
+    }
+    case 'FolderPreviewNotEnabled':
+      return `"prismaSchemaFolder" preview feature must be enabled`
+    case 'WrongType':
+      return `expected ${error.expectedTypes.join(' or ')}`
+  }
+}
+
+function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
+  const parts: string[] = [
+    `Could not find a ${bold('schema.prisma')} file that is required for this command.`,
+    `You can either provide it with ${green(
+      '--schema',
+    )}, set it as \`prisma.schema\` in your package.json or put it into the default location.`,
+    'Checked following paths:\n',
+  ]
+  const printedPaths = new Set<string>()
+  for (const failure of error.failures) {
+    const filePath = failure.rule.schemaPath.path
+    if (!printedPaths.has(failure.rule.schemaPath.path)) {
+      parts.push(`${path.relative(cwd, filePath)}: ${renderLookupError(failure.error)}`)
+      printedPaths.add(filePath)
+    }
+  }
+  parts.push('\nSee also https://pris.ly/d/prisma-schema-location')
+  return parts.join('\n')
 }
 
 // Example:
@@ -181,12 +343,12 @@ export async function getPrismaConfigFromPackageJson(cwd: string) {
   }
 }
 
-async function getSchemaPathFromPackageJson(cwd: string): Promise<string | null> {
+export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJsonLookupResult> {
   const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
   debug('prismaConfig', prismaConfig)
 
   if (!prismaConfig || !prismaConfig.data?.schema) {
-    return null
+    return { ok: false, error: { kind: 'PackageJsonNotConfigured' } }
   }
 
   const schemaPathFromPkgJson = prismaConfig.data.schema
@@ -204,89 +366,144 @@ async function getSchemaPathFromPackageJson(cwd: string): Promise<string | null>
     ? schemaPathFromPkgJson
     : path.resolve(path.dirname(prismaConfig.packagePath), schemaPathFromPkgJson)
 
-  if ((await exists(absoluteSchemaPath)) === false) {
+  const lookupResult = await readSchemaFromFileOrDirectory(absoluteSchemaPath)
+
+  if (!lookupResult.ok) {
     throw new Error(
-      `Provided schema path \`${path.relative(cwd, absoluteSchemaPath)}\` from \`${path.relative(
+      `Could not load schema from \`${path.relative(
+        cwd,
+        absoluteSchemaPath,
+      )}\` provided by "prisma.schema" config of \`${path.relative(
         cwd,
         prismaConfig.packagePath,
-      )}\` doesn't exist.`,
+      )}\`: ${renderLookupError(lookupResult.error)}`,
     )
   }
-
-  return absoluteSchemaPath
+  return lookupResult
 }
 
-async function resolveYarnSchema(cwd: string): Promise<string | null> {
-  if (process.env.npm_config_user_agent?.includes('yarn')) {
-    try {
-      const { stdout: version } = await execa.command('yarn --version', {
-        cwd,
-      })
+async function getSchemaFromYarn1Workspace(
+  cwd: string,
+  pastFailures: DefaultLookupRuleFailure[],
+): Promise<YarnWorkspaceLookupResult> {
+  if (!process.env.npm_config_user_agent?.includes('yarn')) {
+    return { ok: false, error: { kind: 'Yarn1WorkspaceSchemaNotFound' } }
+  }
 
-      if (version.startsWith('2')) {
-        return null
-      }
+  let workspaces: Array<{ location: string }>
+  try {
+    const { stdout: version } = await execa.command('yarn --version', {
+      cwd,
+    })
 
-      const { stdout } = await execa.command('yarn workspaces info --json', {
-        cwd,
-      })
-      const json = getJson(stdout)
-      const workspaces = Object.values<{ location: string }>(json)
-      const workspaceRootDir = await findWorkspaceRoot(cwd)
-
-      if (!workspaceRootDir) {
-        return null
-      }
-
-      // Iterate over the workspaces
-      for (const workspace of workspaces) {
-        const workspacePath = path.join(workspaceRootDir, workspace.location)
-        const workspaceSchemaPath =
-          getSchemaPathFromPackageJsonSync(workspacePath) ?? getRelativeSchemaPathSync(workspacePath)
-
-        if (workspaceSchemaPath) {
-          return workspaceSchemaPath
-        }
-      }
-
-      const workspaceSchemaPathFromRoot =
-        getSchemaPathFromPackageJsonSync(workspaceRootDir) ?? getRelativeSchemaPathSync(workspaceRootDir)
-
-      if (workspaceSchemaPathFromRoot) {
-        return workspaceSchemaPathFromRoot
-      }
-    } catch (e) {
-      return null
+    if (version.startsWith('2')) {
+      return { ok: false, error: { kind: 'Yarn1WorkspaceSchemaNotFound' } }
     }
+    const { stdout } = await execa.command('yarn workspaces info --json', {
+      cwd,
+    })
+    const json = getJson(stdout)
+    workspaces = Object.values(json)
+  } catch {
+    return { ok: false, error: { kind: 'Yarn1WorkspaceSchemaNotFound' } }
   }
-  return null
-}
 
-async function getAbsoluteSchemaPath(schemaPath: string): Promise<string | null> {
-  if (await exists(schemaPath)) {
-    return schemaPath
+  const workspaceRootDir = await findWorkspaceRoot(cwd)
+
+  if (!workspaceRootDir) {
+    return { ok: false, error: { kind: 'Yarn1WorkspaceSchemaNotFound' } }
   }
 
-  return null
-}
+  // Iterate over the workspaces
+  for (const workspace of workspaces) {
+    const workspacePath = path.join(workspaceRootDir, workspace.location)
+    const workspaceSchema = await tryWorkspacePath(workspacePath, pastFailures)
 
-export async function getRelativeSchemaPath(cwd: string): Promise<string | null> {
-  const relativeSchemaPaths = [
-    'schema.prisma',
-    path.join('prisma', 'schema.prisma'),
-    path.join('prisma', 'schema'),
-  ] as const
-
-  for (const relativeSchemaPath of relativeSchemaPaths) {
-    const relativePath = path.join(cwd, relativeSchemaPath)
-    debug(`Checking existence of ${relativePath}`)
-    if (await exists(relativePath)) {
-      debug('Found schema at', relativeSchemaPath)
-      return relativeSchemaPath
+    if (workspaceSchema.ok) {
+      return workspaceSchema
     }
   }
 
-  return null
+  const rootPathSchema = await tryWorkspacePath(workspaceRootDir, pastFailures)
+  return rootPathSchema
+}
+
+async function tryWorkspacePath(cwd: string, pastFailures: DefaultLookupRuleFailure[]) {
+  const pkgJson = await getSchemaFromPackageJson(cwd)
+  if (pkgJson.ok) {
+    return pkgJson
+  }
+
+  return getDefaultSchema(cwd, pastFailures)
+}
+
+async function getDefaultSchema(cwd: string, failures: DefaultLookupRuleFailure[] = []): Promise<DefaultLookupResult> {
+  const schemaPrisma: DefaultLookupRule = {
+    schemaPath: {
+      path: path.join(cwd, 'schema.prisma'),
+      kind: 'file',
+    },
+  }
+  const prismaSchemaFile: DefaultLookupRule = {
+    schemaPath: {
+      path: path.join(cwd, 'prisma', 'schema.prisma'),
+      kind: 'file',
+    },
+    conflictsWith: {
+      path: path.join(cwd, 'prisma', 'schema'),
+      kind: 'directory',
+    },
+  }
+
+  const prismaSchemaFolder: DefaultLookupRule = {
+    schemaPath: {
+      path: path.join(cwd, 'prisma', 'schema'),
+      kind: 'directory',
+    },
+    conflictsWith: {
+      path: path.join(cwd, 'prisma', 'schema.prisma'),
+      kind: 'file',
+    },
+  }
+
+  const rules = [schemaPrisma, prismaSchemaFile, prismaSchemaFolder]
+  for (const rule of rules) {
+    debug(`Checking existence of ${rule.schemaPath.path}`)
+    const schema = await loadSchemaFromDefaultLocation(rule.schemaPath)
+    if (!schema.ok) {
+      failures.push({ rule, error: schema.error })
+      continue
+    }
+    if (rule.conflictsWith) {
+      const conflictingSchema = await loadSchemaFromDefaultLocation(rule.conflictsWith)
+      if (conflictingSchema.ok) {
+        throw new Error(
+          `Schemas at ${path.relative(cwd, rule.schemaPath.path)} and ${path.relative(
+            cwd,
+            rule.conflictsWith.path,
+          )} conflict with each other. Please, keep only one of the locations`,
+        )
+      }
+    }
+    return schema
+  }
+
+  return {
+    ok: false,
+    error: {
+      kind: 'NotFoundMultipleLocations',
+      failures,
+    },
+  }
+}
+
+async function loadSchemaFromDefaultLocation(lookupPath: DefaultLocationPath) {
+  switch (lookupPath.kind) {
+    case 'file':
+      return readSchemaFromSingleFile(lookupPath.path)
+    case 'directory':
+      return readSchemaFromDirectory(lookupPath.path)
+  }
 }
 
 /**
@@ -308,68 +525,7 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
 export async function getSchema(schemaPathFromArgs?: string): Promise<MultipleSchemas> {
   const schemaPathResult = await getSchemaWithPath(schemaPathFromArgs)
 
-  if (!schemaPathResult) {
-    throw new Error(
-      `Could not find a ${bold(
-        'schema.prisma',
-      )} file that is required for this command.\nYou can either provide it with ${green(
-        '--schema',
-      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${green(
-        './prisma/schema.prisma',
-      )} https://pris.ly/d/prisma-schema-location`,
-    )
-  }
-
   return schemaPathResult.schemas
-}
-
-export function getSchemaPathFromPackageJsonSync(cwd: string): string | null {
-  const pkgJson = readPackageUpSync({ cwd, normalize: false })
-  const schemaPathFromPkgJson: string | undefined = pkgJson?.packageJson?.prisma?.['schema']
-
-  if (!schemaPathFromPkgJson || !pkgJson) {
-    return null
-  }
-
-  if (typeof schemaPathFromPkgJson !== 'string') {
-    throw new Error(
-      `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
-        cwd,
-        pkgJson.path,
-      )}\` must be of type string`,
-    )
-  }
-
-  const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
-    ? schemaPathFromPkgJson
-    : path.resolve(path.dirname(pkgJson.path), schemaPathFromPkgJson)
-
-  if (fs.existsSync(absoluteSchemaPath) === false) {
-    throw new Error(
-      `Provided schema path \`${path.relative(cwd, absoluteSchemaPath)}\` from \`${path.relative(
-        cwd,
-        pkgJson.path,
-      )}\` doesn't exist.`,
-    )
-  }
-
-  return absoluteSchemaPath
-}
-
-function getRelativeSchemaPathSync(cwd: string): string | null {
-  let schemaPath = path.join(cwd, 'schema.prisma')
-
-  if (fs.existsSync(schemaPath)) {
-    return schemaPath
-  }
-
-  schemaPath = path.join(cwd, `prisma/schema.prisma`)
-
-  if (fs.existsSync(schemaPath)) {
-    return schemaPath
-  }
-
-  return null
 }
 
 function getJson(stdout: string): any {

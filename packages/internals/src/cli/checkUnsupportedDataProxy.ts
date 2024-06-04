@@ -57,7 +57,7 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
 
     // for all the args that represent a schema path (including implicit, default path) ensure data proxy isn't used
     if (argName.includes('schema')) {
-      loadEnvFile({ schemaPath: argValue, printMessage: false })
+      await loadEnvFile({ schemaPath: argValue, printMessage: false })
 
       const datamodel = await fs.promises.readFile(argValue, 'utf-8')
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })

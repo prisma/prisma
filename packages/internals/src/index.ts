@@ -2,12 +2,11 @@ export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
   getPrismaConfigFromPackageJson,
-  getRelativeSchemaPath,
   getSchema,
   getSchemaDir,
-  getSchemaPathFromPackageJsonSync,
   type GetSchemaResult,
   getSchemaWithPath,
+  getSchemaWithPathOptional,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
@@ -64,7 +63,6 @@ export { formatTable } from './utils/formatTable'
 export * as fsFunctional from './utils/fs-functional'
 export * as fsUtils from './utils/fs-utils'
 export { getCommandWithExecutor } from './utils/getCommandWithExecutor'
-export type { EnvPaths } from './utils/getEnvPaths'
 export { getEnvPaths } from './utils/getEnvPaths'
 export { version } from './utils/getVersionFromPackageJson'
 export { handleLibraryLoadingErrors } from './utils/handleEngineLoadingErrors'
@@ -102,5 +100,6 @@ export { type LoadedEnv, tryLoadEnvs } from './utils/tryLoadEnvs'
 export { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
 export { warnOnce } from './warnOnce'
 export * as wasm from './wasm'
+export type { EnvPaths } from '@prisma/generator-helper'
 export type { BinaryTarget } from '@prisma/get-platform'
 export { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
