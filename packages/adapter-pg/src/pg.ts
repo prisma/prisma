@@ -18,7 +18,6 @@ const types = pg.types
 
 import { name as packageName } from '../package.json'
 import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType, customParsers } from './conversion'
-import { Type } from 'ts-toolbelt/out/Any/Type'
 
 const debug = Debug('prisma:driver-adapter:pg')
 
