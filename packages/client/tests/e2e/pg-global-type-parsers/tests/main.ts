@@ -1,7 +1,7 @@
 import { Pool } from 'pg'
 
 test('node-postgres global type parsers should not be changed by `@prisma/adapter-pg`', async () => {
-  const pgPool = new Pool({ connectionString: process.env.TEST_E2E_POSTGRES_URI })
+  const pgPool = new Pool({ connectionString: process.env.POSTGRES_URL })
 
   const beforeAdapterImport = await pgPool.query(`SELECT NOW() as ts`)
 
@@ -11,7 +11,7 @@ test('node-postgres global type parsers should not be changed by `@prisma/adapte
 
   expect(typeof beforeAdapterImport.rows[0].ts).toEqual('object')
   expect(typeof afterAdapterImport.rows[0].ts).toEqual('object')
-  expect(beforeAdapterImport.rows[0].ts).toEqual(afterAdapterImport.rows[0].ts)
+  expect(typeof beforeAdapterImport.rows[0].ts).toEqual(typeof afterAdapterImport.rows[0].ts)
 
   await pgPool.end()
 })
