@@ -14,8 +14,10 @@ import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
 
+const types = pg.types
+
 import { name as packageName } from '../package.json'
-import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType, customParsers } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:pg')
 
@@ -87,7 +89,24 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const { sql, args: values } = query
 
     try {
-      const result = await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' })
+      const result = await this.client.query(
+        {
+          text: sql,
+          values: fixArrayBufferValues(values),
+          rowMode: 'array',
+          types: {
+            getTypeParser: (oid: number) => {
+              if (customParsers[oid]) {
+                return customParsers[oid]
+              }
+
+              return types.getTypeParser(oid)
+            },
+          },
+        },
+        fixArrayBufferValues(values),
+      )
+
       return ok(result)
     } catch (e) {
       const error = e as Error
