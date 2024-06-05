@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, suiteMeta, clientMeta) => {
+  ({ provider, clientRuntime }, suiteMeta, clientMeta) => {
     let dbURL: string
     beforeAll(() => {
       dbURL = process.env[`DATABASE_URI_${provider}`]!
@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO: Fails with Expected PrismaClientInitError, Received Error
-    skipTestIf(engineType === 'wasm')('verify that connect fails without override', async () => {
+    skipTestIf(clientRuntime === 'wasm')('verify that connect fails without override', async () => {
       // this a smoke to verify that our beforeAll setup worked correctly and right
       // url won't be picked up by Prisma client anymore.
       // If this test fails, subsequent tests can't be trusted regardless of whether or not they pass or not.
@@ -61,8 +61,8 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     skipDriverAdapter: {
-      from: ['js_libsql', 'js_planetscale', 'js_pg', 'js_neon', 'js_libsql'],
-      reason: 'Datasource override do not work with driver adapters',
+      from: ['js_libsql', 'js_planetscale', 'js_pg', 'js_neon', 'js_d1'],
+      reason: 'Datasource override do not work with driver adapter - See https://github.com/prisma/team-orm/issues/751',
     },
     skipDataProxy: {
       runtimes: ['edge'],

@@ -26,6 +26,8 @@ PNPM_EXDEV_WARN_REGEX="WARN.*?EXDEV" # pnpm warns when it can't symlink
 PNPM_FALLBACK_COPY_REGEX="Falling back to copying packages from store"
 OUTPUT_REMOVAL_REGEX="$PNPM_EXDEV_WARN_REGEX|$PNPM_FALLBACK_COPY_REGEX"
 
+rm -f /e2e/$NAME/LOGS.txt
+
 # Script execution
 (
   cd /e2e;
@@ -38,10 +40,10 @@ OUTPUT_REMOVAL_REGEX="$PNPM_EXDEV_WARN_REGEX|$PNPM_FALLBACK_COPY_REGEX"
   # copy some necessary files that are needed for all the tests to run well
   cp tsconfig.base.json /test/tsconfig.base.json;
   cp jest.config.js /test/$NAME/jest.config.js;
-  # execute the test by running the _steps.ts file with esbuild-register
+  # execute the test by running the _steps.ts file with tsx
   cd /test/$NAME;
-  node -r 'esbuild-register' _steps.ts;
+  tsx _steps.ts;
   # when inline snapshots are created the first time, copy for convencience
   cp -r /test/$NAME/tests/* /e2e/$NAME/tests/ 2> /dev/null || true;
-  cp -r /test/$NAME/pnpm-lock.yaml /e2e/$NAME/tests/ 2> /dev/null || true;
+  cp -r /test/$NAME/pnpm-lock.yaml /e2e/$NAME/ 2> /dev/null || true;
 ) 2>&1 | grep -v -E --line-buffered "$OUTPUT_REMOVAL_REGEX" > /e2e/$NAME/LOGS.txt;

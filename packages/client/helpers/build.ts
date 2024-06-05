@@ -5,14 +5,18 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
-import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { fillPlugin, smallBuffer, smallDecimal } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
-const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm'))
+const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
 const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
+
+const DRIVER_ADAPTER_SUPPORTED_PROVIDERS = ['postgresql', 'sqlite', 'mysql'] as const
+
+type DriverAdapterSupportedProvider = (typeof DRIVER_ADAPTER_SUPPORTED_PROVIDERS)[number]
 
 // we define the config for runtime
 function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): BuildOptions {
@@ -34,6 +38,26 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
   }
 }
 
+function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): BuildOptions {
+  return {
+    name: `query_engine_bg.${provider}`,
+    entryPoints: [`@prisma/query-engine-wasm/${provider}/query_engine_bg.js`],
+    outfile: `runtime/query_engine_bg.${provider}`,
+    minify: true,
+    plugins: [
+      fillPlugin({
+        defaultFillers: false,
+        fillerOverrides: {
+          Function: {
+            define: 'fn',
+            globals: functionPolyfillPath,
+          },
+        },
+      }),
+    ],
+  }
+}
+
 // we define the config for browser
 const browserBuildConfig: BuildOptions = {
   name: 'browser',
@@ -45,48 +69,101 @@ const browserBuildConfig: BuildOptions = {
   sourcemap: 'linked',
 }
 
-// we define the config for edge
-const edgeRuntimeBuildConfig: BuildOptions = {
-  name: 'edge',
+/**
+ * Overrides meant for edge, wasm and react-native builds
+ * If at some point they diverge feel free to split them
+ */
+const commonRuntimesOverrides = {
+  // we remove eval and Function for vercel
+  eval: { define: 'undefined' },
+  Function: {
+    define: 'fn',
+    globals: functionPolyfillPath,
+  },
+  // we shim WeakRef, it does not exist on CF
+  WeakRef: {
+    globals: weakrefPolyfillPath,
+  },
+  // these can not be exported anymore
+  './warnEnvConflicts': { contents: '' },
+}
+
+const runtimesCommonBuildConfig = {
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
-  outfile: 'runtime/edge',
   bundle: true,
   minify: true,
   sourcemap: 'linked',
-  legalComments: 'none',
   emitTypes: false,
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
-    // tree shake the Library and Binary engines out
-    TARGET_BUILD_TYPE: '"edge"',
+    'globalThis.DEBUG_COLORS': 'false',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
+  logLevel: 'error',
+  legalComments: 'none',
+} satisfies BuildOptions
+
+// we define the config for edge
+const edgeRuntimeBuildConfig: BuildOptions = {
+  ...runtimesCommonBuildConfig,
+  name: 'edge',
+  outfile: 'runtime/edge',
+  define: {
+    ...runtimesCommonBuildConfig.define,
+    // tree shake the Library and Binary engines out
+    TARGET_BUILD_TYPE: '"edge"',
+  },
   plugins: [
     fillPlugin({
-      // we remove eval and Function for vercel
-      eval: { define: 'undefined' },
-      Function: {
-        define: 'fn',
-        globals: functionPolyfillPath,
-      },
-      // we shim WeakRef, it does not exist on CF
-      WeakRef: {
-        globals: weakrefPolyfillPath,
-      },
-      // these can not be exported anymore
-      './warnEnvConflicts': { contents: '' },
+      fillerOverrides: commonRuntimesOverrides,
     }),
-    copyFilePlugin([
-      {
-        from: path.join(wasmEngineDir, 'query_engine_bg.wasm'),
-        to: path.join(runtimeDir, 'query-engine.wasm'),
-      },
-    ]),
   ],
-  logLevel: 'error',
+}
+
+// we define the config for wasm
+const wasmRuntimeBuildConfig: BuildOptions = {
+  ...runtimesCommonBuildConfig,
+  target: 'ES2022',
+  name: 'wasm',
+  outfile: 'runtime/wasm',
+  define: {
+    ...runtimesCommonBuildConfig.define,
+    TARGET_BUILD_TYPE: '"wasm"',
+  },
+  plugins: [
+    fillPlugin({
+      // not yet enabled in edge build while driverAdapters is not GA
+      fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
+    }),
+    copyFilePlugin(
+      DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
+        from: path.join(wasmEngineDir, provider, 'query_engine_bg.wasm'),
+        to: path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
+      })),
+    ),
+  ],
+}
+
+// React Native is similar to edge in the sense it doesn't have the node API/libraries
+// and also not all the browser APIs, therefore it needs to polyfill the same things as edge
+const reactNativeBuildConfig: BuildOptions = {
+  ...runtimesCommonBuildConfig,
+  name: 'react-native',
+  target: 'ES2022',
+  outfile: 'runtime/react-native',
+  emitTypes: true,
+  define: {
+    NODE_CLIENT: 'false',
+    TARGET_BUILD_TYPE: '"react-native"',
+  },
+  plugins: [
+    fillPlugin({
+      fillerOverrides: { ...commonRuntimesOverrides },
+    }),
+  ],
 }
 
 // we define the config for edge in esm format (used by deno)
@@ -115,6 +192,15 @@ const defaultIndexConfig: BuildOptions = {
   emitTypes: false,
 }
 
+const accelerateContractBuildConfig: BuildOptions = {
+  name: 'accelerate-contract',
+  entryPoints: ['src/runtime/core/engines/accelerate/AccelerateEngine.ts'],
+  outfile: '../accelerate-contract/dist/index',
+  format: 'cjs',
+  bundle: true,
+  emitTypes: true,
+}
+
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -126,7 +212,13 @@ void build([
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
+  wasmRuntimeBuildConfig,
+  wasmBindgenRuntimeConfig('postgresql'),
+  wasmBindgenRuntimeConfig('mysql'),
+  wasmBindgenRuntimeConfig('sqlite'),
   defaultIndexConfig,
+  reactNativeBuildConfig,
+  accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
 })

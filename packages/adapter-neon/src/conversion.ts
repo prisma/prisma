@@ -1,5 +1,5 @@
 import { types } from '@neondatabase/serverless'
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import { parse as parseArray } from 'postgres-array'
 
 const ScalarColumnType = types.builtins
@@ -342,17 +342,12 @@ types.setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money
 /*****************/
 
 /**
- * JsonNull are stored in JSON strings as the string "null", distinguishable from
- * the `null` value which is used by the driver to represent the database NULL.
- * By default, JSON and JSONB columns use JSON.parse to parse a JSON column value
- * and this will lead to serde_json::Value::Null in Rust, which will be interpreted
- * as DbNull.
- *
- * By converting "null" to JsonNullMarker, we can signal JsonNull in Rust side and
- * convert it to QuaintValue::Json(Some(Null)).
+ * We hand off JSON handling entirely to engines, so we keep it
+ * stringified here. This function needs to exist as otherwise
+ * the default type parser attempts to deserialise it.
  */
 function toJson(json: string): unknown {
-  return json === 'null' ? JsonNullMarker : JSON.parse(json)
+  return json
 }
 
 types.setTypeParser(ScalarColumnType.JSONB, toJson)
@@ -409,3 +404,22 @@ function normalizeBit(bit: string): string {
 
 types.setTypeParser(ArrayColumnType.BIT_ARRAY, normalize_array(normalizeBit))
 types.setTypeParser(ArrayColumnType.VARBIT_ARRAY, normalize_array(normalizeBit))
+
+// https://github.com/brianc/node-postgres/pull/2930
+export function fixArrayBufferValues(values: unknown[]) {
+  for (let i = 0; i < values.length; i++) {
+    const list = values[i]
+    if (!Array.isArray(list)) {
+      continue
+    }
+
+    for (let j = 0; j < list.length; j++) {
+      const listItem = list[j]
+      if (ArrayBuffer.isView(listItem)) {
+        list[j] = Buffer.from(listItem.buffer, listItem.byteOffset, listItem.byteLength)
+      }
+    }
+  }
+
+  return values
+}

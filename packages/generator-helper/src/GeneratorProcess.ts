@@ -43,6 +43,7 @@ export class GeneratorProcess {
   private isNode: boolean
   private errorLogs = ''
   private pendingError: Error | undefined
+  private exited = false
 
   constructor(private pathOrCommand: string, { isNode = false }: GeneratorProcessOptions = {}) {
     this.isNode = isNode
@@ -80,6 +81,8 @@ export class GeneratorProcess {
 
       this.child.on('exit', (code, signal) => {
         debug(`child exited with code ${code} on signal ${signal}`)
+        this.exited = true
+
         if (code) {
           const error = new GeneratorError(
             `Generator ${JSON.stringify(this.pathOrCommand)} failed:\n\n${this.errorLogs}`,
@@ -188,8 +191,43 @@ export class GeneratorProcess {
   }
 
   stop(): void {
-    if (!this.child?.killed) {
-      this.child?.kill()
+    if (this.child && !this.child?.killed) {
+      // Before `5.10.0` we were not passing explicitly a signal (so using the default `SIGTERM` signal)
+      // the "should work with a custom generator" test was failing very often on macOS (in CI) with a timeout for example
+      //
+      // See https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
+      // The SIGTERM signal is a generic signal used to cause program termination. Unlike SIGKILL, this signal can be blocked, handled, and ignored. It is the normal way to politely ask a program to terminate.
+      // The SIGKILL signal is used to cause immediate program termination. It cannot be handled or ignored, and is therefore always fatal. It is also not possible to block this signal.
+
+      // We send SIGTERM first, and if the process is still alive after 2 seconds, we send SIGKILL
+      this.child.kill('SIGTERM')
+
+      const timeoutMs = 2_000
+      const intervalMs = 200
+      let interval: NodeJS.Timeout | undefined
+      let timeout: NodeJS.Timeout | undefined
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      Promise.race([
+        new Promise<void>((resolve) => {
+          timeout = setTimeout(resolve, timeoutMs)
+        }),
+        new Promise<string>((resolve) => {
+          interval = setInterval(() => {
+            if (this.exited) {
+              return resolve('exited')
+            }
+          }, intervalMs)
+        }),
+      ])
+        .then((result) => {
+          if (result !== 'exited') {
+            this.child?.kill('SIGKILL')
+          }
+        })
+        .finally(() => {
+          clearInterval(interval)
+          clearTimeout(timeout)
+        })
     }
   }
 

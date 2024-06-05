@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
@@ -27,7 +27,7 @@ import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
-import { Platform } from './platform'
+import { Platform } from './platform/_Platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -43,6 +43,8 @@ import { detectPrisma1 } from './utils/detectPrisma1'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
+
+const debug = Debug('prisma:cli:bin')
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
@@ -92,19 +94,34 @@ async function main(): Promise<number> {
           logout: Platform.Auth.Logout.new(),
           show: Platform.Auth.Show.new(),
         }),
+        environment: Platform.Environment.$.new({
+          create: Platform.Environment.Create.new(),
+          delete: Platform.Environment.Delete.new(),
+          show: Platform.Environment.Show.new(),
+        }),
         project: Platform.Project.$.new({
           create: Platform.Project.Create.new(),
           delete: Platform.Project.Delete.new(),
           show: Platform.Project.Show.new(),
         }),
+        pulse: Platform.Pulse.$.new({
+          enable: Platform.Pulse.Enable.new(),
+          disable: Platform.Pulse.Disable.new(),
+        }),
         accelerate: Platform.Accelerate.$.new({
           enable: Platform.Accelerate.Enable.new(),
           disable: Platform.Accelerate.Disable.new(),
         }),
-        apikey: Platform.APIKey.$.new({
-          create: Platform.APIKey.Create.new(),
-          delete: Platform.APIKey.Delete.new(),
-          show: Platform.APIKey.Show.new(),
+        serviceToken: Platform.ServiceToken.$.new({
+          create: Platform.ServiceToken.Create.new(),
+          delete: Platform.ServiceToken.Delete.new(),
+          show: Platform.ServiceToken.Show.new(),
+        }),
+        // Alias to "serviceToken". This will be removed in a future ORM release.
+        apikey: Platform.ServiceToken.$.new({
+          create: Platform.ServiceToken.Create.new(true),
+          delete: Platform.ServiceToken.Delete.new(true),
+          show: Platform.ServiceToken.Show.new(true),
         }),
       }),
       migrate: MigrateCommand.new({
@@ -137,8 +154,13 @@ async function main(): Promise<number> {
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
+  const startCliExec = performance.now()
   // Execute the command
   const result = await cli.parse(commandArray)
+  const endCliExec = performance.now()
+  const cliExecElapsedTime = endCliExec - startCliExec
+  debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
+
   // Did it error?
   if (result instanceof HelpError) {
     console.error(result.message)

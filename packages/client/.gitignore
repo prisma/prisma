@@ -12,11 +12,7 @@ junit.xml
 *.db-journal
 
 .cache
-prisma-0.0.0.tgz
-prisma-client-0.0.0.tgz
-prisma-debug-0.0.0.tgz
-prisma-engines-0.0.0.tgz
-prisma-generator-helper-0.0.0.tgz
-prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz
 LOGS.txt
 LOGS.*.txt
+
+.wrangler

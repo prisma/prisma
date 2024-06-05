@@ -9,9 +9,9 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ engineType }, suiteMeta, clientMeta) => {
+  ({ clientRuntime }, suiteMeta, clientMeta) => {
     // TODO: Fails with Expected PrismaClientInitError, Received Error
-    skipTestIf(engineType === 'wasm')('PrismaClientInitializationError for missing env', async () => {
+    skipTestIf(clientRuntime === 'wasm')('PrismaClientInitializationError for missing env', async () => {
       const prisma = newPrismaClient()
 
       try {
@@ -23,7 +23,7 @@ testMatrix.setupTestSuite(
       }
     })
     // TODO: Fails with Expected PrismaClientInitError, Received Error
-    skipTestIf(engineType === 'wasm')(
+    skipTestIf(clientRuntime === 'wasm')(
       'PrismaClientInitializationError for missing env and empty override',
       async () => {
         const prisma = newPrismaClient({
@@ -52,7 +52,7 @@ testMatrix.setupTestSuite(
         } catch (e) {
           const message = stripAnsi(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI.`)
+          expect(message).toMatchInlineSnapshot(`"error: Environment variable not found: DATABASE_URI."`)
         }
       },
     )
@@ -70,10 +70,10 @@ testMatrix.setupTestSuite(
           const message = stripAnsi(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
           expect(message).toMatchInlineSnapshot(`
-            error: Environment variable not found: DATABASE_URI.
+            "error: Environment variable not found: DATABASE_URI.
 
             In Cloudflare module Workers, environment variables are available only in the Worker's \`env\` parameter of \`fetch\`.
-            To solve this, provide the connection string directly: https://pris.ly/d/cloudflare-datasource-url
+            To solve this, provide the connection string directly: https://pris.ly/d/cloudflare-datasource-url"
           `)
         }
 
@@ -91,7 +91,7 @@ testMatrix.setupTestSuite(
         } catch (e) {
           const message = stripAnsi(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI.`)
+          expect(message).toMatchInlineSnapshot(`"error: Environment variable not found: DATABASE_URI."`)
         }
       },
     )

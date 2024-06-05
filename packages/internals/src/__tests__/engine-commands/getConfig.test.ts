@@ -114,7 +114,7 @@ describe('getConfig', () => {
     })
 
     expect(serialize(JSON.stringify(binaryConfig, null, 2))).toMatchInlineSnapshot(`
-      "{
+      ""{
         "generators": [
           {
             "name": "gen",
@@ -149,7 +149,7 @@ describe('getConfig', () => {
           }
         ],
         "warnings": []
-      }"
+      }""
     `)
   })
   test('with engineType="library"', async () => {
@@ -173,7 +173,7 @@ describe('getConfig', () => {
     })
 
     expect(serialize(JSON.stringify(libraryConfig, null, 2))).toMatchInlineSnapshot(`
-      "{
+      ""{
         "generators": [
           {
             "name": "gen",
@@ -208,7 +208,7 @@ describe('getConfig', () => {
           }
         ],
         "warnings": []
-      }"
+      }""
     `)
   })
 })

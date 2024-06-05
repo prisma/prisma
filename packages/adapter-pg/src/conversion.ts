@@ -1,9 +1,10 @@
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+// @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
-const types = pg.types
-const ScalarColumnType = types.builtins
+const { types } = pg
+const { builtins: ScalarColumnType, getTypeParser, setTypeParser } = types
 
 /**
  * PostgreSQL array column types (not defined in ScalarColumnType).
@@ -275,8 +276,8 @@ function normalize_numeric(numeric: string): string {
   return numeric
 }
 
-types.setTypeParser(ScalarColumnType.NUMERIC, normalize_numeric)
-types.setTypeParser(ArrayColumnType.NUMERIC_ARRAY, normalize_array(normalize_numeric))
+setTypeParser(ScalarColumnType.NUMERIC, normalize_numeric)
+setTypeParser(ArrayColumnType.NUMERIC_ARRAY, normalize_array(normalize_numeric))
 
 /****************************/
 /* Time-related data-types  */
@@ -308,24 +309,24 @@ function normalize_timez(time: string): string {
   return time.split('+')[0]
 }
 
-types.setTypeParser(ScalarColumnType.TIME, normalize_time)
-types.setTypeParser(ArrayColumnType.TIME_ARRAY, normalize_array(normalize_time))
-types.setTypeParser(ScalarColumnType.TIMETZ, normalize_timez)
+setTypeParser(ScalarColumnType.TIME, normalize_time)
+setTypeParser(ArrayColumnType.TIME_ARRAY, normalize_array(normalize_time))
+setTypeParser(ScalarColumnType.TIMETZ, normalize_timez)
 
 /*
  * DATE, DATE_ARRAY - converts value (or value elements) to a string in the format YYYY-MM-DD
  */
 
-types.setTypeParser(ScalarColumnType.DATE, normalize_date)
-types.setTypeParser(ArrayColumnType.DATE_ARRAY, normalize_array(normalize_date))
+setTypeParser(ScalarColumnType.DATE, normalize_date)
+setTypeParser(ArrayColumnType.DATE_ARRAY, normalize_array(normalize_date))
 
 /*
  * TIMESTAMP, TIMESTAMP_ARRAY - converts value (or value elements) to a string in the rfc3339 format
  * ex: 1996-12-19T16:39:57-08:00
  */
-types.setTypeParser(ScalarColumnType.TIMESTAMP, normalize_timestamp)
-types.setTypeParser(ArrayColumnType.TIMESTAMP_ARRAY, normalize_array(normalize_timestamp))
-types.setTypeParser(ScalarColumnType.TIMESTAMPTZ, normalize_timestampz)
+setTypeParser(ScalarColumnType.TIMESTAMP, normalize_timestamp)
+setTypeParser(ArrayColumnType.TIMESTAMP_ARRAY, normalize_array(normalize_timestamp))
+setTypeParser(ScalarColumnType.TIMESTAMPTZ, normalize_timestampz)
 
 /******************/
 /* Money handling */
@@ -335,29 +336,24 @@ function normalize_money(money: string): string {
   return money.slice(1)
 }
 
-types.setTypeParser(ScalarColumnType.MONEY, normalize_money)
-types.setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money))
+setTypeParser(ScalarColumnType.MONEY, normalize_money)
+setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money))
 
 /*****************/
 /* JSON handling */
 /*****************/
 
 /**
- * JsonNull are stored in JSON strings as the string "null", distinguishable from
- * the `null` value which is used by the driver to represent the database NULL.
- * By default, JSON and JSONB columns use JSON.parse to parse a JSON column value
- * and this will lead to serde_json::Value::Null in Rust, which will be interpreted
- * as DbNull.
- *
- * By converting "null" to JsonNullMarker, we can signal JsonNull in Rust side and
- * convert it to QuaintValue::Json(Some(Null)).
+ * We hand off JSON handling entirely to engines, so we keep it
+ * stringified here. This function needs to exist as otherwise
+ * the default type parser attempts to deserialise it.
  */
 function toJson(json: string): unknown {
-  return json === 'null' ? JsonNullMarker : JSON.parse(json)
+  return json
 }
 
-types.setTypeParser(ScalarColumnType.JSONB, toJson)
-types.setTypeParser(ScalarColumnType.JSON, toJson)
+setTypeParser(ScalarColumnType.JSONB, toJson)
+setTypeParser(ScalarColumnType.JSON, toJson)
 
 /************************/
 /* Binary data handling */
@@ -378,7 +374,7 @@ function encodeBuffer(buffer: Buffer) {
  * BYTEA - arbitrary raw binary strings
  */
 
-const parsePgBytes = types.getTypeParser(ScalarColumnType.BYTEA) as (_: string) => Buffer
+const parsePgBytes = getTypeParser(ScalarColumnType.BYTEA) as (_: string) => Buffer
 /**
  * Convert bytes to a JSON-encodable representation since we can't
  * currently send a parsed Buffer or ArrayBuffer across JS to Rust
@@ -389,15 +385,15 @@ function convertBytes(serializedBytes: string): number[] {
   return encodeBuffer(buffer)
 }
 
-types.setTypeParser(ScalarColumnType.BYTEA, convertBytes)
+setTypeParser(ScalarColumnType.BYTEA, convertBytes)
 
 /*
  * BYTEA_ARRAY - arrays of arbitrary raw binary strings
  */
 
-const parseBytesArray = types.getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
+const parseBytesArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
 
-types.setTypeParser(ArrayColumnType.BYTEA_ARRAY, (serializedBytesArray) => {
+setTypeParser(ArrayColumnType.BYTEA_ARRAY, (serializedBytesArray) => {
   const buffers = parseBytesArray(serializedBytesArray)
   return buffers.map((buf) => (buf ? encodeBuffer(buf) : null))
 })
@@ -408,5 +404,24 @@ function normalizeBit(bit: string): string {
   return bit
 }
 
-types.setTypeParser(ArrayColumnType.BIT_ARRAY, normalize_array(normalizeBit))
-types.setTypeParser(ArrayColumnType.VARBIT_ARRAY, normalize_array(normalizeBit))
+setTypeParser(ArrayColumnType.BIT_ARRAY, normalize_array(normalizeBit))
+setTypeParser(ArrayColumnType.VARBIT_ARRAY, normalize_array(normalizeBit))
+
+// https://github.com/brianc/node-postgres/pull/2930
+export function fixArrayBufferValues(values: unknown[]) {
+  for (let i = 0; i < values.length; i++) {
+    const list = values[i]
+    if (!Array.isArray(list)) {
+      continue
+    }
+
+    for (let j = 0; j < list.length; j++) {
+      const listItem = list[j]
+      if (ArrayBuffer.isView(listItem)) {
+        list[j] = Buffer.from(listItem.buffer, listItem.byteOffset, listItem.byteLength)
+      }
+    }
+  }
+
+  return values
+}

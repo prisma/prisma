@@ -1,6 +1,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
-import { cwd } from 'process'
+import stripAnsi from 'strip-ansi'
 
 import { DebugInfo } from '../../DebugInfo'
 
@@ -77,7 +77,7 @@ describe('debug', () => {
     const result = await DebugInfo.new().parse([])
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      -- Prisma schema --
+      "-- Prisma schema --
       Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
@@ -152,7 +152,7 @@ describe('debug', () => {
 
       -- CI detected? --
       false
-
+      "
     `)
   })
 
@@ -169,7 +169,7 @@ describe('debug', () => {
     const result = await DebugInfo.new().parse([])
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      -- Prisma schema --
+      "-- Prisma schema --
       Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
@@ -244,7 +244,7 @@ describe('debug', () => {
 
       -- CI detected? --
       false
-
+      "
     `)
   })
 
@@ -256,7 +256,7 @@ describe('debug', () => {
     const result = await DebugInfo.new().parse([])
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      -- Prisma schema --
+      "-- Prisma schema --
       Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
@@ -331,7 +331,7 @@ describe('debug', () => {
 
       -- CI detected? --
       true
-
+      "
     `)
   })
 
@@ -348,7 +348,7 @@ describe('debug', () => {
     expect(result).toContain('from_env_file')
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
-      -- Prisma schema --
+      "-- Prisma schema --
       Path: REDACTED_PATH
 
       -- Local cache directory for engines files --
@@ -423,20 +423,20 @@ describe('debug', () => {
 
       -- CI detected? --
       true
-
+      "
     `)
   })
 
   it('should succeed with --schema', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(DebugInfo.new().parse(['--schema=schema.prisma'])).resolves.toContain(
-      path.join(cwd(), 'schema.prisma'),
-    )
+    const result = stripAnsi((await DebugInfo.new().parse(['--schema=schema.prisma'])) as string)
+
+    expect(result).toContain(`Path: ${path.join(process.cwd(), 'schema.prisma')}`)
   })
 
   it('should succeed with incorrect --schema path', async () => {
     await expect(DebugInfo.new().parse(['--schema=does-not-exists.prisma'])).resolves.toContain(
-      "Path: Provided --schema at does-not-exists.prisma doesn't exist.",
+      'Could not load `--schema` from provided path `does-not-exists.prisma`: file or directory not found',
     )
   })
 })

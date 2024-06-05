@@ -6,9 +6,9 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta, clientMeta) => {
-    testIf(clientMeta.dataProxy === false)('using accelerate without --no-engine produces a warning at runtime', () => {
-      process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
+  ({ provider }, suiteMeta, { dataProxy }) => {
+    testIf(dataProxy === false)('using accelerate without --no-engine produces a warning at runtime', () => {
+      process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
       const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
 
       newPrismaClient()
@@ -19,15 +19,15 @@ testMatrix.setupTestSuite(
       expect(consoleWarnMock).toHaveBeenCalledTimes(1)
       expect(consoleWarnMock.mock.calls[0]).toMatchInlineSnapshot(`
         [
-          prisma:warn In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`),
+          "prisma:warn In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`)",
         ]
       `)
 
       consoleWarnMock.mockRestore()
     })
 
-    testIf(clientMeta.dataProxy === true)('using accelerate with --no-engine produces no warning at runtime', () => {
-      process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
+    testIf(dataProxy === true)('using accelerate with --no-engine produces no warning at runtime', () => {
+      process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
       const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
 
       newPrismaClient()
@@ -42,5 +42,8 @@ testMatrix.setupTestSuite(
       reason: 'warnOnce can only be tested one time per process',
     },
     skipDefaultClientInstance: true,
+    skip(when, { driverAdapter }) {
+      when(driverAdapter !== undefined, 'Driver adapters cannot be used with accelerate')
+    },
   },
 )

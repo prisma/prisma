@@ -6,6 +6,7 @@
   "scripts": {
     "dbpush": "prisma db push --skip-generate",
     "generate": "prisma generate",
+    "start": "npm run generate && npm run test",
     "test": "ts-node index.ts",
     "debug": "node -r ts-node/register --inspect-brk index.ts"
   },

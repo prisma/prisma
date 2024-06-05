@@ -1,7 +1,12 @@
+import path from 'node:path'
+
 import Debug from '@prisma/debug'
 import {
   BinaryType,
   ErrorArea,
+  getSchema,
+  type MigrateTypes,
+  relativizePathInPSLError,
   resolveBinary,
   RustPanic,
   SchemaEngineExitCode,
@@ -11,7 +16,6 @@ import {
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 import { bold, red } from 'kleur/colors'
-import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
@@ -56,7 +60,7 @@ export class SchemaEngine {
   private enabledPreviewFeatures?: string[]
 
   // `latestSchema` is set to the latest schema that was used in `introspect()`
-  private latestSchema?: string
+  private latestSchema?: MigrateTypes.SchemasContainer
 
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
@@ -162,7 +166,7 @@ export class SchemaEngine {
    * If no argument is given, the version of the database associated to the Prisma schema provided
    * in the constructor will be returned.
    */
-  public getDatabaseVersion(args?: EngineArgs.GetDatabaseVersionParams): Promise<string> {
+  public getDatabaseVersion(args?: MigrateTypes.GetDatabaseVersionParams): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', args))
   }
 
@@ -173,18 +177,21 @@ export class SchemaEngine {
   public async introspect({
     schema,
     force = false,
+    baseDirectoryPath,
     compositeTypeDepth = -1, // cannot be undefined
-    schemas,
+    namespaces,
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
     this.latestSchema = schema
 
     try {
       const introspectResult: EngineArgs.IntrospectResult = await this.runCommand(
-        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, schemas }),
+        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, namespaces, baseDirectoryPath }),
       )
+
       const { views } = introspectResult
 
       if (views) {
+        // TODO: this needs to call `getSchemaPath` instead
         const schemaPath = this.schemaPath ?? path.join(process.cwd(), 'prisma')
         await handleViewsIO({ views, schemaPath })
       }
@@ -251,7 +258,7 @@ export class SchemaEngine {
   /**
    * The command behind db push.
    */
-  public schemaPush(args: EngineArgs.SchemaPush): Promise<EngineResults.SchemaPush> {
+  public schemaPush(args: EngineArgs.SchemaPushInput): Promise<EngineResults.SchemaPush> {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
 
@@ -298,7 +305,9 @@ export class SchemaEngine {
         // This is a request.
         if (result.id !== undefined) {
           if (result.method === 'print' && result.params?.content !== undefined) {
-            console.info(result.params.content)
+            // Here we print the content from the Schema Engine to stdout directly
+            // (it is not returned to the caller)
+            process.stdout.write(result.params.content + '\n')
 
             // Send an empty response back as ACK.
             const response: RpcSuccessResponse<{}> = {
@@ -332,7 +341,9 @@ export class SchemaEngine {
         const args: string[] = []
 
         if (this.schemaPath) {
-          args.push(...['-d', this.schemaPath])
+          const schema = await getSchema(this.schemaPath)
+          const schemaArgs = schema.flatMap(([path]) => ['-d', path])
+          args.push(...schemaArgs)
         }
 
         if (
@@ -394,7 +405,7 @@ export class SchemaEngine {
                 this.lastRequest,
                 ErrorArea.LIFT_CLI,
                 /* schemaPath */ this.schemaPath,
-                /* schema */ this.latestSchema,
+                /* schema */ this.latestSchema?.files.map((schema) => [schema.path, schema.content]),
               ),
             )
           }
@@ -458,7 +469,7 @@ export class SchemaEngine {
     await this.init()
 
     if (this.child?.killed) {
-      throw new Error(`Can't execute ${JSON.stringify(request)} because Schema engine  already exited.`)
+      throw new Error(`Can't execute ${JSON.stringify(request)} because Schema engine already exited.`)
     }
 
     return new Promise((resolve, reject) => {
@@ -490,13 +501,13 @@ export class SchemaEngine {
                   this.lastRequest,
                   ErrorArea.LIFT_CLI,
                   /* schemaPath */ this.schemaPath,
-                  /* schema */ this.latestSchema,
+                  /* schema */ this.latestSchema?.files.map((schema) => [schema.path, schema.content]),
                 ),
               )
             } else if (response.error.data?.message) {
               // Print known error code & message from engine
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
-              let message = `${red(response.error.data.message)}\n`
+              let message = `${red(relativizePathInPSLError(response.error.data.message))}\n`
               if (response.error.data?.error_code) {
                 message = red(`${response.error.data.error_code}\n\n`) + message
                 reject(new EngineError(message, response.error.data.error_code))

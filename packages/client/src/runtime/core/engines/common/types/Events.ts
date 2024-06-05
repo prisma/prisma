@@ -20,8 +20,14 @@ export type LogEvent = {
   target: string
 }
 
+/**
+ * Typings for the events we emit.
+ *
+ * @remarks
+ * If this is updated, our edge runtime shim needs to be updated as well.
+ */
 export type LogEmitter = {
   on<E extends EngineEventType>(event: E, listener: (event: EngineEvent<E>) => void): LogEmitter
-  emit(event: QueryEventType, payload: QueryEvent): void
-  emit(event: LogEventType, payload: LogEvent): void
+  emit(event: QueryEventType, payload: QueryEvent): boolean
+  emit(event: LogEventType, payload: LogEvent): boolean
 }

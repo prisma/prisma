@@ -14,6 +14,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 
+import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
 
@@ -32,6 +33,8 @@ class RollbackError extends Error {
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
   readonly provider = 'mysql'
+  readonly adapterName = packageName
+
   constructor(protected client: ClientT) {}
 
   /**
@@ -97,17 +100,20 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
 }
 
 function parseErrorMessage(message: string) {
-  const match = message.match(
-    /target: (?:.+?) vttablet: (?<message>.+?) \(errno (?<code>\d+)\) \(sqlstate (?<state>.+?)\)/,
-  )
+  const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
+  const match = message.match(regex)
 
-  if (!match || !match.groups) {
+  if (match) {
+    const [, message, codeAsString, sqlstate] = match
+    const code = Number.parseInt(codeAsString, 10)
+
+    return {
+      message,
+      code,
+      state: sqlstate,
+    }
+  } else {
     return undefined
-  }
-  return {
-    code: Number(match.groups.code),
-    message: match.groups.message,
-    state: match.groups.state,
   }
 }
 

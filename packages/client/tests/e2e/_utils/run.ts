@@ -1,10 +1,13 @@
 import { arg } from '@prisma/internals'
+import { createReadStream, existsSync } from 'fs'
 import fs from 'fs/promises'
 import glob from 'globby'
 import path from 'path'
+import { pipeline } from 'stream/promises'
 import { $, ProcessOutput, sleep } from 'zx'
 
 const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
+const e2eRoot = path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')
 
 const args = arg(
   process.argv.slice(2),
@@ -13,12 +16,15 @@ const args = arg(
     '--verbose': Boolean,
     // like run jest in band, useful for debugging and CI
     '--runInBand': Boolean,
-    // do not fully build cli and client packages before packing
-    '--skipBuild': Boolean,
+    '--run-in-band': '--runInBand',
     // do not fully pack cli and client packages before packing
     '--skipPack': Boolean,
+    '--skip-pack': '--skipPack',
     // a way to cleanup created files that also works on linux
     '--clean': Boolean,
+    // number of workers to use for parallel tests
+    '--maxWorkers': Number,
+    '--max-workers': '--maxWorkers',
   },
   true,
   true,
@@ -30,9 +36,10 @@ async function main() {
     process.exit(1)
   }
 
+  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
   args['--runInBand'] = args['--runInBand'] ?? false
+  args['--skipPack'] = args['--skipPack'] ?? false
   args['--verbose'] = args['--verbose'] ?? false
-  args['--skipBuild'] = args['--skipBuild'] ?? false
   args['--clean'] = args['--clean'] ?? false
   $.verbose = args['--verbose']
 
@@ -44,59 +51,36 @@ async function main() {
   if (args['--clean'] === true) {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml up clean`
-  } else {
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up pre-clean`
   }
 
   console.log('🎠 Preparing e2e tests')
 
-  // this process will need to modify some package.json, we save copies
-  await $`pnpm -r exec cp package.json package.copy.json`
+  let allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
+  allPackageFolderNames = allPackageFolderNames.filter((p) => !p.includes('DS_Store'))
 
-  // we provide a function that can revert modified package.json back
-  const restoreOriginal = async () => {
-    await $`pnpm -r exec cp package.copy.json package.json`
-  }
+  if (args['--skipPack'] === false) {
+    // this process will need to modify some package.json, we save copies
+    await $`pnpm -r exec cp package.json package.copy.json`
 
-  // if process is killed by hand, ensure that package.json is restored
-  process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
+    // we prepare to replace references to local packages with their tarballs names
+    const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma']
+    const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
+    const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
+    const allPkgJson = allPkgJsonPaths.map((p) => require(p))
 
-  // we prepare to replace references to local packages with their tarballs names
-  const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
-  const localPackageNames = [...allPackageFolderNames.map((p) => `@prisma/${p}`), 'prisma']
-  const allPackageFolders = allPackageFolderNames.map((p) => path.join(monorepoRoot, 'packages', p))
-  const allPkgJsonPaths = allPackageFolders.map((p) => path.join(p, 'package.json'))
-  const allPkgJson = allPkgJsonPaths.map((p) => require(p))
-
-  // replace references to unbundled local packages with built and packaged tarballs
-  for (let i = 0; i < allPkgJson.length; i++) {
-    for (const key of Object.keys(allPkgJson[i].dependencies ?? {})) {
-      if (localPackageNames.includes(key)) {
-        allPkgJson[i].dependencies[key] = `/tmp/${key.replace('@prisma/', 'prisma-')}-0.0.0.tgz`
+    // replace references to unbundled local packages with built and packaged tarballs
+    for (let i = 0; i < allPkgJson.length; i++) {
+      for (const key of Object.keys(allPkgJson[i].dependencies ?? {})) {
+        if (localPackageNames.includes(key)) {
+          allPkgJson[i].dependencies[key] = `/tmp/${key.replace('@prisma/', 'prisma-')}-0.0.0.tgz`
+        }
       }
+
+      await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
     }
 
-    await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
-  }
-
-  try {
-    if (args['--skipBuild'] !== true) {
-      console.log('📦 Packing package tarballs')
-
-      await $`pnpm -r build`
-    }
-
-    if (args['--skipPack'] !== true) {
-      await $`pnpm -r exec pnpm pack --pack-destination /tmp/`
-    }
-  } catch (e) {
-    console.log(e.message)
-    console.log('🛑 Failed to pack one or more of the packages')
-    console.log('💡 Make sure to run `watch`, `dev` or `build`')
-    throw e
-  } finally {
-    await restoreOriginal() // when done, we restore the original package.json
+    await $`pnpm -r --parallel exec pnpm pack --pack-destination /tmp/`
+    await restoreOriginalState()
   }
 
   console.log('🐳 Starting tests in docker')
@@ -113,20 +97,40 @@ async function main() {
     ...allPackageFolderNames.map((p) => `/tmp/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
     `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
-    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
-    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,
+    `${e2eRoot}:/e2e`,
+    `${path.join(e2eRoot, '.cache')}:/root/.cache`,
     `${(await $`pnpm store path`.quiet()).stdout.trim()}:/root/.local/share/pnpm/store/v3`,
   ]
-  const dockerVolumeArgs = dockerVolumes.map((v) => `-v ${v}`).join(' ')
+  const dockerVolumeArgs = dockerVolumes.flatMap((v) => ['-v', v])
 
-  await $`docker build -f ${__dirname}/standard.dockerfile -t prisma-e2e-test-runner .`
+  await $`docker compose -f ${__dirname}/docker-compose.yaml build test-e2e`
 
-  const dockerJobs = e2eTestNames.map((path) => {
-    return async () =>
-      await $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
+  const dockerJobs = e2eTestNames.map((testPath) => {
+    const composeFileArgs = ['-f', `${__dirname}/docker-compose.yaml`]
+    const localComposePath = path.join(e2eRoot, testPath, 'docker-compose.yaml')
+    if (existsSync(localComposePath)) {
+      composeFileArgs.push('-f', localComposePath)
+    }
+
+    const projectName = testPath.toLocaleLowerCase().replace(/[^0-9a-z_-]/g, '-')
+    const networkName = `${projectName}_default`
+    return async () => {
+      const result =
+        await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+
+      await $`docker compose ${composeFileArgs} -p ${projectName} logs > ${path.join(
+        e2eRoot,
+        testPath,
+        'LOGS.docker.txt',
+      )}`
+      await $`docker compose ${composeFileArgs} -p ${projectName} stop`
+      await $`docker compose ${composeFileArgs} -p ${projectName} rm -f`
+      await $`docker network rm -f ${networkName}`
+      return result
+    }
   })
 
-  let jobResults: (ProcessOutput & { name: string })[] = []
+  const jobResults: (ProcessOutput & { name: string })[] = []
   if (args['--runInBand'] === true) {
     console.log('🏃 Running tests in band')
     for (const [i, job] of dockerJobs.entries()) {
@@ -135,9 +139,25 @@ async function main() {
     }
   } else {
     console.log('🏃 Running tests in parallel')
-    jobResults = (await Promise.all(dockerJobs.map((job) => job()))).map((result, i) => {
-      return Object.assign(result, { name: e2eTestNames[i] })
-    })
+
+    const pendingJobResults = [] as Promise<void>[]
+    let availableWorkers = args['--maxWorkers']
+    for (const [i, job] of dockerJobs.entries()) {
+      while (availableWorkers === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+
+      --availableWorkers // borrow worker
+      const pendingJob = (async () => {
+        console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
+        jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
+        ++availableWorkers // return worker
+      })()
+
+      pendingJobResults.push(pendingJob)
+    }
+
+    await Promise.allSettled(pendingJobResults)
   }
 
   const failedJobResults = jobResults.filter((r) => r.exitCode !== 0)
@@ -146,7 +166,15 @@ async function main() {
   if (args['--verbose'] === true) {
     for (const result of failedJobResults) {
       console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
-      await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
+
+      const logsPath = path.resolve(__dirname, '..', result.name, 'LOGS.txt')
+      const dockerLogsPath = path.resolve(__dirname, '..', result.name, 'LOGS.docker.txt')
+
+      if (await isFile(logsPath)) {
+        await printFile(logsPath)
+      } else if (await isFile(dockerLogsPath)) {
+        await printFile(dockerLogsPath)
+      }
       await sleep(50) // give some time for the logs to be printed (CI issue)
     }
   }
@@ -163,7 +191,35 @@ async function main() {
   }
 }
 
+async function restoreOriginalState() {
+  if (args['--skipPack'] === false) {
+    await $`pnpm -r exec cp package.copy.json package.json`
+  }
+}
+
+async function printFile(filePath: string) {
+  await pipeline(createReadStream(filePath), process.stdout)
+}
+
+async function isFile(filePath: string) {
+  try {
+    const stat = await fs.stat(filePath)
+    return stat.isFile()
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return false
+    }
+    throw e
+  }
+}
+
+process.on('SIGINT', async () => {
+  await restoreOriginalState()
+  process.exit(0)
+})
+
 void main().catch((e) => {
   console.log(e)
+  void restoreOriginalState()
   process.exit(1)
 })

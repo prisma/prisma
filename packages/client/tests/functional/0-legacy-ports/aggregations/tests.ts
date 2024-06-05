@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite((_1, _2, clientMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({
       data: {
@@ -43,8 +43,8 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _min: {
-          age: 20,
+        "_min": {
+          "age": 20,
         },
       }
     `)
@@ -59,8 +59,8 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _max: {
-          age: 63,
+        "_max": {
+          "age": 63,
         },
       }
     `)
@@ -75,8 +75,8 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _sum: {
-          age: 188,
+        "_sum": {
+          "age": 188,
         },
       }
     `)
@@ -89,7 +89,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _count: 4,
+        "_count": 4,
       }
     `)
   })
@@ -103,8 +103,8 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _count: {
-          _all: 4,
+        "_count": {
+          "_all": 4,
         },
       }
     `)
@@ -119,8 +119,8 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _avg: {
-          age: 47,
+        "_avg": {
+          "age": 47,
         },
       }
     `)
@@ -145,18 +145,18 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _avg: {
-          age: 47,
+        "_avg": {
+          "age": 47,
         },
-        _count: 4,
-        _max: {
-          age: 63,
+        "_count": 4,
+        "_max": {
+          "age": 63,
         },
-        _min: {
-          age: 20,
+        "_min": {
+          "age": 20,
         },
-        _sum: {
-          age: 188,
+        "_sum": {
+          "age": 188,
         },
       }
     `)
@@ -188,27 +188,26 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _avg: {
-          age: 56,
+        "_avg": {
+          "age": 56,
         },
-        _count: {
-          email: 3,
+        "_count": {
+          "email": 3,
         },
-        _max: {
-          age: 63,
+        "_max": {
+          "age": 63,
         },
-        _min: {
-          age: 45,
+        "_min": {
+          "age": 45,
         },
-        _sum: {
-          age: 168,
+        "_sum": {
+          "age": 168,
         },
       }
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid min', async () => {
+  test('invalid min', async () => {
     const result = prisma.user.aggregate({
       _min: {
         // @ts-expect-error
@@ -217,13 +216,13 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid min', async () => {
+        XX test('invalid min', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _min: {
@@ -239,12 +238,11 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserMinAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`posts\` for select statement on model \`UserMinAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid max', async () => {
+  test('invalid max', async () => {
     const result = prisma.user.aggregate({
       _max: {
         // @ts-expect-error
@@ -253,13 +251,13 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid max', async () => {
+        XX test('invalid max', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _max: {
@@ -275,12 +273,11 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserMaxAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`posts\` for select statement on model \`UserMaxAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid sum', async () => {
+  test('invalid sum', async () => {
     const result = prisma.user.aggregate({
       _sum: {
         // @ts-expect-error
@@ -289,13 +286,13 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid sum', async () => {
+        XX test('invalid sum', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _sum: {
@@ -308,12 +305,11 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`email\` for select statement on model \`UserSumAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`email\` for select statement on model \`UserSumAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid count', async () => {
+  test('invalid count', async () => {
     const result = prisma.user.aggregate({
       _count: {
         // @ts-expect-error
@@ -322,13 +318,13 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid count', async () => {
+        XX test('invalid count', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _count: {
@@ -345,12 +341,11 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 
-  // skip because snapshots don't align between edge and node TODO: investigate
-  testIf(clientMeta.runtime !== 'edge')('invalid avg', async () => {
+  test('invalid avg', async () => {
     const result = prisma.user.aggregate({
       _avg: {
         // @ts-expect-error
@@ -359,13 +354,13 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
+        XX })
         XX 
-        XX // skip because snapshots don't align between edge and node TODO: investigate
-        XX testIf(clientMeta.runtime !== 'edge')('invalid avg', async () => {
+        XX test('invalid avg', async () => {
       → XX   const result = prisma.user.aggregate({
                 select: {
                   _avg: {
@@ -378,7 +373,7 @@ testMatrix.setupTestSuite((_1, _2, clientMeta) => {
                 }
               })
 
-      Unknown field \`email\` for select statement on model \`UserAvgAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`email\` for select statement on model \`UserAvgAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 })

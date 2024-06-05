@@ -1,5 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { getSchemaPath } from '@prisma/internals'
+import { getSchema, getSchemaWithPath, MultipleSchemas, toSchemasContainer } from '@prisma/internals'
 import fs from 'fs-jetpack'
 import path from 'path'
 
@@ -10,7 +10,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 describe('applyMigrations', () => {
   it('should succeed', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.applyMigrations({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -18,7 +18,7 @@ describe('applyMigrations', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        appliedMigrationNames: [],
+        "appliedMigrationNames": [],
       }
     `)
     migrate.stop()
@@ -26,17 +26,17 @@ describe('applyMigrations', () => {
 
   it('should fail on existing brownfield db', async () => {
     ctx.fixture('existing-db-brownfield')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.applyMigrations({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-      P3005
+      "P3005
 
       The database schema is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
-
+      "
     `)
     migrate.stop()
   })
@@ -55,28 +55,28 @@ describe('createDatabase', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        databaseName: dev.db,
+        "databaseName": "dev.db",
       }
     `)
     migrate.stop()
   })
 
-  it('should succeed - SchemaPath - postgresql', async () => {
+  it('should succeed - Schema - postgresql', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
+    const schemas = await getSchema()
     const migrate = new Migrate()
     const result = migrate.engine.createDatabase({
       datasource: {
-        tag: 'SchemaPath',
-        path: schemaPath,
+        tag: 'Schema',
+        ...toSchemasContainer(schemas),
       },
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-      P1009
+      "P1009
 
       Database \`tests\` already exists on the database server at \`localhost:5432\`
-
+      "
     `)
     migrate.stop()
   })
@@ -85,19 +85,18 @@ describe('createDatabase', () => {
 describe('createMigration', () => {
   it('should succeed - existing-db-1-migration', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
     const result = migrate.engine.createMigration({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
       migrationName: 'my_migration',
       draft: false,
-      prismaSchema: schema,
+      schema: toSchemasContainer(schemas),
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        generatedMigrationName: 20201231000000_my_migration,
+        "generatedMigrationName": "20201231000000_my_migration",
       }
     `)
     migrate.stop()
@@ -105,19 +104,18 @@ describe('createMigration', () => {
 
   it('draft should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
     const result = migrate.engine.createMigration({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
       migrationName: 'draft_123',
       draft: true,
-      prismaSchema: schema,
+      schema: toSchemasContainer(schemas),
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        generatedMigrationName: 20201231000000_draft_123,
+        "generatedMigrationName": "20201231000000_draft_123",
       }
     `)
     migrate.stop()
@@ -146,15 +144,15 @@ describe('dbExecute', () => {
 describe('devDiagnostic', () => {
   it('createMigration', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.devDiagnostic({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        action: {
-          tag: createMigration,
+        "action": {
+          "tag": "createMigration",
         },
       }
     `)
@@ -164,15 +162,15 @@ describe('devDiagnostic', () => {
 
   it('reset because drift', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.devDiagnostic({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        action: {
-          reason: Drift detected: Your database schema is not in sync with your migration history.
+        "action": {
+          "reason": "Drift detected: Your database schema is not in sync with your migration history.
 
       The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
 
@@ -184,8 +182,8 @@ describe('devDiagnostic', () => {
       [+] Added tables
         - Blog
         - _Migration
-      ,
-          tag: reset,
+      ",
+          "tag": "reset",
         },
       }
     `)
@@ -197,7 +195,7 @@ describe('devDiagnostic', () => {
 describe('diagnoseMigrationHistory', () => {
   it('optInToShadowDatabase true should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -206,10 +204,10 @@ describe('diagnoseMigrationHistory', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        editedMigrationNames: [],
-        failedMigrationNames: [],
-        hasMigrationsTable: true,
-        history: null,
+        "editedMigrationNames": [],
+        "failedMigrationNames": [],
+        "hasMigrationsTable": true,
+        "history": null,
       }
     `)
     migrate.stop()
@@ -217,7 +215,7 @@ describe('diagnoseMigrationHistory', () => {
 
   it(' optInToShadowDatabase false should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -226,10 +224,10 @@ describe('diagnoseMigrationHistory', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        editedMigrationNames: [],
-        failedMigrationNames: [],
-        hasMigrationsTable: true,
-        history: null,
+        "editedMigrationNames": [],
+        "failedMigrationNames": [],
+        "hasMigrationsTable": true,
+        "history": null,
       }
     `)
     migrate.stop()
@@ -254,12 +252,12 @@ describe('ensureConnectionValidity', () => {
 
   it('should succeed when database exists - PostgreSQL', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
-    const migrate = new Migrate()
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
+    const migrate = new Migrate(schemaPath)
     const result = migrate.engine.ensureConnectionValidity({
       datasource: {
-        tag: 'SchemaPath',
-        path: schemaPath,
+        tag: 'Schema',
+        ...toSchemasContainer(schemas),
       },
     })
 
@@ -278,10 +276,10 @@ describe('ensureConnectionValidity', () => {
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-      P1003
+      "P1003
 
-      Database dev.db does not exist at dev.db
-
+      Database \`dev.db\` does not exist at \`dev.db\`.
+      "
     `)
     migrate.stop()
   })
@@ -297,12 +295,12 @@ describe('ensureConnectionValidity', () => {
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-      P1001
+      "P1001
 
-      Can't reach database server at \`server-does-not-exist\`:\`5432\`
+      Can't reach database server at \`server-does-not-exist:5432\`
 
-      Please make sure your database server is running at \`server-does-not-exist\`:\`5432\`.
-
+      Please make sure your database server is running at \`server-does-not-exist:5432\`.
+      "
     `)
     migrate.stop()
     // It was flaky on CI (but rare)
@@ -314,19 +312,18 @@ describe('evaluateDataLoss', () => {
   // migration is not yet applied
   it('should succeed - schema-only-sqlite', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
     const result = migrate.engine.evaluateDataLoss({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
-      prismaSchema: schema,
+      schema: toSchemasContainer(schemas),
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        migrationSteps: 1,
-        unexecutableSteps: [],
-        warnings: [],
+        "migrationSteps": 1,
+        "unexecutableSteps": [],
+        "warnings": [],
       }
     `)
     migrate.stop()
@@ -335,19 +332,18 @@ describe('evaluateDataLoss', () => {
   // migration is already applied so should be empty
   it('should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
     const result = migrate.engine.evaluateDataLoss({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
-      prismaSchema: schema,
+      schema: toSchemasContainer(schemas),
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        migrationSteps: 0,
-        unexecutableSteps: [],
-        warnings: [],
+        "migrationSteps": 0,
+        "unexecutableSteps": [],
+        "warnings": [],
       }
     `)
     migrate.stop()
@@ -357,7 +353,7 @@ describe('evaluateDataLoss', () => {
 describe('getDatabaseVersion - PostgreSQL', () => {
   it('[No params] should succeed', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.getDatabaseVersion()
     await expect(result).resolves.toContain('PostgreSQL')
@@ -366,27 +362,12 @@ describe('getDatabaseVersion - PostgreSQL', () => {
 
   it('[SchemaPath] should succeed', async () => {
     ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
+    const { schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate()
     const result = migrate.engine.getDatabaseVersion({
       datasource: {
-        tag: 'SchemaPath',
-        path: schemaPath,
-      },
-    })
-    await expect(result).resolves.toContain('PostgreSQL')
-    migrate.stop()
-  })
-
-  it('[SchemaString] should succeed', async () => {
-    ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
-    const schema = (await fs.readAsync(schemaPath))!
-    const migrate = new Migrate()
-    const result = migrate.engine.getDatabaseVersion({
-      datasource: {
-        tag: 'SchemaString',
-        schema,
+        tag: 'Schema',
+        ...toSchemasContainer(schemas),
       },
     })
     await expect(result).resolves.toContain('PostgreSQL')
@@ -409,15 +390,15 @@ describe('getDatabaseVersion - PostgreSQL', () => {
 describe('listMigrationDirectories', () => {
   it('should succeed - existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.listMigrationDirectories({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        migrations: [
-          20201231000000_init,
+        "migrations": [
+          "20201231000000_init",
         ],
       }
     `)
@@ -427,14 +408,14 @@ describe('listMigrationDirectories', () => {
 
   it('should succeed - schema-only-sqlite', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
     const result = migrate.engine.listMigrationDirectories({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        migrations: [],
+        "migrations": [],
       }
     `)
 
@@ -447,7 +428,7 @@ describe('markMigrationRolledBack', () => {
     jest.setTimeout(10_000)
     ctx.fixture('existing-db-1-migration')
 
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
 
     const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
@@ -455,30 +436,29 @@ describe('markMigrationRolledBack', () => {
     })
 
     await expect(resultMarkRolledBacked).rejects.toMatchInlineSnapshot(`
-          P3012
+      "P3012
 
-          Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
-
-        `)
+      Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
+      "
+    `)
 
     migrate.stop()
   })
 
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
     const result = await migrate.engine.createMigration({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
       migrationName: 'draft_123',
       draft: true,
-      prismaSchema: schema,
+      schema: toSchemasContainer(schemas),
     })
 
     expect(result).toMatchInlineSnapshot(`
       {
-        generatedMigrationName: 20201231000000_draft_123,
+        "generatedMigrationName": "20201231000000_draft_123",
       }
     `)
 
@@ -514,11 +494,11 @@ describe('markMigrationRolledBack', () => {
     })
 
     await expect(resultMarkApplied).rejects.toMatchInlineSnapshot(`
-          P3008
+      "P3008
 
-          The migration \`20201231000000_draft_123\` is already recorded as applied in the database.
-
-        `)
+      The migration \`20201231000000_draft_123\` is already recorded as applied in the database.
+      "
+    `)
 
     migrate.stop()
   })
@@ -527,19 +507,18 @@ describe('markMigrationRolledBack', () => {
 describe('markMigrationApplied', () => {
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
     const result = await migrate.engine.createMigration({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
       migrationName: 'draft_123',
       draft: true,
-      prismaSchema: schema,
+      schema: toSchemasContainer(schemas),
     })
 
     expect(result).toMatchInlineSnapshot(`
       {
-        generatedMigrationName: 20201231000000_draft_123,
+        "generatedMigrationName": "20201231000000_draft_123",
       }
     `)
 
@@ -559,19 +538,18 @@ describe('schemaPush', () => {
   // Since 5.0.0 this RPC does not error anymore if the SQLite database file is missing
   it('should succeed if SQLite database file is missing', async () => {
     ctx.fixture('schema-only-sqlite')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
     const result = migrate.engine.schemaPush({
       force: false,
-      schema: schema,
+      schema: toSchemasContainer(schemas),
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        executedSteps: 1,
-        unexecutable: [],
-        warnings: [],
+        "executedSteps": 1,
+        "unexecutable": [],
+        "warnings": [],
       }
     `)
     migrate.stop()
@@ -579,19 +557,18 @@ describe('schemaPush', () => {
 
   it('should succeed without warning', async () => {
     ctx.fixture('existing-db-1-draft')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
     const result = migrate.engine.schemaPush({
       force: false,
-      schema: schema,
+      schema: toSchemasContainer(schemas),
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        executedSteps: 1,
-        unexecutable: [],
-        warnings: [],
+        "executedSteps": 1,
+        "unexecutable": [],
+        "warnings": [],
       }
     `)
     migrate.stop()
@@ -599,21 +576,20 @@ describe('schemaPush', () => {
 
   it('should return executedSteps 0 with warning if dataloss detected', async () => {
     ctx.fixture('existing-db-brownfield')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
 
     const result = migrate.engine.schemaPush({
       force: false,
-      schema: schema.replace('Blog', 'Something'),
+      schema: toSchemasContainer(replaceInSchemas(schemas, 'Blog', 'Something')),
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        executedSteps: 0,
-        unexecutable: [],
-        warnings: [
-          You are about to drop the \`Blog\` table, which is not empty (1 rows).,
+        "executedSteps": 0,
+        "unexecutable": [],
+        "warnings": [
+          "You are about to drop the \`Blog\` table, which is not empty (1 rows).",
         ],
       }
     `)
@@ -622,24 +598,27 @@ describe('schemaPush', () => {
 
   it('force should accept dataloss', async () => {
     ctx.fixture('existing-db-brownfield')
-    const schemaPath = (await getSchemaPath())!
+    const { schemaPath, schemas } = (await getSchemaWithPath())!
     const migrate = new Migrate(schemaPath)
-    const schema = migrate.getPrismaSchema()
 
     const result = migrate.engine.schemaPush({
       force: true,
-      schema: schema.replace('Blog', 'Something'),
+      schema: toSchemasContainer(replaceInSchemas(schemas, 'Blog', 'Something')),
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
-        executedSteps: 2,
-        unexecutable: [],
-        warnings: [
-          You are about to drop the \`Blog\` table, which is not empty (1 rows).,
+        "executedSteps": 2,
+        "unexecutable": [],
+        "warnings": [
+          "You are about to drop the \`Blog\` table, which is not empty (1 rows).",
         ],
       }
     `)
     migrate.stop()
   })
 })
+
+function replaceInSchemas(schemas: MultipleSchemas, search: string, replace: string): MultipleSchemas {
+  return schemas.map(([path, content]) => [path, content.replace(search, replace)])
+}

@@ -1,8 +1,11 @@
+import type { D1Database } from '@cloudflare/workers-types'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
+import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
 
 import { generateClient } from '../../../src/generation/generateClient'
+import { PrismaClientOptions } from '../../../src/runtime/getPrismaClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
@@ -14,6 +17,8 @@ import { AdapterProviders } from './providers'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
+
+const runtimeBase = path.join(__dirname, '..', '..', '..', 'runtime')
 
 /**
  * Does the necessary setup to get a test suite client ready to run.
@@ -29,6 +34,7 @@ export async function setupTestSuiteClient({
   clientMeta,
   skipDb,
   alterStatementCallback,
+  cfWorkerBindings,
 }: {
   cliMeta: CliMeta
   suiteMeta: TestSuiteMeta
@@ -37,22 +43,23 @@ export async function setupTestSuiteClient({
   clientMeta: ClientMeta
   skipDb?: boolean
   alterStatementCallback?: AlterStatementCallback
+  cfWorkerBindings?: Record<string, unknown>
 }) {
-  const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
-  const schema = getTestSuiteSchema(cliMeta, suiteMeta, suiteConfig.matrixOptions)
+  const suiteFolderPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
+  const schema = getTestSuiteSchema({ cliMeta, suiteMeta, matrixOptions: suiteConfig.matrixOptions })
   const previewFeatures = getTestSuitePreviewFeatures(schema)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
-  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
+  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
 
-  await setupTestSuiteFiles(suiteMeta, suiteConfig)
-  await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
+  await setupTestSuiteFiles({ suiteMeta, suiteConfig })
+  await setupTestSuiteSchema({ suiteMeta, suiteConfig, schema })
 
   process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
   process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
 
   if (skipDb !== true) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
+    await setupTestSuiteDatabase({ suiteMeta, suiteConfig, alterStatementCallback, cfWorkerBindings })
   }
 
   if (clientMeta.dataProxy === true) {
@@ -63,7 +70,7 @@ export async function setupTestSuiteClient({
 
   await generateClient({
     datamodel: schema,
-    schemaPath: getTestSuiteSchemaPath(suiteMeta, suiteConfig),
+    schemaPath: getTestSuiteSchemaPath({ suiteMeta, suiteConfig }),
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: config.datasources,
     outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),
@@ -72,21 +79,16 @@ export async function setupTestSuiteClient({
     generator: generator,
     engineVersion: '0000000000000000000000000000000000000000',
     clientVersion: '0.0.0',
-    transpile: false,
     testMode: true,
     activeProvider: suiteConfig.matrixOptions.provider,
-    // Change \\ to / for windows support
-    runtimeDirs: {
-      node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
-      edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
-    },
-    projectRoot: suiteFolderPath,
-    noEngine: clientMeta.dataProxy,
+    runtimeBase: runtimeBase,
+    copyEngine: !clientMeta.dataProxy,
   })
 
   const clientPathForRuntime: Record<ClientRuntime, string> = {
     node: 'node_modules/@prisma/client',
     edge: 'node_modules/@prisma/client/edge',
+    wasm: 'node_modules/@prisma/client/wasm',
   }
 
   return require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
@@ -99,17 +101,36 @@ export function setupTestSuiteClientDriverAdapter({
   suiteConfig,
   datasourceInfo,
   clientMeta,
+  cfWorkerBindings,
 }: {
   suiteConfig: NamedTestSuiteConfig
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
+  cfWorkerBindings?: Record<string, unknown>
 }) {
   const driverAdapter = suiteConfig.matrixOptions.driverAdapter
+  const provider = suiteConfig.matrixOptions.provider
+  const __internal: PrismaClientOptions['__internal'] = {}
 
   if (clientMeta.driverAdapter !== true) return {}
 
   if (driverAdapter === undefined) {
     throw new Error(`Missing Driver Adapter`)
+  }
+
+  if (clientMeta.runtime === 'wasm') {
+    __internal.configOverride = (config) => {
+      config.engineWasm = {
+        getRuntime: () => require(path.join(runtimeBase, `query_engine_bg.${provider}.js`)),
+        getQueryEngineWasmModule: async () => {
+          const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
+          const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
+
+          return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+        },
+      }
+      return config
+    }
   }
 
   if (driverAdapter === AdapterProviders.JS_PG) {
@@ -120,7 +141,7 @@ export function setupTestSuiteClientDriverAdapter({
       connectionString: datasourceInfo.databaseUrl,
     })
 
-    return { adapter: new PrismaPg(pool) }
+    return { adapter: new PrismaPg(pool), __internal }
   }
 
   if (driverAdapter === AdapterProviders.JS_NEON) {
@@ -136,7 +157,7 @@ export function setupTestSuiteClientDriverAdapter({
       connectionString: datasourceInfo.databaseUrl,
     })
 
-    return { adapter: new PrismaNeon(pool) }
+    return { adapter: new PrismaNeon(pool), __internal }
   }
 
   if (driverAdapter === AdapterProviders.JS_PLANETSCALE) {
@@ -151,7 +172,7 @@ export function setupTestSuiteClientDriverAdapter({
       fetch, // TODO remove when Node 16 is deprecated
     })
 
-    return { adapter: new PrismaPlanetScale(client) }
+    return { adapter: new PrismaPlanetScale(client), __internal }
   }
 
   if (driverAdapter === AdapterProviders.JS_LIBSQL) {
@@ -163,7 +184,14 @@ export function setupTestSuiteClientDriverAdapter({
       intMode: 'bigint',
     })
 
-    return { adapter: new PrismaLibSQL(client) }
+    return { adapter: new PrismaLibSQL(client), __internal }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_D1) {
+    const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
+
+    const d1Client = cfWorkerBindings!.MY_DATABASE as D1Database
+    return { adapter: new PrismaD1(d1Client), __internal }
   }
 
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)

@@ -65,16 +65,16 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 65,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-            name: null,
+            "age": 65,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
+            "name": null,
           },
           {
-            age: 65,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-            name: null,
+            "age": 65,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
+            "name": null,
           },
         ]
       `)
@@ -109,16 +109,16 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 65,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-            name: null,
+            "age": 65,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
+            "name": null,
           },
           {
-            age: 65,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-            name: null,
+            "age": 65,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
+            "name": null,
           },
         ]
       `)
@@ -144,16 +144,16 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 65,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-            name: null,
+            "age": 65,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
+            "name": null,
           },
           {
-            age: 65,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-            name: null,
+            "age": 65,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
+            "name": null,
           },
         ]
       `)
@@ -179,16 +179,16 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 65,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-            name: null,
+            "age": 65,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
+            "name": null,
           },
           {
-            age: 65,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-            name: null,
+            "age": 65,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
+            "name": null,
           },
         ]
       `)
@@ -214,16 +214,16 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 65,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-            name: null,
+            "age": 65,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
+            "name": null,
           },
           {
-            age: 65,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-            name: null,
+            "age": 65,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
+            "name": null,
           },
         ]
       `)
@@ -231,7 +231,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'MongoDB does not support raw queries',
     },
   },

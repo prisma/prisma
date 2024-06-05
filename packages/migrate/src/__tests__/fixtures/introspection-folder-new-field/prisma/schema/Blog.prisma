@@ -1,0 +1,5 @@
+model Blog {
+    id          Int  @id
+    ownerId     Int
+    owner       User @relation(fields: [ownerId], references: [id])
+}

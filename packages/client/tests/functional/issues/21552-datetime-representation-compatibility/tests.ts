@@ -55,5 +55,9 @@ testMatrix.setupTestSuite(
         which are not supported with data proxy.
       `,
     },
+    skipDriverAdapter: {
+      from: ['js_d1'],
+      reason: 'The native connector library/binary cannot be used to talk to D1',
+    },
   },
 )

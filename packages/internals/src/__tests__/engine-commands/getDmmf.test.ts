@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { getDMMF, isRustPanic } from '../..'
+import { getDMMF, isRustPanic, MultipleSchemas } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
@@ -199,8 +199,8 @@ describe('getDMMF', () => {
       } catch (e) {
         expect(isRustPanic(e)).toBe(true)
         expect(serialize(e.message)).toMatchInlineSnapshot(`
-          "RuntimeError: panicked at prisma-fmt/src/get_dmmf.rs:0:0:
-          Failed to deserialize GetDmmfParams: invalid type: boolean \`true\`, expected a string at line 1 column 20"
+          ""RuntimeError: panicked at prisma-fmt/src/get_dmmf.rs:0:0:
+          Failed to deserialize GetDmmfParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 20""
         `)
         expect(e.rustStack).toBeTruthy()
       }
@@ -330,6 +330,34 @@ describe('getDMMF', () => {
       })
 
       expect(dmmf.datamodel).toMatchSnapshot()
+      expect(dmmf).toMatchSnapshot()
+    })
+
+    test('multiple files', async () => {
+      const files: MultipleSchemas = [
+        [
+          'ds.prisma',
+          `datasource db {
+            provider = "sqlite"
+            url      = "file:dev.db"
+          }`,
+        ],
+        [
+          'A.prisma',
+          `model A {
+            id Int @id
+            name String
+          }`,
+        ],
+        [
+          'B.prisma',
+          `model B {
+            id String @id
+            title String
+          }`,
+        ],
+      ]
+      const dmmf = await getDMMF({ datamodel: files })
       expect(dmmf).toMatchSnapshot()
     })
 

@@ -8,7 +8,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 const TIMEOUT = 60_000
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ clientRuntime }) => {
     const oldConsoleWarn = console.warn
     const warnings: any[] = []
 
@@ -24,7 +24,7 @@ testMatrix.setupTestSuite(
       console.warn = oldConsoleWarn
     })
 
-    test(
+    testIf(clientRuntime !== 'wasm')(
       'should console warn when spawning too many instances of PrismaClient',
       async () => {
         for (let i = 0; i < 15; i++) {
@@ -35,6 +35,19 @@ testMatrix.setupTestSuite(
         expect(warnings.join('')).toContain(
           'This is the 10th instance of Prisma Client being started. Make sure this is intentional.',
         )
+      },
+      TIMEOUT,
+    )
+
+    testIf(clientRuntime === 'wasm')(
+      'should not console warn when spawning too many instances of PrismaClient',
+      async () => {
+        for (let i = 0; i < 15; i++) {
+          const client = newPrismaClient()
+          await client.$connect()
+        }
+
+        expect(warnings.join('')).toMatchInlineSnapshot(`""`)
       },
       TIMEOUT,
     )

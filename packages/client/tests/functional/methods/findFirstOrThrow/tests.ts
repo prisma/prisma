@@ -28,31 +28,38 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     await expect(record).rejects.toMatchObject(new Prisma.NotFoundError('No User found', '0.0.0'))
   })
 
-  testIf(clientMeta.runtime !== 'edge')('works with transactions', async () => {
-    const newEmail = faker.internet.email()
-    const result = prisma.$transaction([
-      prisma.user.create({ data: { email: newEmail } }),
-      prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } }),
-    ])
+  // batch transaction needs to be implemented. Unskip once https://github.com/prisma/team-orm/issues/997 is done
+  skipTestIf(clientMeta.runtime === 'edge' || _suiteConfig.driverAdapter === 'js_d1')(
+    'works with transactions',
+    async () => {
+      const newEmail = faker.internet.email()
+      const result = prisma.$transaction([
+        prisma.user.create({ data: { email: newEmail } }),
+        prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } }),
+      ])
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"No User found"`)
 
-    const record = await prisma.user.findFirst({ where: { email: newEmail } })
-    expect(record).toBeNull()
-  })
+      const record = await prisma.user.findFirst({ where: { email: newEmail } })
+      expect(record).toBeNull()
+    },
+  )
 
-  skipTestIf(clientMeta.runtime === 'edge')('works with interactive transactions', async () => {
-    const newEmail = faker.internet.email()
-    const result = prisma.$transaction(async (prisma) => {
-      await prisma.user.create({ data: { email: newEmail } })
-      await prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
-    })
+  skipTestIf(clientMeta.runtime === 'edge' || _suiteConfig.driverAdapter === 'js_d1')(
+    'works with interactive transactions',
+    async () => {
+      const newEmail = faker.internet.email()
+      const result = prisma.$transaction(async (prisma) => {
+        await prisma.user.create({ data: { email: newEmail } })
+        await prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
+      })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"No User found"`)
 
-    const record = await prisma.user.findFirst({ where: { email: newEmail } })
-    expect(record).toBeNull()
-  })
+      const record = await prisma.user.findFirst({ where: { email: newEmail } })
+      expect(record).toBeNull()
+    },
+  )
 
   test('reports correct method name in case of validation error', async () => {
     const record = prisma.user.findFirstOrThrow({

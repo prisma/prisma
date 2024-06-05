@@ -59,9 +59,9 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 
@@ -71,28 +71,30 @@ ${bold('Examples')}
       // Automatically create the database if it doesn't exist
       const wasDbCreated = await ensureDatabaseExists('apply', schemaPath)
       if (wasDbCreated) {
-        console.info() // empty line
-        console.info(wasDbCreated)
+        process.stdout.write('\n' + wasDbCreated + '\n')
       }
     } catch (e) {
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
+
       throw e
     }
 
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })
 
-    console.info() // empty line
+    process.stdout.write('\n') // empty line
     if (listMigrationDirectoriesResult.migrations.length > 0) {
       const migrations = listMigrationDirectoriesResult.migrations
-      console.info(`${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations`)
+      process.stdout.write(
+        `${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations\n`,
+      )
     } else {
-      console.info(`No migration found in prisma/migrations`)
+      process.stdout.write(`No migration found in prisma/migrations\n`)
     }
 
     let migrationIds: string[]
     try {
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
@@ -100,13 +102,17 @@ ${bold('Examples')}
       migrate.stop()
     }
 
-    console.info() // empty line
+    process.stdout.write('\n') // empty line
     if (migrationIds.length === 0) {
       return green(`No pending migrations to apply.`)
     } else {
-      return `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
-        'migration.sql': '',
-      })}
+      return `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
+        'migrations',
+        migrationIds,
+        {
+          'migration.sql': '',
+        },
+      )}
       
 ${green('All migrations have been successfully applied.')}`
     }

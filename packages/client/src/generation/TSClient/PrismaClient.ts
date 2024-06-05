@@ -1,4 +1,4 @@
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
@@ -18,7 +18,8 @@ import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
+import { TSClientOptions } from './TSClient'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(this: PrismaClientClass) {
@@ -60,6 +61,7 @@ function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<
   if (action === 'aggregateRaw') return `Prisma.JsonObject`
   if (action === 'deleteMany') return `Prisma.BatchPayload`
   if (action === 'createMany') return `Prisma.BatchPayload`
+  if (action === 'createManyAndReturn') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>[]`
   if (action === 'updateMany') return `Prisma.BatchPayload`
   if (action === 'findMany') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>[]`
   if (action === 'findFirst') return `$Utils.PayloadToResult<${getPayloadName(modelName)}> | null`
@@ -71,7 +73,7 @@ function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<
   if (action === 'upsert') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
   if (action === 'delete') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
 
-  assertNever(action, 'Unknown action: ' + action)
+  assertNever(action, `Unknown action: ${action}`)
 }
 
 function clientTypeMapOthersDefinition(this: PrismaClientClass) {
@@ -306,15 +308,30 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function eventRegistrationMethodDeclaration(runtimeName: string) {
-  if (runtimeName === 'binary') {
+function applyPendingMigrationsDefinition(this: PrismaClientClass) {
+  if (this.runtimeNameTs !== 'react-native') {
+    return null
+  }
+
+  const method = ts
+    .method('$applyPendingMigrations')
+    .setReturnType(ts.promise(ts.voidType))
+    .setDocComment(
+      ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
+    )
+
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
+function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
+  if (runtimeNameTs === 'binary.js') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;`
   } else {
     return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
   }
 }
 
-export class PrismaClientClass implements Generatable {
+export class PrismaClientClass implements Generable {
   protected clientExtensionsDefinitions: {
     prismaNamespaceDefinitions: string
     prismaClientDefinitions: string
@@ -323,7 +340,7 @@ export class PrismaClientClass implements Generatable {
     protected readonly dmmf: DMMFHelper,
     protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
-    protected readonly runtimeName: string,
+    protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
     protected readonly cwd?: string,
@@ -333,7 +350,18 @@ export class PrismaClientClass implements Generatable {
   private get jsDoc(): string {
     const { dmmf } = this
 
-    const example = dmmf.mappings.modelOperations[0]
+    let example: DMMF.ModelMapping
+
+    if (dmmf.mappings.modelOperations.length) {
+      example = dmmf.mappings.modelOperations[0]
+    } else {
+      // because generator models is empty we need to create a fake example
+      example = {
+        model: 'User',
+        plural: 'users',
+      }
+    }
+
     return `/**
  * ##  Prisma Client ʲˢ
  * 
@@ -362,7 +390,7 @@ export class PrismaClient<
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  ${eventRegistrationMethodDeclaration(this.runtimeName)}
+  ${eventRegistrationMethodDeclaration(this.runtimeNameTs)}
 
   /**
    * Connect with the database
@@ -388,8 +416,10 @@ ${[
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
   metricDefinition.bind(this)(),
+  applyPendingMigrationsDefinition.bind(this)(),
   this.clientExtensionsDefinitions.prismaClientDefinitions,
 ]
+  .filter((d) => d !== null)
   .join('\n')
   .trim()}
 
@@ -462,6 +492,7 @@ export type PrismaAction =
   | 'findFirstOrThrow'
   | 'create'
   | 'createMany'
+  | 'createManyAndReturn'
   | 'update'
   | 'updateMany'
   | 'upsert'
@@ -545,7 +576,24 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           `),
       )
 
-    if (this.runtimeName === 'library' && this.generator?.previewFeatures.includes('driverAdapters')) {
+    const transactionOptions = ts
+      .objectType()
+      .add(ts.property('maxWait', ts.numberType).optional())
+      .add(ts.property('timeout', ts.numberType).optional())
+
+    if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
+      transactionOptions.add(ts.property('isolationLevel', ts.namedType('Prisma.TransactionIsolationLevel')).optional())
+    }
+
+    clientOptions.add(
+      ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
+             The default values for transactionOptions
+             maxWait ?= 2000
+             timeout ?= 5000
+          `),
+    )
+
+    if (this.runtimeNameTs === 'library.js' && this.generator?.previewFeatures.includes('driverAdapters')) {
       clientOptions.add(
         ts
           .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))

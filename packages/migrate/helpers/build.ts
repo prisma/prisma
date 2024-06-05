@@ -7,6 +7,7 @@ void build([
     bundle: true,
     emitTypes: true,
     splitting: true,
+    external: ['@prisma/prisma-schema-wasm'],
     format: 'esm',
     plugins: [esmSplitCodeToCjs],
   },

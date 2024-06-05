@@ -1,6 +1,5 @@
-import { detectRuntime } from 'detect-runtime'
-
 import { Datasources, GetPrismaClientConfig } from '../../getPrismaClient'
+import { getRuntime } from '../../utils/getRuntime'
 import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
 export function resolveDatasourceUrl({
@@ -31,7 +30,7 @@ export function resolveDatasourceUrl({
 
   // env var is set for use but url is undefined
   if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
-    if (TARGET_BUILD_TYPE === 'edge' && detectRuntime() === 'workerd') {
+    if ((TARGET_BUILD_TYPE === 'edge' || TARGET_BUILD_TYPE === 'wasm') && getRuntime().id === 'workerd') {
       throw new PrismaClientInitializationError(
         `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.
 

@@ -1,0 +1,27 @@
+{
+  "name": "bundle-size",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "create-gzip-files": "tsx create-gzip-files.ts"
+  },
+  "keywords": [],
+  "author": "Pierre-Antoine Mills",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@libsql/client": "0.6.2",
+    "@neondatabase/serverless": "0.9.3",
+    "@planetscale/database": "1.18.0",
+    "@prisma/adapter-neon": "workspace:*",
+    "@prisma/adapter-pg": "workspace:*",
+    "@prisma/adapter-planetscale": "workspace:*",
+    "@prisma/adapter-libsql": "workspace:*",
+    "@prisma/adapter-d1": "workspace:*",
+    "@prisma/client": "workspace:*",
+    "@prisma/pg-worker": "workspace:*",
+    "@prisma/adapter-pg-worker": "workspace:*",
+    "pg": "8.11.5",
+    "prisma": "workspace:*",
+    "wrangler": "3.58.0"
+  }
+}

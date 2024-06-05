@@ -12,7 +12,7 @@ describe('debug', () => {
     const logs: string[] = []
 
     debug.log = (...args) => {
-      logs.push(stripAnsi(`${args[0]}${args[1]}`).trim())
+      logs.push(stripAnsi(`${args[0]} ${args[1]}`).trim())
     }
 
     debug('Does it even log?')
@@ -20,8 +20,8 @@ describe('debug', () => {
 
     expect(removeISODate(JSON.stringify(logs, null, 2))).toMatchInlineSnapshot(`
       "[
-        " my-namespace Does it even log?",
-        " my-namespace I dont know"
+        "my-namespace Does it even log?",
+        "my-namespace I dont know"
       ]"
     `)
 

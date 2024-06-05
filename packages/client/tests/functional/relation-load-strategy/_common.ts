@@ -1,6 +1,10 @@
-import { Providers } from '../_utils/providers'
+import { allProviders, Providers } from '../_utils/providers'
 
-export const providersSupportingRelationJoins = [Providers.POSTGRESQL, Providers.COCKROACHDB]
+export const providersSupportingRelationJoins = [Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.MYSQL]
+
+export const providersNotSupportingRelationJoins = allProviders
+  .filter((provider) => !providersSupportingRelationJoins.includes(provider.provider))
+  .map((provider) => provider.provider)
 
 /**
  * Generic relation load strategy.

@@ -8,12 +8,18 @@ import {
   isError,
   link,
   loadEnvFile,
+  locateLocalCloudflareD1,
+  toSchemasContainer,
+  toSchemasWithConfigDir,
 } from '@prisma/internals'
+import fs from 'fs-jetpack'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
 
+import { getSchemaWithPath } from '../../../internals/src/cli/getSchema'
 import { Migrate } from '../Migrate'
 import type { EngineArgs, EngineResults } from '../types'
+import { CaptureStdout } from '../utils/captureStdout'
 
 const debug = Debug('prisma:migrate:diff')
 
@@ -25,6 +31,7 @@ const helpOptions = format(
 ${bold('Options')}
 
   -h, --help               Display this help message
+  -o, --output             Writes to a file instead of stdout
 
 ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
   --from-url               A datasource URL
@@ -41,6 +48,9 @@ ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):
 
   --from-migrations        Path to the Prisma Migrate migrations directory
   --to-migrations
+
+  --from-local-d1          Automatically locate the local Cloudflare D1 database
+  --to-local-d1
 
 ${italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
   --shadow-database-url    URL for the shadow database
@@ -98,6 +108,18 @@ ${bold('Examples')}
     --from-url "$PROD_DB" \\
     --to-schema-datamodel=previous_datamodel.prisma \\
     --script
+
+  From a local D1 database to a datamodel
+  ${dim('$')} prisma migrate diff \\
+    --from-local-d1 \\
+    --to-schema-datamodel=./prisma/schema.prisma \\
+    --script
+
+  From a Prisma datamodel to a local D1 database
+  ${dim('$')} prisma migrate diff \\
+    --from-schema-datamodel=./prisma/schema.prisma \\
+    --to-local-d1 \\
+    --script
   
   From a Prisma Migrate \`migrations\` directory to another database
     e.g. generate a migration for a hotfix already applied on production
@@ -126,18 +148,22 @@ ${bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
+        '--output': String,
+        '-o': '--output',
         // From
         '--from-empty': Boolean,
         '--from-schema-datasource': String,
         '--from-schema-datamodel': String,
         '--from-url': String,
         '--from-migrations': String,
+        '--from-local-d1': Boolean,
         // To
         '--to-empty': Boolean,
         '--to-schema-datasource': String,
         '--to-schema-datamodel': String,
         '--to-url': String,
         '--to-migrations': String,
+        '--to-local-d1': Boolean,
         // Others
         '--shadow-database-url': String,
         '--script': Boolean,
@@ -162,14 +188,16 @@ ${bold('Examples')}
       Number(Boolean(args['--from-schema-datasource'])) +
       Number(Boolean(args['--from-schema-datamodel'])) +
       Number(Boolean(args['--from-url'])) +
-      Number(Boolean(args['--from-migrations']))
+      Number(Boolean(args['--from-migrations'])) +
+      Number(Boolean(args['--from-local-d1']))
 
     const numberOfToParameterProvided =
       Number(Boolean(args['--to-empty'])) +
       Number(Boolean(args['--to-schema-datasource'])) +
       Number(Boolean(args['--to-schema-datamodel'])) +
       Number(Boolean(args['--to-url'])) +
-      Number(Boolean(args['--to-migrations']))
+      Number(Boolean(args['--to-migrations'])) +
+      Number(Boolean(args['--to-local-d1']))
 
     // One of --to or --from is required
     if (numberOfFromParameterProvided !== 1 || numberOfToParameterProvided !== 1) {
@@ -183,6 +211,13 @@ ${bold('Examples')}
       return this.help(`${errorMessages.join('\n')}`)
     }
 
+    // Validate Cloudflare D1-related flags
+    if (args['--shadow-database-url'] && (args['--from-local-d1'] || args['--to-local-d1'])) {
+      return this.help(
+        `The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.`,
+      )
+    }
+
     let from: EngineArgs.MigrateDiffTarget
     if (args['--from-empty']) {
       from = {
@@ -190,15 +225,21 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), {
+        argumentName: '--from-schema-datasource',
+      })
       from = {
         tag: 'schemaDatasource',
-        schema: path.resolve(args['--from-schema-datasource']),
+        ...toSchemasWithConfigDir(schema),
       }
     } else if (args['--from-schema-datamodel']) {
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), {
+        argumentName: '--from-schema-datamodel',
+      })
       from = {
         tag: 'schemaDatamodel',
-        schema: path.resolve(args['--from-schema-datamodel']),
+        ...toSchemasContainer(schema.schemas),
       }
     } else if (args['--from-url']) {
       from = {
@@ -210,6 +251,12 @@ ${bold('Examples')}
         tag: 'migrations',
         path: path.resolve(args['--from-migrations']),
       }
+    } else if (args['--from-local-d1']) {
+      const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
+      from = {
+        tag: 'url',
+        url: `file:${d1Database}`,
+      }
     }
 
     let to: EngineArgs.MigrateDiffTarget
@@ -219,15 +266,21 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), {
+        argumentName: '--to-schema-datasource',
+      })
       to = {
         tag: 'schemaDatasource',
-        schema: path.resolve(args['--to-schema-datasource']),
+        ...toSchemasWithConfigDir(schema),
       }
     } else if (args['--to-schema-datamodel']) {
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), {
+        argumentName: '--to-schema-datamodel',
+      })
       to = {
         tag: 'schemaDatamodel',
-        schema: path.resolve(args['--to-schema-datamodel']),
+        ...toSchemasContainer(schema.schemas),
       }
     } else if (args['--to-url']) {
       to = {
@@ -239,9 +292,23 @@ ${bold('Examples')}
         tag: 'migrations',
         path: path.resolve(args['--to-migrations']),
       }
+    } else if (args['--to-local-d1']) {
+      const d1Database = await locateLocalCloudflareD1({ arg: '--to-local-d1' })
+      to = {
+        tag: 'url',
+        url: `file:${d1Database}`,
+      }
     }
 
     const migrate = new Migrate()
+
+    // Capture stdout if --output is defined
+    const captureStdout = new CaptureStdout()
+    const outputPath = args['--output']
+    const isOutputDefined = Boolean(outputPath)
+    if (isOutputDefined) {
+      captureStdout.startCapture()
+    }
 
     let result: EngineResults.MigrateDiffOutput
     try {
@@ -257,13 +324,24 @@ ${bold('Examples')}
       migrate.stop()
     }
 
-    debug(result)
+    // Write output to file if --output is defined
+    if (isOutputDefined) {
+      captureStdout.stopCapture()
+      const diffOutput = captureStdout.getCapturedText()
+      captureStdout.clearCaptureText()
+      await fs.writeAsync(outputPath!, diffOutput.join('\n'))
+    }
+
+    // Note: only contains the exitCode
+    debug({ migrateDiffOutput: result })
 
     if (args['--exit-code'] && result.exitCode) {
       process.exit(result.exitCode)
     }
 
     // Return nothing
+    // See below for where the printing to stdout happens
+    // [console.info(result.params.content)](https://github.com/prisma/prisma/blob/e6d2bc01af44cec35cb2bda35a5c93e13dc4ba4e/packages/migrate/src/SchemaEngine.ts#L303)
     return ``
   }
 
