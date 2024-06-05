@@ -1,8 +1,14 @@
 import Debug from '@prisma/debug'
-import { getCLIPathHash, getConfig, getProjectHash, getSchema, parseEnvValue } from '@prisma/internals'
+import {
+  getCLIPathHash,
+  getConfig,
+  getProjectHash,
+  getSchema,
+  parseEnvValue,
+  findNearestPackageJson,
+} from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
-import { findNearestPackageJson } from '../../../internals/src/cli/getSchema'
 
 const debug = Debug('prisma:cli:checkpoint')
 
