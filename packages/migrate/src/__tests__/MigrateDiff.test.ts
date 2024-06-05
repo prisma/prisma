@@ -217,7 +217,9 @@ describe('migrate diff', () => {
         await MigrateDiff.new().parse(['--from-schema-datasource=./doesnoexists.prisma', '--to-empty'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
-        expect(e.message).toMatch(/Provided --schema at (.+?)[/\\]doesnoexists.prisma doesn't exist/)
+        expect(e.message).toMatchInlineSnapshot(
+          `"Could not load \`--from-schema-datasource\` from provided path \`doesnoexists.prisma\`: file or directory not found"`,
+        )
       }
     })
 

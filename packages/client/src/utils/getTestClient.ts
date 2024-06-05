@@ -47,7 +47,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     previewFeatures,
   })
   const outputDir = absSchemaDir
-  const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
+  const relativeEnvPaths = await getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
     runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),

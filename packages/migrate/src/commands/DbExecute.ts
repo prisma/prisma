@@ -105,7 +105,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {
