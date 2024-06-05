@@ -56,7 +56,6 @@ export async function runCheckpointClientCheck({
     // Extract some data from the package.json
     // This only collects data from the nearest package.json
     // And the minimum required data to identify some frameworks
-    // TODO make sure this works with multi-file schemas
     const packageJsonData = await tryToExtractSomeDataFromPackageJson(schemaPath)
     console.debug({ packageJsonData })
 
