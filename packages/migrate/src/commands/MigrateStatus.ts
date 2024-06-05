@@ -68,7 +68,7 @@ Check the status of your database migrations
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     // TODO: handle the case where the schemaPath is null
     const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!

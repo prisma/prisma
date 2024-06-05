@@ -9,7 +9,15 @@ import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF, GetSchemaResult, getSchemaWithPath, mergeSchemas, vercelPkgPathRegex } from '..'
+import {
+  getConfig,
+  getDMMF,
+  getEnvPaths,
+  GetSchemaResult,
+  getSchemaWithPath,
+  mergeSchemas,
+  vercelPkgPathRegex,
+} from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -211,6 +219,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
         }
 
         const datamodel = mergeSchemas({ schemas })
+        const envPaths = await getEnvPaths(schemaPath)
 
         const options: GeneratorOptions = {
           datamodel,
@@ -223,6 +232,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           postinstall,
           noEngine,
           allowNoModels,
+          envPaths,
         }
 
         // we set the options here a bit later after instantiating the Generator,

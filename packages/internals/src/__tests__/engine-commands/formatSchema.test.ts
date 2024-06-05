@@ -2,7 +2,7 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { readSchemaFromSingleFile } from '../../cli/getSchema'
+import { getSchemaWithPath } from '../../cli/getSchema'
 import { formatSchema } from '../../engine-commands'
 import { extractSchemaContent, type MultipleSchemas } from '../../utils/schemaFileInput'
 import { fixturesPath } from '../__utils__/fixtures'
@@ -16,10 +16,8 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 describe('schema wasm', () => {
   describe('diff', () => {
     async function testAgainstPreformatted(schemaFilename: string) {
-      const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'format', schemaFilename))
-      const { schemas: preformatted } = await readSchemaFromSingleFile(
-        path.join(fixturesPath, 'format', 'schema.prisma'),
-      )
+      const { schemas } = await getSchemaWithPath(path.join(fixturesPath, 'format', schemaFilename))
+      const { schemas: preformatted } = await getSchemaWithPath(path.join(fixturesPath, 'format', 'schema.prisma'))
       const formattedByWasm = await formatSchema({ schemas })
 
       const preformattedContent: string[] = extractSchemaContent(preformatted)
@@ -105,7 +103,7 @@ describe('format custom options', () => {
 
 describe('format', () => {
   test('valid blog schemaPath', async () => {
-    const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'blog.prisma'))
+    const { schemas } = await getSchemaWithPath(path.join(fixturesPath, 'blog.prisma'))
     const formatted = await formatSchema({ schemas })
     const formattedContent: string[] = extractSchemaContent(formatted)
     expect(formattedContent.length).toBe(1)

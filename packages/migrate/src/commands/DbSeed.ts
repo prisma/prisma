@@ -51,7 +51,7 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 

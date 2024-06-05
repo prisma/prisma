@@ -1,5 +1,5 @@
 import type { BinaryTarget } from '@prisma/get-platform'
-import { ClientEngineType, getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
+import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import crypto from 'crypto'
 import indent from 'indent-string'
@@ -49,6 +49,9 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   reusedTs?: string // the entrypoint to reuse
   /** When js doesn't need to be regenerated */
   reusedJs?: string // the entrypoint to reuse
+
+  /** result of getEnvPaths call */
+  envPaths: EnvPaths
 }
 
 export class TSClient implements Generable {
@@ -75,13 +78,12 @@ export class TSClient implements Generable {
       deno,
       copyEngine = true,
       reusedJs,
+      envPaths,
     } = this.options
 
     if (reusedJs) {
       return `module.exports = { ...require('${reusedJs}') }`
     }
-
-    const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
       rootEnvPath: envPaths.rootEnvPath && pathToPosix(path.relative(outputDir, envPaths.rootEnvPath)),
