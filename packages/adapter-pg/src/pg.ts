@@ -95,12 +95,13 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
           values: fixArrayBufferValues(values),
           rowMode: 'array',
           types: {
-            getTypeParser: (oid: number) => {
+            // @ts-ignore
+            getTypeParser: (oid: number, format?) => {
               if (customParsers[oid]) {
                 return customParsers[oid]
               }
 
-              return types.getTypeParser(oid)
+              return types.getTypeParser(oid, format)
             },
           },
         },
