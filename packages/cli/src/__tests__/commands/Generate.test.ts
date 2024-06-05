@@ -705,7 +705,7 @@ describe('--schema from project directory', () => {
     ctx.fixture('generate-from-project-dir')
     const result = Generate.new().parse(['--schema=./doesnotexists.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Could not load --schema from provided path doesnotexists.prisma: file or directory not found"`,
+      `"Could not load \`--schema\` from provided path \`doesnotexists.prisma\`: file or directory not found"`,
     )
   })
 
@@ -771,11 +771,8 @@ describe('--schema from project directory', () => {
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrow(
-      `Could not load --schema from provided path ${path.relative(
-        process.cwd(),
-        absoluteSchemaPath,
-      )}: file or directory not found`,
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Could not load \`--schema\` from provided path \`doesnotexists.prisma\`: file or directory not found"`,
     )
   })
 })
@@ -844,7 +841,7 @@ describe('--schema from parent directory', () => {
 
     const result = Generate.new().parse(['--schema=./subdirectory/doesnotexists.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Could not load --schema from provided path subdirectory/doesnotexists.prisma: file or directory not found"`,
+      `"Could not load \`--schema\` from provided path \`subdirectory/doesnotexists.prisma\`: file or directory not found"`,
     )
   })
 
@@ -912,11 +909,8 @@ describe('--schema from parent directory', () => {
 
     const absoluteSchemaPath = path.resolve('./subdirectory/doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrow(
-      `Could not load --schema from provided path ${path.relative(
-        process.cwd(),
-        absoluteSchemaPath,
-      )}: file or directory not found`,
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Could not load \`--schema\` from provided path \`subdirectory/doesnotexists.prisma\`: file or directory not found"`,
     )
   })
 

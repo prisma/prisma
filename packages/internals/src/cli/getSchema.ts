@@ -2,7 +2,7 @@ import { Debug } from '@prisma/debug'
 import { loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
 import execa from 'execa'
 import fs from 'fs'
-import { bold, green } from 'kleur/colors'
+import { green } from 'kleur/colors'
 import path from 'path'
 import { PackageJson, readPackageUp } from 'read-package-up'
 import { promisify } from 'util'
@@ -257,7 +257,9 @@ async function getSchemaWithPathInternal(
     if (!customSchemaResult.ok) {
       const relPath = path.relative(cwd, absPath)
       throw new Error(
-        `Could not load ${argumentName} from provided path ${relPath}: ${renderLookupError(customSchemaResult.error)}`,
+        `Could not load \`${argumentName}\` from provided path \`${relPath}\`: ${renderLookupError(
+          customSchemaResult.error,
+        )}`,
       )
     }
 
@@ -301,10 +303,10 @@ function renderLookupError(error: NonFatalLookupError) {
 
 function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
   const parts: string[] = [
-    `Could not find a ${bold('schema.prisma')} file that is required for this command.`,
+    `Could not find Prisma Schema that is required for this command.`,
     `You can either provide it with ${green(
-      '--schema',
-    )}, set it as \`prisma.schema\` in your package.json or put it into the default location.`,
+      '`--schema`',
+    )} argument, set it as \`prisma.schema\` in your package.json or put it into the default location.`,
     'Checked following paths:\n',
   ]
   const printedPaths = new Set<string>()
@@ -478,10 +480,10 @@ async function getDefaultSchema(cwd: string, failures: DefaultLookupRuleFailure[
       const conflictingSchema = await loadSchemaFromDefaultLocation(rule.conflictsWith)
       if (conflictingSchema.ok) {
         throw new Error(
-          `Schemas at ${path.relative(cwd, rule.schemaPath.path)} and ${path.relative(
+          `Found Prisma Schemas at both \`${path.relative(cwd, rule.schemaPath.path)}\` and \`${path.relative(
             cwd,
             rule.conflictsWith.path,
-          )} conflict with each other. Please, keep only one of the locations`,
+          )}\`. Please remove one.`,
         )
       }
     }

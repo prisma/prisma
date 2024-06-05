@@ -76,7 +76,7 @@ describe('format', () => {
 
         // implicit: conflict between folder and file
         await expect(Format.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(
-          `"Schemas at prisma/schema.prisma and prisma/schema conflict with each other. Please, keep only one of the locations"`,
+          `"Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one."`,
         )
 
         await ctx.fs.removeAsync(path.join('prisma', 'schema.prisma'))
@@ -202,7 +202,7 @@ describe('format', () => {
 
         // implicit: single schema file (`prisma/schema.prisma`)
         await expect(Format.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(
-          `"Schemas at prisma/schema.prisma and prisma/schema conflict with each other. Please, keep only one of the locations"`,
+          `"Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one."`,
         )
 
         await ctx.fs.removeAsync(path.join('prisma', 'schema.prisma'))

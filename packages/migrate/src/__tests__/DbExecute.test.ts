@@ -85,7 +85,7 @@ describe('db execute', () => {
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(
-          `"Could not load --schema from provided path doesnoexists.schema: file or directory not found"`,
+          `"Could not load \`--schema\` from provided path \`doesnoexists.schema\`: file or directory not found"`,
         )
       }
     })

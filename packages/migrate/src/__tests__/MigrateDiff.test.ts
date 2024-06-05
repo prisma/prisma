@@ -218,7 +218,7 @@ describe('migrate diff', () => {
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(
-          `"Could not load --from-schema-datasource from provided path doesnoexists.prisma: file or directory not found"`,
+          `"Could not load \`--from-schema-datasource\` from provided path \`doesnoexists.prisma\`: file or directory not found"`,
         )
       }
     })
