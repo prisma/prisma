@@ -2917,7 +2917,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends PostFindUniqueOrThrowArgs>(args?: SelectSubset<T, PostFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PostClient<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends PostFindUniqueOrThrowArgs>(args: SelectSubset<T, PostFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PostClient<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first Post that matches the filter.
@@ -3991,7 +3991,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs>(args?: SelectSubset<T, UserFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs>(args: SelectSubset<T, UserFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first User that matches the filter.
@@ -4952,7 +4952,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends EmbedHolderFindUniqueOrThrowArgs>(args?: SelectSubset<T, EmbedHolderFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EmbedHolderClient<$Result.GetResult<Prisma.$EmbedHolderPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends EmbedHolderFindUniqueOrThrowArgs>(args: SelectSubset<T, EmbedHolderFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EmbedHolderClient<$Result.GetResult<Prisma.$EmbedHolderPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first EmbedHolder that matches the filter.
@@ -6027,7 +6027,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends MFindUniqueOrThrowArgs>(args?: SelectSubset<T, MFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MClient<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends MFindUniqueOrThrowArgs>(args: SelectSubset<T, MFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MClient<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first M that matches the filter.
@@ -7112,7 +7112,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends NFindUniqueOrThrowArgs>(args?: SelectSubset<T, NFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NClient<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends NFindUniqueOrThrowArgs>(args: SelectSubset<T, NFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NClient<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first N that matches the filter.
@@ -8191,7 +8191,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends OneOptionalFindUniqueOrThrowArgs>(args?: SelectSubset<T, OneOptionalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OneOptionalClient<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends OneOptionalFindUniqueOrThrowArgs>(args: SelectSubset<T, OneOptionalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OneOptionalClient<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first OneOptional that matches the filter.
@@ -9277,7 +9277,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends ManyRequiredFindUniqueOrThrowArgs>(args?: SelectSubset<T, ManyRequiredFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ManyRequiredClient<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends ManyRequiredFindUniqueOrThrowArgs>(args: SelectSubset<T, ManyRequiredFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ManyRequiredClient<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first ManyRequired that matches the filter.
@@ -10359,7 +10359,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends OptionalSide1FindUniqueOrThrowArgs>(args?: SelectSubset<T, OptionalSide1FindUniqueOrThrowArgs<ExtArgs>>): Prisma__OptionalSide1Client<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends OptionalSide1FindUniqueOrThrowArgs>(args: SelectSubset<T, OptionalSide1FindUniqueOrThrowArgs<ExtArgs>>): Prisma__OptionalSide1Client<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first OptionalSide1 that matches the filter.
@@ -11431,7 +11431,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends OptionalSide2FindUniqueOrThrowArgs>(args?: SelectSubset<T, OptionalSide2FindUniqueOrThrowArgs<ExtArgs>>): Prisma__OptionalSide2Client<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends OptionalSide2FindUniqueOrThrowArgs>(args: SelectSubset<T, OptionalSide2FindUniqueOrThrowArgs<ExtArgs>>): Prisma__OptionalSide2Client<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first OptionalSide2 that matches the filter.
@@ -12436,7 +12436,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends AFindUniqueOrThrowArgs>(args?: SelectSubset<T, AFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AClient<$Result.GetResult<Prisma.$APayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends AFindUniqueOrThrowArgs>(args: SelectSubset<T, AFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AClient<$Result.GetResult<Prisma.$APayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first A that matches the filter.
@@ -13338,7 +13338,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends BFindUniqueOrThrowArgs>(args?: SelectSubset<T, BFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BClient<$Result.GetResult<Prisma.$BPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends BFindUniqueOrThrowArgs>(args: SelectSubset<T, BFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BClient<$Result.GetResult<Prisma.$BPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first B that matches the filter.
@@ -14239,7 +14239,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends CFindUniqueOrThrowArgs>(args?: SelectSubset<T, CFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CClient<$Result.GetResult<Prisma.$CPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends CFindUniqueOrThrowArgs>(args: SelectSubset<T, CFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CClient<$Result.GetResult<Prisma.$CPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first C that matches the filter.
@@ -15166,7 +15166,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends DFindUniqueOrThrowArgs>(args?: SelectSubset<T, DFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DClient<$Result.GetResult<Prisma.$DPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends DFindUniqueOrThrowArgs>(args: SelectSubset<T, DFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DClient<$Result.GetResult<Prisma.$DPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first D that matches the filter.
@@ -16041,7 +16041,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends EFindUniqueOrThrowArgs>(args?: SelectSubset<T, EFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EClient<$Result.GetResult<Prisma.$EPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+    findUniqueOrThrow<T extends EFindUniqueOrThrowArgs>(args: SelectSubset<T, EFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EClient<$Result.GetResult<Prisma.$EPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first E that matches the filter.

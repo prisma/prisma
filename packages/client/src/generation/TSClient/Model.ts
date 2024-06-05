@@ -662,7 +662,6 @@ function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelActi
     actionName === DMMF.ModelAction.deleteMany ||
     actionName === DMMF.ModelAction.createMany ||
     actionName === DMMF.ModelAction.createManyAndReturn ||
-    actionName === DMMF.ModelAction.findUniqueOrThrow ||
     actionName === DMMF.ModelAction.findFirstOrThrow
   ) {
     param.optional()
