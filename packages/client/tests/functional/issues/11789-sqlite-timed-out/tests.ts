@@ -8,7 +8,9 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 /**
- * tests for #11789
+ * Tests for:
+ * - https://github.com/prisma/prisma/issues/11789
+ * - https://github.com/prisma/prisma/issues/21772
  */
 testMatrix.setupTestSuite(({ provider }) => {
   test('2 concurrent upsert should succeed', async () => {
@@ -65,13 +67,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       }),
     ])
 
-    // Only fails for SQLite:
-    if (provider === Providers.SQLITE) {
-      //     ConnectorError(ConnectorError { user_facing_error: None, kind: ConnectionError(Timed out during query execution.), transient: false })]
-      await expect(queries).rejects.toThrow('ConnectionError(Timed out during query execution.)')
-    } else {
-      await expect(queries).resolves.toHaveLength(2)
-    }
+    await expect(queries).resolves.toHaveLength(2)
   })
 
   test('2 concurrent delete should succeed', async () => {
@@ -108,12 +104,41 @@ testMatrix.setupTestSuite(({ provider }) => {
       }),
     ])
 
-    // Only fails for SQLite:
-    if (provider === Providers.SQLITE) {
-      //     ConnectorError(ConnectorError { user_facing_error: None, kind: ConnectionError(Timed out during query execution.), transient: false })]
-      await expect(queries).rejects.toThrow('ConnectionError(Timed out during query execution.)')
-    } else {
-      await expect(queries).resolves.toHaveLength(2)
-    }
+    await expect(queries).resolves.toHaveLength(2)
+  })
+
+  // Testing only on SQLite, to avoid overloading the CI with too many queries
+  testIf([Providers.SQLITE].includes(provider))('100 concurrent creates should succeed', async () => {
+    const N = 100
+    const ids = Array.from({ length: N }).map((_, i) => `${i + 1}`.padStart(5, '0'))
+
+    const users = await Promise.all(
+      ids.map((id) =>
+        prisma.user.create({
+          data: {
+            id,
+            email: `email@${id}`,
+          },
+        }),
+      ),
+    )
+
+    expect(users).toHaveLength(N)
+
+    const queries = await Promise.all(
+      ids.map((id) =>
+        prisma.profile.create({
+          data: {
+            user: {
+              connect: {
+                id,
+              },
+            },
+          },
+        }),
+      ),
+    )
+
+    expect(queries).toHaveLength(N)
   })
 })
