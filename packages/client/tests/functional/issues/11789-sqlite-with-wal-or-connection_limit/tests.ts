@@ -6,6 +6,7 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare let prisma: PrismaClient
 
 // From npx prisma migrate diff --from-empty --to-schema-datamodel=...
 const sqlDef = `CREATE TABLE "User" (
@@ -24,12 +25,19 @@ CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId")`
  * tests for #11789
  */
 testMatrix.setupTestSuite(
-  () => {
-    // Currently fails with
-    // ConnectorError(ConnectorError { user_facing_error: None, kind: ConnectionError(Timed out during query execution.), transient: false })]
-    // see 11789-sqlite-timed-out test
-    // this shows that when WAL mode is set it does not change the error
-    test.failing('2 concurrent upsert should succeed with journal_mode = WAL', async () => {
+  ({ driverAdapter }) => {
+    testIf(driverAdapter === 'js_d1')('D1 does not support journal_mode = WAL', async () => {
+      expect.assertions(1)
+
+      try {
+        await prisma.$queryRaw`PRAGMA journal_mode = WAL`
+      } catch (error) {
+        const e = error as Error
+        expect(e.message).toContain(/D1_ERROR: not authorized/)
+      }
+    })
+
+    testIf(driverAdapter !== 'js_d1')('2 concurrent upsert should succeed with journal_mode = WAL', async () => {
       const prisma = newPrismaClient({
         datasources: {
           db: {
@@ -102,78 +110,81 @@ testMatrix.setupTestSuite(
       await expect(queries).resolves.toHaveLength(2)
     })
 
-    test('2 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL', async () => {
-      const prisma = newPrismaClient({
-        datasources: {
-          db: {
-            url: 'file:./concurrent-upsert-conn-wal.db?connection_limit=1',
+    testIf(driverAdapter !== 'js_d1')(
+      '2 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL',
+      async () => {
+        const prisma = newPrismaClient({
+          datasources: {
+            db: {
+              url: 'file:./concurrent-upsert-conn-wal.db?connection_limit=1',
+            },
           },
-        },
-      })
+        })
 
-      await expect(prisma.$queryRaw`PRAGMA journal_mode = WAL`).resolves.toEqual([{ journal_mode: 'wal' }])
+        await expect(prisma.$queryRaw`PRAGMA journal_mode = WAL`).resolves.toEqual([{ journal_mode: 'wal' }])
 
-      const ddlQueries: any = []
-      sqlDef.split(';').forEach((sql) => {
-        ddlQueries.push(prisma.$executeRawUnsafe(sql))
-      })
-      await prisma.$transaction(ddlQueries)
+        const ddlQueries: any = []
+        sqlDef.split(';').forEach((sql) => {
+          ddlQueries.push(prisma.$executeRawUnsafe(sql))
+        })
+        await prisma.$transaction(ddlQueries)
 
-      const id1 = faker.database.mongodbObjectId()
-      const id2 = faker.database.mongodbObjectId()
+        const id1 = faker.database.mongodbObjectId()
+        const id2 = faker.database.mongodbObjectId()
 
-      // User 1
-      await prisma.user.create({
-        data: {
-          id: id1,
-          email: `${id1}@example.ext`,
-        },
-      })
-      // User 2
-      await prisma.user.create({
-        data: {
-          id: id2,
-          email: `${id2}@example.ext`,
-        },
-      })
-
-      //
-      // Note: it works as a transaction
-      // const queries = await prisma.$transaction([
-      //
-      const queries = Promise.all([
-        // Profile 1
-        prisma.profile.upsert({
-          update: {},
-          where: {
+        // User 1
+        await prisma.user.create({
+          data: {
             id: id1,
+            email: `${id1}@example.ext`,
           },
-          create: {
-            user: {
-              connect: {
-                id: id1,
-              },
-            },
-          },
-        }),
-        // Profile 2
-        prisma.profile.upsert({
-          update: {},
-          where: {
+        })
+        // User 2
+        await prisma.user.create({
+          data: {
             id: id2,
+            email: `${id2}@example.ext`,
           },
-          create: {
-            user: {
-              connect: {
-                id: id2,
+        })
+
+        //
+        // Note: it works as a transaction
+        // const queries = await prisma.$transaction([
+        //
+        const queries = Promise.all([
+          // Profile 1
+          prisma.profile.upsert({
+            update: {},
+            where: {
+              id: id1,
+            },
+            create: {
+              user: {
+                connect: {
+                  id: id1,
+                },
               },
             },
-          },
-        }),
-      ])
+          }),
+          // Profile 2
+          prisma.profile.upsert({
+            update: {},
+            where: {
+              id: id2,
+            },
+            create: {
+              user: {
+                connect: {
+                  id: id2,
+                },
+              },
+            },
+          }),
+        ])
 
-      await expect(queries).resolves.toHaveLength(2)
-    })
+        await expect(queries).resolves.toHaveLength(2)
+      },
+    )
 
     test('2 concurrent upsert should succeed with connection_limit=1', async () => {
       const prisma = newPrismaClient({
@@ -246,7 +257,7 @@ testMatrix.setupTestSuite(
       await expect(queries).resolves.toHaveLength(2)
     })
 
-    test('2 concurrent delete should succeed with connection_limit=1', async () => {
+    testIf(driverAdapter !== 'js_d1')('2 concurrent delete should succeed with connection_limit=1', async () => {
       const prisma = newPrismaClient({
         datasources: {
           db: {
