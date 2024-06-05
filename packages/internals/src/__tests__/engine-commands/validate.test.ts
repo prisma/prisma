@@ -3,7 +3,7 @@ import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { isRustPanic, validate } from '../..'
-import { readSchemaFromSingleFile } from '../../cli/getSchema'
+import { getSchemaWithPath } from '../../cli/getSchema'
 import type { MultipleSchemas, SchemaFileInput } from '../../utils/schemaFileInput'
 import { fixturesPath } from '../__utils__/fixtures'
 
@@ -391,12 +391,12 @@ describe('validate', () => {
     })
 
     test('chinook introspected schema', async () => {
-      const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'chinook.prisma'))
+      const { schemas } = await getSchemaWithPath(path.join(fixturesPath, 'chinook.prisma'))
       validate({ schemas })
     })
 
     test('odoo introspected schema', async () => {
-      const { schemas } = await readSchemaFromSingleFile(path.join(fixturesPath, 'odoo.prisma'))
+      const { schemas } = await getSchemaWithPath(path.join(fixturesPath, 'odoo.prisma'))
       validate({ schemas })
     })
   })

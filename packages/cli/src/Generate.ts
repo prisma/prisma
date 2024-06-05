@@ -126,7 +126,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaResult = await getSchemaPathAndPrint(args['--schema'], cwd)
 

@@ -48,6 +48,7 @@ export interface GeneratorConfig {
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
+  envPaths?: EnvPaths
 }
 
 export interface EnvValue {
@@ -85,6 +86,11 @@ export type BinaryPaths = {
   libqueryEngine?: { [binaryTarget: string]: string }
 }
 
+export type EnvPaths = {
+  rootEnvPath: string | null
+  schemaEnvPath: string | undefined
+}
+
 /** The options passed to the generator implementations */
 export type GeneratorOptions = {
   generator: GeneratorConfig
@@ -101,6 +107,7 @@ export type GeneratorOptions = {
   postinstall?: boolean
   noEngine?: boolean
   allowNoModels?: boolean
+  envPaths?: EnvPaths
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'

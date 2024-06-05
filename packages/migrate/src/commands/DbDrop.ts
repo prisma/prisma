@@ -81,7 +81,7 @@ ${bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const { schemaPath } = await getSchemaPathAndPrint(args['--schema'])
 

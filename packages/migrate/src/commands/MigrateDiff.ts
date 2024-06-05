@@ -225,14 +225,18 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']))
+      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), {
+        argumentName: '--from-schema-datasource',
+      })
       from = {
         tag: 'schemaDatasource',
         ...toSchemasWithConfigDir(schema),
       }
     } else if (args['--from-schema-datamodel']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']))
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), {
+        argumentName: '--from-schema-datamodel',
+      })
       from = {
         tag: 'schemaDatamodel',
         ...toSchemasContainer(schema.schemas),
@@ -262,14 +266,18 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']))
+      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), {
+        argumentName: '--to-schema-datasource',
+      })
       to = {
         tag: 'schemaDatasource',
         ...toSchemasWithConfigDir(schema),
       }
     } else if (args['--to-schema-datamodel']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']))
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), {
+        argumentName: '--to-schema-datamodel',
+      })
       to = {
         tag: 'schemaDatamodel',
         ...toSchemasContainer(schema.schemas),
