@@ -6,7 +6,6 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
-declare let prisma: PrismaClient
 
 // From npx prisma migrate diff --from-empty --to-schema-datamodel=...
 const sqlDef = `CREATE TABLE "User" (
@@ -27,13 +26,14 @@ CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId")`
 testMatrix.setupTestSuite(
   ({ driverAdapter }) => {
     testIf(driverAdapter === 'js_d1')('D1 does not support journal_mode = WAL', async () => {
+      const prisma = newPrismaClient()
       expect.assertions(1)
 
       try {
         await prisma.$queryRaw`PRAGMA journal_mode = WAL`
       } catch (error) {
         const e = error as Error
-        expect(e.message).toContain(/D1_ERROR: not authorized/)
+        expect(e.message).toContain('D1_ERROR: not authorized')
       }
     })
 
