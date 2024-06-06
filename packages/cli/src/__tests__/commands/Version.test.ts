@@ -101,6 +101,25 @@ describe('version', () => {
     },
     50_000,
   )
+
+  // Driver Adapters Tests
+
+  testIf(runLibraryTest)(
+    'version with driver adapters, it only shows official adapters and their underlying drivers',
+    async () => {
+      ctx.fixture('version-driver-adapters')
+
+      const data = await ctx.cli('--version')
+      expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+    },
+  )
+
+  testIf(runBinaryTest)('version with driver adapters, it does not show any adapter', async () => {
+    ctx.fixture('version-driver-adapters')
+
+    const data = await ctx.cli('--version')
+    expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+  })
 })
 
 function cleanSnapshot(str: string, versionOverride?: string): string {
