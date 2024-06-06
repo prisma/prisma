@@ -5,7 +5,7 @@ const runtimesPrettyNames = {
   workerd: 'Cloudflare Workers',
   deno: 'Deno and Deno Deploy',
   netlify: 'Netlify Edge Functions',
-  'edge-light': 'Edge Runtime (Vercel Edge Functions, Vercel Edge Middleware, Next.js Edge API Routes or Next.js Middleware)',
+  'edge-light': 'Edge Runtime (Vercel Edge Functions, Vercel Edge Middleware, Next.js Edge API Routes, Next.js Edge Route Handlers or Next.js Middleware)',
 } as const
 
 type GetRuntimeOutput = {
