@@ -7,10 +7,10 @@
     "@prisma/adapter-not-recognized": "file:../adapter-not-recognized",
     "@prisma/non-adapter": "file:../non-adapter",
     "@prisma/client": "file:../client",
-    "@neondatabase/serverless": "0.9.3"
+    "@neondatabase/serverless": "<NEON_VERSION>"
   },
   "devDependencies": {
-    "wrangler": "3.5.9",
-    "pg": "8.12.0"
+    "wrangler": "<WRANGLER_DEV_VERSION>",
+    "pg": "<PG_DEV_VERSION>"
   }
 }

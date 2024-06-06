@@ -74,9 +74,9 @@ exports[`version version with driver adapters, it only shows official adapters a
 "prisma                      : 0.0.0
 @prisma/client              : 0.0.0
 @prisma/adapter-d1          : file:../adapter-d1
- ↳ wrangler                 : 3.5.9
+ ↳ wrangler                 : <WRANGLER_DEV_VERSION>
 @prisma/adapter-neon        : file:../adapter-neon
- ↳ @neondatabase/serverless : 0.9.3
+ ↳ @neondatabase/serverless : <NEON_VERSION>
 @prisma/adapter-pg          : file:../adapter-pg
  ↳ pg                       : Not found
 @prisma/adapter-planetscale : file:../adapter-planetscale
