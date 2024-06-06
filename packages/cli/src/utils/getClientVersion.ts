@@ -58,7 +58,6 @@ type DriverAdapterVersion = {
 export async function getPrismaDriverAdapterVersionsFromLocalPackageJson(
   cwd: string = process.cwd(),
 ): Promise<Array<DriverAdapterVersion> | null> {
-  cwd = cwd ?? process.cwd()
   try {
     const pkgJsonPath = await pkgUp({ cwd })
 
