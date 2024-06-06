@@ -7,8 +7,11 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-// From npx prisma migrate diff --from-empty --to-schema-datamodel=...
-const sqlDef = `CREATE TABLE "User" (
+// DROPs added manually
+// the rest is from npx prisma migrate diff --from-empty --to-schema-datamodel=...
+const sqlDef = `DROP TABLE IF EXISTS "Profile";
+DROP TABLE IF EXISTS "User";
+CREATE TABLE "User" (
    "id" TEXT NOT NULL PRIMARY KEY,
    "email" TEXT NOT NULL
 );
