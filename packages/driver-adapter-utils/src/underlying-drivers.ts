@@ -13,7 +13,7 @@ export const underlyingDriverAdaptersMap = {
 } as const satisfies Record<string, string>
 
 export function isOfficialDriverAdapter(key: string): key is OfficialDriverAdapters {
-  return Object.hasOwn(underlyingDriverAdaptersMap, key)
+  return underlyingDriverAdaptersMap[key] !== undefined
 }
 
 export type OfficialDriverAdapters = keyof typeof underlyingDriverAdaptersMap
