@@ -12,7 +12,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model User {
-      id       String  @id() @default(cuid())
+      id       String  @id() @default(cuid()) @map("_id")
       name     String
       username String  @unique()
       email    String  @unique()
@@ -32,7 +32,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model Session {
-      id        String @id() @default(cuid())
+      id        String @id() @default(cuid()) @map("_id")
       token     String @unique()
       ip        String
       userAgent String @map("user_agent")
@@ -45,7 +45,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model Video {
-      id          String @id() @default(cuid())
+      id          String @id() @default(cuid()) @map("_id")
       title       String
       description String
       url         String @unique()
@@ -58,7 +58,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model Tag {
-      id   String @id() @default(cuid())
+      id   String @id() @default(cuid()) @map("_id")
       name String @unique()
 
       videos VideoTag[]
@@ -67,13 +67,14 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model VideoTag {
+      id      String @id() @default(cuid()) @map("_id")
       videoId String @map("video_id")
       tagId   String @map("tag_id")
 
       video Video @relation(fields: [videoId], references: [id])
       tag   Tag   @relation(fields: [tagId], references: [id])
 
-      @@id([videoId, tagId])
+      @@unique([videoId, tagId])
       @@map("video_tags")
     }
   `
