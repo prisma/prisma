@@ -77,6 +77,8 @@ exports[`version version with driver adapters, it only shows official adapters a
  ↳ wrangler                 : 3.5.9
 @prisma/adapter-neon        : file:../adapter-neon
  ↳ @neondatabase/serverless : 0.9.3
+@prisma/adapter-pg          : file:../adapter-pg
+ ↳ pg                       : Not found
 @prisma/adapter-planetscale : file:../adapter-planetscale
  ↳ @planetscale/database    : Not found
 Computed binaryTarget       : TEST_PLATFORM
