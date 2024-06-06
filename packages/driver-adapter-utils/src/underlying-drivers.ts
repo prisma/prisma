@@ -3,19 +3,6 @@
  * E.g., `@prisma/adapter-planetscale` -> `@planetscale/database`
  */
 
-const officialDriverAdapters = [
-  '@prisma/adapter-d1',
-  '@prisma/adapter-libsql',
-  '@prisma/adapter-neon',
-  '@prisma/adapter-planetscale',
-  '@prisma/adapter-pg',
-  '@prisma/adapter-pg-worker',
-] as const
-
-export function isOfficialDriverAdapter(key: string): key is OfficialDriverAdapters {
-  return (officialDriverAdapters as readonly string[]).includes(key)
-}
-
 export const underlyingDriverAdaptersMap = {
   '@prisma/adapter-d1': 'wrangler',
   '@prisma/adapter-libsql': '@libsql/client',
@@ -23,7 +10,11 @@ export const underlyingDriverAdaptersMap = {
   '@prisma/adapter-planetscale': '@planetscale/database',
   '@prisma/adapter-pg': 'pg',
   '@prisma/adapter-pg-worker': '@prisma/pg-worker',
-} as const satisfies Record<OfficialDriverAdapters, string>
+} as const satisfies Record<string, string>
 
-export type OfficialDriverAdapters = (typeof officialDriverAdapters)[number]
+export function isOfficialDriverAdapter(key: string): key is OfficialDriverAdapters {
+  return Object.hasOwn(underlyingDriverAdaptersMap, key)
+}
+
+export type OfficialDriverAdapters = keyof typeof underlyingDriverAdaptersMap
 export type OfficialUnderlyingDrivers = (typeof underlyingDriverAdaptersMap)[OfficialDriverAdapters]
