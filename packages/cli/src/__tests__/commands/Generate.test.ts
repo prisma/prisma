@@ -384,23 +384,12 @@ describe('using cli', () => {
     `)
     }
 
-    if (engineType === ClientEngineType.Library) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+    expect(data.stdout).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
 
       ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
       "
     `)
-    }
-
-    if (engineType !== ClientEngineType.Library && engineType !== ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
-      ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
-      "
-    `)
-    }
   })
 
   it('should work and not show hints with --no-hints and --no-engine', async () => {

@@ -159,8 +159,6 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
-        noHints: Boolean(args['--no-hints']),
-        allowNoModels: Boolean(args['--allow-no-models']),
       })
 
       if (!generators || generators.length === 0) {
@@ -251,6 +249,8 @@ When using Deno, you need to define \`output\` in the client generator section o
 ${breakingChangesMessage}`
           : ''
 
+        const hideHintMode = args['--no-hints'] || false
+
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
@@ -261,18 +261,20 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
+        if (hideHintMode) hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+        else {
+          const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
 Try Prisma Accelerate for connection pooling and caching.
 ${link('https://pris.ly/cli/--accelerate')}`
 
-        const boxedTryAccelerateMessage = drawBox({
-          height: tryAccelerateMessage.split('\n').length,
-          width: 0, // calculated automatically
-          str: tryAccelerateMessage,
-          horizontalPadding: 2,
-        })
+          const boxedTryAccelerateMessage = drawBox({
+            height: tryAccelerateMessage.split('\n').length,
+            width: 0, // calculated automatically
+            str: tryAccelerateMessage,
+            horizontalPadding: 2,
+          })
 
-        hint = `
+          hint = `
 Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
 ${highlightTS(`\
@@ -291,9 +293,9 @@ See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-cl
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
 
-        if (generator?.previewFeatures.includes('driverAdapters')) {
-          if (generator?.isCustomOutput && isDeno) {
-            hint = `
+          if (generator?.previewFeatures.includes('driverAdapters')) {
+            if (generator?.isCustomOutput && isDeno) {
+              hint = `
 ${bold('Start using Prisma Client')}
 ${dim('```')}
 ${highlightTS(`\
@@ -302,8 +304,8 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 More information: https://pris.ly/d/client`
-          } else {
-            hint = `
+            } else {
+              hint = `
 ${bold('Start using Prisma Client')}
 ${dim('```')}
 ${highlightTS(`\
@@ -312,15 +314,14 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 More information: https://pris.ly/d/client`
-          }
+            }
 
-          hint = `${hint}
+            hint = `${hint}
 
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+          }
         }
-        const hideHintMode = args['--no-hints'] || false
-        if (hideHintMode) hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
