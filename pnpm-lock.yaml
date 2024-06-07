@@ -210,8 +210,8 @@ importers:
   packages/adapter-d1:
     dependencies:
       '@cloudflare/workers-types':
-        specifier: 4.20240603.0
-        version: 4.20240603.0
+        specifier: 4.20240605.0
+        version: 4.20240605.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -375,7 +375,7 @@ importers:
         version: link:../cli
       wrangler:
         specifier: 3.59.0
-        version: 3.59.0(@cloudflare/workers-types@4.20240603.0)
+        version: 3.59.0(@cloudflare/workers-types@4.20240605.0)
 
   packages/bundled-js-drivers:
     dependencies:
@@ -537,8 +537,8 @@ importers:
   packages/client:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: 4.20240603.0
-        version: 4.20240603.0
+        specifier: 4.20240605.0
+        version: 4.20240605.0
       '@codspeed/benchmark.js-plugin':
         specifier: 3.1.0
         version: 3.1.0(benchmark@2.1.4)
@@ -817,7 +817,7 @@ importers:
         version: 5.28.4
       wrangler:
         specifier: 3.59.0
-        version: 3.59.0(@cloudflare/workers-types@4.20240603.0)
+        version: 3.59.0(@cloudflare/workers-types@4.20240605.0)
       zx:
         specifier: 7.2.3
         version: 7.2.3
@@ -1496,7 +1496,7 @@ importers:
         version: 5.4.5
       wrangler:
         specifier: 3.59.0
-        version: 3.59.0(@cloudflare/workers-types@4.20240603.0)
+        version: 3.59.0(@cloudflare/workers-types@4.20240605.0)
 
   packages/nextjs-monorepo-workaround-plugin:
     devDependencies:
@@ -2132,8 +2132,8 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@cloudflare/workers-types@4.20240603.0:
-    resolution: {integrity: sha512-KmsjZcd/dPWM51FoT08cvUGCq9l3nFEriloQ12mcdJPoW911Gi5S/9Cq4xeFvTrtk9TJ2krvxP23IeobecRmOQ==}
+  /@cloudflare/workers-types@4.20240605.0:
+    resolution: {integrity: sha512-zJw4Q6CnkaQ5JZmHRkNiSs5GfiRgUIUL8BIHPQkd2XUHZkIBv9M9yc0LKEwMYGpCFC+oSOltet6c9RjP9uQ99g==}
 
   /@codspeed/benchmark.js-plugin@3.1.0(benchmark@2.1.4):
     resolution: {integrity: sha512-PHF/QJ3WzTEX9nyhq6EHPA/pkHfMCW0FtfmJvl1qQSt0yIqpM4f0iBIfowua1AzbyD+Pd6iOPvlLHqO7ziLc+Q==}
@@ -7142,7 +7142,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8426,7 +8425,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@8.5.1:
     resolution: {integrity: sha512-XjwVfRS6jTMsqYs0EsuJ4LGxXV14zQybNd4L2r0UvbVnSF9Af8x7p5MzbJ90Ioz/9TI41/hTCvznF/loiSzn8w==}
@@ -11639,7 +11638,7 @@ packages:
       '@cloudflare/workerd-linux-arm64': 1.20240524.0
       '@cloudflare/workerd-windows-64': 1.20240524.0
 
-  /wrangler@3.59.0(@cloudflare/workers-types@4.20240603.0):
+  /wrangler@3.59.0(@cloudflare/workers-types@4.20240605.0):
     resolution: {integrity: sha512-MLKejazUJrekbD8EnQfN6d7fei+IGnq2aVXeILFDy0aTktVNXKvO+eC+mND1zOr+k0KvQN4sJo8vGwqYoY7btw==}
     engines: {node: '>=16.17.0'}
     hasBin: true
@@ -11650,7 +11649,7 @@ packages:
         optional: true
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.2
-      '@cloudflare/workers-types': 4.20240603.0
+      '@cloudflare/workers-types': 4.20240605.0
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5
