@@ -96,12 +96,12 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
           rowMode: 'array',
           types: {
             // This is the error expected:
-            // Error: packages/adapter-pg build: src/pg.ts(98,13): error TS2769: No overload matches this call.
-            //   The last overload gave the following error.
-            //   Type '(oid: number) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
+            // No overload matches this call.
+            // The last overload gave the following error.
+            // Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
             //   Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
-            //   Types of parameters 'json' and 'value' are incompatible.
-            //   Type 'Buffer' is not assignable to type 'string'.
+            //     Types of parameters 'json' and 'value' are incompatible.
+            //       Type 'Buffer' is not assignable to type 'string'.ts(2769)
             //
             // Because pg-types types expect us to handle both binary and text protocol versions,
             // where as far we can see, pg will ever pass only text version.
