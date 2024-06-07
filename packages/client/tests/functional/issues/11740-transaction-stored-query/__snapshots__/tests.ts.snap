@@ -5,10 +5,10 @@ exports[`issues.11740-transaction-stored-query (provider=cockroachdb) stored que
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -17,10 +17,10 @@ exports[`issues.11740-transaction-stored-query (provider=cockroachdb) stored que
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -29,10 +29,10 @@ exports[`issues.11740-transaction-stored-query (provider=mongodb) stored query t
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
 `;
 
@@ -41,10 +41,10 @@ exports[`issues.11740-transaction-stored-query (provider=mongodb) stored query t
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
 `;
 
@@ -53,10 +53,10 @@ exports[`issues.11740-transaction-stored-query (provider=mysql) stored query tri
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
 `;
 
@@ -65,10 +65,10 @@ exports[`issues.11740-transaction-stored-query (provider=mysql) stored query tri
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
 `;
 
@@ -77,10 +77,10 @@ exports[`issues.11740-transaction-stored-query (provider=mysql, js_planetscale) 
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the (not available)"
 `;
 
@@ -89,10 +89,10 @@ exports[`issues.11740-transaction-stored-query (provider=mysql, js_planetscale) 
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the (not available)"
 `;
 
@@ -101,10 +101,10 @@ exports[`issues.11740-transaction-stored-query (provider=postgresql) stored quer
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -113,10 +113,10 @@ exports[`issues.11740-transaction-stored-query (provider=postgresql) stored quer
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -125,10 +125,10 @@ exports[`issues.11740-transaction-stored-query (provider=postgresql, js_neon) st
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -137,10 +137,10 @@ exports[`issues.11740-transaction-stored-query (provider=postgresql, js_neon) st
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -149,10 +149,10 @@ exports[`issues.11740-transaction-stored-query (provider=postgresql, js_pg) stor
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -161,10 +161,10 @@ exports[`issues.11740-transaction-stored-query (provider=postgresql, js_pg) stor
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -173,10 +173,10 @@ exports[`issues.11740-transaction-stored-query (provider=sqlite) stored query tr
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -185,10 +185,10 @@ exports[`issues.11740-transaction-stored-query (provider=sqlite) stored query tr
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -197,10 +197,10 @@ exports[`issues.11740-transaction-stored-query (provider=sqlite, js_d1) stored q
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`UNIQUE constraint failed\`)"
 `;
 
@@ -209,10 +209,10 @@ exports[`issues.11740-transaction-stored-query (provider=sqlite, js_d1) stored q
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`UNIQUE constraint failed\`)"
 `;
 
@@ -221,10 +221,10 @@ exports[`issues.11740-transaction-stored-query (provider=sqlite, js_libsql) stor
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -233,10 +233,10 @@ exports[`issues.11740-transaction-stored-query (provider=sqlite, js_libsql) stor
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
@@ -245,10 +245,10 @@ exports[`issues.11740-transaction-stored-query (provider=sqlserver) stored query
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query trigger .requestTransaction twice should fail',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`dbo.Resource\`"
 `;
 
@@ -257,9 +257,9 @@ exports[`issues.11740-transaction-stored-query (provider=sqlserver) stored query
 Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
-  XX testIf(engineType !== 'binary')(
-  XX   'stored query triggered twice should fail but not exit process',
-  XX   async () => {
-→ XX     const query = prisma.resource.create(
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`dbo.Resource\`"
 `;
