@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker'
-
 import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -13,115 +11,32 @@ declare let prisma: PrismaClient
  * - https://github.com/prisma/prisma/issues/21772
  */
 testMatrix.setupTestSuite(({ provider }) => {
-  test('2 concurrent upsert should succeed', async () => {
-    const id1 = faker.database.mongodbObjectId()
-    const id2 = faker.database.mongodbObjectId()
-
-    // User 1
-    await prisma.user.create({
-      data: {
-        id: id1,
-        email: `${id1}@example.ext`,
-      },
-    })
-    // User 2
-    await prisma.user.create({
-      data: {
-        id: id2,
-        email: `${id2}@example.ext`,
-      },
-    })
-
-    const queries = Promise.all([
-      // Profile 1
-      prisma.profile.upsert({
-        update: {},
-        where: {
-          id: id1,
+  async function createUsers(ids: string[]) {
+    for (const id of ids) {
+      await prisma.user.create({
+        data: {
+          id,
+          email: `${id}@test.com`,
         },
-        create: {
-          user: {
-            connect: {
-              id: id1,
-            },
-          },
-        },
-      }),
-      // Profile 2
-      prisma.profile.upsert({
-        update: {},
-        where: {
-          id: id2,
-        },
-        create: {
-          user: {
-            connect: {
-              id: id2,
-            },
-          },
-        },
-      }),
-    ])
+      })
+    }
+  }
 
-    await expect(queries).resolves.toHaveLength(2)
-  })
-
-  test('2 concurrent delete should succeed', async () => {
-    const id1 = faker.database.mongodbObjectId()
-    const id2 = faker.database.mongodbObjectId()
-
-    // User 1
-    await prisma.user.create({
-      data: {
-        id: id1,
-        email: `${id1}@example.ext`,
-      },
-    })
-    // User 2
-    await prisma.user.create({
-      data: {
-        id: id2,
-        email: `${id2}@example.ext`,
-      },
-    })
-
-    const queries = Promise.all([
-      // User 1
-      prisma.user.delete({
-        where: {
-          id: id1,
-        },
-      }),
-      // User 2
-      prisma.user.delete({
-        where: {
-          id: id2,
-        },
-      }),
-    ])
-
-    await expect(queries).resolves.toHaveLength(2)
-  })
-
-  // Testing only on SQLite, to avoid overloading the CI with too many queries
-  testIf([Providers.SQLITE].includes(provider))('100 concurrent creates should succeed', async () => {
-    const N = 100
-    const ids = Array.from({ length: N }).map((_, i) => `${i + 1}`.padStart(5, '0'))
-
-    const users = await Promise.all(
+  async function createUsersConcurrently(ids: string[]) {
+    return await Promise.all(
       ids.map((id) =>
         prisma.user.create({
           data: {
             id,
-            email: `email@${id}`,
+            email: `${id}@test.com`,
           },
         }),
       ),
     )
+  }
 
-    expect(users).toHaveLength(N)
-
-    const queries = await Promise.all(
+  async function createProfilesConcurrently(ids: string[]) {
+    return await Promise.all(
       ids.map((id) =>
         prisma.profile.create({
           data: {
@@ -134,7 +49,74 @@ testMatrix.setupTestSuite(({ provider }) => {
         }),
       ),
     )
+  }
 
+  function upsertProfilesConcurrently(ids: string[]) {
+    return Promise.all(
+      ids.map((id) =>
+        prisma.profile.upsert({
+          update: {},
+          where: {
+            id,
+          },
+          create: {
+            user: {
+              connect: {
+                id,
+              },
+            },
+          },
+        }),
+      ),
+    )
+  }
+
+  function deleteUsersConcurrently(ids: string[]) {
+    return Promise.all(
+      ids.map((id) =>
+        prisma.user.delete({
+          where: {
+            id,
+          },
+        }),
+      ),
+    )
+  }
+
+  beforeEach(async () => {
+    await prisma.profile.deleteMany()
+    await prisma.user.deleteMany()
+  })
+
+  test('5 concurrent upsert should succeed', async () => {
+    const N = 5
+    const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+    await createUsers(ids)
+
+    const queries = await upsertProfilesConcurrently(ids)
+
+    expect(queries).toHaveLength(N)
+  })
+
+  test('5 concurrent delete should succeed', async () => {
+    const N = 5
+    const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+    await createUsers(ids)
+
+    const queries = await deleteUsersConcurrently(ids)
+
+    expect(queries).toHaveLength(N)
+  })
+
+  // Testing only on SQLite, to avoid overloading the CI with too many queries
+  testIf([Providers.SQLITE].includes(provider))('100 concurrent creates should succeed', async () => {
+    const N = 100
+    const ids = Array.from({ length: N }).map((_, i) => `${i + 1}`.padStart(5, '0'))
+
+    const users = await createUsersConcurrently(ids)
+    expect(users).toHaveLength(N)
+
+    const queries = await createProfilesConcurrently(ids)
     expect(queries).toHaveLength(N)
   })
 })

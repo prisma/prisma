@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker'
-
 import { Db, NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -27,6 +25,49 @@ declare const db: Db
  */
 testMatrix.setupTestSuite(
   ({ driverAdapter }) => {
+    async function createUsers(prisma: PrismaClient, ids: string[]) {
+      for (const id of ids) {
+        await prisma.user.create({
+          data: {
+            id,
+            email: `${id}@test.com`,
+          },
+        })
+      }
+    }
+
+    function upsertProfilesConcurrently(prisma: PrismaClient, ids: string[]) {
+      return Promise.all(
+        ids.map((id) =>
+          prisma.profile.upsert({
+            update: {},
+            where: {
+              id,
+            },
+            create: {
+              user: {
+                connect: {
+                  id,
+                },
+              },
+            },
+          }),
+        ),
+      )
+    }
+
+    function deleteUsersConcurrently(prisma: PrismaClient, ids: string[]) {
+      return Promise.all(
+        ids.map((id) =>
+          prisma.user.delete({
+            where: {
+              id,
+            },
+          }),
+        ),
+      )
+    }
+
     testIf(driverAdapter === 'js_d1')('D1 does not support journal_mode = WAL', async () => {
       const prisma = newPrismaClient()
       expect.assertions(1)
@@ -39,7 +80,7 @@ testMatrix.setupTestSuite(
       }
     })
 
-    testIf(driverAdapter !== 'js_d1')('2 concurrent upsert should succeed with journal_mode = WAL', async () => {
+    testIf(driverAdapter !== 'js_d1')('5 concurrent upsert should succeed with journal_mode = WAL', async () => {
       await db.dropDb()
 
       const prisma = newPrismaClient({
@@ -52,70 +93,23 @@ testMatrix.setupTestSuite(
 
       await expect(prisma.$queryRaw`PRAGMA journal_mode = WAL`).resolves.toEqual([{ journal_mode: 'wal' }])
 
-      const ddlQueries: any = []
+      const ddlQueries = [] as any[]
       sqlDef.split(';').forEach((sql) => {
         ddlQueries.push(prisma.$executeRawUnsafe(sql))
       })
       await prisma.$transaction(ddlQueries)
 
-      const id1 = faker.database.mongodbObjectId()
-      const id2 = faker.database.mongodbObjectId()
+      const N = 5
+      const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+      await createUsers(prisma, ids)
 
-      // User 1
-      await prisma.user.create({
-        data: {
-          id: id1,
-          email: `${id1}@example.ext`,
-        },
-      })
-      // User 2
-      await prisma.user.create({
-        data: {
-          id: id2,
-          email: `${id2}@example.ext`,
-        },
-      })
+      const queries = await upsertProfilesConcurrently(prisma, ids)
 
-      //
-      // Note: it works as a transaction
-      // const queries = await prisma.$transaction([
-      //
-      const queries = Promise.all([
-        // Profile 1
-        prisma.profile.upsert({
-          update: {},
-          where: {
-            id: id1,
-          },
-          create: {
-            user: {
-              connect: {
-                id: id1,
-              },
-            },
-          },
-        }),
-        // Profile 2
-        prisma.profile.upsert({
-          update: {},
-          where: {
-            id: id2,
-          },
-          create: {
-            user: {
-              connect: {
-                id: id2,
-              },
-            },
-          },
-        }),
-      ])
-
-      await expect(queries).resolves.toHaveLength(2)
+      expect(queries).toHaveLength(N)
     })
 
     testIf(driverAdapter !== 'js_d1')(
-      '2 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL',
+      '5 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL',
       async () => {
         await db.dropDb()
 
@@ -135,64 +129,17 @@ testMatrix.setupTestSuite(
         })
         await prisma.$transaction(ddlQueries)
 
-        const id1 = faker.database.mongodbObjectId()
-        const id2 = faker.database.mongodbObjectId()
+        const N = 5
+        const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+        await createUsers(prisma, ids)
 
-        // User 1
-        await prisma.user.create({
-          data: {
-            id: id1,
-            email: `${id1}@example.ext`,
-          },
-        })
-        // User 2
-        await prisma.user.create({
-          data: {
-            id: id2,
-            email: `${id2}@example.ext`,
-          },
-        })
+        const queries = await upsertProfilesConcurrently(prisma, ids)
 
-        //
-        // Note: it works as a transaction
-        // const queries = await prisma.$transaction([
-        //
-        const queries = Promise.all([
-          // Profile 1
-          prisma.profile.upsert({
-            update: {},
-            where: {
-              id: id1,
-            },
-            create: {
-              user: {
-                connect: {
-                  id: id1,
-                },
-              },
-            },
-          }),
-          // Profile 2
-          prisma.profile.upsert({
-            update: {},
-            where: {
-              id: id2,
-            },
-            create: {
-              user: {
-                connect: {
-                  id: id2,
-                },
-              },
-            },
-          }),
-        ])
-
-        await expect(queries).resolves.toHaveLength(2)
+        expect(queries).toHaveLength(N)
       },
     )
 
-    test('2 concurrent upsert should succeed with connection_limit=1', async () => {
+    test('5 concurrent upsert should succeed with connection_limit=1', async () => {
       await db.dropDb()
 
       const prisma = newPrismaClient({
@@ -209,63 +156,16 @@ testMatrix.setupTestSuite(
       })
       await prisma.$transaction(ddlQueries)
 
-      const id1 = faker.database.mongodbObjectId()
-      const id2 = faker.database.mongodbObjectId()
+      const N = 5
+      const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+      await createUsers(prisma, ids)
 
-      // User 1
-      await prisma.user.create({
-        data: {
-          id: id1,
-          email: `${id1}@example.ext`,
-        },
-      })
-      // User 2
-      await prisma.user.create({
-        data: {
-          id: id2,
-          email: `${id2}@example.ext`,
-        },
-      })
+      const queries = await upsertProfilesConcurrently(prisma, ids)
 
-      //
-      // Note: it works as a transaction
-      // const queries = await prisma.$transaction([
-      //
-      const queries = Promise.all([
-        // Profile 1
-        prisma.profile.upsert({
-          update: {},
-          where: {
-            id: id1,
-          },
-          create: {
-            user: {
-              connect: {
-                id: id1,
-              },
-            },
-          },
-        }),
-        // Profile 2
-        prisma.profile.upsert({
-          update: {},
-          where: {
-            id: id2,
-          },
-          create: {
-            user: {
-              connect: {
-                id: id2,
-              },
-            },
-          },
-        }),
-      ])
-
-      await expect(queries).resolves.toHaveLength(2)
+      expect(queries).toHaveLength(N)
     })
 
-    testIf(driverAdapter !== 'js_d1')('2 concurrent delete should succeed with connection_limit=1', async () => {
+    testIf(driverAdapter !== 'js_d1')('5 concurrent delete should succeed with connection_limit=1', async () => {
       await db.dropDb()
 
       const prisma = newPrismaClient({
@@ -282,40 +182,13 @@ testMatrix.setupTestSuite(
       })
       await prisma.$transaction(ddlQueries)
 
-      const id1 = faker.database.mongodbObjectId()
-      const id2 = faker.database.mongodbObjectId()
+      const N = 5
+      const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+      await createUsers(prisma, ids)
 
-      // User 1
-      await prisma.user.create({
-        data: {
-          id: id1,
-          email: `${id1}@example.ext`,
-        },
-      })
-      // User 2
-      await prisma.user.create({
-        data: {
-          id: id2,
-          email: `${id2}@example.ext`,
-        },
-      })
+      const queries = await deleteUsersConcurrently(prisma, ids)
 
-      const queries = Promise.all([
-        // User 1
-        prisma.user.delete({
-          where: {
-            id: id1,
-          },
-        }),
-        // User 2
-        prisma.user.delete({
-          where: {
-            id: id2,
-          },
-        }),
-      ])
-
-      await expect(queries).resolves.toHaveLength(2)
+      expect(queries).toHaveLength(N)
     })
   },
   {
