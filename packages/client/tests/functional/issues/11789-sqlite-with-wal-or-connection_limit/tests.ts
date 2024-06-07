@@ -1,17 +1,14 @@
 import { faker } from '@faker-js/faker'
 
-import { NewPrismaClient } from '../../_utils/types'
+import { Db, NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-// DROPs added manually
 // the rest is from npx prisma migrate diff --from-empty --to-schema-datamodel=...
-const sqlDef = `DROP TABLE IF EXISTS "Profile";
-DROP TABLE IF EXISTS "User";
-CREATE TABLE "User" (
+const sqlDef = `CREATE TABLE "User" (
    "id" TEXT NOT NULL PRIMARY KEY,
    "email" TEXT NOT NULL
 );
@@ -22,6 +19,8 @@ CREATE TABLE "Profile" (
 );
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId")`
+
+declare const db: Db
 
 /**
  * tests for #11789
@@ -41,6 +40,8 @@ testMatrix.setupTestSuite(
     })
 
     testIf(driverAdapter !== 'js_d1')('2 concurrent upsert should succeed with journal_mode = WAL', async () => {
+      await db.dropDb()
+
       const prisma = newPrismaClient({
         datasources: {
           db: {
@@ -116,6 +117,8 @@ testMatrix.setupTestSuite(
     testIf(driverAdapter !== 'js_d1')(
       '2 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL',
       async () => {
+        await db.dropDb()
+
         const prisma = newPrismaClient({
           datasources: {
             db: {
@@ -190,6 +193,8 @@ testMatrix.setupTestSuite(
     )
 
     test('2 concurrent upsert should succeed with connection_limit=1', async () => {
+      await db.dropDb()
+
       const prisma = newPrismaClient({
         datasources: {
           db: {
@@ -261,6 +266,8 @@ testMatrix.setupTestSuite(
     })
 
     testIf(driverAdapter !== 'js_d1')('2 concurrent delete should succeed with connection_limit=1', async () => {
+      await db.dropDb()
+
       const prisma = newPrismaClient({
         datasources: {
           db: {
