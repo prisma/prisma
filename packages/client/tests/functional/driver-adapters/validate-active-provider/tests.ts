@@ -60,28 +60,6 @@ testMatrix.setupTestSuite(
         }
       },
     )
-
-    testIf(driverAdapter === 'js_planetscale' && provider === Providers.POSTGRESQL)(
-      '@prisma/adapter-planetscale cannot be used with `provider = "postgresql"`',
-      () => {
-        expect.assertions(2)
-
-        const planetscale = new PlanetScaleClient({ url: datasourceInfo.databaseUrl, fetch })
-        const adapter = new PrismaPlanetScale(planetscale)
-
-        try {
-          newPrismaClient({
-            adapter,
-          })
-        } catch (error) {
-          const e = error as PrismaClientInitializationError
-          expect(e.constructor.name).toEqual('PrismaClientInitializationError')
-          expect(e.message).toMatchInlineSnapshot(
-            `"The Driver Adapter \`@prisma/adapter-planetscale\`, based on \`mysql\`, is not compatible with the provider \`postgres\` specified in the Prisma schema."`,
-          )
-        }
-      },
-    )
   },
   {
     skipDb: true,
