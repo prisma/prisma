@@ -775,6 +775,41 @@ describe('--schema from project directory', () => {
       `"Could not load \`--schema\` from provided path \`doesnotexists.prisma\`: file or directory not found"`,
     )
   })
+
+  it('should throw errors if schema does not exist at default path', async () => {
+    ctx.fixture('empty')
+    const output = Generate.new().parse([])
+    await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "Could not find Prisma Schema that is required for this command.
+      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      Checked following paths:
+
+      schema.prisma: file not found
+      prisma/schema.prisma: file not found
+      prisma/schema: directory not found
+
+      See also https://pris.ly/d/prisma-schema-location"
+    `)
+  })
+})
+
+describe('in postinstall', () => {
+  let oldEnv: NodeJS.ProcessEnv
+
+  beforeEach(() => {
+    oldEnv = { ...process.env }
+    process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
+  })
+
+  afterEach(() => {
+    process.env = { ...oldEnv }
+  })
+
+  it('should not throw errors if prisma schema not found', async () => {
+    ctx.fixture('empty')
+    const output = await Generate.new().parse([])
+    expect(output).toMatchInlineSnapshot(`""`)
+  })
 })
 
 describe('--schema from parent directory', () => {
