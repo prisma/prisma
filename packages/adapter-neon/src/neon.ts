@@ -11,6 +11,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
@@ -24,7 +25,7 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
  * Base class for http client, ws client and ws transaction
  */
 abstract class NeonQueryable implements Queryable {
-  readonly provider = 'postgresql'
+  readonly provider = 'postgres'
   readonly adapterName = packageName
 
   /**

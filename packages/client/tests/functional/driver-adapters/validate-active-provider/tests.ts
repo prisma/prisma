@@ -33,7 +33,7 @@ testMatrix.setupTestSuite(
           const e = error as PrismaClientInitializationError
           expect(e.constructor.name).toEqual('PrismaClientInitializationError')
           expect(e.message).toMatchInlineSnapshot(
-            `"The Driver Adapter \`@prisma/adapter-pg\`, based on \`postgresql\`, is not compatible with the provider \`mysql\` specified in the Prisma schema."`,
+            `"The Driver Adapter \`@prisma/adapter-pg\`, based on \`postgres\`, is not compatible with the provider \`mysql\` specified in the Prisma schema."`,
           )
         }
       },
@@ -77,7 +77,7 @@ testMatrix.setupTestSuite(
           const e = error as PrismaClientInitializationError
           expect(e.constructor.name).toEqual('PrismaClientInitializationError')
           expect(e.message).toMatchInlineSnapshot(
-            `"The Driver Adapter \`@prisma/adapter-planetscale\`, based on \`mysql\`, is not compatible with the provider \`postgresql\` specified in the Prisma schema."`,
+            `"The Driver Adapter \`@prisma/adapter-planetscale\`, based on \`mysql\`, is not compatible with the provider \`postgres\` specified in the Prisma schema."`,
           )
         }
       },

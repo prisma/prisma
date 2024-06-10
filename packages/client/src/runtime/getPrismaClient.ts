@@ -370,9 +370,18 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       if (optionsArg?.adapter) {
         adapter = bindAdapter(optionsArg.adapter)
 
-        if (adapter.provider !== config.activeProvider) {
+        // Note:
+        // - `getConfig(..).datasources[0].provider` can be `postgresql`, `postgres`, `mysql`, or other known providers
+        // - `getConfig(..).datasources[0].activeProvider`, stored in `config.activeProvider`, can be `postgresql`, `mysql`, or other known providers
+        // - `adapter.provider` can be `postgres`, `mysql`, or `sqlite`, and changing this requires changes to Rust as well,
+        //    see https://github.com/prisma/prisma-engines/blob/d116c37d7d27aee74fdd840fc85ab2b45407e5ce/query-engine/driver-adapters/src/types.rs#L22-L23.
+        //
+        // TODO: Normalize these provider names once and for all in Prisma 6.
+        const normalizedActiveProvider = config.activeProvider === 'postgresql' ? 'postgres' : config.activeProvider
+
+        if (adapter.provider !== normalizedActiveProvider) {
           throw new PrismaClientInitializationError(
-            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${config.activeProvider}\` specified in the Prisma schema.`,
+            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${normalizedActiveProvider}\` specified in the Prisma schema.`,
             this._clientVersion,
           )
         }

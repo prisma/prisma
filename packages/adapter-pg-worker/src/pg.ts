@@ -12,6 +12,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import * as pg from '@prisma/pg-worker'
+
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
@@ -22,7 +23,7 @@ type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
-  readonly provider = 'postgresql'
+  readonly provider = 'postgres'
   readonly adapterName = packageName
 
   constructor(protected readonly client: ClientT) {}
