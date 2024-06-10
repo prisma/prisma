@@ -9,7 +9,7 @@ export function getDriverAdaptersProvider(provider: Provider): DriverAdapter['pr
   switch (provider) {
     case Provider.POSTGRESQL:
     case Provider.COCKROACHDB:
-      return 'postgresql'
+      return 'postgres'
     case Provider.MYSQL:
       return 'mysql'
     case Provider.SQLITE:
