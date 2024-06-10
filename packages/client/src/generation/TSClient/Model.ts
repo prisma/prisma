@@ -6,6 +6,7 @@ import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import {
+  extArgsParam,
   getAggregateArgsName,
   getAggregateGetName,
   getAggregateInputType,
@@ -25,7 +26,6 @@ import {
   getModelArgName,
   getModelFieldArgsName,
   getPayloadName,
-  getReturnType,
   getSelectCreateManyAndReturnName,
   getSumAggregateName,
 } from '../utils'
@@ -34,7 +34,7 @@ import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
-import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
+import { getArgFieldJSDoc, getMethodJSDoc, getMethodJSDocBody, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
 import { buildOutputType } from './Output'
@@ -455,18 +455,12 @@ ${
 }
 export interface ${name}Delegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
 ${indent(`[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`, TAB_SIZE)}
-${indent(
-  nonAggregateActions
-    .map(
-      (actionName): string =>
-        `${getMethodJSDoc(actionName, mapping, modelOrType)}
-${actionName}${getGenericMethod(name, actionName)}(
-  ${getArgs(name, actionName)}
-): ${getReturnType({ name, actionName })}`,
-    )
-    .join('\n\n'),
-  TAB_SIZE,
-)}
+${nonAggregateActions
+  .map((action) => {
+    const method = buildModelDelegateMethod(name, action, this.context)
+    return ts.stringify(method, { indentLevel: 1, newLine: 'trailing' })
+  })
+  .join('\n')}
 
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
@@ -583,14 +577,14 @@ ${indent(
 ${f.name}<T extends ${getFieldArgName(f, name)}<ExtArgs> = {}>(args?: Subset<T, ${getFieldArgName(
         f,
         name,
-      )}<ExtArgs>>): ${getReturnType({
-        name: f.outputType.type,
-        actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
-        hideCondition: false,
-        renderPromise: true,
-        isChaining: true,
-        isNullable: f.isNullable,
-      })};`
+      )}<ExtArgs>>): ${ts.stringify(
+        getReturnType({
+          modelName: f.outputType.type,
+          actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
+          isChaining: true,
+          isNullable: f.isNullable,
+        }),
+      )};`
     })
     .join('\n'),
   2,
@@ -618,4 +612,156 @@ ${f.name}<T extends ${getFieldArgName(f, name)}<ExtArgs> = {}>(args?: Subset<T, 
   finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
 }`
   }
+}
+
+function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelAction, context: GenerateContext) {
+  const mapping = context.dmmf.mappingsMap[modelName] ?? { model: modelName, plural: `${modelName}s` }
+  const modelOrType = context.dmmf.typeAndModelMap[modelName]
+
+  const method = ts
+    .method(actionName)
+    .setDocComment(ts.docComment(getMethodJSDocBody(actionName, mapping, modelOrType)))
+    .addParameter(getNonAggregateMethodArgs(modelName, actionName))
+    .setReturnType(getReturnType({ modelName, actionName }))
+
+  const generic = getNonAggregateMethodGenericParam(modelName, actionName)
+  if (generic) {
+    method.addGenericParameter(generic)
+  }
+  return method
+}
+
+function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelAction) {
+  getReturnType
+  const makeParameter = (type: ts.TypeBuilder) => ts.parameter('args', type)
+  if (actionName === DMMF.ModelAction.count) {
+    const type = ts.omit(
+      ts.namedType(getModelArgName(modelName, DMMF.ModelAction.findMany)),
+      ts
+        .unionType(ts.stringLiteral('select'))
+        .addVariant(ts.stringLiteral('include'))
+        .addVariant(ts.stringLiteral('distinct')),
+    )
+    return makeParameter(type).optional()
+  }
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
+    return makeParameter(ts.namedType(getModelArgName(modelName, actionName))).optional()
+  }
+
+  const type = ts
+    .namedType('SelectSubset')
+    .addGenericArgument(ts.namedType('T'))
+    .addGenericArgument(
+      ts.namedType(getModelArgName(modelName, actionName)).addGenericArgument(extArgsParam.toArgument()),
+    )
+  const param = makeParameter(type)
+
+  if (
+    actionName === DMMF.ModelAction.findMany ||
+    actionName === DMMF.ModelAction.findFirst ||
+    actionName === DMMF.ModelAction.deleteMany ||
+    actionName === DMMF.ModelAction.createMany ||
+    actionName === DMMF.ModelAction.createManyAndReturn ||
+    actionName === DMMF.ModelAction.findFirstOrThrow
+  ) {
+    param.optional()
+  }
+
+  return param
+}
+
+function getNonAggregateMethodGenericParam(modelName: string, actionName: DMMF.ModelAction) {
+  if (
+    actionName === DMMF.ModelAction.count ||
+    actionName === DMMF.ModelAction.findRaw ||
+    actionName === DMMF.ModelAction.aggregateRaw
+  ) {
+    return null
+  }
+  const arg = ts.genericParameter('T')
+  if (actionName === DMMF.ModelAction.aggregate) {
+    return arg.extends(ts.namedType(getAggregateArgsName(modelName)))
+  }
+  return arg.extends(ts.namedType(getModelArgName(modelName, actionName)))
+}
+
+type GetReturnTypeOptions = {
+  modelName: string
+  actionName: DMMF.ModelAction
+  isChaining?: boolean
+  isNullable?: boolean
+}
+
+/**
+ * Get the complicated extract output
+ * @param name Model name
+ * @param actionName action name
+ */
+export function getReturnType({
+  modelName,
+  actionName,
+  isChaining = false,
+  isNullable = false,
+}: GetReturnTypeOptions): ts.TypeBuilder {
+  if (actionName === DMMF.ModelAction.count) {
+    return ts.promise(ts.numberType)
+  }
+  if (actionName === DMMF.ModelAction.aggregate) {
+    return ts.promise(ts.namedType(getAggregateGetName(modelName)).addGenericArgument(ts.namedType('T')))
+  }
+
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
+    return ts.prismaPromise(ts.namedType('JsonObject'))
+  }
+
+  if (
+    actionName === DMMF.ModelAction.deleteMany ||
+    actionName === DMMF.ModelAction.updateMany ||
+    actionName === DMMF.ModelAction.createMany
+  ) {
+    return ts.prismaPromise(ts.namedType('BatchPayload'))
+  }
+
+  const isList = actionName === DMMF.ModelAction.findMany || actionName === DMMF.ModelAction.createManyAndReturn
+
+  /**
+   * Important: We handle findMany or isList special, as we don't want chaining from there
+   */
+  if (isList) {
+    let result: ts.TypeBuilder = getResultType(modelName, actionName)
+    if (isChaining) {
+      result = ts.unionType(result).addVariant(ts.namedType('Null'))
+    }
+
+    return ts.prismaPromise(result)
+  }
+
+  if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
+    const nullType = isNullable ? ts.nullType : ts.namedType('Null')
+    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName)).addVariant(nullType)
+    return getFluentWrapper(modelName, result, nullType)
+  }
+
+  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
+    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName)).addVariant(ts.nullType)
+    return getFluentWrapper(modelName, result, ts.nullType)
+  }
+
+  return getFluentWrapper(modelName, getResultType(modelName, actionName))
+}
+
+function getFluentWrapper(modelName: string, resultType: ts.TypeBuilder, nullType: ts.TypeBuilder = ts.neverType) {
+  return ts
+    .namedType(`Prisma__${modelName}Client`)
+    .addGenericArgument(resultType)
+    .addGenericArgument(nullType)
+    .addGenericArgument(extArgsParam.toArgument())
+}
+
+function getResultType(modelName: string, actionName: DMMF.ModelAction) {
+  return ts
+    .namedType('$Result.GetResult')
+    .addGenericArgument(ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument()))
+    .addGenericArgument(ts.namedType('T'))
+    .addGenericArgument(ts.stringLiteral(actionName))
 }
