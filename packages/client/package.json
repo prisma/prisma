@@ -250,7 +250,7 @@
     "tsd": "0.31.0",
     "typescript": "5.4.5",
     "undici": "5.28.4",
-    "wrangler": "3.59.0",
+    "wrangler": "3.60.0",
     "zx": "7.2.3"
   },
   "peerDependencies": {
