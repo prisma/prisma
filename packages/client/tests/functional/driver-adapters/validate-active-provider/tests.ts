@@ -19,9 +19,6 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 // https://github.com/prisma/prisma/issues/21864
 testMatrix.setupTestSuite(
   ({ driverAdapter, provider }) => {
-    console.log('driverAdapter', driverAdapter)
-    console.log('provider', provider)
-
     testIf(driverAdapter === 'js_pg' && provider === Providers.MYSQL)(
       '@prisma/adapter-pg cannot be used with `provider = "mysql"`',
       () => {
