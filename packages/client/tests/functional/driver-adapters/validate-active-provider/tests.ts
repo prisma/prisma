@@ -3,6 +3,7 @@ import { Client as PlanetScaleClient } from '@planetscale/database'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
+import nodeFetch from 'node-fetch'
 import { Pool } from 'pg'
 
 import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
@@ -46,7 +47,7 @@ testMatrix.setupTestSuite(
       () => {
         expect.assertions(2)
 
-        const planetscale = new PlanetScaleClient({ url: datasourceInfo.databaseUrl })
+        const planetscale = new PlanetScaleClient({ url: datasourceInfo.databaseUrl, fetch: nodeFetch })
         const adapter = new PrismaPlanetScale(planetscale)
 
         try {
@@ -68,7 +69,7 @@ testMatrix.setupTestSuite(
       () => {
         expect.assertions(2)
 
-        const libsql = createLibSQLClient({ url: datasourceInfo.databaseUrl })
+        const libsql = createLibSQLClient({ url: datasourceInfo.databaseUrl, fetch: nodeFetch })
         const adapter = new PrismaLibSQL(libsql)
 
         try {
