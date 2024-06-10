@@ -775,6 +775,12 @@ describe('--schema from project directory', () => {
       `"Could not load \`--schema\` from provided path \`doesnotexists.prisma\`: file or directory not found"`,
     )
   })
+
+  it('should not throw errors if schema does not exist at default path', async () => {
+    ctx.fixture('empty')
+    const output = await Generate.new().parse([])
+    expect(output).toMatchInlineSnapshot(`""`)
+  })
 })
 
 describe('--schema from parent directory', () => {

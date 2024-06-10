@@ -1,4 +1,4 @@
-import { type GetSchemaResult, getSchemaWithPath, link, logger } from '@prisma/internals'
+import { type GetSchemaResult, getSchemaWithPathOptional, link, logger } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import path from 'path'
 
@@ -25,13 +25,18 @@ export async function getSchemaPathAndPrint(
   postinstallCwd?: string,
 ): Promise<GetSchemaResult | null> {
   const cwdOptions = postinstallCwd ? { cwd: postinstallCwd } : undefined
-  const schemaPathResult = await getSchemaWithPath(schemaPathProvided, cwdOptions)
+  const schemaPathResult = await getSchemaWithPathOptional(schemaPathProvided, cwdOptions)
   if (!schemaPathResult) {
-    // Special case for Generate command
+    // Special case for Generate command: at the moment, it does not throw
+    // on missing schema and instead prints the warning and exits with 0.
+    // This is done because `generate` is also called from postinstall hook and
+    // it needs to succeed even when the schema is not there. Future Prisma version
+    // should do this ONLY for postinstall case and throw normal error for explicitly invoked
+    // generate, however, for now, we are keeping warnings for both cases for backward compatibility
     if (cwdOptions !== undefined) {
       logger.warn(`We could not find your Prisma schema in the default locations (see: ${link(
         'https://pris.ly/d/prisma-schema-location',
-      )}.
+      )}).
 If you have a Prisma schema file in a custom path, you will need to run
 \`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
 If you do not have a Prisma schema file yet, you can ignore this message.`)
