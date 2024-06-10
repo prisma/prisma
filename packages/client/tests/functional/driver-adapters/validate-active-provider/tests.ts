@@ -1,9 +1,6 @@
-import { createClient as createLibSQLClient } from '@libsql/client'
 import { Client as PlanetScaleClient } from '@planetscale/database'
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
-import nodeFetch from 'node-fetch'
 import { Pool } from 'pg'
 
 import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
@@ -47,7 +44,7 @@ testMatrix.setupTestSuite(
       () => {
         expect.assertions(2)
 
-        const planetscale = new PlanetScaleClient({ url: datasourceInfo.databaseUrl, fetch: nodeFetch })
+        const planetscale = new PlanetScaleClient({ url: datasourceInfo.databaseUrl, fetch })
         const adapter = new PrismaPlanetScale(planetscale)
 
         try {
@@ -64,13 +61,13 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(driverAdapter === 'js_libsql' && provider === Providers.POSTGRESQL)(
-      '@prisma/adapter-turso cannot be used with `provider = "postgresql"`',
+    testIf(driverAdapter === 'js_planetscale' && provider === Providers.POSTGRESQL)(
+      '@prisma/adapter-planetscale cannot be used with `provider = "postgresql"`',
       () => {
         expect.assertions(2)
 
-        const libsql = createLibSQLClient({ url: datasourceInfo.databaseUrl, fetch: nodeFetch })
-        const adapter = new PrismaLibSQL(libsql)
+        const planetscale = new PlanetScaleClient({ url: datasourceInfo.databaseUrl, fetch })
+        const adapter = new PrismaPlanetScale(planetscale)
 
         try {
           newPrismaClient({
@@ -80,7 +77,7 @@ testMatrix.setupTestSuite(
           const e = error as PrismaClientInitializationError
           expect(e.constructor.name).toEqual('PrismaClientInitializationError')
           expect(e.message).toMatchInlineSnapshot(
-            `"The Driver Adapter \`@prisma/adapter-libsql\`, based on \`sqlite\`, is not compatible with the provider \`postgresql\` specified in the Prisma schema."`,
+            `"The Driver Adapter \`@prisma/adapter-planetscale\`, based on \`mysql\`, is not compatible with the provider \`postgresql\` specified in the Prisma schema."`,
           )
         }
       },

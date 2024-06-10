@@ -12,7 +12,7 @@ export default defineMatrix(() => [
       provider: Providers.SQLITE,
     },
     {
-      driverAdapter: 'js_libsql',
+      driverAdapter: 'js_planetscale',
       provider: Providers.POSTGRESQL,
     },
   ],
