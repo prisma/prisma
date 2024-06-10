@@ -49,7 +49,7 @@
     "tempy": "1.0.1",
     "ts-pattern": "5.1.2",
     "typescript": "5.4.5",
-    "wrangler": "3.59.0"
+    "wrangler": "3.60.0"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
