@@ -11,5 +11,9 @@ export default defineMatrix(() => [
       driverAdapter: 'js_planetscale',
       provider: Providers.SQLITE,
     },
+    {
+      driverAdapter: 'js_d1',
+      provider: Providers.POSTGRESQL,
+    },
   ],
 ])
