@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
@@ -26,7 +25,7 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
  * Base class for http client, ws client and ws transaction
  */
 abstract class NeonQueryable implements Queryable {
-  readonly provider = 'postgres'
+  readonly provider = 'postgresql'
   readonly adapterName = packageName
 
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
