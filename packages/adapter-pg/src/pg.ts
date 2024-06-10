@@ -14,8 +14,10 @@ import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
 
+const types = pg.types
+
 import { name as packageName } from '../package.json'
-import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType, customParsers } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:pg')
 
@@ -87,7 +89,36 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const { sql, args: values } = query
 
     try {
-      const result = await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' })
+      const result = await this.client.query(
+        {
+          text: sql,
+          values: fixArrayBufferValues(values),
+          rowMode: 'array',
+          types: {
+            // This is the error expected:
+            // No overload matches this call.
+            // The last overload gave the following error.
+            // Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
+            //   Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
+            //     Types of parameters 'json' and 'value' are incompatible.
+            //       Type 'Buffer' is not assignable to type 'string'.ts(2769)
+            //
+            // Because pg-types types expect us to handle both binary and text protocol versions,
+            // where as far we can see, pg will ever pass only text version.
+            //
+            // @ts-expect-error
+            getTypeParser: (oid: number, format?) => {
+              if (format === 'text' && customParsers[oid]) {
+                return customParsers[oid]
+              }
+
+              return types.getTypeParser(oid, format)
+            },
+          },
+        },
+        fixArrayBufferValues(values),
+      )
+
       return ok(result)
     } catch (e) {
       const error = e as Error
