@@ -61,7 +61,6 @@ export type GetGeneratorOptions = {
   generatorNames?: string[]
   postinstall?: boolean
   noEngine?: boolean
-  noHints?: boolean
   allowNoModels?: boolean
 }
 /**
@@ -85,7 +84,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     generatorNames = [],
     postinstall,
     noEngine,
-    noHints,
     allowNoModels,
   } = options
 

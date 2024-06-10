@@ -249,7 +249,7 @@ When using Deno, you need to define \`output\` in the client generator section o
 ${breakingChangesMessage}`
           : ''
 
-        const hideHintMode = args['--no-hints'] || false
+        const hideHints = args['--no-hints'] ?? false
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
@@ -261,8 +261,9 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        if (hideHintMode) hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
-        else {
+        if (hideHints) {
+          hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+        } else {
           const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
 Try Prisma Accelerate for connection pooling and caching.
 ${link('https://pris.ly/cli/--accelerate')}`
