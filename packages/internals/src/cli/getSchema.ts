@@ -112,7 +112,7 @@ export type GetSchemaResult = {
   schemas: MultipleSchemas
 }
 
-type GetSchemaOptions = {
+export type GetSchemaOptions = {
   cwd?: string
   argumentName?: string
 }

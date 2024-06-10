@@ -4,6 +4,7 @@ export {
   getPrismaConfigFromPackageJson,
   getSchema,
   getSchemaDir,
+  type GetSchemaOptions,
   type GetSchemaResult,
   getSchemaWithPath,
   getSchemaWithPathOptional,
