@@ -51,12 +51,12 @@ ${bold('Usage')}
   ${dim('$')} prisma generate [options]
 
 ${bold('Options')}
-
           -h, --help   Display this help message
             --schema   Custom path to your Prisma schema
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
+         --no-hints    Hides the hint messages but still outputs errors and warnings
    --allow-no-models   Allow generating a client without models
 
 ${bold('Examples')}
@@ -107,6 +107,7 @@ ${bold('Examples')}
       '--data-proxy': Boolean,
       '--accelerate': Boolean,
       '--no-engine': Boolean,
+      '--no-hints': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -158,7 +159,6 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
-        allowNoModels: Boolean(args['--allow-no-models']),
       })
 
       if (!generators || generators.length === 0) {
@@ -220,8 +220,10 @@ Please run \`prisma generate\` manually.`
 
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
-        (g) => g.options?.generator.provider && parseEnvValue(g.options?.generator.provider) === 'prisma-client-js',
+        ({ options }) =>
+          options?.generator.provider && parseEnvValue(options?.generator.provider) === 'prisma-client-js',
       )
+
       let hint = ''
       if (prismaClientJSGenerator) {
         const generator = prismaClientJSGenerator.options?.generator
@@ -240,11 +242,14 @@ When using Deno, you need to define \`output\` in the client generator section o
               ),
             )
           : '@prisma/client'
+
         const breakingChangesStr = printBreakingChangesMessage
           ? `
 
 ${breakingChangesMessage}`
           : ''
+
+        const hideHints = args['--no-hints'] ?? false
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
@@ -256,18 +261,21 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
+        if (hideHints) {
+          hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+        } else {
+          const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
 Try Prisma Accelerate for connection pooling and caching.
 ${link('https://pris.ly/cli/--accelerate')}`
 
-        const boxedTryAccelerateMessage = drawBox({
-          height: tryAccelerateMessage.split('\n').length,
-          width: 0, // calculated automatically
-          str: tryAccelerateMessage,
-          horizontalPadding: 2,
-        })
+          const boxedTryAccelerateMessage = drawBox({
+            height: tryAccelerateMessage.split('\n').length,
+            width: 0, // calculated automatically
+            str: tryAccelerateMessage,
+            horizontalPadding: 2,
+          })
 
-        hint = `
+          hint = `
 Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
 ${highlightTS(`\
@@ -285,9 +293,10 @@ See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-cl
 
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
-        if (generator?.previewFeatures.includes('driverAdapters')) {
-          if (generator?.isCustomOutput && isDeno) {
-            hint = `
+
+          if (generator?.previewFeatures.includes('driverAdapters')) {
+            if (generator?.isCustomOutput && isDeno) {
+              hint = `
 ${bold('Start using Prisma Client')}
 ${dim('```')}
 ${highlightTS(`\
@@ -296,8 +305,8 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 More information: https://pris.ly/d/client`
-          } else {
-            hint = `
+            } else {
+              hint = `
 ${bold('Start using Prisma Client')}
 ${dim('```')}
 ${highlightTS(`\
@@ -306,12 +315,13 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 More information: https://pris.ly/d/client`
-          }
+            }
 
-          hint = `${hint}
+            hint = `${hint}
 
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+          }
         }
       }
 
@@ -404,7 +414,6 @@ function getCurrentClientVersion(): string | null {
       }
     }
   } catch (e) {
-    //
     return null
   }
 

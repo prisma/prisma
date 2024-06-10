@@ -365,6 +365,49 @@ describe('using cli', () => {
     }
   })
 
+  it('should hide hints with --no-hints', async () => {
+    ctx.fixture('example-project')
+    const data = await ctx.cli('generate', '--no-hints')
+
+    if (typeof data.signal === 'number' && data.signal !== 0) {
+      throw new Error(data.stderr + data.stdout)
+    }
+
+    const engineType = getClientEngineType()
+
+    if (engineType === ClientEngineType.Binary) {
+      expect(data.stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+
+      ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+      "
+    `)
+    }
+
+    expect(data.stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+      "
+    `)
+  })
+
+  it('should work and not show hints with --no-hints and --no-engine', async () => {
+    ctx.fixture('example-project')
+    const data = await ctx.cli('generate', '--no-hints', '--no-engine')
+
+    if (typeof data.signal === 'number' && data.signal !== 0) {
+      throw new Error(data.stderr + data.stdout)
+    }
+
+    expect(data.stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+
+      ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
+      "
+    `)
+  })
+
   it('should warn when `url` is hardcoded', async () => {
     ctx.fixture('hardcoded-url')
     const data = await ctx.cli('generate')
