@@ -12,7 +12,7 @@ export const mockAdapterErrors = {
 /**
  * Create an adapter stub for testing.
  */
-export function mockAdapter(provider: Provider): DriverAdapter {
+export function mockAdapter(provider: Provider | (typeof Provider)[keyof typeof Provider]): DriverAdapter {
   return {
     provider: getDriverAdaptersProvider(provider),
     adapterName: getDriverAdaptersProvider(provider),

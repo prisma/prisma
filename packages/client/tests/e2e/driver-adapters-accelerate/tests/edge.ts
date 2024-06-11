@@ -1,14 +1,12 @@
+import { mockAdapter } from '../../../functional/driver-adapters/_utils/mock-adapter'
+
 test('driver adapters cannot be used via @prisma/client/edge', () => {
   jest.isolateModules(() => {
     const { PrismaClient } = require('@prisma/client/edge')
 
     const newClient = () =>
       new PrismaClient({
-        adapter: {
-          queryRaw: () => {},
-          executeRaw: () => {},
-          startTransaction: () => {},
-        },
+        adapter: mockAdapter('sqlite'),
       })
 
     expect(newClient).toThrowErrorMatchingInlineSnapshot(`
