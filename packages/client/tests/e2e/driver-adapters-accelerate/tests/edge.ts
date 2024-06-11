@@ -1,4 +1,4 @@
-import { mockAdapter } from '../../../functional/driver-adapters/_utils/mock-adapter'
+import { mockAdapter } from '../../_utils/mock-adapter'
 
 test('driver adapters cannot be used via @prisma/client/edge', () => {
   jest.isolateModules(() => {

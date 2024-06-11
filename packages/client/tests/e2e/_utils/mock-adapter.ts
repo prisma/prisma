@@ -1,8 +1,5 @@
 import { DriverAdapter } from '@prisma/driver-adapter-utils'
 
-import { Providers as Provider } from '../../_utils/providers'
-import { getDriverAdaptersProvider } from './provider'
-
 export const mockAdapterErrors = {
   queryRaw: new Error('Not implemented: queryRaw'),
   executeRaw: new Error('Not implemented: executeRaw'),
@@ -12,10 +9,10 @@ export const mockAdapterErrors = {
 /**
  * Create an adapter stub for testing.
  */
-export function mockAdapter(provider: Provider): DriverAdapter {
+export function mockAdapter(provider: 'mysql' | 'sqlite' | 'postgres'): DriverAdapter {
   return {
-    provider: getDriverAdaptersProvider(provider),
-    adapterName: getDriverAdaptersProvider(provider),
+    provider,
+    adapterName: '@prisma/adapter-mock',
     queryRaw: () => Promise.reject(mockAdapterErrors.queryRaw),
     executeRaw: () => Promise.reject(mockAdapterErrors.executeRaw),
     startTransaction: () => Promise.reject(mockAdapterErrors.startTransaction),
