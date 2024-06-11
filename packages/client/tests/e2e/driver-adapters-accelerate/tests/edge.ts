@@ -6,7 +6,7 @@ test('driver adapters cannot be used via @prisma/client/edge', () => {
 
     const newClient = () =>
       new PrismaClient({
-        adapter: mockAdapter('sqlite'),
+        adapter: mockAdapter('postgres'),
       })
 
     expect(newClient).toThrowErrorMatchingInlineSnapshot(`
