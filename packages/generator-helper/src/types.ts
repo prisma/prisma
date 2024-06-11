@@ -109,6 +109,7 @@ export type GeneratorOptions = {
   binaryPaths?: BinaryPaths
   postinstall?: boolean
   noEngine?: boolean
+  noHints?: boolean
   allowNoModels?: boolean
   envPaths?: EnvPaths
 }
