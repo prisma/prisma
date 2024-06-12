@@ -1,4 +1,3 @@
-import { Writer } from '../../../generation/ts-builders/Writer'
 import { ErrorFormat } from '../../getPrismaClient'
 import { CallSite } from '../../utils/CallSite'
 import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
@@ -6,8 +5,7 @@ import { PrismaClientValidationError } from '../errors/PrismaClientValidationErr
 import { JsArgs } from '../types/exported/JsApi'
 import { ValidationError } from '../types/ValidationError'
 import { applyValidationError } from './applyValidationError'
-import { buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
-import { activeColors, inactiveColors } from './base'
+import { buildArgumentsRenderingTree, renderArgsTree } from './ArgumentsRenderingTree'
 
 type ExceptionParams = {
   errors: ValidationError[]
@@ -31,10 +29,7 @@ export function throwValidationException({
     applyValidationError(error, argsTree)
   }
 
-  const colors = errorFormat === 'pretty' ? activeColors : inactiveColors
-
-  const message = argsTree.renderAllMessages(colors)
-  const renderedArgs = new Writer(0, { colors }).write(argsTree).toString()
+  const { message, args: renderedArgs } = renderArgsTree(argsTree, errorFormat)
 
   const messageWithContext = createErrorMessageWithContext({
     message,
