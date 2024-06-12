@@ -211,7 +211,7 @@
     "decimal.js": "10.4.3",
     "detect-runtime": "1.0.4",
     "env-paths": "2.2.1",
-    "esbuild": "0.21.4",
+    "esbuild": "0.21.5",
     "execa": "5.1.1",
     "expect-type": "0.19.0",
     "flat-map-polyfill": "0.3.8",
