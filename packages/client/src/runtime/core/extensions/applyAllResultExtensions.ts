@@ -38,6 +38,7 @@ export function applyAllResultExtensions({
   if (!model) {
     return result
   }
+
   return visitQueryResult({
     result,
     args: args ?? {},
@@ -49,7 +50,9 @@ export function applyAllResultExtensions({
         result: value,
         modelName: jsName,
         select: args.select,
-        omit: { ...globalOmit?.[jsName], ...args.omit },
+        // passing omit only if explicit select is not set - those 2 options are
+        // mutually exclusive
+        omit: args.select ? undefined : { ...globalOmit?.[jsName], ...args.omit },
         extensions,
       })
     },
