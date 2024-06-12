@@ -194,8 +194,8 @@
     "@prisma/pg-worker": "workspace:*",
     "@prisma/query-engine-wasm": "5.16.0-5.6f3b8db04fa234ab2812fdd27456e9d9590eedb1",
     "@snaplet/copycat": "0.17.3",
-    "@swc-node/register": "1.9.1",
-    "@swc/core": "1.5.25",
+    "@swc-node/register": "1.9.2",
+    "@swc/core": "1.5.28",
     "@swc/jest": "0.2.36",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.12",
@@ -227,7 +227,7 @@
     "js-levenshtein": "1.1.6",
     "kleur": "4.1.5",
     "klona": "2.0.6",
-    "mariadb": "3.3.0",
+    "mariadb": "3.3.1",
     "memfs": "4.9.2",
     "mssql": "10.0.2",
     "new-github-issue-url": "0.2.1",
@@ -250,7 +250,7 @@
     "tsd": "0.31.0",
     "typescript": "5.4.5",
     "undici": "5.28.4",
-    "wrangler": "3.60.0",
+    "wrangler": "3.60.2",
     "zx": "7.2.3"
   },
   "peerDependencies": {
