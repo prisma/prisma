@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.5.25",
+    "@swc/core": "1.5.28",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
@@ -37,7 +37,7 @@
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
     "log-update": "4.0.0",
-    "mariadb": "3.3.0",
+    "mariadb": "3.3.1",
     "mock-stdin": "1.0.0",
     "mongoose": "8.4.1",
     "mssql": "10.0.2",
@@ -49,7 +49,7 @@
     "tempy": "1.0.1",
     "ts-pattern": "5.1.2",
     "typescript": "5.4.5",
-    "wrangler": "3.60.0"
+    "wrangler": "3.60.2"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
