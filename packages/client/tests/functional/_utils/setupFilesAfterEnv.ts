@@ -1,7 +1,5 @@
 // add all jest-extended matchers
 // see https://jest-extended.jestcommunity.dev/docs/matchers/
-import 'undici'
-
 import * as matchers from 'jest-extended'
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
 import stripAnsi from 'strip-ansi'
