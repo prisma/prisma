@@ -1,6 +1,8 @@
 import path from 'path'
 import * as ts from 'typescript'
 
+import { allOptions } from '../../_utils/prisma-client-imports'
+
 const baseTsConfig = require('../../tsconfig.base.json').compilerOptions
 
 const dirPath = path.join(__dirname, '..', 'src')
@@ -12,26 +14,6 @@ const dirPathEsm = path.join(__dirname, '..', 'src', 'esm-only-pkgs')
 const depEsmTs = path.resolve(dirPathEsm, 'dep.ts')
 const noDepEsmTs = path.resolve(dirPathEsm, 'no-dep.ts')
 const defaultEsmTs = path.resolve(dirPathEsm, 'default.ts')
-
-// https://www.typescriptlang.org/tsconfig/#high-level-libraries
-const allOptions = [
-  { module: 'commonjs', moduleResolution: 'Node' },
-  { module: 'ES2015', moduleResolution: 'Node' },
-  { module: 'ES2020', moduleResolution: 'Node' },
-  { module: 'ES2022', moduleResolution: 'Node' },
-  { module: 'ESNext', moduleResolution: 'Node' },
-
-  { module: 'Node16', moduleResolution: 'Node16' },
-  { module: 'NodeNext', moduleResolution: 'Node16' },
-
-  { module: 'Node16', moduleResolution: 'NodeNext' },
-  { module: 'NodeNext', moduleResolution: 'NodeNext' },
-
-  { module: 'ES2015', moduleResolution: 'Bundler' },
-  { module: 'ES2020', moduleResolution: 'Bundler' },
-  { module: 'ES2022', moduleResolution: 'Bundler' },
-  { module: 'ESNext', moduleResolution: 'Bundler' },
-]
 
 describe('Typechecking', () => {
   test('custom import via dependency', () => {
