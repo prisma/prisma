@@ -33,3 +33,9 @@ test('invalid schema and feature enabled', async () => {
     loadedFile('related-feature-invalid-schema', 'b.prisma'),
   ])
 })
+
+test('empty prisma schema should load', async () => {
+  const files = await loadRelatedSchemaFiles(fixturePath('empty-schema', 'schema.prisma'))
+
+  expect(files).toEqual([loadedFile('empty-schema', 'schema.prisma')])
+})
