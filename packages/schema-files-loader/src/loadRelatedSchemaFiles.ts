@@ -31,7 +31,7 @@ export async function loadRelatedSchemaFiles(
 
 async function singleFile(filePath: string, filesResolver: FilesResolver): Promise<LoadedFile[]> {
   const contents = await filesResolver.getFileContents(filePath)
-  if (!contents) {
+  if (contents === undefined) {
     return []
   }
   return [[filePath, contents]]
