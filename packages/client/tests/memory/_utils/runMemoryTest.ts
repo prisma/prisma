@@ -28,8 +28,8 @@ export type TestResult = {
  * to avoid extra memory overhead
  * - generates client using provided schema and creates a database
  * - runs the test in a child process. During the run, child will periodically
- * write current heap usage into results file
- * - when child exits, reads heap usage over time. Using that information it can then make
+ * write current rss usage into results file
+ * - when child exits, reads rss usage over time. Using that information it can then make
  * a decision on whether or not leak is happening and create html report with a graph
  * (see `detectPossibleMemoryLeak` comments)
  * - if memory leak is happening, set process exit code to 1
@@ -44,9 +44,9 @@ export async function runMemoryTest(testDir: MemoryTestDir): Promise<TestResult>
   try {
     await generateMemoryTestClient(testDir)
 
-    const heapUsageOverTime = await runTestProcess(testDir)
+    const rssUsageOverTime = await runTestProcess(testDir)
 
-    const { hasLeak, growthRate } = detectPossibleMemoryLeak(heapUsageOverTime)
+    const { hasLeak, growthRate } = detectPossibleMemoryLeak(rssUsageOverTime)
 
     if (hasLeak) {
       console.log(bold(red('Looks like test is leaking memory')))
@@ -59,7 +59,7 @@ export async function runMemoryTest(testDir: MemoryTestDir): Promise<TestResult>
       console.log(`Memory growth rate: ${green(growthRate)} bytes / iteration, which is below threshold`)
     }
     console.log('')
-    return { testDir, hasLeak, heapUsageOverTime }
+    return { testDir, hasLeak, heapUsageOverTime: rssUsageOverTime }
   } finally {
     await dropMemoryTestDatabase(testDir)
   }
@@ -108,7 +108,7 @@ async function readTestResults(testDir: MemoryTestDir) {
 }
 
 /**
- * Given heap usage over time data, determines memory
+ * Given rss usage over time data, determines memory
  * growth rate, and based on that, decides whether or not
  * to consider it a memory leak
  *
