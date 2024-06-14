@@ -137,6 +137,7 @@ async function main() {
       console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
       jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
     }
+    console.log('FINISHED RUNNING ALL JOBS')
   } else {
     console.log('🏃 Running tests in parallel')
 
@@ -158,11 +159,13 @@ async function main() {
     }
 
     await Promise.allSettled(pendingJobResults)
+    console.log('FINISHED RUNNING ALL JOBS (parallel)')
   }
 
   const failedJobResults = jobResults.filter((r) => r.exitCode !== 0)
   const passedJobResults = jobResults.filter((r) => r.exitCode === 0)
 
+  console.log('PRINTING LOGS')
   if (args['--verbose'] === true) {
     for (const result of failedJobResults) {
       console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
@@ -178,6 +181,7 @@ async function main() {
       await sleep(50) // give some time for the logs to be printed (CI issue)
     }
   }
+  console.log('DONE PRINTING LOGS')
 
   // let the tests run and gather a list of logs for containers that have failed
   if (failedJobResults.length > 0) {
