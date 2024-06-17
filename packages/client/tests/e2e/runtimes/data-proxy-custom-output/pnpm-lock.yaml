@@ -1,0 +1,102 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@prisma/client':
+        specifier: /tmp/prisma-client-0.0.0.tgz
+        version: file:../../../tmp/prisma-client-0.0.0.tgz(prisma@file:../../../tmp/prisma-0.0.0.tgz)
+    devDependencies:
+      '@types/node':
+        specifier: 16.18.98
+        version: 16.18.98
+      expect-type:
+        specifier: 0.19.0
+        version: 0.19.0
+      prisma:
+        specifier: /tmp/prisma-0.0.0.tgz
+        version: file:../../../tmp/prisma-0.0.0.tgz
+
+packages:
+
+  '@prisma/client@file:../../../tmp/prisma-client-0.0.0.tgz':
+    resolution: {integrity: sha512-WTyny3/9xN8M0ODGPv5ONISirdsQ+bwTzV/g4BnY4oRPPmFhftMzE3lVxlRNIArWiCxyaDsI79bAv/EeNdd2oQ==, tarball: file:../../../tmp/prisma-client-0.0.0.tgz}
+    version: 0.0.0
+    engines: {node: '>=16.13'}
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+
+  '@prisma/debug@file:../../../tmp/prisma-debug-0.0.0.tgz':
+    resolution: {integrity: sha512-OPRxxSGzgvovvPNrhkcPM6TETlCjHu+4oNLZ6Kgk0K4Lk1tJ1tcqKAf/EVUM0oBDYshYjTm53ePeuMLooQFqGg==, tarball: file:../../../tmp/prisma-debug-0.0.0.tgz}
+    version: 0.0.0
+
+  '@prisma/engines-version@5.16.0-10.e974ca8eb70e4bad2b8a038ff3eaa4109ba7fd58':
+    resolution: {integrity: sha512-Avo4RsMayHacXGFLFUbiJrbh0bOt2U6H3rTzIHLt5UkkXLuypc9tXrbkeAOjd5pZLsAEuUSfJqq5Z9dnyQYIYg==}
+
+  '@prisma/engines@file:../../../tmp/prisma-engines-0.0.0.tgz':
+    resolution: {integrity: sha512-0w3KPyR57aY4iEgGYaZRTeCWzWTpkOpEi6ugKEWZ+8ioaOQTJ8vJ0kn2tWXq6lWmHszNlw6AOeFaURm5dk4JFA==, tarball: file:../../../tmp/prisma-engines-0.0.0.tgz}
+    version: 0.0.0
+
+  '@prisma/fetch-engine@file:../../../tmp/prisma-fetch-engine-0.0.0.tgz':
+    resolution: {integrity: sha512-FneF5k0MZvTV9Ts5IrMyJH/di2HrtS08mS6Or4U8i4f+S3EUBbdnxazVe8M/s45h7FLKaq73KUg0pYdQhHPt4Q==, tarball: file:../../../tmp/prisma-fetch-engine-0.0.0.tgz}
+    version: 0.0.0
+
+  '@prisma/get-platform@file:../../../tmp/prisma-get-platform-0.0.0.tgz':
+    resolution: {integrity: sha512-s9h4ZgpSRl3waYBFR8+eDzNZZEQ9fP+IMcG20vXz4HnlOqcOIAyeNatRAS70FtlnB23YiAZbrr4Er5bhRR97QA==, tarball: file:../../../tmp/prisma-get-platform-0.0.0.tgz}
+    version: 0.0.0
+
+  '@types/node@16.18.98':
+    resolution: {integrity: sha512-fpiC20NvLpTLAzo3oVBKIqBGR6Fx/8oAK/SSf7G+fydnXMY1x4x9RZ6sBXhqKlCU21g2QapUsbLlhv3+a7wS+Q==}
+
+  expect-type@0.19.0:
+    resolution: {integrity: sha512-piv9wz3IrAG4Wnk2A+n2VRCHieAyOSxrRLU872Xo6nyn39kYXKDALk4OcqnvLRnFvkz659CnWC8MWZLuuQnoqg==}
+    engines: {node: '>=12.0.0'}
+
+  prisma@file:../../../tmp/prisma-0.0.0.tgz:
+    resolution: {integrity: sha512-Fn+FU7Rjs2J4faYmFUIhh02BTw2XDaKG5B2gW2eais9mhAe0ybrgj3TFHYT7uxmcmUYB8q3Cl9PnF9KgZ4MuYA==, tarball: file:../../../tmp/prisma-0.0.0.tgz}
+    version: 0.0.0
+    engines: {node: '>=16.13'}
+    hasBin: true
+
+snapshots:
+
+  '@prisma/client@file:../../../tmp/prisma-client-0.0.0.tgz(prisma@file:../../../tmp/prisma-0.0.0.tgz)':
+    optionalDependencies:
+      prisma: file:../../../tmp/prisma-0.0.0.tgz
+
+  '@prisma/debug@file:../../../tmp/prisma-debug-0.0.0.tgz': {}
+
+  '@prisma/engines-version@5.16.0-10.e974ca8eb70e4bad2b8a038ff3eaa4109ba7fd58': {}
+
+  '@prisma/engines@file:../../../tmp/prisma-engines-0.0.0.tgz':
+    dependencies:
+      '@prisma/debug': file:../../../tmp/prisma-debug-0.0.0.tgz
+      '@prisma/engines-version': 5.16.0-10.e974ca8eb70e4bad2b8a038ff3eaa4109ba7fd58
+      '@prisma/fetch-engine': file:../../../tmp/prisma-fetch-engine-0.0.0.tgz
+      '@prisma/get-platform': file:../../../tmp/prisma-get-platform-0.0.0.tgz
+
+  '@prisma/fetch-engine@file:../../../tmp/prisma-fetch-engine-0.0.0.tgz':
+    dependencies:
+      '@prisma/debug': file:../../../tmp/prisma-debug-0.0.0.tgz
+      '@prisma/engines-version': 5.16.0-10.e974ca8eb70e4bad2b8a038ff3eaa4109ba7fd58
+      '@prisma/get-platform': file:../../../tmp/prisma-get-platform-0.0.0.tgz
+
+  '@prisma/get-platform@file:../../../tmp/prisma-get-platform-0.0.0.tgz':
+    dependencies:
+      '@prisma/debug': file:../../../tmp/prisma-debug-0.0.0.tgz
+
+  '@types/node@16.18.98': {}
+
+  expect-type@0.19.0: {}
+
+  prisma@file:../../../tmp/prisma-0.0.0.tgz:
+    dependencies:
+      '@prisma/engines': file:../../../tmp/prisma-engines-0.0.0.tgz
