@@ -1,0 +1,10 @@
+
+name = "functional-tests-config"
+main = "src/index.ts"
+compatibility_date = "2023-12-18"
+
+[[d1_databases]]
+binding = "D1_DATABASE"    # i.e. available in the Worker on env.MY_DATABASE
+database_name = "my-d1-db"
+# This is necessary for `wrangler d1 execute ...`
+database_id = "c5668576-7e66-456c-aa5c-aef936b4be70"

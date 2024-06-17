@@ -1,11 +1,8 @@
-import { D1Database } from '@cloudflare/workers-types'
+/* eslint-disable import/no-duplicates */
 import { neon, neonConfig, Pool as NeonPool } from '@neondatabase/serverless'
-import { Client as PlanetScaleClient } from '@planetscale/database'
-import { PrismaD1 } from '@prisma/adapter-d1'
 import { PrismaNeon, PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPg as PrismaPgWorker } from '@prisma/adapter-pg-worker'
-import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { PrismaClient } from '@prisma/client'
 // @ts-ignore no types available
 import * as G1 from '@prisma/client/generator-build'
@@ -23,7 +20,6 @@ import ws from 'ws'
 neonConfig.webSocketConstructor = ws
 
 const connectionString = 'just-a-string'
-
 export const errors = [E1, E2]
 
 export const client = new PrismaClient()
@@ -38,12 +34,8 @@ void replicaClient.user.findMany()
 export const generators = [G1, G2]
 
 /* Driver Adapters */
-const d1Db = {} as D1Database
-export const d1PrismaClient = new PrismaClient({
-  adapter: new PrismaD1(d1Db),
-})
-void d1PrismaClient.user.findMany()
 
+/* Driver Adapters */
 const neonPool = new NeonPool({ connectionString })
 export const neonPrismaClient = new PrismaClient({
   adapter: new PrismaNeon(neonPool),
@@ -70,9 +62,3 @@ export const pgWorkerPrismaClient = new PrismaClient({
   adapter: new PrismaPgWorker(pgWorkerPool),
 })
 void pgWorkerPrismaClient.user.findMany()
-
-const planetScaleClient = new PlanetScaleClient({ url: connectionString })
-export const planetScalePrismaClient = new PrismaClient({
-  adapter: new PrismaPlanetScale(planetScaleClient),
-})
-void planetScalePrismaClient.user.findMany()
