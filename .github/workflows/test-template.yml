@@ -48,6 +48,9 @@ env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: true
+  # Temporary override for the mirror used by the engines
+  PRISMA_ENGINES_MIRROR: 'https://pub-4c8d0335265c4484a8734643b596ecb2.r2.dev'
+  DEBUG: 'prisma:fetch-engine*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
