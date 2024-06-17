@@ -1,8 +1,8 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
+import { bindAdapter, type DriverAdapter, type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
-import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
@@ -237,7 +237,7 @@ export type GetPrismaClientConfig = {
   clientVersion: string
   engineVersion: string
   datasourceNames: string[]
-  activeProvider: string
+  activeProvider: ActiveConnectorType
 
   /**
    * The contents of the schema encoded into a string
@@ -347,8 +347,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         validatePrismaClientOptions(optionsArg, config)
       }
 
-      const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
-
       // prevents unhandled error events when users do not explicitly listen to them
       const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
 
@@ -362,6 +360,31 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
         schemaEnvPath:
           config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
+      }
+
+      /**
+       * Initialise and validate the Driver Adapter, if provided.
+       */
+
+      let adapter: ErrorCapturingDriverAdapter | undefined
+      if (optionsArg?.adapter) {
+        adapter = bindAdapter(optionsArg.adapter)
+
+        // Note:
+        // - `getConfig(..).datasources[0].provider` can be `postgresql`, `postgres`, `mysql`, or other known providers
+        // - `getConfig(..).datasources[0].activeProvider`, stored in `config.activeProvider`, can be `postgresql`, `mysql`, or other known providers
+        // - `adapter.provider` can be `postgres`, `mysql`, or `sqlite`, and changing this requires changes to Rust as well,
+        //    see https://github.com/prisma/prisma-engines/blob/d116c37d7d27aee74fdd840fc85ab2b45407e5ce/query-engine/driver-adapters/src/types.rs#L22-L23.
+        //
+        // TODO: Normalize these provider names once and for all in Prisma 6.
+        const normalizedActiveProvider = config.activeProvider === 'postgresql' ? 'postgres' : config.activeProvider
+
+        if (adapter.provider !== normalizedActiveProvider) {
+          throw new PrismaClientInitializationError(
+            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${normalizedActiveProvider}\` specified in the Prisma schema.`,
+            this._clientVersion,
+          )
+        }
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections

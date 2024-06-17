@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
@@ -12,6 +11,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
