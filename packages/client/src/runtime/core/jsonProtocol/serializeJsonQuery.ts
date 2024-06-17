@@ -393,7 +393,9 @@ class SerializeContext {
   constructor(private params: ContextParams) {
     if (this.params.modelName) {
       // TODO: throw if not found
-      this.model = this.params.runtimeDataModel.models[this.params.modelName]
+      this.model =
+        this.params.runtimeDataModel.models[this.params.modelName] ??
+        this.params.runtimeDataModel.types[this.params.modelName]
     }
   }
 
