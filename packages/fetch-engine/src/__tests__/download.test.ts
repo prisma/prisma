@@ -21,7 +21,7 @@ const mockFetch = _mockFetch as jest.MockedFunction<typeof actualFetch>
 
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
-const FIXED_ENGINES_HASH = 'bb8e7aae27ce478f586df41260253876ccb5b390'
+const FIXED_ENGINES_HASH = 'e974ca8eb70e4bad2b8a038ff3eaa4109ba7fd58'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
 
 // Network can be slow, especially for macOS in CI.
