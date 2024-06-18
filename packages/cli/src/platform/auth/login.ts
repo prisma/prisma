@@ -126,10 +126,16 @@ const createLoginUrl = async (params: { connection: string; redirectTo: string }
   return url
 }
 
-const createOptimizeLoginUrl = async (redirectUrl: string) => {
+const createOptimizeLoginUrl = async (redirectTo: string) => {
+  const userAgent = await getUserAgent()
+  const state: OptimizeState = {
+    client: userAgent,
+    redirectTo,
+  }
+
   const url = getOptimizeBaseAuthUrl()
-  url.searchParams.set('client', toBase64(await getUserAgent()))
-  url.searchParams.set('redirect', redirectUrl)
+  url.searchParams.set('state', encodeState(state))
+
   return url
 }
 
@@ -139,8 +145,9 @@ interface State {
   redirectTo: string
 }
 
-const toBase64 = (data: string) => Buffer.from(data, 'utf-8').toString('base64')
-const encodeState = (state: State) => toBase64(JSON.stringify(state))
+type OptimizeState = Omit<State, 'connection'>
+
+const encodeState = (state: State | OptimizeState) => Buffer.from(JSON.stringify(state), 'utf-8').toString('base64')
 
 const decodeUser = (stringifiedUser: string) => {
   try {
