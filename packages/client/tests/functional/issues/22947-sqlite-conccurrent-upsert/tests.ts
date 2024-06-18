@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
           username: 'Fireship',
           avatar: 'https://yt3.googleusercontent.com/...',
           password: 'password123',
-          bio: 'High-intensity ⚡ ...',
+          bio: 'High-intensity ...',
         },
       })
 
