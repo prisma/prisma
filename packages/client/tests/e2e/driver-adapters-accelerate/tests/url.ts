@@ -1,14 +1,12 @@
+import { mockAdapter } from '../../_utils/mock-adapter'
+
 test('driver adapters cannot be used with accelerate via @prisma/client/wasm', () => {
   jest.isolateModules(() => {
     const { PrismaClient } = require('@prisma/client/wasm')
 
     const newClient = () =>
       new PrismaClient({
-        adapter: {
-          queryRaw: () => {},
-          executeRaw: () => {},
-          startTransaction: () => {},
-        },
+        adapter: mockAdapter('postgres'),
         datasourceUrl: 'prisma://localhost:1234',
       })
 
@@ -25,11 +23,7 @@ test('driver adapters cannot be used with accelerate via @prisma/client/default'
 
     const newClient = () =>
       new PrismaClient({
-        adapter: {
-          queryRaw: () => {},
-          executeRaw: () => {},
-          startTransaction: () => {},
-        },
+        adapter: mockAdapter('postgres'),
         datasourceUrl: 'prisma://localhost:1234',
       })
 

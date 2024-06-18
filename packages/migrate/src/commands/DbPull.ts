@@ -8,7 +8,7 @@ import {
   getCommandWithExecutor,
   getConfig,
   getSchema,
-  getSchemaWithPath,
+  getSchemaWithPathOptional,
   HelpError,
   link,
   loadEnvFile,
@@ -122,8 +122,7 @@ Set composite types introspection depth to 2 levels
     }
 
     const url: string | undefined = args['--url']
-    // getSchemaPathAndPrint is not flexible enough for this use case
-    const schemaPathResult = await getSchemaWithPath(args['--schema'])
+    const schemaPathResult = await getSchemaWithPathOptional(args['--schema'])
     let schemaPath = schemaPathResult?.schemaPath ?? null
     const rootDir = schemaPathResult?.schemaRootDir ?? process.cwd()
     debug('schemaPathResult', schemaPathResult)
@@ -133,12 +132,12 @@ Set composite types introspection depth to 2 levels
       process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 
       // Load and print where the .env was loaded (if loaded)
-      loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
       printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
     } else {
       // Load .env but don't print
-      loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
     }
 
     const fromD1 = Boolean(args['--local-d1'])

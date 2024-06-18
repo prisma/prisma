@@ -48,6 +48,7 @@ export interface GeneratorConfig {
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
+  envPaths?: EnvPaths
 }
 
 export interface EnvValue {
@@ -70,10 +71,13 @@ export type ConnectorType =
   | 'sqlserver'
   | 'cockroachdb'
 
+export type ActiveConnectorType = Exclude<ConnectorType, 'postgres'>
+
 export interface DataSource {
   name: string
   provider: ConnectorType
-  activeProvider: ConnectorType
+  // In Rust, this comes from `Connector::provider_name()`
+  activeProvider: ActiveConnectorType
   url: EnvValue
   directUrl?: EnvValue
   schemas: string[] | []
@@ -83,6 +87,11 @@ export type BinaryPaths = {
   schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
+}
+
+export type EnvPaths = {
+  rootEnvPath: string | null
+  schemaEnvPath: string | undefined
 }
 
 /** The options passed to the generator implementations */
@@ -100,7 +109,9 @@ export type GeneratorOptions = {
   binaryPaths?: BinaryPaths
   postinstall?: boolean
   noEngine?: boolean
+  noHints?: boolean
   allowNoModels?: boolean
+  envPaths?: EnvPaths
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'

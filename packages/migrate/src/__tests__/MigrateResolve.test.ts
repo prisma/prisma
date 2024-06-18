@@ -24,8 +24,15 @@ describe('common', () => {
     ctx.fixture('empty')
     const result = MigrateResolve.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      "Could not find a schema.prisma file that is required for this command.
-      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+      "Could not find Prisma Schema that is required for this command.
+      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      Checked following paths:
+
+      schema.prisma: file not found
+      prisma/schema.prisma: file not found
+      prisma/schema: directory not found
+
+      See also https://pris.ly/d/prisma-schema-location"
     `)
   })
   it('should fail if no --applied or --rolled-back', async () => {

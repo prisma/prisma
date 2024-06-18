@@ -8,9 +8,9 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
-    "@types/node": "16.18.97",
+    "@types/node": "16.18.98",
     "esbuild": "0.21.4",
     "prisma": "/tmp/prisma-0.0.0.tgz",
-    "wrangler": "3.57.2"
+    "wrangler": "3.59.0"
   }
 }

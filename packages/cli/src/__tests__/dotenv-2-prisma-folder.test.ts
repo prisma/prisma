@@ -3,10 +3,10 @@ import { loadEnvFile } from '@prisma/internals'
 
 const ctx = jestContext.new().add(jestProcessContext()).assemble()
 
-it('should read .env file in prisma folder', () => {
+it('should read .env file in prisma folder', async () => {
   ctx.fixture('dotenv-2-prisma-folder')
 
-  loadEnvFile({ printMessage: true })
+  await loadEnvFile({ printMessage: true })
 
   expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchSnapshot()
 

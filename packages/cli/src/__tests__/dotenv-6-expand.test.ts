@@ -3,9 +3,9 @@ import { loadEnvFile } from '@prisma/internals'
 
 const ctx = jestContext.new().add(jestProcessContext()).assemble()
 
-it('should read expanded env vars', () => {
+it('should read expanded env vars', async () => {
   ctx.fixture('dotenv-6-expand')
-  loadEnvFile({ schemaPath: './expand/schema.prisma', printMessage: true })
+  await loadEnvFile({ schemaPath: './expand/schema.prisma', printMessage: true })
 
   expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchSnapshot()
 
