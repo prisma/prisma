@@ -12,7 +12,7 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@swc/core": "1.5.25",
+    "@swc/core": "1.5.28",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.16.0-1.fix-sqlite-concurrent-writes-74a48e9f33b0a8b403045af35430ce444541be88",
+    "@prisma/engines-version": "5.16.0-10.e974ca8eb70e4bad2b8a038ff3eaa4109ba7fd58",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },

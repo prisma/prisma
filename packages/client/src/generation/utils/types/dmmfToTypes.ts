@@ -16,7 +16,7 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     runtimeNameTs: 'library',
     schemaPath: '',
     outputDir: '',
-    activeProvider: '',
+    activeProvider: '' as any,
     binaryPaths: {},
     generator: {
       binaryTargets: [],

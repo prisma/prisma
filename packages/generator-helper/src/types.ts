@@ -71,10 +71,13 @@ export type ConnectorType =
   | 'sqlserver'
   | 'cockroachdb'
 
+export type ActiveConnectorType = Exclude<ConnectorType, 'postgres'>
+
 export interface DataSource {
   name: string
   provider: ConnectorType
-  activeProvider: ConnectorType
+  // In Rust, this comes from `Connector::provider_name()`
+  activeProvider: ActiveConnectorType
   url: EnvValue
   directUrl?: EnvValue
   schemas: string[] | []
@@ -106,6 +109,7 @@ export type GeneratorOptions = {
   binaryPaths?: BinaryPaths
   postinstall?: boolean
   noEngine?: boolean
+  noHints?: boolean
   allowNoModels?: boolean
   envPaths?: EnvPaths
 }

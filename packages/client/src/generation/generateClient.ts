@@ -1,6 +1,13 @@
 import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
-import type { BinaryPaths, ConnectorType, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type {
+  ActiveConnectorType,
+  BinaryPaths,
+  ConnectorType,
+  DataSource,
+  DMMF,
+  GeneratorConfig,
+} from '@prisma/generator-helper'
 import {
   assertNever,
   ClientEngineType,
@@ -56,7 +63,7 @@ export interface GenerateClientOptions {
   copyRuntimeSourceMaps?: boolean
   engineVersion: string
   clientVersion: string
-  activeProvider: string
+  activeProvider: ActiveConnectorType
   envPaths?: EnvPaths
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
