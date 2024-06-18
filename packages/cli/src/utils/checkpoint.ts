@@ -59,7 +59,6 @@ export async function runCheckpointClientCheck({
     // This only collects data from the nearest package.json
     // And the minimum required data to identify some frameworks
     const packageJsonData = await tryToExtractSomeDataFromPackageJson(schemaPath)
-    console.debug({ packageJsonData })
 
     const endGetInfo = performance.now()
     const getInfoElapsedTime = endGetInfo - startGetInfo
@@ -92,8 +91,8 @@ export async function runCheckpointClientCheck({
       // TODO: Check if we can remove, probably not needed since cli_path_hash is defined
       cli_path: process.argv[1],
       // Data extracted from the nearest package.json
-      // TODO
-      // type:
+      pkg_type: packageJsonData.type,
+      typescript: packageJsonData.typescript,
     }
 
     const startCheckpoint = performance.now()
@@ -167,10 +166,16 @@ export async function tryToReadDataFromSchema(schemaPath?: string) {
 export async function tryToExtractSomeDataFromPackageJson(cwd?: string) {
   const packageJson = await findNearestPackageJson(cwd)
   const packagePath = packageJson?.path
+  let packageType: string | undefined = packageJson?.data.type || ''
+  // If the value is not 'module' or 'commonjs' then it's invalid and we don't want to send it
+  // https://nodejs.org/api/packages.html#type
+  if (!['module', 'commonjs'].includes(packageType)) {
+    packageType = undefined
+  }
 
   const data = {
     typescript: undefined,
-    type: packageJson?.data.type,
+    type: packageType,
   }
 
   if (!packagePath) {
