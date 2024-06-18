@@ -96,7 +96,6 @@ export async function runCheckpointClientCheck({
     }
 
     const startCheckpoint = performance.now()
-    console.log('abc')
     // Call Checkpoint Client and return result
     const checkpointResult = await checkpoint.check(data)
     const endCheckpoint = performance.now()
