@@ -49,7 +49,7 @@ export class Login implements Command {
     const redirectUrl = await listen(server, randomPort, '127.0.0.1')
     const loginUrl = optimize
       ? await createOptimizeLoginUrl(redirectUrl.href)
-      : await createLoginUrl({ connection: `github`, redirectTo: redirectUrl.href })
+      : await createLoginUrl({ connection: 'github', redirectTo: redirectUrl.href })
 
     console.info('Visit the following URL in your browser to authenticate:')
     console.info(link(loginUrl.href))
