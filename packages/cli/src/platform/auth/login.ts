@@ -7,7 +7,7 @@ import open from 'open'
 
 import { credentialsFile } from '../_lib/credentials'
 import { successMessage } from '../_lib/messages'
-import { consoleUrl } from '../_lib/pdp'
+import { consoleUrl, optimizeUrl } from '../_lib/pdp'
 import { unknownToError } from '../_lib/prelude'
 import { getUserAgent } from '../_lib/userAgent'
 
@@ -47,7 +47,9 @@ export class Login implements Command {
      */
     const randomPort = 0
     const redirectUrl = await listen(server, randomPort, '127.0.0.1')
-    const loginUrl = await createLoginUrl({ connection: `github`, redirectTo: redirectUrl.href }, optimize)
+    const loginUrl = optimize
+      ? await createOptimizeLoginUrl(redirectUrl.href)
+      : await createLoginUrl({ connection: `github`, redirectTo: redirectUrl.href })
 
     console.info('Visit the following URL in your browser to authenticate:')
     console.info(link(loginUrl.href))
@@ -60,7 +62,7 @@ export class Login implements Command {
           const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
           const token = searchParams.get('token') ?? ''
           const error = searchParams.get('error')
-          const location = new URL(getAuthPath(optimize), consoleUrl)
+          const location = optimize ? getOptimizeBaseAuthUrl() : getBaseAuthUrl()
 
           if (error) {
             location.pathname += '/error'
@@ -108,31 +110,37 @@ export class Login implements Command {
   }
 }
 
-const getAuthPath = (optimize: boolean) => (optimize ? '/auth/optimize' : '/auth/cli')
+const getBaseAuthUrl = () => new URL('/auth/cli', consoleUrl)
+const getOptimizeBaseAuthUrl = () => new URL('/login/cli', optimizeUrl)
 
-const createLoginUrl = async (params: { connection: string; redirectTo: string }, optimize: boolean) => {
+const createLoginUrl = async (params: { connection: string; redirectTo: string }) => {
   const userAgent = await getUserAgent()
   const state: State = {
     client: userAgent,
     ...params,
   }
   const stateEncoded = encodeState(state)
-  const url = new URL(getAuthPath(optimize), consoleUrl)
+  const url = getBaseAuthUrl()
   url.searchParams.set('state', stateEncoded)
-
-  if (optimize) {
-    url.searchParams.set('source', 'cli')
-  }
 
   return url
 }
+
+const createOptimizeLoginUrl = async (redirectUrl: string) => {
+  const url = getOptimizeBaseAuthUrl()
+  url.searchParams.set('client', toBase64(await getUserAgent()))
+  url.searchParams.set('redirect', redirectUrl)
+  return url
+}
+
 interface State {
   client: string
   connection: string
   redirectTo: string
 }
 
-const encodeState = (state: State) => Buffer.from(JSON.stringify(state), `utf-8`).toString(`base64`)
+const toBase64 = (data: string) => Buffer.from(data, 'utf-8').toString('base64')
+const encodeState = (state: State) => toBase64(JSON.stringify(state))
 
 const decodeUser = (stringifiedUser: string) => {
   try {
