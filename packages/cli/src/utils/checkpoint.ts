@@ -9,6 +9,8 @@ import {
 } from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
+import path from 'path'
+import { valid as semverValid } from 'semver'
 
 const debug = Debug('prisma:cli:checkpoint')
 
@@ -90,12 +92,12 @@ export async function runCheckpointClientCheck({
       // TODO: Check if we can remove, probably not needed since cli_path_hash is defined
       cli_path: process.argv[1],
       // Data extracted from the nearest package.json
-      // TODO in checkpoint-client
-      // TODO This is a draft, the shape of the data is just a draft
-      package_json_data: packageJsonData,
+      // TODO
+      // type:
     }
 
     const startCheckpoint = performance.now()
+    console.log('abc')
     // Call Checkpoint Client and return result
     const checkpointResult = await checkpoint.check(data)
     const endCheckpoint = performance.now()
@@ -104,8 +106,7 @@ export async function runCheckpointClientCheck({
 
     return checkpointResult
   } catch (e) {
-    debug('Error from runCheckpointClientCheck()')
-    debug(e)
+    debug('Error from runCheckpointClientCheck()--:', e)
     return 0
   }
 }
@@ -165,52 +166,30 @@ export async function tryToReadDataFromSchema(schemaPath?: string) {
 
 export async function tryToExtractSomeDataFromPackageJson(cwd?: string) {
   const packageJson = await findNearestPackageJson(cwd)
+  const packagePath = packageJson?.path
 
-  const allDeps = { ...packageJson?.data.dependencies, ...packageJson?.data.devDependencies }
-
-  // Allowlist of dependencies to check for
-  // If the dependency is found, the key will be used as the slug
-  // and the value as the version
-  const dependencyMatches = [
-    {
-      slug: 'typescript',
-      packages: ['typescript'],
-    },
-    // More? Like Frameworks, etc.
-    // https://github.com/vercel/turbo/blob/5f8636bbfa71bd99ca4f8021a68ca91adf462cec/crates/turborepo-lib/src/framework.rs#L36
-    // {
-    //   slug: 'nextjs',
-    //   packages: ['next'],
-    // },
-    // {
-    //   slug: 'vite',
-    //   packages: ['vite'],
-    // },
-    // {
-    //   slug: 'redwoodjs',
-    //   packages: ['@redwoodjs/core'],
-    // },
-    // {
-    //   slug: 'nuxtjs',
-    //   packages: ['nuxt', 'nuxt-edge', 'nuxt3', 'nuxt3-edge'],
-    // },
-  ]
-
-  // Find the first dependency that matches and return it as a key-value pair with its version
-  const matches = dependencyMatches.reduce((acc, depToFind) => {
-    const firstPkgFound = depToFind.packages.find((pkg) => {
-      return allDeps[pkg]
-    })
-
-    if (firstPkgFound) {
-      acc[depToFind.slug] = allDeps[firstPkgFound]!
-    }
-    return acc
-  }, {} as Record<string, string>)
-
-  return {
-    dependencies: matches,
+  const data = {
+    typescript: undefined,
+    type: packageJson?.data.type,
   }
+
+  if (!packagePath) {
+    return data
+  }
+
+  // Require typescript to get its version
+  try {
+    const requirePath = require.resolve('typescript/package.json', { paths: [path.basename(packagePath)] })
+    const typescript = require(requirePath)
+    // Check that the version is valid before collecting it
+    if (typescript.version && semverValid(typescript.version)) {
+      data.typescript = typescript.version
+    }
+  } catch (e) {
+    debug('Error from tryToExtractSomeDataFromPackageJson()', e)
+  }
+
+  return data
 }
 
 /*
