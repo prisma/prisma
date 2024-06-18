@@ -9,7 +9,7 @@ import {
   getConfig,
   getEnginesMetaInfo,
   getSchema,
-  getSchemaWithPath,
+  getSchemaPath,
   HelpError,
   isError,
   loadEnvFile,
@@ -63,7 +63,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ printMessage: true })
+    loadEnvFile({ printMessage: true })
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
@@ -113,12 +113,7 @@ export class Version implements Command {
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
-    let schemaPath: string | null = null
-    try {
-      schemaPath = (await getSchemaWithPath()).schemaPath
-    } catch {
-      schemaPath = null
-    }
+    const schemaPath = (await getSchemaPath())?.schemaPath ?? null
     const featureFlags = await this.getFeatureFlags(schemaPath)
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
