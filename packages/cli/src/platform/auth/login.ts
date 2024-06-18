@@ -126,11 +126,11 @@ const createLoginUrl = async (params: { connection: string; redirectTo: string }
   return url
 }
 
-const createOptimizeLoginUrl = async (redirectTo: string) => {
+const createOptimizeLoginUrl = async (redirect: string) => {
   const userAgent = await getUserAgent()
   const state: OptimizeState = {
     client: userAgent,
-    redirectTo,
+    redirect,
   }
 
   const url = getOptimizeBaseAuthUrl()
@@ -145,7 +145,10 @@ interface State {
   redirectTo: string
 }
 
-type OptimizeState = Omit<State, 'connection'>
+interface OptimizeState {
+  client: string
+  redirect: string
+}
 
 const encodeState = (state: State | OptimizeState) => Buffer.from(JSON.stringify(state), 'utf-8').toString('base64')
 
