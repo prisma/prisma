@@ -381,7 +381,7 @@ export class PrismaClientClass implements Generable {
     const { dmmf } = this
     return `${this.jsDoc}
 export class PrismaClient<
-  T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+  const T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
   ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
@@ -463,10 +463,17 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
-  GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
-  : never
+export type CheckIsLogLevel<T> = T extends LogLevel ? T : never;
+
+export type GetLogType<T> = T extends LogDefinition
+  ? (T['emit'] extends 'event' ? CheckIsLogLevel<T['level']> : never)
+  : CheckIsLogLevel<T>;
+
+export type GetEvents<T extends any[]> = T extends Array<LogLevel | LogDefinition>
+  ? T extends [...(infer RestT), infer U]
+    ? GetLogType<U> | GetEvents<RestT>
+    : never
+  : never;
 
 export type QueryEvent = {
   timestamp: Date
