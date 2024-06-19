@@ -25,7 +25,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
     entryPoints: ['src/runtime/index.ts'],
     outfile: `runtime/${targetBuildType}`,
     bundle: true,
-    minify: true,
+    minify: false,
     sourcemap: 'linked',
     emitTypes: targetBuildType === 'library',
     define: {
@@ -43,7 +43,7 @@ function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): Bui
     name: `query_engine_bg.${provider}`,
     entryPoints: [`@prisma/query-engine-wasm/${provider}/query_engine_bg.js`],
     outfile: `runtime/query_engine_bg.${provider}`,
-    minify: true,
+    minify: false,
     plugins: [
       fillPlugin({
         defaultFillers: false,
@@ -65,7 +65,7 @@ const browserBuildConfig: BuildOptions = {
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
-  minify: true,
+  minify: false,
   sourcemap: 'linked',
 }
 
@@ -92,7 +92,7 @@ const runtimesCommonBuildConfig = {
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
   bundle: true,
-  minify: true,
+  minify: false,
   sourcemap: 'linked',
   emitTypes: false,
   define: {

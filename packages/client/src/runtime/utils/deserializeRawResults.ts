@@ -60,3 +60,42 @@ function deserializeValue({ prisma__type: type, prisma__value: value }: TypedVal
       return value
   }
 }
+
+type Response = {
+  columns: string[]
+  types: PrismaType[]
+  rows: unknown[][]
+}
+
+type DeserializedResponse = Array<Record<string, unknown>>
+
+export function deserializeRawResultArray(response: Response): DeserializedResponse {
+  const deserializedResponse: DeserializedResponse = []
+  const prebuiltEmptyObject = createPrebuiltEmptyResultObject(response)
+
+  for (let i = 0; i < response.rows.length; i++) {
+    const row = response.rows[i]
+    const mappedRow = { ...prebuiltEmptyObject } as Record<string, unknown>
+
+    for (let j = 0; j < row.length; j++) {
+      mappedRow[response.columns[j]] = deserializeValue({
+        prisma__type: response.types[j],
+        prisma__value: row[j],
+      })
+    }
+
+    deserializedResponse.push(mappedRow)
+  }
+
+  return deserializedResponse
+}
+
+function createPrebuiltEmptyResultObject(response: Response): Record<string, null> {
+  const row = {}
+
+  for (let i = 0; i < response.columns.length; i++) {
+    row[response.columns[i]] = null
+  }
+
+  return row
+}
