@@ -570,10 +570,9 @@ describe('EmptySelection', () => {
         where: {
           published: true
         },
-      ? omit?: {
+      + omit: {
       +   id: false,
-      +   title: false,
-      +   comments: false
+      +   title: false
       + }
       }
 
@@ -587,10 +586,9 @@ describe('EmptySelection', () => {
         where: {
           published: true
         },
-      <green>?</color> <green>omit</color><green>?</color><green>: </color><green>{</color>
+      <green>+</color> <green>omit</color><green>: </color><green>{</color>
       <green><dim>+</intensity></color>   <green><dim>id: false</intensity></color>,
-      <green><dim>+</intensity></color>   <green><dim>title: false</intensity></color>,
-      <green><dim>+</intensity></color>   <green><dim>comments: false</intensity></color>
+      <green><dim>+</intensity></color>   <green><dim>title: false</intensity></color>
       <green>+</color> <green>}</color>
       }
 
@@ -780,10 +778,9 @@ describe('EmptySelection', () => {
           users: {
             include: {
               posts: {
-      ?         omit?: {
+      +         omit: {
       +           id: false,
-      +           title: false,
-      +           comments: false
+      +           title: false
       +         }
               }
             }
@@ -802,10 +799,9 @@ describe('EmptySelection', () => {
           users: {
             include: {
               posts: {
-      <green>?</color>         <green>omit</color><green>?</color><green>: </color><green>{</color>
+      <green>+</color>         <green>omit</color><green>: </color><green>{</color>
       <green><dim>+</intensity></color>           <green><dim>id: false</intensity></color>,
-      <green><dim>+</intensity></color>           <green><dim>title: false</intensity></color>,
-      <green><dim>+</intensity></color>           <green><dim>comments: false</intensity></color>
+      <green><dim>+</intensity></color>           <green><dim>title: false</intensity></color>
       <green>+</color>         <green>}</color>
               }
             }

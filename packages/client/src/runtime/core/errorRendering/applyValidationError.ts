@@ -236,7 +236,7 @@ function applyEmptySelectionErrorGlobalOmit(error: EmptySelectionError, argsTree
     }
   }
 
-  const omitSuggestion = new ObjectFieldSuggestion('omit', suggestedOmitConfig)
+  const omitSuggestion = new ObjectFieldSuggestion('omit', suggestedOmitConfig).makeRequired()
 
   if (error.selectionPath.length === 0) {
     argsTree.arguments.addSuggestion(omitSuggestion)

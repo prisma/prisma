@@ -178,7 +178,7 @@ testMatrix.setupTestSuite(({ provider }) => {
         XX   },
         XX })
       → XX await expect(() => client.user.findFirstOrThrow({
-            ? omit?: {
+            + omit: {
             +   id: false,
             +   email: false,
             +   password: false,
