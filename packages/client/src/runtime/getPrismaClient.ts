@@ -995,6 +995,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           unpacker,
           otelParentCtx,
           otelChildCtx: this._tracingHelper.getActiveContext(),
+          globalOmit: this._globalOmit,
           customDataProxyFetch,
         })
       } catch (e) {

@@ -157,6 +157,40 @@ testMatrix.setupTestSuite(({ provider }) => {
     `)
   })
 
+  test('omitting every field', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          id: true,
+          email: true,
+          highScore: true,
+          groupId: true,
+          password: true,
+        },
+      },
+    })
+    await expect(() => client.user.findFirstOrThrow()).rejects.toMatchPrismaErrorInlineSnapshot(`
+      "
+      Invalid \`client.user.findFirstOrThrow()\` invocation in
+      /client/tests/functional/globalOmit/test.ts:0:0
+
+        XX     },
+        XX   },
+        XX })
+      → XX await expect(() => client.user.findFirstOrThrow({
+            ? omit?: {
+            +   id: false,
+            +   email: false,
+            +   password: false,
+            +   highScore: false,
+            +   groupId: false
+            + }
+            })
+
+      The global omit configuration excludes every field of the model User. At least one field must be included in the result"
+    `)
+  })
+
   test('findFirstOrThrow', async () => {
     const client = clientWithOmit({
       omit: {
@@ -169,10 +203,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(user).toHaveProperty('id')
     expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('highScore')
     expect(user).not.toHaveProperty('password')
 
     expectTypeOf(user).toHaveProperty('id')
     expectTypeOf(user).toHaveProperty('email')
+    expectTypeOf(user).toHaveProperty('highScore')
     expectTypeOf(user).not.toHaveProperty('password')
   })
 
@@ -188,10 +224,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(user).toHaveProperty('id')
     expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('highScore')
     expect(user).not.toHaveProperty('password')
 
     expectTypeOf(user).toHaveProperty('id')
     expectTypeOf(user).toHaveProperty('email')
+    expectTypeOf(user).toHaveProperty('highScore')
     expectTypeOf(user).not.toHaveProperty('password')
   })
 
@@ -207,10 +245,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(user).toHaveProperty('id')
     expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('highScore')
     expect(user).not.toHaveProperty('password')
 
     expectTypeOf(user!).toHaveProperty('id')
     expectTypeOf(user!).toHaveProperty('email')
+    expectTypeOf(user!).toHaveProperty('highScore')
     expectTypeOf(user!).not.toHaveProperty('password')
   })
 
@@ -226,10 +266,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(user).toHaveProperty('id')
     expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('highScore')
     expect(user).not.toHaveProperty('password')
 
     expectTypeOf(user!).toHaveProperty('id')
     expectTypeOf(user!).toHaveProperty('email')
+    expectTypeOf(user!).toHaveProperty('highScore')
     expectTypeOf(user!).not.toHaveProperty('password')
   })
 
@@ -245,10 +287,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(users[0]).toHaveProperty('id')
     expect(users[0]).toHaveProperty('email')
+    expect(users[0]).toHaveProperty('highScore')
     expect(users[0]).not.toHaveProperty('password')
 
     expectTypeOf(users[0]).toHaveProperty('id')
     expectTypeOf(users[0]).toHaveProperty('email')
+    expectTypeOf(users[0]).toHaveProperty('highScore')
     expectTypeOf(users[0]).not.toHaveProperty('password')
   })
 
@@ -269,10 +313,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(user).toHaveProperty('id')
     expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('highScore')
     expect(user).not.toHaveProperty('password')
 
     expectTypeOf(user).toHaveProperty('id')
     expectTypeOf(user).toHaveProperty('email')
+    expectTypeOf(user).toHaveProperty('highScore')
     expectTypeOf(user).not.toHaveProperty('password')
   })
 
@@ -298,10 +344,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       expect(users[0]).toHaveProperty('id')
       expect(users[0]).toHaveProperty('email')
+      expect(users[0]).toHaveProperty('highScore')
       expect(users[0]).not.toHaveProperty('password')
 
       expectTypeOf(users[0]).toHaveProperty('id')
       expectTypeOf(users[0]).toHaveProperty('email')
+      expectTypeOf(users[0]).toHaveProperty('highScore')
       // @ts-test-if: provider !== Providers.SQLSERVER && provider !== Providers.MONGODB && provider !== Providers.MYSQL
       expectTypeOf(users[0]).not.toHaveProperty('password')
     },
@@ -327,10 +375,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(user).toHaveProperty('id')
     expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('highScore')
     expect(user).not.toHaveProperty('password')
 
     expectTypeOf(user).toHaveProperty('id')
     expectTypeOf(user).toHaveProperty('email')
+    expectTypeOf(user).toHaveProperty('highScore')
     expectTypeOf(user).not.toHaveProperty('password')
   })
 
@@ -358,10 +408,34 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(user).toHaveProperty('id')
     expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('highScore')
     expect(user).not.toHaveProperty('password')
 
     expectTypeOf(user).toHaveProperty('id')
     expectTypeOf(user).toHaveProperty('email')
+    expectTypeOf(user).toHaveProperty('highScore')
+    expectTypeOf(user).not.toHaveProperty('password')
+  })
+
+  test('excluding more than one field at a time', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          password: true,
+          highScore: true,
+        },
+      },
+    })
+
+    const user = await client.user.findFirstOrThrow()
+    expect(user).toHaveProperty('id')
+    expect(user).toHaveProperty('email')
+    expect(user).not.toHaveProperty('highScore')
+    expect(user).not.toHaveProperty('password')
+
+    expectTypeOf(user).toHaveProperty('id')
+    expectTypeOf(user).toHaveProperty('email')
+    expectTypeOf(user).not.toHaveProperty('highScore')
     expectTypeOf(user).not.toHaveProperty('password')
   })
 
@@ -437,8 +511,6 @@ testMatrix.setupTestSuite(({ provider }) => {
         },
       },
     })
-
-    client.$extends
 
     const group = await client.userGroup.findFirstOrThrow({
       select: {

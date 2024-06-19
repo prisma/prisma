@@ -158,7 +158,7 @@ function createImplicitSelection(
 ) {
   const selectionSet: JsonSelectionSet = {}
 
-  if (context.model && !context.isRawAction()) {
+  if (context.modelOrType && !context.isRawAction()) {
     selectionSet.$composites = true
     selectionSet.$scalars = true
   }
@@ -191,15 +191,19 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     }
     if (field) {
       selectionSet[key] = serializeFieldSelection(value === true ? {} : value, context.nestSelection(key))
-    } else if (value === true) {
-      selectionSet[key] = true
-    } else {
-      // value is an object, field is unknown
-      // this can either be user error (in that case, qe will respond with an error)
-      // or virtual field not present on datamodel (like `_count`).
-      // Since we don't know which one cast is, we still attempt to serialize selection
-      selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
+      continue
     }
+
+    if (value === true) {
+      selectionSet[key] = true
+      continue
+    }
+
+    // value is an object, field is unknown
+    // this can either be user error (in that case, qe will respond with an error)
+    // or virtual field not present on datamodel (like `_count`).
+    // Since we don't know which one cast is, we still attempt to serialize selection
+    selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
   }
 }
 
@@ -389,11 +393,11 @@ type ContextParams = {
 }
 
 class SerializeContext {
-  public readonly model: RuntimeModel | undefined
+  public readonly modelOrType: RuntimeModel | undefined
   constructor(private params: ContextParams) {
     if (this.params.modelName) {
       // TODO: throw if not found
-      this.model =
+      this.modelOrType =
         this.params.runtimeDataModel.models[this.params.modelName] ??
         this.params.runtimeDataModel.types[this.params.modelName]
     }
@@ -407,6 +411,7 @@ class SerializeContext {
       callsite: this.params.callsite,
       errorFormat: this.params.errorFormat,
       clientVersion: this.params.clientVersion,
+      globalOmit: this.params.globalOmit,
     })
   }
 
@@ -423,12 +428,12 @@ class SerializeContext {
   }
 
   getOutputTypeDescription(): OutputTypeDescription | undefined {
-    if (!this.params.modelName || !this.model) {
+    if (!this.params.modelName || !this.modelOrType) {
       return undefined
     }
     return {
       name: this.params.modelName,
-      fields: this.model.fields.map((field) => ({
+      fields: this.modelOrType.fields.map((field) => ({
         name: field.name,
         typeName: 'boolean',
         isRelation: field.kind === 'object',
@@ -453,7 +458,7 @@ class SerializeContext {
   }
 
   findField(name: string) {
-    return this.model?.fields.find((field) => field.name === name)
+    return this.modelOrType?.fields.find((field) => field.name === name)
   }
 
   nestSelection(fieldName: string) {

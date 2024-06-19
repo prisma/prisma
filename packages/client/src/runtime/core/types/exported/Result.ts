@@ -88,12 +88,12 @@ export type SelectField<P extends SelectablePayloadFields<any, any>, K extends P
     : never
 
 // prettier-ignore
-export type DefaultSelection<P extends OperationPayload, Args = {}, ClientOptions = {}> =
+export type DefaultSelection<Payload extends OperationPayload, Args = {}, ClientOptions = {}> =
   Args extends { omit: infer LocalOmit }
     // Both local and global omit, local settings override globals
-    ? ApplyOmit<UnwrapPayload<{ default: P }>['default'], PatchFlat<LocalOmit, ExtractGlobalOmit<ClientOptions, Uncapitalize<P['name']>>>>
+    ? ApplyOmit<UnwrapPayload<{ default: Payload }>['default'], PatchFlat<LocalOmit, ExtractGlobalOmit<ClientOptions, Uncapitalize<Payload['name']>>>>
     // global only
-    : ApplyOmit<UnwrapPayload<{ default: P }>['default'], ExtractGlobalOmit<ClientOptions, Uncapitalize<P['name']>>>
+    : ApplyOmit<UnwrapPayload<{ default: Payload }>['default'], ExtractGlobalOmit<ClientOptions, Uncapitalize<Payload['name']>>>
 
 // prettier-ignore
 export type UnwrapPayload<P> = {} extends P ? unknown : {
@@ -105,8 +105,8 @@ export type UnwrapPayload<P> = {} extends P ? unknown : {
       : never
 };
 
-export type ApplyOmit<T, Omit> = Compute<{
-  [K in keyof T as OmitValue<Omit, K> extends true ? never : K]: T[K]
+export type ApplyOmit<T, OmitConfig> = Compute<{
+  [K in keyof T as OmitValue<OmitConfig, K> extends true ? never : K]: T[K]
 }>
 
 export type OmitValue<Omit, Key> = Key extends keyof Omit ? Omit[Key] : false

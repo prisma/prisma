@@ -23,6 +23,7 @@ export default testMatrix.setupSchema(({ provider }) => {
         id ${idForProvider(provider)}
         email String @unique
         password String
+        highScore Int @default(0)
         groupId ${foreignKeyForProvider(provider, { optional: true })}
         group UserGroup? @relation(fields: [groupId], references: [id])
       }
