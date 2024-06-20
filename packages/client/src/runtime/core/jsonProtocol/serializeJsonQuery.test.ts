@@ -764,7 +764,13 @@ test('1 level include', () => {
         "selection": {
           "$composites": true,
           "$scalars": true,
-          "posts": true
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          }
         }
       }
     }"
@@ -821,7 +827,13 @@ test('multiple level include', () => {
             "selection": {
               "$composites": true,
               "$scalars": true,
-              "attachments": true
+              "attachments": {
+                "arguments": {},
+                "selection": {
+                  "$composites": true,
+                  "$scalars": true
+                }
+              }
             }
           }
         }
@@ -845,7 +857,13 @@ test('explicit selection', () => {
         "arguments": {},
         "selection": {
           "title": true,
-          "posts": true
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          }
         }
       }
     }"
@@ -936,7 +954,13 @@ test('mixed include and select', () => {
             "selection": {
               "$composites": true,
               "$scalars": true,
-              "attachments": true
+              "attachments": {
+                "arguments": {},
+                "selection": {
+                  "$composites": true,
+                  "$scalars": true
+                }
+              }
             }
           }
         }
@@ -1074,7 +1098,13 @@ test('omit + include', () => {
         "selection": {
           "$composites": true,
           "$scalars": true,
-          "posts": true,
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          },
           "name": false
         }
       }
@@ -1174,6 +1204,168 @@ test('exclusion with extension while excluding computed field too', () => {
           "$composites": true,
           "$scalars": true,
           "name": false
+        }
+      }
+    }"
+  `)
+})
+
+test('globalOmit', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      globalOmit: {
+        user: {
+          name: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "name": false
+        }
+      }
+    }"
+  `)
+})
+
+test('globalOmit + local omit', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: {
+        omit: {
+          name: false,
+        },
+      },
+      globalOmit: {
+        user: {
+          name: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "name": true
+        }
+      }
+    }"
+  `)
+})
+
+test('globalOmit + local select', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: {
+        select: {
+          name: true,
+        },
+      },
+      globalOmit: {
+        user: {
+          name: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "name": true
+        }
+      }
+    }"
+  `)
+})
+
+test('nested globalOmit (include)', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: { include: { posts: true } },
+      globalOmit: {
+        post: {
+          title: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true,
+              "title": false
+            }
+          }
+        }
+      }
+    }"
+  `)
+})
+
+test('nested globalOmit (select)', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      previewFeatures: ['omitApi'],
+      args: { select: { posts: true } },
+      globalOmit: {
+        post: {
+          title: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true,
+              "title": false
+            }
+          }
         }
       }
     }"

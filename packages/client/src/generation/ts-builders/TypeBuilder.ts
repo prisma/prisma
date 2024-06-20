@@ -7,6 +7,7 @@ export abstract class TypeBuilder implements BasicBuilder {
   // automatically add parenthesis where they are needed
   needsParenthesisWhenIndexed = false
   needsParenthesisInKeyof = false
+  needsParenthesisInUnion = false
 
   abstract write(writer: Writer): void
 

@@ -1,3 +1,4 @@
+import { lowerCase } from '../../../utils/lowerCase'
 import { ErrorFormat } from '../../getPrismaClient'
 import { CallSite } from '../../utils/CallSite'
 import { isDate, isValidDate } from '../../utils/date'
@@ -52,6 +53,12 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   aggregateRaw: 'aggregateRaw',
 }
 
+export type GlobalOmitOptions = {
+  [modelName: string]: {
+    [fieldName: string]: boolean
+  }
+}
+
 export type SerializeParams = {
   runtimeDataModel: RuntimeDataModel
   modelName?: string
@@ -63,6 +70,7 @@ export type SerializeParams = {
   clientVersion: string
   errorFormat: ErrorFormat
   previewFeatures: string[]
+  globalOmit?: GlobalOmitOptions
 }
 
 export function serializeJsonQuery({
@@ -76,6 +84,7 @@ export function serializeJsonQuery({
   errorFormat,
   clientVersion,
   previewFeatures,
+  globalOmit,
 }: SerializeParams): JsonQuery {
   const context = new SerializeContext({
     runtimeDataModel,
@@ -90,6 +99,7 @@ export function serializeJsonQuery({
     errorFormat,
     clientVersion,
     previewFeatures,
+    globalOmit,
   })
   return {
     modelName,
@@ -148,7 +158,7 @@ function createImplicitSelection(
 ) {
   const selectionSet: JsonSelectionSet = {}
 
-  if (context.model && !context.isRawAction()) {
+  if (context.modelOrType && !context.isRawAction()) {
     selectionSet.$composites = true
     selectionSet.$scalars = true
   }
@@ -157,7 +167,7 @@ function createImplicitSelection(
     addIncludedRelations(selectionSet, include, context)
   }
 
-  if (omit && context.isPreviewFeatureOn('omitApi')) {
+  if (context.isPreviewFeatureOn('omitApi')) {
     omitFields(selectionSet, omit, context)
   }
 
@@ -166,27 +176,41 @@ function createImplicitSelection(
 
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
   for (const [key, value] of Object.entries(include)) {
-    const field = context.findField(key)
+    if (value === false) {
+      selectionSet[key] = false
+      continue
+    }
 
-    if (field && field?.kind !== 'object') {
+    const field = context.findField(key)
+    if (field && field.kind !== 'object') {
       context.throwValidationError({
         kind: 'IncludeOnScalar',
         selectionPath: context.getSelectionPath().concat(key),
         outputType: context.getOutputTypeDescription(),
       })
     }
+    if (field) {
+      selectionSet[key] = serializeFieldSelection(value === true ? {} : value, context.nestSelection(key))
+      continue
+    }
 
     if (value === true) {
       selectionSet[key] = true
-    } else if (typeof value === 'object') {
-      selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
+      continue
     }
+
+    // value is an object, field is unknown
+    // this can either be user error (in that case, qe will respond with an error)
+    // or virtual field not present on datamodel (like `_count`).
+    // Since we don't know which one cast is, we still attempt to serialize selection
+    selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
   }
 }
 
-function omitFields(selectionSet: JsonSelectionSet, omit: Omission, context: SerializeContext) {
+function omitFields(selectionSet: JsonSelectionSet, localOmit: Omission | undefined, context: SerializeContext) {
   const computedFields = context.getComputedFields()
-  const omitWithComputedFields = computeEngineSideOmissions(omit, computedFields)
+  const combinedOmits = { ...context.getGlobalOmit(), ...localOmit }
+  const omitWithComputedFields = computeEngineSideOmissions(combinedOmits, computedFields)
   for (const [key, value] of Object.entries(omitWithComputedFields)) {
     const field = context.findField(key)
     if (computedFields?.[key] && !field) {
@@ -206,11 +230,19 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
     if (computedFields?.[key] && !field) {
       continue
     }
-    if (value === true) {
-      selectionSet[key] = true
-    } else if (typeof value === 'object') {
-      selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
+    if (value === false) {
+      selectionSet[key] = false
+      continue
     }
+    if (value === true) {
+      if (field?.kind === 'object') {
+        selectionSet[key] = serializeFieldSelection({}, context.nestSelection(key))
+      } else {
+        selectionSet[key] = true
+      }
+      continue
+    }
+    selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
   }
   return selectionSet
 }
@@ -357,14 +389,17 @@ type ContextParams = {
   errorFormat: ErrorFormat
   clientVersion: string
   previewFeatures: string[]
+  globalOmit?: GlobalOmitOptions
 }
 
 class SerializeContext {
-  public readonly model: RuntimeModel | undefined
+  public readonly modelOrType: RuntimeModel | undefined
   constructor(private params: ContextParams) {
     if (this.params.modelName) {
       // TODO: throw if not found
-      this.model = this.params.runtimeDataModel.models[this.params.modelName]
+      this.modelOrType =
+        this.params.runtimeDataModel.models[this.params.modelName] ??
+        this.params.runtimeDataModel.types[this.params.modelName]
     }
   }
 
@@ -376,6 +411,7 @@ class SerializeContext {
       callsite: this.params.callsite,
       errorFormat: this.params.errorFormat,
       clientVersion: this.params.clientVersion,
+      globalOmit: this.params.globalOmit,
     })
   }
 
@@ -392,12 +428,12 @@ class SerializeContext {
   }
 
   getOutputTypeDescription(): OutputTypeDescription | undefined {
-    if (!this.params.modelName || !this.model) {
+    if (!this.params.modelName || !this.modelOrType) {
       return undefined
     }
     return {
       name: this.params.modelName,
-      fields: this.model.fields.map((field) => ({
+      fields: this.modelOrType.fields.map((field) => ({
         name: field.name,
         typeName: 'boolean',
         isRelation: field.kind === 'object',
@@ -422,7 +458,7 @@ class SerializeContext {
   }
 
   findField(name: string) {
-    return this.model?.fields.find((field) => field.name === name)
+    return this.modelOrType?.fields.find((field) => field.name === name)
   }
 
   nestSelection(fieldName: string) {
@@ -434,6 +470,13 @@ class SerializeContext {
       modelName,
       selectionPath: this.params.selectionPath.concat(fieldName),
     })
+  }
+
+  getGlobalOmit(): Record<string, boolean> {
+    if (!this.params.modelName) {
+      return {}
+    }
+    return this.params.globalOmit?.[lowerCase(this.params.modelName)] ?? {}
   }
 
   nestArgument(fieldName: string) {
