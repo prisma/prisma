@@ -753,8 +753,8 @@ importers:
         specifier: 4.9.3
         version: 4.9.3
       mssql:
-        specifier: 10.0.4
-        version: 10.0.4
+        specifier: 11.0.0
+        version: 11.0.0
       new-github-issue-url:
         specifier: 0.2.1
         version: 0.2.1
@@ -1178,8 +1178,8 @@ importers:
         specifier: 3.3.1
         version: 3.3.1
       mssql:
-        specifier: 10.0.4
-        version: 10.0.4
+        specifier: 11.0.0
+        version: 11.0.0
       pg:
         specifier: 8.11.5
         version: 8.11.5
@@ -1468,8 +1468,8 @@ importers:
         specifier: 8.4.3
         version: 8.4.3
       mssql:
-        specifier: 10.0.4
-        version: 10.0.4
+        specifier: 11.0.0
+        version: 11.0.0
       ora:
         specifier: 5.4.1
         version: 5.4.1
@@ -1575,11 +1575,27 @@ packages:
       tslib: 2.6.2
     dev: true
 
+  /@azure/abort-controller@2.1.2:
+    resolution: {integrity: sha512-nBrLsEWm4J2u5LpAPjxADTlq3trDgVZZXHNKabeXZtpq3d3AbN/KGO82R87rdDz5/lYB024rtEf10/q0urNgsA==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      tslib: 2.6.2
+    dev: true
+
   /@azure/core-auth@1.4.0:
     resolution: {integrity: sha512-HFrcTgmuSuukRf/EdPmqBrc5l6Q5Uu+2TbuhaKbgaCpP2TfAeiNaQPAadxO+CYBRHGUzIDteMAjFspFLDLnKVQ==}
     engines: {node: '>=12.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
+      tslib: 2.6.2
+    dev: true
+
+  /@azure/core-auth@1.7.2:
+    resolution: {integrity: sha512-Igm/S3fDYmnMq1uKS38Ae1/m37B3zigdlZw+kocwEhh5GjyKjPrXKO2J6rzpC1wAxrNil/jX9BJRqBshyjnF3g==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-util': 1.9.0
       tslib: 2.6.2
     dev: true
 
@@ -1592,6 +1608,21 @@ packages:
       '@azure/core-rest-pipeline': 1.9.2
       '@azure/core-tracing': 1.0.1
       '@azure/core-util': 1.1.1
+      '@azure/logger': 1.0.3
+      tslib: 2.6.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@azure/core-client@1.9.2:
+    resolution: {integrity: sha512-kRdry/rav3fUKHl/aDLd/pDLcB+4pOFwPPTVEExuMyaI5r+JBbMWqRbCY1pn5BniDaU3lRxO9eaQ1AmSMehl/w==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      '@azure/core-auth': 1.7.2
+      '@azure/core-rest-pipeline': 1.9.2
+      '@azure/core-tracing': 1.0.1
+      '@azure/core-util': 1.9.0
       '@azure/logger': 1.0.3
       tslib: 2.6.2
     transitivePeerDependencies:
@@ -1630,9 +1661,9 @@ packages:
     engines: {node: '>=12.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
-      '@azure/core-auth': 1.4.0
+      '@azure/core-auth': 1.7.2
       '@azure/core-tracing': 1.0.1
-      '@azure/core-util': 1.1.1
+      '@azure/core-util': 1.9.0
       '@azure/logger': 1.0.3
       form-data: 4.0.0
       http-proxy-agent: 5.0.0
@@ -1658,26 +1689,32 @@ packages:
       tslib: 2.6.2
     dev: true
 
-  /@azure/identity@2.1.0:
-    resolution: {integrity: sha512-BPDz1sK7Ul9t0l9YKLEa8PHqWU4iCfhGJ+ELJl6c8CP3TpJt2urNCbm0ZHsthmxRsYoMPbz2Dvzj30zXZVmAFw==}
-    engines: {node: '>=12.0.0'}
+  /@azure/core-util@1.9.0:
+    resolution: {integrity: sha512-AfalUQ1ZppaKuxPPMsFEUdX6GZPB3d9paR9d/TTL7Ow2De8cJaC7ibi7kWVlFAVPCYo31OcnGymc0R89DX8Oaw==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      '@azure/abort-controller': 2.1.2
+      tslib: 2.6.2
+    dev: true
+
+  /@azure/identity@4.3.0:
+    resolution: {integrity: sha512-LHZ58/RsIpIWa4hrrE2YuJ/vzG1Jv9f774RfTTAVDZDriubvJ0/S5u4pnw4akJDlS0TiJb6VMphmVUFsWmgodQ==}
+    engines: {node: '>=18.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
-      '@azure/core-auth': 1.4.0
-      '@azure/core-client': 1.6.1
+      '@azure/core-auth': 1.7.2
+      '@azure/core-client': 1.9.2
       '@azure/core-rest-pipeline': 1.9.2
       '@azure/core-tracing': 1.0.1
-      '@azure/core-util': 1.1.1
+      '@azure/core-util': 1.9.0
       '@azure/logger': 1.0.3
-      '@azure/msal-browser': 2.30.0
-      '@azure/msal-common': 7.6.0
-      '@azure/msal-node': 1.14.2
+      '@azure/msal-browser': 3.17.0
+      '@azure/msal-node': 2.9.2
       events: 3.3.0
       jws: 4.0.0
       open: 8.4.0
       stoppable: 1.1.0
       tslib: 2.6.2
-      uuid: 8.3.2
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -1708,26 +1745,24 @@ packages:
       tslib: 2.6.2
     dev: true
 
-  /@azure/msal-browser@2.30.0:
-    resolution: {integrity: sha512-4Y9+rjJiTFP7KEmuq1btmIrBgk0ImNyKsXj6A6NHZALd1X0M6W7L7kxpH6F+d1tEkMv8bYnZdn7IcauXbL8Llw==}
+  /@azure/msal-browser@3.17.0:
+    resolution: {integrity: sha512-csccKXmW2z7EkZ0I3yAoW/offQt+JECdTIV/KrnRoZyM7wCSsQWODpwod8ZhYy7iOyamcHApR9uCh0oD1M+0/A==}
     engines: {node: '>=0.8.0'}
-    deprecated: A newer major version of this library is available. Please upgrade to the latest available version.
     dependencies:
-      '@azure/msal-common': 7.6.0
+      '@azure/msal-common': 14.12.0
     dev: true
 
-  /@azure/msal-common@7.6.0:
-    resolution: {integrity: sha512-XqfbglUTVLdkHQ8F9UQJtKseRr3sSnr9ysboxtoswvaMVaEfvyLtMoHv9XdKUfOc0qKGzNgRFd9yRjIWVepl6Q==}
+  /@azure/msal-common@14.12.0:
+    resolution: {integrity: sha512-IDDXmzfdwmDkv4SSmMEyAniJf6fDu3FJ7ncOjlxkDuT85uSnLEhZi3fGZpoR7T4XZpOMx9teM9GXBgrfJgyeBw==}
     engines: {node: '>=0.8.0'}
     dev: true
 
-  /@azure/msal-node@1.14.2:
-    resolution: {integrity: sha512-t3whVhhLdZVVeDEtUPD2Wqfa8BDi3EDMnpWp8dbuRW0GhUpikBfs4AQU0Fe6P9zS87n9LpmUTLrIcPEEuzkvfA==}
-    engines: {node: 10 || 12 || 14 || 16 || 18}
-    deprecated: A newer major version of this library is available. Please upgrade to the latest available version.
+  /@azure/msal-node@2.9.2:
+    resolution: {integrity: sha512-8tvi6Cos3m+0KmRbPjgkySXi+UQU/QiuVRFnrxIwt5xZlEEFa69O04RTaNESGgImyBBlYbo2mfE8/U8Bbdk1WQ==}
+    engines: {node: '>=16'}
     dependencies:
-      '@azure/msal-common': 7.6.0
-      jsonwebtoken: 8.5.1
+      '@azure/msal-common': 14.12.0
+      jsonwebtoken: 9.0.2
       uuid: 8.3.2
     dev: true
 
@@ -3066,8 +3101,8 @@ packages:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.4.14
 
-  /@js-joda/core@5.5.3:
-    resolution: {integrity: sha512-7dqNYwG8gCt4hfg5PKgM7xLEcgSBcx/UgC92OMnhMmvAnq11QzDFPrxUkNR/u5kn17WWLZ8beZ4A3Qrz4pZcmQ==}
+  /@js-joda/core@5.6.3:
+    resolution: {integrity: sha512-T1rRxzdqkEXcou0ZprN1q9yDRlvzCPLqmlNt5IIsGBzoEVgLCCYrKEwc84+TvsXuAc95VAZwtWD2zVsKPY4bcA==}
     dev: true
 
   /@jsonjoy.com/base64@1.1.1(tslib@2.6.2):
@@ -4179,6 +4214,13 @@ packages:
     resolution: {integrity: sha512-ZREFYlpUmPQJ0esjxoG1fMvB2HNaD3z+mjqdSosZvd3RalncI9NEur73P8ZJz4YQdL64CmV1w0RuqoRUlhQRBw==}
     dev: true
 
+  /@types/readable-stream@4.0.14:
+    resolution: {integrity: sha512-xZn/AuUbCMShGsqH/ehZtGDwQtbx00M9rZ2ENLe4tOjFZ/JFeWMhEZkk2fEe1jAUqqEAURIkFJ7Az/go8mM1/w==}
+    dependencies:
+      '@types/node': 20.12.7
+      safe-buffer: 5.1.2
+    dev: true
+
   /@types/redis@2.8.32:
     resolution: {integrity: sha512-7jkMKxcGq9p242exlbsVzuJb57KqHRhNl4dHoQu2Y5v9bCAbtIXXH0R3HleSQW4CTOqpHIYUW3t6tpUj4BVQ+w==}
     dependencies:
@@ -5003,9 +5045,10 @@ packages:
       readable-stream: 3.6.0
     dev: true
 
-  /bl@6.0.7:
-    resolution: {integrity: sha512-9FNh0IvlWSU5C9BCDhw0IovmhuqevzBX1AME7BdFHNDMfOju4NmwRWoBrfz5Srs+JNBhxfjrPLxZSnDotgSs9A==}
+  /bl@6.0.12:
+    resolution: {integrity: sha512-EnEYHilP93oaOa2MnmNEjAcovPS3JlQZOyzGXi3EyEpPhm9qWvdDp7BmAVEVusGzp8LlwQK56Av+OkDoRjzE0w==}
     dependencies:
+      '@types/readable-stream': 4.0.14
       buffer: 6.0.3
       inherits: 2.0.4
       readable-stream: 4.4.2
@@ -5882,20 +5925,6 @@ packages:
       typed-array-length: 1.0.4
       unbox-primitive: 1.0.2
       which-typed-array: 1.1.11
-    dev: true
-
-  /es-aggregate-error@1.0.11:
-    resolution: {integrity: sha512-DCiZiNlMlbvofET/cE55My387NiLvuGToBEZDdK9U2G3svDCjL8WOgO5Il6lO83nQ8qmag/R9nArdpaFQ/m3lA==}
-    engines: {node: '>= 0.4'}
-    dependencies:
-      define-data-property: 1.1.0
-      define-properties: 1.2.1
-      es-abstract: 1.22.1
-      function-bind: 1.1.2
-      get-intrinsic: 1.2.1
-      globalthis: 1.0.3
-      has-property-descriptors: 1.0.0
-      set-function-name: 2.0.1
     dev: true
 
   /es-module-lexer@1.2.1:
@@ -6912,7 +6941,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8138,10 +8166,6 @@ packages:
       argparse: 2.0.1
     dev: true
 
-  /jsbi@4.3.0:
-    resolution: {integrity: sha512-SnZNcinB4RIcnEyZqFPdGPVgrg2AcnykiBy0sHVJQKHYeaLUvi3Exj+iaPpLnFVkDPZIV4U0yvgC9/R4uEAZ9g==}
-    dev: true
-
   /jsesc@2.5.2:
     resolution: {integrity: sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==}
     engines: {node: '>=4'}
@@ -8196,11 +8220,11 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
-  /jsonwebtoken@8.5.1:
-    resolution: {integrity: sha512-XjwVfRS6jTMsqYs0EsuJ4LGxXV14zQybNd4L2r0UvbVnSF9Af8x7p5MzbJ90Ioz/9TI41/hTCvznF/loiSzn8w==}
-    engines: {node: '>=4', npm: '>=1.4.28'}
+  /jsonwebtoken@9.0.2:
+    resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
+    engines: {node: '>=12', npm: '>=6'}
     dependencies:
       jws: 3.2.2
       lodash.includes: 4.3.0
@@ -8211,7 +8235,7 @@ packages:
       lodash.isstring: 4.0.1
       lodash.once: 4.1.1
       ms: 2.1.3
-      semver: 5.7.1
+      semver: 7.6.2
     dev: true
 
   /jwa@1.4.1:
@@ -8916,9 +8940,9 @@ packages:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
     dev: true
 
-  /mssql@10.0.4:
-    resolution: {integrity: sha512-MhX5IcJ75/q+dUiOe+1ajpqjEe96ZKqMchYYPUIDU+Btqhwt4gbFeZhcGUZaRCEMV9uF+G8kLvaNSFaEzL9OXQ==}
-    engines: {node: '>=14'}
+  /mssql@11.0.0:
+    resolution: {integrity: sha512-XvfsSHeHD/hPIWjnfati1h2/K05pbJNIOOhf32xJ+9dnViSNF95XU6QgkI+CmNx4oYDTMBNN3b7p460PUbq0tw==}
+    engines: {node: '>=18'}
     hasBin: true
     dependencies:
       '@tediousjs/connection-string': 0.5.0
@@ -8926,7 +8950,7 @@ packages:
       debug: 4.3.5
       rfdc: 1.3.1
       tarn: 3.0.2
-      tedious: 16.4.1
+      tedious: 18.2.1
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -8971,10 +8995,6 @@ packages:
   /new-github-issue-url@0.2.1:
     resolution: {integrity: sha512-md4cGoxuT4T4d/HDOXbrUHkTKrp/vp+m3aOA7XXVYwNsUNMK49g3SQicTSeV5GIz/5QVGAeYRAOlyp9OvlgsYA==}
     engines: {node: '>=10'}
-    dev: true
-
-  /node-abort-controller@3.1.1:
-    resolution: {integrity: sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==}
     dev: true
 
   /node-addon-api@4.3.0:
@@ -10177,15 +10197,6 @@ packages:
     resolution: {integrity: sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==}
     dev: true
 
-  /set-function-name@2.0.1:
-    resolution: {integrity: sha512-tMNCiqYVkXIZgc2Hnoy2IvC/f8ezc5koaRFkCjrpWzGpCd3qbZXPzVy9MAZzK1ch/X0jvSkojys3oqJN0qCmdA==}
-    engines: {node: '>= 0.4'}
-    dependencies:
-      define-data-property: 1.1.0
-      functions-have-names: 1.2.3
-      has-property-descriptors: 1.0.0
-    dev: true
-
   /setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
     dev: true
@@ -10396,8 +10407,8 @@ packages:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
     dev: true
 
-  /sprintf-js@1.1.2:
-    resolution: {integrity: sha512-VE0SOVEHCk7Qc8ulkWw3ntAzXuqf7S2lvwQaDLRnUeIEaKNQJzV6BwmLKhOqT61aGhfUMrXeaBk+oDGCzvhcug==}
+  /sprintf-js@1.1.3:
+    resolution: {integrity: sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==}
     dev: true
 
   /sql-template-tag@5.2.1:
@@ -10672,22 +10683,19 @@ packages:
     engines: {node: '>=8.0.0'}
     dev: true
 
-  /tedious@16.4.1:
-    resolution: {integrity: sha512-WwRkGs7N5jFiHhD7uyLHnZ9rCmOfYytEHZhE/vyU56mxzFB3+xHd4WV+DssLwuc1piJqDI54vHDi6SRACOGu8g==}
-    engines: {node: '>=16'}
+  /tedious@18.2.1:
+    resolution: {integrity: sha512-DKsTgGBC0ZeZexAd5OObfeKd0Tlx3jx3kNoKImsxfBKdRuV216u9n6Sr+4w6vzn+S4r43XmWAXQwM7UkDkbIEg==}
+    engines: {node: '>=18'}
     dependencies:
-      '@azure/identity': 2.1.0
+      '@azure/identity': 4.3.0
       '@azure/keyvault-keys': 4.6.0
-      '@js-joda/core': 5.5.3
-      bl: 6.0.7
-      es-aggregate-error: 1.0.11
+      '@js-joda/core': 5.6.3
+      '@types/node': 20.12.7
+      bl: 6.0.12
       iconv-lite: 0.6.3
       js-md4: 0.3.2
-      jsbi: 4.3.0
       native-duplexpair: 1.0.0
-      node-abort-controller: 3.1.1
-      punycode: 2.3.0
-      sprintf-js: 1.1.2
+      sprintf-js: 1.1.3
     transitivePeerDependencies:
       - supports-color
     dev: true
