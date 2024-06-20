@@ -26,6 +26,7 @@ import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
+import { GlobalOmitOptions } from './core/jsonProtocol/serializeJsonQuery'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { Action, JsArgs } from './core/types/exported/JsApi'
 import { DataLoader } from './DataLoader'
@@ -50,6 +51,7 @@ export type RequestParams = {
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
+  globalOmit?: GlobalOmitOptions
   customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
@@ -60,6 +62,7 @@ export type HandleErrorParams = {
   callsite?: CallSite
   transaction?: PrismaPromiseTransaction
   modelName?: string
+  globalOmit?: GlobalOmitOptions
 }
 
 export class RequestHandler {
@@ -137,7 +140,15 @@ export class RequestHandler {
       return await this.dataloader.request(params)
     } catch (error) {
       const { clientMethod, callsite, transaction, args, modelName } = params
-      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args, modelName })
+      this.handleAndLogRequestError({
+        error,
+        clientMethod,
+        callsite,
+        transaction,
+        args,
+        modelName,
+        globalOmit: params.globalOmit,
+      })
     }
   }
 
@@ -170,7 +181,15 @@ export class RequestHandler {
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite, transaction, args, modelName }: HandleErrorParams): never {
+  handleRequestError({
+    error,
+    clientMethod,
+    callsite,
+    transaction,
+    args,
+    modelName,
+    globalOmit,
+  }: HandleErrorParams): never {
     debug(error)
 
     if (isMismatchingBatchIndex(error, transaction)) {
@@ -194,6 +213,7 @@ export class RequestHandler {
         errorFormat: this.client._errorFormat,
         originalMethod: clientMethod,
         clientVersion: this.client._clientVersion,
+        globalOmit,
       })
     }
 
