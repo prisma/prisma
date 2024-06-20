@@ -75,7 +75,8 @@ exports[`getConfig with generator and datasource 1`] = `
           "native": true
         }
       ],
-      "previewFeatures": []
+      "previewFeatures": [],
+      "sourceFilePath": "schema.prisma"
     }
   ],
   "datasources": [

@@ -49,6 +49,7 @@ export interface GeneratorConfig {
   // TODO why is this not optional?
   previewFeatures: string[]
   envPaths?: EnvPaths
+  sourceFilePath: string
 }
 
 export interface EnvValue {
