@@ -25,6 +25,15 @@ if (process.platform === 'win32') {
   generatorPath += '.cmd'
 }
 
+expect.addSnapshotSerializer({
+  test: (val) =>
+    val && typeof val === 'object' && typeof val['sourceFilePath'] === 'string' && path.isAbsolute(val.sourceFilePath),
+  serialize(val, config, indentation, depth, refs, printer) {
+    const newVal = { ...val, sourceFilePath: path.relative(__dirname, val.sourceFilePath) }
+    return printer(newVal, config, indentation, depth, refs)
+  },
+})
+
 describe('getGenerators', () => {
   test('basic', async () => {
     const aliases = {
@@ -103,6 +112,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema.prisma",
       }
     `)
 
@@ -187,6 +197,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets.prisma",
       }
     `)
 
@@ -278,6 +289,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
       }
     `)
 
@@ -369,6 +381,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
       }
     `)
 
@@ -476,6 +489,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
       }
     `)
 
@@ -566,6 +580,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
       }
     `)
 
