@@ -26,6 +26,7 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
       provider: { value: 'prisma-client-js', fromEnvVar: null },
       previewFeatures: [],
       isCustomOutput: false,
+      sourceFilePath: 'schema.prisma',
     },
     datamodel: '',
     browser: false,

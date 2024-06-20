@@ -82,6 +82,7 @@ describe('generator', () => {
           "fromEnvVar": null,
           "value": "prisma-client-js",
         },
+        "sourceFilePath": "/client/src/__tests__/generation/schema.prisma",
       }
     `)
 
@@ -277,6 +278,7 @@ describe('generator', () => {
           "fromEnvVar": null,
           "value": "prisma-client-js",
         },
+        "sourceFilePath": "/client/src/__tests__/generation/mongo.prisma",
       }
     `)
 

@@ -133,7 +133,8 @@ describe('getConfig', () => {
                 "native": true
               }
             ],
-            "previewFeatures": []
+            "previewFeatures": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "datasources": [
@@ -192,7 +193,8 @@ describe('getConfig', () => {
                 "native": true
               }
             ],
-            "previewFeatures": []
+            "previewFeatures": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "datasources": [
