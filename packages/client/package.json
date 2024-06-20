@@ -195,7 +195,7 @@
     "@prisma/query-engine-wasm": "5.16.0-19.5e01b9388099d5c46de4969759ebb24b001a27e8",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.9.2",
-    "@swc/core": "1.5.28",
+    "@swc/core": "1.6.3",
     "@swc/jest": "0.2.36",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.12",
