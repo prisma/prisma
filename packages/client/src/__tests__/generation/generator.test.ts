@@ -30,7 +30,6 @@ describe('generator', () => {
 
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
-      baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
     })
@@ -118,7 +117,6 @@ describe('generator', () => {
     try {
       await getGenerator({
         schemaPath: path.join(__dirname, 'denylist.prisma'),
-        baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
       })
@@ -169,7 +167,6 @@ describe('generator', () => {
     try {
       await getGenerator({
         schemaPath: path.join(__dirname, 'doesnotexist.prisma'),
-        baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
       })
@@ -185,7 +182,6 @@ describe('generator', () => {
   test('override client package', async () => {
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'main-package-override.prisma'),
-      baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
     })
@@ -226,7 +222,6 @@ describe('generator', () => {
 
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'mongo.prisma'),
-      baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
     })

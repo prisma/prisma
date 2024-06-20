@@ -54,7 +54,6 @@ export type GetGeneratorOptions = {
   cliVersion?: string
   version?: string
   printDownloadProgress?: boolean
-  baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
@@ -77,7 +76,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     version,
     cliVersion,
     printDownloadProgress,
-    baseDir = path.dirname(schemaPath),
     overrideGenerators,
     skipDownload,
     binaryPathsOverride,
@@ -172,6 +170,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
       async (generator, index) => {
         let generatorPath = parseEnvValue(generator.provider)
         let paths: GeneratorPaths | undefined
+        const baseDir = path.dirname(generator.sourceFilePath ?? schemaPath)
 
         // as of now mostly used by studio
         const providerValue = parseEnvValue(generator.provider)
