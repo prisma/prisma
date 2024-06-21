@@ -87,6 +87,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -171,6 +172,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -263,6 +265,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -355,6 +358,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -448,6 +452,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -555,6 +560,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
