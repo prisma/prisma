@@ -136,7 +136,7 @@ describe('sqlite', () => {
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
 
       1 migration found in prisma/migrations
 

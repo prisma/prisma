@@ -16,7 +16,7 @@ it('can create database - sqlite - folder', async () => {
   ctx.fixture('schema-folder-sqlite')
   const { schemaPath } = (await getSchemaWithPath())!
   const result = ensureDatabaseExists('create', schemaPath)
-  await expect(result).resolves.toMatchInlineSnapshot(`"SQLite database dev.db created at file:dev.db"`)
+  await expect(result).resolves.toMatchInlineSnapshot(`"SQLite database dev.db created at file:../dev.db"`)
 })
 //
 // Would need logic to be reproducible for testing other databases

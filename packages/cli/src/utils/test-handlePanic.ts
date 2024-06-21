@@ -14,9 +14,7 @@ async function main() {
 
     const schemas = await getSchema(path.join(dirPath, 'schema.prisma'))
 
-    const engine = new SchemaEngine({
-      projectDir: dirPath,
-    })
+    const engine = new SchemaEngine({})
 
     await engine.introspect({ schema: toSchemasContainer(schemas), baseDirectoryPath: dirPath, force: false })
     await engine.debugPanic()
