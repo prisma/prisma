@@ -146,7 +146,8 @@ describe('getConfig', () => {
               "fromEnvVar": null,
               "value": "file:../hello.db"
             },
-            "schemas": []
+            "schemas": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "warnings": []
@@ -206,7 +207,8 @@ describe('getConfig', () => {
               "fromEnvVar": null,
               "value": "file:../hello.db"
             },
-            "schemas": []
+            "schemas": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "warnings": []
