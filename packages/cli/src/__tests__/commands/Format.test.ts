@@ -5,6 +5,7 @@ import path from 'node:path'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
 import fs from 'fs-jetpack'
+import { underline } from 'kleur/colors'
 
 import { Format } from '../../Format'
 import { Validate } from '../../Validate'
@@ -40,6 +41,10 @@ describe('format', () => {
 
         // implicit: single schema file (`schema.prisma`)
         await expect(Format.new().parse([])).resolves.toMatchInlineSnapshot(`"Formatted schema.prisma in XXXms 🚀"`)
+
+        await expect(Format.new().parse(['--check'])).resolves.toMatchInlineSnapshot(
+          `"All files are formatted correctly!"`,
+        )
 
         // explicit: single schema file (`schema.prisma`)
         await expect(Format.new().parse(['--schema=schema.prisma'])).resolves.toMatchInlineSnapshot(
@@ -351,5 +356,12 @@ describe('format', () => {
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toEqual('')
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toEqual('')
+  })
+
+  it('check should fail on unformatted code', async () => {
+    ctx.fixture('example-project/prisma-unformatted')
+    await expect(Format.new().parse(['--schema=unformatted.prisma', '--check'])).resolves.toThrow(
+      `There are unformatted files. Run ${underline('prisma format')} to format them.`,
+    )
   })
 })
