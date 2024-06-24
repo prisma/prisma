@@ -1,5 +1,4 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
@@ -113,9 +112,9 @@ describe('push', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
 
-      SQLite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:../dev.db
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
