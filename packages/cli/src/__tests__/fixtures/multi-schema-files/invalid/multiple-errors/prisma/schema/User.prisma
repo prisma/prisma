@@ -1,0 +1,5 @@
+model User {
+    id Int
+
+    blogs Blog[]
+}

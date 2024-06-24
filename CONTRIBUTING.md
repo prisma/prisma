@@ -115,15 +115,15 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
   pnpm prisma generate && pnpm ts-node index.ts # Try it out
   ```
 
-  #### Developing and working in the fixture folder
+#### Developing and working in the fixture folder
 
-  ```sh
-  cd packages/client
-  ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
-  cd fixtures/blog
-  npx prisma db push --skip-generate
-  ts-node main.ts # Try it out
-  ```
+```sh
+cd packages/client
+ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
+cd fixtures/blog
+npx prisma db push --skip-generate
+ts-node main.ts # Try it out
+```
 
 </details>
 
@@ -168,9 +168,11 @@ pnpm run test
 
 ### First contribution
 
-1. `cd packages/migrate/fixtures/blog` it's a minimal project that can be used to try things out
-1. Then modify some code
-1. `../../src/bin.ts dev` for running `prisma migrate dev`
+The entrypoint for the Migrate CLI is the [`bin.ts`](./packages/migrate/src/bin.ts) file.
+
+1. `cd packages/migrate/fixtures/blog` - it's a minimal project that can be used to try things out
+2. Then modify some code
+3. `../../src/bin.ts migrate dev` for running `prisma migrate dev` command. (It will use `tsx`)
 
 > 💡 You can also test your changes in a reproduction project via the [CLI](#developing-prisma-cli).
 

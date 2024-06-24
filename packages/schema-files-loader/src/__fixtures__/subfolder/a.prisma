@@ -1,1 +1,5 @@
 // this is a
+generator client {
+    provider = "prisma-client-js"
+    previewFeatures = ["prismaSchemaFolder"]
+}

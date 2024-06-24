@@ -4,6 +4,7 @@ import {
   Command,
   format,
   getCommandWithExecutor,
+  getConfig,
   getSchemaWithPath,
   HelpError,
   isError,
@@ -105,7 +106,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {
@@ -166,11 +167,12 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       // validate that schema file exists
       // throws an error if it doesn't
       const schemaWithPath = (await getSchemaWithPath(args['--schema']))!
+      const config = await getConfig({ datamodel: schemaWithPath.schemas })
 
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        ...toSchemasWithConfigDir(schemaWithPath),
+        ...toSchemasWithConfigDir(schemaWithPath, config),
       }
     }
 

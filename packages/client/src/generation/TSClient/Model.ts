@@ -6,6 +6,7 @@ import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import {
+  extArgsParam,
   getAggregateArgsName,
   getAggregateGetName,
   getAggregateInputType,
@@ -25,7 +26,6 @@ import {
   getModelArgName,
   getModelFieldArgsName,
   getPayloadName,
-  getReturnType,
   getSelectCreateManyAndReturnName,
   getSumAggregateName,
 } from '../utils'
@@ -34,7 +34,7 @@ import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
-import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
+import { getArgFieldJSDoc, getMethodJSDoc, getMethodJSDocBody, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
 import { buildOutputType } from './Output'
@@ -388,7 +388,7 @@ ${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.
 })}
 ${omitType}${includeType}${createManyAndReturnIncludeType}
 
-${ts.stringify(buildModelPayload(this.model, this.dmmf), { newLine: 'none' })}
+${ts.stringify(buildModelPayload(this.model, this.context), { newLine: 'none' })}
 
 type ${model.name}GetPayload<S extends boolean | null | undefined | ${getModelArgName(
       model.name,
@@ -422,7 +422,7 @@ export class ModelDelegate implements Generable {
   }
 
   public toTS(): string {
-    const { fields, name } = this.outputType
+    const { name } = this.outputType
     const { dmmf } = this.context
 
     const mapping = dmmf.mappingsMap[name] ?? { model: name, plural: `${name}s` }
@@ -434,9 +434,12 @@ export class ModelDelegate implements Generable {
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     this.context.defaultArgsAliases.registerArgName(countArgsName)
 
+    const genericDelegateParams = [extArgsParam]
+
     const excludedArgsForCount = ['select', 'include', 'distinct']
     if (this.context.isPreviewFeatureOn('omitApi')) {
       excludedArgsForCount.push('omit')
+      genericDelegateParams.push(ts.genericParameter('ClientOptions').default(ts.objectType()))
     }
     if (this.context.isPreviewFeatureOn('relationJoins')) {
       excludedArgsForCount.push('relationLoadStrategy')
@@ -453,20 +456,14 @@ ${
 `
     : ''
 }
-export interface ${name}Delegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+export interface ${name}Delegate<${genericDelegateParams.map((param) => ts.stringify(param)).join(', ')}> {
 ${indent(`[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`, TAB_SIZE)}
-${indent(
-  nonAggregateActions
-    .map(
-      (actionName): string =>
-        `${getMethodJSDoc(actionName, mapping, modelOrType)}
-${actionName}${getGenericMethod(name, actionName)}(
-  ${getArgs(name, actionName)}
-): ${getReturnType({ name, actionName })}`,
-    )
-    .join('\n\n'),
-  TAB_SIZE,
-)}
+${nonAggregateActions
+  .map((action) => {
+    const method = buildModelDelegateMethod(name, action, this.context)
+    return ts.stringify(method, { indentLevel: 1, newLine: 'trailing' })
+  })
+  .join('\n')}
 
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
@@ -563,59 +560,300 @@ ${
 readonly fields: ${getFieldRefsTypeName(name)};
 }
 
+${ts.stringify(buildFluentWrapperDefinition(name, this.outputType, this.context))}
+`
+  }
+}
+
+function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelAction, context: GenerateContext) {
+  const mapping = context.dmmf.mappingsMap[modelName] ?? { model: modelName, plural: `${modelName}s` }
+  const modelOrType = context.dmmf.typeAndModelMap[modelName]
+
+  const method = ts
+    .method(actionName)
+    .setDocComment(ts.docComment(getMethodJSDocBody(actionName, mapping, modelOrType)))
+    .addParameter(getNonAggregateMethodArgs(modelName, actionName))
+    .setReturnType(getReturnType({ modelName, actionName, context }))
+
+  const generic = getNonAggregateMethodGenericParam(modelName, actionName)
+  if (generic) {
+    method.addGenericParameter(generic)
+  }
+  return method
+}
+
+function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelAction) {
+  getReturnType
+  const makeParameter = (type: ts.TypeBuilder) => ts.parameter('args', type)
+  if (actionName === DMMF.ModelAction.count) {
+    const type = ts.omit(
+      ts.namedType(getModelArgName(modelName, DMMF.ModelAction.findMany)),
+      ts
+        .unionType(ts.stringLiteral('select'))
+        .addVariant(ts.stringLiteral('include'))
+        .addVariant(ts.stringLiteral('distinct')),
+    )
+    return makeParameter(type).optional()
+  }
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
+    return makeParameter(ts.namedType(getModelArgName(modelName, actionName))).optional()
+  }
+
+  const type = ts
+    .namedType('SelectSubset')
+    .addGenericArgument(ts.namedType('T'))
+    .addGenericArgument(
+      ts.namedType(getModelArgName(modelName, actionName)).addGenericArgument(extArgsParam.toArgument()),
+    )
+  const param = makeParameter(type)
+
+  if (
+    actionName === DMMF.ModelAction.findMany ||
+    actionName === DMMF.ModelAction.findFirst ||
+    actionName === DMMF.ModelAction.deleteMany ||
+    actionName === DMMF.ModelAction.createMany ||
+    actionName === DMMF.ModelAction.createManyAndReturn ||
+    actionName === DMMF.ModelAction.findFirstOrThrow
+  ) {
+    param.optional()
+  }
+
+  return param
+}
+
+function getNonAggregateMethodGenericParam(modelName: string, actionName: DMMF.ModelAction) {
+  if (
+    actionName === DMMF.ModelAction.count ||
+    actionName === DMMF.ModelAction.findRaw ||
+    actionName === DMMF.ModelAction.aggregateRaw
+  ) {
+    return null
+  }
+  const arg = ts.genericParameter('T')
+  if (actionName === DMMF.ModelAction.aggregate) {
+    return arg.extends(ts.namedType(getAggregateArgsName(modelName)))
+  }
+  return arg.extends(ts.namedType(getModelArgName(modelName, actionName)))
+}
+
+type GetReturnTypeOptions = {
+  modelName: string
+  actionName: DMMF.ModelAction
+  context: GenerateContext
+  isChaining?: boolean
+  isNullable?: boolean
+}
+
 /**
- * The delegate class that acts as a "Promise-like" for ${name}.
- * Why is this prefixed with \`Prisma__\`?
- * Because we want to prevent naming conflicts as mentioned in
- * https://github.com/prisma/prisma-client-js/issues/707
+ * Get the complicated extract output
+ * @param name Model name
+ * @param actionName action name
  */
-export interface Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-  readonly [Symbol.toStringTag]: 'PrismaPromise';
-${indent(
-  fields
-    .filter((f) => {
-      return (
-        f.outputType.location === 'outputObjectTypes' && !dmmf.isComposite(f.outputType.type) && f.name !== '_count'
-      )
-    })
-    .map((f) => {
-      return `
-${f.name}<T extends ${getFieldArgName(f, name)}<ExtArgs> = {}>(args?: Subset<T, ${getFieldArgName(
-        f,
-        name,
-      )}<ExtArgs>>): ${getReturnType({
-        name: f.outputType.type,
-        actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
-        hideCondition: false,
-        renderPromise: true,
-        isChaining: true,
-        isNullable: f.isNullable,
-      })};`
-    })
-    .join('\n'),
-  2,
-)}
+export function getReturnType({
+  modelName,
+  actionName,
+  context,
+  isChaining = false,
+  isNullable = false,
+}: GetReturnTypeOptions): ts.TypeBuilder {
+  if (actionName === DMMF.ModelAction.count) {
+    return ts.promise(ts.numberType)
+  }
+  if (actionName === DMMF.ModelAction.aggregate) {
+    return ts.promise(ts.namedType(getAggregateGetName(modelName)).addGenericArgument(ts.namedType('T')))
+  }
+
+  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
+    return ts.prismaPromise(ts.namedType('JsonObject'))
+  }
+
+  if (
+    actionName === DMMF.ModelAction.deleteMany ||
+    actionName === DMMF.ModelAction.updateMany ||
+    actionName === DMMF.ModelAction.createMany
+  ) {
+    return ts.prismaPromise(ts.namedType('BatchPayload'))
+  }
+
+  const isList = actionName === DMMF.ModelAction.findMany || actionName === DMMF.ModelAction.createManyAndReturn
 
   /**
-   * Attaches callbacks for the resolution and/or rejection of the Promise.
-   * @param onfulfilled The callback to execute when the Promise is resolved.
-   * @param onrejected The callback to execute when the Promise is rejected.
-   * @returns A Promise for the completion of which ever callback is executed.
+   * Important: We handle findMany or isList special, as we don't want chaining from there
    */
-  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
-  /**
-   * Attaches a callback for only the rejection of the Promise.
-   * @param onrejected The callback to execute when the Promise is rejected.
-   * @returns A Promise for the completion of the callback.
-   */
-  catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
-  /**
-   * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-   * resolved value cannot be modified from the callback.
-   * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-   * @returns A Promise for the completion of the callback.
-   */
-  finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
-}`
+  if (isList) {
+    let result: ts.TypeBuilder = getResultType(modelName, actionName, context)
+    if (isChaining) {
+      result = ts.unionType(result).addVariant(ts.namedType('Null'))
+    }
+
+    return ts.prismaPromise(result)
   }
+
+  if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
+    const nullType = isNullable ? ts.nullType : ts.namedType('Null')
+    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName, context)).addVariant(nullType)
+    return getFluentWrapper(modelName, context, result, nullType)
+  }
+
+  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
+    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName, context)).addVariant(ts.nullType)
+    return getFluentWrapper(modelName, context, result, ts.nullType)
+  }
+
+  return getFluentWrapper(modelName, context, getResultType(modelName, actionName, context))
+}
+
+function getFluentWrapper(
+  modelName: string,
+  context: GenerateContext,
+  resultType: ts.TypeBuilder,
+  nullType: ts.TypeBuilder = ts.neverType,
+) {
+  const result = ts
+    .namedType(fluentWrapperName(modelName))
+    .addGenericArgument(resultType)
+    .addGenericArgument(nullType)
+    .addGenericArgument(extArgsParam.toArgument())
+  if (context.isPreviewFeatureOn('omitApi')) {
+    result.addGenericArgument(ts.namedType('ClientOptions'))
+  }
+  return result
+}
+
+function getResultType(modelName: string, actionName: DMMF.ModelAction, context: GenerateContext) {
+  const result = ts
+    .namedType('$Result.GetResult')
+    .addGenericArgument(ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument()))
+    .addGenericArgument(ts.namedType('T'))
+    .addGenericArgument(ts.stringLiteral(actionName))
+  if (context.isPreviewFeatureOn('omitApi')) {
+    result.addGenericArgument(ts.namedType('ClientOptions'))
+  }
+  return result
+}
+
+function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.OutputType, context: GenerateContext) {
+  const definition = ts.interfaceDeclaration(fluentWrapperName(modelName))
+  definition
+    .addGenericParameter(ts.genericParameter('T'))
+    .addGenericParameter(ts.genericParameter('Null').default(ts.neverType))
+    .addGenericParameter(extArgsParam)
+    .extends(ts.prismaPromise(ts.namedType('T')))
+
+  if (context.isPreviewFeatureOn('omitApi')) {
+    definition.addGenericParameter(ts.genericParameter('ClientOptions').default(ts.objectType()))
+  }
+
+  definition.add(ts.property('[Symbol.toStringTag]', ts.stringLiteral('PrismaPromise')).readonly())
+  definition.addMultiple(
+    outputType.fields
+      .filter(
+        (field) =>
+          field.outputType.location === 'outputObjectTypes' &&
+          !context.dmmf.isComposite(field.outputType.type) &&
+          field.name !== '_count',
+      )
+      .map((field) => {
+        const fieldArgType = ts
+          .namedType(getFieldArgName(field, modelName))
+          .addGenericArgument(extArgsParam.toArgument())
+
+        const argsParam = ts.genericParameter('T').extends(fieldArgType).default(ts.objectType())
+        return ts
+          .method(field.name)
+          .addGenericParameter(argsParam)
+          .addParameter(ts.parameter('args', subset(argsParam.toArgument(), fieldArgType)).optional())
+          .setReturnType(
+            getReturnType({
+              modelName: field.outputType.type,
+              actionName: field.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
+              isChaining: true,
+              context: context,
+              isNullable: field.isNullable,
+            }),
+          )
+      }),
+  )
+
+  definition.add(
+    ts
+      .method('then')
+      .setDocComment(
+        ts.docComment`
+          Attaches callbacks for the resolution and/or rejection of the Promise.
+          @param onfulfilled The callback to execute when the Promise is resolved.
+          @param onrejected The callback to execute when the Promise is rejected.
+          @returns A Promise for the completion of which ever callback is executed.
+        `,
+      )
+      .addGenericParameter(ts.genericParameter('TResult1').default(ts.namedType('T')))
+      .addGenericParameter(ts.genericParameter('TResult2').default(ts.neverType))
+      .addParameter(promiseCallback('onfulfilled', ts.parameter('value', ts.namedType('T')), ts.namedType('TResult1')))
+      .addParameter(promiseCallback('onrejected', ts.parameter('reason', ts.anyType), ts.namedType('TResult2')))
+      .setReturnType(ts.promise(ts.unionType([ts.namedType('TResult1'), ts.namedType('TResult2')]))),
+  )
+
+  definition.add(
+    ts
+      .method('catch')
+      .setDocComment(
+        ts.docComment`
+          Attaches a callback for only the rejection of the Promise.
+          @param onrejected The callback to execute when the Promise is rejected.
+          @returns A Promise for the completion of the callback.
+        `,
+      )
+      .addGenericParameter(ts.genericParameter('TResult').default(ts.neverType))
+      .addParameter(promiseCallback('onrejected', ts.parameter('reason', ts.anyType), ts.namedType('TResult')))
+      .setReturnType(ts.promise(ts.unionType([ts.namedType('T'), ts.namedType('TResult')]))),
+  )
+
+  definition.add(
+    ts
+      .method('finally')
+      .setDocComment(
+        ts.docComment`
+          Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+          resolved value cannot be modified from the callback.
+          @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+          @returns A Promise for the completion of the callback.
+      `,
+      )
+      .addParameter(
+        ts.parameter('onfinally', ts.unionType([ts.functionType(), ts.undefinedType, ts.nullType])).optional(),
+      )
+      .setReturnType(ts.promise(ts.namedType('T'))),
+  )
+
+  return ts.moduleExport(definition).setDocComment(ts.docComment`
+      The delegate class that acts as a "Promise-like" for ${modelName}.
+      Why is this prefixed with \`Prisma__\`?
+      Because we want to prevent naming conflicts as mentioned in
+      https://github.com/prisma/prisma-client-js/issues/707
+    `)
+}
+
+function promiseCallback(name: string, callbackParam: ts.Parameter, returnType: ts.TypeBuilder) {
+  return ts
+    .parameter(
+      name,
+      ts.unionType([
+        ts.functionType().addParameter(callbackParam).setReturnType(typeOrPromiseLike(returnType)),
+        ts.undefinedType,
+        ts.nullType,
+      ]),
+    )
+    .optional()
+}
+
+function typeOrPromiseLike(type: ts.TypeBuilder) {
+  return ts.unionType([type, ts.namedType('PromiseLike').addGenericArgument(type)])
+}
+
+function subset(arg: ts.TypeBuilder, baseType: ts.TypeBuilder) {
+  return ts.namedType('Subset').addGenericArgument(arg).addGenericArgument(baseType)
+}
+
+function fluentWrapperName(modelName: string) {
+  return `Prisma__${modelName}Client`
 }

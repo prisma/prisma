@@ -29,13 +29,11 @@ export class Migrate {
       this.schemaPath = path.resolve(process.cwd(), schemaPath)
       this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
       this.engine = new SchemaEngine({
-        projectDir: path.dirname(this.schemaPath),
         schemaPath: this.schemaPath,
         enabledPreviewFeatures,
       })
     } else {
       this.engine = new SchemaEngine({
-        projectDir: process.cwd(),
         enabledPreviewFeatures,
       })
     }

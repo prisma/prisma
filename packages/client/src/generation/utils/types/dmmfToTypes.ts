@@ -16,7 +16,7 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     runtimeNameTs: 'library',
     schemaPath: '',
     outputDir: '',
-    activeProvider: '',
+    activeProvider: '' as any,
     binaryPaths: {},
     generator: {
       binaryTargets: [],
@@ -26,11 +26,16 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
       provider: { value: 'prisma-client-js', fromEnvVar: null },
       previewFeatures: [],
       isCustomOutput: false,
+      sourceFilePath: 'schema.prisma',
     },
     datamodel: '',
     browser: false,
     deno: false,
     edge: false,
     wasm: false,
+    envPaths: {
+      rootEnvPath: null,
+      schemaEnvPath: undefined,
+    },
   }).toTS()
 }

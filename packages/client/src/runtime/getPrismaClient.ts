@@ -1,8 +1,8 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
+import { bindAdapter, type DriverAdapter, type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
-import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
@@ -35,7 +35,7 @@ import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
-import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
+import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
   applyModelsAndClientExtensions,
@@ -130,6 +130,8 @@ export type PrismaClientOptions = {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
    */
   log?: Array<LogLevel | LogDefinition>
+
+  omit?: GlobalOmitOptions
 
   /**
    * @internal
@@ -237,7 +239,7 @@ export type GetPrismaClientConfig = {
   clientVersion: string
   engineVersion: string
   datasourceNames: string[]
-  activeProvider: string
+  activeProvider: ActiveConnectorType
 
   /**
    * The contents of the schema encoded into a string
@@ -329,6 +331,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
+    _globalOmit?: GlobalOmitOptions
     _extensions: MergedExtensionsList
     _engine: Engine
     /**
@@ -347,8 +350,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         validatePrismaClientOptions(optionsArg, config)
       }
 
-      const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
-
       // prevents unhandled error events when users do not explicitly listen to them
       const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
 
@@ -356,12 +357,38 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._previewFeatures = getPreviewFeatures(config)
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
+      this._globalOmit = optionsArg?.omit
       this._tracingHelper = getTracingHelper(this._previewFeatures)
       const envPaths = {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
         schemaEnvPath:
           config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
+      }
+
+      /**
+       * Initialise and validate the Driver Adapter, if provided.
+       */
+
+      let adapter: ErrorCapturingDriverAdapter | undefined
+      if (optionsArg?.adapter) {
+        adapter = bindAdapter(optionsArg.adapter)
+
+        // Note:
+        // - `getConfig(..).datasources[0].provider` can be `postgresql`, `postgres`, `mysql`, or other known providers
+        // - `getConfig(..).datasources[0].activeProvider`, stored in `config.activeProvider`, can be `postgresql`, `mysql`, or other known providers
+        // - `adapter.provider` can be `postgres`, `mysql`, or `sqlite`, and changing this requires changes to Rust as well,
+        //    see https://github.com/prisma/prisma-engines/blob/d116c37d7d27aee74fdd840fc85ab2b45407e5ce/query-engine/driver-adapters/src/types.rs#L22-L23.
+        //
+        // TODO: Normalize these provider names once and for all in Prisma 6.
+        const normalizedActiveProvider = config.activeProvider === 'postgresql' ? 'postgres' : config.activeProvider
+
+        if (adapter.provider !== normalizedActiveProvider) {
+          throw new PrismaClientInitializationError(
+            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${normalizedActiveProvider}\` specified in the Prisma schema.`,
+            this._clientVersion,
+          )
+        }
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
@@ -889,6 +916,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           args: requestParams.args,
           extensions: this._extensions,
           runtimeDataModel: this._runtimeDataModel,
+          globalOmit: this._globalOmit,
         })
       }
 
@@ -936,6 +964,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             errorFormat: this._errorFormat,
             clientVersion: this._clientVersion,
             previewFeatures: this._previewFeatures,
+            globalOmit: this._globalOmit,
           }),
         )
 
@@ -966,6 +995,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           unpacker,
           otelParentCtx,
           otelChildCtx: this._tracingHelper.getActiveContext(),
+          globalOmit: this._globalOmit,
           customDataProxyFetch,
         })
       } catch (e) {

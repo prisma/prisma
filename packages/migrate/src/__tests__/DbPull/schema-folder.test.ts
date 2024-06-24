@@ -55,7 +55,7 @@ test('reintrospection - no changes', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:dev.db"
+      url      = "file:../dev.db"
     }
 
 
@@ -95,7 +95,7 @@ test('reintrospection - new model', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:dev.db"
+      url      = "file:../dev.db"
     }
 
 
@@ -136,7 +136,7 @@ test('reintrospection - new model - existing introspected.prisma', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:dev.db"
+      url      = "file:../dev.db"
     }
 
 
@@ -184,7 +184,7 @@ test('reintrospection - new field', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:dev.db"
+      url      = "file:../dev.db"
     }
 
 
@@ -220,7 +220,7 @@ test('reintrospection - remove model', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:dev.db"
+      url      = "file:../dev.db"
     }
 
 
@@ -250,7 +250,7 @@ test('reintrospection - invalid schema with --force', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:dev.db"
+      url      = "file:../dev.db"
     }
 
     model Blog {

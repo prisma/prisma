@@ -27706,6 +27706,5999 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
+exports[`getDMMF success multiple files 1`] = `
+{
+  "datamodel": {
+    "enums": [],
+    "models": [
+      {
+        "dbName": null,
+        "fields": [
+          {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": true,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "id",
+            "type": "Int",
+          },
+          {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "name",
+            "type": "String",
+          },
+        ],
+        "isGenerated": false,
+        "name": "A",
+        "primaryKey": null,
+        "uniqueFields": [],
+        "uniqueIndexes": [],
+      },
+      {
+        "dbName": null,
+        "fields": [
+          {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": true,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "id",
+            "type": "String",
+          },
+          {
+            "hasDefaultValue": false,
+            "isGenerated": false,
+            "isId": false,
+            "isList": false,
+            "isReadOnly": false,
+            "isRequired": true,
+            "isUnique": false,
+            "isUpdatedAt": false,
+            "kind": "scalar",
+            "name": "title",
+            "type": "String",
+          },
+        ],
+        "isGenerated": false,
+        "name": "B",
+        "primaryKey": null,
+        "uniqueFields": [],
+        "uniqueIndexes": [],
+      },
+    ],
+    "types": [],
+  },
+  "mappings": {
+    "modelOperations": [
+      {
+        "aggregate": "aggregateA",
+        "createMany": "createManyA",
+        "createManyAndReturn": "createManyAAndReturn",
+        "createOne": "createOneA",
+        "deleteMany": "deleteManyA",
+        "deleteOne": "deleteOneA",
+        "findFirst": "findFirstA",
+        "findFirstOrThrow": "findFirstAOrThrow",
+        "findMany": "findManyA",
+        "findUnique": "findUniqueA",
+        "findUniqueOrThrow": "findUniqueAOrThrow",
+        "groupBy": "groupByA",
+        "model": "A",
+        "updateMany": "updateManyA",
+        "updateOne": "updateOneA",
+        "upsertOne": "upsertOneA",
+      },
+      {
+        "aggregate": "aggregateB",
+        "createMany": "createManyB",
+        "createManyAndReturn": "createManyBAndReturn",
+        "createOne": "createOneB",
+        "deleteMany": "deleteManyB",
+        "deleteOne": "deleteOneB",
+        "findFirst": "findFirstB",
+        "findFirstOrThrow": "findFirstBOrThrow",
+        "findMany": "findManyB",
+        "findUnique": "findUniqueB",
+        "findUniqueOrThrow": "findUniqueBOrThrow",
+        "groupBy": "groupByB",
+        "model": "B",
+        "updateMany": "updateManyB",
+        "updateOne": "updateOneB",
+        "upsertOne": "upsertOneB",
+      },
+    ],
+    "otherOperations": {
+      "read": [],
+      "write": [
+        "executeRaw",
+        "queryRaw",
+      ],
+    },
+  },
+  "schema": {
+    "enumTypes": {
+      "prisma": [
+        {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "Serializable",
+          ],
+        },
+        {
+          "name": "AScalarFieldEnum",
+          "values": [
+            "id",
+            "name",
+          ],
+        },
+        {
+          "name": "BScalarFieldEnum",
+          "values": [
+            "id",
+            "title",
+          ],
+        },
+        {
+          "name": "SortOrder",
+          "values": [
+            "asc",
+            "desc",
+          ],
+        },
+      ],
+    },
+    "fieldRefTypes": {
+      "prisma": [
+        {
+          "allowTypes": [
+            {
+              "isList": false,
+              "location": "scalar",
+              "type": "Int",
+            },
+          ],
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "_ref",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "_container",
+            },
+          ],
+          "name": "IntFieldRefInput",
+        },
+        {
+          "allowTypes": [
+            {
+              "isList": false,
+              "location": "scalar",
+              "type": "String",
+            },
+          ],
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "_ref",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "_container",
+            },
+          ],
+          "name": "StringFieldRefInput",
+        },
+        {
+          "allowTypes": [
+            {
+              "isList": false,
+              "location": "scalar",
+              "type": "Float",
+            },
+          ],
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "_ref",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "_container",
+            },
+          ],
+          "name": "FloatFieldRefInput",
+        },
+      ],
+    },
+    "inputObjectTypes": {
+      "prisma": [
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "meta": {
+            "source": "A",
+          },
+          "name": "AWhereInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 0,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "name": "AOrderByWithRelationInput",
+        },
+        {
+          "constraints": {
+            "fields": [
+              "id",
+            ],
+            "maxNumFields": null,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "meta": {
+            "source": "A",
+          },
+          "name": "AWhereUniqueInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 0,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "ACountOrderByAggregateInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_count",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AAvgOrderByAggregateInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_avg",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AMaxOrderByAggregateInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_max",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AMinOrderByAggregateInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_min",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "ASumOrderByAggregateInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_sum",
+            },
+          ],
+          "name": "AOrderByWithAggregationInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AScalarWhereWithAggregatesInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AScalarWhereWithAggregatesInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AScalarWhereWithAggregatesInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AScalarWhereWithAggregatesInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AScalarWhereWithAggregatesInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntWithAggregatesFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringWithAggregatesFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "meta": {
+            "source": "A",
+          },
+          "name": "AScalarWhereWithAggregatesInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "meta": {
+            "source": "B",
+          },
+          "name": "BWhereInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 0,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "name": "BOrderByWithRelationInput",
+        },
+        {
+          "constraints": {
+            "fields": [
+              "id",
+            ],
+            "maxNumFields": null,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "meta": {
+            "source": "B",
+          },
+          "name": "BWhereUniqueInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 0,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BCountOrderByAggregateInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_count",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BMaxOrderByAggregateInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_max",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BMinOrderByAggregateInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_min",
+            },
+          ],
+          "name": "BOrderByWithAggregationInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BScalarWhereWithAggregatesInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BScalarWhereWithAggregatesInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BScalarWhereWithAggregatesInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BScalarWhereWithAggregatesInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BScalarWhereWithAggregatesInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringWithAggregatesFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringWithAggregatesFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "meta": {
+            "source": "B",
+          },
+          "name": "BScalarWhereWithAggregatesInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "name",
+            },
+          ],
+          "name": "ACreateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "name",
+            },
+          ],
+          "name": "AUncheckedCreateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "name": "AUpdateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "name": "AUncheckedUpdateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "name",
+            },
+          ],
+          "name": "ACreateManyInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "name": "AUpdateManyMutationInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "name": "AUncheckedUpdateManyInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "title",
+            },
+          ],
+          "name": "BCreateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "title",
+            },
+          ],
+          "name": "BUncheckedCreateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "name": "BUpdateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "name": "BUncheckedUpdateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "title",
+            },
+          ],
+          "name": "BCreateManyInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "name": "BUpdateManyMutationInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "name": "BUncheckedUpdateManyInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+          ],
+          "name": "IntFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "contains",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "startsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedStringFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+          ],
+          "name": "StringFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "name": "ACountOrderByAggregateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+          ],
+          "name": "AAvgOrderByAggregateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "name": "AMaxOrderByAggregateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
+            },
+          ],
+          "name": "AMinOrderByAggregateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+          ],
+          "name": "ASumOrderByAggregateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntWithAggregatesFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_count",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedFloatFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_avg",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_sum",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_min",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_max",
+            },
+          ],
+          "name": "IntWithAggregatesFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "contains",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "startsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedStringWithAggregatesFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_count",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedStringFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_min",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedStringFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_max",
+            },
+          ],
+          "name": "StringWithAggregatesFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "name": "BCountOrderByAggregateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "name": "BMaxOrderByAggregateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+          ],
+          "name": "BMinOrderByAggregateInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "increment",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "decrement",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "multiply",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "divide",
+            },
+          ],
+          "name": "IntFieldUpdateOperationsInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+          ],
+          "name": "StringFieldUpdateOperationsInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+          ],
+          "name": "NestedIntFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "contains",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "startsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedStringFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+          ],
+          "name": "NestedStringFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntWithAggregatesFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_count",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedFloatFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_avg",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_sum",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_min",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_max",
+            },
+          ],
+          "name": "NestedIntWithAggregatesFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "FloatFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "FloatFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "FloatFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "FloatFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "FloatFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedFloatFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+          ],
+          "name": "NestedFloatFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "in",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "notIn",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gt",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "gte",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "contains",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "startsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "fieldRefTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldRefInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedStringWithAggregatesFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "not",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedIntFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_count",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedStringFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_min",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "NestedStringFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_max",
+            },
+          ],
+          "name": "NestedStringWithAggregatesFilter",
+        },
+      ],
+    },
+    "outputObjectTypes": {
+      "model": [
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "A",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "B",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "CreateManyAAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "CreateManyBAndReturnOutputType",
+        },
+      ],
+      "prisma": [
+        {
+          "fields": [
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                    {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": true,
+              "name": "findFirstA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                    {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": true,
+              "name": "findFirstAOrThrow",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                    {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": false,
+              "name": "findManyA",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "name": "aggregateA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AggregateA",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithAggregationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithAggregationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                    {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarWhereWithAggregatesInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "having",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "name": "groupByA",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AGroupByOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueAOrThrow",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithRelationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarFieldEnum",
+                    },
+                    {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": true,
+              "name": "findFirstB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithRelationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarFieldEnum",
+                    },
+                    {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": true,
+              "name": "findFirstBOrThrow",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithRelationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarFieldEnum",
+                    },
+                    {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": false,
+              "name": "findManyB",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithRelationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "name": "aggregateB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AggregateB",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithAggregationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BOrderByWithAggregationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarFieldEnum",
+                    },
+                    {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BScalarWhereWithAggregatesInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "having",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "name": "groupByB",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "BGroupByOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueBOrThrow",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+          ],
+          "name": "Query",
+        },
+        {
+          "fields": [
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+              ],
+              "isNullable": false,
+              "name": "createOneA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUpdateInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyAAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "deleteOneA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUpdateInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "updateOneA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "deleteManyA",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BCreateInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+              ],
+              "isNullable": false,
+              "name": "createOneB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BCreateInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUpdateInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BCreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BCreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BCreateManyInput",
+                    },
+                    {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BCreateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+              ],
+              "isNullable": false,
+              "name": "createManyBAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "CreateManyBAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "deleteOneB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUpdateInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "updateOneB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "B",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "deleteManyB",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "String",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "query",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Json",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "parameters",
+                },
+              ],
+              "isNullable": false,
+              "name": "executeRaw",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Json",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "String",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "query",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Json",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "parameters",
+                },
+              ],
+              "isNullable": false,
+              "name": "queryRaw",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Json",
+              },
+            },
+          ],
+          "name": "Mutation",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_count",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "ACountAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_avg",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AAvgAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_sum",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "ASumAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_min",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AMinAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_max",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "AggregateA",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_count",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "ACountAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_avg",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AAvgAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_sum",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "ASumAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_min",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AMinAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_max",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "AGroupByOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_count",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "BCountAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_min",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "BMinAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_max",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "BMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "AggregateB",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_count",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "BCountAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_min",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "BMinAggregateOutputType",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "_max",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "BMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "BGroupByOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "count",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+          ],
+          "name": "AffectedRowsOutput",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "_all",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+          ],
+          "name": "ACountAggregateOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Float",
+              },
+            },
+          ],
+          "name": "AAvgAggregateOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+          ],
+          "name": "ASumAggregateOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "AMinAggregateOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "AMaxAggregateOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "_all",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+          ],
+          "name": "BCountAggregateOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "BMinAggregateOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": true,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "BMaxAggregateOutputType",
+        },
+      ],
+    },
+  },
+}
+`;
+
 exports[`getDMMF success odoo introspected schema 1`] = `137207101`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `

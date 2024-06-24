@@ -3,7 +3,7 @@
 exports[`reintrospection - no changes 2`] = `
 "Prisma schema loaded from prisma/schema
 
-Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
 
 
 
@@ -34,7 +34,7 @@ generator client {
 
 datasource my_db {
   provider = "sqlite"
-  url      = "file:dev.db"
+  url      = "file:../dev.db"
 }
 
 
