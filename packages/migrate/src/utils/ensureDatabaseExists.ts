@@ -4,8 +4,8 @@ import {
   createDatabase,
   getConfig,
   getEffectiveUrl,
+  getMigrateConfigDir,
   getSchema,
-  getSchemaDir,
   uriToCredentials,
 } from '@prisma/internals'
 import { bold } from 'kleur/colors'
@@ -26,6 +26,7 @@ export type DatasourceInfo = {
   dbName?: string // database name
   schema?: string // database schema (!= multiSchema, can be found in the connection string like `?schema=myschema`)
   schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
+  configDir?: string
 }
 
 // TODO: sometimes this function is called with a `schemaPath`, even though the schema(s) have already been read from disk.
@@ -61,6 +62,7 @@ export async function getDatasourceInfo({
       url: undefined,
       schema: undefined,
       schemas: undefined,
+      configDir: undefined,
     }
   }
 
@@ -77,6 +79,7 @@ export async function getDatasourceInfo({
       url: url || undefined,
       schema: undefined,
       schemas: firstDatasource.schemas,
+      configDir: getMigrateConfigDir(config),
     }
   }
 
@@ -101,6 +104,7 @@ export async function getDatasourceInfo({
       url,
       schema,
       schemas: firstDatasource.schemas,
+      configDir: getMigrateConfigDir(config),
     }
 
     // Default to `postgres` database name for PostgreSQL
@@ -119,6 +123,7 @@ export async function getDatasourceInfo({
       url,
       schema: undefined,
       schemas: firstDatasource.schemas,
+      configDir: getMigrateConfigDir(config),
     }
   }
 }
@@ -135,7 +140,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const schemaDir = (await getSchemaDir(schemaPath))!
+  const schemaDir = getMigrateConfigDir(config)
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
@@ -159,7 +164,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const schemaDir = (await getSchemaDir(schemaPath))!
+  const schemaDir = getMigrateConfigDir(config)
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not

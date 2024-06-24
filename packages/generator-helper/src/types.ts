@@ -82,6 +82,7 @@ export interface DataSource {
   url: EnvValue
   directUrl?: EnvValue
   schemas: string[] | []
+  sourceFilePath: string
 }
 
 export type BinaryPaths = {
