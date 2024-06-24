@@ -4,6 +4,8 @@ import Debug from '@prisma/debug'
 import {
   BinaryType,
   ErrorArea,
+  getConfig,
+  getMigrateConfigDir,
   getSchema,
   type MigrateTypes,
   relativizePathInPSLError,
@@ -26,7 +28,6 @@ const debugStderr = Debug('prisma:schemaEngine:stderr')
 const debugStdin = Debug('prisma:schemaEngine:stdin')
 
 export interface SchemaEngineOptions {
-  projectDir: string
   schemaPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
@@ -46,7 +47,6 @@ setClassName(EngineError, 'EngineError')
 let messageId = 1
 
 export class SchemaEngine {
-  private projectDir: string
   private debug: boolean
   private child?: ChildProcess
   private schemaPath?: string
@@ -65,8 +65,7 @@ export class SchemaEngine {
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
-  constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: SchemaEngineOptions) {
-    this.projectDir = projectDir
+  constructor({ debug = false, schemaPath, enabledPreviewFeatures }: SchemaEngineOptions) {
     this.schemaPath = schemaPath
     if (debug) {
       Debug.enable('SchemaEngine*')
@@ -75,7 +74,6 @@ export class SchemaEngine {
     this.enabledPreviewFeatures = enabledPreviewFeatures
   }
 
-  /* eslint-disable @typescript-eslint/no-unsafe-return */
   //
   // See JSON-RPC API definition:
   // https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/index.html
@@ -262,8 +260,6 @@ export class SchemaEngine {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
 
-  /* eslint-enable @typescript-eslint/no-unsafe-return */
-
   public stop(): void {
     if (this.child) {
       this.child.kill()
@@ -331,17 +327,19 @@ export class SchemaEngine {
   }
 
   private internalInit(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...processEnv } = process.env
         const binaryPath = await resolveBinary(BinaryType.SchemaEngineBinary)
         debugRpc('starting Schema engine with binary: ' + binaryPath)
         const args: string[] = []
 
+        let projectDir: string = process.cwd()
         if (this.schemaPath) {
           const schema = await getSchema(this.schemaPath)
+          const config = await getConfig({ datamodel: schema })
+          projectDir = getMigrateConfigDir(config)
           const schemaArgs = schema.flatMap(([path]) => ['-d', path])
           args.push(...schemaArgs)
         }
@@ -354,7 +352,7 @@ export class SchemaEngine {
           args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
         }
         this.child = spawn(binaryPath, args, {
-          cwd: this.projectDir,
+          cwd: projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
             // The following environment variables can be overridden by the user.

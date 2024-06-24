@@ -122,7 +122,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
 
       Migration 20201231000000_init marked as applied.
       "
