@@ -37,12 +37,17 @@ export class Writer<ContextType = undefined> {
    *
    * @param separator
    * @param values
+   * @param writeItem allow to customize how individual item is written
    * @returns
    */
-  writeJoined(separator: string | BasicBuilder<ContextType>, values: Array<string | BasicBuilder<ContextType>>): this {
+  writeJoined<T extends string | BasicBuilder<ContextType>>(
+    separator: string | BasicBuilder<ContextType>,
+    values: T[],
+    writeItem: (item: T, writer: this) => void = (item, w) => w.write(item),
+  ): this {
     const last = values.length - 1
     for (let i = 0; i < values.length; i++) {
-      this.write(values[i])
+      writeItem(values[i], this)
       if (i !== last) {
         this.write(separator)
       }

@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import { GetResult, Operation } from './Result'
 import { Exact } from './Utils'
 
@@ -19,7 +17,7 @@ export type Args<T, F extends Operation> =
 export type Result<T, A, F extends Operation> =
   T extends { [K: symbol]: { types: { payload: any } } }
   ? GetResult<T[symbol]['types']['payload'], A, F>
-  : GetResult<{ composites: {}, objects: {}, scalars: {} }, {}, F>
+  : GetResult<{ composites: {}, objects: {}, scalars: {}, name: '' }, {}, F>
 
 // prettier-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

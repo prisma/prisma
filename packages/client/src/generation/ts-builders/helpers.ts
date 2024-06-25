@@ -12,3 +12,7 @@ export function promise(resultType: TypeBuilder): NamedType {
 export function prismaPromise(resultType: TypeBuilder): NamedType {
   return new NamedType('Prisma.PrismaPromise').addGenericArgument(resultType)
 }
+
+export function optional(innerType: TypeBuilder) {
+  return new NamedType('$Utils.Optional').addGenericArgument(innerType)
+}

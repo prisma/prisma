@@ -1,4 +1,5 @@
 export type OperationPayload = {
+  name: string
   scalars: {
     [ScalarName in string]: unknown
   }

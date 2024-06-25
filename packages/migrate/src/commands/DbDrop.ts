@@ -5,7 +5,6 @@ import {
   Command,
   dropDatabase,
   format,
-  getSchemaDir,
   HelpError,
   isError,
   link,
@@ -88,8 +87,6 @@ ${bold('Examples')}
     const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
     printDatasource({ datasourceInfo })
 
-    const schemaDir = (await getSchemaDir(schemaPath))!
-
     process.stdout.write('\n') // empty line
 
     if (!args['--force']) {
@@ -116,7 +113,7 @@ ${bold('Examples')}
     }
 
     // Url exists because we set `throwIfEnvErrors: true` in `getDatasourceInfo`
-    if (await dropDatabase(datasourceInfo.url!, schemaDir)) {
+    if (await dropDatabase(datasourceInfo.url!, datasourceInfo.configDir!)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName
       }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`

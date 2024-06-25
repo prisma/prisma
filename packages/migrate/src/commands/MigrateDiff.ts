@@ -4,6 +4,7 @@ import {
   checkUnsupportedDataProxy,
   Command,
   format,
+  getConfig,
   HelpError,
   isError,
   link,
@@ -229,9 +230,10 @@ ${bold('Examples')}
       const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), {
         argumentName: '--from-schema-datasource',
       })
+      const config = await getConfig({ datamodel: schema.schemas })
       from = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema),
+        ...toSchemasWithConfigDir(schema, config),
       }
     } else if (args['--from-schema-datamodel']) {
       const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), {
@@ -270,9 +272,10 @@ ${bold('Examples')}
       const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), {
         argumentName: '--to-schema-datasource',
       })
+      const config = await getConfig({ datamodel: schema.schemas })
       to = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema),
+        ...toSchemasWithConfigDir(schema, config),
       }
     } else if (args['--to-schema-datamodel']) {
       const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), {

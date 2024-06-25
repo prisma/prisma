@@ -15,9 +15,7 @@ export async function getDatabaseVersionSafe(
   let engine: SchemaEngine | undefined
   let dbVersion: string | undefined
   try {
-    engine = new SchemaEngine({
-      projectDir: process.cwd(),
-    })
+    engine = new SchemaEngine({})
     dbVersion = await engine.getDatabaseVersion(args)
   } catch (e) {
     debug(e)

@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.5.28",
+    "@swc/core": "1.6.3",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
@@ -39,17 +39,17 @@
     "log-update": "4.0.0",
     "mariadb": "3.3.1",
     "mock-stdin": "1.0.0",
-    "mongoose": "8.4.1",
-    "mssql": "10.0.2",
+    "mongoose": "8.4.3",
+    "mssql": "10.0.4",
     "ora": "5.4.1",
     "pg": "8.11.5",
     "pkg-up": "3.1.0",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "tempy": "1.0.1",
-    "ts-pattern": "5.1.2",
+    "ts-pattern": "5.2.0",
     "typescript": "5.4.5",
-    "wrangler": "3.60.2"
+    "wrangler": "3.61.0"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.16.0-10.e974ca8eb70e4bad2b8a038ff3eaa4109ba7fd58",
+    "@prisma/engines-version": "5.16.0-23.d56fe2ee624826f693e591a3035694073d17f473",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
