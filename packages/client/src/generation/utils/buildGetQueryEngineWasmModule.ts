@@ -21,17 +21,32 @@ export function buildQueryEngineWasmModule(
     }`
   }
 
-  // for cloudflare (workers) we need to use import in order to load wasm
-  // so we use a dynamic import which is compatible with both cjs and esm
-  // additionally we need to append ?module to the import path for vercel
-  // this is incompatible with cloudflare, so we hide it in a template
+  // For cloudflare (workers) we need to use import in order to load wasm
+  // so we use a dynamic import which is compatible with both cjs and esm.
+  // Additionally, we need to append `?module` to the import path for vercel,
+  // which is incompatible with cloudflare, so we hide it in a template.
+  // In `getQueryEngineWasmModule`, we use a `try/catch` block because `vitest`
+  // isn't able to handle dynamic imports with `import(#MODULE_NAME)`, which used
+  // to lead to a runtime "No such module .prisma/client/#wasm-engine-loader" error.
+  // Related issue: https://github.com/vitest-dev/vitest/issues/5486.
   if (copyEngine && wasm === true) {
     return `config.engineWasm = {
   getRuntime: () => require('./query_engine_bg.js'),
   getQueryEngineWasmModule: async () => {
-    const loader = (await import('#wasm-engine-loader')).default
-    const engine = (await loader).default
-    return engine
+    try {
+      // try loading the Wasm module from a conditionally module tag
+      const loader = (await import('#wasm-engine-loader')).default
+      const engine = (await loader).default
+      return engine
+    } catch (e) {
+      // if the conditional module tag is not found, load the Wasm module directly.
+      // This will work on Cloudflare, but not on Vercel.
+      if (e instanceof Error && e.message.includes('No such module')) {
+        const engine = (await import('./query_engine_bg.wasm')).default
+        return engine
+      }
+      throw e
+    }
   }
 }`
   }
