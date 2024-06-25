@@ -20,8 +20,10 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-rds-data": "../../packages/adapter-neon/node_modules/@aws-sdk/client-rds-data",
     "@neondatabase/serverless": "../../packages/adapter-neon/node_modules/@neondatabase/serverless",
     "@planetscale/database": "../../packages/adapter-planetscale/node_modules/@planetscale/database",
+    "@prisma/adapter-aurora": "../../packages/adapter-aurora",
     "@prisma/adapter-neon": "../../packages/adapter-neon",
     "@prisma/adapter-pg": "../../packages/adapter-pg",
     "@prisma/adapter-planetscale": "../../packages/adapter-planetscale",

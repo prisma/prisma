@@ -75,6 +75,7 @@ export type ConnectionInfo = {
 // This list might get outdated over time.
 // It's only used for auto-completion.
 const officialPrismaAdapters = [
+  '@prisma/adapter-aurora',
   '@prisma/adapter-planetscale',
   '@prisma/adapter-neon',
   '@prisma/adapter-libsql',

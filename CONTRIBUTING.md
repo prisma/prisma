@@ -315,6 +315,7 @@ List of directories in the monorepo:
 - adapter-neon
 - adapter-pg
 - adapter-planetscale
+- adapter-aurora
 - cli
 - client
 - debug

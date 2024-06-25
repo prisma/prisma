@@ -1,0 +1,21 @@
+import { RDSDataClient } from '@aws-sdk/client-rds-data';
+import { PrismaAurora } from '@prisma/adapter-aurora';
+import { smokeTest } from './test'
+
+async function main() {
+    const awsRegion = `${process.env.JS_AURORA_AWS_REGION}` //The region that the aurora cluster is deployed to
+    const resourceArn = `${process.env.JS_AURORA_RESOURCE_ARN}` //The ARN of the aurora cluster to connect to
+    const secretArn = `${process.env.JS_AURORA_SECRET_ARN}` // The database secret that is used for authentication to the cluster. Your Service/Lambda will need access to this see https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_database_secret.html
+    const databaseName = `${process.env.JS_AURORA_DATABASE_NAME}`// The name of the database to connect to in the cluster
+
+    // Init prisma client
+    const client = new RDSDataClient({ region: awsRegion });
+    const adapter = new PrismaAurora(client, { resourceArn, secretArn, databaseName });
+
+    await smokeTest(adapter)
+}
+
+main().catch((e) => {
+    console.error(e)
+    process.exit(1)
+})

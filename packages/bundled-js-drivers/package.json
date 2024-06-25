@@ -31,6 +31,7 @@
   "dependencies": {
     "@libsql/client": "0.6.2",
     "@neondatabase/serverless": "0.9.3",
+    "@aws-sdk/client-rds-data": "3.600.0",
     "@planetscale/database": "1.18.0",
     "@types/pg": "8.11.6",
     "pg": "8.11.5"

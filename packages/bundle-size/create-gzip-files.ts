@@ -1,7 +1,7 @@
 import { $ } from 'zx'
 
 void (async () => {
-  const postgresProjects = ['da-workers-neon', 'da-workers-pg', 'da-workers-pg-worker']
+  const postgresProjects = ['da-workers-neon', 'da-workers-pg', 'da-workers-pg-worker', 'da-workers-aurora']
   const sqliteProjects = ['da-workers-libsql', 'da-workers-d1']
   const mysqlProjects = ['da-workers-planetscale']
 
