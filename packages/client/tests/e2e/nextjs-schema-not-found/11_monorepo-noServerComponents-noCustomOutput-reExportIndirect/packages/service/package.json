@@ -12,10 +12,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "18.19.34",
+    "@types/node": "18.19.39",
     "@types/react": "18.3.3",
     "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz",
-    "webpack": "5.91.0"
+    "webpack": "5.92.1"
   },
   "dependencies": {
     "db": "workspace:*",
