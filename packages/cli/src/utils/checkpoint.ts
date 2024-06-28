@@ -1,7 +1,16 @@
 import Debug from '@prisma/debug'
-import { getCLIPathHash, getConfig, getProjectHash, getSchema, parseEnvValue } from '@prisma/internals'
+import {
+  getCLIPathHash,
+  getConfig,
+  getProjectHash,
+  getSchema,
+  parseEnvValue,
+  findNearestPackageJson,
+} from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
+import path from 'path'
+import { valid as semverValid } from 'semver'
 
 const debug = Debug('prisma:cli:checkpoint')
 
@@ -46,6 +55,11 @@ export async function runCheckpointClientCheck({
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
 
+    // Extract some data from the package.json
+    // This only collects data from the nearest package.json
+    // And the minimum required data to identify some frameworks
+    const packageJsonData = await tryToExtractSomeDataFromPackageJson(schemaPath)
+
     const endGetInfo = performance.now()
     const getInfoElapsedTime = endGetInfo - startGetInfo
     debug(`runCheckpointClientCheck(): Execution time for getting info: ${getInfoElapsedTime} ms`)
@@ -76,6 +90,9 @@ export async function runCheckpointClientCheck({
       // Note: This won't be sent to the checkpoint server.
       // TODO: Check if we can remove, probably not needed since cli_path_hash is defined
       cli_path: process.argv[1],
+      // Data extracted from the nearest package.json
+      pkg_type: packageJsonData.type,
+      typescript: packageJsonData.typescript,
     }
 
     const startCheckpoint = performance.now()
@@ -87,8 +104,7 @@ export async function runCheckpointClientCheck({
 
     return checkpointResult
   } catch (e) {
-    debug('Error from runCheckpointClientCheck()')
-    debug(e)
+    debug('Error from runCheckpointClientCheck()--:', e)
     return 0
   }
 }
@@ -144,6 +160,40 @@ export async function tryToReadDataFromSchema(schemaPath?: string) {
     schemaPreviewFeatures,
     schemaGeneratorsProviders,
   }
+}
+
+export async function tryToExtractSomeDataFromPackageJson(cwd?: string) {
+  const packageJson = await findNearestPackageJson(cwd)
+  const packagePath = packageJson?.path
+  let packageType: string | undefined = packageJson?.data.type || ''
+  // If the value is not 'module' or 'commonjs' then it's invalid and we don't want to send it
+  // https://nodejs.org/api/packages.html#type
+  if (!['module', 'commonjs'].includes(packageType)) {
+    packageType = undefined
+  }
+
+  const data = {
+    typescript: undefined,
+    type: packageType,
+  }
+
+  if (!packagePath) {
+    return data
+  }
+
+  // Require typescript to get its version
+  try {
+    const requirePath = require.resolve('typescript/package.json', { paths: [path.basename(packagePath)] })
+    const typescript = require(requirePath)
+    // Check that the version is valid before collecting it
+    if (typescript.version && semverValid(typescript.version)) {
+      data.typescript = typescript.version
+    }
+  } catch (e) {
+    debug('Error from tryToExtractSomeDataFromPackageJson()', e)
+  }
+
+  return data
 }
 
 /*
