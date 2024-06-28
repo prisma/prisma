@@ -64,8 +64,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
@@ -79,8 +78,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -92,8 +90,8 @@ describe('[wasm] incomplete-schemas', () => {
         await DbExecute.new().parse(['--file=./script.sql'])
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-          "P1012
-
+          "Prisma schema validation - (get-config wasm)
+          Error code: P1012
           error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
             -->  schema.prisma:5
              | 
@@ -101,7 +99,10 @@ describe('[wasm] incomplete-schemas', () => {
            5 |   url      = env("SOME_DEFINED_INVALID_URL")
              | 
 
-          "
+          Validation Error Count: 1
+          [Context: getConfig]
+
+          Prisma CLI Version : 0.0.0"
         `)
       }
     })
@@ -111,8 +112,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await MigrateReset.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
@@ -126,8 +126,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -136,8 +135,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await MigrateDev.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
@@ -151,8 +149,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
   })
@@ -167,8 +164,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await Validate.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Environment variable not found: SOME_UNDEFINED_DB.
@@ -182,8 +178,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -192,8 +187,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPush.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Environment variable not found: SOME_UNDEFINED_DB.
@@ -207,8 +201,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -217,8 +210,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Environment variable not found: SOME_UNDEFINED_DB.
@@ -232,8 +224,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -245,8 +236,8 @@ describe('[wasm] incomplete-schemas', () => {
         await DbExecute.new().parse(['--file=./script.sql'])
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-          "P1012
-
+          "Prisma schema validation - (get-config wasm)
+          Error code: P1012
           error: Environment variable not found: SOME_UNDEFINED_DB.
             -->  schema.prisma:5
              | 
@@ -254,7 +245,10 @@ describe('[wasm] incomplete-schemas', () => {
            5 |   url      = env("SOME_UNDEFINED_DB")
              | 
 
-          "
+          Validation Error Count: 1
+          [Context: getConfig]
+
+          Prisma CLI Version : 0.0.0"
         `)
       }
     })
@@ -264,8 +258,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await MigrateReset.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Environment variable not found: SOME_UNDEFINED_DB.
@@ -279,8 +272,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -289,8 +281,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await MigrateDev.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Environment variable not found: SOME_UNDEFINED_DB.
@@ -304,8 +295,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
   })
@@ -331,8 +321,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await Validate.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Argument "url" is missing in data source block "db".
@@ -348,8 +337,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: validate]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -359,8 +347,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await Format.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
-          `
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Argument "url" is missing in data source block "db".
@@ -376,8 +363,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: validate]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
   })
@@ -408,8 +394,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPush.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Argument "url" is missing in data source block "db".
@@ -425,8 +410,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -435,8 +419,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Argument "url" is missing in data source block "db".
@@ -452,8 +435,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -465,8 +447,8 @@ describe('[wasm] incomplete-schemas', () => {
         await DbExecute.new().parse(['--file=./script.sql'])
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-          "P1012
-
+          "Prisma schema validation - (get-config wasm)
+          Error code: P1012
           error: Argument "url" is missing in data source block "db".
             -->  schema.prisma:3
              | 
@@ -476,7 +458,10 @@ describe('[wasm] incomplete-schemas', () => {
            5 | }
              | 
 
-          "
+          Validation Error Count: 1
+          [Context: getConfig]
+
+          Prisma CLI Version : 0.0.0"
         `)
       }
     })
@@ -486,8 +471,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await MigrateReset.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Argument "url" is missing in data source block "db".
@@ -503,8 +487,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
 
@@ -513,8 +496,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await MigrateDev.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
-          `
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Argument "url" is missing in data source block "db".
@@ -530,8 +512,7 @@ describe('[wasm] incomplete-schemas', () => {
           [Context: getConfig]
 
           Prisma CLI Version : 0.0.0"
-        `,
-        )
+        `)
       }
     })
   })
@@ -559,13 +540,11 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
-          `
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
           "There is no datasource in the schema.
 
           "
-        `,
-        )
+        `)
       }
     })
 
@@ -576,13 +555,11 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbExecute.new().parse(['--file=./script.sql'])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
-          `
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
           "There is no datasource in the schema.
 
           "
-        `,
-        )
+        `)
       }
     })
 

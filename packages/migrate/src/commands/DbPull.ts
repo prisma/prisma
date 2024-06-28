@@ -299,7 +299,6 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     }
 
     const engine = new SchemaEngine({
-      projectDir: schemaPath ? path.dirname(schemaPath) : process.cwd(),
       schemaPath: schemaPath ?? undefined,
     })
 
