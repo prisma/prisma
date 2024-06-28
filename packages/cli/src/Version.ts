@@ -19,9 +19,12 @@ import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
 import { match, P } from 'ts-pattern'
 
-import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
+import {
+  getInstalledPrismaClientVersion,
+  getPrismaDriverAdapterVersionsFromLocalPackageJson,
+} from './utils/getClientVersion'
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json')
 
 /**
  * $ prisma version
@@ -89,9 +92,42 @@ export class Version implements Command {
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
+    /**
+     * `driverAdapterRows` provides a table with:
+     * - The name of a driver adapter, and its version
+     * - The name of the underlying driver used by that adapter, and its version (if found)
+     * Driver adapters are listed in alphabetical order.
+     * No adapter version is retrieved when using the binary Query Engine.
+     *
+     * Example output (after rendering):
+     * @prisma/adapter-neon        : 5.15.0
+     *  ↳ @neondatabase/serverless : 0.9.3
+     */
+    const driverAdapterRows = await match(cliQueryEngineBinaryType)
+      .with(BinaryType.QueryEngineBinary, () => [])
+      .otherwise(async () => {
+        const driverAdapterVersions = await getPrismaDriverAdapterVersionsFromLocalPackageJson()
+        const driverAdapterRows = (driverAdapterVersions ?? [])
+          .map((driverAdapterVersion) => {
+            return [
+              [driverAdapterVersion.name, driverAdapterVersion.version],
+              [
+                ` ↳ ${driverAdapterVersion.underlyingDriver.name}`,
+                driverAdapterVersion.underlyingDriver.version ?? 'Not found',
+              ],
+            ]
+          })
+          .flat()
+
+        return driverAdapterRows
+      })
+
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
+
+      ...driverAdapterRows,
+
       ['Computed binaryTarget', binaryTarget],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
