@@ -194,7 +194,7 @@
     "@prisma/pg-worker": "workspace:*",
     "@prisma/query-engine-wasm": "5.16.0-24.34ace0eb2704183d2c05b60b52fba5c43c13f303",
     "@snaplet/copycat": "0.17.3",
-    "@swc-node/register": "1.9.2",
+    "@swc-node/register": "1.10.0",
     "@swc/core": "1.6.3",
     "@swc/jest": "0.2.36",
     "@timsuchanek/copy": "1.4.5",

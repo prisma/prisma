@@ -648,8 +648,8 @@ importers:
         specifier: 0.17.3
         version: 0.17.3
       '@swc-node/register':
-        specifier: 1.9.2
-        version: 1.9.2(@swc/core@1.6.3)(typescript@5.4.5)
+        specifier: 1.10.0
+        version: 1.10.0(@swc/core@1.6.3)(typescript@5.4.5)
       '@swc/core':
         specifier: 1.6.3
         version: 1.6.3
@@ -987,8 +987,8 @@ importers:
         version: link:../debug
     devDependencies:
       '@swc-node/register':
-        specifier: 1.9.2
-        version: 1.9.2(@swc/core@1.6.3)(typescript@5.4.5)
+        specifier: 1.10.0
+        version: 1.10.0(@swc/core@1.6.3)(typescript@5.4.5)
       '@swc/core':
         specifier: 1.6.3
         version: 1.6.3
@@ -3638,8 +3638,8 @@ packages:
       '@swc/core': 1.6.3
     dev: true
 
-  /@swc-node/register@1.9.2(@swc/core@1.6.3)(typescript@5.4.5):
-    resolution: {integrity: sha512-BBjg0QNuEEmJSoU/++JOXhrjWdu3PTyYeJWsvchsI0Aqtj8ICkz/DqlwtXbmZVZ5vuDPpTfFlwDBZe81zgShMA==}
+  /@swc-node/register@1.10.0(@swc/core@1.6.3)(typescript@5.4.5):
+    resolution: {integrity: sha512-38w10C3fWLi5nd1BltCjj75p5JUn35o8Qvp9yg4y59WrOMLqJ2vzjUva/v7E5IxpY7irE9RMovoxI6uF8/QXJg==}
     peerDependencies:
       '@swc/core': '>= 1.4.13'
       typescript: '>= 4.3'
