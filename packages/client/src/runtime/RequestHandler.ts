@@ -23,7 +23,6 @@ import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
 import { NotFoundError } from './core/errors/NotFoundError'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
-import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
 import { GlobalOmitOptions } from './core/jsonProtocol/serializeJsonQuery'
@@ -276,7 +275,9 @@ export class RequestHandler {
     }
     const response = Object.values(data)[0]
     const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
-    const deserializeResponse = deserializeJsonResponse(deepGet(response, pathForGet))
+    // Avoid deserializing the response for raw queries. This needs to be conditionally done
+    // based on the query type.
+    const deserializeResponse = deepGet(response, pathForGet)
 
     return unpacker ? unpacker(deserializeResponse) : deserializeResponse
   }
