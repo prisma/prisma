@@ -80,37 +80,36 @@ testMatrix.setupTestSuite(
       }
     })
 
-    testIf(driverAdapter !== 'js_d1')('5 concurrent upsert should succeed with journal_mode = WAL', async () => {
-      await db.dropDb()
+    describeIf(driverAdapter === undefined)('default case: no Driver Adapter', () => {
+      test('5 concurrent upsert should succeed with journal_mode = WAL', async () => {
+        await db.dropDb()
 
-      const prisma = newPrismaClient({
-        datasources: {
-          db: {
-            url: 'file:./concurrent-upsert-wal.db',
+        const prisma = newPrismaClient({
+          datasources: {
+            db: {
+              url: 'file:./concurrent-upsert-wal.db',
+            },
           },
-        },
+        })
+
+        await expect(prisma.$queryRaw`PRAGMA journal_mode = WAL`).resolves.toEqual([{ journal_mode: 'wal' }])
+
+        const ddlQueries = [] as any[]
+        sqlDef.split(';').forEach((sql) => {
+          ddlQueries.push(prisma.$executeRawUnsafe(sql))
+        })
+        await prisma.$transaction(ddlQueries)
+
+        const N = 5
+        const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+        await createUsers(prisma, ids)
+
+        const queries = await upsertProfilesConcurrently(prisma, ids)
+
+        expect(queries).toHaveLength(N)
       })
 
-      await expect(prisma.$queryRaw`PRAGMA journal_mode = WAL`).resolves.toEqual([{ journal_mode: 'wal' }])
-
-      const ddlQueries = [] as any[]
-      sqlDef.split(';').forEach((sql) => {
-        ddlQueries.push(prisma.$executeRawUnsafe(sql))
-      })
-      await prisma.$transaction(ddlQueries)
-
-      const N = 5
-      const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
-      await createUsers(prisma, ids)
-
-      const queries = await upsertProfilesConcurrently(prisma, ids)
-
-      expect(queries).toHaveLength(N)
-    })
-
-    testIf(driverAdapter !== 'js_d1')(
-      '5 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL',
-      async () => {
+      test('5 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL', async () => {
         await db.dropDb()
 
         const prisma = newPrismaClient({
@@ -136,59 +135,59 @@ testMatrix.setupTestSuite(
         const queries = await upsertProfilesConcurrently(prisma, ids)
 
         expect(queries).toHaveLength(N)
-      },
-    )
+      })
 
-    test('5 concurrent upsert should succeed with connection_limit=1', async () => {
-      await db.dropDb()
+      test('5 concurrent upsert should succeed with connection_limit=1', async () => {
+        await db.dropDb()
 
-      const prisma = newPrismaClient({
-        datasources: {
-          db: {
-            url: 'file:./concurrent-upsert.db?connection_limit=1',
+        const prisma = newPrismaClient({
+          datasources: {
+            db: {
+              url: 'file:./concurrent-upsert.db?connection_limit=1',
+            },
           },
-        },
+        })
+
+        const ddlQueries: any = []
+        sqlDef.split(';').forEach((sql) => {
+          ddlQueries.push(prisma.$executeRawUnsafe(sql))
+        })
+        await prisma.$transaction(ddlQueries)
+
+        const N = 5
+        const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+        await createUsers(prisma, ids)
+
+        const queries = await upsertProfilesConcurrently(prisma, ids)
+
+        expect(queries).toHaveLength(N)
       })
 
-      const ddlQueries: any = []
-      sqlDef.split(';').forEach((sql) => {
-        ddlQueries.push(prisma.$executeRawUnsafe(sql))
-      })
-      await prisma.$transaction(ddlQueries)
+      test('5 concurrent delete should succeed with connection_limit=1', async () => {
+        await db.dropDb()
 
-      const N = 5
-      const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
-      await createUsers(prisma, ids)
-
-      const queries = await upsertProfilesConcurrently(prisma, ids)
-
-      expect(queries).toHaveLength(N)
-    })
-
-    testIf(driverAdapter !== 'js_d1')('5 concurrent delete should succeed with connection_limit=1', async () => {
-      await db.dropDb()
-
-      const prisma = newPrismaClient({
-        datasources: {
-          db: {
-            url: 'file:./concurrent-delete.db?connection_limit=1',
+        const prisma = newPrismaClient({
+          datasources: {
+            db: {
+              url: 'file:./concurrent-delete.db?connection_limit=1',
+            },
           },
-        },
+        })
+
+        const ddlQueries: any = []
+        sqlDef.split(';').forEach((sql) => {
+          ddlQueries.push(prisma.$executeRawUnsafe(sql))
+        })
+        await prisma.$transaction(ddlQueries)
+
+        const N = 5
+        const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
+        await createUsers(prisma, ids)
+
+        const queries = await deleteUsersConcurrently(prisma, ids)
+
+        expect(queries).toHaveLength(N)
       })
-
-      const ddlQueries: any = []
-      sqlDef.split(';').forEach((sql) => {
-        ddlQueries.push(prisma.$executeRawUnsafe(sql))
-      })
-      await prisma.$transaction(ddlQueries)
-
-      const N = 5
-      const ids = Array.from({ length: N }, (_, i) => `${i + 1}`.padStart(5, '0'))
-      await createUsers(prisma, ids)
-
-      const queries = await deleteUsersConcurrently(prisma, ids)
-
-      expect(queries).toHaveLength(N)
     })
   },
   {
