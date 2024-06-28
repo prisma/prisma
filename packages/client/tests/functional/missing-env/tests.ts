@@ -9,7 +9,7 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ clientRuntime }, suiteMeta, clientMeta) => {
+  ({ clientRuntime, driverAdapter }, suiteMeta, clientMeta) => {
     // TODO: Fails with Expected PrismaClientInitError, Received Error
     skipTestIf(clientRuntime === 'wasm')('PrismaClientInitializationError for missing env', async () => {
       const prisma = newPrismaClient()
@@ -23,7 +23,7 @@ testMatrix.setupTestSuite(
       }
     })
     // TODO: Fails with Expected PrismaClientInitError, Received Error
-    skipTestIf(clientRuntime === 'wasm')(
+    skipTestIf(driverAdapter !== undefined)(
       'PrismaClientInitializationError for missing env and empty override',
       async () => {
         const prisma = newPrismaClient({

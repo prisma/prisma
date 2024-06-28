@@ -389,6 +389,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             this._clientVersion,
           )
         }
+
+        if (optionsArg.datasources || optionsArg.datasourceUrl !== undefined) {
+          throw new PrismaClientInitializationError(
+            `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
+            this._clientVersion,
+          )
+        }
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
