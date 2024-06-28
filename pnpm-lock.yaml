@@ -1097,7 +1097,7 @@ importers:
         version: 0.51.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-base':
         specifier: ^1.22
-        version: 1.25.0(@opentelemetry/api@1.9.0)
+        version: 1.25.1(@opentelemetry/api@1.9.0)
     devDependencies:
       '@prisma/internals':
         specifier: workspace:*
@@ -2993,7 +2993,7 @@ packages:
       chalk: 4.1.2
       convert-source-map: 2.0.0
       fast-json-stable-stringify: 2.1.0
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-haste-map: 29.7.0
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
@@ -3334,16 +3334,6 @@ packages:
       '@opentelemetry/api': 1.9.0
     dev: true
 
-  /@opentelemetry/core@1.25.0(@opentelemetry/api@1.9.0):
-    resolution: {integrity: sha512-n0B3s8rrqGrasTgNkXLKXzN0fXo+6IYP7M5b7AMsrZM33f/y6DS6kJ0Btd7SespASWq8bgL3taLo0oe0vB52IQ==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.10.0'
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/semantic-conventions': 1.25.0
-    dev: false
-
   /@opentelemetry/core@1.25.1(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-GeT/l6rBYWVQ4XArluLVB6WWQ8flHbdb6r2FCHC3smtdOAbrJBIv35tpV/yp9bmYUJf+xmZpu9DRTIeJVhFbEQ==}
     engines: {node: '>=14'}
@@ -3352,7 +3342,6 @@ packages:
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/semantic-conventions': 1.25.1
-    dev: true
 
   /@opentelemetry/instrumentation@0.51.1(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-JIrvhpgqY6437QIqToyozrUG1h5UhwHkaGK/WAX+fkrpyPtc+RO5FkRtUd9BH0MibabHHvqsnBGKfKVijbmp8w==}
@@ -3388,17 +3377,6 @@ packages:
       - supports-color
     dev: true
 
-  /@opentelemetry/resources@1.25.0(@opentelemetry/api@1.9.0):
-    resolution: {integrity: sha512-iHjydPMYJ+Li1auveJCq2rp5U2h6Mhq8BidiyE0jfVlDTFyR1ny8AfJHfmFzJ/RAM8vT8L7T21kcmGybxZC7lQ==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.10.0'
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/core': 1.25.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.25.0
-    dev: false
-
   /@opentelemetry/resources@1.25.1(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-pkZT+iFYIZsVn6+GzM0kSX+u3MSLCY9md+lIJOoKl/P+gJFfxJte/60Usdp8Ce4rOs8GduUpSPNe1ddGyDT1sQ==}
     engines: {node: '>=14'}
@@ -3408,19 +3386,6 @@ packages:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 1.25.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.25.1
-    dev: true
-
-  /@opentelemetry/sdk-trace-base@1.25.0(@opentelemetry/api@1.9.0):
-    resolution: {integrity: sha512-6+g2fiRQUG39guCsKVeY8ToeuUf3YUnPkN6DXRA1qDmFLprlLvZm9cS6+chgbW70cZJ406FTtSCDnJwxDC5sGQ==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.10.0'
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/core': 1.25.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/resources': 1.25.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.25.0
-    dev: false
 
   /@opentelemetry/sdk-trace-base@1.25.1(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-C8k4hnEbc5FamuZQ92nTOp8X/diCY56XUTnMiv9UTuJitCzaNNHAVsdm5+HLCdI8SLQsLWIrG38tddMxLVoftw==}
@@ -3432,17 +3397,10 @@ packages:
       '@opentelemetry/core': 1.25.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/resources': 1.25.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.25.1
-    dev: true
-
-  /@opentelemetry/semantic-conventions@1.25.0:
-    resolution: {integrity: sha512-M+kkXKRAIAiAP6qYyesfrC5TOmDpDVtsxuGfPcqd9B/iBrac+E14jYwrgm0yZBUIbIP2OnqC3j+UgkXLm1vxUQ==}
-    engines: {node: '>=14'}
-    dev: false
 
   /@opentelemetry/semantic-conventions@1.25.1:
     resolution: {integrity: sha512-ZDjMJJQRlyk8A1KZFCc+bCbsyrn1wTwdNt56F7twdfUfnHUZUq77/WfONCj8p72NZOyP7pNTdUWSTYC3GTbuuQ==}
     engines: {node: '>=14'}
-    dev: true
 
   /@planetscale/database@1.18.0:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
@@ -6957,6 +6915,7 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -7850,7 +7809,7 @@ packages:
       '@types/node': 20.12.7
       anymatch: 3.1.3
       fb-watchman: 2.0.2
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
       jest-worker: 29.7.0
@@ -7896,7 +7855,7 @@ packages:
       '@jest/types': 29.6.3
       '@types/stack-utils': 2.0.1
       chalk: 4.1.2
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       micromatch: 4.0.6
       pretty-format: 29.7.0
       slash: 3.0.0
@@ -8056,7 +8015,7 @@ packages:
       '@types/node': 20.12.7
       chalk: 4.1.2
       ci-info: 3.9.0
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
       picomatch: 2.3.1
     dev: true
 
@@ -8240,7 +8199,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
 
   /jsonwebtoken@8.5.1:
     resolution: {integrity: sha512-XjwVfRS6jTMsqYs0EsuJ4LGxXV14zQybNd4L2r0UvbVnSF9Af8x7p5MzbJ90Ioz/9TI41/hTCvznF/loiSzn8w==}
