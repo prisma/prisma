@@ -15,6 +15,7 @@ import {
   MigrateDeploy,
   MigrateDev,
   MigrateDiff,
+  MigrateNew,
   MigrateReset,
   MigrateResolve,
   MigrateStatus,
@@ -126,6 +127,7 @@ async function main(): Promise<number> {
       }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
+        new: MigrateNew.new(),
         status: MigrateStatus.new(),
         resolve: MigrateResolve.new(),
         reset: MigrateReset.new(),

@@ -16,6 +16,7 @@ import { MigrateCommand } from './commands/MigrateCommand'
 import { MigrateDeploy } from './commands/MigrateDeploy'
 import { MigrateDev } from './commands/MigrateDev'
 import { MigrateDiff } from './commands/MigrateDiff'
+import { MigrateNew } from './commands/MigrateNew'
 import { MigrateReset } from './commands/MigrateReset'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
@@ -44,6 +45,7 @@ async function main(): Promise<number> {
   const cli = CLI.new({
     migrate: MigrateCommand.new({
       dev: MigrateDev.new(),
+      new: MigrateNew.new(),
       status: MigrateStatus.new(),
       resolve: MigrateResolve.new(),
       reset: MigrateReset.new(),
