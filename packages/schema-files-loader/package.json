@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.16.0-24.34ace0eb2704183d2c05b60b52fba5c43c13f303",
+    "@prisma/prisma-schema-wasm": "5.17.0-1.perf-query-raw-serialization-e47383c417b1d157566b509938893a9b8ada2aad",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
