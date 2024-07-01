@@ -40,7 +40,7 @@
     "mariadb": "3.3.1",
     "mock-stdin": "1.0.0",
     "mongoose": "8.4.3",
-    "mssql": "10.0.4",
+    "mssql": "11.0.0",
     "ora": "5.4.1",
     "pg": "8.11.5",
     "pkg-up": "3.1.0",
@@ -49,7 +49,7 @@
     "tempy": "1.0.1",
     "ts-pattern": "5.2.0",
     "typescript": "5.4.5",
-    "wrangler": "3.61.0"
+    "wrangler": "3.62.0"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",

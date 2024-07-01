@@ -218,7 +218,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
         }
 
         const datamodel = mergeSchemas({ schemas })
-        const envPaths = await getEnvPaths(schemaPath)
+        const envPaths = await getEnvPaths(schemaPath, { cwd: generator.output.value! })
 
         const options: GeneratorOptions = {
           datamodel,
