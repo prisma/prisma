@@ -1,0 +1,46 @@
+services:
+  test-e2e:
+    environment:
+      - POSTGRES_URL=postgres://prisma:prisma@postgres:5432/tests
+      - NEON_WS_PROXY=neon_wsproxy:80/v1
+    depends_on:
+      neon_wsproxy:
+        condition: service_healthy
+
+  neon_wsproxy:
+    image: ghcr.io/neondatabase/wsproxy:latest
+    environment:
+      APPEND_PORT: 'postgres:5432'
+      ALLOW_ADDR_REGEX: '.*'
+      LOG_TRAFFIC: 'true'
+      LOG_CONN_INFO: 'true'
+    ports:
+      - '5488:80'
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'nc', '-z', '127.0.0.1', '80']
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    # Uncomment the following line to enable query logging
+    # Then restart the container.
+    # command: ['postgres', '-c', 'log_statement=all']
+    environment:
+      - POSTGRES_DB=tests
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    ports:
+      - '15432:5432'
+    healthcheck:
+      # specifying user and database is needed to avoid `FATAL:  role "root" does not exist`
+      # spam in the logs
+      test: ['CMD', 'pg_isready', '-U', 'prisma', '-d', 'tests']
+      interval: 5s
+      timeout: 2s
+      retries: 20
