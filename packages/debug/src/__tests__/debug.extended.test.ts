@@ -11,7 +11,7 @@ beforeEach(() => {
 let Debug: typeof import('../index').default
 test('with a namespace', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test'
     process.env.DEBUG_COLORS = 'false'
@@ -20,17 +20,17 @@ test('with a namespace', () => {
 
     debug('hello world')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test hello world"`)
-    expect(stderrMockParams.length).toBe(1)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test hello world"`)
+    expect(consoleWarnParams.length).toBe(1)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('with colors', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test2'
     process.env.FORCE_COLOR = 'true'
@@ -40,17 +40,17 @@ test('with colors', () => {
 
     debug('hello world')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"[32m[1mtest2[22m[39m hello world"`)
-    expect(stderrMockParams.length).toBe(1)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"[32m[1mtest2[22m[39m hello world"`)
+    expect(consoleWarnParams.length).toBe(1)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('with multiple wild cards', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test3:*:*:*'
     process.env.DEBUG_COLORS = 'false'
@@ -58,17 +58,17 @@ test('with multiple wild cards', () => {
     Debug('test3:client:query-engine:init')('match1')
     Debug('test3:client:query-engine')('match2')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test3:client:query-engine:init match1"`)
-    expect(stderrMockParams.length).toBe(1)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test3:client:query-engine:init match1"`)
+    expect(consoleWarnParams.length).toBe(1)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('with multiple wild cards and filter', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test4:*:query-engine:*'
     process.env.DEBUG_COLORS = 'false'
@@ -77,18 +77,18 @@ test('with multiple wild cards and filter', () => {
     Debug('test4:client:query-engine')('match2')
     Debug('test4:pool:query-engine:delete')('match3')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test4:client:query-engine:init match1"`)
-    expect(stderrMockParams[1][0]).toMatchInlineSnapshot(`"test4:pool:query-engine:delete match3"`)
-    expect(stderrMockParams.length).toBe(2)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test4:client:query-engine:init match1"`)
+    expect(consoleWarnParams[1][0]).toMatchInlineSnapshot(`"test4:pool:query-engine:delete match3"`)
+    expect(consoleWarnParams.length).toBe(2)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('with trailing wild cards', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test5:*:*'
     process.env.DEBUG_COLORS = 'false'
@@ -97,19 +97,19 @@ test('with trailing wild cards', () => {
     Debug('test5:client:query-engine')('match2')
     Debug('test5:pool:query-engine:delete')('match3')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test5:client:query-engine:init match1"`)
-    expect(stderrMockParams[1][0]).toMatchInlineSnapshot(`"test5:client:query-engine match2"`)
-    expect(stderrMockParams[2][0]).toMatchInlineSnapshot(`"test5:pool:query-engine:delete match3"`)
-    expect(stderrMockParams.length).toBe(3)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test5:client:query-engine:init match1"`)
+    expect(consoleWarnParams[1][0]).toMatchInlineSnapshot(`"test5:client:query-engine match2"`)
+    expect(consoleWarnParams[2][0]).toMatchInlineSnapshot(`"test5:pool:query-engine:delete match3"`)
+    expect(consoleWarnParams.length).toBe(3)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('with trailing wild cards and filter', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test6:client:*'
     process.env.DEBUG_COLORS = 'false'
@@ -118,18 +118,18 @@ test('with trailing wild cards and filter', () => {
     Debug('test6:client:query-engine')('match2')
     Debug('test6:pool:query-engine:delete')('match3')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test6:client:query-engine:init match1"`)
-    expect(stderrMockParams[1][0]).toMatchInlineSnapshot(`"test6:client:query-engine match2"`)
-    expect(stderrMockParams.length).toBe(2)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test6:client:query-engine:init match1"`)
+    expect(consoleWarnParams[1][0]).toMatchInlineSnapshot(`"test6:client:query-engine match2"`)
+    expect(consoleWarnParams.length).toBe(2)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('with multiple wild cards and exclusion filter', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test7:*:*,-test7:*:*:init'
     process.env.DEBUG_COLORS = 'false'
@@ -138,18 +138,18 @@ test('with multiple wild cards and exclusion filter', () => {
     Debug('test7:client:query-engine')('match2')
     Debug('test7:pool:query-engine:delete')('match3')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test7:client:query-engine match2"`)
-    expect(stderrMockParams[1][0]).toMatchInlineSnapshot(`"test7:pool:query-engine:delete match3"`)
-    expect(stderrMockParams.length).toBe(2)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test7:client:query-engine match2"`)
+    expect(consoleWarnParams[1][0]).toMatchInlineSnapshot(`"test7:pool:query-engine:delete match3"`)
+    expect(consoleWarnParams.length).toBe(2)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('with multiple wild cards and multiple exclusion filters', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test8:*:*,-test8:*:*:init,-test8:pool:*'
     process.env.DEBUG_COLORS = 'false'
@@ -158,17 +158,17 @@ test('with multiple wild cards and multiple exclusion filters', () => {
     Debug('test8:client:query-engine')('match2')
     Debug('test8:pool:query-engine:delete')('match3')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test8:client:query-engine match2"`)
-    expect(stderrMockParams.length).toBe(1)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test8:client:query-engine match2"`)
+    expect(consoleWarnParams.length).toBe(1)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('truncation when no wildcard is used', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test9:client'
     process.env.DEBUG_COLORS = 'false'
@@ -178,17 +178,17 @@ test('truncation when no wildcard is used', () => {
     Debug('test9:pool:query-engine:delete')('match3')
     Debug('test9:client')('match4')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test9:client match4"`)
-    expect(stderrMockParams.length).toBe(1)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test9:client match4"`)
+    expect(consoleWarnParams.length).toBe(1)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('object serialization', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test10:client'
     process.env.DEBUG_COLORS = 'false'
@@ -198,8 +198,8 @@ test('object serialization', () => {
     object.b.d = [object]
     Debug('test10:client')(object)
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`
       "test10:client {
         "a": 1,
         "b": {
@@ -210,34 +210,34 @@ test('object serialization', () => {
         }
       }"
     `)
-    expect(stderrMockParams.length).toBe(1)
+    expect(consoleWarnParams.length).toBe(1)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('millisecond timestamps', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test11:client'
     process.env.DEBUG_COLORS = 'false'
     Debug = require('../index').default
     Debug('test11:client')('match1')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
 
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test11:client match1"`)
-    expect(stderrMockParams[0][1]?.match(/\+\d+ms/)).toBeTruthy()
-    expect(stderrMockParams.length).toBe(1)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test11:client match1"`)
+    expect(consoleWarnParams[0][1]?.match(/\+\d+ms/)).toBeTruthy()
+    expect(consoleWarnParams.length).toBe(1)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('wildcard can be used like a regex at the end', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test12:client*'
     process.env.DEBUG_COLORS = 'false'
@@ -247,19 +247,19 @@ test('wildcard can be used like a regex at the end', () => {
     Debug('test12:pool:query-engine:delete')('match3')
     Debug('test12:client')('match4')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test12:client:query-engine:init match1"`)
-    expect(stderrMockParams[1][0]).toMatchInlineSnapshot(`"test12:client:query-engine match2"`)
-    expect(stderrMockParams[2][0]).toMatchInlineSnapshot(`"test12:client match4"`)
-    expect(stderrMockParams.length).toBe(3)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test12:client:query-engine:init match1"`)
+    expect(consoleWarnParams[1][0]).toMatchInlineSnapshot(`"test12:client:query-engine match2"`)
+    expect(consoleWarnParams[2][0]).toMatchInlineSnapshot(`"test12:client match4"`)
+    expect(consoleWarnParams.length).toBe(3)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('wildcard can be used like a regex in the middle', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test13:client*init'
     process.env.DEBUG_COLORS = 'false'
@@ -269,17 +269,17 @@ test('wildcard can be used like a regex in the middle', () => {
     Debug('test13:pool:query-engine:delete')('match3')
     Debug('test13:client')('match4')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test13:client:query-engine:init match1"`)
-    expect(stderrMockParams.length).toBe(1)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test13:client:query-engine:init match1"`)
+    expect(consoleWarnParams.length).toBe(1)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('can manage complex inclusions and exclusions', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test14:*:query-engine:*,-*init,*:result'
     process.env.DEBUG_COLORS = 'false'
@@ -292,28 +292,28 @@ test('can manage complex inclusions and exclusions', () => {
     Debug('test14:psl:init')('match6')
     Debug('test14:psl:result')('match6')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams[0][0]).toMatchInlineSnapshot(`"test14:pool:query-engine:delete match3"`)
-    expect(stderrMockParams[1][0]).toMatchInlineSnapshot(`"test14:psl:result match6"`)
-    expect(stderrMockParams.length).toBe(2)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams[0][0]).toMatchInlineSnapshot(`"test14:pool:query-engine:delete match3"`)
+    expect(consoleWarnParams[1][0]).toMatchInlineSnapshot(`"test14:psl:result match6"`)
+    expect(consoleWarnParams.length).toBe(2)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
 test('regex characters do not mess with matching', () => {
   jest.isolateModules(() => {
-    const stderrMock = jest.spyOn(process.stderr, 'write').mockImplementation()
+    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
 
     process.env.DEBUG = 'test15:\\w+'
     process.env.DEBUG_COLORS = 'false'
     Debug = require('../index').default
     Debug('test15:hello')('match1')
 
-    const stderrMockParams = stderrMock.mock.calls.map(mapper)
-    expect(stderrMockParams.length).toBe(0)
+    const consoleWarnParams = consoleWarn.mock.calls.map(mapper)
+    expect(consoleWarnParams.length).toBe(0)
 
-    stderrMock.mockRestore()
+    consoleWarn.mockRestore()
   })
 })
 
