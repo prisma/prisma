@@ -17,25 +17,29 @@ type PrismaType =
   | 'datetime'
   | 'date'
   | 'time'
-  | 'array'
-  | 'null'
+  | 'int-array'
+  | 'bigint-array'
+  | 'float-array'
+  | 'double-array'
+  | 'string-array'
+  | 'enum-array'
+  | 'bytes-array'
+  | 'bool-array'
+  | 'char-array'
+  | 'decimal-array'
+  | 'json-array'
+  | 'xml-array'
+  | 'uuid-array'
+  | 'datetime-array'
+  | 'date-array'
+  | 'time-array'
+  | 'unknown-array'
 
-type TypedValue = {
-  prisma__type: PrismaType
-  prisma__value: unknown
-}
+function deserializeValue(type: PrismaType, value: unknown): unknown {
+  if (value === null) {
+    return value
+  }
 
-export function deserializeRawResults(rows: Array<Record<string, TypedValue>>): unknown[] {
-  return rows.map((row) => {
-    const mappedRow = {} as Record<string, unknown>
-    for (const key of Object.keys(row)) {
-      mappedRow[key] = deserializeValue(row[key])
-    }
-    return mappedRow
-  })
-}
-
-function deserializeValue({ prisma__type: type, prisma__value: value }: TypedValue): unknown {
   switch (type) {
     case 'bigint':
       return BigInt(value as string)
@@ -53,10 +57,57 @@ function deserializeValue({ prisma__type: type, prisma__value: value }: TypedVal
     case 'time':
       return new Date(`1970-01-01T${value}Z`)
 
-    case 'array':
-      return (value as TypedValue[]).map(deserializeValue)
+    case 'bigint-array':
+      return (value as unknown[]).map((v: unknown) => deserializeValue('bigint', v))
+    case 'bytes-array':
+      return (value as unknown[]).map((v: unknown) => deserializeValue('bytes', v))
+    case 'decimal-array':
+      return (value as unknown[]).map((v: unknown) => deserializeValue('decimal', v))
+    case 'datetime-array':
+      return (value as unknown[]).map((v: unknown) => deserializeValue('datetime', v))
+    case 'date-array':
+      return (value as unknown[]).map((v: unknown) => deserializeValue('date', v))
+    case 'time-array':
+      return (value as unknown[]).map((v: unknown) => deserializeValue('time', v))
 
     default:
       return value
   }
+}
+
+export type RawResponse = {
+  columns: string[]
+  types: PrismaType[]
+  rows: unknown[][]
+}
+
+type DeserializedResponse = Array<Record<string, unknown>>
+
+export function deserializeRawResult(response: RawResponse): DeserializedResponse {
+  const deserializedResponse: DeserializedResponse = []
+  // Performance optimization. See https://github.com/brianc/node-postgres/issues/3042
+  const prebuiltEmptyObject = createPrebuiltEmptyResultObject(response)
+
+  for (let i = 0; i < response.rows.length; i++) {
+    const row = response.rows[i]
+    const mappedRow = { ...prebuiltEmptyObject } as Record<string, unknown>
+
+    for (let j = 0; j < row.length; j++) {
+      mappedRow[response.columns[j]] = deserializeValue(response.types[j], row[j])
+    }
+
+    deserializedResponse.push(mappedRow)
+  }
+
+  return deserializedResponse
+}
+
+function createPrebuiltEmptyResultObject(response: RawResponse): Record<string, null> {
+  const row = {}
+
+  for (let i = 0; i < response.columns.length; i++) {
+    row[response.columns[i]] = null
+  }
+
+  return row
 }

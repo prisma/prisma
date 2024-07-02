@@ -42,8 +42,8 @@ testMatrix.setupTestSuite(
         },
       ])
 
-      expect(testModel![0].bInt_list[0] === BigInt('-1234')).toBe(true)
-      expect(testModel![0].bInt_list[1] === BigInt('1234')).toBe(true)
+      expect(testModel![0].bInt_list[0]).toEqual(BigInt('-1234'))
+      expect(testModel![0].bInt_list[1]).toEqual(BigInt('1234'))
     })
   },
   {

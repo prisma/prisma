@@ -236,9 +236,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         clientVersion: this.config.clientVersion!,
       })
     }
+
     try {
-      const config = JSON.parse(response)
-      return config as T
+      return JSON.parse(response) as T
     } catch (err) {
       throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine`, {
         clientVersion: this.config.clientVersion!,
