@@ -7,7 +7,7 @@ import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
-import { blue, bold, green, red, yellow } from 'kleur/colors'
+import { blue, bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
 import type { Readable } from 'stream'
 
@@ -176,7 +176,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       Debug.enable('*')
     }
     engines.push(this)
-    this.checkForTooManyEngines()
   }
 
   // Set error sets an error for async processing, when this doesn't happen in the span of a request
@@ -196,19 +195,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         if (this.currentRequestPromise?.cancel) {
           this.currentRequestPromise.cancel()
         }
-      }
-    }
-  }
-
-  private checkForTooManyEngines() {
-    if (engines.length >= 10) {
-      const runningEngines = engines.filter((e) => e.child)
-      if (runningEngines.length === 10) {
-        console.warn(
-          `${bold(
-            yellow('warn(prisma-client)'),
-          )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
-        )
       }
     }
   }
@@ -236,7 +222,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private async getCurrentBinaryTarget(): Promise<BinaryTarget> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (this.binaryTargetPromise) {
       return this.binaryTargetPromise
     }
@@ -327,7 +312,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private internalStart(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await new Promise((r) => process.nextTick(r))
       if (this.stopPromise) {
