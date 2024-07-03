@@ -89,7 +89,7 @@ const commonRuntimesOverrides = {
 }
 
 const runtimesCommonBuildConfig = {
-  target: 'ES2018',
+  target: 'ES2021',
   entryPoints: ['src/runtime/index.ts'],
   bundle: true,
   minify: true,
