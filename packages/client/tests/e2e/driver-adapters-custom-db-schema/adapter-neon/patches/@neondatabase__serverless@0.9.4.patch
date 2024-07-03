@@ -1,0 +1,26 @@
+diff --git a/index.js b/index.js
+index 39825dd49813e504bc79a776dd957f38a7c36159..e4a0aa97929acc3fa7185d6867bea431b366a532 100644
+--- a/index.js
++++ b/index.js
+@@ -363,7 +363,7 @@ let r="0123456789abcdef",e=new Array(256);for(let t=0;t<16;++t){let n=t*16;for(l
+ 16;++i)e[n+i]=r[t]+r[i]}return e}();function we(r){return typeof BigInt>"u"?Oo:r}
+ a(we,"defineBigIntMethod");function Oo(){throw new Error("BigInt not supported")}
+ a(Oo,"BufferBigIntNotDefined")});var b,S,v,g,d,m,p=z(()=>{"use strict";b=globalThis,S=globalThis.setImmediate??(r=>setTimeout(
+-r,0)),v=globalThis.clearImmediate??(r=>clearTimeout(r)),g=globalThis.crypto??{};
++r,0)),v=globalThis.clearImmediate??(r=>clearTimeout(r)),g=globalThis.crypto??require('node:crypto').webcrypto;
+ g.subtle??(g.subtle={});d=typeof globalThis.Buffer=="function"&&typeof globalThis.
+ Buffer.allocUnsafe=="function"?globalThis.Buffer:Kn().Buffer,m=globalThis.process??
+ {};m.env??(m.env={});try{m.nextTick(()=>{})}catch{let e=Promise.resolve();m.nextTick=
+diff --git a/index.mjs b/index.mjs
+index 737ff0c0a2ebbdbef339d42f48b5cad24650612b..c07c0fb7b88ca6a62784ad121cdbef045230229c 100644
+--- a/index.mjs
++++ b/index.mjs
+@@ -363,7 +363,7 @@ let r="0123456789abcdef",e=new Array(256);for(let t=0;t<16;++t){let n=t*16;for(l
+ 16;++i)e[n+i]=r[t]+r[i]}return e}();function ge(r){return typeof BigInt>"u"?Oo:r}
+ a(ge,"defineBigIntMethod");function Oo(){throw new Error("BigInt not supported")}
+ a(Oo,"BufferBigIntNotDefined")});var b,S,v,g,d,m,p=z(()=>{"use strict";b=globalThis,S=globalThis.setImmediate??(r=>setTimeout(
+-r,0)),v=globalThis.clearImmediate??(r=>clearTimeout(r)),g=globalThis.crypto??{};
++r,0)),v=globalThis.clearImmediate??(r=>clearTimeout(r)),g=globalThis.crypto??require('node:crypto').webcrypto;
+ g.subtle??(g.subtle={});d=typeof globalThis.Buffer=="function"&&typeof globalThis.
+ Buffer.allocUnsafe=="function"?globalThis.Buffer:$n().Buffer,m=globalThis.process??
+ {};m.env??(m.env={});try{m.nextTick(()=>{})}catch{let e=Promise.resolve();m.nextTick=
