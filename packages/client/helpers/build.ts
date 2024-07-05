@@ -109,7 +109,6 @@ const runtimesCommonBuildConfig = {
 // we define the config for edge
 const edgeRuntimeBuildConfig: BuildOptions = {
   ...runtimesCommonBuildConfig,
-  target: 'ES2020',
   name: 'edge',
   outfile: 'runtime/edge',
   define: {
@@ -119,7 +118,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   },
   plugins: [
     fillPlugin({
-      fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer },
+      fillerOverrides: commonRuntimesOverrides,
     }),
   ],
 }
@@ -136,6 +135,7 @@ const wasmRuntimeBuildConfig: BuildOptions = {
   },
   plugins: [
     fillPlugin({
+      // not yet enabled in edge build while driverAdapters is not GA
       fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
     }),
     copyFilePlugin(
