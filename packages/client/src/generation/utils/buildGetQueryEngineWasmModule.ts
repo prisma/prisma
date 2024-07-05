@@ -21,14 +21,20 @@ export function buildQueryEngineWasmModule(
     }`
   }
 
-  // For cloudflare (workers) we need to use import in order to load wasm
-  // so we use a dynamic import which is compatible with both cjs and esm.
-  // Additionally, we need to append `?module` to the import path for vercel,
-  // which is incompatible with cloudflare, so we hide it in a template.
-  // In `getQueryEngineWasmModule`, we use a `try/catch` block because `vitest`
-  // isn't able to handle dynamic imports with `import(#MODULE_NAME)`, which used
-  // to lead to a runtime "No such module .prisma/client/#wasm-engine-loader" error.
-  // Related issue: https://github.com/vitest-dev/vitest/issues/5486.
+  // This code block works deals with the following issues:
+  // - Vercel / Next.js needs `?module` to be appended to the import path of WebAssembly modules.
+  // - Cloudflare Workers and other runtimes do not support the `?module` syntax, and requires a
+  //   plain Wasm dynamic import.
+  // - `import('#wasm-engine-loader')` enables a conditional import of a file importing the Wasm module
+  //   differently depending on the JavaScript runtime environment. However, it's not supported by `vitest`,
+  //   so we need to catch the "No such module .prisma/client/#wasm-engine-loader" error.
+  //   See: https://github.com/prisma/prisma/pull/24554, https://github.com/vitest-dev/vitest/issues/5486.
+  // - The conditional import is only known to be necessary for `vitest`, but Webpack (Next.js' bundler)
+  //   will still throw a compile-time error when it statically traverses the `.wasm` import in the `catch` block.
+  //   To prevent this, we use a magic comment `/* webpackIgnore: true */` to prevent Webpack from poking around
+  //   with dynamic imports that it won't need at runtime anyway.
+  //   See: https://github.com/prisma/prisma/issues/24673.
+  //   See also https://webpack.js.org/api/module-methods/#webpackignore for documentation on `webpackIgnore`.
   if (copyEngine && wasm === true) {
     return `config.engineWasm = {
   getRuntime: () => require('./query_engine_bg.js'),
@@ -39,11 +45,6 @@ export function buildQueryEngineWasmModule(
       const engine = (await loader).default
       return engine
     } catch (e) {
-      // If the conditional module tag is not found, load the Wasm module directly.
-      // The only known reason this would happen, is when using vitest.
-      //
-      // Note: We need Webpack's magic comment \`/* webpackIgnore: true */\` to prevent
-      // this Next.js regression: https://github.com/prisma/prisma/issues/24673.
       if (e instanceof Error && e.message.includes('No such module')) {
         const engine = (await import(/* webpackIgnore: true */ './query_engine_bg.wasm')).default
         return engine
