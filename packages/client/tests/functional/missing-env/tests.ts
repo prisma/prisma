@@ -9,9 +9,8 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ clientRuntime, driverAdapter }, suiteMeta, clientMeta) => {
-    // TODO: Fails with Expected PrismaClientInitError, Received Error
-    skipTestIf(clientRuntime === 'wasm')('PrismaClientInitializationError for missing env', async () => {
+  (_testConfig, _suiteMeta, clientMeta) => {
+    test('PrismaClientInitializationError for missing env', async () => {
       const prisma = newPrismaClient()
 
       try {
@@ -22,25 +21,22 @@ testMatrix.setupTestSuite(
         expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
       }
     })
-    // TODO: Fails with Expected PrismaClientInitError, Received Error
-    skipTestIf(driverAdapter !== undefined)(
-      'PrismaClientInitializationError for missing env and empty override',
-      async () => {
-        const prisma = newPrismaClient({
-          datasources: {
-            db: {},
-          },
-        })
 
-        try {
-          await prisma.$connect()
-        } catch (e) {
-          const message = stripAnsi(e.message as string)
-          expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-          expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
-        }
-      },
-    )
+    test('PrismaClientInitializationError for missing env and empty override', async () => {
+      const prisma = newPrismaClient({
+        datasources: {
+          db: {},
+        },
+      })
+
+      try {
+        await prisma.$connect()
+      } catch (e) {
+        const message = stripAnsi(e.message as string)
+        expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+        expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
+      }
+    })
 
     testIf(clientMeta.dataProxy && clientMeta.runtime === 'edge')(
       'PrismaClientInitializationError for missing env on edge',
