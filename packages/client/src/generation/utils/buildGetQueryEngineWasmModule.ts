@@ -39,10 +39,13 @@ export function buildQueryEngineWasmModule(
       const engine = (await loader).default
       return engine
     } catch (e) {
-      // if the conditional module tag is not found, load the Wasm module directly.
-      // This will work on Cloudflare, but not on Vercel.
+      // If the conditional module tag is not found, load the Wasm module directly.
+      // The only known reason this would happen, is when using vitest.
+      //
+      // Note: We need Webpack's magic comment \`/* webpackIgnore: true */\` to prevent
+      // this Next.js regression: https://github.com/prisma/prisma/issues/24673.
       if (e instanceof Error && e.message.includes('No such module')) {
-        const engine = (await import('./query_engine_bg.wasm')).default
+        const engine = (await import(/* webpackIgnore: true */ './query_engine_bg.wasm')).default
         return engine
       }
       throw e
