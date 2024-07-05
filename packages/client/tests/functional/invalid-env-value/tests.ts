@@ -3,10 +3,9 @@ import stripAnsi from 'strip-ansi'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
-declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, clientMeta) => {
@@ -35,13 +34,13 @@ testMatrix.setupTestSuite(
       if (!clientMeta.dataProxy) {
         await promise.catch((e) => {
           const message = stripAnsi(e.message)
-          expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+          expect(e.name).toEqual('PrismaClientInitializationError')
           expect(message).toContain('Error validating datasource `db`: the URL must start with the protocol')
         })
       } else if (['edge', 'node', 'wasm'].includes(clientMeta.runtime)) {
         await promise.catch((e) => {
           const message = stripAnsi(e.message)
-          expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+          expect(e.name).toEqual('InvalidDatasourceError')
           expect(message).toContain(
             'Error validating datasource `db`: the URL must start with the protocol `prisma://`',
           )
