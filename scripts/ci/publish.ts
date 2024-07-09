@@ -634,12 +634,6 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         } catch (e) {
           console.error(e)
         }
-
-        try {
-          await tagEnginesRepo(prismaVersion, enginesCommitHash, patchBranch, dryRun)
-        } catch (e) {
-          console.error(e)
-        }
       }
     }
   } catch (e) {
@@ -662,60 +656,6 @@ function getEnginesCommitHash(): string {
   const commitHash = npmEnginesVersion.match(sha1Pattern)![0]
 
   return commitHash
-}
-
-async function tagEnginesRepo(
-  prismaVersion: string,
-  engineVersion: string,
-  patchBranch: string | null,
-  dryRun = false,
-) {
-  let previousTag: string
-
-  console.log(`Going to tag the engines repo with "${prismaVersion}", patchBranch: ${patchBranch}, dryRun: ${dryRun}`)
-  /** Get ready */
-  await cloneOrPull('prisma-engines', dryRun)
-
-  // 3.2.x
-  if (patchBranch) {
-    // 3.2
-    const [major, minor] = patchBranch.split('.')
-    const majorMinor = [major, minor].join('.')
-    // ['3.2.0', '3.2.1']
-    const patchesPublished: string | string[] = JSON.parse(
-      // TODO this line is useful for retrieving versions
-      await runResult('.', `npm view @prisma/client@${majorMinor} version --json`),
-    )
-
-    console.log({ patchesPublished })
-
-    if (typeof patchesPublished === 'string') {
-      previousTag = patchesPublished
-    } else if (patchesPublished.length > 0) {
-      // 3.2.0
-      previousTag = patchesPublished.pop() as string
-    } else {
-      console.warn('No version found for this patch branch')
-      return
-    }
-  } else {
-    /** Get previous tag */
-    previousTag = await runResult('prisma-engines', `git describe --tags --abbrev=0`)
-  }
-
-  /** Get commits between previous tag and engines sha1 */
-  const changelog = await runResult(
-    'prisma-engines',
-    `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
-  )
-
-  // TODO remove later
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const changelogSanitized = changelog.replace(/"/gm, '\\"').replace(/`/gm, '\\`')
-
-  if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
-    // fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelogSanitized=${changelogSanitized}\n`)
-  }
 }
 
 /**
@@ -1100,28 +1040,6 @@ async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
     author: jsonData.commit?.author?.name || '',
     hash,
   }
-}
-
-function getCommitEnvVar(name: string): string {
-  return `${name.toUpperCase().replace(/-/g, '_')}_COMMIT`
-}
-
-async function cloneOrPull(repo: string, dryRun = false) {
-  if (fs.existsSync(path.join(__dirname, '../../', repo))) {
-    return run(repo, `git pull --tags`, dryRun)
-  } else {
-    await run('.', `git clone ${repoUrl(repo)}`, dryRun)
-    const envVar = getCommitEnvVar(repo)
-    if (process.env[envVar]) {
-      await run(repo, `git checkout ${process.env[envVar]}`, dryRun)
-    }
-  }
-
-  return undefined
-}
-
-function repoUrl(repo: string, org = 'prisma') {
-  return `https://github.com/${org}/${repo}.git`
 }
 
 if (require.main === module) {
