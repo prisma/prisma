@@ -1,7 +1,8 @@
-import { Command } from '@prisma/internals'
+import { Command, isError } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
-import { argOrThrow } from '../_lib/cli/parameters'
+import { argOrThrow, getOptionalParameter } from '../_lib/cli/parameters'
+import { credentialsFile } from '../_lib/credentials'
 import { messages } from '../_lib/messages'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -12,7 +13,10 @@ export class Show implements Command {
   }
 
   public async parse(argv: string[]) {
-    const args = argOrThrow(argv, { ...platformParameters.global })
+    const args = argOrThrow(argv, {
+      ...platformParameters.global,
+      '--sensitive': Boolean,
+    })
     const token = await getTokenOrThrow(args)
     const { me } = await requestOrThrow<{
       me: {
@@ -41,9 +45,36 @@ export class Show implements Command {
         `,
       },
     })
+
+    let sensitiveData: { token: string | null } = {
+      token: null,
+    }
+
+    if (getOptionalParameter(args, ['--sensitive'])) {
+      const maybeCredentials = await credentialsFile.load()
+
+      if (isError(maybeCredentials)) {
+        throw maybeCredentials
+      }
+
+      if (maybeCredentials?.token) {
+        sensitiveData = {
+          token: maybeCredentials?.token,
+        }
+      }
+    }
+
+    const data = {
+      ...me.user,
+      ...sensitiveData,
+    }
+
     return messages.sections([
       messages.info(`Currently authenticated as ${green(me.user.email)}`),
-      messages.resource(me.user, { email: true }),
+      messages.resource(data, {
+        email: true,
+        token: true,
+      }),
     ])
   }
 }
