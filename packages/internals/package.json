@@ -38,7 +38,7 @@
     "checkpoint-client": "1.1.33",
     "cli-truncate": "2.1.0",
     "dotenv": "16.0.3",
-    "esbuild": "0.21.5",
+    "esbuild": "0.23.0",
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
     "fast-glob": "3.3.2",
@@ -81,7 +81,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.16.0-16.4c3db41c3ad6086fa0f844bafe039fc221e9de94",
+    "@prisma/prisma-schema-wasm": "5.17.0-2.9b8d05f58b90e474495c811c76f88979000107a9",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"

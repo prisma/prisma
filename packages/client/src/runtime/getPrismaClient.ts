@@ -35,7 +35,7 @@ import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
-import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
+import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
   applyModelsAndClientExtensions,
@@ -130,6 +130,8 @@ export type PrismaClientOptions = {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
    */
   log?: Array<LogLevel | LogDefinition>
+
+  omit?: GlobalOmitOptions
 
   /**
    * @internal
@@ -329,6 +331,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
+    _globalOmit?: GlobalOmitOptions
     _extensions: MergedExtensionsList
     _engine: Engine
     /**
@@ -354,6 +357,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._previewFeatures = getPreviewFeatures(config)
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
+      this._globalOmit = optionsArg?.omit
       this._tracingHelper = getTracingHelper(this._previewFeatures)
       const envPaths = {
         rootEnvPath:
@@ -382,6 +386,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         if (adapter.provider !== normalizedActiveProvider) {
           throw new PrismaClientInitializationError(
             `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${normalizedActiveProvider}\` specified in the Prisma schema.`,
+            this._clientVersion,
+          )
+        }
+
+        if (optionsArg.datasources || optionsArg.datasourceUrl !== undefined) {
+          throw new PrismaClientInitializationError(
+            `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
             this._clientVersion,
           )
         }
@@ -912,6 +923,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           args: requestParams.args,
           extensions: this._extensions,
           runtimeDataModel: this._runtimeDataModel,
+          globalOmit: this._globalOmit,
         })
       }
 
@@ -959,6 +971,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             errorFormat: this._errorFormat,
             clientVersion: this._clientVersion,
             previewFeatures: this._previewFeatures,
+            globalOmit: this._globalOmit,
           }),
         )
 
@@ -989,6 +1002,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           unpacker,
           otelParentCtx,
           otelChildCtx: this._tracingHelper.getActiveContext(),
+          globalOmit: this._globalOmit,
           customDataProxyFetch,
         })
       } catch (e) {

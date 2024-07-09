@@ -201,9 +201,9 @@ describe('sqlite', () => {
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
 
-      SQLite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:../dev.db
 
       Applying migration \`20201231000000_first\`
 

@@ -486,8 +486,8 @@ export const ABeautifulEnum: typeof $Enums.ABeautifulEnum
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */
 export class PrismaClient<
-  T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
+  ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+  U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
   ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
@@ -507,7 +507,7 @@ export class PrismaClient<
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
    */
 
-  constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
+  constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
   $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;
 
   /**
@@ -559,7 +559,7 @@ export class PrismaClient<
    */
   $runCommandRaw(command: Prisma.InputJsonObject): Prisma.PrismaPromise<Prisma.JsonObject>
 
-  $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>
+  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb, ExtArgs>
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
@@ -1200,87 +1200,86 @@ export namespace Prisma {
     db?: Datasource
   }
 
-
-  interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs}, $Utils.Record<string, any>> {
-    returns: Prisma.TypeMap<this['params']['extArgs']>
+  interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs, clientOptions: PrismaClientOptions }, $Utils.Record<string, any>> {
+    returns: Prisma.TypeMap<this['params']['extArgs'], this['params']['clientOptions']>
   }
 
-  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: 'post' | 'user' | 'embedHolder' | 'm' | 'n' | 'oneOptional' | 'manyRequired' | 'optionalSide1' | 'optionalSide2' | 'a' | 'b' | 'c' | 'd' | 'e'
+      modelProps: "post" | "user" | "embedHolder" | "m" | "n" | "oneOptional" | "manyRequired" | "optionalSide1" | "optionalSide2" | "a" | "b" | "c" | "d" | "e"
       txIsolationLevel: never
-    },
+    }
     model: {
       Post: {
         payload: Prisma.$PostPayload<ExtArgs>
         fields: Prisma.PostFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.PostFindUniqueArgs<ExtArgs>,
+            args: Prisma.PostFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.PostFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.PostFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload>
           }
           findFirst: {
-            args: Prisma.PostFindFirstArgs<ExtArgs>,
+            args: Prisma.PostFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.PostFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.PostFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload>
           }
           findMany: {
-            args: Prisma.PostFindManyArgs<ExtArgs>,
+            args: Prisma.PostFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload>[]
           }
           create: {
-            args: Prisma.PostCreateArgs<ExtArgs>,
+            args: Prisma.PostCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload>
           }
           createMany: {
-            args: Prisma.PostCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.PostCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.PostDeleteArgs<ExtArgs>,
+            args: Prisma.PostDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload>
           }
           update: {
-            args: Prisma.PostUpdateArgs<ExtArgs>,
+            args: Prisma.PostUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload>
           }
           deleteMany: {
-            args: Prisma.PostDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.PostDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.PostUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.PostUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.PostUpsertArgs<ExtArgs>,
+            args: Prisma.PostUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload>
           }
           aggregate: {
-            args: Prisma.PostAggregateArgs<ExtArgs>,
+            args: Prisma.PostAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregatePost>
           }
           groupBy: {
-            args: Prisma.PostGroupByArgs<ExtArgs>,
+            args: Prisma.PostGroupByArgs<ExtArgs>
             result: $Utils.Optional<PostGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.PostFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.PostFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.PostAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.PostAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.PostCountArgs<ExtArgs>,
+            args: Prisma.PostCountArgs<ExtArgs>
             result: $Utils.Optional<PostCountAggregateOutputType> | number
           }
         }
@@ -1290,71 +1289,71 @@ export namespace Prisma {
         fields: Prisma.UserFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.UserFindUniqueArgs<ExtArgs>,
+            args: Prisma.UserFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.UserFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.UserFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload>
           }
           findFirst: {
-            args: Prisma.UserFindFirstArgs<ExtArgs>,
+            args: Prisma.UserFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.UserFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.UserFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload>
           }
           findMany: {
-            args: Prisma.UserFindManyArgs<ExtArgs>,
+            args: Prisma.UserFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload>[]
           }
           create: {
-            args: Prisma.UserCreateArgs<ExtArgs>,
+            args: Prisma.UserCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload>
           }
           createMany: {
-            args: Prisma.UserCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.UserCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.UserDeleteArgs<ExtArgs>,
+            args: Prisma.UserDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload>
           }
           update: {
-            args: Prisma.UserUpdateArgs<ExtArgs>,
+            args: Prisma.UserUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload>
           }
           deleteMany: {
-            args: Prisma.UserDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.UserDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.UserUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.UserUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.UserUpsertArgs<ExtArgs>,
+            args: Prisma.UserUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$UserPayload>
           }
           aggregate: {
-            args: Prisma.UserAggregateArgs<ExtArgs>,
+            args: Prisma.UserAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateUser>
           }
           groupBy: {
-            args: Prisma.UserGroupByArgs<ExtArgs>,
+            args: Prisma.UserGroupByArgs<ExtArgs>
             result: $Utils.Optional<UserGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.UserFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.UserFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.UserAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.UserAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.UserCountArgs<ExtArgs>,
+            args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
           }
         }
@@ -1364,71 +1363,71 @@ export namespace Prisma {
         fields: Prisma.EmbedHolderFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.EmbedHolderFindUniqueArgs<ExtArgs>,
+            args: Prisma.EmbedHolderFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.EmbedHolderFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.EmbedHolderFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload>
           }
           findFirst: {
-            args: Prisma.EmbedHolderFindFirstArgs<ExtArgs>,
+            args: Prisma.EmbedHolderFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.EmbedHolderFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.EmbedHolderFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload>
           }
           findMany: {
-            args: Prisma.EmbedHolderFindManyArgs<ExtArgs>,
+            args: Prisma.EmbedHolderFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload>[]
           }
           create: {
-            args: Prisma.EmbedHolderCreateArgs<ExtArgs>,
+            args: Prisma.EmbedHolderCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload>
           }
           createMany: {
-            args: Prisma.EmbedHolderCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.EmbedHolderCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.EmbedHolderDeleteArgs<ExtArgs>,
+            args: Prisma.EmbedHolderDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload>
           }
           update: {
-            args: Prisma.EmbedHolderUpdateArgs<ExtArgs>,
+            args: Prisma.EmbedHolderUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload>
           }
           deleteMany: {
-            args: Prisma.EmbedHolderDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.EmbedHolderDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.EmbedHolderUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.EmbedHolderUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.EmbedHolderUpsertArgs<ExtArgs>,
+            args: Prisma.EmbedHolderUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EmbedHolderPayload>
           }
           aggregate: {
-            args: Prisma.EmbedHolderAggregateArgs<ExtArgs>,
+            args: Prisma.EmbedHolderAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateEmbedHolder>
           }
           groupBy: {
-            args: Prisma.EmbedHolderGroupByArgs<ExtArgs>,
+            args: Prisma.EmbedHolderGroupByArgs<ExtArgs>
             result: $Utils.Optional<EmbedHolderGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.EmbedHolderFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.EmbedHolderFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.EmbedHolderAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.EmbedHolderAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.EmbedHolderCountArgs<ExtArgs>,
+            args: Prisma.EmbedHolderCountArgs<ExtArgs>
             result: $Utils.Optional<EmbedHolderCountAggregateOutputType> | number
           }
         }
@@ -1438,71 +1437,71 @@ export namespace Prisma {
         fields: Prisma.MFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.MFindUniqueArgs<ExtArgs>,
+            args: Prisma.MFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.MFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.MFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload>
           }
           findFirst: {
-            args: Prisma.MFindFirstArgs<ExtArgs>,
+            args: Prisma.MFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.MFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.MFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload>
           }
           findMany: {
-            args: Prisma.MFindManyArgs<ExtArgs>,
+            args: Prisma.MFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload>[]
           }
           create: {
-            args: Prisma.MCreateArgs<ExtArgs>,
+            args: Prisma.MCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload>
           }
           createMany: {
-            args: Prisma.MCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.MCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.MDeleteArgs<ExtArgs>,
+            args: Prisma.MDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload>
           }
           update: {
-            args: Prisma.MUpdateArgs<ExtArgs>,
+            args: Prisma.MUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload>
           }
           deleteMany: {
-            args: Prisma.MDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.MDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.MUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.MUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.MUpsertArgs<ExtArgs>,
+            args: Prisma.MUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload>
           }
           aggregate: {
-            args: Prisma.MAggregateArgs<ExtArgs>,
+            args: Prisma.MAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateM>
           }
           groupBy: {
-            args: Prisma.MGroupByArgs<ExtArgs>,
+            args: Prisma.MGroupByArgs<ExtArgs>
             result: $Utils.Optional<MGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.MFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.MFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.MAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.MAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.MCountArgs<ExtArgs>,
+            args: Prisma.MCountArgs<ExtArgs>
             result: $Utils.Optional<MCountAggregateOutputType> | number
           }
         }
@@ -1512,71 +1511,71 @@ export namespace Prisma {
         fields: Prisma.NFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.NFindUniqueArgs<ExtArgs>,
+            args: Prisma.NFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.NFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.NFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload>
           }
           findFirst: {
-            args: Prisma.NFindFirstArgs<ExtArgs>,
+            args: Prisma.NFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.NFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.NFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload>
           }
           findMany: {
-            args: Prisma.NFindManyArgs<ExtArgs>,
+            args: Prisma.NFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload>[]
           }
           create: {
-            args: Prisma.NCreateArgs<ExtArgs>,
+            args: Prisma.NCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload>
           }
           createMany: {
-            args: Prisma.NCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.NCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.NDeleteArgs<ExtArgs>,
+            args: Prisma.NDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload>
           }
           update: {
-            args: Prisma.NUpdateArgs<ExtArgs>,
+            args: Prisma.NUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload>
           }
           deleteMany: {
-            args: Prisma.NDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.NDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.NUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.NUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.NUpsertArgs<ExtArgs>,
+            args: Prisma.NUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$NPayload>
           }
           aggregate: {
-            args: Prisma.NAggregateArgs<ExtArgs>,
+            args: Prisma.NAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateN>
           }
           groupBy: {
-            args: Prisma.NGroupByArgs<ExtArgs>,
+            args: Prisma.NGroupByArgs<ExtArgs>
             result: $Utils.Optional<NGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.NFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.NFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.NAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.NAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.NCountArgs<ExtArgs>,
+            args: Prisma.NCountArgs<ExtArgs>
             result: $Utils.Optional<NCountAggregateOutputType> | number
           }
         }
@@ -1586,71 +1585,71 @@ export namespace Prisma {
         fields: Prisma.OneOptionalFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.OneOptionalFindUniqueArgs<ExtArgs>,
+            args: Prisma.OneOptionalFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.OneOptionalFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.OneOptionalFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>
           }
           findFirst: {
-            args: Prisma.OneOptionalFindFirstArgs<ExtArgs>,
+            args: Prisma.OneOptionalFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.OneOptionalFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.OneOptionalFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>
           }
           findMany: {
-            args: Prisma.OneOptionalFindManyArgs<ExtArgs>,
+            args: Prisma.OneOptionalFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>[]
           }
           create: {
-            args: Prisma.OneOptionalCreateArgs<ExtArgs>,
+            args: Prisma.OneOptionalCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>
           }
           createMany: {
-            args: Prisma.OneOptionalCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OneOptionalCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.OneOptionalDeleteArgs<ExtArgs>,
+            args: Prisma.OneOptionalDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>
           }
           update: {
-            args: Prisma.OneOptionalUpdateArgs<ExtArgs>,
+            args: Prisma.OneOptionalUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>
           }
           deleteMany: {
-            args: Prisma.OneOptionalDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OneOptionalDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.OneOptionalUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OneOptionalUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.OneOptionalUpsertArgs<ExtArgs>,
+            args: Prisma.OneOptionalUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>
           }
           aggregate: {
-            args: Prisma.OneOptionalAggregateArgs<ExtArgs>,
+            args: Prisma.OneOptionalAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateOneOptional>
           }
           groupBy: {
-            args: Prisma.OneOptionalGroupByArgs<ExtArgs>,
+            args: Prisma.OneOptionalGroupByArgs<ExtArgs>
             result: $Utils.Optional<OneOptionalGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.OneOptionalFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.OneOptionalFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.OneOptionalAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.OneOptionalAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.OneOptionalCountArgs<ExtArgs>,
+            args: Prisma.OneOptionalCountArgs<ExtArgs>
             result: $Utils.Optional<OneOptionalCountAggregateOutputType> | number
           }
         }
@@ -1660,71 +1659,71 @@ export namespace Prisma {
         fields: Prisma.ManyRequiredFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.ManyRequiredFindUniqueArgs<ExtArgs>,
+            args: Prisma.ManyRequiredFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.ManyRequiredFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.ManyRequiredFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>
           }
           findFirst: {
-            args: Prisma.ManyRequiredFindFirstArgs<ExtArgs>,
+            args: Prisma.ManyRequiredFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.ManyRequiredFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.ManyRequiredFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>
           }
           findMany: {
-            args: Prisma.ManyRequiredFindManyArgs<ExtArgs>,
+            args: Prisma.ManyRequiredFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>[]
           }
           create: {
-            args: Prisma.ManyRequiredCreateArgs<ExtArgs>,
+            args: Prisma.ManyRequiredCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>
           }
           createMany: {
-            args: Prisma.ManyRequiredCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.ManyRequiredCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.ManyRequiredDeleteArgs<ExtArgs>,
+            args: Prisma.ManyRequiredDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>
           }
           update: {
-            args: Prisma.ManyRequiredUpdateArgs<ExtArgs>,
+            args: Prisma.ManyRequiredUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>
           }
           deleteMany: {
-            args: Prisma.ManyRequiredDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.ManyRequiredDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.ManyRequiredUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.ManyRequiredUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.ManyRequiredUpsertArgs<ExtArgs>,
+            args: Prisma.ManyRequiredUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>
           }
           aggregate: {
-            args: Prisma.ManyRequiredAggregateArgs<ExtArgs>,
+            args: Prisma.ManyRequiredAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateManyRequired>
           }
           groupBy: {
-            args: Prisma.ManyRequiredGroupByArgs<ExtArgs>,
+            args: Prisma.ManyRequiredGroupByArgs<ExtArgs>
             result: $Utils.Optional<ManyRequiredGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.ManyRequiredFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.ManyRequiredFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.ManyRequiredAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.ManyRequiredAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.ManyRequiredCountArgs<ExtArgs>,
+            args: Prisma.ManyRequiredCountArgs<ExtArgs>
             result: $Utils.Optional<ManyRequiredCountAggregateOutputType> | number
           }
         }
@@ -1734,71 +1733,71 @@ export namespace Prisma {
         fields: Prisma.OptionalSide1FieldRefs
         operations: {
           findUnique: {
-            args: Prisma.OptionalSide1FindUniqueArgs<ExtArgs>,
+            args: Prisma.OptionalSide1FindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.OptionalSide1FindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.OptionalSide1FindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>
           }
           findFirst: {
-            args: Prisma.OptionalSide1FindFirstArgs<ExtArgs>,
+            args: Prisma.OptionalSide1FindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.OptionalSide1FindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.OptionalSide1FindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>
           }
           findMany: {
-            args: Prisma.OptionalSide1FindManyArgs<ExtArgs>,
+            args: Prisma.OptionalSide1FindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>[]
           }
           create: {
-            args: Prisma.OptionalSide1CreateArgs<ExtArgs>,
+            args: Prisma.OptionalSide1CreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>
           }
           createMany: {
-            args: Prisma.OptionalSide1CreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OptionalSide1CreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.OptionalSide1DeleteArgs<ExtArgs>,
+            args: Prisma.OptionalSide1DeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>
           }
           update: {
-            args: Prisma.OptionalSide1UpdateArgs<ExtArgs>,
+            args: Prisma.OptionalSide1UpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>
           }
           deleteMany: {
-            args: Prisma.OptionalSide1DeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OptionalSide1DeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.OptionalSide1UpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OptionalSide1UpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.OptionalSide1UpsertArgs<ExtArgs>,
+            args: Prisma.OptionalSide1UpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>
           }
           aggregate: {
-            args: Prisma.OptionalSide1AggregateArgs<ExtArgs>,
+            args: Prisma.OptionalSide1AggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateOptionalSide1>
           }
           groupBy: {
-            args: Prisma.OptionalSide1GroupByArgs<ExtArgs>,
+            args: Prisma.OptionalSide1GroupByArgs<ExtArgs>
             result: $Utils.Optional<OptionalSide1GroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.OptionalSide1FindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.OptionalSide1FindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.OptionalSide1AggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.OptionalSide1AggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.OptionalSide1CountArgs<ExtArgs>,
+            args: Prisma.OptionalSide1CountArgs<ExtArgs>
             result: $Utils.Optional<OptionalSide1CountAggregateOutputType> | number
           }
         }
@@ -1808,71 +1807,71 @@ export namespace Prisma {
         fields: Prisma.OptionalSide2FieldRefs
         operations: {
           findUnique: {
-            args: Prisma.OptionalSide2FindUniqueArgs<ExtArgs>,
+            args: Prisma.OptionalSide2FindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.OptionalSide2FindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.OptionalSide2FindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>
           }
           findFirst: {
-            args: Prisma.OptionalSide2FindFirstArgs<ExtArgs>,
+            args: Prisma.OptionalSide2FindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.OptionalSide2FindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.OptionalSide2FindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>
           }
           findMany: {
-            args: Prisma.OptionalSide2FindManyArgs<ExtArgs>,
+            args: Prisma.OptionalSide2FindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>[]
           }
           create: {
-            args: Prisma.OptionalSide2CreateArgs<ExtArgs>,
+            args: Prisma.OptionalSide2CreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>
           }
           createMany: {
-            args: Prisma.OptionalSide2CreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OptionalSide2CreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.OptionalSide2DeleteArgs<ExtArgs>,
+            args: Prisma.OptionalSide2DeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>
           }
           update: {
-            args: Prisma.OptionalSide2UpdateArgs<ExtArgs>,
+            args: Prisma.OptionalSide2UpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>
           }
           deleteMany: {
-            args: Prisma.OptionalSide2DeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OptionalSide2DeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.OptionalSide2UpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.OptionalSide2UpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.OptionalSide2UpsertArgs<ExtArgs>,
+            args: Prisma.OptionalSide2UpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>
           }
           aggregate: {
-            args: Prisma.OptionalSide2AggregateArgs<ExtArgs>,
+            args: Prisma.OptionalSide2AggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateOptionalSide2>
           }
           groupBy: {
-            args: Prisma.OptionalSide2GroupByArgs<ExtArgs>,
+            args: Prisma.OptionalSide2GroupByArgs<ExtArgs>
             result: $Utils.Optional<OptionalSide2GroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.OptionalSide2FindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.OptionalSide2FindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.OptionalSide2AggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.OptionalSide2AggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.OptionalSide2CountArgs<ExtArgs>,
+            args: Prisma.OptionalSide2CountArgs<ExtArgs>
             result: $Utils.Optional<OptionalSide2CountAggregateOutputType> | number
           }
         }
@@ -1882,71 +1881,71 @@ export namespace Prisma {
         fields: Prisma.AFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.AFindUniqueArgs<ExtArgs>,
+            args: Prisma.AFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.AFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.AFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload>
           }
           findFirst: {
-            args: Prisma.AFindFirstArgs<ExtArgs>,
+            args: Prisma.AFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.AFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.AFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload>
           }
           findMany: {
-            args: Prisma.AFindManyArgs<ExtArgs>,
+            args: Prisma.AFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload>[]
           }
           create: {
-            args: Prisma.ACreateArgs<ExtArgs>,
+            args: Prisma.ACreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload>
           }
           createMany: {
-            args: Prisma.ACreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.ACreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.ADeleteArgs<ExtArgs>,
+            args: Prisma.ADeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload>
           }
           update: {
-            args: Prisma.AUpdateArgs<ExtArgs>,
+            args: Prisma.AUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload>
           }
           deleteMany: {
-            args: Prisma.ADeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.ADeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.AUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.AUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.AUpsertArgs<ExtArgs>,
+            args: Prisma.AUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload>
           }
           aggregate: {
-            args: Prisma.AAggregateArgs<ExtArgs>,
+            args: Prisma.AAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateA>
           }
           groupBy: {
-            args: Prisma.AGroupByArgs<ExtArgs>,
+            args: Prisma.AGroupByArgs<ExtArgs>
             result: $Utils.Optional<AGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.AFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.AFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.AAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.AAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.ACountArgs<ExtArgs>,
+            args: Prisma.ACountArgs<ExtArgs>
             result: $Utils.Optional<ACountAggregateOutputType> | number
           }
         }
@@ -1956,71 +1955,71 @@ export namespace Prisma {
         fields: Prisma.BFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.BFindUniqueArgs<ExtArgs>,
+            args: Prisma.BFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.BFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.BFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload>
           }
           findFirst: {
-            args: Prisma.BFindFirstArgs<ExtArgs>,
+            args: Prisma.BFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.BFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.BFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload>
           }
           findMany: {
-            args: Prisma.BFindManyArgs<ExtArgs>,
+            args: Prisma.BFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload>[]
           }
           create: {
-            args: Prisma.BCreateArgs<ExtArgs>,
+            args: Prisma.BCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload>
           }
           createMany: {
-            args: Prisma.BCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.BCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.BDeleteArgs<ExtArgs>,
+            args: Prisma.BDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload>
           }
           update: {
-            args: Prisma.BUpdateArgs<ExtArgs>,
+            args: Prisma.BUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload>
           }
           deleteMany: {
-            args: Prisma.BDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.BDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.BUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.BUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.BUpsertArgs<ExtArgs>,
+            args: Prisma.BUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$BPayload>
           }
           aggregate: {
-            args: Prisma.BAggregateArgs<ExtArgs>,
+            args: Prisma.BAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateB>
           }
           groupBy: {
-            args: Prisma.BGroupByArgs<ExtArgs>,
+            args: Prisma.BGroupByArgs<ExtArgs>
             result: $Utils.Optional<BGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.BFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.BFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.BAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.BAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.BCountArgs<ExtArgs>,
+            args: Prisma.BCountArgs<ExtArgs>
             result: $Utils.Optional<BCountAggregateOutputType> | number
           }
         }
@@ -2030,71 +2029,71 @@ export namespace Prisma {
         fields: Prisma.CFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.CFindUniqueArgs<ExtArgs>,
+            args: Prisma.CFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.CFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.CFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload>
           }
           findFirst: {
-            args: Prisma.CFindFirstArgs<ExtArgs>,
+            args: Prisma.CFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.CFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.CFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload>
           }
           findMany: {
-            args: Prisma.CFindManyArgs<ExtArgs>,
+            args: Prisma.CFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload>[]
           }
           create: {
-            args: Prisma.CCreateArgs<ExtArgs>,
+            args: Prisma.CCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload>
           }
           createMany: {
-            args: Prisma.CCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.CCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.CDeleteArgs<ExtArgs>,
+            args: Prisma.CDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload>
           }
           update: {
-            args: Prisma.CUpdateArgs<ExtArgs>,
+            args: Prisma.CUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload>
           }
           deleteMany: {
-            args: Prisma.CDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.CDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.CUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.CUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.CUpsertArgs<ExtArgs>,
+            args: Prisma.CUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload>
           }
           aggregate: {
-            args: Prisma.CAggregateArgs<ExtArgs>,
+            args: Prisma.CAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateC>
           }
           groupBy: {
-            args: Prisma.CGroupByArgs<ExtArgs>,
+            args: Prisma.CGroupByArgs<ExtArgs>
             result: $Utils.Optional<CGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.CFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.CFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.CAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.CAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.CCountArgs<ExtArgs>,
+            args: Prisma.CCountArgs<ExtArgs>
             result: $Utils.Optional<CCountAggregateOutputType> | number
           }
         }
@@ -2104,71 +2103,71 @@ export namespace Prisma {
         fields: Prisma.DFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.DFindUniqueArgs<ExtArgs>,
+            args: Prisma.DFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.DFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.DFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload>
           }
           findFirst: {
-            args: Prisma.DFindFirstArgs<ExtArgs>,
+            args: Prisma.DFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.DFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.DFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload>
           }
           findMany: {
-            args: Prisma.DFindManyArgs<ExtArgs>,
+            args: Prisma.DFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload>[]
           }
           create: {
-            args: Prisma.DCreateArgs<ExtArgs>,
+            args: Prisma.DCreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload>
           }
           createMany: {
-            args: Prisma.DCreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.DCreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.DDeleteArgs<ExtArgs>,
+            args: Prisma.DDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload>
           }
           update: {
-            args: Prisma.DUpdateArgs<ExtArgs>,
+            args: Prisma.DUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload>
           }
           deleteMany: {
-            args: Prisma.DDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.DDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.DUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.DUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.DUpsertArgs<ExtArgs>,
+            args: Prisma.DUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload>
           }
           aggregate: {
-            args: Prisma.DAggregateArgs<ExtArgs>,
+            args: Prisma.DAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateD>
           }
           groupBy: {
-            args: Prisma.DGroupByArgs<ExtArgs>,
+            args: Prisma.DGroupByArgs<ExtArgs>
             result: $Utils.Optional<DGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.DFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.DFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.DAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.DAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.DCountArgs<ExtArgs>,
+            args: Prisma.DCountArgs<ExtArgs>
             result: $Utils.Optional<DCountAggregateOutputType> | number
           }
         }
@@ -2178,71 +2177,71 @@ export namespace Prisma {
         fields: Prisma.EFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.EFindUniqueArgs<ExtArgs>,
+            args: Prisma.EFindUniqueArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.EFindUniqueOrThrowArgs<ExtArgs>,
+            args: Prisma.EFindUniqueOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload>
           }
           findFirst: {
-            args: Prisma.EFindFirstArgs<ExtArgs>,
+            args: Prisma.EFindFirstArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.EFindFirstOrThrowArgs<ExtArgs>,
+            args: Prisma.EFindFirstOrThrowArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload>
           }
           findMany: {
-            args: Prisma.EFindManyArgs<ExtArgs>,
+            args: Prisma.EFindManyArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload>[]
           }
           create: {
-            args: Prisma.ECreateArgs<ExtArgs>,
+            args: Prisma.ECreateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload>
           }
           createMany: {
-            args: Prisma.ECreateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.ECreateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           delete: {
-            args: Prisma.EDeleteArgs<ExtArgs>,
+            args: Prisma.EDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload>
           }
           update: {
-            args: Prisma.EUpdateArgs<ExtArgs>,
+            args: Prisma.EUpdateArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload>
           }
           deleteMany: {
-            args: Prisma.EDeleteManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.EDeleteManyArgs<ExtArgs>
+            result: BatchPayload
           }
           updateMany: {
-            args: Prisma.EUpdateManyArgs<ExtArgs>,
-            result: Prisma.BatchPayload
+            args: Prisma.EUpdateManyArgs<ExtArgs>
+            result: BatchPayload
           }
           upsert: {
-            args: Prisma.EUpsertArgs<ExtArgs>,
+            args: Prisma.EUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$EPayload>
           }
           aggregate: {
-            args: Prisma.EAggregateArgs<ExtArgs>,
+            args: Prisma.EAggregateArgs<ExtArgs>
             result: $Utils.Optional<AggregateE>
           }
           groupBy: {
-            args: Prisma.EGroupByArgs<ExtArgs>,
+            args: Prisma.EGroupByArgs<ExtArgs>
             result: $Utils.Optional<EGroupByOutputType>[]
           }
           findRaw: {
-            args: Prisma.EFindRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.EFindRawArgs<ExtArgs>
+            result: JsonObject
           }
           aggregateRaw: {
-            args: Prisma.EAggregateRawArgs<ExtArgs>,
-            result: Prisma.JsonObject
+            args: Prisma.EAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
-            args: Prisma.ECountArgs<ExtArgs>,
+            args: Prisma.ECountArgs<ExtArgs>
             result: $Utils.Optional<ECountAggregateOutputType> | number
           }
         }
@@ -2259,7 +2258,7 @@ export namespace Prisma {
       }
     }
   }
-  export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>
+  export const defineExtension: $Extensions.ExtendsHook<"define", Prisma.TypeMapCb, $Extensions.DefaultArgs>
   export type DefaultPrismaClient = PrismaClient
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
   export interface PrismaClientOptions {
@@ -2302,6 +2301,7 @@ export namespace Prisma {
       timeout?: number
     }
   }
+
 
   /* Types for Logging */
   export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -3241,31 +3241,30 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__PostClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    author<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    author<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -4315,33 +4314,31 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    posts<T extends User$postsArgs<ExtArgs> = {}>(args?: Subset<T, User$postsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany"> | Null>;
-
-    embedHolder<T extends EmbedHolderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EmbedHolderDefaultArgs<ExtArgs>>): Prisma__EmbedHolderClient<$Result.GetResult<Prisma.$EmbedHolderPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    posts<T extends User$postsArgs<ExtArgs> = {}>(args?: Subset<T, User$postsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany"> | Null>
+    embedHolder<T extends EmbedHolderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EmbedHolderDefaultArgs<ExtArgs>>): Prisma__EmbedHolderClient<$Result.GetResult<Prisma.$EmbedHolderPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -5276,31 +5273,30 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__EmbedHolderClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    User<T extends EmbedHolder$UserArgs<ExtArgs> = {}>(args?: Subset<T, EmbedHolder$UserArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany"> | Null>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    User<T extends EmbedHolder$UserArgs<ExtArgs> = {}>(args?: Subset<T, EmbedHolder$UserArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -6351,31 +6347,30 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__MClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    n<T extends M$nArgs<ExtArgs> = {}>(args?: Subset<T, M$nArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, "findMany"> | Null>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    n<T extends M$nArgs<ExtArgs> = {}>(args?: Subset<T, M$nArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -7436,31 +7431,30 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__NClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    m<T extends N$mArgs<ExtArgs> = {}>(args?: Subset<T, N$mArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, "findMany"> | Null>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    m<T extends N$mArgs<ExtArgs> = {}>(args?: Subset<T, N$mArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -8515,31 +8509,30 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__OneOptionalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    many<T extends OneOptional$manyArgs<ExtArgs> = {}>(args?: Subset<T, OneOptional$manyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, "findMany"> | Null>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    many<T extends OneOptional$manyArgs<ExtArgs> = {}>(args?: Subset<T, OneOptional$manyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -9601,31 +9594,30 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__ManyRequiredClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    one<T extends ManyRequired$oneArgs<ExtArgs> = {}>(args?: Subset<T, ManyRequired$oneArgs<ExtArgs>>): Prisma__OneOptionalClient<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    one<T extends ManyRequired$oneArgs<ExtArgs> = {}>(args?: Subset<T, ManyRequired$oneArgs<ExtArgs>>): Prisma__OneOptionalClient<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -10683,31 +10675,30 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__OptionalSide1Client<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    opti<T extends OptionalSide1$optiArgs<ExtArgs> = {}>(args?: Subset<T, OptionalSide1$optiArgs<ExtArgs>>): Prisma__OptionalSide2Client<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    opti<T extends OptionalSide1$optiArgs<ExtArgs> = {}>(args?: Subset<T, OptionalSide1$optiArgs<ExtArgs>>): Prisma__OptionalSide2Client<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -11755,31 +11746,30 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__OptionalSide2Client<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-    opti<T extends OptionalSide2$optiArgs<ExtArgs> = {}>(args?: Subset<T, OptionalSide2$optiArgs<ExtArgs>>): Prisma__OptionalSide1Client<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>;
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    opti<T extends OptionalSide2$optiArgs<ExtArgs> = {}>(args?: Subset<T, OptionalSide2$optiArgs<ExtArgs>>): Prisma__OptionalSide1Client<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -12760,30 +12750,29 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__AClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -13662,30 +13651,29 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__BClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -14563,30 +14551,29 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__CClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -15490,30 +15477,29 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__DClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 
@@ -16365,30 +16351,29 @@ export namespace Prisma {
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export interface Prisma__EClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: 'PrismaPromise';
-
-
+    readonly [Symbol.toStringTag]: "PrismaPromise"
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
   }
+
 
 
 

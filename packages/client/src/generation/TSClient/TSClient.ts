@@ -176,12 +176,11 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
     })
 
     const prismaClientClass = new PrismaClientClass(
-      this.dmmf,
+      context,
       this.options.datasources,
       this.options.outputDir,
       this.options.runtimeNameTs,
       this.options.browser,
-      this.options.generator,
       path.dirname(this.options.schemaPath),
     )
 

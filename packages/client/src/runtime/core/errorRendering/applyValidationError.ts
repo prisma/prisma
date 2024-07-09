@@ -1,5 +1,6 @@
 import levenshtein from 'js-levenshtein'
 
+import { lowerCase } from '../../../utils/lowerCase'
 import {
   ArgumentDescription,
   EmptySelectionError,
@@ -15,6 +16,7 @@ import {
   UnknownSelectionFieldError,
   ValueTooLargeError,
 } from '../engines'
+import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { IncludeOnScalarError, MutuallyExclusiveFieldsError, ValidationError } from '../types/ValidationError'
 import { applyUnionError } from './applyUnionError'
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
@@ -32,7 +34,11 @@ import { SuggestionObjectValue } from './SuggestionObjectValue'
  * @param error
  * @param args
  */
-export function applyValidationError(error: ValidationError, args: ArgumentsRenderingTree): void {
+export function applyValidationError(
+  error: ValidationError,
+  args: ArgumentsRenderingTree,
+  globalOmit?: GlobalOmitOptions,
+): void {
   switch (error.kind) {
     case 'MutuallyExclusiveFields':
       applyMutuallyExclusiveFieldsError(error, args)
@@ -41,7 +47,7 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
       applyIncludeOnScalarError(error, args)
       break
     case 'EmptySelection':
-      applyEmptySelectionError(error, args)
+      applyEmptySelectionError(error, args, globalOmit)
       break
     case 'UnknownSelectionField':
       applyUnknownSelectionFieldError(error, args)
@@ -71,7 +77,7 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
       applyTooManyFieldsGivenError(error, args)
       break
     case 'Union':
-      applyUnionError(error, args)
+      applyUnionError(error, args, globalOmit)
       break
     default:
       throw new Error('not implemented: ' + error.kind)
@@ -123,7 +129,11 @@ function applyIncludeOnScalarError(error: IncludeOnScalarError, argsTree: Argume
   })
 }
 
-function applyEmptySelectionError(error: EmptySelectionError, argsTree: ArgumentsRenderingTree) {
+function applyEmptySelectionError(
+  error: EmptySelectionError,
+  argsTree: ArgumentsRenderingTree,
+  globalOmit?: GlobalOmitOptions,
+) {
   const subSelection = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
   if (subSelection) {
     const omit = subSelection.getField('omit')?.value.asObject()
@@ -131,9 +141,19 @@ function applyEmptySelectionError(error: EmptySelectionError, argsTree: Argument
       applyEmptySelectionErrorOmit(error, argsTree, omit)
       return
     }
+    if (subSelection.hasField('select')) {
+      applyEmptySelectionErrorSelect(error, argsTree)
+      return
+    }
   }
 
-  applyEmptySelectionErrorSelect(error, argsTree)
+  if (globalOmit?.[lowerCase(error.outputType.name)]) {
+    applyEmptySelectionErrorGlobalOmit(error, argsTree)
+    return
+  }
+
+  // should never happen, but in case it does
+  argsTree.addErrorMessage(() => `Unknown field at "${error.selectionPath.join('.')} selection"`)
 }
 
 // case for `EmptySelectionError`, triggered by excessive omit
@@ -204,6 +224,38 @@ function applyEmptySelectionErrorSelect(error: EmptySelectionError, argsTree: Ar
     return `The ${colors.red('`select`')} statement for type ${colors.bold(outputType.name)} needs ${colors.bold(
       'at least one truthy value',
     )}.`
+  })
+}
+
+// case for `EmptySelectionError`, triggered by excessive global omit
+function applyEmptySelectionErrorGlobalOmit(error: EmptySelectionError, argsTree: ArgumentsRenderingTree) {
+  const suggestedOmitConfig = new SuggestionObjectValue()
+  for (const field of error.outputType.fields) {
+    if (!field.isRelation) {
+      suggestedOmitConfig.addField(field.name, 'false')
+    }
+  }
+
+  const omitSuggestion = new ObjectFieldSuggestion('omit', suggestedOmitConfig).makeRequired()
+
+  if (error.selectionPath.length === 0) {
+    argsTree.arguments.addSuggestion(omitSuggestion)
+  } else {
+    const [parentPath, fieldName] = splitPath(error.selectionPath)
+    const parent = argsTree.arguments.getDeepSelectionParent(parentPath)?.value.asObject()
+    const field = parent?.getField(fieldName)
+    if (field) {
+      const fieldValue = field?.value.asObject() ?? new ObjectValue()
+      fieldValue.addSuggestion(omitSuggestion)
+      field.value = fieldValue
+    }
+  }
+
+  // neither select, nor omit are used, but global omit global omit configuration for the model exists
+  argsTree.addErrorMessage((colors) => {
+    return `The global ${colors.red('omit')} configuration excludes every field of the model ${colors.bold(
+      error.outputType.name,
+    )}. At least one field must be included in the result`
   })
 }
 

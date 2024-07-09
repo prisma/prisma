@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.5.28",
+    "@swc/core": "1.6.3",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
@@ -26,7 +26,7 @@
     "@types/prompts": "2.4.9",
     "@types/sqlite3": "3.1.11",
     "arg": "5.0.2",
-    "esbuild": "0.21.5",
+    "esbuild": "0.23.0",
     "execa": "5.1.1",
     "fp-ts": "2.16.6",
     "fs-jetpack": "5.1.0",
@@ -39,8 +39,8 @@
     "log-update": "4.0.0",
     "mariadb": "3.3.1",
     "mock-stdin": "1.0.0",
-    "mongoose": "8.4.1",
-    "mssql": "10.0.2",
+    "mongoose": "8.4.3",
+    "mssql": "11.0.0",
     "ora": "5.4.1",
     "pg": "8.11.5",
     "pkg-up": "3.1.0",
@@ -49,7 +49,7 @@
     "tempy": "1.0.1",
     "ts-pattern": "5.2.0",
     "typescript": "5.4.5",
-    "wrangler": "3.60.2"
+    "wrangler": "3.62.0"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.16.0-16.4c3db41c3ad6086fa0f844bafe039fc221e9de94",
+    "@prisma/engines-version": "5.17.0-2.9b8d05f58b90e474495c811c76f88979000107a9",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
