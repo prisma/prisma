@@ -42,6 +42,7 @@ Or specify a Prisma schema path
       '-h': '--help',
       '--schema': String,
       '--telemetry-information': String,
+      '--check': Boolean,
     })
 
     if (args instanceof Error) {
@@ -60,6 +61,22 @@ Or specify a Prisma schema path
     validate({
       schemas: formattedDatamodel,
     })
+
+    if (args['--check']) {
+      for (const [filename, formattedSchema] of formattedDatamodel) {
+        const originalSchemaTuple = schemas.find((s) => s[0] === filename)
+        if (!originalSchemaTuple) {
+          return new HelpError(`${bold(red(`!`))} The schema ${underline(filename)} is not found in the schema list.`)
+        }
+        const [, originalSchema] = originalSchemaTuple
+        if (originalSchema !== formattedSchema) {
+          return new HelpError(
+            `${bold(red(`!`))} There are unformatted files. Run ${underline('prisma format')} to format them.`,
+          )
+        }
+      }
+      return 'All files are formatted correctly!'
+    }
 
     for (const [filename, data] of formattedDatamodel) {
       await fs.writeFile(filename, data)
