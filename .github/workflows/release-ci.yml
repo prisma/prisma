@@ -96,7 +96,6 @@ jobs:
         env:
           REPO_NAME: 'prisma-engines'
           TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
-          MESSAGE: '${{ steps.publish.outputs.changelogSanitized }}'
           COMMIT_HASH: '${{ steps.publish.outputs.enginesCommitHash }}'
         with:
           result-encoding: string
@@ -106,7 +105,7 @@ jobs:
               owner: 'prisma',
               repo: '${{ env.REPO_NAME }}',
               tag: '${{ env.TAG_NAME }}',
-              message: '${{ env.MESSAGE }}',
+              message: '${{ env.TAG_NAME }}',
               object: '${{ env.COMMIT_HASH }}',
               type: 'commit',
             })
