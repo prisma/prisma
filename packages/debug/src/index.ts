@@ -1,4 +1,3 @@
-/* eslint-disable no-var */
 import * as kleur from 'kleur/colors'
 import { bold } from 'kleur/colors'
 
@@ -61,30 +60,12 @@ const topProps = {
   },
   log: (...args: string[]) => {
     const [namespace, format, ...rest] = args
-    let logger: (...args: unknown[]) => void
-
-    if (
-      typeof require === 'function' &&
-      typeof process !== 'undefined' &&
-      typeof process.stderr !== 'undefined' &&
-      typeof process.stderr.write === 'function'
-    ) {
-      logger = (...args: unknown[]) => {
-        // On react native util is not defined but the entire checks above pass
-        // that's why we need to catch the error
-        try {
-          const util = require(`${'util'}`)
-          process.stderr.write(util.format(...args) + '\n')
-        } catch (e) {
-          logger = console.warn ?? console.log
-        }
-      }
-    } else {
-      logger = console.warn ?? console.log
-    }
+    // Note: `console.warn` / `console.log` use `util.format` internally, so they can handle
+    // `printf`-style string interpolation.
+    const logWithFormatting = console.warn ?? console.log
 
     // console only formats first arg, concat ns+format
-    logger(`${namespace} ${format}`, ...rest)
+    logWithFormatting(`${namespace} ${format}`, ...rest)
   },
   formatters: {}, // not implemented
 }
