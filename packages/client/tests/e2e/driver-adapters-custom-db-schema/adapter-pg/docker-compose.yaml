@@ -1,0 +1,19 @@
+services:
+  test-e2e:
+    environment:
+      - POSTGRES_URL=postgres://prisma:prisma@postgres:5432/tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=tests
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'prisma', '-d', 'tests']
+      interval: 5s
+      timeout: 2s
+      retries: 20
