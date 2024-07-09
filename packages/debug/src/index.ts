@@ -60,17 +60,9 @@ const topProps = {
   },
   log: (...args: string[]) => {
     const [namespace, format, ...rest] = args
-    const baseLogger = console.warn ?? console.log
-
-    const logWithFormatting = (() => {
-      try {
-        // TODO: try and see whether `require('node:util')` works in React Native.
-        const util = require(`${'util'}`)
-        return (...innerArgs: unknown[]) => baseLogger(`${util.format(...innerArgs)}`)
-      } catch {
-        return (...innerArgs: unknown[]) => baseLogger(...innerArgs)
-      }
-    })()
+    // Note: `console.warn` / `console.log` use `util.format` internally, so they can handle
+    // `printf`-style string interpolation.
+    const logWithFormatting = console.warn ?? console.log
 
     // console only formats first arg, concat ns+format
     logWithFormatting(`${namespace} ${format}`, ...rest)
