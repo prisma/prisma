@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
@@ -302,6 +302,43 @@ describe('using cli', () => {
     }
   })
 
+  describe('should work with --allow-no-models', () => {
+    const generateWithNoModels = async (ctx: BaseContext) => {
+      const data = await ctx.cli('generate', '--allow-no-models')
+
+      if (typeof data.signal === 'number' && data.signal !== 0) {
+        throw new Error(data.stderr + data.stdout)
+      }
+
+      return data
+    }
+
+    test('with sqlite', async () => {
+      ctx.fixture('no-models/sqlite')
+      await generateWithNoModels(ctx)
+    })
+
+    test('with mysql', async () => {
+      ctx.fixture('no-models/mysql')
+      await generateWithNoModels(ctx)
+    })
+
+    test('with postgresql', async () => {
+      ctx.fixture('no-models/postgresql')
+      await generateWithNoModels(ctx)
+    })
+
+    test('with sqlserver', async () => {
+      ctx.fixture('no-models/sqlserver')
+      await generateWithNoModels(ctx)
+    })
+
+    test('with mongo', async () => {
+      ctx.fixture('no-models/mongo')
+      await generateWithNoModels(ctx)
+    })
+  })
+
   it('should work with --no-engine', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate', '--no-engine')
@@ -377,11 +414,11 @@ describe('using cli', () => {
 
     if (engineType === ClientEngineType.Binary) {
       expect(data.stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
+              "Prisma schema loaded from prisma/schema.prisma
 
-      ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
-      "
-    `)
+              ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+              "
+          `)
     }
 
     expect(data.stdout).toMatchInlineSnapshot(`
