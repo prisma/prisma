@@ -24,8 +24,8 @@
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
-    "@swc-node/register": "1.10.0",
-    "@swc/core": "1.6.3",
+    "@swc-node/register": "1.10.3",
+    "@swc/core": "1.6.13",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/node": "18.19.31",
