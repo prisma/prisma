@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.17.0-7.4b84e51743fad4e1b5bcbf8779aa03568f7551f2",
+    "@prisma/engines-version": "5.17.0-14.integration-schema-wasm-bundler-9c50a1bd43b8a3c5a674efa49153c338407f5ade",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
