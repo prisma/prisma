@@ -2,7 +2,6 @@ import { Command } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
 import { argOrThrow, getOptionalParameter } from '../_lib/cli/parameters'
-import { credentialsFile } from '../_lib/credentials'
 import { messages } from '../_lib/messages'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -46,11 +45,9 @@ export class Show implements Command {
       },
     })
 
-    const credentials = getOptionalParameter(args, ['--sensitive']) ? await credentialsFile.loadOrThrow() : null
-
     const data = {
       ...me.user,
-      token: credentials?.token ?? null,
+      token: getOptionalParameter(args, ['--sensitive']) ? token : null,
     }
 
     return messages.sections([

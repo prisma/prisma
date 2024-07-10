@@ -1,8 +1,9 @@
-import { credentialsFile } from '../../_lib/credentials'
 import { requestOrThrow } from '../../_lib/pdp'
+import { getTokenOrThrow } from '../../_lib/utils'
 import { Show } from '../show'
 
 jest.mock('../../_lib/pdp')
+jest.mock('../../_lib/utils')
 
 describe('platform auth show', () => {
   test('should output token with --sensitive', async () => {
@@ -19,11 +20,7 @@ describe('platform auth show', () => {
       }),
     )
 
-    jest.spyOn(credentialsFile, 'load').mockReturnValue(
-      Promise.resolve({
-        token: 'testToken',
-      }),
-    )
+    jest.mocked(getTokenOrThrow).mockReturnValue(Promise.resolve('testToken'))
 
     await expect(Show.new().parse(['--sensitive'])).resolves.toContain('testToken')
   })
@@ -41,11 +38,7 @@ describe('platform auth show', () => {
       }),
     )
 
-    jest.spyOn(credentialsFile, 'load').mockReturnValue(
-      Promise.resolve({
-        token: 'testToken',
-      }),
-    )
+    jest.mocked(getTokenOrThrow).mockReturnValue(Promise.resolve('testToken'))
 
     await expect(Show.new().parse([])).resolves.not.toContain('testToken')
   })
