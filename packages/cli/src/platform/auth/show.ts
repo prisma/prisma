@@ -1,4 +1,4 @@
-import { Command, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
 import { argOrThrow, getOptionalParameter } from '../_lib/cli/parameters'
@@ -46,27 +46,11 @@ export class Show implements Command {
       },
     })
 
-    let sensitiveData: { token: string | null } = {
-      token: null,
-    }
-
-    if (getOptionalParameter(args, ['--sensitive'])) {
-      const maybeCredentials = await credentialsFile.load()
-
-      if (isError(maybeCredentials)) {
-        throw maybeCredentials
-      }
-
-      if (maybeCredentials?.token) {
-        sensitiveData = {
-          token: maybeCredentials?.token,
-        }
-      }
-    }
+    const credentials = getOptionalParameter(args, ['--sensitive']) ? await credentialsFile.loadOrThrow() : null
 
     const data = {
       ...me.user,
-      ...sensitiveData,
+      token: credentials?.token ?? null,
     }
 
     return messages.sections([

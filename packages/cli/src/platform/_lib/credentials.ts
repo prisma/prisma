@@ -1,3 +1,4 @@
+import { isError } from '@prisma/internals'
 import fs from 'fs-extra'
 import path from 'path'
 import XdgAppPaths from 'xdg-app-paths'
@@ -31,6 +32,15 @@ export const credentialsFile = {
       .pathExists(credentialsFilePath)
       .then((exists) => (exists ? loadJsonFile(credentialsFilePath).then(parseCredentials) : null))
       .catch(unknownToError),
+  loadOrThrow: async (): Promise<Credentials | null> => {
+    const maybeCredentials = await credentialsFile.load()
+
+    if (isError(maybeCredentials)) {
+      throw maybeCredentials
+    }
+
+    return maybeCredentials
+  },
   delete: async () =>
     fs
       .pathExists(credentialsFilePath)
