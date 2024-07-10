@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.17.0-7.4b84e51743fad4e1b5bcbf8779aa03568f7551f2",
+    "@prisma/engines-version": "5.17.0-13.integration-dmmf-indexes-ac9a360f4cd7cd3d8bdd5716853e22eb3332e3aa",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
