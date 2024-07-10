@@ -668,7 +668,7 @@ describe('--schema from project directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-        Start using Prisma Client (See: http://pris.ly/d/importing-client)
+        Start using Prisma Client (See: https://pris.ly/d/client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -723,7 +723,7 @@ describe('--schema from project directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-        Start using Prisma Client (See: http://pris.ly/d/importing-client)
+        Start using Prisma Client (See: https://pris.ly/d/client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -816,7 +816,7 @@ describe('--schema from parent directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-        Start using Prisma Client (See: http://pris.ly/d/importing-client)
+        Start using Prisma Client (See: https://pris.ly/d/client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -873,7 +873,7 @@ describe('--schema from parent directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-        Start using Prisma Client (See: http://pris.ly/d/importing-client)
+        Start using Prisma Client (See: https://pris.ly/d/client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -937,7 +937,7 @@ describe('--schema from parent directory', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
 
-        Start using Prisma Client (See: http://pris.ly/d/importing-client)
+        Start using Prisma Client (See: https://pris.ly/d/client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
