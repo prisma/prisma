@@ -25,9 +25,16 @@ import { TSClientOptions } from './TSClient'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(context: GenerateContext) {
-  const modelNames = context.dmmf.datamodel.models.map((m) => m.name)
   const meta = ts.objectType()
-  meta.add(ts.property('modelProps', ts.unionType(modelNames.map((name) => ts.stringLiteral(lowerCase(name))))))
+
+  const modelNames = context.dmmf.datamodel.models.map((m) => m.name)
+
+  // `modelNames` can be empty if `generate --allow-no-models` is used.
+  if (modelNames.length === 0) {
+    meta.add(ts.property('modelProps', ts.neverType))
+  } else {
+    meta.add(ts.property('modelProps', ts.unionType(modelNames.map((name) => ts.stringLiteral(lowerCase(name))))))
+  }
 
   const isolationLevel = context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')
     ? ts.namedType('Prisma.TransactionIsolationLevel')
