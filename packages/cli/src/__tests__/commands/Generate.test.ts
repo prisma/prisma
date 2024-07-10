@@ -50,7 +50,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -108,7 +107,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -144,7 +142,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -171,7 +168,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -198,7 +194,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -229,7 +224,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -340,7 +334,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -438,7 +431,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -493,7 +485,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -546,7 +537,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -601,7 +591,6 @@ describe('using cli', () => {
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start using Prisma Client (See: https://pris.ly/d/client)
-        Importing Prisma Client: http://pris.ly/d/importing-client
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
