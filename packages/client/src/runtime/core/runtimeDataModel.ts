@@ -76,7 +76,6 @@ function runtimeDataModelToBaseDmmf(runtimeDataModel: RuntimeDataModel): BaseDMM
       models: buildDMMFList(runtimeDataModel.models),
       enums: buildDMMFList(runtimeDataModel.enums),
       types: buildDMMFList(runtimeDataModel.types),
-      indexes: [], // Not used by the client
     },
   }
 }
