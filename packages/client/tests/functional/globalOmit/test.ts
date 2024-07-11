@@ -322,6 +322,127 @@ testMatrix.setupTestSuite(({ provider }) => {
     expectTypeOf(user).not.toHaveProperty('password')
   })
 
+  test('delete', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          password: true,
+        },
+      },
+    })
+    const user = await client.user.delete({ where: { email: 'user@example.com' } })
+
+    expect(user).toHaveProperty('id')
+    expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('highScore')
+    expect(user).not.toHaveProperty('password')
+
+    expectTypeOf(user!).toHaveProperty('id')
+    expectTypeOf(user!).toHaveProperty('email')
+    expectTypeOf(user!).toHaveProperty('highScore')
+    expectTypeOf(user!).not.toHaveProperty('password')
+  })
+
+  test('createMany does not crash', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          password: true,
+        },
+      },
+    })
+    const result = await client.user.createMany({
+      data: [
+        {
+          email: 'user1@example.com',
+          password: 'hunter2',
+        },
+        {
+          email: 'user2@example.com',
+          password: 'hunter2',
+        },
+      ],
+    })
+
+    expect(result.count).toBe(2)
+  })
+
+  test('deleteMany does not crash', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          password: true,
+        },
+      },
+    })
+    const result = await client.user.deleteMany({})
+
+    expect(result.count).toBe(1)
+  })
+
+  test('updateMany does not crash', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          password: true,
+        },
+      },
+    })
+    const result = await client.user.updateMany({
+      where: { email: 'user@example.com' },
+      data: {
+        password: '*******',
+      },
+    })
+
+    expect(result.count).toBe(1)
+  })
+
+  test('groupBy does not crash', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          password: true,
+        },
+      },
+    })
+    const result = await client.user.groupBy({
+      by: ['id'],
+    })
+
+    expect(result.length).toBe(1)
+  })
+
+  test('count does not crash', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          password: true,
+        },
+      },
+    })
+    const result = await client.user.count()
+
+    expect(result).toBe(1)
+  })
+
+  test('aggregate does not crash', async () => {
+    const client = clientWithOmit({
+      omit: {
+        user: {
+          password: true,
+        },
+      },
+    })
+    const result = await client.user.aggregate({
+      _sum: {
+        highScore: true,
+      },
+    })
+
+    expect(result._sum.highScore).toBe(0)
+  })
+
   skipTestIf([Providers.SQLSERVER, Providers.MONGODB, Providers.MYSQL].includes(provider))(
     'createManyAndReturn',
     async () => {
