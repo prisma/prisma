@@ -1,3 +1,5 @@
+import { assertNever } from '@prisma/internals'
+
 import { lowerCase } from '../../../utils/lowerCase'
 import { ErrorFormat } from '../../getPrismaClient'
 import { CallSite } from '../../utils/CallSite'
@@ -473,10 +475,40 @@ class SerializeContext {
   }
 
   getGlobalOmit(): Record<string, boolean> {
-    if (!this.params.modelName) {
-      return {}
+    if (this.params.modelName && this.shouldApplyGlobalOmit()) {
+      return this.params.globalOmit?.[lowerCase(this.params.modelName)] ?? {}
     }
-    return this.params.globalOmit?.[lowerCase(this.params.modelName)] ?? {}
+    return {}
+  }
+
+  shouldApplyGlobalOmit(): boolean {
+    switch (this.params.action) {
+      case 'findFirst':
+      case 'findFirstOrThrow':
+      case 'findUniqueOrThrow':
+      case 'findMany':
+      case 'upsert':
+      case 'findUnique':
+      case 'createManyAndReturn':
+      case 'create':
+      case 'update':
+      case 'delete':
+        return true
+      case 'executeRaw':
+      case 'aggregateRaw':
+      case 'runCommandRaw':
+      case 'findRaw':
+      case 'createMany':
+      case 'deleteMany':
+      case 'groupBy':
+      case 'updateMany':
+      case 'count':
+      case 'aggregate':
+      case 'queryRaw':
+        return false
+      default:
+        assertNever(this.params.action, 'Unknown action')
+    }
   }
 
   nestArgument(fieldName: string) {
