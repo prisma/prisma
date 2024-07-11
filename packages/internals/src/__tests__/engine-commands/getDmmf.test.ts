@@ -268,8 +268,36 @@ describe('getDMMF', () => {
           18 |         posts        Post[]
           19 |         posts        Post[]
              | 
+          error: Error validating model "User": At most one field must be marked as the id field with the \`@id\` attribute.
+            -->  schema.prisma:10
+             | 
+           9 |       
+          10 |       model User {
+          11 |         id           String     @id @default(cuid())
+          12 |         id           String     @id @default(cuid())
+          13 |         name         String
+          14 |         email        String     @unique
+          15 |         status       String     @default("")
+          16 |         permissions  Permission @default()
+          17 |         permissions  Permission @default("")
+          18 |         posts        Post[]
+          19 |         posts        Post[]
+          20 |       }
+             | 
+          error: Argument "value" is missing.
+            -->  schema.prisma:16
+             | 
+          15 |         status       String     @default("")
+          16 |         permissions  Permission @default()
+             | 
+          error: Error parsing attribute "@default": Expected an enum value, but found \`""\`.
+            -->  schema.prisma:17
+             | 
+          16 |         permissions  Permission @default()
+          17 |         permissions  Permission @default("")
+             | 
 
-          Validation Error Count: 3
+          Validation Error Count: 6
           [Context: getDmmf]
 
           Prisma CLI Version : 0.0.0"
