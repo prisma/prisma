@@ -267,7 +267,7 @@ ${link('https://pris.ly/cli/--accelerate')}`
           })
 
           hint = `
-Start using Prisma Client (See: https://pris.ly/d/client)
+Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
 ${boxedTryAccelerateMessage}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
