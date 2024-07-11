@@ -323,12 +323,13 @@ describe('getDMMF', () => {
 
       const dmmf = await getDMMF({ datamodel, datamodelPath: './404/it-does-not-exist' })
       expect(dmmf.datamodel).toMatchInlineSnapshot(`
-          {
-            "enums": [],
-            "models": [],
-            "types": [],
-          }
-        `)
+        {
+          "enums": [],
+          "indexes": [],
+          "models": [],
+          "types": [],
+        }
+      `)
       expect(dmmf).toMatchSnapshot()
     })
 
