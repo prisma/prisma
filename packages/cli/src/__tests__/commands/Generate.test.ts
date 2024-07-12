@@ -49,18 +49,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './generated/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -117,18 +106,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './prisma/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './prisma/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -163,13 +141,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start using Prisma Client
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        More information: https://pris.ly/d/client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -195,13 +167,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start using Prisma Client
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        More information: https://pris.ly/d/client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -227,13 +193,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start using Prisma Client
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        More information: https://pris.ly/d/client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -263,13 +223,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
-        Start using Prisma Client
-        \`\`\`
-        import { PrismaClient } from '@prisma/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        More information: https://pris.ly/d/client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -379,18 +333,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './generated/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -487,18 +430,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './generated/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -552,18 +484,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './generated/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -615,18 +536,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './generated/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -680,18 +590,7 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './generated/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -758,18 +657,7 @@ describe('--schema from project directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './@prisma/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './@prisma/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -824,18 +712,7 @@ describe('--schema from project directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './@prisma/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './@prisma/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -928,18 +805,7 @@ describe('--schema from parent directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './subdirectory/@prisma/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './subdirectory/@prisma/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -996,18 +862,7 @@ describe('--schema from parent directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './subdirectory/@prisma/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './subdirectory/@prisma/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
@@ -1071,18 +926,7 @@ describe('--schema from parent directory', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
 
-        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-        \`\`\`
-        import { PrismaClient } from './generated/client'
-        const prisma = new PrismaClient()
-        \`\`\`
-        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-        \`\`\`
-        import { PrismaClient } from './generated/client/edge'
-        const prisma = new PrismaClient()
-        \`\`\`
-
-        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
 
         ┌─────────────────────────────────────────────────────────────┐
         │  Deploying your app to serverless or edge functions?        │
