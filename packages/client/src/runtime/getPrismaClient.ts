@@ -67,7 +67,6 @@ import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
-import { deserializeRawResults } from './utils/deserializeRawResults'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
 
@@ -684,7 +683,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
-      }).then(deserializeRawResults)
+      })
     }
 
     /**
