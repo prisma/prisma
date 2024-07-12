@@ -474,11 +474,11 @@ testMatrix.setupTestSuite(
                   engineConnection(),
                   ...txQueries,
                   {
-                    name: 'prisma:engine:itx_query_builder',
+                    name: 'prisma:engine:itx_execute_single',
                     children: [...createDbQueries(false), engineSerializeQueryResult()],
                   },
                   {
-                    name: 'prisma:engine:itx_query_builder',
+                    name: 'prisma:engine:itx_execute_single',
                     children: [findManyDbQuery(), engineSerializeQueryResult()],
                   },
                 ],
