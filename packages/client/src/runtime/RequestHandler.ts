@@ -34,6 +34,7 @@ import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { deepGet } from './utils/deep-set'
+import { deserializeRawResult, RawResponse } from './utils/deserializeRawResults'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -274,11 +275,16 @@ export class RequestHandler {
     if (!data) {
       return data
     }
+    const operation = Object.keys(data)[0]
     const response = Object.values(data)[0]
     const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
-    const deserializeResponse = deserializeJsonResponse(deepGet(response, pathForGet))
+    const extractedResponse = deepGet(response, pathForGet)
+    const deserializedResponse =
+      operation === 'queryRaw'
+        ? deserializeRawResult(extractedResponse as RawResponse)
+        : (deserializeJsonResponse(extractedResponse) as unknown)
 
-    return unpacker ? unpacker(deserializeResponse) : deserializeResponse
+    return unpacker ? unpacker(deserializedResponse) : deserializedResponse
   }
 
   get [Symbol.toStringTag]() {
