@@ -49,13 +49,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: https://pris.ly/--optimize
+
         "
       `)
     }
@@ -106,13 +103,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/--optimize
+
         "
       `)
     }
@@ -141,13 +135,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: 
+
         "
       `)
     }
@@ -167,13 +158,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: 
+
         "
       `)
     }
@@ -193,13 +181,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+
         "
       `)
     }
@@ -223,13 +208,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/--optimize
+
         "
       `)
     } else {
@@ -333,13 +315,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: 
+
         "
       `)
     }
@@ -430,13 +409,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: 
+
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
         "
@@ -484,13 +460,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Interested in query caching in just a few lines of code? Try Accelerate today! 
+
         "
       `)
     }
@@ -536,13 +509,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/--optimize
+
         "
       `)
     }
@@ -590,13 +560,10 @@ describe('using cli', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+
 
         🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
         "
@@ -657,13 +624,10 @@ describe('--schema from project directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: 
+
         "
       `)
     }
@@ -712,13 +676,10 @@ describe('--schema from project directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: https://pris.ly/--optimize
+
         "
       `)
     }
@@ -805,13 +766,10 @@ describe('--schema from parent directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+
         "
       `)
     }
@@ -862,13 +820,10 @@ describe('--schema from parent directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+
         "
       `)
     }
@@ -926,13 +881,10 @@ describe('--schema from parent directory', () => {
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
 
-        Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        ┌─────────────────────────────────────────────────────────────┐
-        │  Deploying your app to serverless or edge functions?        │
-        │  Try Prisma Accelerate for connection pooling and caching.  │
-        │  https://pris.ly/cli/--accelerate                           │
-        └─────────────────────────────────────────────────────────────┘
+        Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: 
+
         "
       `)
     }
