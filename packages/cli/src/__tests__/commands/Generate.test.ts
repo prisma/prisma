@@ -197,7 +197,7 @@ describe('using cli', () => {
     // use regex to extract the output location below with a dummy location
     const outputLocation = data.stdout.match(/to (.*) in/)?.[1]
     let stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
-    stdout = data.stdout.replace(outputLocation!, '<output>')
+    stdout = stdout.replace(outputLocation!, '<output>')
 
     if (getClientEngineType() === ClientEngineType.Library) {
       expect(stdout).toMatchInlineSnapshot(`
@@ -207,9 +207,7 @@ describe('using cli', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: https://pris.ly/--optimize
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     } else {
       expect(stdout).toMatchInlineSnapshot(`
