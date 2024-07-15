@@ -400,7 +400,7 @@ export class Init implements Command {
     )
 
     steps.push(
-      `Explore how you can extend the ${green(
+      `Tip: Explore how you can extend the ${green(
         'ORM',
       )} with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/beyond-the-orm`,
     )
