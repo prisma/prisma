@@ -10,6 +10,7 @@ describe('using cli', () => {
   it('should work with a custom output dir', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -18,7 +19,7 @@ describe('using cli', () => {
     const { main } = await import(ctx.fs.path('main.ts'))
 
     if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
@@ -44,16 +45,14 @@ describe('using cli', () => {
         "
       `)
     } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: https://pris.ly/--optimize
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
 
@@ -71,8 +70,10 @@ describe('using cli', () => {
   it('should work with prisma schema folder', async () => {
     ctx.fixture('multi-schema-files/valid-custom-output')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+
     if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./prisma/client in XXXms
@@ -98,16 +99,14 @@ describe('using cli', () => {
         "
       `)
     } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema
 
         ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/--optimize
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
 
@@ -124,22 +123,21 @@ describe('using cli', () => {
   it('should display the right yarn command for custom outputs', async () => {
     ctx.fixture('custom-output-yarn')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     if (getClientEngineType() === ClientEngineType.Library) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: 
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
   })
@@ -147,22 +145,21 @@ describe('using cli', () => {
   it('should display the right npm command for custom outputs', async () => {
     ctx.fixture('custom-output-npm')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     if (getClientEngineType() === ClientEngineType.Library) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: 
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
   })
@@ -170,22 +167,21 @@ describe('using cli', () => {
   it('should display the right pnpm command for custom outputs', async () => {
     ctx.fixture('custom-output-pnpm')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     if (getClientEngineType() === ClientEngineType.Library) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
   })
@@ -200,19 +196,18 @@ describe('using cli', () => {
 
     // use regex to extract the output location below with a dummy location
     const outputLocation = data.stdout.match(/to (.*) in/)?.[1]
-    const stdout = data.stdout.replace(outputLocation!, '<output>')
+    let stdout = data.stdout.replace(outputLocation!, '<output>')
+    stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (getClientEngineType() === ClientEngineType.Library) {
       expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
+        ✔ Generated Prisma Client (v0.0.0) to ./../../../../../../../client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/--optimize
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     } else {
       expect(stdout).toMatchInlineSnapshot(`
@@ -278,13 +273,14 @@ describe('using cli', () => {
   it('should work with --no-engine', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate', '--no-engine')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
@@ -310,16 +306,14 @@ describe('using cli', () => {
         "
       `)
     } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: 
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
   })
@@ -370,13 +364,14 @@ describe('using cli', () => {
   it('should warn when `url` is hardcoded', async () => {
     ctx.fixture('hardcoded-url')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
@@ -404,18 +399,14 @@ describe('using cli', () => {
         "
       `)
     } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: 
-
-
-        🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
   })
@@ -423,13 +414,14 @@ describe('using cli', () => {
   it('should not warn when `url` is not hardcoded', async () => {
     ctx.fixture('env-url')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
@@ -455,16 +447,14 @@ describe('using cli', () => {
         "
       `)
     } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Interested in query caching in just a few lines of code? Try Accelerate today! 
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
   })
@@ -472,13 +462,14 @@ describe('using cli', () => {
   it('should not warn when `directUrl` is not hardcoded', async () => {
     ctx.fixture('env-direct-url')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
@@ -504,16 +495,14 @@ describe('using cli', () => {
         "
       `)
     } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Interested in query caching in just a few lines of code? Try Accelerate today! https://pris.ly/--optimize
-
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
   })
@@ -521,13 +510,14 @@ describe('using cli', () => {
   it('should warn when `directUrl` is hardcoded', async () => {
     ctx.fixture('hardcoded-direct-url')
     const data = await ctx.cli('generate')
+    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
     if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
@@ -555,18 +545,14 @@ describe('using cli', () => {
         "
       `)
     } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
+      expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
-
-
-        🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env
-        "
+        Tip: MOCKED RANDOM TIP"
       `)
     }
   })
@@ -589,6 +575,14 @@ describe('using cli', () => {
 })
 
 describe('--schema from project directory', () => {
+  beforeEach(() => {
+    jest.spyOn(global.Math, 'random').mockReturnValue(0.1)
+  })
+
+  afterEach(() => {
+    jest.spyOn(global.Math, 'random').mockRestore()
+  })
+
   it('--schema relative path: should work', async () => {
     expect.assertions(1)
     ctx.fixture('generate-from-project-dir')
@@ -626,7 +620,7 @@ describe('--schema from project directory', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: 
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
 
         "
       `)
@@ -678,7 +672,7 @@ describe('--schema from project directory', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: https://pris.ly/--optimize
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
 
         "
       `)
@@ -731,6 +725,13 @@ describe('in postinstall', () => {
 })
 
 describe('--schema from parent directory', () => {
+  beforeEach(() => {
+    jest.spyOn(global.Math, 'random').mockReturnValue(0.1)
+  })
+
+  afterEach(() => {
+    jest.spyOn(global.Math, 'random').mockRestore()
+  })
   it('--schema relative path: should work', async () => {
     expect.assertions(1)
     ctx.fixture('generate-from-parent-dir')
@@ -883,7 +884,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: 
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
 
         "
       `)
