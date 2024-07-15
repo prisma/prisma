@@ -196,18 +196,20 @@ describe('using cli', () => {
 
     // use regex to extract the output location below with a dummy location
     const outputLocation = data.stdout.match(/to (.*) in/)?.[1]
-    let stdout = data.stdout.replace(outputLocation!, '<output>')
-    stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    let stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    stdout = data.stdout.replace(outputLocation!, '<output>')
 
     if (getClientEngineType() === ClientEngineType.Library) {
       expect(stdout).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0) to ./../../../../../../../client in XXXms
+        ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: MOCKED RANDOM TIP"
+        Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: https://pris.ly/--optimize
+
+        "
       `)
     } else {
       expect(stdout).toMatchInlineSnapshot(`
