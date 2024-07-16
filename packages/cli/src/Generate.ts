@@ -260,7 +260,6 @@ Please make sure they have the same version.`
 Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
 ${promotion.text} ${promotion.link}
-
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         }
       }
