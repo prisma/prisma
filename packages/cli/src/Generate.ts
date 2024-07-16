@@ -2,7 +2,6 @@ import { enginesVersion } from '@prisma/engines'
 import {
   arg,
   Command,
-  drawBox,
   format,
   Generator,
   getCommandWithExecutor,
@@ -29,6 +28,7 @@ import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import { getRandomPromotion } from './utils/handlePromotions'
 import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
@@ -131,6 +131,7 @@ ${bold('Examples')}
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
+    const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
 
@@ -255,21 +256,10 @@ Please make sure they have the same version.`
         if (hideHints) {
           hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         } else {
-          const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
-Try Prisma Accelerate for connection pooling and caching.
-${link('https://pris.ly/cli/--accelerate')}`
-
-          const boxedTryAccelerateMessage = drawBox({
-            height: tryAccelerateMessage.split('\n').length,
-            width: 0, // calculated automatically
-            str: tryAccelerateMessage,
-            horizontalPadding: 2,
-          })
-
           hint = `
-Start by importing your prisma client (See:  http://pris.ly/d/importing-client)
+Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-${boxedTryAccelerateMessage}
+${promotion.text} ${promotion.link}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         }
       }
