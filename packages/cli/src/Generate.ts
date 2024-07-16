@@ -131,6 +131,7 @@ ${bold('Examples')}
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
+    const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
 
@@ -258,7 +259,7 @@ Please make sure they have the same version.`
           hint = `
 Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-${getRandomPromotion().text} ${getRandomPromotion().link}
+${promotion.text} ${promotion.link}
 
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         }

@@ -1,19 +1,19 @@
 const promotions = [
   {
     text: `Tip: Want real-time updates to your database without manual polling? Discover how with Pulse:`,
-    link: '',
+    link: 'https://pris.ly/tip-0-pulse',
   },
   {
     text: `Tip: Want to react to database changes in your app as they happen? Discover how with Pulse:`,
-    link: '',
+    link: 'https://pris.ly/tip-1-pulse',
   },
   {
     text: `Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more:`,
-    link: '',
+    link: 'https://pris.ly/tip-2-accelerate',
   },
   {
     text: `Tip: Interested in query caching in just a few lines of code? Try Accelerate today!`,
-    link: '',
+    link: 'https://pris.ly/tip-3-accelerate',
   },
   {
     text: `Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility:`,
@@ -21,7 +21,7 @@ const promotions = [
   },
   {
     text: `Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility:`,
-    link: 'https://pris.ly/--optimize',
+    link: 'https://pris.ly/tip-2-optimize',
   },
 ]
 

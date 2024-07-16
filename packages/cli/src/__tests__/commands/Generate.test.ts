@@ -576,11 +576,11 @@ describe('using cli', () => {
 
 describe('--schema from project directory', () => {
   beforeEach(() => {
-    jest.spyOn(global.Math, 'random').mockReturnValue(0.1)
+    jest.spyOn(Math, 'random').mockReturnValue(0.1)
   })
 
   afterEach(() => {
-    jest.spyOn(global.Math, 'random').mockRestore()
+    jest.spyOn(Math, 'random').mockRestore()
   })
 
   it('--schema relative path: should work', async () => {
@@ -620,7 +620,7 @@ describe('--schema from project directory', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
 
         "
       `)
@@ -672,7 +672,7 @@ describe('--schema from project directory', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
 
         "
       `)
@@ -726,11 +726,11 @@ describe('in postinstall', () => {
 
 describe('--schema from parent directory', () => {
   beforeEach(() => {
-    jest.spyOn(global.Math, 'random').mockReturnValue(0.1)
+    jest.spyOn(Math, 'random').mockReturnValue(0.1)
   })
 
   afterEach(() => {
-    jest.spyOn(global.Math, 'random').mockRestore()
+    jest.spyOn(Math, 'random').mockRestore()
   })
   it('--schema relative path: should work', async () => {
     expect.assertions(1)
@@ -769,7 +769,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
 
         "
       `)
@@ -823,7 +823,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
 
         "
       `)
@@ -884,7 +884,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: 
+        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
 
         "
       `)
