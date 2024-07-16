@@ -621,7 +621,6 @@ describe('--schema from project directory', () => {
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
-
         "
       `)
     }
@@ -673,7 +672,6 @@ describe('--schema from project directory', () => {
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
-
         "
       `)
     }
@@ -770,7 +768,6 @@ describe('--schema from parent directory', () => {
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
-
         "
       `)
     }
@@ -824,7 +821,6 @@ describe('--schema from parent directory', () => {
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
-
         "
       `)
     }
@@ -885,7 +881,6 @@ describe('--schema from parent directory', () => {
         Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
-
         "
       `)
     }
