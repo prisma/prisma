@@ -16,7 +16,7 @@ export function toSchemasWithConfigDir(
 ): MigrateTypes.SchemasWithConfigDir {
   return {
     files: multipleSchemasToSchemaContainers(getSchemaResult.schemas),
-    configDir: getMigrateConfigDir(config),
+    configDir: getMigrateConfigDir(config, getSchemaResult.schemaPath),
   }
 }
 
