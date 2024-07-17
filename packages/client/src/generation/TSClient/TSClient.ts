@@ -70,6 +70,7 @@ export class TSClient implements Generable {
       binaryPaths,
       generator,
       outputDir,
+      schemaPath,
       datamodel: inlineSchema,
       runtimeBase,
       runtimeNameJs,
@@ -103,7 +104,7 @@ export class TSClient implements Generable {
       .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
       .digest('hex')
 
-    const datasourceFilePath = datasources[0].sourceFilePath
+    const datasourceFilePath = datasources[0]?.sourceFilePath ?? schemaPath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
