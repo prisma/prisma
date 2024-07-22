@@ -1,15 +1,12 @@
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
+/* eslint-disablejest/no-identical-title */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
-
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 // 1:1 relation
 async function createXItems({ count }) {
@@ -40,15 +37,12 @@ async function createXItems({ count }) {
 }
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  ({ provider, driverAdapter, relationMode, onUpdate, onDelete }) => {
     const conditionalError = ConditionalError.new()
-      .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('provider', provider)
+      .with('driverAdapter', driverAdapter)
       // @ts-ignore
-      .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
-
-    const onUpdate = suiteConfig.onUpdate
-    const onDelete = suiteConfig.onDelete
+      .with('relationMode', relationMode || 'foreignKeys')
 
     describe('not-original', () => {
       beforeEach(async () => {
@@ -91,6 +85,10 @@ testMatrix.setupTestSuite(
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `aliceId`',
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
+                  [AdapterProviders.JS_NEON]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
+                  [AdapterProviders.JS_PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
+                  [AdapterProviders.JS_PLANETSCALE]: 'Foreign key constraint failed on the field: `aliceId',
                 },
                 prisma: errors[onDelete],
               }),
@@ -280,7 +278,14 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [
+        Providers.MONGODB,
+        Providers.SQLSERVER,
+        Providers.MYSQL,
+        Providers.POSTGRESQL,
+        Providers.COCKROACHDB,
+        Providers.SQLITE,
+      ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
   },

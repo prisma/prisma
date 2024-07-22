@@ -27,19 +27,19 @@ setupTestSuite(() => {
       { id: expect.any(String) },
       `
       {
-        contents: [
+        "contents": [
           {
-            text: Hello World,
-            upvotes: [
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
             ],
           },
         ],
-        country: France,
-        id: Any<String>,
+        "country": "France",
+        "id": Any<String>,
       }
     `,
     )
@@ -63,19 +63,19 @@ setupTestSuite(() => {
       { id: expect.any(String) },
       `
       {
-        contents: [
+        "contents": [
           {
-            text: Hello World,
-            upvotes: [
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
             ],
           },
         ],
-        country: France,
-        id: Any<String>,
+        "country": "France",
+        "id": Any<String>,
       }
     `,
     )
@@ -135,23 +135,23 @@ setupTestSuite(() => {
       { id: expect.any(String) },
       `
       {
-        contents: [
+        "contents": [
           {
-            text: Hello World,
-            upvotes: [
+            "text": "Hello World",
+            "upvotes": [
               {
-                userId: 10,
-                vote: true,
+                "userId": "10",
+                "vote": true,
               },
               {
-                userId: 11,
-                vote: true,
+                "userId": "11",
+                "vote": true,
               },
             ],
           },
         ],
-        country: France,
-        id: Any<String>,
+        "country": "France",
+        "id": Any<String>,
       }
     `,
     )

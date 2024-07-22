@@ -2,13 +2,12 @@ export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
   getPrismaConfigFromPackageJson,
-  getRelativeSchemaPath,
   getSchema,
   getSchemaDir,
-  getSchemaPath,
-  getSchemaPathFromPackageJson,
-  getSchemaPathFromPackageJsonSync,
-  getSchemaPathSync,
+  type GetSchemaOptions,
+  type GetSchemaResult,
+  getSchemaWithPath,
+  getSchemaWithPathOptional,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
@@ -28,8 +27,11 @@ export { arg, format, isError } from './cli/utils'
 export { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE, getClientEngineType } from './client/getClientEngineType'
 export { credentialsToUri, protocolToConnectorType, uriToCredentials } from './convertCredentials'
 export * from './engine-commands'
+export { resolveUrl } from './engine-commands/getConfig'
+export { relativizePathInPSLError } from './engine-commands/relativizePathInPSLError'
 export { Generator } from './Generator'
 export type { GeneratorPaths } from './get-generators/generatorResolvers/generatorResolvers'
+export { getPackageCmd } from './get-generators/generatorResolvers/prisma-client-js/auto-installation/getPackageCmd'
 export type { ProviderAliases } from './get-generators/getGenerators'
 export { getGenerator, getGenerators } from './get-generators/getGenerators'
 export { fixBinaryTargets } from './get-generators/utils/fixBinaryTargets'
@@ -47,11 +49,14 @@ export { SchemaEngineExitCode } from './schemaEngineCommands'
 export { sendPanic } from './sendPanic'
 export * from './tracing/types'
 export type { DatabaseCredentials } from './types'
+export { assertAlways } from './utils/assertAlways'
 export { assertNever } from './utils/assertNever'
+export { binaryTargetRegex } from './utils/binaryTargetRegex'
 export { default as byline } from './utils/byline'
 export { callOnceOnSuccess } from './utils/callOnce'
 export { canPrompt } from './utils/canPrompt'
 export { chmodPlusX } from './utils/chmodPlusX'
+export { locateLocalCloudflareD1 } from './utils/cloudflareD1'
 export { drawBox } from './utils/drawBox'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 export { formatms } from './utils/formatms'
@@ -59,8 +64,8 @@ export { formatTable } from './utils/formatTable'
 export * as fsFunctional from './utils/fs-functional'
 export * as fsUtils from './utils/fs-utils'
 export { getCommandWithExecutor } from './utils/getCommandWithExecutor'
-export type { EnvPaths } from './utils/getEnvPaths'
 export { getEnvPaths } from './utils/getEnvPaths'
+export { getMigrateConfigDir } from './utils/getMigrateConfigDir'
 export { version } from './utils/getVersionFromPackageJson'
 export { handleLibraryLoadingErrors } from './utils/handleEngineLoadingErrors'
 export { handlePanic } from './utils/handlePanic'
@@ -77,18 +82,26 @@ export { mapObjectValues } from './utils/mapObjectValues'
 export { maskSchema } from './utils/maskSchema'
 export { maxBy, maxWithComparator } from './utils/max'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
+export { parseAWSNodejsRuntimeEnvVarVersion } from './utils/parseAWSNodejsRuntimeEnvVarVersion'
 export { parseBinaryTargetsEnvValue, parseEnvValue } from './utils/parseEnvValue'
 export { longestCommonPathPrefix, pathToPosix } from './utils/path'
 export { pick } from './utils/pick'
-export { platformRegex } from './utils/platformRegex'
 export { printConfigWarnings } from './utils/printConfigWarnings'
+export {
+  debugMultipleSchemaPaths,
+  debugMultipleSchemas,
+  extractSchemaContent,
+  type SchemaFileInput,
+  toMultipleSchemas,
+} from './utils/schemaFileInput'
+export { type MultipleSchemas } from './utils/schemaFileInput'
 export { serializeQueryEngineName } from './utils/serializeQueryEngineName'
 export { setClassName } from './utils/setClassName'
-export type { Position } from './utils/trimBlocksFromSchema'
-export { trimBlocksFromSchema, trimNewLine } from './utils/trimBlocksFromSchema'
-export { tryLoadEnvs } from './utils/tryLoadEnvs'
+export { toSchemasContainer, toSchemasWithConfigDir } from './utils/toSchemasContainer'
+export { type LoadedEnv, tryLoadEnvs } from './utils/tryLoadEnvs'
 export { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
 export { warnOnce } from './warnOnce'
 export * as wasm from './wasm'
-export type { Platform } from '@prisma/get-platform'
-export { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+export type { EnvPaths } from '@prisma/generator-helper'
+export type { BinaryTarget } from '@prisma/get-platform'
+export { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'

@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -6,8 +7,10 @@ import testMatrix from './_matrix'
 declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
-    describe('issue 10000', () => {
+  (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
+    // Skipped because of https://github.com/prisma/prisma/issues/22971
+    // `eventId String @map("event_id")` triggers the issue.
+    describeIf(!cliMeta.previewFeatures.includes('relationJoins'))('issue 10000', () => {
       afterAll(async () => {
         await prisma.$disconnect()
       })
@@ -56,7 +59,14 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [
+        Providers.MONGODB,
+        Providers.SQLSERVER,
+        Providers.MYSQL,
+        Providers.POSTGRESQL,
+        Providers.COCKROACHDB,
+        Providers.SQLITE,
+      ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
   },

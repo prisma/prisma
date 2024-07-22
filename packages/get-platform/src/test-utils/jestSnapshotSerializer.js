@@ -1,7 +1,8 @@
+'use strict'
 const path = require('path')
 const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
-const { platformRegex } = require('./platformRegex')
+const { binaryTargetRegex } = require('./binaryTargetRegex')
 
 // Pipe utility
 const pipe =
@@ -51,7 +52,7 @@ function normalizeTsClientStackTrace(str) {
 }
 
 function removePlatforms(str) {
-  return str.replace(platformRegex, 'TEST_PLATFORM')
+  return str.replace(binaryTargetRegex, 'TEST_PLATFORM')
 }
 
 // When updating snapshots this is sensitive to OS
@@ -120,6 +121,11 @@ function prepareSchemaForSnapshot(str) {
     .join('\n')
 }
 
+// needed for jest to correctly handle indentation on multiline snapshot updates
+function wrapWithQuotes(str) {
+  return `"${str}"`
+}
+
 module.exports = {
   // Expected by Jest
   test(value) {
@@ -154,6 +160,7 @@ module.exports = {
       normalizeMigrateTimestamps,
       // artificial panic
       normalizeArtificialPanic,
+      wrapWithQuotes,
     )(message)
   },
 }

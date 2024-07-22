@@ -1,0 +1,10 @@
+model with_all_field_types {
+  id       Int      @id
+  string   String
+  int      Int
+  float    Float
+  datetime DateTime
+
+  relation      relation_target?  @relation("waft_rt")
+  relation_list relation_target[] @relation("waft_rt_list")
+}

@@ -25,16 +25,14 @@ testMatrix.setupTestSuite(
     })
 
     test(
-      'should console warn when spawning too many instances of PrismaClient',
+      'should not console warn when spawning too many instances of PrismaClient',
       async () => {
         for (let i = 0; i < 15; i++) {
           const client = newPrismaClient()
           await client.$connect()
         }
 
-        expect(warnings.join('')).toContain(
-          'This is the 10th instance of Prisma Client being started. Make sure this is intentional.',
-        )
+        expect(warnings.join('')).toMatchInlineSnapshot(`""`)
       },
       TIMEOUT,
     )

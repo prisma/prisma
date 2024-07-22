@@ -1,0 +1,17 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://prisma:prisma@localhost:3306/prisma"
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+}

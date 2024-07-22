@@ -1,5 +1,7 @@
+import { assertNever } from '@prisma/internals'
+
+import { lowerCase } from '../../../utils/lowerCase'
 import { ErrorFormat } from '../../getPrismaClient'
-import { ObjectEnumValue, objectEnumValues } from '../../object-enums'
 import { CallSite } from '../../utils/CallSite'
 import { isDate, isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
@@ -10,13 +12,23 @@ import {
   JsonQueryAction,
   JsonSelectionSet,
   OutputTypeDescription,
+  RawTaggedValue,
 } from '../engines'
 import { throwValidationException } from '../errorRendering/throwValidationException'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
-import { applyComputedFieldsToSelection } from '../extensions/resultUtils'
+import { computeEngineSideOmissions, computeEngineSideSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
 import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
-import { Action, JsArgs, JsInputValue, JsonConvertible, RawParameters, Selection } from '../types/JsApi'
+import {
+  Action,
+  JsArgs,
+  JsInputValue,
+  JsonConvertible,
+  Omission,
+  RawParameters,
+  Selection,
+} from '../types/exported/JsApi'
+import { ObjectEnumValue, objectEnumValues } from '../types/exported/ObjectEnums'
 import { ValidationError } from '../types/ValidationError'
 
 const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
@@ -28,6 +40,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   count: 'aggregate',
   create: 'createOne',
   createMany: 'createMany',
+  createManyAndReturn: 'createManyAndReturn',
   update: 'updateOne',
   updateMany: 'updateMany',
   upsert: 'upsertOne',
@@ -42,6 +55,12 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   aggregateRaw: 'aggregateRaw',
 }
 
+export type GlobalOmitOptions = {
+  [modelName: string]: {
+    [fieldName: string]: boolean
+  }
+}
+
 export type SerializeParams = {
   runtimeDataModel: RuntimeDataModel
   modelName?: string
@@ -52,6 +71,8 @@ export type SerializeParams = {
   clientMethod: string
   clientVersion: string
   errorFormat: ErrorFormat
+  previewFeatures: string[]
+  globalOmit?: GlobalOmitOptions
 }
 
 export function serializeJsonQuery({
@@ -64,6 +85,8 @@ export function serializeJsonQuery({
   clientMethod,
   errorFormat,
   clientVersion,
+  previewFeatures,
+  globalOmit,
 }: SerializeParams): JsonQuery {
   const context = new SerializeContext({
     runtimeDataModel,
@@ -77,6 +100,8 @@ export function serializeJsonQuery({
     originalMethod: clientMethod,
     errorFormat,
     clientVersion,
+    previewFeatures,
+    globalOmit,
   })
   return {
     modelName,
@@ -89,32 +114,53 @@ function serializeFieldSelection(
   { select, include, ...args }: JsArgs = {},
   context: SerializeContext,
 ): JsonFieldSelection {
+  let omit: Omission | undefined
+  if (context.isPreviewFeatureOn('omitApi')) {
+    omit = args.omit
+    delete args.omit
+  }
   return {
     arguments: serializeArgumentsObject(args, context),
-    selection: serializeSelectionSet(select, include, context),
+    selection: serializeSelectionSet(select, include, omit, context),
   }
 }
 
 function serializeSelectionSet(
   select: Selection | undefined,
   include: Selection | undefined,
+  omit: Record<string, boolean> | undefined,
   context: SerializeContext,
 ): JsonSelectionSet {
-  if (select && include) {
-    context.throwValidationError({ kind: 'IncludeAndSelect', selectionPath: context.getSelectionPath() })
-  }
-
   if (select) {
+    if (include) {
+      context.throwValidationError({
+        kind: 'MutuallyExclusiveFields',
+        firstField: 'include',
+        secondField: 'select',
+        selectionPath: context.getSelectionPath(),
+      })
+    } else if (omit && context.isPreviewFeatureOn('omitApi')) {
+      context.throwValidationError({
+        kind: 'MutuallyExclusiveFields',
+        firstField: 'omit',
+        secondField: 'select',
+        selectionPath: context.getSelectionPath(),
+      })
+    }
     return createExplicitSelection(select, context)
   }
 
-  return createImplicitSelection(context, include)
+  return createImplicitSelection(context, include, omit)
 }
 
-function createImplicitSelection(context: SerializeContext, include: Selection | undefined) {
+function createImplicitSelection(
+  context: SerializeContext,
+  include: Selection | undefined,
+  omit: Record<string, boolean> | undefined,
+) {
   const selectionSet: JsonSelectionSet = {}
 
-  if (context.model && !context.isRawAction()) {
+  if (context.modelOrType && !context.isRawAction()) {
     selectionSet.$composites = true
     selectionSet.$scalars = true
   }
@@ -123,44 +169,82 @@ function createImplicitSelection(context: SerializeContext, include: Selection |
     addIncludedRelations(selectionSet, include, context)
   }
 
+  if (context.isPreviewFeatureOn('omitApi')) {
+    omitFields(selectionSet, omit, context)
+  }
+
   return selectionSet
 }
 
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
   for (const [key, value] of Object.entries(include)) {
-    const field = context.findField(key)
+    if (value === false) {
+      selectionSet[key] = false
+      continue
+    }
 
-    if (field && field?.kind !== 'object') {
+    const field = context.findField(key)
+    if (field && field.kind !== 'object') {
       context.throwValidationError({
         kind: 'IncludeOnScalar',
         selectionPath: context.getSelectionPath().concat(key),
         outputType: context.getOutputTypeDescription(),
       })
     }
+    if (field) {
+      selectionSet[key] = serializeFieldSelection(value === true ? {} : value, context.nestSelection(key))
+      continue
+    }
 
     if (value === true) {
       selectionSet[key] = true
-    } else if (typeof value === 'object') {
-      selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
+      continue
     }
+
+    // value is an object, field is unknown
+    // this can either be user error (in that case, qe will respond with an error)
+    // or virtual field not present on datamodel (like `_count`).
+    // Since we don't know which one cast is, we still attempt to serialize selection
+    selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
+  }
+}
+
+function omitFields(selectionSet: JsonSelectionSet, localOmit: Omission | undefined, context: SerializeContext) {
+  const computedFields = context.getComputedFields()
+  const combinedOmits = { ...context.getGlobalOmit(), ...localOmit }
+  const omitWithComputedFields = computeEngineSideOmissions(combinedOmits, computedFields)
+  for (const [key, value] of Object.entries(omitWithComputedFields)) {
+    const field = context.findField(key)
+    if (computedFields?.[key] && !field) {
+      continue
+    }
+    selectionSet[key] = !value
   }
 }
 
 function createExplicitSelection(select: Selection, context: SerializeContext) {
   const selectionSet: JsonSelectionSet = {}
   const computedFields = context.getComputedFields()
-  const selectWithComputedFields = applyComputedFieldsToSelection(select, computedFields)
+  const selectWithComputedFields = computeEngineSideSelection(select, computedFields)
 
   for (const [key, value] of Object.entries(selectWithComputedFields)) {
     const field = context.findField(key)
     if (computedFields?.[key] && !field) {
       continue
     }
-    if (value === true) {
-      selectionSet[key] = true
-    } else if (typeof value === 'object') {
-      selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
+    if (value === false) {
+      selectionSet[key] = false
+      continue
     }
+    if (value === true) {
+      if (field?.kind === 'object') {
+        selectionSet[key] = serializeFieldSelection({}, context.nestSelection(key))
+      } else {
+        selectionSet[key] = true
+      }
+      continue
+    }
+    selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
   }
   return selectionSet
 }
@@ -250,9 +334,9 @@ function serializeArgumentsValue(
 function serializeArgumentsObject(
   object: Record<string, JsInputValue>,
   context: SerializeContext,
-): Record<string, JsonArgumentValue> {
+): Record<string, JsonArgumentValue> | RawTaggedValue {
   if (object['$type']) {
-    return { $type: 'Json', value: JSON.stringify(object) }
+    return { $type: 'Raw', value: object }
   }
   const result: Record<string, JsonArgumentValue> = {}
   for (const key in object) {
@@ -267,10 +351,21 @@ function serializeArgumentsObject(
 function serializeArgumentsArray(array: JsInputValue[], context: SerializeContext): JsonArgumentValue[] {
   const result: JsonArgumentValue[] = []
   for (let i = 0; i < array.length; i++) {
+    const itemContext = context.nestArgument(String(i))
     const value = array[i]
-    if (value !== undefined) {
-      result.push(serializeArgumentsValue(value, context.nestArgument(String(i))))
+    if (value === undefined) {
+      context.throwValidationError({
+        kind: 'InvalidArgumentValue',
+        selectionPath: itemContext.getSelectionPath(),
+        argumentPath: itemContext.getArgumentPath(),
+        argument: {
+          name: `${context.getArgumentName()}[${i}]`,
+          typeNames: [],
+        },
+        underlyingError: 'Can not use `undefined` value within array. Use `null` or filter out `undefined` values',
+      })
     }
+    result.push(serializeArgumentsValue(value, itemContext))
   }
   return result
 }
@@ -295,14 +390,18 @@ type ContextParams = {
   callsite?: CallSite
   errorFormat: ErrorFormat
   clientVersion: string
+  previewFeatures: string[]
+  globalOmit?: GlobalOmitOptions
 }
 
 class SerializeContext {
-  public readonly model: RuntimeModel | undefined
+  public readonly modelOrType: RuntimeModel | undefined
   constructor(private params: ContextParams) {
     if (this.params.modelName) {
       // TODO: throw if not found
-      this.model = this.params.runtimeDataModel.models[this.params.modelName]
+      this.modelOrType =
+        this.params.runtimeDataModel.models[this.params.modelName] ??
+        this.params.runtimeDataModel.types[this.params.modelName]
     }
   }
 
@@ -314,6 +413,7 @@ class SerializeContext {
       callsite: this.params.callsite,
       errorFormat: this.params.errorFormat,
       clientVersion: this.params.clientVersion,
+      globalOmit: this.params.globalOmit,
     })
   }
 
@@ -330,12 +430,12 @@ class SerializeContext {
   }
 
   getOutputTypeDescription(): OutputTypeDescription | undefined {
-    if (!this.params.modelName || !this.model) {
+    if (!this.params.modelName || !this.modelOrType) {
       return undefined
     }
     return {
       name: this.params.modelName,
-      fields: this.model.fields.map((field) => ({
+      fields: this.modelOrType.fields.map((field) => ({
         name: field.name,
         typeName: 'boolean',
         isRelation: field.kind === 'object',
@@ -347,6 +447,10 @@ class SerializeContext {
     return ['executeRaw', 'queryRaw', 'runCommandRaw', 'findRaw', 'aggregateRaw'].includes(this.params.action)
   }
 
+  isPreviewFeatureOn(previewFeature: string) {
+    return this.params.previewFeatures.includes(previewFeature)
+  }
+
   getComputedFields() {
     if (!this.params.modelName) {
       return undefined
@@ -356,7 +460,7 @@ class SerializeContext {
   }
 
   findField(name: string) {
-    return this.model?.fields.find((field) => field.name === name)
+    return this.modelOrType?.fields.find((field) => field.name === name)
   }
 
   nestSelection(fieldName: string) {
@@ -368,6 +472,43 @@ class SerializeContext {
       modelName,
       selectionPath: this.params.selectionPath.concat(fieldName),
     })
+  }
+
+  getGlobalOmit(): Record<string, boolean> {
+    if (this.params.modelName && this.shouldApplyGlobalOmit()) {
+      return this.params.globalOmit?.[lowerCase(this.params.modelName)] ?? {}
+    }
+    return {}
+  }
+
+  shouldApplyGlobalOmit(): boolean {
+    switch (this.params.action) {
+      case 'findFirst':
+      case 'findFirstOrThrow':
+      case 'findUniqueOrThrow':
+      case 'findMany':
+      case 'upsert':
+      case 'findUnique':
+      case 'createManyAndReturn':
+      case 'create':
+      case 'update':
+      case 'delete':
+        return true
+      case 'executeRaw':
+      case 'aggregateRaw':
+      case 'runCommandRaw':
+      case 'findRaw':
+      case 'createMany':
+      case 'deleteMany':
+      case 'groupBy':
+      case 'updateMany':
+      case 'count':
+      case 'aggregate':
+      case 'queryRaw':
+        return false
+      default:
+        assertNever(this.params.action, 'Unknown action')
+    }
   }
 
   nestArgument(fieldName: string) {

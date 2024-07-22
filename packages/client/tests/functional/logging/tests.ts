@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 
+import { Providers } from '../_utils/providers'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -7,7 +8,9 @@ import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite((suiteConfig) => {
+testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
+  const isMongoDb = provider === Providers.MONGODB
+
   let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
 
   test('should log queries on a method call', async () => {
@@ -37,14 +40,15 @@ testMatrix.setupTestSuite((suiteConfig) => {
     expect(queryLogEvents).toHaveProperty('params')
     expect(queryLogEvents).toHaveProperty('target')
 
-    if (suiteConfig.provider === 'mongodb') {
+    if (isMongoDb) {
       expect(queryLogEvents.query).toContain('db.User.aggregate')
     } else {
       expect(queryLogEvents.query).toContain('SELECT')
     }
   })
 
-  test('should log queries inside a ITX', async () => {
+  // D1: iTx are not available.
+  skipTestIf(driverAdapter === 'js_d1')('should log queries inside a ITX', async () => {
     client = newPrismaClient({
       log: [
         {
@@ -61,7 +65,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
         if ('query' in data) {
           logs.push(data)
 
-          if (suiteConfig.provider === 'mongodb' && logs.length === 3) {
+          if (isMongoDb && logs.length === 3) {
             resolve(logs)
           }
 
@@ -73,7 +77,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+      const id = isMongoDb ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await tx.user.create({
         data: {
@@ -90,16 +94,18 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const logs = await queryLogs
 
-    if (suiteConfig.provider === 'mongodb') {
+    if (isMongoDb) {
       expect(logs).toHaveLength(3)
 
       expect(logs[0].query).toContain('User.insertOne')
       expect(logs[1].query).toContain('User.aggregate')
       expect(logs[2].query).toContain('User.aggregate')
     } else {
-      // Since https://github.com/prisma/prisma-engines/pull/4041
-      // We skip a read when possible, on CockroachDB and PostgreSQL
-      if (['postgresql', 'cockroachdb'].includes(suiteConfig.provider)) {
+      // - Since https://github.com/prisma/prisma-engines/pull/4041,
+      //   we skip a read when possible, on CockroachDB and PostgreSQL.
+      // - Since https://github.com/prisma/prisma-engines/pull/4640,
+      //   we also skip a read when possible, on SQLite.
+      if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
         expect(logs).toHaveLength(4)
         expect(logs[0].query).toContain('BEGIN')
         expect(logs[1].query).toContain('INSERT')
@@ -116,7 +122,8 @@ testMatrix.setupTestSuite((suiteConfig) => {
     }
   })
 
-  test('should log batched queries inside a ITX', async () => {
+  // D1: iTx are not available.
+  skipTestIf(driverAdapter === 'js_d1')('should log batched queries inside a ITX', async () => {
     client = newPrismaClient({
       log: [
         {
@@ -133,7 +140,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
         if ('query' in data) {
           logs.push(data)
 
-          if (suiteConfig.provider === 'mongodb' && logs.length === 2) {
+          if (isMongoDb && logs.length === 2) {
             resolve(logs)
           }
 
@@ -145,7 +152,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+      const id = isMongoDb ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await Promise.all([
         tx.user.findMany({
@@ -163,7 +170,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const logs = await queryLogs
 
-    if (suiteConfig.provider === 'mongodb') {
+    if (isMongoDb) {
       expect(logs).toHaveLength(2)
 
       expect(logs[0].query).toContain('User.aggregate')
@@ -195,7 +202,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
         if ('query' in data) {
           logs.push(data)
 
-          if (suiteConfig.provider === 'mongodb' && logs.length === 2) {
+          if (isMongoDb && logs.length === 2) {
             resolve(logs)
           }
 
@@ -206,7 +213,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
       })
     })
 
-    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
+    const id = isMongoDb ? faker.database.mongodbObjectId() : faker.string.numeric()
 
     const q1 = client.user.findMany({
       where: {
@@ -224,7 +231,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const logs = await queryLogs
 
-    if (suiteConfig.provider === 'mongodb') {
+    if (isMongoDb) {
       expect(logs).toHaveLength(2)
 
       expect(logs[0].query).toContain('User.aggregate')

@@ -10,8 +10,10 @@ try {
     const execa = require('execa')
     const buildScriptPath = path.join(__dirname, '..', 'helpers', 'build.ts')
 
-    execa.sync('node', ['-r', 'esbuild-register', buildScriptPath], {
-      env: { DEV: true },
+    execa.sync('pnpm', ['tsx', buildScriptPath], {
+      // for the sake of simplicity, we IGNORE_EXTERNALS in our own setup
+      // ie. when the monorepo installs, the postinstall is self-contained
+      env: { DEV: true, IGNORE_EXTERNALS: true },
       stdio: 'inherit',
     })
 

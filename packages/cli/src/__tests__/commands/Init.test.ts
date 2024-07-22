@@ -25,18 +25,22 @@ test('works with url param', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('sqlite'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'sqlite',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
+    "# Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="file:dev.db"
+    DATABASE_URL="file:dev.db""
   `)
 })
 
@@ -46,18 +50,22 @@ test('works with provider param - postgresql', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('postgresql'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'postgresql',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
+    "# Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
+    DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public""
   `)
 })
 
@@ -67,18 +75,22 @@ test('works with provider param - cockroachdb', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('cockroachdb'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'cockroachdb',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
+    "# Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="postgresql://johndoe:randompassword@localhost:26257/mydb?schema=public"
+    DATABASE_URL="postgresql://johndoe:randompassword@localhost:26257/mydb?schema=public""
   `)
 })
 
@@ -94,18 +106,22 @@ test('works with provider and url params - cockroachdb', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('cockroachdb'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'cockroachdb',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
+    "# Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="postgresql://johndoe:randompassword@localhost:26257/mydb?schema=public"
+    DATABASE_URL="postgresql://johndoe:randompassword@localhost:26257/mydb?schema=public""
   `)
 })
 
@@ -115,18 +131,22 @@ test('works with provider param - mysql', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('mysql'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'mysql',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
+    "# Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb"
+    DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb""
   `)
 })
 
@@ -136,18 +156,22 @@ test('works with provider param - SQLITE', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('sqlite'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'sqlite',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
+    "# Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="file:./dev.db"
+    DATABASE_URL="file:./dev.db""
   `)
 })
 
@@ -157,18 +181,22 @@ test('works with provider param - SqlServer', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('sqlserver'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'sqlserver',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
+    "# Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=SA;password=randompassword;"
+    DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=SA;password=randompassword;""
   `)
 })
 
@@ -178,18 +206,22 @@ test('works with provider param - MongoDB', async () => {
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema('mongodb'))
+  expect(schema).toMatch(
+    defaultSchema({
+      datasourceProvider: 'mongodb',
+    }),
+  )
   expect(schema).toMatchSnapshot()
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
+    "# Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority"
+    DATABASE_URL="mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority""
   `)
 })
 
@@ -197,6 +229,92 @@ test('errors with invalid provider param', async () => {
   ctx.fixture('init')
   const result = ctx.cli('init', '--datasource-provider', 'INVALID')
   await expect(result).rejects.toThrow()
+})
+
+test('works with --with-model param postgresql', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--with-model')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(defaultSchema({ withModel: true, datasourceProvider: 'postgresql' }))
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with --with-model param mongodb', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--with-model', '--datasource-provider', 'MongoDB')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(defaultSchema({ withModel: true, datasourceProvider: 'mongodb' }))
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with --with-model param cockroachdb', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--with-model', '--datasource-provider', 'CockroachDB')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(defaultSchema({ withModel: true, datasourceProvider: 'cockroachdb' }))
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with generator param - `go run github.com/steebchen/prisma-client-go`', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--generator-provider', 'go run github.com/steebchen/prisma-client-go')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(
+    defaultSchema({
+      generatorProvider: 'go run github.com/steebchen/prisma-client-go',
+    }),
+  )
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with preview features - mock test', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--preview-feature', 'mock-123')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(
+    defaultSchema({
+      previewFeatures: ['mock-123'],
+    }),
+  )
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with preview features - multiple', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--preview-feature', 'mock-123', '--preview-feature', 'mock-456')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(
+    defaultSchema({
+      previewFeatures: ['mock-123', 'mock-456'],
+    }),
+  )
+  expect(schema).toMatchSnapshot()
+})
+
+test('works with custom output', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--output', './db')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(
+    defaultSchema({
+      output: './db',
+    }),
+  )
+  expect(schema).toMatchSnapshot()
 })
 
 test('warns when DATABASE_URL present in .env ', async () => {

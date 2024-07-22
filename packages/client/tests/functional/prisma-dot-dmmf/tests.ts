@@ -5,9 +5,15 @@ import type { Prisma as PrismaNamespace } from './node_modules/@prisma/client'
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  () => {
-    test('exports Prisma.dmmf', () => {
+  ({ clientRuntime }) => {
+    testIf(clientRuntime !== 'wasm')('exports Prisma.dmmf (default)', () => {
       expect(Prisma.dmmf).toMatchSnapshot()
+    })
+
+    testIf(clientRuntime === 'wasm')('exports Prisma.dmmf (wasm)', () => {
+      expect(() => Prisma.dmmf).toThrowErrorMatchingInlineSnapshot(
+        `"Prisma.dmmf is not available when running in edge runtimes."`,
+      )
     })
   },
   {

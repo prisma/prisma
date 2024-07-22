@@ -1,8 +1,6 @@
-import { getSchemaPath, logger } from '@prisma/internals'
+import { GetSchemaOptions, type GetSchemaResult, getSchemaWithPath } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import path from 'path'
-
-import { NoSchemaFoundError } from './errors'
 
 // TODO move NoSchemaFoundError to `@prisma/internals` and this too
 // then replace the 2 hardcoded errors to NoSchemaFoundError in
@@ -13,25 +11,19 @@ import { NoSchemaFoundError } from './errors'
  * If no path provided check in default location(s) or error
  * Schema found: print to console it's relative path
  *
- * @returns {String} schemaPath
+ * @returns {GetSchemaResult}
  */
-export async function getSchemaPathAndPrint(schemaPathProvided?: string, postinstallCwd?: string) {
-  const cwdOptions = postinstallCwd ? { cwd: postinstallCwd } : undefined
-  const schemaPath = await getSchemaPath(schemaPathProvided, cwdOptions)
-  if (!schemaPath) {
-    // Special case for Generate command
-    if (postinstallCwd) {
-      logger.warn(`We could not find your Prisma schema at \`prisma/schema.prisma\`.
-If you have a Prisma schema file in a custom path, you will need to run
-\`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
-If you do not have a Prisma schema file yet, you can ignore this message.`)
-      return ''
-    }
+export async function getSchemaPathAndPrint(
+  schemaPathProvided?: string,
+  options?: GetSchemaOptions,
+): Promise<GetSchemaResult> {
+  const schemaPathResult = await getSchemaWithPath(schemaPathProvided, options)
 
-    throw new NoSchemaFoundError()
-  }
+  printSchemaLoadedMessage(schemaPathResult.schemaPath)
 
-  console.info(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+  return schemaPathResult
+}
 
-  return schemaPath
+export function printSchemaLoadedMessage(schemaPath: string) {
+  process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 }

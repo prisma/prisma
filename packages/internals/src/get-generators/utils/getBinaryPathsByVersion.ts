@@ -2,18 +2,19 @@ import { enginesVersion } from '@prisma/engines'
 import type { BinaryDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
 import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
 
 import { mapKeys } from '../../utils/mapKeys'
+import { parseAWSNodejsRuntimeEnvVarVersion } from '../../utils/parseAWSNodejsRuntimeEnvVarVersion'
 import type { GetBinaryPathsByVersionInput } from '../getGenerators'
 import { binaryTypeToEngineType } from '../utils/binaryTypeToEngineType'
 import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
 
 export async function getBinaryPathsByVersion({
   neededVersions,
-  platform,
+  binaryTarget,
   version,
   printDownloadProgress,
   skipDownload,
@@ -29,14 +30,44 @@ export async function getBinaryPathsByVersion({
     const neededVersion = neededVersions[currentVersion]
 
     if (neededVersion.binaryTargets.length === 0) {
-      neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
+      neededVersion.binaryTargets = [{ fromEnvVar: null, value: binaryTarget }]
     }
 
-    if (process.env.NETLIFY && !neededVersion.binaryTargets.find((object) => object.value === 'rhel-openssl-1.0.x')) {
-      neededVersion.binaryTargets.push({
-        fromEnvVar: null,
-        value: 'rhel-openssl-1.0.x',
-      })
+    if (process.env.NETLIFY) {
+      const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+
+      // Netlify reads and changes the runtime version based on this env var
+      // https://docs.netlify.com/configure-builds/environment-variables/#netlify-configuration-variables
+      const awsRuntimeVersion = parseAWSNodejsRuntimeEnvVarVersion()
+      const isRuntimeEnvVar20OrUp = awsRuntimeVersion && awsRuntimeVersion >= 20
+      const isRuntimeEnvVar18OrDown = awsRuntimeVersion && awsRuntimeVersion <= 18
+
+      const isRhelBinaryTarget1xInNeededVersions = neededVersion.binaryTargets.find(
+        (object) => object.value === 'rhel-openssl-1.0.x',
+      )
+      const isRhelBinaryTarget3xInNeededVersions = neededVersion.binaryTargets.find(
+        (object) => object.value === 'rhel-openssl-3.0.x',
+      )
+
+      // Only add 3.0.x if
+      // - it's not already added
+      // - current Node.js version is 20+ or env var is 20+
+      // - env var must not be 18-
+      if (
+        !isRhelBinaryTarget3xInNeededVersions &&
+        (isNodeMajor20OrUp || isRuntimeEnvVar20OrUp) &&
+        !isRuntimeEnvVar18OrDown
+      ) {
+        neededVersion.binaryTargets.push({
+          fromEnvVar: null,
+          value: 'rhel-openssl-3.0.x',
+        })
+      } else if (!isRhelBinaryTarget1xInNeededVersions) {
+        neededVersion.binaryTargets.push({
+          fromEnvVar: null,
+          value: 'rhel-openssl-1.0.x',
+        })
+      }
     }
 
     // download
@@ -56,14 +87,14 @@ export async function getBinaryPathsByVersion({
     }, Object.create(null))
 
     if (Object.values(binariesConfig).length > 0) {
-      // Convert BinaryTargetsEnvValue[] to Platform[]
-      const platforms: Platform[] = neededVersion.binaryTargets.map(
-        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value as Platform,
+      // Convert BinaryTargetsEnvValue[] to BinaryTarget[]
+      const binaryTargets: BinaryTarget[] = neededVersion.binaryTargets.map(
+        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value as BinaryTarget,
       )
 
       const downloadParams: DownloadOptions = {
         binaries: binariesConfig,
-        binaryTargets: platforms,
+        binaryTargets: binaryTargets,
         showProgress: typeof printDownloadProgress === 'boolean' ? printDownloadProgress : true,
         version: currentVersion && currentVersion !== 'latest' ? currentVersion : enginesVersion,
         skipDownload,
@@ -81,7 +112,7 @@ export async function getBinaryPathsByVersion({
         for (const engine of enginesCoveredByOverride) {
           const enginePath = binaryPathsOverride[engine]!
           binaryPathsByVersion[currentVersion][engine] = {
-            [platform]: enginePath,
+            [binaryTarget]: enginePath,
           }
         }
       }

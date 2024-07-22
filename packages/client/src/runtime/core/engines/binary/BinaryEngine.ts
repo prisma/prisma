@@ -1,13 +1,13 @@
 import Debug from '@prisma/debug'
 import type { ConnectorType } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/get-platform'
-import { getPlatform, platforms } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
+import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { byline, ClientEngineType, EngineSpanEvent, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
-import { blue, bold, green, red, yellow } from 'kleur/colors'
+import { blue, bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
 import type { Readable } from 'stream'
 
@@ -17,16 +17,10 @@ import { PrismaClientRustError } from '../../errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import type {
-  BatchQueryEngineResult,
-  EngineConfig,
-  EngineEventType,
-  RequestBatchOptions,
-  RequestOptions,
-} from '../common/Engine'
+import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
-import { EventEmitter } from '../common/types/Events'
+import type { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineResult } from '../common/types/QueryEngine'
@@ -46,7 +40,7 @@ const logger = (...args) => {}
  * Node.js based wrapper to run the Prisma binary
  */
 
-const knownPlatforms: Platform[] = [...platforms, 'native']
+const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 
 export type Deferred = {
   resolve: () => void
@@ -63,9 +57,10 @@ const engines: BinaryEngine[] = []
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
-export class BinaryEngine extends Engine<undefined> {
+export class BinaryEngine implements Engine<undefined> {
+  name = 'BinaryEngine' as const
   private config: EngineConfig
-  private logEmitter: EventEmitter
+  private logEmitter: LogEmitter
   private showColors: boolean
   private logQueries: boolean
   private env?: Record<string, string>
@@ -85,8 +80,11 @@ export class BinaryEngine extends Engine<undefined> {
   private datamodelPath: string
   private stderrLogs = ''
   private currentRequestPromise?: any
-  private platformPromise?: Promise<Platform>
-  private platform?: Platform | string
+  private binaryTargetPromise?: Promise<BinaryTarget>
+  // The rule is ignored here, using String didn't work as expected,
+  // see https://github.com/prisma/prisma/pull/20165/commits/8059a14d8f2edbb15d6f7dbeeac74ba4a0a568ec
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+  private binaryTarget?: BinaryTarget | string
   private datasourceOverrides?: { name: string; url: string }[]
   private startPromise?: Promise<void>
   private versionPromise?: Promise<string>
@@ -104,8 +102,6 @@ export class BinaryEngine extends Engine<undefined> {
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
    */
   constructor(config: EngineConfig) {
-    super()
-
     this.config = config
     this.env = config.env
     this.cwd = this.resolveCwd(config.cwd)
@@ -163,24 +159,23 @@ export class BinaryEngine extends Engine<undefined> {
     this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = config.engineEndpoint
 
-    if (this.platform) {
-      if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
+    if (this.binaryTarget) {
+      if (!knownBinaryTargets.includes(this.binaryTarget as BinaryTarget) && !fs.existsSync(this.binaryTarget)) {
         throw new PrismaClientInitializationError(
-          `Unknown ${red('PRISMA_QUERY_ENGINE_BINARY')} ${red(bold(this.platform))}. Possible binaryTargets: ${green(
-            knownPlatforms.join(', '),
-          )} or a path to the query engine binary.
+          `Unknown ${red('PRISMA_QUERY_ENGINE_BINARY')} ${red(
+            bold(this.binaryTarget),
+          )}. Possible binaryTargets: ${green(knownBinaryTargets.join(', '))} or a path to the query engine binary.
 You may have to run ${green('prisma generate')} for your changes to take effect.`,
           this.clientVersion!,
         )
       }
     } else {
-      void this.getPlatform()
+      void this.getCurrentBinaryTarget()
     }
     if (this.enableDebugLogs) {
       Debug.enable('*')
     }
     engines.push(this)
-    this.checkForTooManyEngines()
   }
 
   // Set error sets an error for async processing, when this doesn't happen in the span of a request
@@ -204,19 +199,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  private checkForTooManyEngines() {
-    if (engines.length >= 10) {
-      const runningEngines = engines.filter((e) => e.child)
-      if (runningEngines.length === 10) {
-        console.warn(
-          `${bold(
-            yellow('warn(prisma-client)'),
-          )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
-        )
-      }
-    }
-  }
-
   private resolveCwd(cwd: string): string {
     if (fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
       return cwd
@@ -225,12 +207,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return process.cwd()
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
-    if (event === 'beforeExit') {
-      this.beforeExitListener = listener
-    } else {
-      this.logEmitter.on(event, listener)
-    }
+  onBeforeExit(listener: () => Promise<void>) {
+    this.beforeExitListener = listener
   }
 
   async emitExit() {
@@ -243,15 +221,14 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  private async getPlatform(): Promise<Platform> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    if (this.platformPromise) {
-      return this.platformPromise
+  private async getCurrentBinaryTarget(): Promise<BinaryTarget> {
+    if (this.binaryTargetPromise) {
+      return this.binaryTargetPromise
     }
 
-    this.platformPromise = getPlatform()
+    this.binaryTargetPromise = getBinaryTargetForCurrentPlatform()
 
-    return this.platformPromise
+    return this.binaryTargetPromise
   }
 
   private printDatasources(): string {
@@ -335,7 +312,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private internalStart(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await new Promise((r) => process.nextTick(r))
       if (this.stopPromise) {
@@ -457,8 +434,20 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
               if (logIsRustErrorLog) {
                 this.setError(log)
+              } else if (log.level === 'query') {
+                this.logEmitter.emit(log.level, {
+                  timestamp: log.timestamp,
+                  query: log.fields.query,
+                  params: log.fields.params,
+                  duration: log.fields.duration_ms,
+                  target: log.target,
+                })
               } else {
-                this.logEmitter.emit(log.level, log)
+                this.logEmitter.emit(log.level as LogEventType, {
+                  timestamp: log.timestamp,
+                  message: log.fields.message,
+                  target: log.target,
+                })
               }
             } else {
               this.setError(json)
@@ -684,14 +673,17 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     }
 
     const queryStr = JSON.stringify(query)
-    this.currentRequestPromise = this.connection.post('/', queryStr, headers)
+    this.currentRequestPromise = Connection.onHttpError(this.connection.post('/', queryStr, headers), (result) =>
+      this.httpErrorHandler(result),
+    )
     this.lastQuery = queryStr
 
     try {
       const { data, headers } = await this.currentRequestPromise
+
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
@@ -741,7 +733,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     const request = getBatchRequestPayload(queries, transaction)
 
     this.lastQuery = JSON.stringify(request)
-    this.currentRequestPromise = this.connection.post('/', this.lastQuery, headers)
+    this.currentRequestPromise = Connection.onHttpError(this.connection.post('/', this.lastQuery, headers), (result) =>
+      this.httpErrorHandler(result),
+    )
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -751,7 +745,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors && result.errors.length > 0) {
-              return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
+              return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
             }
             return {
               data: result,
@@ -759,7 +753,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
           })
         } else {
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
         }
       })
       .catch(async (e) => {
@@ -790,7 +784,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(
     action: 'start',
     headers: Tx.TransactionHeaders,
-    options?: Tx.Options,
+    options: Tx.Options,
   ): Promise<Tx.InteractiveTransactionInfo<undefined>>
   async transaction(
     action: 'commit',
@@ -807,24 +801,24 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-        isolation_level: arg?.isolationLevel,
+        max_wait: arg.maxWait,
+        timeout: arg.timeout,
+        isolation_level: arg.isolationLevel,
       })
 
       const result = await Connection.onHttpError(
         this.connection.post<Tx.InteractiveTransactionInfo<undefined>>('/transaction/start', jsonOptions, headers),
-        (result) => this.transactionHttpErrorHandler(result),
+        (result) => this.httpErrorHandler(result),
       )
 
       return result.data
     } else if (action === 'commit') {
       await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
-        this.transactionHttpErrorHandler(result),
+        this.httpErrorHandler(result),
       )
     } else if (action === 'rollback') {
       await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
-        this.transactionHttpErrorHandler(result),
+        this.httpErrorHandler(result),
       )
     }
 
@@ -859,7 +853,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
   private getErrorMessageWithLink(title: string) {
     return getErrorMessageWithLink({
-      platform: this.platform,
+      binaryTarget: this.binaryTarget,
       title,
       version: this.clientVersion!,
       engineVersion: this.lastVersion,
@@ -956,16 +950,20 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   /**
-   * Decides how to handle error responses for transactions
+   * Decides how to handle non-200 http error responses
    * @param result
    */
-  transactionHttpErrorHandler<R>(result: Result<R>): never {
+  httpErrorHandler<R>(result: Result<R>): never {
     const response = result.data as { [K: string]: unknown }
     throw new PrismaClientKnownRequestError(response.message as string, {
       code: response.error_code as string,
       clientVersion: this.clientVersion as string,
       meta: response.meta as Record<string, unknown>,
     })
+  }
+
+  applyPendingMigrations(): Promise<void> {
+    throw new Error('Method not implemented.')
   }
 }
 

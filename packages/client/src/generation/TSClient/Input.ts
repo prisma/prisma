@@ -6,9 +6,9 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
-import type { Generatable } from './Generatable'
+import type { Generable } from './Generable'
 
-export class InputField implements Generatable {
+export class InputField implements Generable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly genericsInfo: GenericArgsInfo,
@@ -20,7 +20,7 @@ export class InputField implements Generatable {
   }
 }
 
-function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, source?: string) {
+export function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, source?: string): ts.Property {
   const tsType = buildAllFieldTypes(field.inputTypes, genericsInfo, source)
 
   const tsProperty = ts.property(field.name, tsType)
@@ -42,37 +42,25 @@ function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, s
   return tsProperty
 }
 
-function buildSingleFieldType(
-  t: DMMF.SchemaArgInputType,
-  genericsInfo: GenericArgsInfo,
-  source?: string,
-): ts.TypeBuilder {
+function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInfo, source?: string): ts.TypeBuilder {
   let type: ts.NamedType
-  if (typeof t.type === 'string') {
-    if (t.type === 'Null') {
-      return ts.nullType
-    }
-    const scalarType = GraphQLScalarToJSTypeTable[t.type]
-    if (Array.isArray(scalarType)) {
-      const union = ts.unionType(scalarType.map(namedInputType))
-      if (t.isList) {
-        return union.mapVariants((variant) => ts.array(variant))
-      }
-      return union
-    }
 
-    type = namedInputType(scalarType ?? t.type)
-  } else if (t.location === 'enumTypes' && t.namespace === 'model') {
-    type = ts.namedType(`$Enums.${t.type.name}`)
+  const scalarType = GraphQLScalarToJSTypeTable[t.type]
+  if (t.location === 'enumTypes' && t.namespace === 'model') {
+    type = ts.namedType(`$Enums.${t.type}`)
+  } else if (t.type === 'Null') {
+    return ts.nullType
+  } else if (Array.isArray(scalarType)) {
+    const union = ts.unionType(scalarType.map(namedInputType))
+    if (t.isList) {
+      return union.mapVariants((variant) => ts.array(variant))
+    }
+    return union
   } else {
-    type = namedInputType(t.type.name)
+    type = namedInputType(scalarType ?? t.type)
   }
 
-  if (type.name.endsWith('Select') || type.name.endsWith('Include')) {
-    type.addGenericArgument(ts.namedType('ExtArgs'))
-  }
-
-  if (genericsInfo.needsGenericModelArg(t)) {
+  if (genericsInfo.typeRefNeedsGenericModelArg(t)) {
     if (source) {
       type.addGenericArgument(ts.stringLiteral(source))
     } else {
@@ -104,7 +92,7 @@ function namedInputType(typeName: string) {
  * 2. Generate them out and `|` them
  */
 function buildAllFieldTypes(
-  inputTypes: DMMF.SchemaArgInputType[],
+  inputTypes: readonly DMMF.InputTypeRef[],
   genericsInfo: GenericArgsInfo,
   source?: string,
 ): ts.TypeBuilder {
@@ -131,8 +119,11 @@ function xorTypes(types: ts.TypeBuilder[]) {
   return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
-export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {}
+export class InputType implements Generable {
+  private generatedName: string
+  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {
+    this.generatedName = type.name
+  }
 
   public toTS(): string {
     const { type } = this
@@ -154,11 +145,16 @@ ${indent(
 export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
   }
 
+  public overrideName(name: string): this {
+    this.generatedName = name
+    return this
+  }
+
   private getTypeName() {
-    if (this.genericsInfo.inputTypeNeedsGenericModelArg(this.type)) {
-      return `${this.type.name}<$PrismaModel = never>`
+    if (this.genericsInfo.typeNeedsGenericModelArg(this.type)) {
+      return `${this.generatedName}<$PrismaModel = never>`
     }
-    return this.type.name
+    return this.generatedName
   }
 }
 

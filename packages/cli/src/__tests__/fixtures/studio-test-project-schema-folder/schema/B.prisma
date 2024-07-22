@@ -1,0 +1,11 @@
+model relation_target {
+  id   Int    @id
+  name String
+
+  // waft = With All Field Types
+  waft_id Int?                   @unique
+  waft    with_all_field_types?  @relation("waft_rt", fields: [waft_id], references: [id])
+  wafts   with_all_field_types[] @relation("waft_rt_list")
+
+  //❗ ensures that Studio can handle non-ascii chars (ie. привет, 世界)
+}

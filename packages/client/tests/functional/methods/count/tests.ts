@@ -4,7 +4,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: 'user-1@email.com', age: 111, name: 'some-name-1' } })
     await prisma.user.create({ data: { email: 'user-2@email.com', age: 222, name: 'some-name-2' } })
@@ -15,6 +15,14 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     const value = await prisma.user.count()
 
     expect(value).toMatchInlineSnapshot(`3`)
+  })
+
+  test('take', async () => {
+    const value = await prisma.user.count({
+      take: 2,
+    })
+
+    expect(value).toMatchInlineSnapshot(`2`)
   })
 
   test('where', async () => {
@@ -53,10 +61,10 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
 
     expect(value).toMatchInlineSnapshot(`
       {
-        _all: 1,
-        age: 1,
-        email: 1,
-        name: 1,
+        "_all": 1,
+        "age": 1,
+        "email": 1,
+        "name": 1,
       }
     `)
   })
@@ -90,15 +98,15 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
 
     expect(value).toMatchInlineSnapshot(`
       {
-        _all: 3,
-        age: 3,
-        email: 3,
-        name: 3,
+        "_all": 3,
+        "age": 3,
+        "email": 3,
+        "name": 3,
       }
     `)
   })
 
-  testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
+  test('bad prop', async () => {
     const err = prisma.user.count({
       select: {
         _all: true,
@@ -111,13 +119,13 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     })
 
     await expect(err).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.count()\` invocation in
       /client/tests/functional/methods/count/tests.ts:0:0
 
-         XX })
+        XX })
         XX 
-        XX testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
+        XX test('bad prop', async () => {
       → XX   const err = prisma.user.count({
                 select: {
                   _count: {
@@ -134,7 +142,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are listed in green.
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 })

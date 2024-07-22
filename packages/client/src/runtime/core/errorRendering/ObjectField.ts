@@ -1,11 +1,12 @@
 import { ErrorBasicBuilder, ErrorWriter } from './base'
+import { Field } from './Field'
 import { FormattedString } from './FormattedString'
 import { Value } from './Value'
 
 const separator = ': '
-export class ObjectField implements ErrorBasicBuilder {
-  private hasError = false
-  constructor(readonly name: string, readonly value: Value) {}
+export class ObjectField implements ErrorBasicBuilder, Field {
+  hasError = false
+  constructor(readonly name: string, public value: Value) {}
 
   markAsError() {
     this.hasError = true

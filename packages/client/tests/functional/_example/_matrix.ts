@@ -1,36 +1,37 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 
 export default defineMatrix(() => [
   [
     {
-      provider: 'sqlite',
+      provider: Providers.SQLITE,
       id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'foo',
     },
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
       id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'bar',
     },
     {
-      provider: 'mysql',
+      provider: Providers.MYSQL,
       id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'baz',
     },
     {
-      provider: 'sqlserver',
+      provider: Providers.SQLSERVER,
       id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'tele',
     },
     {
-      provider: 'cockroachdb',
+      provider: Providers.COCKROACHDB,
       id: 'BigInt @id @default(autoincrement())',
-      providerFeatures: '',
+      randomString: 'phone',
     },
     {
-      provider: 'mongodb',
+      provider: Providers.MONGODB,
       id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      providerFeatures: '"mongoDb", ',
+      randomString: 'book',
     },
   ],
   [
@@ -50,26 +51,27 @@ export default defineMatrix(() => [
     {
       'provider': 'sqlite',
       'id': 'Int @id @default(autoincrement())',
-      'providerFeatures': '',
-      'previewFeatures': '"previewFeatureFlag1"',
+      'randomString': 'foo',
+      'previewFeatures': '"tracing"',
     },
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      'providerFeatures': '"mongoDb", ',
-      'previewFeatures': '"previewFeatureFlag1"',
+      'randomString': '"book", ',
+      'previewFeatures': '"tracing"',
     },
     {
       'provider': 'sqlite',
       'id': 'Int @id @default(autoincrement())',
-      'providerFeatures': '',
-      'previewFeatures': '"previewFeatureFlag2"',
+      'randomString': 'foo',
+      'previewFeatures': '"referentialIntegrity"',
     },
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      'providerFeatures': '"mongoDb", ',
-      'previewFeatures': '"previewFeatureFlag2"',
+      'randomString': '"book", ',
+      'previewFeatures': '"referentialIntegrity"',
     },
+    ...
   ]
 */

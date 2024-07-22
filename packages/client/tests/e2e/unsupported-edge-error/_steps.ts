@@ -8,10 +8,12 @@ void executeSteps({
     await $`pnpm prisma generate`
   },
   test: async () => {
-    const wrangler = $`pnpm wrangler dev`.nothrow()
+    const wrangler = $`pnpm wrangler dev --ip 127.0.0.1 --port 8787`.nothrow()
 
-    for await (const line of wrangler.stdout) {
-      if (line.includes('http://127.0.0.1:8787')) {
+    let data = ''
+    for await (const chunk of wrangler.stdout) {
+      data += chunk
+      if (data.includes('Ready')) {
         break
       }
     }

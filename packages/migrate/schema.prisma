@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique(map: "Profile.userId")
+  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  email   String   @unique(map: "User.email")
+  id      Int      @id @default(autoincrement())
+  name    String?
+  Post    Post[]
+  Profile Profile?
+}

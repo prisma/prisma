@@ -1,17 +1,30 @@
 import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
+import { type SchemaFileInput, toMultipleSchemas } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
-import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
+import {
+  createDebugErrorType,
+  createSchemaValidationError,
+  parseQueryEngineError,
+  QueryEngineErrorInit,
+} from './queryEngineCommons'
+import { relativizePathInPSLError } from './relativizePathInPSLError'
 
 const debug = Debug('prisma:getConfig')
+const SCHEMA_VALIDATION_ERROR_CODE = 'P1012'
+
+export interface GetConfigResponse {
+  config: ConfigMetaFormat
+  errors: GetConfigValidationError[]
+}
 
 export interface ConfigMetaFormat {
   datasources: DataSource[] | []
@@ -19,8 +32,13 @@ export interface ConfigMetaFormat {
   warnings: string[] | []
 }
 
+interface GetConfigValidationError {
+  fileName: string | null
+  message: string
+}
+
 export type GetConfigOptions = {
-  datamodel: string
+  datamodel: SchemaFileInput
   cwd?: string
   prismaPath?: string
   datamodelPath?: string
@@ -105,7 +123,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     E.chainW(({ result }) =>
       // NOTE: this should never fail, as we expect returned values to be valid JSON-serializable strings
       E.tryCatch(
-        () => JSON.parse(result) as ConfigMetaFormat,
+        () => JSON.parse(result) as GetConfigResponse,
         (e) => ({
           type: 'parse-json' as const,
           reason: 'Unable to parse JSON',
@@ -113,6 +131,16 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
         }),
       ),
     ),
+    E.chainW((response) => {
+      if (response.errors.length > 0) {
+        return E.left({
+          type: 'validation-error' as const,
+          reason: '(get-config wasm)',
+          error: response.errors,
+        })
+      }
+      return E.right(response.config)
+    }),
   )
 
   if (E.isRight(configEither)) {
@@ -145,13 +173,21 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           /* request */ '@prisma/prisma-schema-wasm get_config',
           ErrorArea.FMT_CLI,
           /* schemaPath */ options.prismaPath,
-          /* schema */ options.datamodel,
+          /* schema */ toMultipleSchemas(options.datamodel),
         )
         return panic
       }
 
       const errorOutput = e.error.message
       return new GetConfigError(parseQueryEngineError({ errorOutput, reason: e.reason }))
+    })
+    .with({ type: 'validation-error' }, (e) => {
+      return new GetConfigError({
+        _tag: 'parsed',
+        errorCode: SCHEMA_VALIDATION_ERROR_CODE,
+        reason: createSchemaValidationError(e.reason),
+        message: formatErrors(e.error),
+      })
     })
     .otherwise((e) => {
       debugErrorType(e)
@@ -177,12 +213,18 @@ async function resolveBinaryTargets(generator: GeneratorConfig) {
 
     // resolve native to the current platform
     if (binaryTarget.value === 'native') {
-      binaryTarget.value = await getPlatform()
+      binaryTarget.value = await getBinaryTargetForCurrentPlatform()
       binaryTarget.native = true
     }
   }
 
   if (generator.binaryTargets.length === 0) {
-    generator.binaryTargets = [{ fromEnvVar: null, value: await getPlatform(), native: true }]
+    generator.binaryTargets = [{ fromEnvVar: null, value: await getBinaryTargetForCurrentPlatform(), native: true }]
   }
+}
+
+function formatErrors(errors: GetConfigValidationError[]) {
+  const formattedErrors = errors.map((e) => relativizePathInPSLError(e.message)).join('\n\n')
+  const errorCount = `Validation Error Count: ${errors.length}`
+  return `${formattedErrors}\n${errorCount}`
 }

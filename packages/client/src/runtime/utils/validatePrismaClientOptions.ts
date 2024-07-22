@@ -1,14 +1,47 @@
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
+import { lowerCase } from '../../utils/lowerCase'
+import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRendering/ArgumentsRenderingTree'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
-import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
+import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
+import { RuntimeDataModel, RuntimeModel } from '../core/runtimeDataModel'
+import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'log', '__internal']
+const knownProperties = [
+  'datasources',
+  'datasourceUrl',
+  'errorFormat',
+  'adapter',
+  'log',
+  'transactionOptions',
+  'omit',
+  '__internal',
+]
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
-const validators = {
-  datasources: (options: any, datasourceNames: string[]) => {
+type OmitValidationError =
+  | { kind: 'UnknownModel'; modelKey: string }
+  | { kind: 'UnknownField'; modelKey: string; fieldName: string }
+  | { kind: 'RelationInOmit'; modelKey: string; fieldName: string }
+  | { kind: 'InvalidFieldValue'; modelKey: string; fieldName: string }
+
+/**
+ * Subset of `GetPrismaClientConfig` which is used during validation.
+ * Feel free to allow more properties when necessary but don't forget to add
+ * them in the mock config in `validatePrismaClientOptions.test.ts`.
+ */
+type ClientConfig = Pick<GetPrismaClientConfig, 'datasourceNames' | 'generator' | 'runtimeDataModel'>
+
+const validators: {
+  [K in keyof PrismaClientOptions]-?: (
+    option: PrismaClientOptions[K],
+    config: ClientConfig,
+    dataModel: RuntimeDataModel,
+  ) => void
+} = {
+  datasources: (options, { datasourceNames }) => {
     if (!options) {
       return
     }
@@ -50,8 +83,30 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
+  adapter: (adapter, config) => {
+    if (adapter === null) {
+      return
+    }
 
-  datasourceUrl: (options: unknown) => {
+    if (adapter === undefined) {
+      throw new PrismaClientConstructorValidationError(
+        `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
+      )
+    }
+    const previewFeatures = getPreviewFeatures(config)
+    if (!previewFeatures.includes('driverAdapters')) {
+      throw new PrismaClientConstructorValidationError(
+        '"adapter" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.',
+      )
+    }
+
+    if (getClientEngineType() === ClientEngineType.Binary) {
+      throw new PrismaClientConstructorValidationError(
+        `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
+      )
+    }
+  },
+  datasourceUrl: (options) => {
     if (typeof options !== 'undefined' && typeof options !== 'string') {
       throw new PrismaClientConstructorValidationError(
         `Invalid value ${JSON.stringify(options)} for "datasourceUrl" provided to PrismaClient constructor.
@@ -59,7 +114,7 @@ Expected string or undefined.`,
       )
     }
   },
-  errorFormat: (options: any) => {
+  errorFormat: (options) => {
     if (!options) {
       return
     }
@@ -75,7 +130,7 @@ Expected string or undefined.`,
       )
     }
   },
-  log: (options: any) => {
+  log: (options) => {
     if (!options) {
       return
     }
@@ -127,11 +182,66 @@ Expected string or undefined.`,
       }
     }
   },
+  transactionOptions: (options: any) => {
+    if (!options) {
+      return
+    }
+
+    const maxWait = options.maxWait
+    if (maxWait != null && maxWait <= 0) {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${maxWait} for maxWait in "transactionOptions" provided to PrismaClient constructor. maxWait needs to be greater than 0`,
+      )
+    }
+
+    const timeout = options.timeout
+    if (timeout != null && timeout <= 0) {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${timeout} for timeout in "transactionOptions" provided to PrismaClient constructor. timeout needs to be greater than 0`,
+      )
+    }
+  },
+  omit: (options: unknown, config) => {
+    if (typeof options !== 'object') {
+      throw new PrismaClientConstructorValidationError(`"omit" option is expected to be an object.`)
+    }
+    if (options === null) {
+      throw new PrismaClientConstructorValidationError(`"omit" option can not be \`null\``)
+    }
+
+    const validationErrors: OmitValidationError[] = []
+    for (const [modelKey, modelConfig] of Object.entries(options)) {
+      const modelOrType = getModelOrTypeByKey(modelKey, config.runtimeDataModel)
+      if (!modelOrType) {
+        validationErrors.push({ kind: 'UnknownModel', modelKey: modelKey })
+        continue
+      }
+      for (const [fieldName, value] of Object.entries(modelConfig)) {
+        const field = modelOrType.fields.find((field) => field.name === fieldName)
+        if (!field) {
+          validationErrors.push({ kind: 'UnknownField', modelKey, fieldName })
+          continue
+        }
+        if (field.relationName) {
+          validationErrors.push({ kind: 'RelationInOmit', modelKey, fieldName })
+          continue
+        }
+        if (typeof value !== 'boolean') {
+          validationErrors.push({ kind: 'InvalidFieldValue', modelKey, fieldName })
+        }
+      }
+    }
+    if (validationErrors.length > 0) {
+      throw new PrismaClientConstructorValidationError(
+        renderOmitValidationErrors(options as Record<string, unknown>, validationErrors),
+      )
+    }
+  },
   __internal: (value) => {
     if (!value) {
       return
     }
-    const knownKeys = ['debug', 'hooks', 'engine', 'measurePerformance']
+    const knownKeys = ['debug', 'engine', 'configOverride']
     if (typeof value !== 'object') {
       throw new PrismaClientConstructorValidationError(
         `Invalid value ${JSON.stringify(value)} for "__internal" to PrismaClient constructor`,
@@ -150,7 +260,7 @@ Expected string or undefined.`,
   },
 }
 
-export function validatePrismaClientOptions(options: PrismaClientOptions, datasourceNames: string[]) {
+export function validatePrismaClientOptions(options: PrismaClientOptions, config: ClientConfig) {
   for (const [key, value] of Object.entries(options)) {
     if (!knownProperties.includes(key)) {
       const didYouMean = getDidYouMean(key, knownProperties)
@@ -158,8 +268,9 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, dataso
         `Unknown property ${key} provided to PrismaClient constructor.${didYouMean}`,
       )
     }
-    validators[key](value, datasourceNames)
+    validators[key](value, config)
   }
+
   if (options.datasourceUrl && options.datasources) {
     throw new PrismaClientConstructorValidationError(
       'Can not use "datasourceUrl" and "datasources" options at the same time. Pick one of them',
@@ -204,4 +315,45 @@ function getAlternative(str: string, options: string[]): null | string {
   }
 
   return null
+}
+
+function getModelOrTypeByKey(modelKey: string, runtimeDataModel: RuntimeDataModel): RuntimeModel | undefined {
+  return findByKey(runtimeDataModel.models, modelKey) ?? findByKey(runtimeDataModel.types, modelKey)
+}
+
+function findByKey<T>(map: Record<string, T>, key: string): T | undefined {
+  const foundKey = Object.keys(map).find((mapKey) => lowerCase(mapKey) === key)
+  if (foundKey) {
+    return map[foundKey]
+  }
+  return undefined
+}
+
+function renderOmitValidationErrors(
+  omitConfig: Record<PropertyKey, unknown>,
+  validationErrors: OmitValidationError[],
+): string {
+  const argsTree = buildArgumentsRenderingTree(omitConfig)
+  for (const error of validationErrors) {
+    switch (error.kind) {
+      case 'UnknownModel':
+        argsTree.arguments.getField(error.modelKey)?.markAsError()
+        argsTree.addErrorMessage(() => `Unknown model name: ${error.modelKey}.`)
+        break
+      case 'UnknownField':
+        argsTree.arguments.getDeepField([error.modelKey, error.fieldName])?.markAsError()
+        argsTree.addErrorMessage(() => `Model "${error.modelKey}" does not have a field named "${error.fieldName}".`)
+        break
+      case 'RelationInOmit':
+        argsTree.arguments.getDeepField([error.modelKey, error.fieldName])?.markAsError()
+        argsTree.addErrorMessage(() => `Relations are already excluded by default and can not be specified in "omit".`)
+        break
+      case 'InvalidFieldValue':
+        argsTree.arguments.getDeepFieldValue([error.modelKey, error.fieldName])?.markAsError()
+        argsTree.addErrorMessage(() => `Omit field option value must be a boolean.`)
+        break
+    }
+  }
+  const { message, args } = renderArgsTree(argsTree, 'colorless')
+  return `Error validating "omit" option:\n\n${args}\n\n${message}`
 }

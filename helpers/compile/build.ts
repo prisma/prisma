@@ -1,6 +1,7 @@
 import { watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
 import { BuildContext } from 'esbuild'
+import { writeFileSync } from 'fs'
 import glob from 'globby'
 import path from 'path'
 
@@ -14,28 +15,30 @@ import { transduce } from '../blaze/transduce'
 import { depCheckPlugin } from './plugins/depCheckPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
+import { resolvePathsPlugin } from './plugins/resolvePathsPlugin'
 import { tscPlugin } from './plugins/tscPlugin'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
   name?: string
   emitTypes?: boolean
+  emitMetafile?: boolean
   outbase?: never // we don't support this
 }
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
-  target: 'ES2020',
+  target: 'ES2021',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   metafile: true,
 } as const
 
 /**
- * Apply defaults to allow us to build tree-shaken esm
+ * Apply defaults to the original build options
  * @param options the original build options
  */
-const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
+const applyDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
   outExtension: { '.js': '.js' },
@@ -48,7 +51,14 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
-  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
+  plugins: [
+    ...(options.plugins ?? []),
+    resolvePathsPlugin,
+    fixImportsPlugin,
+    tscPlugin(options.emitTypes),
+    onErrorPlugin,
+  ],
+  external: [...(options.external ?? []), ...getProjectExternals(options)],
 })
 
 /**
@@ -62,7 +72,7 @@ function createBuildOptions(options: BuildOptions[]) {
   return flatten(
     map(options, (options) => [
       // we defer it so that we don't trigger glob immediately
-      () => applyCjsDefaults(options),
+      () => applyDefaults(options),
       // ... here can go more steps
     ]),
   )
@@ -106,12 +116,20 @@ function addDefaultOutDir(options: BuildOptions) {
  */
 async function executeEsBuild(options: BuildOptions) {
   if (process.env.WATCH === 'true') {
-    const context = await esbuild.context(omit(options, ['name', 'emitTypes']) as any)
+    const context = await esbuild.context(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
 
     watch(context, options)
   }
 
-  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']) as any)] as const
+  const build = await esbuild.build(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
+  const outdir = options.outdir ?? (options.outfile ? path.dirname(options.outfile) : undefined)
+
+  if (build.metafile && options.emitMetafile) {
+    const metafilePath = `${outdir}/${options.name}.meta.json`
+    writeFileSync(metafilePath, JSON.stringify(build.metafile))
+  }
+
+  return [options, build] as const
 }
 
 /**
@@ -213,4 +231,20 @@ function getOutFile(options: BuildOptions) {
   }
 
   return undefined
+}
+
+// get the current project externals this helps to mark dependencies as external
+// by having convention in the package.json (dev = bundled, non-dev = external)
+function getProjectExternals(options: BuildOptions) {
+  const pkg = require(`${process.cwd()}/package.json`)
+  const peerDeps = Object.keys(pkg.peerDependencies ?? {})
+  const regDeps = Object.keys(pkg.dependencies ?? {})
+
+  // when bundling, only the devDeps will be bundled
+  if (!process.env.IGNORE_EXTERNALS && options.bundle === true) {
+    return [...new Set([...peerDeps, ...regDeps])]
+  }
+
+  // otherwise, all the dependencies will be bundled
+  return []
 }

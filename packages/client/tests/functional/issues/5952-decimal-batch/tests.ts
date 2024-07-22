@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -19,7 +20,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test.skip('findUnique decimal with Promise.all', async () => {
+    test('findUnique decimal with Promise.all', async () => {
       const result = await Promise.all([
         prisma.resource.findUnique({
           where: { decimal: decimal1 },
@@ -37,7 +38,7 @@ testMatrix.setupTestSuite(
       ])
     })
 
-    test.skip('findUnique decimal with $transaction([...])', async () => {
+    test('findUnique decimal with $transaction([...])', async () => {
       const result = await prisma.$transaction([
         prisma.resource.findUnique({
           where: { decimal: decimal1 },
@@ -93,7 +94,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'MongoDB does not support decimal',
     },
   },

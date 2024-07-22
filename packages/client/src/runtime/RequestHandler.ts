@@ -5,10 +5,10 @@ import stripAnsi from 'strip-ansi'
 
 import {
   EngineValidationError,
-  EventEmitter,
   Fetch,
   InteractiveTransactionOptions,
   JsonQuery,
+  LogEmitter,
   TransactionOptions,
 } from '../runtime/core/engines'
 import {
@@ -26,13 +26,15 @@ import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
+import { GlobalOmitOptions } from './core/jsonProtocol/serializeJsonQuery'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
-import { Action, JsArgs } from './core/types/JsApi'
+import { Action, JsArgs } from './core/types/exported/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { deepGet } from './utils/deep-set'
+import { deserializeRawResult, RawResponse } from './utils/deserializeRawResults'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -50,6 +52,7 @@ export type RequestParams = {
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
+  globalOmit?: GlobalOmitOptions
   customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
@@ -59,14 +62,16 @@ export type HandleErrorParams = {
   clientMethod: string
   callsite?: CallSite
   transaction?: PrismaPromiseTransaction
+  modelName?: string
+  globalOmit?: GlobalOmitOptions
 }
 
 export class RequestHandler {
   client: Client
   dataloader: DataLoader<RequestParams>
-  private logEmitter?: EventEmitter
+  private logEmitter?: LogEmitter
 
-  constructor(client: Client, logEmitter?: EventEmitter) {
+  constructor(client: Client, logEmitter?: LogEmitter) {
     this.logEmitter = logEmitter
     this.client = client
 
@@ -135,8 +140,16 @@ export class RequestHandler {
     try {
       return await this.dataloader.request(params)
     } catch (error) {
-      const { clientMethod, callsite, transaction, args } = params
-      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
+      const { clientMethod, callsite, transaction, args, modelName } = params
+      this.handleAndLogRequestError({
+        error,
+        clientMethod,
+        callsite,
+        transaction,
+        args,
+        modelName,
+        globalOmit: params.globalOmit,
+      })
     }
   }
 
@@ -169,7 +182,15 @@ export class RequestHandler {
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite, transaction, args }: HandleErrorParams): never {
+  handleRequestError({
+    error,
+    clientMethod,
+    callsite,
+    transaction,
+    args,
+    modelName,
+    globalOmit,
+  }: HandleErrorParams): never {
     debug(error)
 
     if (isMismatchingBatchIndex(error, transaction)) {
@@ -193,6 +214,7 @@ export class RequestHandler {
         errorFormat: this.client._errorFormat,
         originalMethod: clientMethod,
         clientVersion: this.client._clientVersion,
+        globalOmit,
       })
     }
 
@@ -210,10 +232,11 @@ export class RequestHandler {
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
+      const meta = modelName ? { modelName, ...error.meta } : error.meta
       throw new PrismaClientKnownRequestError(message, {
         code: error.code,
         clientVersion: this.client._clientVersion,
-        meta: error.meta,
+        meta,
         batchRequestIdx: error.batchRequestIdx,
       })
     } else if (error.isPanic) {
@@ -252,11 +275,16 @@ export class RequestHandler {
     if (!data) {
       return data
     }
+    const operation = Object.keys(data)[0]
     const response = Object.values(data)[0]
     const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
-    const deserializeResponse = deserializeJsonResponse(deepGet(response, pathForGet))
+    const extractedResponse = deepGet(response, pathForGet)
+    const deserializedResponse =
+      operation === 'queryRaw'
+        ? deserializeRawResult(extractedResponse as RawResponse)
+        : (deserializeJsonResponse(extractedResponse) as unknown)
 
-    return unpacker ? unpacker(deserializeResponse) : deserializeResponse
+    return unpacker ? unpacker(deserializedResponse) : deserializedResponse
   }
 
   get [Symbol.toStringTag]() {

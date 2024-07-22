@@ -469,3 +469,94 @@ test('allow to shadow already shadowed field', () => {
   })
   expect(extended).toHaveProperty('firstName', 'JOHN!')
 })
+
+test('allows to omit computed fields', () => {
+  const result = {
+    firstName: 'John',
+    lastName: 'Smith',
+  }
+
+  const extension = {
+    result: {
+      user: {
+        fullName: {
+          needs: { firstName: true, lastName: true },
+          compute(user) {
+            return `${user.firstName} ${user.lastName}`
+          },
+        },
+      },
+    },
+  }
+
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    omit: { fullName: true },
+    extensions: MergedExtensionsList.single(extension),
+  })
+  expect(extended).not.toHaveProperty('fullName')
+})
+
+test('allows to omit dependency of a computed team', () => {
+  const result = {
+    firstName: 'John',
+  }
+
+  const extension = {
+    result: {
+      user: {
+        loudName: {
+          needs: { firstName: true },
+          compute(user) {
+            return user.firstName.toUpperCase()
+          },
+        },
+      },
+    },
+  }
+
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    omit: { firstName: true },
+    extensions: MergedExtensionsList.single(extension),
+  })
+  expect(extended).not.toHaveProperty('firstName')
+  expect(extended).toHaveProperty('loudName', 'JOHN')
+})
+
+test('allows to omit transitive dependency of a computed team', () => {
+  const result = {
+    firstName: 'John',
+  }
+
+  const extension = {
+    result: {
+      user: {
+        loudName: {
+          needs: { firstName: true },
+          compute(user) {
+            return user.firstName.toUpperCase()
+          },
+        },
+
+        screamingName: {
+          needs: { loudName: true },
+          compute(user) {
+            return `${user.loudName}!!!`
+          },
+        },
+      },
+    },
+  }
+
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    omit: { firstName: true },
+    extensions: MergedExtensionsList.single(extension),
+  })
+  expect(extended).not.toHaveProperty('firstName')
+  expect(extended).toHaveProperty('screamingName', 'JOHN!!!')
+})

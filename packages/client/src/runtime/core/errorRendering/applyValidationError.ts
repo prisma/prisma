@@ -1,5 +1,6 @@
 import levenshtein from 'js-levenshtein'
 
+import { lowerCase } from '../../../utils/lowerCase'
 import {
   ArgumentDescription,
   EmptySelectionError,
@@ -15,7 +16,8 @@ import {
   UnknownSelectionFieldError,
   ValueTooLargeError,
 } from '../engines'
-import { IncludeAndSelectError, IncludeOnScalarError, ValidationError } from '../types/ValidationError'
+import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
+import { IncludeOnScalarError, MutuallyExclusiveFieldsError, ValidationError } from '../types/ValidationError'
 import { applyUnionError } from './applyUnionError'
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { Colors } from './base'
@@ -32,16 +34,20 @@ import { SuggestionObjectValue } from './SuggestionObjectValue'
  * @param error
  * @param args
  */
-export function applyValidationError(error: ValidationError, args: ArgumentsRenderingTree): void {
+export function applyValidationError(
+  error: ValidationError,
+  args: ArgumentsRenderingTree,
+  globalOmit?: GlobalOmitOptions,
+): void {
   switch (error.kind) {
-    case 'IncludeAndSelect':
-      applyIncludeAndSelectError(error, args)
+    case 'MutuallyExclusiveFields':
+      applyMutuallyExclusiveFieldsError(error, args)
       break
     case 'IncludeOnScalar':
       applyIncludeOnScalarError(error, args)
       break
     case 'EmptySelection':
-      applyEmptySelectionError(error, args)
+      applyEmptySelectionError(error, args, globalOmit)
       break
     case 'UnknownSelectionField':
       applyUnknownSelectionFieldError(error, args)
@@ -71,24 +77,24 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
       applyTooManyFieldsGivenError(error, args)
       break
     case 'Union':
-      applyUnionError(error, args)
+      applyUnionError(error, args, globalOmit)
       break
     default:
       throw new Error('not implemented: ' + error.kind)
   }
 }
 
-function applyIncludeAndSelectError(error: IncludeAndSelectError, argsTree: ArgumentsRenderingTree) {
-  const object = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)
-  if (object && object instanceof ObjectValue) {
-    object.getField('include')?.markAsError()
-    object.getField('select')?.markAsError()
+function applyMutuallyExclusiveFieldsError(error: MutuallyExclusiveFieldsError, argsTree: ArgumentsRenderingTree) {
+  const object = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
+  if (object) {
+    object.getField(error.firstField)?.markAsError()
+    object.getField(error.secondField)?.markAsError()
   }
 
   argsTree.addErrorMessage(
     (colors) =>
-      `Please ${colors.bold('either')} use ${colors.green('`include`')} or ${colors.green(
-        '`select`',
+      `Please ${colors.bold('either')} use ${colors.green(`\`${error.firstField}\``)} or ${colors.green(
+        `\`${error.secondField}\``,
       )}, but ${colors.red('not both')} at the same time.`,
   )
 }
@@ -123,7 +129,53 @@ function applyIncludeOnScalarError(error: IncludeOnScalarError, argsTree: Argume
   })
 }
 
-function applyEmptySelectionError(error: EmptySelectionError, argsTree: ArgumentsRenderingTree) {
+function applyEmptySelectionError(
+  error: EmptySelectionError,
+  argsTree: ArgumentsRenderingTree,
+  globalOmit?: GlobalOmitOptions,
+) {
+  const subSelection = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
+  if (subSelection) {
+    const omit = subSelection.getField('omit')?.value.asObject()
+    if (omit) {
+      applyEmptySelectionErrorOmit(error, argsTree, omit)
+      return
+    }
+    if (subSelection.hasField('select')) {
+      applyEmptySelectionErrorSelect(error, argsTree)
+      return
+    }
+  }
+
+  if (globalOmit?.[lowerCase(error.outputType.name)]) {
+    applyEmptySelectionErrorGlobalOmit(error, argsTree)
+    return
+  }
+
+  // should never happen, but in case it does
+  argsTree.addErrorMessage(() => `Unknown field at "${error.selectionPath.join('.')} selection"`)
+}
+
+// case for `EmptySelectionError`, triggered by excessive omit
+function applyEmptySelectionErrorOmit(
+  error: EmptySelectionError,
+  argsTree: ArgumentsRenderingTree,
+  omitValue: ObjectValue,
+) {
+  omitValue.removeAllFields()
+  for (const field of error.outputType.fields) {
+    omitValue.addSuggestion(new ObjectFieldSuggestion(field.name, 'false'))
+  }
+
+  argsTree.addErrorMessage((colors) => {
+    return `The ${colors.red('omit')} statement includes every field of the model ${colors.bold(
+      error.outputType.name,
+    )}. At least one field must be included in the result`
+  })
+}
+
+// case for `EmptySelectionError`, triggered by empty/falsy `select`
+function applyEmptySelectionErrorSelect(error: EmptySelectionError, argsTree: ArgumentsRenderingTree) {
   const outputType = error.outputType
   const selection = argsTree.arguments.getDeepSelectionParent(error.selectionPath)?.value
   const isEmpty = selection?.isEmpty() ?? false
@@ -175,19 +227,66 @@ function applyEmptySelectionError(error: EmptySelectionError, argsTree: Argument
   })
 }
 
+// case for `EmptySelectionError`, triggered by excessive global omit
+function applyEmptySelectionErrorGlobalOmit(error: EmptySelectionError, argsTree: ArgumentsRenderingTree) {
+  const suggestedOmitConfig = new SuggestionObjectValue()
+  for (const field of error.outputType.fields) {
+    if (!field.isRelation) {
+      suggestedOmitConfig.addField(field.name, 'false')
+    }
+  }
+
+  const omitSuggestion = new ObjectFieldSuggestion('omit', suggestedOmitConfig).makeRequired()
+
+  if (error.selectionPath.length === 0) {
+    argsTree.arguments.addSuggestion(omitSuggestion)
+  } else {
+    const [parentPath, fieldName] = splitPath(error.selectionPath)
+    const parent = argsTree.arguments.getDeepSelectionParent(parentPath)?.value.asObject()
+    const field = parent?.getField(fieldName)
+    if (field) {
+      const fieldValue = field?.value.asObject() ?? new ObjectValue()
+      fieldValue.addSuggestion(omitSuggestion)
+      field.value = fieldValue
+    }
+  }
+
+  // neither select, nor omit are used, but global omit global omit configuration for the model exists
+  argsTree.addErrorMessage((colors) => {
+    return `The global ${colors.red('omit')} configuration excludes every field of the model ${colors.bold(
+      error.outputType.name,
+    )}. At least one field must be included in the result`
+  })
+}
+
 function applyUnknownSelectionFieldError(error: UnknownSelectionFieldError, argsTree: ArgumentsRenderingTree) {
   const [parentPath, fieldName] = splitPath(error.selectionPath)
 
-  const selectionParent = argsTree.arguments.getDeepSelectionParent(parentPath)
-  if (selectionParent) {
-    selectionParent.value.getField(fieldName)?.markAsError()
-    addSelectionSuggestions(selectionParent.value, error.outputType)
+  const subSelection = argsTree.arguments.getDeepSubSelectionValue(parentPath)?.asObject()
+  let selectionParentKind: 'select' | 'include' | 'omit' | undefined = undefined
+  if (subSelection) {
+    const select = subSelection.getFieldValue('select')?.asObject()
+    const include = subSelection.getFieldValue('include')?.asObject()
+    const omit = subSelection.getFieldValue('omit')?.asObject()
+    if (select?.hasField(fieldName)) {
+      selectionParentKind = 'select'
+      select.getField(fieldName)?.markAsError()
+      addSelectionSuggestions(select, error.outputType)
+    } else if (include?.hasField(fieldName)) {
+      selectionParentKind = 'include'
+      include.getField(fieldName)?.markAsError()
+      addInclusionSuggestions(include, error.outputType)
+    } else if (omit?.hasField(fieldName)) {
+      selectionParentKind = 'omit'
+      omit.getField(fieldName)?.markAsError()
+      addOmissionSuggestions(omit, error.outputType)
+    }
   }
 
   argsTree.addErrorMessage((colors) => {
     const parts = [`Unknown field ${colors.red(`\`${fieldName}\``)}`]
-    if (selectionParent) {
-      parts.push(`for ${colors.bold(selectionParent.kind)} statement`)
+    if (selectionParentKind) {
+      parts.push(`for ${colors.bold(selectionParentKind)} statement`)
     }
     parts.push(`on model ${colors.bold(`\`${error.outputType.name}\``)}.`)
     parts.push(availableOptionsMessage(colors))
@@ -197,9 +296,9 @@ function applyUnknownSelectionFieldError(error: UnknownSelectionFieldError, args
 
 function applyUnknownArgumentError(error: UnknownArgumentError, argsTree: ArgumentsRenderingTree) {
   const argName = error.argumentPath[0]
-  const selection = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)
+  const selection = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
 
-  if (selection instanceof ObjectValue) {
+  if (selection) {
     selection.getField(argName)?.markAsError()
     addArgumentsSuggestions(selection, error.arguments)
   }
@@ -215,12 +314,12 @@ function applyUnknownArgumentError(error: UnknownArgumentError, argsTree: Argume
 
 function applyUnknownInputFieldError(error: UnknownInputFieldError, argsTree: ArgumentsRenderingTree) {
   const [argParentPath, argName] = splitPath(error.argumentPath)
-  const selection = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)
+  const selection = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
 
-  if (selection instanceof ObjectValue) {
+  if (selection) {
     selection.getDeepField(error.argumentPath)?.markAsError()
-    const argParent = selection.getDeepFieldValue(argParentPath)
-    if (argParent instanceof ObjectValue) {
+    const argParent = selection.getDeepFieldValue(argParentPath)?.asObject()
+    if (argParent) {
       addInputSuggestions(argParent, error.inputType)
     }
   }
@@ -258,15 +357,15 @@ function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, 
     }
     return `Argument \`${colors.green(argumentName)}\` is missing.`
   })
-  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
-  if (!(selection instanceof ObjectValue)) {
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
+  if (!selection) {
     return
   }
 
   const [argParent, argumentName] = splitPath(error.argumentPath)
   const objectSuggestion = new SuggestionObjectValue()
-  const parent = selection.getDeepFieldValue(argParent)
-  if (!(parent instanceof ObjectValue)) {
+  const parent = selection.getDeepFieldValue(argParent)?.asObject()
+  if (!parent) {
     return
   }
 
@@ -296,8 +395,8 @@ function getInputTypeName(description: InputTypeDescription) {
 
 function applyInvalidArgumentTypeError(error: InvalidArgumentTypeError, args: ArgumentsRenderingTree) {
   const argName = error.argument.name
-  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
-  if (selection instanceof ObjectValue) {
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
+  if (selection) {
     selection.getDeepFieldValue(error.argumentPath)?.markAsError()
   }
 
@@ -315,8 +414,8 @@ function applyInvalidArgumentTypeError(error: InvalidArgumentTypeError, args: Ar
 
 function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: ArgumentsRenderingTree) {
   const argName = error.argument.name
-  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
-  if (selection instanceof ObjectValue) {
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
+  if (selection) {
     selection.getDeepFieldValue(error.argumentPath)?.markAsError()
   }
 
@@ -339,9 +438,9 @@ function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: 
 
 function applyValueTooLargeError(error: ValueTooLargeError, args: ArgumentsRenderingTree) {
   const argName = error.argument.name
-  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
   let printedValue: string | undefined
-  if (selection instanceof ObjectValue) {
+  if (selection) {
     const field = selection.getDeepField(error.argumentPath)
     const value = field?.value
     value?.markAsError()
@@ -363,10 +462,10 @@ function applyValueTooLargeError(error: ValueTooLargeError, args: ArgumentsRende
 
 function applySomeFieldsMissingError(error: SomeFieldsMissingError, args: ArgumentsRenderingTree) {
   const argumentName = error.argumentPath[error.argumentPath.length - 1]
-  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
-  if (selection instanceof ObjectValue) {
-    const argument = selection.getDeepFieldValue(error.argumentPath)
-    if (argument instanceof ObjectValue) {
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
+  if (selection) {
+    const argument = selection.getDeepFieldValue(error.argumentPath)?.asObject()
+    if (argument) {
       addInputSuggestions(argument, error.inputType)
     }
   }
@@ -394,11 +493,11 @@ function applySomeFieldsMissingError(error: SomeFieldsMissingError, args: Argume
 
 function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: ArgumentsRenderingTree) {
   const argumentName = error.argumentPath[error.argumentPath.length - 1]
-  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)?.asObject()
   let providedArguments: string[] = []
-  if (selection instanceof ObjectValue) {
-    const argument = selection.getDeepFieldValue(error.argumentPath)
-    if (argument instanceof ObjectValue) {
+  if (selection) {
+    const argument = selection.getDeepFieldValue(error.argumentPath)?.asObject()
+    if (argument) {
       argument.markAsError()
       providedArguments = Object.keys(argument.getFields())
     }
@@ -439,6 +538,22 @@ function addSelectionSuggestions(selection: ObjectValue, outputType: OutputTypeD
   }
 }
 
+function addInclusionSuggestions(selection: ObjectValue, outputType: OutputTypeDescription) {
+  for (const field of outputType.fields) {
+    if (field.isRelation && !selection.hasField(field.name)) {
+      selection.addSuggestion(new ObjectFieldSuggestion(field.name, 'true'))
+    }
+  }
+}
+
+function addOmissionSuggestions(selection: ObjectValue, outputType: OutputTypeDescription) {
+  for (const field of outputType.fields) {
+    if (!selection.hasField(field.name) && !field.isRelation) {
+      selection.addSuggestion(new ObjectFieldSuggestion(field.name, 'true'))
+    }
+  }
+}
+
 function addArgumentsSuggestions(argumentsParent: ObjectValue, args: ArgumentDescription[]) {
   for (const arg of args) {
     if (!argumentsParent.hasField(arg.name)) {
@@ -468,8 +583,8 @@ function splitPath(path: string[]): [parentPath: string[], fieldName: string] {
   return [selectionPath, fieldName]
 }
 
-function availableOptionsMessage({ green }: Colors) {
-  return `Available options are listed in ${green('green')}.`
+function availableOptionsMessage({ green, enabled }: Colors) {
+  return `Available options are ` + (enabled ? `listed in ${green('green')}` : `marked with ?`) + '.'
 }
 
 function joinWithPreposition(preposition: 'and' | 'or', items: string[]): string {

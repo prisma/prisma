@@ -7,13 +7,13 @@ import {
   format,
   getCommandWithExecutor,
   getConfig,
-  getSchemaPath,
+  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
+  toSchemasContainer,
   validate,
 } from '@prisma/internals'
-import fs from 'fs'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
@@ -93,30 +93,28 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], true)
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema']))!
 
     const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })
 
-    console.info() // empty line
+    process.stdout.write('\n') // empty line
 
     // Validate schema (same as prisma validate)
-    const schema = fs.readFileSync(schemaPath, 'utf-8')
     validate({
-      datamodel: schema,
+      schemas,
     })
     await getConfig({
-      datamodel: schema,
+      datamodel: schemas,
       ignoreEnvVarErrors: false,
     })
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
     if (wasDbCreated) {
-      console.info(wasDbCreated)
-      console.info() // empty line
+      process.stdout.write(wasDbCreated + '\n\n')
     }
 
     const migrate = new Migrate(schemaPath)
@@ -144,10 +142,10 @@ ${bold('Examples')}
           reason: devDiagnostic.action.reason,
         })
 
-        console.info() // empty line
+        process.stdout.write('\n') // empty line
 
         if (!confirmedReset) {
-          console.info('Reset cancelled.')
+          process.stdout.write('Reset cancelled.\n')
           migrate.stop()
           // Return SIGINT exit code to signal that the process was cancelled.
           process.exit(130)
@@ -169,15 +167,14 @@ ${bold('Examples')}
 
       // Inform user about applied migrations now
       if (appliedMigrationNames.length > 0) {
-        console.info() // empty line
-        console.info(
-          `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
+        process.stdout.write(
+          `\nThe following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
             'migrations',
             appliedMigrationNames,
             {
               'migration.sql': '',
             },
-          )}`,
+          )}\n`,
         )
       }
     } catch (e) {
@@ -207,11 +204,11 @@ ${bold('Examples')}
 
     // log warnings and prompt user to continue if needed
     if (evaluateDataLossResult.warnings && evaluateDataLossResult.warnings.length > 0) {
-      console.log(bold(`\n⚠️  Warnings for the current datasource:\n`))
+      process.stdout.write(bold(`\n⚠️  Warnings for the current datasource:\n\n`))
       for (const warning of evaluateDataLossResult.warnings) {
-        console.log(`  • ${warning.message}`)
+        process.stdout.write(`  • ${warning.message}\n`)
       }
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
 
       if (!args['--force']) {
         if (!canPrompt()) {
@@ -220,8 +217,8 @@ ${bold('Examples')}
         }
 
         const message = args['--create-only']
-          ? 'Are you sure you want create this migration?'
-          : 'Are you sure you want create and apply this migration?'
+          ? 'Are you sure you want to create this migration?'
+          : 'Are you sure you want to create and apply this migration?'
         const confirmation = await prompt({
           type: 'confirm',
           name: 'value',
@@ -229,7 +226,7 @@ ${bold('Examples')}
         })
 
         if (!confirmation.value) {
-          console.info('Migration cancelled.')
+          process.stdout.write('Migration cancelled.\n')
           migrate.stop()
           // Return SIGINT exit code to signal that the process was cancelled.
           process.exit(130)
@@ -242,7 +239,7 @@ ${bold('Examples')}
       const getMigrationNameResult = await getMigrationName(args['--name'])
 
       if (getMigrationNameResult.userCancelled) {
-        console.log(getMigrationNameResult.userCancelled)
+        process.stdout.write(getMigrationNameResult.userCancelled + '\n')
         migrate.stop()
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
@@ -257,7 +254,7 @@ ${bold('Examples')}
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
-        prismaSchema: migrate.getPrismaSchema(),
+        schema: toSchemasContainer((await migrate.getPrismaSchema()).schemas),
       })
       debug({ createMigrationResult })
 
@@ -277,18 +274,17 @@ ${bold('Examples')}
     }
 
     // For display only, empty line
-    migrationIdsApplied.length > 0 && console.info()
+    migrationIdsApplied.length > 0 && process.stdout.write('\n')
 
     if (migrationIds.length === 0) {
       if (migrationIdsApplied.length > 0) {
-        console.info(`${green('Your database is now in sync with your schema.')}`)
+        process.stdout.write(`${green('Your database is now in sync with your schema.')}\n`)
       } else {
-        console.info(`Already in sync, no schema change or pending migration was found.`)
+        process.stdout.write(`Already in sync, no schema change or pending migration was found.\n`)
       }
     } else {
-      console.info() // empty line
-      console.info(
-        `The following migration(s) have been created and applied from new schema changes:\n\n${printFilesFromMigrationIds(
+      process.stdout.write(
+        `\nThe following migration(s) have been created and applied from new schema changes:\n\n${printFilesFromMigrationIds(
           'migrations',
           migrationIds,
           {
@@ -296,14 +292,14 @@ ${bold('Examples')}
           },
         )}
 
-${green('Your database is now in sync with your schema.')}`,
+${green('Your database is now in sync with your schema.')}\n`,
       )
     }
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
       await migrate.tryToRunGenerate()
-      console.info() // empty line
+      process.stdout.write('\n') // empty line
     }
 
     // If database was created or reset we want to run the seed if not skipped
@@ -318,16 +314,16 @@ ${green('Your database is now in sync with your schema.')}`,
         const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
         if (seedCommandFromPkgJson) {
-          console.info() // empty line
+          process.stdout.write('\n') // empty line
           const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
           if (successfulSeeding) {
-            console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
+            process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
           } else {
             process.exit(1)
           }
         } else {
           // Only used to help users to set up their seeds from old way to new package.json config
-          const schemaPath = await getSchemaPath(args['--schema'])
+          const { schemaPath } = (await getSchemaWithPath(args['--schema']))!
           // we don't want to output the returned warning message
           // but we still want to run it for `legacyTsNodeScriptWarning()`
           await verifySeedConfigAndReturnMessage(schemaPath)
@@ -348,7 +344,7 @@ ${green('Your database is now in sync with your schema.')}`,
     reason: string
   }): Promise<boolean> {
     // Log the reason of why a reset is needed to the user
-    console.info(reason)
+    process.stdout.write(reason + '\n')
 
     let messageFirstLine = ''
 
@@ -375,7 +371,7 @@ Do you want to continue? ${red('All data will be lost')}.`
     // An alternative would be to find a way to capture the prompt message from jest tests
     // (attempted without success)
     if (Boolean((prompt as any)._injected?.length) === true) {
-      console.info(messageForPrompt)
+      process.stdout.write(messageForPrompt + '\n')
     }
     const confirmation = await prompt({
       type: 'confirm',

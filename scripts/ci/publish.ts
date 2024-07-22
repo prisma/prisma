@@ -1,3 +1,4 @@
+import { dependencies as dependenciesPrismaEnginesPkg } from '@prisma/engines/package.json'
 import slugify from '@sindresorhus/slugify'
 import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
@@ -6,7 +7,6 @@ import execa from 'execa'
 import fs from 'fs'
 import globby from 'globby'
 import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
-import fetch from 'node-fetch'
 import pRetry from 'p-retry'
 import path from 'path'
 import redis from 'redis'
@@ -106,6 +106,7 @@ export async function getPackages(): Promise<RawPackages> {
 }
 
 interface Package {
+  private?: boolean
   name: string
   path: string
   version: string
@@ -122,6 +123,7 @@ export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>((acc, [name, pkg]) => {
     const usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
     acc[name] = {
+      private: pkg.packageJson.private,
       version: pkg.packageJson.version,
       name,
       path: pkg.path,
@@ -513,7 +515,7 @@ async function publish() {
   // makes sure that only have 1 publish job running at a time
   let unlock: undefined | (() => void)
   if (process.env.BUILDKITE && args['--publish']) {
-    console.log(`We're in buildkite and will publish, so we will acquire a lock...`)
+    console.info(`Let's try to acquire a lock before continuing. (to avoid concurrent publishing)`)
     const before = Math.round(performance.now())
     // TODO: problem lock might not work for more than 2 jobs
     unlock = await acquireLock(process.env.BUILDKITE_BRANCH)
@@ -607,12 +609,12 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         console.log(`Let's first do a dry run!`)
         await publishPackages(packages, publishOrder, true, prismaVersion, tag, args['--release'])
         console.log(`Waiting 5 sec so you can check it out first...`)
-        await new Promise((r) => setTimeout(r, 5000))
+        await new Promise((r) => setTimeout(r, 5_000))
       }
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
 
-      const enginesCommitHash = await getEnginesCommitHash()
+      const enginesCommitHash = getEnginesCommitHash()
       const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
       const prismaCommitHash = await getLatestCommitHash('.')
       const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
@@ -622,19 +624,13 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
       }
 
-      try {
-        await sendSlackMessage({
-          version: prismaVersion,
-          enginesCommitInfo,
-          prismaCommitInfo,
-        })
-      } catch (e) {
-        console.error(e)
-      }
-
       if (!args['--dry-run']) {
         try {
-          await tagEnginesRepo(prismaVersion, enginesCommitHash, patchBranch, dryRun)
+          await sendSlackMessage({
+            version: prismaVersion,
+            enginesCommitInfo,
+            prismaCommitInfo,
+          })
         } catch (e) {
           console.error(e)
         }
@@ -654,88 +650,12 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
   }
 }
 
-async function getEnginesCommitHash(): Promise<string> {
-  const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
-  const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
-  // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
+function getEnginesCommitHash(): string {
+  const npmEnginesVersion = dependenciesPrismaEnginesPkg['@prisma/engines-version']
+  const sha1Pattern = /\b[0-9a-f]{5,40}\b/
+  const commitHash = npmEnginesVersion.match(sha1Pattern)![0]
 
-  return engineVersion
-}
-
-async function tagEnginesRepo(
-  prismaVersion: string,
-  engineVersion: string,
-  patchBranch: string | null,
-  dryRun = false,
-) {
-  let previousTag: string
-
-  console.log(`Going to tag the engines repo with "${prismaVersion}", patchBranch: ${patchBranch}, dryRun: ${dryRun}`)
-  /** Get ready */
-  await cloneOrPull('prisma-engines', dryRun)
-
-  // 3.2.x
-  if (patchBranch) {
-    // 3.2
-    const [major, minor] = patchBranch.split('.')
-    const majorMinor = [major, minor].join('.')
-    // ['3.2.0', '3.2.1']
-    const patchesPublished: string | string[] = JSON.parse(
-      // TODO this line is useful for retrieving versions
-      await runResult('.', `npm view @prisma/client@${majorMinor} version --json`),
-    )
-
-    console.log({ patchesPublished })
-
-    if (typeof patchesPublished === 'string') {
-      previousTag = patchesPublished
-    } else if (patchesPublished.length > 0) {
-      // 3.2.0
-      previousTag = patchesPublished.pop() as string
-    } else {
-      console.warn('No version found for this patch branch')
-      return
-    }
-  } else {
-    /** Get previous tag */
-    previousTag = await runResult('prisma-engines', `git describe --tags --abbrev=0`)
-  }
-
-  /** Get commits between previous tag and engines sha1 */
-  const changelog = await runResult(
-    'prisma-engines',
-    `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
-  )
-  const changelogSanitized = changelog.replace(/"/gm, '\\"').replace(/`/gm, '\\`')
-
-  const remotes = dryRun ? [] : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
-
-  if (!remotes.includes('origin-push')) {
-    const githubToken = process.env.GITHUB_TOKEN
-
-    await run(
-      'prisma-engines',
-      `git remote add origin-push https://${githubToken}@github.com/prisma/prisma-engines.git`,
-      dryRun,
-      true,
-    )
-  }
-
-  if (process.env.CI) {
-    await run('.', `git config --global user.email "prismabots@gmail.com"`, dryRun)
-    await run('.', `git config --global user.name "prisma-bot"`, dryRun)
-  }
-
-  /** Tag */
-  await run(
-    'prisma-engines',
-    `git tag -a ${prismaVersion} ${engineVersion} -m "${prismaVersion}" -m "${engineVersion}" -m "${changelogSanitized}"`,
-    dryRun,
-  )
-
-  /** Push */
-  await run(`prisma-engines`, `git push origin-push ${prismaVersion}`, dryRun)
+  return commitHash
 }
 
 /**
@@ -878,7 +798,8 @@ async function publishPackages(
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
 
-      if (pkg.name === '@prisma/integration-tests') {
+      if (pkg.private) {
+        console.log(`Skipping ${magenta(pkg.name)} as it's private`)
         continue
       }
 
@@ -1090,38 +1011,35 @@ function getLines(str: string): string[] {
   return str.split(/\r?\n|\r/)
 }
 
-async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
-  const response = await fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
+type GitHubCommitInfo = {
+  sha: string
+  commit: {
+    author: {
+      name: string
+      email: string
+      date: string
+    } | null
+    committer: {
+      name: string
+      email: string
+      date: string
+    } | null
+    message: string
+    url: string
+  }
+}
 
-  const jsonData = await response.json()
+async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
+  // Example https://api.github.com/repos/prisma/prisma/commits/9d23845e98e34ec97f3013f5c2a3f85f57a828e2
+  // Doc https://docs.github.com/en/free-pro-team@latest/rest/commits/commits?apiVersion=2022-11-28#get-a-commit
+  const response = await fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
+  const jsonData = (await response.json()) as GitHubCommitInfo
 
   return {
     message: jsonData.commit?.message || '',
-    author: jsonData.commit?.author.name || '',
+    author: jsonData.commit?.author?.name || '',
     hash,
   }
-}
-
-function getCommitEnvVar(name: string): string {
-  return `${name.toUpperCase().replace(/-/g, '_')}_COMMIT`
-}
-
-async function cloneOrPull(repo: string, dryRun = false) {
-  if (fs.existsSync(path.join(__dirname, '../../', repo))) {
-    return run(repo, `git pull --tags`, dryRun)
-  } else {
-    await run('.', `git clone ${repoUrl(repo)}`, dryRun)
-    const envVar = getCommitEnvVar(repo)
-    if (process.env[envVar]) {
-      await run(repo, `git checkout ${process.env[envVar]}`, dryRun)
-    }
-  }
-
-  return undefined
-}
-
-function repoUrl(repo: string, org = 'prisma') {
-  return `https://github.com/${org}/${repo}.git`
 }
 
 if (require.main === module) {
