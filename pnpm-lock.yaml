@@ -615,8 +615,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
-        version: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
+        specifier: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
+        version: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -642,8 +642,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
-        version: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
+        specifier: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
+        version: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -861,8 +861,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
-        version: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
+        specifier: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
+        version: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -898,8 +898,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
-        version: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
+        specifier: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
+        version: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1223,8 +1223,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
-        version: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
+        specifier: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
+        version: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1383,8 +1383,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
-        version: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
+        specifier: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
+        version: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1538,8 +1538,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
-        version: 5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35
+        specifier: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
+        version: 5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -3743,8 +3743,8 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35:
-    resolution: {integrity: sha512-DNyWUqhnfHWYdkvKndbRuY9Tg4UU0V561MWV0NMfvGDk5+f/wfhEfmfnweNxjwkCVW7/2blIeejQ8ctltU6DYw==}
+  /@prisma/engines-version@5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225:
+    resolution: {integrity: sha512-5IKo2Y5CrXGKI/j8ahndIwIGz6tnA7LQkXEcDIe76R4d0JiVzqKrwYqujB6yirXMlfouQ8dQ/HU4U2qqgaWGng==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3752,12 +3752,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35:
-    resolution: {integrity: sha512-xi8CRabpMAFm1bR1w+jFcekPWhoViN2d9Vvcv3/WCQiJmmRVBBhdElzYTkVUMz2hfgF2k/QFi8Kk/oK6bx+8dg==}
+  /@prisma/prisma-schema-wasm@5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225:
+    resolution: {integrity: sha512-xRoiRsy0WNX3b8KnlzYMqdrNp+CyuvAcWYKloxr6jlKR5YOMN1WOPQWqctW18XUNaHqCjghNkjaOKCHCsICtlg==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35:
-    resolution: {integrity: sha512-2TKw/rIwqOItwzbWZ+ej/fMAx5FHH561RAO55CJRUJVSh4Ibli4U6DuDODh0ENXiWfvOsyw5OdPib6WzHVGUOg==}
+  /@prisma/query-engine-wasm@5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225:
+    resolution: {integrity: sha512-j4hQWv4w95vO39+LDxaIEBkD16hXPr6z3YDm4yaburFmRh20yOA+mBmZUrlamuzy08haM45hmx3c/7C6I8sxrw==}
     dev: true
 
   /@prisma/studio-common@0.502.0:

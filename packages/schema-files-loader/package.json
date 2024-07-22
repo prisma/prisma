@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.18.0-10.68bfdeb3cbcb80ba99a1a3db73113692e1e59e35",
+    "@prisma/prisma-schema-wasm": "5.18.0-12.improve-quaint-column-type-331a7dd91f2553e6a77b58649b55472bca4fa225",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
