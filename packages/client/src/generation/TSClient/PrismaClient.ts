@@ -304,6 +304,23 @@ function executeRawDefinition(context: GenerateContext) {
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
 }
 
+function typedSqlDefinition(context: GenerateContext) {
+  // TODO: check preview feature
+  if (!context.dmmf.mappings.otherOperations.write.includes('queryRaw')) {
+    return '' // https://github.com/prisma/prisma/issues/8189
+  }
+
+  const param = ts.genericParameter('Sql').extends(ts.namedType('$Types.UnknownTypedSql'))
+  // TODO: add jsdoc
+  const method = ts
+    .method('$typedSql')
+    .addGenericParameter(param)
+    .addParameter(ts.parameter('sql', param.toArgument()))
+    .setReturnType(ts.prismaPromise(ts.namedType('$Types.TypedSqlResult').addGenericArgument(param.toArgument())))
+
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
 function metricDefinition(context: GenerateContext) {
   if (!context.isPreviewFeatureOn('metrics')) {
     return ''
@@ -451,6 +468,7 @@ export class PrismaClient<
 ${[
   executeRawDefinition(this.context),
   queryRawDefinition(this.context),
+  typedSqlDefinition(this.context),
   batchingTransactionDefinition(this.context),
   interactiveTransactionDefinition(this.context),
   runCommandRawDefinition(this.context),
