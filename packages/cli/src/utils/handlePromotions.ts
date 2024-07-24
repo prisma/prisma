@@ -23,6 +23,10 @@ const promotions = [
     text: `Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility:`,
     link: 'https://pris.ly/tip-2-optimize',
   },
+  {
+    text: `Tip: Want to turn off tips and other hints?`,
+    link: 'https://pris.ly/tip-4-nohints',
+  },
 ]
 
 const getRandomPromotion = () => {
