@@ -105,11 +105,18 @@ export interface Queryable {
   executeRaw(params: Query): Promise<Result<number>>
 }
 
-export interface DriverAdapter extends Queryable {
+export interface TransactionContext extends Queryable {
   /**
    * Starts new transaction.
    */
   startTransaction(): Promise<Result<Transaction>>
+}
+
+export interface DriverAdapter extends Queryable {
+  /**
+   * Starts new transaction.
+   */
+  transactionContext(): Promise<Result<TransactionContext>>
 
   /**
    * Optional method that returns extra connection info
