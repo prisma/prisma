@@ -1,5 +1,7 @@
 import Decimal from 'decimal.js'
 
+// This must remain in sync with the `quaint::ColumnType` enum in the QueryEngine.
+// ./quaint/src/connector/column_type.rs
 type PrismaType =
   | 'int'
   | 'bigint'
@@ -22,7 +24,6 @@ type PrismaType =
   | 'float-array'
   | 'double-array'
   | 'string-array'
-  | 'enum-array'
   | 'bytes-array'
   | 'bool-array'
   | 'char-array'
@@ -33,7 +34,13 @@ type PrismaType =
   | 'datetime-array'
   | 'date-array'
   | 'time-array'
-  | 'unknown-array'
+  | 'unknown'
+
+export type RawResponse = {
+  columns: string[]
+  types: PrismaType[]
+  rows: unknown[][]
+}
 
 function deserializeValue(type: PrismaType, value: unknown): unknown {
   if (value === null) {
@@ -73,12 +80,6 @@ function deserializeValue(type: PrismaType, value: unknown): unknown {
     default:
       return value
   }
-}
-
-export type RawResponse = {
-  columns: string[]
-  types: PrismaType[]
-  rows: unknown[][]
 }
 
 type DeserializedResponse = Array<Record<string, unknown>>

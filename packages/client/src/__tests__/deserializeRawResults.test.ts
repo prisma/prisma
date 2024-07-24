@@ -149,7 +149,7 @@ describe('deserializeRawResult', () => {
           'datetime-array',
           'date-array',
           'time-array',
-          'unknown-array',
+          'unknown',
         ],
         rows: [
           [
