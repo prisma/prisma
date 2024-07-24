@@ -402,7 +402,7 @@ export class Init implements Command {
     steps.push(
       `Tip: Explore how you can extend the ${green(
         'ORM',
-      )} with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/beyond-the-orm`,
+      )} with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-ormm`,
     )
 
     if (!url || args['--datasource-provider']) {
