@@ -42,7 +42,7 @@ export type Exact<A, W> =
 export type Cast<A, W> = A extends W ? A : W
 
 export type JsonObject = { [Key in string]?: JsonValue }
-export interface JsonArray extends Array<JsonValue> {}
+export type JsonArray = Array<JsonValue>
 export type JsonValue = string | number | boolean | JsonObject | JsonArray | null
 
 export type Record<T extends string | number | symbol, U> = {
