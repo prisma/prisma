@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.18.0-15.a6977e518975c6a4e6ae77bf7faf8afc08b97e7d",
+    "@prisma/engines-version": "5.18.0-20.feat-introspect-sql-b2b600c154792b1859dfb09b93d383681a1b2bf0",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
