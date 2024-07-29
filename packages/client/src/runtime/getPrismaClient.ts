@@ -716,12 +716,12 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     /**
      * Counterpart to $queryRaw, that returns strongly typed results
-     * @param sql
+     * @param typedSql
      */
-    $typedSql(sql: UnknownTypedSql) {
+    $queryRawTyped(typedSql: UnknownTypedSql) {
       // TODO: check preview feature
       return this._createPrismaPromise((transaction) => {
-        return this.$queryRawInternal(transaction, '$typedSql', sql)
+        return this.$queryRawInternal(transaction, '$queryRawTyped', typedSql)
       })
     }
 

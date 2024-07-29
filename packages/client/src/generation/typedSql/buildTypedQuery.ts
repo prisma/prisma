@@ -1,0 +1,69 @@
+import { SqlQueryOutput } from '@prisma/generator-helper'
+
+import * as ts from '../ts-builders'
+import { Writer } from '../ts-builders/Writer'
+import { getInputType, getOutputType } from './mapTypes'
+
+type BuildTypedQueryOptions = {
+  runtimeBase: string
+  runtimeName: string
+  query: SqlQueryOutput
+}
+
+export function buildTypedQueryTs({ query, runtimeBase, runtimeName }: BuildTypedQueryOptions) {
+  const file = ts.file()
+
+  file.addImport(ts.moduleImport(`${runtimeBase}/${runtimeName}`).asNamespace('$runtime'))
+
+  const doc = ts.docComment(query.documentation)
+  const factoryType = ts.functionType()
+  const parametersType = ts.tupleType()
+
+  for (const param of query.parameters) {
+    const paramType = getInputType(param.typ)
+    factoryType.addParameter(ts.parameter(param.name, paramType))
+    parametersType.add(ts.tupleItem(paramType).setName(param.name))
+    if (param.documentation) {
+      doc.addText(`@param ${param.name} ${param.documentation}`)
+    } else {
+      doc.addText(`@param ${param.name}`)
+    }
+  }
+  factoryType.setReturnType(
+    ts
+      .namedType('$runtime.Types.TypedSql')
+      .addGenericArgument(ts.namedType(`${query.name}.Parameters`))
+      .addGenericArgument(ts.namedType(`${query.name}.Result`)),
+  )
+  file.add(ts.moduleExport(ts.constDeclaration(query.name, factoryType)).setDocComment(doc))
+
+  const namespace = ts.namespace(query.name)
+  namespace.add(ts.moduleExport(ts.typeDeclaration('Parameters', parametersType)))
+  namespace.add(buildResultType(query))
+  file.add(ts.moduleExport(namespace))
+  return ts.stringify(file)
+}
+
+function buildResultType(query: SqlQueryOutput) {
+  const type = ts
+    .objectType()
+    .addMultiple(query.resultColumns.map((column) => ts.property(column.name, getOutputType(column.typ))))
+  return ts.moduleExport(ts.typeDeclaration('Result', type))
+}
+
+export function buildTypedQueryCjs({ query, runtimeBase, runtimeName }: BuildTypedQueryOptions) {
+  const writer = new Writer(0, undefined)
+  writer.writeLine('"use strict"')
+  writer.writeLine(`const { makeTypedQueryFactory: $mkFactory } = require("${runtimeBase}/${runtimeName}")`)
+  // https://github.com/javascript-compiler-hints/compiler-notations-spec/blob/main/pure-notation-spec.md
+  writer.writeLine(`exports.${query.name} = /*#__PURE__*/ $mkFactory(${JSON.stringify(query.source)})`)
+  return writer.toString()
+}
+
+export function buildTypedQueryEsm({ query, runtimeBase, runtimeName }: BuildTypedQueryOptions) {
+  const writer = new Writer(0, undefined)
+  writer.writeLine(`import { makeTypedQueryFactory as $mkFactory } from "${runtimeBase}/${runtimeName}"`)
+  // https://github.com/javascript-compiler-hints/compiler-notations-spec/blob/main/pure-notation-spec.md
+  writer.writeLine(`export const ${query.name} = /*#__PURE__*/ $mkFactory(${JSON.stringify(query.source)})`)
+  return writer.toString()
+}

@@ -7,6 +7,7 @@ import type {
   DataSource,
   DMMF,
   GeneratorConfig,
+  SqlQueryOutput,
 } from '@prisma/generator-helper'
 import {
   assertNever,
@@ -31,7 +32,7 @@ import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
-import type { Dictionary } from './utils/common'
+import { buildTypedSql } from './typedSql/typedSql'
 
 const debug = Debug('prisma:client:generateClient')
 
@@ -69,10 +70,15 @@ export interface GenerateClientOptions {
   postinstall?: boolean
   /** When --no-engine is passed via CLI */
   copyEngine?: boolean
+  typedSql?: SqlQueryOutput[]
+}
+
+export interface FileMap {
+  [name: string]: string | FileMap
 }
 
 export interface BuildClientResult {
-  fileMap: Dictionary<string>
+  fileMap: FileMap
   prismaClientDmmf: PrismaClientDMMF.Document
 }
 
@@ -92,6 +98,7 @@ export async function buildClient({
   postinstall,
   copyEngine,
   envPaths,
+  typedSql,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
@@ -187,7 +194,7 @@ export async function buildClient({
   }
 
   // we store the generated contents here
-  const fileMap: Record<string, string> = {}
+  const fileMap: FileMap = {}
   fileMap['index.js'] = JS(nodeClient)
   fileMap['index.d.ts'] = TS(nodeClient)
   fileMap['default.js'] = JS(defaultClient)
@@ -287,12 +294,49 @@ export * from './edge.js'`
     fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
   }
 
+  if (typedSql && typedSql.length > 0) {
+    pkgJson.exports['./sql'] = {
+      require: {
+        types: './sql/index.d.ts',
+        node: './sql/index.js',
+        default: './sql/index.js',
+      },
+      import: {
+        types: './sql/index.d.ts',
+        node: './sql/index.mjs',
+        default: './sql/index.mjs',
+      },
+      default: './sql/index.js',
+    }
+    fileMap['sql'] = buildTypedSql({
+      dmmf,
+      runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
+      mainRuntimeName: getNodeRuntimeName(clientEngineType),
+      queries: typedSql,
+    })
+  }
   fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
 
   return {
     fileMap, // a map of file names to their contents
     prismaClientDmmf: dmmf, // the DMMF document
   }
+}
+
+// relativizes runtime import base for typed sql
+// absolute path stays unmodified, relative goes up a level
+function getTypedSqlRuntimeBase(runtimeBase: string) {
+  if (!runtimeBase.startsWith('.')) {
+    // absolute path
+    return runtimeBase
+  }
+
+  if (runtimeBase.startsWith('./')) {
+    // replace ./ with ../
+    return `.${runtimeBase}`
+  }
+
+  return `../${runtimeBase}`
 }
 
 // TODO: explore why we have a special case for excluding pnpm
@@ -337,6 +381,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     postinstall,
     envPaths,
     copyEngine = true,
+    typedSql,
   } = options
 
   const clientEngineType = getClientEngineType(generator)
@@ -358,6 +403,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     copyEngine,
     testMode,
     envPaths,
+    typedSql,
   })
 
   const provider = datasources[0].provider
@@ -387,17 +433,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await ensureDir(path.join(outputDir, 'deno'))
   }
 
-  await Promise.all(
-    Object.entries(fileMap).map(async ([fileName, file]) => {
-      const filePath = path.join(outputDir, fileName)
-      // The deletion of the file is necessary, so VSCode
-      // picks up the changes.
-      if (existsSync(filePath)) {
-        await fs.unlink(filePath)
-      }
-      await fs.writeFile(filePath, file)
-    }),
-  )
+  await writeFileMap(outputDir, fileMap)
 
   const runtimeDir = path.join(__dirname, `${testMode ? '../' : ''}../runtime`)
 
@@ -474,6 +510,25 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await fs.mkdir(prismaCache, { recursive: true })
     await fs.writeFile(signalsPath, Date.now().toString())
   } catch {}
+}
+
+function writeFileMap(outputDir: string, fileMap: FileMap) {
+  return Promise.all(
+    Object.entries(fileMap).map(async ([fileName, content]) => {
+      const absolutePath = path.join(outputDir, fileName)
+      // The deletion of the file is necessary, so VSCode
+      // picks up the changes.
+      await fs.rm(absolutePath, { recursive: true, force: true })
+      if (typeof content === 'string') {
+        // file
+        await fs.writeFile(absolutePath, content)
+      } else {
+        // subdirectory
+        await fs.mkdir(absolutePath)
+        await writeFileMap(absolutePath, content)
+      }
+    }),
+  )
 }
 
 function isWasmEngineSupported(provider: ConnectorType) {
