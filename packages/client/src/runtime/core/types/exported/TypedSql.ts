@@ -28,4 +28,6 @@ export class TypedSql<Values extends readonly unknown[], Result> {
 
 export type UnknownTypedSql = TypedSql<unknown[], unknown>
 
-export type TypedSqlResult<Sql extends UnknownTypedSql> = Sql[typeof PrivateResultType]
+export function makeTypedQueryFactory(sql: string) {
+  return (...values) => new TypedSql(sql, values)
+}

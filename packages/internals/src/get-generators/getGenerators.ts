@@ -2,7 +2,13 @@ import Debug from '@prisma/debug'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import type { DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
-import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
+import type {
+  BinaryTargetsEnvValue,
+  EngineType,
+  GeneratorConfig,
+  GeneratorOptions,
+  SqlQueryOutput,
+} from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
@@ -61,6 +67,7 @@ export type GetGeneratorOptions = {
   postinstall?: boolean
   noEngine?: boolean
   allowNoModels?: boolean
+  typedSql?: SqlQueryOutput[]
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -83,6 +90,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     postinstall,
     noEngine,
     allowNoModels,
+    typedSql,
   } = options
 
   if (!schemaPath) {
@@ -232,6 +240,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           noEngine,
           allowNoModels,
           envPaths,
+          typedSql,
         }
 
         // we set the options here a bit later after instantiating the Generator,

@@ -48,6 +48,7 @@ if (process.argv[1] === __filename) {
         activeProvider: options.datasources[0]?.activeProvider,
         postinstall: options.postinstall,
         copyEngine: !options.noEngine,
+        typedSql: options.typedSql,
       })
     },
   })
