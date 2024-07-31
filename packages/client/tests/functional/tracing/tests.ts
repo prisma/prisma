@@ -191,7 +191,7 @@ testMatrix.setupTestSuite(
 
     function engine(children: Tree[]) {
       return {
-        name: 'prisma:engine',
+        name: 'prisma:engine:query',
         children,
       }
     }
@@ -234,10 +234,18 @@ testMatrix.setupTestSuite(
       }
     }
 
+    function engineConnect() {
+      return { name: 'prisma:engine:connect', children: [engineConnection()] }
+    }
+
     function findManyDbQuery() {
       const statement = isMongoDb ? 'db.User.aggregate' : 'SELECT'
 
       return dbQuery(expect.stringContaining(statement))
+    }
+
+    function itxExecuteSingle(children: Tree[]) {
+      return { name: 'prisma:engine:itx_execute_single', children }
     }
 
     function createDbQueries(tx = true) {
@@ -516,7 +524,21 @@ testMatrix.setupTestSuite(
         let txQueries: Tree[] = []
 
         if (provider !== Providers.MONGODB) {
-          txQueries = [txBegin(), txCommit()]
+          txQueries = [
+            {
+              name: 'prisma:engine:commit_transaction',
+              children: [
+                {
+                  name: 'prisma:engine:itx_commit',
+                  children: [txCommit()],
+                },
+              ],
+            },
+            {
+              name: 'prisma:engine:start_transaction',
+              children: [engineConnection(), txBegin()],
+            },
+          ]
         }
 
         // skipping on data proxy because the functionality is broken
@@ -530,25 +552,21 @@ testMatrix.setupTestSuite(
               method: '$transaction',
             },
             children: [
-              operation('User', 'create', [clientSerialize()]),
-              operation('User', 'findMany', [clientSerialize()]),
-
-              {
-                name: 'prisma:engine:itx_runner',
-                attributes: { itx_id: expect.any(String) },
-                children: [
-                  engineConnection(),
-                  ...txQueries,
-                  {
-                    name: 'prisma:engine:itx_query_builder',
-                    children: [...createDbQueries(false), engineSerializeQueryResult()],
-                  },
-                  {
-                    name: 'prisma:engine:itx_query_builder',
-                    children: [findManyDbQuery(), engineSerializeQueryResult()],
-                  },
-                ],
-              },
+              operation('User', 'create', [
+                clientSerialize(),
+                engine([
+                  itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
+                  ...engineSerializeFinalResponse(),
+                ]),
+              ]),
+              operation('User', 'findMany', [
+                clientSerialize(),
+                engine([
+                  itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
+                  ...engineSerializeFinalResponse(),
+                ]),
+              ]),
+              ...txQueries,
             ],
           })
         }
@@ -681,7 +699,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'findMany', [
-            { name: 'prisma:client:connect' },
+            { name: 'prisma:client:connect', children: [engineConnect()] },
             clientSerialize(),
             engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
