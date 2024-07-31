@@ -1,4 +1,24 @@
-export function cleanArg(arg: unknown): unknown {
+import type { ArgType } from '@prisma/driver-adapter-utils'
+
+// Sanitize the query arguments before sending them to the database.
+export function cleanArg(arg: unknown, argType: ArgType | null): unknown {
+  if (argType === 'Int64') {
+    const asInt56 = Number.parseInt(arg as string)
+    if (Number.isNaN(asInt56) || Number.MAX_SAFE_INTEGER < asInt56 || Number.MIN_SAFE_INTEGER > asInt56) {
+      throw new Error(`Invalid Int64-encoded value received: ${arg}`)
+    }
+
+    return asInt56
+  }
+
+  if (argType === 'Int32') {
+    return Number.parseInt(arg as string)
+  }
+
+  if (argType === 'Float' || argType === 'Double') {
+    return Number.parseFloat(arg as string)
+  }
+
   // * Hack for booleans, we must convert them to 0/1.
   // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
   if (arg === true) {
@@ -11,10 +31,6 @@ export function cleanArg(arg: unknown): unknown {
 
   if (arg instanceof Uint8Array) {
     return Array.from(arg)
-  }
-
-  if (typeof arg === 'bigint') {
-    return String(arg)
   }
 
   return arg

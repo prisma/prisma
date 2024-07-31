@@ -28,9 +28,12 @@ export interface ResultSet {
   lastInsertId?: string
 }
 
+export type ArgType = 'Int32' | 'Int64' | 'Float' | 'Double' | 'Boolean'
+
 export type Query = {
   sql: string
   args: Array<unknown>
+  arg_types: Array<ArgType | null>
 }
 
 export type Error =

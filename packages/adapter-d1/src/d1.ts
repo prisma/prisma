@@ -86,7 +86,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
 
   private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
     try {
-      query.args = query.args.map((arg) => cleanArg(arg))
+      query.args = query.args.map((arg, i) => cleanArg(arg, query.arg_types[i]))
 
       const stmt = this.client.prepare(query.sql).bind(...query.args)
 
