@@ -226,8 +226,8 @@ importers:
         version: 0.5.0
     devDependencies:
       '@libsql/client':
-        specifier: 0.6.2
-        version: 0.6.2
+        specifier: 0.8.0
+        version: 0.8.0
 
   packages/adapter-neon:
     dependencies:
@@ -335,8 +335,8 @@ importers:
   packages/bundle-size:
     dependencies:
       '@libsql/client':
-        specifier: 0.6.2
-        version: 0.6.2
+        specifier: 0.8.0
+        version: 0.8.0
       '@neondatabase/serverless':
         specifier: 0.9.3
         version: 0.9.3
@@ -380,8 +380,8 @@ importers:
   packages/bundled-js-drivers:
     dependencies:
       '@libsql/client':
-        specifier: 0.6.2
-        version: 0.6.2
+        specifier: 0.8.0
+        version: 0.8.0
       '@neondatabase/serverless':
         specifier: 0.9.3
         version: 0.9.3
@@ -561,8 +561,8 @@ importers:
         specifier: 29.7.0
         version: 29.7.0
       '@libsql/client':
-        specifier: 0.6.2
-        version: 0.6.2
+        specifier: 0.8.0
+        version: 0.8.0
       '@neondatabase/serverless':
         specifier: 0.9.3
         version: 0.9.3
@@ -3346,19 +3346,20 @@ packages:
       tslib: 2.6.2
     dev: true
 
-  /@libsql/client@0.6.2:
-    resolution: {integrity: sha512-xRNfRLv/dOCbV4qd+M0baQwGmvuZpMd2wG2UAPs8XmcdaPvu5ErkcaeITkxlm3hDEJVabQM1cFhMBxsugWW9fQ==}
+  /@libsql/client@0.8.0:
+    resolution: {integrity: sha512-ncx6p2wsaZtCAbRJCIkaTO14ya18qFYLJ1yTm5zHgwd9mlcvgenG4imSgJy2zNrKJkeyr1wzD+80jNqI7nCYoA==}
     dependencies:
-      '@libsql/core': 0.6.2
-      '@libsql/hrana-client': 0.6.0
+      '@libsql/core': 0.8.0
+      '@libsql/hrana-client': 0.6.2
       js-base64: 3.7.5
       libsql: 0.3.10
+      promise-limit: 2.7.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  /@libsql/core@0.6.2:
-    resolution: {integrity: sha512-c2P4M+4u/4b2L02A0KjggO3UW51rGkhxr/7fzJO0fEAqsqrWGxuNj2YtRkina/oxfYvAof6xjp8RucNoIV/Odw==}
+  /@libsql/core@0.8.0:
+    resolution: {integrity: sha512-Bqs7bKfUNwm8NTLfKPbI4WME+3BTEBeDZTec0b9XZQ9hvjM4YlGXKKCuIDm8ECUYx4Mb1Gc0X14pm2/4r6ImdA==}
     dependencies:
       js-base64: 3.7.5
 
@@ -3376,8 +3377,8 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@libsql/hrana-client@0.6.0:
-    resolution: {integrity: sha512-k+fqzdjqg3IvWfKmVJK5StsbjeTcyNAXFelUbXbGNz3yH1gEVT9mZ6kmhsIXP30ZSyVV0AE1Gi25p82mxC9hwg==}
+  /@libsql/hrana-client@0.6.2:
+    resolution: {integrity: sha512-MWxgD7mXLNf9FXXiM0bc90wCjZSpErWKr5mGza7ERy2FJNNMXd7JIOv+DepBA1FQTIfI8TFO4/QDYgaQC0goNw==}
     dependencies:
       '@libsql/isomorphic-fetch': 0.2.1
       '@libsql/isomorphic-ws': 0.1.5
@@ -7287,7 +7288,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8567,7 +8567,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -10078,6 +10078,9 @@ packages:
         optional: true
     dev: true
     optional: true
+
+  /promise-limit@2.7.0:
+    resolution: {integrity: sha512-7nJ6v5lnJsXwGprnGXga4wx6d1POjvi5Qmf1ivTRxTjH4Z/9Czja/UCMLVmB9N93GeWOU93XaFaEt6jbuoagNw==}
 
   /promise-retry@2.0.1:
     resolution: {integrity: sha512-y+WKFlBR8BGXnsNlIHFGPZmyDf3DFMoLhaflAnyZgV6rG6xu+JwesTo2Q9R6XwYmtmwAFCkAk3e35jEdoeh/3g==}
