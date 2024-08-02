@@ -12,7 +12,7 @@ import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
-import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
+import { getTestSuiteFolderPath, getTestSuiteSchemaPath, testSuiteHasTypedSql } from './getTestSuiteInfo'
 import { AdapterProviders, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta } from './types'
@@ -33,6 +33,9 @@ export async function setupTestSuiteFiles({
 
   // we copy the minimum amount of files needed for the test suite
   await fs.copy(path.join(suiteMeta.testRoot, 'prisma'), path.join(suiteFolder, 'prisma'))
+  if (await testSuiteHasTypedSql(suiteMeta)) {
+    await fs.copy(suiteMeta.sqlPath, path.join(suiteFolder, 'prisma', 'sql'))
+  }
   await fs.mkdir(path.join(suiteFolder, suiteMeta.rootRelativeTestDir), { recursive: true })
   await copyPreprocessed({
     from: suiteMeta.testPath,

@@ -15,7 +15,7 @@ import {
   getPayloadName,
 } from '../utils'
 import { lowerCase } from '../utils/common'
-import { runtimeImport } from '../utils/runtimeImport'
+import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
@@ -310,7 +310,7 @@ function queryRawTypedDefinition(context: GenerateContext) {
     return '' // https://github.com/prisma/prisma/issues/8189
   }
 
-  const param = ts.genericParameter('T') //.extends(ts.namedType('$Types.UnknownTypedSql'))
+  const param = ts.genericParameter('T')
   // TODO: add jsdoc
   const method = ts
     .method('$queryRawTyped')
@@ -318,8 +318,7 @@ function queryRawTypedDefinition(context: GenerateContext) {
     .addParameter(
       ts.parameter(
         'typedSql',
-        ts
-          .namedType('$Types.TypedSql')
+        runtimeImportedType('TypedSql')
           .addGenericArgument(ts.array(ts.unknownType))
           .addGenericArgument(param.toArgument()),
       ),

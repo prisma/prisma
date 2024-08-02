@@ -31,7 +31,7 @@ export function buildTypedQueryTs({ query, runtimeBase, runtimeName }: BuildType
   }
   factoryType.setReturnType(
     ts
-      .namedType('$runtime.Types.TypedSql')
+      .namedType('$runtime.TypedSql')
       .addGenericArgument(ts.namedType(`${query.name}.Parameters`))
       .addGenericArgument(ts.namedType(`${query.name}.Result`)),
   )
