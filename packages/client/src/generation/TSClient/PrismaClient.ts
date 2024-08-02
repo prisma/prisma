@@ -101,12 +101,12 @@ function payloadToResult(modelName: string) {
 }
 
 function clientTypeMapOthersDefinition(context: GenerateContext) {
-  const otherOperationsNames = context.dmmf.getOtherOperationNames().flatMap((n) => {
-    if (n === 'executeRaw' || n === 'queryRaw') {
-      return [`$${n}Unsafe`, `$${n}`]
+  const otherOperationsNames = context.dmmf.getOtherOperationNames().flatMap((name) => {
+    if (name === 'executeRaw' || name === 'queryRaw') {
+      return [`$${name}Unsafe`, `$${name}`]
     }
 
-    return `$${n}`
+    return `$${name}`
   })
 
   const argsResultMap = {
@@ -305,15 +305,27 @@ function executeRawDefinition(context: GenerateContext) {
 }
 
 function queryRawTypedDefinition(context: GenerateContext) {
-  // TODO: check preview feature
+  if (!context.isPreviewFeatureOn('typedSql')) {
+    return ''
+  }
   if (!context.dmmf.mappings.otherOperations.write.includes('queryRaw')) {
-    return '' // https://github.com/prisma/prisma/issues/8189
+    return ''
   }
 
   const param = ts.genericParameter('T')
-  // TODO: add jsdoc
   const method = ts
     .method('$queryRawTyped')
+    .setDocComment(
+      ts.docComment`
+        Executes a typed SQL query and returns a typed result
+        @example
+        \`\`\`
+        import { myQuery } from '@prisma/client/sql'
+
+        const result = await prisma.$queryRawTyped(myQuery())
+        \`\`\`
+      `,
+    )
     .addGenericParameter(param)
     .addParameter(
       ts.parameter(
