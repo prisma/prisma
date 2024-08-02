@@ -108,9 +108,16 @@
       "default": "./generator-build/index.js"
     },
     "./sql": {
-      "types": "./sql.d.ts",
-      "require": "./sql.js",
-      "import": "./sql.mjs",
+      "require": {
+        "types": "./sql.d.ts",
+        "node": "./sql.js",
+        "default": "./sql.js"
+      },
+      "import": {
+        "types": "./sql.d.ts",
+        "node": "./sql.mjs",
+        "default": "./sql.mjs"
+      },
       "default": "./sql.js"
     },
     "./*": "./*"
