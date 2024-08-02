@@ -719,8 +719,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param typedSql
      */
     $queryRawTyped(typedSql: UnknownTypedSql) {
-      // TODO: check preview feature
       return this._createPrismaPromise((transaction) => {
+        if (!this._hasPreviewFlag('typedSql')) {
+          throw new PrismaClientValidationError(
+            '`typedSql` preview feature must be enabled in order to access $queryRawTyped API',
+            { clientVersion: this._clientVersion },
+          )
+        }
         return this.$queryRawInternal(transaction, '$queryRawTyped', typedSql)
       })
     }
