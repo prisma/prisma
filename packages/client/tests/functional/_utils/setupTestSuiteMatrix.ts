@@ -119,6 +119,8 @@ function setupTestSuiteMatrix(
           cfWorkerBindings,
         })
 
+        globalThis['loaded'] = clientModule
+
         const newDriverAdapter = () =>
           setupTestSuiteClientDriverAdapter({
             suiteConfig,
@@ -210,6 +212,7 @@ function setupTestSuiteMatrix(
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
+        delete globalThis['sql']
         delete globalThis['newPrismaClient']
       }, 180_000)
 
