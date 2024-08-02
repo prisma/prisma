@@ -15,7 +15,7 @@ export function buildTypedQueryTs({ query, runtimeBase, runtimeName }: BuildType
 
   file.addImport(ts.moduleImport(`${runtimeBase}/${runtimeName}`).asNamespace('$runtime'))
 
-  const doc = ts.docComment(query.documentation)
+  const doc = ts.docComment(query.documentation ?? undefined)
   const factoryType = ts.functionType()
   const parametersType = ts.tupleType()
 
