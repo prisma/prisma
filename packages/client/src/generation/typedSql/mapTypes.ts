@@ -10,17 +10,18 @@ type TypeMappingConfig = {
 const decimal = ts.namedType('$runtime.Decimal')
 const buffer = ts.namedType('Buffer')
 const date = ts.namedType('Date')
+const inputJsonValue = ts.namedType('$runtime.InputJsonObject')
+const jsonValue = ts.namedType('$runtime.JsonValue')
 
-const dateIn = ts.unionType([ts.stringType, date])
-const bigintInt = ts.unionType([ts.numberType, ts.stringType, ts.bigintType])
-const decimalIn = ts.unionType([ts.numberType, ts.stringType, decimal])
+const bigintIn = ts.unionType([ts.numberType, ts.bigintType])
+const decimalIn = ts.unionType([ts.numberType, decimal])
 
 const typeMappings: Record<QueryIntrospectionType, TypeMappingConfig | ts.TypeBuilder> = {
   unknown: ts.unknownType,
   string: ts.stringType,
   int: ts.numberType,
   bigint: {
-    in: bigintInt,
+    in: bigintIn,
     out: ts.bigintType,
   },
   decimal: {
@@ -33,47 +34,38 @@ const typeMappings: Record<QueryIntrospectionType, TypeMappingConfig | ts.TypeBu
   bytes: buffer,
   bool: ts.booleanType,
   char: ts.stringType,
-  json: ts.stringType,
+  json: {
+    in: inputJsonValue,
+    out: jsonValue,
+  },
   xml: ts.stringType,
   uuid: ts.stringType,
-  date: {
-    in: dateIn,
-    out: date,
-  },
-  datetime: {
-    in: dateIn,
-    out: date,
-  },
-  time: {
-    in: dateIn,
-    out: date,
-  },
+  date: date,
+  datetime: date,
+  time: date,
   'int-array': ts.array(ts.numberType),
   'string-array': ts.array(ts.stringType),
-  'json-array': ts.array(ts.stringType),
+  'json-array': {
+    in: ts.array(inputJsonValue),
+    out: ts.array(jsonValue),
+  },
   'uuid-array': ts.array(ts.stringType),
   'xml-array': ts.array(ts.stringType),
-  'bigint-array': ts.array(bigintInt),
+  'bigint-array': {
+    in: ts.array(bigintIn),
+    out: ts.array(ts.bigintType),
+  },
   'float-array': ts.array(ts.numberType),
   'double-array': ts.array(ts.numberType),
   'char-array': ts.array(ts.stringType),
   'bytes-array': ts.array(buffer),
   'bool-array': ts.array(ts.booleanType),
-  'date-array': {
-    in: ts.array(dateIn),
-    out: date,
-  },
-  'time-array': {
-    in: ts.array(dateIn),
-    out: date,
-  },
-  'datetime-array': {
-    in: ts.array(dateIn),
-    out: date,
-  },
+  'date-array': ts.array(date),
+  'time-array': ts.array(date),
+  'datetime-array': ts.array(date),
   'decimal-array': {
     in: ts.array(decimalIn),
-    out: decimal,
+    out: ts.array(decimal),
   },
 }
 

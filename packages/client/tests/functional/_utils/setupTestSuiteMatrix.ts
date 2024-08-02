@@ -108,7 +108,7 @@ function setupTestSuiteMatrix(
           cfWorkerBindings = env
         }
 
-        globalThis['loaded'] = await setupTestSuiteClient({
+        const [clientModule, sqlModule] = await setupTestSuiteClient({
           cliMeta,
           suiteMeta,
           suiteConfig,
@@ -128,7 +128,7 @@ function setupTestSuiteMatrix(
           })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const { PrismaClient, Prisma } = globalThis['loaded']
+          const { PrismaClient, Prisma } = clientModule
 
           const options = { ...newDriverAdapter(), ...args }
           const client = new PrismaClient(options)
@@ -143,7 +143,9 @@ function setupTestSuiteMatrix(
           globalThis['prisma'] = globalThis['newPrismaClient']() as Client
         }
 
-        globalThis['Prisma'] = (await global['loaded'])['Prisma']
+        globalThis['Prisma'] = clientModule['Prisma']
+
+        globalThis['sql'] = sqlModule
 
         globalThis['db'] = {
           setupDb: () =>

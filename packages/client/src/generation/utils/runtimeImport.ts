@@ -1,3 +1,5 @@
+import * as ts from '../ts-builders'
+
 type RuntimeExports = typeof import('../../runtime')
 
 /**
@@ -8,4 +10,8 @@ type RuntimeExports = typeof import('../../runtime')
  */
 export function runtimeImport(name: keyof RuntimeExports): string {
   return name
+}
+
+export function runtimeImportedType(name: keyof RuntimeExports): ts.NamedType {
+  return ts.namedType(`runtime.${name}`)
 }

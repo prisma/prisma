@@ -1,0 +1,1 @@
+SELECT `date` FROM `TestModel` WHERE id = ?

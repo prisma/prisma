@@ -17,6 +17,9 @@ function serializeRawParametersInternal(parameters: any[], objectSerialization: 
 }
 
 function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): unknown {
+  if (Array.isArray(parameter)) {
+    return parameter.map((item) => encodeParameter(item, objectSerialization))
+  }
   if (typeof parameter === 'bigint') {
     return {
       prisma__type: 'bigint',

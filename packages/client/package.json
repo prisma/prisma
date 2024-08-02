@@ -107,6 +107,12 @@
       "import": "./generator-build/index.js",
       "default": "./generator-build/index.js"
     },
+    "./sql": {
+      "types": "./sql.d.ts",
+      "require": "./sql.js",
+      "import": "./sql.mjs",
+      "default": "./sql.js"
+    },
     "./*": "./*"
   },
   "license": "Apache-2.0",
