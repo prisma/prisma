@@ -135,7 +135,7 @@ export type GeneratorManifest = {
 export type SqlQueryOutput = {
   name: string
   source: string
-  documentation: string
+  documentation: string | null
   parameters: SqlQueryParameterOutput[]
   resultColumns: SqlQueryColumnOutput[]
 }
@@ -144,7 +144,7 @@ export type SqlQueryParameterOutput = {
   name: string
   query: string
   typ: QueryIntrospectionType
-  documentation?: string
+  documentation: string | null
 }
 
 export type SqlQueryColumnOutput = {
