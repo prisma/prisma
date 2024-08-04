@@ -89,7 +89,8 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
 
   const dirname = eval('__dirname') as string
   const searchLocations: string[] = [
-    config.dirname, // generation directory
+    config.dirname, // directory that contains node_modules/.prisma/client
+    dirname, // generation directory
     path.resolve(dirname, '..'), // generation directory one level up
     config.generator?.output?.value ?? dirname, // custom generator local path
     path.resolve(dirname, '../../../.prisma/client'), // dot prisma node_modules ???
