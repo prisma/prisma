@@ -11,6 +11,12 @@ test('name and type', () => {
   expect(stringify(prop)).toMatchInlineSnapshot(`"foo: A"`)
 })
 
+test('invalid identifier', () => {
+  const prop = property('this is not a valid JS identifier', A)
+
+  expect(stringify(prop)).toMatchInlineSnapshot(`"["this is not a valid JS identifier"]: A"`)
+})
+
 test('optional', () => {
   const prop = property('foo', A).optional()
 

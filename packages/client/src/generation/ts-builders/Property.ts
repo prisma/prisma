@@ -1,3 +1,5 @@
+import isIdentifier from 'is-identifier'
+
 import { BasicBuilder } from './BasicBuilder'
 import { DocComment } from './DocComment'
 import { TypeBuilder } from './TypeBuilder'
@@ -32,7 +34,11 @@ export class Property implements BasicBuilder {
     if (this.isReadonly) {
       writer.write('readonly ')
     }
-    writer.write(this.name)
+    if (isIdentifier(this.name)) {
+      writer.write(this.name)
+    } else {
+      writer.write('[').write(JSON.stringify(this.name)).write(']')
+    }
     if (this.isOptional) {
       writer.write('?')
     }
