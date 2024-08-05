@@ -28,6 +28,9 @@ async function readTypedSqlFiles(schemaPath: string): Promise<TypedSQLInput[]> {
     if (!isIdentifier(name)) {
       throw new Error(`${absPath} can not be used as a typed sql query: name must be a valid JS identifier`)
     }
+    if (name.startsWith('$')) {
+      throw new Error(`${absPath} can not be used as a typed sql query: name must not start with $`)
+    }
     const source = await fs.readFile(path.join(sqlPath, fileName), 'utf8')
     results.push({
       name,

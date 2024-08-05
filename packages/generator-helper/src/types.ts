@@ -143,13 +143,15 @@ export type SqlQueryOutput = {
 export type SqlQueryParameterOutput = {
   name: string
   query: string
-  typ: QueryIntrospectionType
+  // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
+  typ: string
   documentation: string | null
 }
 
 export type SqlQueryColumnOutput = {
   name: string
-  typ: QueryIntrospectionType
+  // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
+  typ: string
 }
 
 export type QueryIntrospectionType =

@@ -1,6 +1,7 @@
 import { QueryIntrospectionType } from '@prisma/generator-helper'
 
 import * as ts from '../ts-builders'
+import { DbEnumsList } from './buildDbEnums'
 
 type TypeMappingConfig = {
   in: ts.TypeBuilder
@@ -69,16 +70,23 @@ const typeMappings: Record<QueryIntrospectionType, TypeMappingConfig | ts.TypeBu
   },
 }
 
-export function getInputType(introspectionType: QueryIntrospectionType): ts.TypeBuilder {
-  return getMappingConfig(introspectionType).in
+export function getInputType(introspectionType: string, enums: DbEnumsList): ts.TypeBuilder {
+  return getMappingConfig(introspectionType, enums).in
 }
 
-export function getOutputType(introspectionType: QueryIntrospectionType): ts.TypeBuilder {
-  return getMappingConfig(introspectionType).out
+export function getOutputType(introspectionType: string, enums: DbEnumsList): ts.TypeBuilder {
+  return getMappingConfig(introspectionType, enums).out
 }
 
-function getMappingConfig(introspectionType: QueryIntrospectionType) {
+function getMappingConfig(introspectionType: string, enums: DbEnumsList) {
   const config = typeMappings[introspectionType]
+  if (!config) {
+    if (enums.hasEnum(introspectionType)) {
+      const type = ts.namedType(`$DbEnums.${introspectionType}`)
+      return { in: type, out: type }
+    }
+    throw new Error('Unknown type')
+  }
   if (config instanceof ts.TypeBuilder) {
     return { in: config, out: config }
   }

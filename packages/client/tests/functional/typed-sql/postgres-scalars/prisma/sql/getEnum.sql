@@ -1,0 +1,1 @@
+SELECT "enum" FROM "public"."TestModel" WHERE id = $1

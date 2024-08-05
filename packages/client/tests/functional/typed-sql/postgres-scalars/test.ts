@@ -86,6 +86,18 @@ testMatrix.setupTestSuite(
       expect(result[0].id).toEqual(id)
     })
 
+    test('enum - output', async () => {
+      const result = await prisma.$queryRawTyped(sql.getEnum(id))
+      expect(result[0].enum).toEqual('ONE')
+      expectTypeOf(result[0].enum).toEqualTypeOf<'ONE' | 'TWO'>()
+      expectTypeOf(result[0].enum).toEqualTypeOf<Sql.$DbEnums.Enum>()
+    })
+
+    test('enum - input', async () => {
+      const result = await prisma.$queryRawTyped(sql.findEnum('ONE'))
+      expect(result[0].id).toEqual(id)
+    })
+
     test('BigInt - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBigInt(id))
       expect(result[0].bigInt).toEqual(bigInt)
