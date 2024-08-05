@@ -167,7 +167,10 @@
     "default.d.ts",
     "index-browser.js",
     "extension.js",
-    "extension.d.ts"
+    "extension.d.ts",
+    "sql.d.ts",
+    "sql.js",
+    "sql.mjs"
   ],
   "devDependencies": {
     "@cloudflare/workers-types": "4.20240614.0",
