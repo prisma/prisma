@@ -572,6 +572,19 @@ describe('using cli', () => {
 
     expect(data.stdout).toContain(`I am a minimal generator`)
   }, 75_000) // timeout
+
+  it("doesn't work with nested unsupported in composite type", async () => {
+    ctx.fixture('composite-panic')
+    const result = ctx.cli('generate')
+    // This points to: fn map_scalar_input_type()
+    await expect(result).rejects.toThrow(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          `panicked at 'internal error: entered unreachable code: No unsupported field should reach that path'`,
+        ),
+      }),
+    )
+  })
 })
 
 describe('--schema from project directory', () => {
