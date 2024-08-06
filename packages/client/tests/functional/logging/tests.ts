@@ -8,7 +8,7 @@ import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(({ provider }) => {
+testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
   const isMongoDb = provider === Providers.MONGODB
 
   let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
@@ -47,7 +47,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     }
   })
 
-  test('should log queries inside a ITX', async () => {
+  // D1: iTx are not available.
+  skipTestIf(driverAdapter === 'js_d1')('should log queries inside a ITX', async () => {
     client = newPrismaClient({
       log: [
         {
@@ -100,9 +101,11 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(logs[1].query).toContain('User.aggregate')
       expect(logs[2].query).toContain('User.aggregate')
     } else {
-      // Since https://github.com/prisma/prisma-engines/pull/4041
-      // We skip a read when possible, on CockroachDB and PostgreSQL
-      if (['postgresql', 'cockroachdb'].includes(provider)) {
+      // - Since https://github.com/prisma/prisma-engines/pull/4041,
+      //   we skip a read when possible, on CockroachDB and PostgreSQL.
+      // - Since https://github.com/prisma/prisma-engines/pull/4640,
+      //   we also skip a read when possible, on SQLite.
+      if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
         expect(logs).toHaveLength(4)
         expect(logs[0].query).toContain('BEGIN')
         expect(logs[1].query).toContain('INSERT')
@@ -119,7 +122,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     }
   })
 
-  test('should log batched queries inside a ITX', async () => {
+  // D1: iTx are not available.
+  skipTestIf(driverAdapter === 'js_d1')('should log batched queries inside a ITX', async () => {
     client = newPrismaClient({
       log: [
         {

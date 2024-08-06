@@ -159,7 +159,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: "MongoDB doesn't support raw queries",
     },
   },

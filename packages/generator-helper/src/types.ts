@@ -28,17 +28,28 @@ export namespace JsonRPC {
   }
 }
 
-export type Dictionary<T> = { [key: string]: T | undefined }
-
 export interface GeneratorConfig {
   name: string
   output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
-  config: Dictionary<string | string[]>
+  config: {
+    /** `output` is a reserved name and will only be available directly at `generator.output` */
+    output?: never
+    /** `provider` is a reserved name and will only be available directly at `generator.provider` */
+    provider?: never
+    /** `binaryTargets` is a reserved name and will only be available directly at `generator.binaryTargets` */
+    binaryTargets?: never
+    /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
+    previewFeatures?: never
+  } & {
+    [key: string]: string | string[] | undefined
+  }
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
+  envPaths?: EnvPaths
+  sourceFilePath: string
 }
 
 export interface EnvValue {
@@ -61,23 +72,28 @@ export type ConnectorType =
   | 'sqlserver'
   | 'cockroachdb'
 
-  // TODO: this should be removed in favor of `'sqlserver'`, as per `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "sqlserver"`
-  // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
-  | 'jdbc:sqlserver'
+export type ActiveConnectorType = Exclude<ConnectorType, 'postgres'>
 
 export interface DataSource {
   name: string
   provider: ConnectorType
-  activeProvider: ConnectorType
+  // In Rust, this comes from `Connector::provider_name()`
+  activeProvider: ActiveConnectorType
   url: EnvValue
   directUrl?: EnvValue
   schemas: string[] | []
+  sourceFilePath: string
 }
 
 export type BinaryPaths = {
   schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
+}
+
+export type EnvPaths = {
+  rootEnvPath: string | null
+  schemaEnvPath: string | undefined
 }
 
 /** The options passed to the generator implementations */
@@ -95,6 +111,9 @@ export type GeneratorOptions = {
   binaryPaths?: BinaryPaths
   postinstall?: boolean
   noEngine?: boolean
+  noHints?: boolean
+  allowNoModels?: boolean
+  envPaths?: EnvPaths
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'

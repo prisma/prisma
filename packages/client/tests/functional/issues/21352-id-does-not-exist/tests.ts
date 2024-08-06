@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -38,7 +39,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Only SQL databases were affected by regression #21352',
     },
   },

@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`reintrospection - no changes 2`] = `
+"Prisma schema loaded from prisma/schema
+
+Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
+
+
+
+- Introspecting based on datasource defined in prisma/schema
+
+✔ Introspected 2 models and wrote them into prisma/schema in XXXms
+      
+Run prisma generate to generate Prisma Client.
+"
+`;
+
+exports[`reintrospection - with --print 2`] = `
+"// prisma/schema/Blog.prisma
+model Blog {
+  id          Int  @id @default(autoincrement())
+  viewCount20 Int
+  ownerId     Int
+  owner       User @relation(fields: [ownerId], references: [id])
+}
+
+
+// prisma/schema/config.prisma
+generator client {
+  provider        = "prisma-client-js"
+  output          = "@prisma/client"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+datasource my_db {
+  provider = "sqlite"
+  url      = "file:../dev.db"
+}
+
+
+// prisma/schema/User.prisma
+model User {
+  id    Int    @id @default(autoincrement())
+  blogs Blog[]
+}
+
+"
+`;

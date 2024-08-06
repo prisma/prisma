@@ -10,7 +10,9 @@ declare let Prisma: typeof $.Prisma
 
 // ported from: blog
 testMatrix.setupTestSuite(
-  ({ provider, providerFlavor }) => {
+  ({ provider, driverAdapter }) => {
+    const isD1DriverAdapter = driverAdapter === 'js_d1'
+
     beforeAll(async () => {
       await prisma.user.create({
         data: {
@@ -51,7 +53,7 @@ testMatrix.setupTestSuite(
         postgresql: [{ '?column?': 1 }],
         cockroachdb: [{ '?column?': BigInt('1') }],
         mysql: [{ '1': BigInt('1') }],
-        sqlite: [{ '1': BigInt('1') }],
+        sqlite: [{ '1': isD1DriverAdapter ? 1 : BigInt('1') }],
         sqlserver: [{ '': 1 }],
       }
 
@@ -59,8 +61,8 @@ testMatrix.setupTestSuite(
         js_planetscale: [{ ':vtg1 /* INT64 */': BigInt('1') }],
       }
 
-      if (providerFlavor && resultsByDriverAdapter[providerFlavor]) {
-        expect(result).toStrictEqual(resultsByDriverAdapter[providerFlavor])
+      if (driverAdapter && resultsByDriverAdapter[driverAdapter]) {
+        expect(result).toStrictEqual(resultsByDriverAdapter[driverAdapter])
       } else {
         expect(result).toStrictEqual(results[provider])
       }
@@ -75,7 +77,7 @@ testMatrix.setupTestSuite(
         postgresql: [{ number: 1 }],
         cockroachdb: [{ number: BigInt('1') }],
         mysql: [{ number: BigInt('1') }],
-        sqlite: [{ number: BigInt('1') }],
+        sqlite: [{ number: isD1DriverAdapter ? 1 : BigInt('1') }],
         sqlserver: [{ number: 1 }],
       }
 
@@ -86,11 +88,12 @@ testMatrix.setupTestSuite(
       const result: any = await prisma.$queryRaw`
         SELECT 1 as "number"
       `
+
       const results = {
         postgresql: [{ number: 1 }],
         cockroachdb: [{ number: BigInt('1') }],
         mysql: [{ number: BigInt('1') }],
-        sqlite: [{ number: BigInt('1') }],
+        sqlite: [{ number: isD1DriverAdapter ? 1 : BigInt('1') }],
         sqlserver: [{ number: 1 }],
       }
 
@@ -107,7 +110,7 @@ testMatrix.setupTestSuite(
         postgresql: [{ '?column?': 1 }],
         cockroachdb: [{ '?column?': BigInt('1') }],
         mysql: [{ '1': BigInt('1') }],
-        sqlite: [{ '1': BigInt('1') }],
+        sqlite: [{ '1': isD1DriverAdapter ? 1 : BigInt('1') }],
         sqlserver: [{ '': 1 }],
       }
 
@@ -115,8 +118,8 @@ testMatrix.setupTestSuite(
         js_planetscale: [{ ':vtg1 /* INT64 */': BigInt('1') }],
       }
 
-      if (providerFlavor && resultsByDriverAdapter[providerFlavor]) {
-        expect(result).toStrictEqual(resultsByDriverAdapter[providerFlavor])
+      if (driverAdapter && resultsByDriverAdapter[driverAdapter]) {
+        expect(result).toStrictEqual(resultsByDriverAdapter[driverAdapter])
       } else {
         expect(result).toStrictEqual(results[provider])
       }
@@ -139,16 +142,16 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 60,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-            name: null,
+            "age": 60,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
+            "name": null,
           },
           {
-            age: 45,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-            name: null,
+            "age": 45,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
+            "name": null,
           },
         ]
       `)
@@ -169,16 +172,16 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 60,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-            name: null,
+            "age": 60,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
+            "name": null,
           },
           {
-            age: 45,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-            name: null,
+            "age": 45,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
+            "name": null,
           },
         ]
       `)
@@ -201,16 +204,16 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 60,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
-            name: null,
+            "age": 60,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
+            "name": null,
           },
           {
-            age: 45,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
-            name: null,
+            "age": 45,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
+            "name": null,
           },
         ]
       `)
@@ -242,14 +245,14 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 60,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
+            "age": 60,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
           },
           {
-            age: 45,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
+            "age": 45,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
           },
         ]
       `)
@@ -281,14 +284,14 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            age: 60,
-            email: Kyla_Beer587@fraternise-assassination.name,
-            id: a7fe5dac91ab6b0f529430c5,
+            "age": 60,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "id": "a7fe5dac91ab6b0f529430c5",
           },
           {
-            age: 45,
-            email: Sam.Mills50272@oozeastronomy.net,
-            id: a85d5d75a3a886cb61eb3a0e,
+            "age": 45,
+            "email": "Sam.Mills50272@oozeastronomy.net",
+            "id": "a85d5d75a3a886cb61eb3a0e",
           },
         ]
       `)
@@ -296,7 +299,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'MongoDB does not support raw queries',
     },
   },

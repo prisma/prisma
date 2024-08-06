@@ -25,16 +25,24 @@ export const defaultSchema = (props?: {
   generatorProvider?: string
   previewFeatures?: string[]
   output?: string
+  withModel?: boolean
 }) => {
   const {
     datasourceProvider = 'postgresql',
     generatorProvider = defaultGeneratorProvider,
     previewFeatures = defaultPreviewFeatures,
     output = defaultOutput,
+    withModel = false,
   } = props || {}
-  return `// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+  const aboutAccelerate = `\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n`
+
+  const isProviderCompatibleWithAccelerate = datasourceProvider !== 'sqlite'
+
+  let schema = `// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+${isProviderCompatibleWithAccelerate ? aboutAccelerate : ''}
 generator client {
   provider = "${generatorProvider}"
 ${
@@ -48,6 +56,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 `
+
+  // We add a model to the schema file if the user passed the --with-model flag
+  if (withModel) {
+    const defaultAttributes = `email String  @unique
+  name  String?`
+
+    switch (datasourceProvider) {
+      case 'mongodb':
+        schema += `
+model User {
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  ${defaultAttributes}
+}
+`
+        break
+      case 'cockroachdb':
+        schema += `
+model User {
+  id    BigInt  @id @default(sequence())
+  ${defaultAttributes}
+}
+`
+        break
+      default:
+        schema += `
+model User {
+  id    Int     @id @default(autoincrement())
+  ${defaultAttributes}
+}
+`
+    }
+  }
+
+  return schema
 }
 
 export const defaultEnv = (
@@ -65,8 +107,8 @@ export const defaultEnv = (
   return env
 }
 
-export const defaultPort = (provider: ConnectorType) => {
-  switch (provider) {
+export const defaultPort = (datasourceProvider: ConnectorType) => {
+  switch (datasourceProvider) {
     case 'mysql':
       return 3306
     case 'sqlserver':
@@ -82,8 +124,12 @@ export const defaultPort = (provider: ConnectorType) => {
   return undefined
 }
 
-export const defaultURL = (provider: ConnectorType, port = defaultPort(provider), schema = 'public') => {
-  switch (provider) {
+export const defaultURL = (
+  datasourceProvider: ConnectorType,
+  port = defaultPort(datasourceProvider),
+  schema = 'public',
+) => {
+  switch (datasourceProvider) {
     case 'postgresql':
       return `postgresql://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
     case 'cockroachdb':
@@ -92,8 +138,6 @@ export const defaultURL = (provider: ConnectorType, port = defaultPort(provider)
       return `mysql://johndoe:randompassword@localhost:${port}/mydb`
     case 'sqlserver':
       return `sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
-    case 'jdbc:sqlserver':
-      return `jdbc:sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
     case 'mongodb':
       return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
     case 'sqlite':
@@ -127,6 +171,7 @@ export class Init implements Command {
   ${bold('Usage')}
 
     ${dim('$')} prisma init [options]
+
   ${bold('Options')}
     
              -h, --help   Display this help message
@@ -135,6 +180,10 @@ export class Init implements Command {
       --preview-feature   Define a preview feature to use.
                --output   Define Prisma Client generator output path to use.
                   --url   Define a custom datasource url
+
+  ${bold('Flags')}
+
+           --with-model   Add example model to created schema file
 
   ${bold('Examples')}
 
@@ -155,9 +204,11 @@ export class Init implements Command {
   
   Set up a new Prisma project and specify the url that will be used
     ${dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
+
+  Set up a new Prisma project with an example model
+    ${dim('$')} prisma init --with-model
   `)
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async parse(argv: string[]): Promise<any> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -167,6 +218,7 @@ export class Init implements Command {
       '--generator-provider': String,
       '--preview-feature': [String],
       '--output': String,
+      '--with-model': Boolean,
     })
 
     if (isError(args) || args['--help']) {
@@ -214,22 +266,28 @@ export class Init implements Command {
       process.exit(1)
     }
 
-    const { provider, url } = await match(args)
+    const { datasourceProvider, url } = await match(args)
       .with(
         {
-          '--datasource-provider': P.when((provider): provider is string => Boolean(provider)),
+          '--datasource-provider': P.when((datasourceProvider): datasourceProvider is string =>
+            Boolean(datasourceProvider),
+          ),
         },
         (input) => {
-          const providerLowercase = input['--datasource-provider'].toLowerCase()
-          if (!['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb'].includes(providerLowercase)) {
+          const datasourceProviderLowercase = input['--datasource-provider'].toLowerCase()
+          if (
+            !['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb'].includes(
+              datasourceProviderLowercase,
+            )
+          ) {
             throw new Error(
               `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
             )
           }
-          const provider = providerLowercase as ConnectorType
-          const url = defaultURL(provider)
+          const datasourceProvider = datasourceProviderLowercase as ConnectorType
+          const url = defaultURL(datasourceProvider)
           return Promise.resolve({
-            provider,
+            datasourceProvider,
             url,
           })
         },
@@ -254,14 +312,14 @@ export class Init implements Command {
             }
           }
 
-          const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
-          return { provider, url }
+          const datasourceProvider = protocolToConnectorType(`${url.split(':')[0]}:`)
+          return { datasourceProvider, url }
         },
       )
       .otherwise(() => {
         // Default to PostgreSQL
         return Promise.resolve({
-          provider: 'postgresql' as ConnectorType,
+          datasourceProvider: 'postgresql' as ConnectorType,
           url: undefined,
         })
       })
@@ -284,10 +342,11 @@ export class Init implements Command {
     fs.writeFileSync(
       path.join(prismaFolder, 'schema.prisma'),
       defaultSchema({
-        datasourceProvider: provider,
+        datasourceProvider,
         generatorProvider,
         previewFeatures,
         output,
+        withModel: args['--with-model'],
       }),
     )
 
@@ -326,7 +385,7 @@ export class Init implements Command {
 
     const steps: string[] = []
 
-    if (provider === 'mongodb') {
+    if (datasourceProvider === 'mongodb') {
       steps.push(`Define models in the schema.prisma file.`)
     } else {
       steps.push(
@@ -338,6 +397,12 @@ export class Init implements Command {
       `Run ${green(
         getCommandWithExecutor('prisma generate'),
       )} to generate the Prisma Client. You can then start querying your database.`,
+    )
+
+    steps.push(
+      `Tip: Explore how you can extend the ${green(
+        'ORM',
+      )} with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm`,
     )
 
     if (!url || args['--datasource-provider']) {

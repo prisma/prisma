@@ -7,6 +7,26 @@ export function getSelectName(modelName: string): string {
   return `${modelName}Select`
 }
 
+export function getSelectCreateManyAndReturnName(modelName: string): string {
+  return `${modelName}SelectCreateManyAndReturn`
+}
+
+export function getIncludeName(modelName: string): string {
+  return `${modelName}Include`
+}
+
+export function getIncludeCreateManyAndReturnName(modelName: string): string {
+  return `${modelName}IncludeCreateManyAndReturn`
+}
+
+export function getCreateManyAndReturnOutputType(modelName: string): string {
+  return `CreateMany${modelName}AndReturnOutputType`
+}
+
+export function getOmitName(modelName: string): string {
+  return `${modelName}Omit`
+}
+
 export function getAggregateName(modelName: string): string {
   return `Aggregate${capitalize(modelName)}`
 }
@@ -63,10 +83,6 @@ export function getAggregateScalarGetName(modelName: string): string {
   return `Get${capitalize(modelName)}AggregateScalarType`
 }
 
-export function getIncludeName(modelName: string): string {
-  return `${modelName}Include`
-}
-
 export function getFieldArgName(field: DMMF.SchemaField, modelName: string): string {
   if (field.args.length) {
     return getModelFieldArgsName(field, modelName)
@@ -113,6 +129,8 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
       return `${modelName}CreateArgs`
     case DMMF.ModelAction.createMany:
       return `${modelName}CreateManyArgs`
+    case DMMF.ModelAction.createManyAndReturn:
+      return `${modelName}CreateManyAndReturnArgs`
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
     case DMMF.ModelAction.groupBy:
@@ -126,7 +144,7 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
     case DMMF.ModelAction.aggregateRaw:
       return `${modelName}AggregateRawArgs`
     default:
-      assertNever(action, 'Unknown action')
+      assertNever(action, `Unknown action: ${action}`)
   }
 }
 
@@ -143,87 +161,6 @@ export function getFieldRefsTypeName(name: string) {
 
 export function getType(name: string, isList: boolean, isOptional?: boolean): string {
   return name + (isList ? '[]' : '') + (isOptional ? ' | null' : '')
-}
-
-interface SelectReturnTypeOptions {
-  name: string
-  actionName: DMMF.ModelAction
-  renderPromise?: boolean
-  hideCondition?: boolean
-  isChaining?: boolean
-  fieldName?: string
-  isNullable?: boolean
-}
-
-/**
- * Get the complicated extract output
- * @param name Model name
- * @param actionName action name
- */
-export function getReturnType({
-  name,
-  actionName,
-  renderPromise = true,
-  hideCondition = false,
-  isChaining = false,
-  isNullable = false,
-}: SelectReturnTypeOptions): string {
-  if (actionName === DMMF.ModelAction.count) {
-    return `Promise<number>`
-  }
-  if (actionName === DMMF.ModelAction.aggregate) return `Promise<${getAggregateGetName(name)}<T>>`
-
-  if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
-    return `Prisma.PrismaPromise<JsonObject>`
-  }
-
-  const isList = actionName === DMMF.ModelAction.findMany
-
-  if (
-    actionName === DMMF.ModelAction.deleteMany ||
-    actionName === DMMF.ModelAction.updateMany ||
-    actionName === DMMF.ModelAction.createMany
-  ) {
-    return `Prisma.PrismaPromise<BatchPayload>`
-  }
-
-  /**
-   * Important: We handle findMany or isList special, as we don't want chaining from there
-   */
-  if (isList || hideCondition) {
-    const promiseOpen = renderPromise ? 'Prisma.PrismaPromise<' : ''
-    const promiseClose = renderPromise ? '>' : ''
-
-    return `${promiseOpen}$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>${
-      isChaining ? ' | Null' : ''
-    }${promiseClose}`
-  }
-
-  if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
-    return `Prisma__${name}Client<${getType(
-      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-      isList,
-    )} | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
-  }
-
-  if (actionName === DMMF.ModelAction.findFirstOrThrow || actionName === DMMF.ModelAction.findUniqueOrThrow) {
-    return `Prisma__${name}Client<${getType(
-      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-      isList,
-    )}, never, ExtArgs>`
-  }
-
-  if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
-    return `Prisma__${name}Client<${getType(
-      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-      isList,
-    )} | null, null, ExtArgs>`
-  }
-
-  return `Prisma__${name}Client<${getType(
-    `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-    isList,
-  )}, never, ExtArgs>`
 }
 
 export function capitalize(str: string): string {

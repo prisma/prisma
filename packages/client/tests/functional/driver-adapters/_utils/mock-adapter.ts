@@ -15,6 +15,7 @@ export const mockAdapterErrors = {
 export function mockAdapter(provider: Provider): DriverAdapter {
   return {
     provider: getDriverAdaptersProvider(provider),
+    adapterName: getDriverAdaptersProvider(provider),
     queryRaw: () => Promise.reject(mockAdapterErrors.queryRaw),
     executeRaw: () => Promise.reject(mockAdapterErrors.executeRaw),
     startTransaction: () => Promise.reject(mockAdapterErrors.startTransaction),

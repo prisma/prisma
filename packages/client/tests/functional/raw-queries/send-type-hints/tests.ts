@@ -78,7 +78,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: '$queryRaw only works on SQL based providers',
     },
     skipDataProxy: {
@@ -90,9 +90,8 @@ testMatrix.setupTestSuite(
         query results.
       `,
     },
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'All buffer assertions fail with different binary data',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', 'All buffer assertions fail with different binary data')
     },
   },
 )

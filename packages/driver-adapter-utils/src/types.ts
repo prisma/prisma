@@ -23,7 +23,7 @@ export interface ResultSet {
 
   /**
    * The last ID of an `INSERT` statement, if any.
-   * This is required for `AUTO_INCREMENT` columns in MySQL and SQLite-flavoured databases.
+   * This is required for `AUTO_INCREMENT` columns in databases based on MySQL and SQLite.
    */
   lastInsertId?: string
 }
@@ -68,10 +68,24 @@ export type Error =
 
 export type ConnectionInfo = {
   schemaName?: string
+  maxBindValues?: number
 }
+
+// Current list of official Prisma adapters
+// This list might get outdated over time.
+// It's only used for auto-completion.
+const officialPrismaAdapters = [
+  '@prisma/adapter-planetscale',
+  '@prisma/adapter-neon',
+  '@prisma/adapter-libsql',
+  '@prisma/adapter-d1',
+  '@prisma/adapter-pg',
+  '@prisma/adapter-pg-worker',
+] as const
 
 export interface Queryable {
   readonly provider: 'mysql' | 'postgres' | 'sqlite'
+  readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
@@ -93,7 +107,7 @@ export interface Queryable {
 
 export interface DriverAdapter extends Queryable {
   /**
-   * Starts new transation.
+   * Starts new transaction.
    */
   startTransaction(): Promise<Result<Transaction>>
 

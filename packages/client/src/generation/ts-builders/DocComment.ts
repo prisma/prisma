@@ -25,18 +25,26 @@ export class DocComment implements BasicBuilder {
   }
 }
 
-function docComment(strings: TemplateStringsArray): DocComment
+function docComment(strings: TemplateStringsArray, ...args: string[]): DocComment
 function docComment(startingText?: string): DocComment
-function docComment(firstParameter: string | TemplateStringsArray | undefined): DocComment {
+function docComment(firstParameter: string | TemplateStringsArray | undefined, ...args: string[]): DocComment {
   if (typeof firstParameter === 'string' || typeof firstParameter === 'undefined') {
     return new DocComment(firstParameter)
   }
-  return docCommentTag(firstParameter)
+  return docCommentTag(firstParameter, args)
 }
 
-function docCommentTag(strings: TemplateStringsArray) {
+function docCommentTag(strings: TemplateStringsArray, args: string[]) {
   const docComment = new DocComment()
-  const lines = trimEmptyLines(strings.join('').split('\n'))
+  const fullText = strings
+    .flatMap((str, i) => {
+      if (i < args.length) {
+        return [str, args[i]]
+      }
+      return [str]
+    })
+    .join('')
+  const lines = trimEmptyLines(fullText.split('\n'))
   if (lines.length === 0) {
     return docComment
   }

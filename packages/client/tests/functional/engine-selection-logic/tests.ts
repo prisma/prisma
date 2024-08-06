@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, suiteMeta, clientMeta) => {
+  ({ provider, driverAdapter }, suiteMeta, clientMeta) => {
     const OLD_ENV = process.env
 
     beforeEach(() => {
@@ -28,21 +28,13 @@ testMatrix.setupTestSuite(
 
           // proof that the correct engine is used
           await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-            `Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\``,
+            `"Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\`"`,
           )
         },
       )
 
-      // test that we can pass a prisma:// url when the tests is not run as a dataproxy
-      // TODO: fails with Diagnostics { errors: [DatamodelError { span: Span {
-      // start: 372, end: 402 }, message: "Error validating datasource `db`: the
-      // URL must start with the protocol `postgresql://` or
-      // `postgres://`.\n\nTo use a URL with protocol `prisma://`, you need to
-      // either enable Accelerate or the Data Proxy.\nEnable Accelerate via
-      // `prisma generate --accelerate` or the Data Proxy via `prisma generate
-      // --data-proxy.`\n\nMore information about Data Proxy:
-      // https://pris.ly/d/data-proxy\n" }], warnings: [] }
-      skipTestIf(clientMeta.dataProxy || engineType === 'wasm')(
+      // driver adapters cannot be used along with accelerate
+      skipTestIf(clientMeta.dataProxy || Boolean(driverAdapter))(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
           process.env[`DATABASE_URI_${provider}`] = 'prisma://localhost:5432/db'
@@ -52,7 +44,7 @@ testMatrix.setupTestSuite(
 
           // proof that the correct engine is used
           await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-            `Error validating datasource \`db\`: the URL must contain a valid API key`,
+            `"Error validating datasource \`db\`: the URL must contain a valid API key"`,
           )
         },
       )
@@ -73,21 +65,13 @@ testMatrix.setupTestSuite(
 
           // proof that the correct engine is used
           await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-            `Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\``,
+            `"Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\`"`,
           )
         },
       )
 
-      // test that we can pass a prisma:// url when the tests is not run as a dataproxy
-      // TODO: fails with Diagnostics { errors: [DatamodelError { span: Span {
-      // start: 372, end: 402 }, message: "Error validating datasource `db`: the
-      // URL must start with the protocol `postgresql://` or
-      // `postgres://`.\n\nTo use a URL with protocol `prisma://`, you need to
-      // either enable Accelerate or the Data Proxy.\nEnable Accelerate via
-      // `prisma generate --accelerate` or the Data Proxy via `prisma generate
-      // --data-proxy.`\n\nMore information about Data Proxy:
-      // https://pris.ly/d/data-proxy\n" }], warnings: [] }
-      skipTestIf(clientMeta.dataProxy || engineType === 'wasm')(
+      // driver adapters cannot be used along with accelerate
+      skipTestIf(clientMeta.dataProxy || Boolean(driverAdapter))(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
           const prisma = newPrismaClient({
@@ -101,7 +85,7 @@ testMatrix.setupTestSuite(
 
           // proof that the correct engine is used
           await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-            `Error validating datasource \`db\`: the URL must contain a valid API key`,
+            `"Error validating datasource \`db\`: the URL must contain a valid API key"`,
           )
         },
       )

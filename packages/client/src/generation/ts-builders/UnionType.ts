@@ -3,6 +3,7 @@ import { Writer } from './Writer'
 
 export class UnionType<VariantType extends TypeBuilder = TypeBuilder> extends TypeBuilder {
   needsParenthesisWhenIndexed = true
+  needsParenthesisInKeyof = true
   readonly variants: VariantType[]
 
   constructor(firstType: VariantType) {
@@ -23,7 +24,13 @@ export class UnionType<VariantType extends TypeBuilder = TypeBuilder> extends Ty
   }
 
   write(writer: Writer): void {
-    writer.writeJoined(' | ', this.variants)
+    writer.writeJoined(' | ', this.variants, (variant, writer) => {
+      if (variant.needsParenthesisInUnion) {
+        writer.write('(').write(variant).write(')')
+      } else {
+        writer.write(variant)
+      }
+    })
   }
 
   mapVariants<NewVariantType extends TypeBuilder>(

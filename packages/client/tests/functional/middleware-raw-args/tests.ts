@@ -59,7 +59,7 @@ testMatrix.setupTestSuite(
 
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: `test for SQL databases only`,
     },
     skipDefaultClientInstance: true,

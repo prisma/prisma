@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import testMatrix from './_matrix'
 
@@ -35,7 +36,7 @@ async function createXItems({ count }) {
 }
 
 testMatrix.setupTestSuite(
-  ({ engineType, providerFlavor }) => {
+  ({ engineType, driverAdapter }) => {
     describe('original', () => {
       beforeEach(async () => {
         // The order is important here
@@ -144,7 +145,14 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [
+        Providers.MONGODB,
+        Providers.SQLSERVER,
+        Providers.MYSQL,
+        Providers.POSTGRESQL,
+        Providers.COCKROACHDB,
+        Providers.SQLITE,
+      ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
   },

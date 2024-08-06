@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers, RelationModes } from '../_utils/providers'
+import { AdapterProviders, Providers, RelationModes } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
@@ -51,7 +51,7 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
@@ -68,7 +68,7 @@ testMatrix.setupTestSuite(
     // Looking at CI results
     // 30s was often not enough for vitess
     // so we put it back to 60s for now in this case
-    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+    if (suiteConfig.driverAdapter === AdapterProviders.VITESS_8) {
       jest.setTimeout(60_000)
     }
 
@@ -141,6 +141,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
             )
@@ -195,45 +196,41 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(![Providers.SQLITE].includes(suiteConfig.provider))('not sqlite', () => {
-          // SQLite doesn't support createMany
-          test('[create] nested child [createMany]', async () => {
-            // @ts-test-if: provider !== Providers.SQLITE
-            await prisma[userModel].create({
-              data: {
-                id: '1',
-                posts: {
-                  createMany: {
-                    data: [{ id: '1' }, { id: '2' }],
-                  },
+        test('[create] nested child [createMany]', async () => {
+          await prisma[userModel].create({
+            data: {
+              id: '1',
+              posts: {
+                createMany: {
+                  data: [{ id: '1' }, { id: '2' }],
                 },
               },
-              include: { posts: true },
-            })
+            },
+            include: { posts: true },
+          })
 
-            expect(
-              await prisma[postModel].findMany({
-                where: { authorId: '1' },
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                authorId: '1',
-              },
-              {
-                id: '2',
-                authorId: '1',
-              },
-            ])
-            expect(
-              await prisma[userModel].findUniqueOrThrow({
-                where: { id: '1' },
-              }),
-            ).toEqual({
+          expect(
+            await prisma[postModel].findMany({
+              where: { authorId: '1' },
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
               id: '1',
-              enabled: null,
-            })
+              authorId: '1',
+            },
+            {
+              id: '2',
+              authorId: '1',
+            },
+          ])
+          expect(
+            await prisma[userModel].findUniqueOrThrow({
+              where: { id: '1' },
+            }),
+          ).toEqual({
+            id: '1',
+            enabled: null,
           })
         })
       })
@@ -372,7 +369,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [AdapterProviders.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                   }),
             )
@@ -541,6 +538,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
@@ -633,6 +631,7 @@ testMatrix.setupTestSuite(
                   [Providers.SQLSERVER]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                 },
                 prisma:
                   "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
@@ -864,7 +863,14 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [
+        Providers.MONGODB,
+        Providers.SQLSERVER,
+        Providers.MYSQL,
+        Providers.POSTGRESQL,
+        Providers.COCKROACHDB,
+        Providers.SQLITE,
+      ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
   },

@@ -6,7 +6,6 @@ import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { BinaryTarget } from './binaryTargets'
-import { link } from './link'
 import { warn } from './logger'
 
 const exec = promisify(cp.exec)
@@ -25,7 +24,7 @@ export type DistroInfo = {
   originalDistro?: string
 
   /**
-   * The family distro is the Linux distro name that is used to determine Linux flavors based on the same base distro, and likely using the same package manager.
+   * The family distro is the Linux distro name that is used to determine Linux families based on the same base distro, and likely using the same package manager.
    * E.g., both Ubuntu and Debian belong to the `debian` family of distros, and thus rely on the same package manager (`apt`).
    */
   familyDistro?: string
@@ -34,7 +33,17 @@ export type DistroInfo = {
    * The target distro is the Linux distro associated with the Prisma Engines.
    * E.g., on Arch Linux, Debian, and Ubuntu, the target distro is `debian`. On Linux Alpine, the target distro is `musl`.
    */
-  targetDistro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13' | 'freebsd14'
+  targetDistro?:
+    | 'rhel'
+    | 'debian'
+    | 'musl'
+    | 'arm'
+    | 'nixos'
+    | 'freebsd11'
+    | 'freebsd12'
+    | 'freebsd13'
+    | 'freebsd14'
+    | 'freebsd15'
 }
 type GetOsResultLinux = {
   platform: 'linux'
@@ -468,7 +477,7 @@ export function getBinaryTargetForCurrentPlatformInternal(args: GetOSResult): Bi
 
   if (platform === 'linux' && !['x64', 'arm64'].includes(arch)) {
     warn(
-      `Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".`,
+      `Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures (detected "${arch}" instead). If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".`,
     )
   }
 
@@ -496,12 +505,7 @@ ${additionalMessage}`,
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && targetDistro === undefined) {
-    warn(
-      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".
-Please report your experience by creating an issue at ${link(
-        'https://github.com/prisma/prisma/issues',
-      )} so we can add your distro to the list of known supported distros.`,
-    )
+    debug(`Distro is "${originalDistro}". Falling back to Prisma engines built for "${defaultDistro}".`)
   }
 
   // Apple Silicon (M1)

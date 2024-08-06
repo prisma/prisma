@@ -4,6 +4,9 @@ import * as matchers from 'jest-extended'
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
 import stripAnsi from 'strip-ansi'
 
+import { EnabledCallSite } from '../../../src/runtime/utils/CallSite'
+import { getTemplateParameters } from '../../../src/runtime/utils/createErrorMessageWithContext'
+
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
 expect.extend(matchers)
 
@@ -80,5 +83,13 @@ globalThis.testIf = (condition: boolean) => (condition && process.env.TEST_GENER
 globalThis.skipTestIf = (condition: boolean) => (condition || process.env.TEST_GENERATE_ONLY === 'true' ? skip : test)
 globalThis.describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 globalThis.testRepeat = testRepeat
+
+// @ts-ignore, a global variable that is injected by us to make our snapshots
+// work in clients that cannot read from disk (e.g. wasm or edge clients)
+globalThis.$getTemplateParameters = getTemplateParameters
+
+// @ts-ignore, a global variable that is injected by us to make our snapshots
+// work in clients that cannot read from disk (e.g. wasm or edge clients)
+globalThis.$EnabledCallSite = EnabledCallSite
 
 export {}

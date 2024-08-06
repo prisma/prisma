@@ -22,7 +22,7 @@ export default defineMatrix(() => [
       //
       // SQLite fails, only in Windows CI with
       // https://github.com/prisma/prisma/actions/runs/4068097706/jobs/7006246193
-      //   ● relationMode-17255-mixed-actions (relationMode=foreignKeys,provider=sqlite,providerFlavor=sqlite,onUpdate=Cascade,onDelete=Cascade,id=String @id) › original › [update] main with nested disconnect alice should succeed
+      //   ● relationMode-17255-mixed-actions (relationMode=foreignKeys,provider=sqlite,driverAdapter=sqlite,onUpdate=Cascade,onDelete=Cascade,id=String @id) › original › [update] main with nested disconnect alice should succeed
       // SQLite database error
       // unable to open database file
       //    0: sql_migration_connector::apply_migration::apply_migration

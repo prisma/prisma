@@ -2,13 +2,14 @@ import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/inte
 import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
+import path from 'path'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
-import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers } from '../../tests/functional/_utils/providers'
+import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
 
 const allProviders = new Set(Object.values(Providers))
-const allProviderFlavors = new Set(Object.values(ProviderFlavors))
+const allAdapterProviders = new Set(Object.values(AdapterProviders))
 
 // See https://jestjs.io/docs/cli
 // Not all Jest params are defined below
@@ -83,13 +84,13 @@ const args = arg(
     '--types-only': Boolean,
     // Generates all the clients to run the type tests
     '--generate-only': Boolean,
-    // Restrict the list of providers (does not run --flavor by default)
+    // Restrict the list of providers (does not run --adapter by default)
     '--provider': [String],
     '-p': '--provider',
     // Generate Data Proxy client and run tests using Mini-Proxy
     '--data-proxy': Boolean,
-    // Use edge client (requires --data-proxy)
-    '--edge-client': Boolean,
+    // Force using a specific client runtime under the hood
+    '--client-runtime': String,
     // Don't start the Mini-Proxy server and don't override NODE_EXTRA_CA_CERTS. You need to start the Mini-Proxy server
     // externally on the default port and run `eval $(mini-proxy env)` in your shell before starting the tests.
     '--no-mini-proxy-server': Boolean,
@@ -101,8 +102,8 @@ const args = arg(
     // Also the typescript tests fail and it might not be easily fixable
     // This flag is used for this purpose
     '--relation-mode-tests-only': Boolean,
-    // Run tests for specific provider flavors (and excludes regular provider tests)
-    '--flavor': [String],
+    // Run tests for specific provider adapters (and excludes regular provider tests)
+    '--adapter': [String],
     // Forces any given test to be run with `engineType=` binary, library, or wasm
     '--engine-type': String,
     // Forces any given test to be run with an *added* set of preview features, comma-separated
@@ -146,15 +147,28 @@ async function main(): Promise<number | void> {
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
   }
 
-  if (args['--flavor']) {
-    const providerFlavors = args['--flavor'] as ProviderFlavors[]
-    const unknownFlavors = providerFlavors.filter((flavor) => !allProviderFlavors.has(flavor))
+  if (args['--adapter']) {
+    const adapterProviders = args['--adapter'] as AdapterProviders[]
+    const unknownAdapterProviders = adapterProviders.filter(
+      (adapterProvider) => !allAdapterProviders.has(adapterProvider),
+    )
 
-    if (unknownFlavors.length > 0) {
-      throw new Error(`Unknown flavors: ${unknownFlavors.join(', ')}`)
+    if (unknownAdapterProviders.length > 0) {
+      const allAdaptersStr = Array.from(allAdapterProviders)
+        .map((provider) => `  - ${provider}`)
+        .join('\n')
+      throw new Error(
+        `Unknown adapter providers: ${unknownAdapterProviders.join(', ')}. Available options:\n${allAdaptersStr}\n\n`,
+      )
     }
 
-    if (providerFlavors.some(isDriverAdapterProviderFlavor)) {
+    if (adapterProviders.some(isDriverAdapterProviderLabel)) {
+      // Locally, running D1 tests accumulates a lot of data in the .wrangler directory.
+      // Because we cannot reset the database contents programmatically at the moment,
+      // deleting it is the easy way
+      // It makes local tests consistently fast and clean
+      fs.rmSync(path.join(__dirname, '..', '..', '.wrangler'), { recursive: true, force: true })
+
       jestCli = jestCli.withArgs(['--runInBand'])
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
@@ -164,12 +178,16 @@ async function main(): Promise<number | void> {
       }
     }
 
-    jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_FLAVORS: providerFlavors.join(',') })
+    jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_ADAPTERS: adapterProviders.join(',') })
   }
 
   if (args['--engine-type']) {
     jestCli = jestCli.withEnv({ TEST_ENGINE_TYPE: args['--engine-type'] })
     jestCli = jestCli.withEnv({ PRISMA_CLIENT_ENGINE_TYPE: '' })
+  }
+
+  if (args['--client-runtime']) {
+    jestCli = jestCli.withEnv({ TEST_CLIENT_RUNTIME: args['--client-runtime'] })
   }
 
   if (args['--data-proxy']) {
@@ -180,12 +198,6 @@ async function main(): Promise<number | void> {
     jestCli = jestCli.withEnv({
       TEST_DATA_PROXY: 'true',
     })
-
-    if (args['--edge-client']) {
-      jestCli = jestCli.withEnv({
-        TEST_DATA_PROXY_EDGE_CLIENT: 'true',
-      })
-    }
 
     if (!args['--no-mini-proxy-server']) {
       jestCli = jestCli.withEnv({
@@ -204,8 +216,8 @@ async function main(): Promise<number | void> {
     }
   }
 
-  if (args['--edge-client'] && !args['--data-proxy']) {
-    throw new Error('--edge-client is only available when --data-proxy is used')
+  if (args['--client-runtime'] === 'edge' && !args['--data-proxy']) {
+    throw new Error('--client-runtime=edge is only available when --data-proxy is used')
   }
 
   // See flag description above.
@@ -223,7 +235,9 @@ async function main(): Promise<number | void> {
 
   try {
     if (args['--updateSnapshot']) {
-      const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
+      const snapshotUpdate = jestCli
+        .withArgs(['-u'])
+        .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {

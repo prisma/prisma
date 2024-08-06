@@ -20,7 +20,7 @@ testMatrix.setupTestSuite(
       {
         provider: Providers.SQLITE
         id: 'Int @id @default(autoincrement())',
-        providerFeatures: '',
+        randomString: 'foo',
         previewFeatures: '"tracing"'
       }
     */
@@ -48,16 +48,16 @@ testMatrix.setupTestSuite(
     })
 
     test('getTestSuiteSchema', () => {
-      const schemaString = getTestSuiteSchema(
-        {
+      const schemaString = getTestSuiteSchema({
+        cliMeta: {
           dataProxy: false,
           engineType: 'library',
           runtime: 'node',
           previewFeatures: [],
         },
         suiteMeta,
-        suiteConfig,
-      )
+        matrixOptions: suiteConfig,
+      })
 
       expect(schemaString).toContain('generator')
       expect(schemaString).toContain('datasource')
@@ -78,9 +78,8 @@ testMatrix.setupTestSuite(
   //   },
   // },
   {
-    skipEngine: {
-      from: ['wasm'],
-      reason: 'Tracing preview feature creates a panic in the wasm engine',
+    skip(when, { clientRuntime }) {
+      when(clientRuntime === 'wasm', `Tracing preview feature creates a panic in the wasm engine`)
     },
   },
 )

@@ -1,0 +1,24 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Dog {
+  name           String
+  passportNumber Int
+  p              Puppy[]
+
+  @@id([name, passportNumber])
+}
+
+model Puppy {
+  id                   String @id
+  motherName           String
+  motherPassportNumber Int
+  mother               Dog    @relation(fields: [motherName, motherPassportNumber], references: [name, passportNumber])
+}

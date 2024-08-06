@@ -37,17 +37,17 @@ if (process.argv[1] === __filename) {
         schemaPath: options.schemaPath,
         binaryPaths: options.binaryPaths!,
         datasources: options.datasources,
+        envPaths: options.envPaths,
         outputDir,
-        copyRuntime: Boolean(options.generator.config.copyRuntime),
+        copyRuntime: Boolean(options.generator.config.copyRuntime), // TODO: is this needed/valid?
         copyRuntimeSourceMaps: Boolean(process.env.PRISMA_COPY_RUNTIME_SOURCEMAPS),
         dmmf: options.dmmf,
         generator: options.generator,
         engineVersion: options.version,
         clientVersion,
-        transpile: true,
         activeProvider: options.datasources[0]?.activeProvider,
         postinstall: options.postinstall,
-        noEngine: options.noEngine,
+        copyEngine: !options.noEngine,
       })
     },
   })

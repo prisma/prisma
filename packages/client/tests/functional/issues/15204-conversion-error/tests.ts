@@ -6,12 +6,13 @@ declare let prisma: PrismaClient
 
 // Regression test for https://github.com/prisma/prisma/issues/15204
 testMatrix.setupTestSuite(
-  ({ providerFlavor, fieldType }) => {
+  ({ driverAdapter, fieldType }) => {
     test('should return a descriptive error', async () => {
-      await prisma.$executeRaw`INSERT INTO "TestModel" ("id", "field") VALUES ("1", 1.84467440724388e+19)`
+      await prisma.$executeRaw`INSERT INTO "TestModel" ("id", "field") VALUES (1, 1.84467440724388e+19)`
 
-      if (providerFlavor === undefined) {
+      if (driverAdapter === undefined || driverAdapter === 'js_d1') {
         await expect(prisma.testModel.findMany()).rejects.toThrow(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           expect.objectContaining({
             code: 'P2023',
             message: expect.stringContaining(
@@ -21,6 +22,7 @@ testMatrix.setupTestSuite(
         )
       } else {
         await expect(prisma.testModel.findMany()).rejects.toThrow(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           expect.objectContaining({
             code: 'P2023',
             message: expect.stringContaining(

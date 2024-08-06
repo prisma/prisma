@@ -1,4 +1,4 @@
-# Welcome!
+# Welcome to Contributing to Prisma ORM!
 
 Welcome! You've arrived at our Contributing page and are now one step away from joining our quest to make databases easy. We're thankful for all your contributions, whether it's helping us find issues in our code, highlighting features we're missing, or contributing to the codebase. If you've found your way here, you'll soon be ready to join in the fun of building features and fixing bugs directly with us - and we're thrilled to have you on board!
 
@@ -25,7 +25,7 @@ Copy paste these commands to install the global dependencies:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 nvm install 18
-npm install --global pnpm@8 ts-node
+npm install --global pnpm@8.15.5 ts-node
 ```
 
 ## General Setup
@@ -45,7 +45,6 @@ pnpm -r run dev
 
 In the root directory:
 
-- `pnpm run setup` will install and build all the packages.
 - `pnpm -r run build` (-r for recursive) will build all the packages.
 - `pnpm -r run dev` (-r for recursive) will build all the packages, without running `tsc`.
 - `pnpm run watch` will continuously build any packages that have been modified, without running `tsc` (Fastest).
@@ -76,7 +75,7 @@ pnpm install
 # Ensure that the db and the schema are synced
 pnpm dbpush
 # Do some code changes, always re-generate the client, then try it out
-pnpm generate && pnpm dev
+pnpm generate && pnpm start
 ```
 
 To run the `index.ts` under debugger, do the following steps:
@@ -95,7 +94,7 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
 <details>
   <summary><b>Alternatives</b></summary>
   
-  #### Detailed steps for a locally-linked dev folder
+  #### Detailed steps for a manually creating a locally-linked sandbox
   ```sh
   cd sandbox
   mkdir my-repro
@@ -136,7 +135,7 @@ For an overview, adding, running tests & guidelines see [TESTING.md](./TESTING.m
 
 We have two kinds of integration tests:
 
-#### Prisma Client folder-based integration tests (`./client`)
+##### Prisma Client folder-based integration tests (`./client`)
 
 The integration tests consisting of mini projects are located in [`src/client/src/__tests__/integration`](./packages/client/src/__tests__/integration)
 
@@ -147,14 +146,14 @@ cd packages/client
 pnpm run test integration
 ```
 
-##### Creating a new folder-based integration test
+###### Creating a new folder-based integration test
 
 If you want to create a new one, we recommend to copy over the [minimal test](https://github.com/prisma/prisma/tree/main/packages/client/src/__tests__/integration/happy/minimal) and adjust it to your needs.
 It will give you an in-memory Prisma Client instance to use in the test. It utilizes the `getTestClient`) helper method.
 
 Sometimes you need an actual generated Client, that has been generated to the filesystem. In that case use `generateTestClient`. An example that uses this helper is the [blog example](https://github.com/prisma/prisma/tree/main/packages/client/src/__tests__/integration/happy/blog)
 
-#### General Client integration tests (`./integration-tests`)
+##### General Client integration tests (`./integration-tests`)
 
 The integration tests consisting of mini project are located in [`packages/integration-tests/src/__tests__/integration`](./packages/integration-tests/src/__tests__/integration)
 
@@ -169,9 +168,11 @@ pnpm run test
 
 ### First contribution
 
-1. `cd packages/migrate/fixtures/blog` it's a minimal project that can be used to try things out
-1. Then modify some code
-1. `../../src/bin.ts dev` for running `prisma migrate dev`
+The entrypoint for the Migrate CLI is the [`bin.ts`](./packages/migrate/src/bin.ts) file.
+
+1. `cd packages/migrate/fixtures/blog` - it's a minimal project that can be used to try things out
+2. Then modify some code
+3. `../../src/bin.ts migrate dev` for running `prisma migrate dev` command. (It will use `tsx`)
 
 > 💡 You can also test your changes in a reproduction project via the [CLI](#developing-prisma-cli).
 
@@ -229,7 +230,7 @@ When opening a PR these are the expectations before it can be merged:
   - If you are a Prismanaut, you can add `/integration` in the description to get a version released to npm to the `integration` tag, see [TESTING.md](./TESTING.md) for more details.
 - Tests are written and cover the changes.
 - `Lint` & `CLI commands` & `All pkgs (win+mac)` GitHub Actions workflows should be successful.
-- The reported bundle size of `packages/cli/build/index.js` in the `size-limit report 📦` comment in the PR needs stays below ~6MB. (The comment will be posted by the [bundle-size GitHub Action workflow](https://github.com/prisma/prisma/actions/workflows/bundle-size.yml) automatically.
+- The reported bundle size of `packages/cli/build/index.js` in the `size-limit report 📦` comment in the PR needs to stay below ~6MB. (The comment will be posted by the [bundle-size GitHub Action workflow](https://github.com/prisma/prisma/actions/workflows/bundle-size.yml) automatically.
   - Later once a dev version is published, the unpacked size of the CLI stays below ~16MB on [npm](https://www.npmjs.com/package/prisma).
 - There is a tracking issue or/and an open PR to update the [documentation](https://www.prisma.io/docs), especially the [Prisma CLI reference](https://www.prisma.io/docs/reference/api-reference/command-reference).
 

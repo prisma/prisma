@@ -1,5 +1,6 @@
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import { PrismaClient, Profile, User } from './node_modules/@prisma/client'
@@ -103,7 +104,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlite', 'postgresql', 'mysql', 'cockroachdb', 'sqlserver'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.SQLITE],
       reason: 'composites are mongo-only feature',
     },
   },

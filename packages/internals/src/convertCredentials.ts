@@ -157,8 +157,6 @@ function databaseTypeToProtocol(databaseType: ConnectorType) {
       return 'file:'
     case 'sqlserver':
       return 'sqlserver:'
-    case 'jdbc:sqlserver':
-      return 'jdbc:sqlserver:'
   }
 
   throw new Error(`Unknown databaseType ${databaseType}`)
@@ -182,7 +180,6 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
     case 'file:':
       return 'sqlite'
     case 'sqlserver:':
-    case 'jdbc:sqlserver:':
       return 'sqlserver'
   }
 

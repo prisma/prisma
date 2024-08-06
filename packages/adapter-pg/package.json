@@ -23,8 +23,9 @@
     "directory": "packages/adapter-pg"
   },
   "scripts": {
-    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
-    "build": "node -r esbuild-register helpers/build.ts"
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
+    "test": "jest"
   },
   "files": [
     "dist",
@@ -39,8 +40,12 @@
     "postgres-array": "3.0.2"
   },
   "devDependencies": {
-    "@types/pg": "8.10.9",
-    "pg": "8.11.3"
+    "@swc/core": "1.6.13",
+    "@swc/jest": "0.2.36",
+    "@types/pg": "8.11.6",
+    "jest": "29.7.0",
+    "jest-junit": "16.0.0",
+    "pg": "8.11.5"
   },
   "peerDependencies": {
     "pg": "^8.11.3"

@@ -114,7 +114,7 @@ describe('getConfig', () => {
     })
 
     expect(serialize(JSON.stringify(binaryConfig, null, 2))).toMatchInlineSnapshot(`
-      "{
+      ""{
         "generators": [
           {
             "name": "gen",
@@ -133,7 +133,8 @@ describe('getConfig', () => {
                 "native": true
               }
             ],
-            "previewFeatures": []
+            "previewFeatures": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "datasources": [
@@ -145,11 +146,12 @@ describe('getConfig', () => {
               "fromEnvVar": null,
               "value": "file:../hello.db"
             },
-            "schemas": []
+            "schemas": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "warnings": []
-      }"
+      }""
     `)
   })
   test('with engineType="library"', async () => {
@@ -173,7 +175,7 @@ describe('getConfig', () => {
     })
 
     expect(serialize(JSON.stringify(libraryConfig, null, 2))).toMatchInlineSnapshot(`
-      "{
+      ""{
         "generators": [
           {
             "name": "gen",
@@ -192,7 +194,8 @@ describe('getConfig', () => {
                 "native": true
               }
             ],
-            "previewFeatures": []
+            "previewFeatures": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "datasources": [
@@ -204,11 +207,12 @@ describe('getConfig', () => {
               "fromEnvVar": null,
               "value": "file:../hello.db"
             },
-            "schemas": []
+            "schemas": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "warnings": []
-      }"
+      }""
     `)
   })
 })

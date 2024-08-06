@@ -19,6 +19,7 @@ export type JsonQueryAction =
   | 'findMany'
   | 'createOne'
   | 'createMany'
+  | 'createManyAndReturn'
   | 'updateOne'
   | 'updateMany'
   | 'deleteOne'
@@ -33,7 +34,7 @@ export type JsonQueryAction =
   | 'aggregateRaw'
 
 export type JsonFieldSelection = {
-  arguments?: Record<string, JsonArgumentValue>
+  arguments?: Record<string, JsonArgumentValue> | RawTaggedValue
   selection: JsonSelectionSet
 }
 
@@ -49,7 +50,7 @@ export type JsonArgumentValue =
   | string
   | boolean
   | null
-  | JsonTaggedValue
+  | RawTaggedValue
   | JsonArgumentValue[]
   | { [key: string]: JsonArgumentValue }
 
@@ -60,6 +61,7 @@ export type BigIntTaggedValue = { $type: 'BigInt'; value: string }
 export type FieldRefTaggedValue = { $type: 'FieldRef'; value: { _ref: string; _container: string } }
 export type EnumTaggedValue = { $type: 'Enum'; value: string }
 export type JsonTaggedValue = { $type: 'Json'; value: string }
+export type RawTaggedValue = { $type: 'Raw'; value: unknown }
 
 export type JsonInputTaggedValue =
   | DateTaggedValue
@@ -69,6 +71,7 @@ export type JsonInputTaggedValue =
   | FieldRefTaggedValue
   | JsonTaggedValue
   | EnumTaggedValue
+  | RawTaggedValue
 
 export type JsonOutputTaggedValue =
   | DateTaggedValue

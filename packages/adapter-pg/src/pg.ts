@@ -11,9 +11,13 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
-import type pg from 'pg'
+// @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
+import pg from 'pg'
 
-import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { name as packageName } from '../package.json'
+import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+
+const types = pg.types
 
 const debug = Debug('prisma:driver-adapter:pg')
 
@@ -22,6 +26,7 @@ type TransactionClient = pg.PoolClient
 
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly provider = 'postgres'
+  readonly adapterName = packageName
 
   constructor(protected readonly client: ClientT) {}
 
@@ -83,12 +88,41 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const { sql, args: values } = query
 
     try {
-      const result = await this.client.query({ text: sql, values, rowMode: 'array' })
+      const result = await this.client.query(
+        {
+          text: sql,
+          values: fixArrayBufferValues(values),
+          rowMode: 'array',
+          types: {
+            // This is the error expected:
+            // No overload matches this call.
+            // The last overload gave the following error.
+            // Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
+            //   Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
+            //     Types of parameters 'json' and 'value' are incompatible.
+            //       Type 'Buffer' is not assignable to type 'string'.ts(2769)
+            //
+            // Because pg-types types expect us to handle both binary and text protocol versions,
+            // where as far we can see, pg will ever pass only text version.
+            //
+            // @ts-expect-error
+            getTypeParser: (oid: number, format?) => {
+              if (format === 'text' && customParsers[oid]) {
+                return customParsers[oid]
+              }
+
+              return types.getTypeParser(oid, format)
+            },
+          },
+        },
+        fixArrayBufferValues(values),
+      )
+
       return ok(result)
     } catch (e) {
       const error = e as Error
       debug('Error in performIO: %O', error)
-      if (e && e.code) {
+      if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
         return err({
           kind: 'Postgres',
           code: e.code,
@@ -130,6 +164,13 @@ export type PrismaPgOptions = {
 
 export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
   constructor(client: pg.Pool, private options?: PrismaPgOptions) {
+    if (!(client instanceof pg.Pool)) {
+      throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
+import { Pool } from 'pg'
+const pool = new Pool({ connectionString: url })
+const adapter = new PrismaPg(pool)
+`)
+    }
     super(client)
   }
 

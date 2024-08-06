@@ -4,18 +4,20 @@ import path from 'path'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
-import { isDriverAdapterProviderFlavor, ProviderFlavors, Providers, RelationModes } from './providers'
+import { AdapterProviders, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, CliMeta } from './types'
+import { ClientMeta, ClientRuntime, CliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
   matrixOptions: Record<string, string> & {
     provider: Providers
-    providerFlavor?: `${ProviderFlavors}`
+    driverAdapter?: `${AdapterProviders}`
     relationMode?: `${RelationModes}`
     engineType?: `${ClientEngineType}`
+    clientRuntime?: `${ClientRuntime}`
+    previewFeatures?: string[]
   }
 }
 
@@ -56,11 +58,14 @@ export function getTestSuitePreviewFeatures(schema: string): string[] {
 
 /**
  * Get the generated test suite path, where files will be copied to.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
+export function getTestSuiteFolderPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
   const generatedFolder = path.join(suiteMeta.prismaPath, '..', '.generated')
   const suiteName = getTestSuiteFullName(suiteMeta, suiteConfig)
   const suiteFolder = path.join(generatedFolder, suiteName)
@@ -70,12 +75,15 @@ export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
 
 /**
  * Get the generated test suite schema file path.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  const prismaFolder = getTestSuitePrismaPath(suiteMeta, suiteConfig)
+export function getTestSuiteSchemaPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
+  const prismaFolder = getTestSuitePrismaPath({ suiteMeta, suiteConfig })
   const schemaPath = path.join(prismaFolder, 'schema.prisma')
 
   return schemaPath
@@ -83,12 +91,15 @@ export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
 
 /**
  * Get the generated test suite prisma folder path.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+export function getTestSuitePrismaPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
+  const suiteFolder = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
   const prismaPath = path.join(suiteFolder, 'prisma')
 
   return prismaPath
@@ -141,8 +152,8 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
       // For `relationMode` tests
       // we hardcode how it looks like for test results
       if (config.relationMode !== undefined) {
-        const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
-        return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
+        const driverAdapterStr = config.driverAdapter === undefined ? '' : `driverAdapter=${config.driverAdapter},`
+        return `relationMode=${config.relationMode},provider=${config.provider},${driverAdapterStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
       } else {
         const firstKey = Object.keys(config)[0] // ! TODO this can actually produce incorrect tests and break type checks ! \\ Replace with hash
         return `${firstKey}=${config[firstKey]}`
@@ -153,15 +164,16 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
 
 /**
  * Inflate the base schema with a test suite config, used for schema generation.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteSchema(
-  cliMeta: CliMeta,
-  suiteMeta: TestSuiteMeta,
-  matrixOptions: NamedTestSuiteConfig['matrixOptions'],
-) {
+export function getTestSuiteSchema({
+  cliMeta,
+  suiteMeta,
+  matrixOptions,
+}: {
+  cliMeta: CliMeta
+  suiteMeta: TestSuiteMeta
+  matrixOptions: NamedTestSuiteConfig['matrixOptions']
+}) {
   let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
   const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
   const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
@@ -253,28 +265,28 @@ export function getTestSuiteMeta() {
  */
 export function getTestSuiteCliMeta(): CliMeta {
   const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
-  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+  const runtime = process.env.TEST_CLIENT_RUNTIME as ClientRuntime | undefined
+  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType | undefined
   const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
-  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType
-
-  if (edge && !dataProxy) {
-    throw new Error('Edge client requires Data Proxy')
-  }
 
   return {
     dataProxy,
-    runtime: edge ? 'edge' : 'node',
-    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
+    runtime: runtime ?? 'node',
     engineType: engineType ?? ClientEngineType.Library,
+    previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
   }
 }
 
 /**
  * Get `ClientMeta` information to be passed down into the test suite.
  */
-export function getTestSuiteClientMeta(suiteConfig: NamedTestSuiteConfig['matrixOptions']): ClientMeta {
+export function getTestSuiteClientMeta({
+  suiteConfig,
+}: {
+  suiteConfig: NamedTestSuiteConfig['matrixOptions']
+}): ClientMeta {
   return {
     ...getTestSuiteCliMeta(),
-    driverAdapter: isDriverAdapterProviderFlavor(suiteConfig.providerFlavor),
+    driverAdapter: isDriverAdapterProviderLabel(suiteConfig.driverAdapter),
   }
 }

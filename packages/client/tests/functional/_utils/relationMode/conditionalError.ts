@@ -1,16 +1,16 @@
 import { O } from 'ts-toolbelt'
 
-import { ProviderFlavors, Providers } from '../providers'
+import { AdapterProviders, Providers } from '../providers'
 
 type RelationMode = 'prisma' | 'foreignKeys'
 
 type Target = {
   provider: `${Providers}`
-  providerFlavor?: `${ProviderFlavors}`
+  driverAdapter?: `${AdapterProviders}`
   relationMode: `${RelationMode}`
 }
 
-type ConditionalErrorSnapshotErrors = O.AtLeast<Record<ProviderFlavors | Providers, string>> | string
+type ConditionalErrorSnapshotErrors = O.AtLeast<Record<AdapterProviders | Providers, string>> | string
 
 interface With<Supplied> {
   with<T extends Omit<Target, keyof Supplied>, K extends keyof T>(
@@ -32,7 +32,7 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
   }
 
   snapshot(errors: O.AtLeast<Record<RelationMode, ConditionalErrorSnapshotErrors>>) {
-    const { provider, providerFlavor, relationMode } = this.target as Target
+    const { provider, driverAdapter, relationMode } = this.target as Target
     const errorBase = errors[relationMode]
 
     if (typeof errorBase === 'string') {
@@ -43,9 +43,17 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
       return `TODO: add error for relationMode=${relationMode}`
     }
 
+    // The errors are exactly the same for SQLite and these driverAdapters
+    if (driverAdapter === 'js_d1' || driverAdapter === 'js_libsql') {
+      return (
+        errorBase['sqlite'] ||
+        `TODO: add error for provider=sqlite (which will be used for libSQL and D1 driver adapters snapshots)`
+      )
+    }
+
     return (
-      errorBase[providerFlavor ?? provider] ||
-      `TODO: add error for provider=${provider} and providerFlavor=${providerFlavor}`
+      errorBase[driverAdapter ?? provider] ||
+      `TODO: add error for provider=${provider} and driverAdapter=${driverAdapter}`
     )
   }
 }
@@ -56,13 +64,13 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
  * const conditionalError = ConditionalError
  *   .new()
  *   .with('provider', Providers.MYSQL)
- *   .with('providerFlavor', ProviderFlavors.VITESS_8)
+ *   .with('driverAdapter', AdapterProviders.VITESS_8)
  *   .with('relationMode', 'prisma')
  *
  * conditionalError.snapshot({
  *   foreignKeys: 'TODO add error with relationMode=foreignKeys',
  *   prisma: {
- *     [ProviderFlavors.VITESS_8]: 'TODO add error for provider=mysql and providerFlavor=vitess-8',
+ *     [AdapterProviders.VITESS_8]: 'TODO add error for provider=mysql and driverAdapter=vitess-8',
  *   }
  * })
  */

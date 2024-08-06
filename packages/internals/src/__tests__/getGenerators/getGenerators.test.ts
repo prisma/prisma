@@ -25,6 +25,15 @@ if (process.platform === 'win32') {
   generatorPath += '.cmd'
 }
 
+expect.addSnapshotSerializer({
+  test: (val) =>
+    val && typeof val === 'object' && typeof val['sourceFilePath'] === 'string' && path.isAbsolute(val.sourceFilePath),
+  serialize(val, config, indentation, depth, refs, printer) {
+    const newVal = { ...val, sourceFilePath: path.relative(__dirname, val.sourceFilePath) }
+    return printer(newVal, config, indentation, depth, refs)
+  },
+})
+
 describe('getGenerators', () => {
   test('basic', async () => {
     const aliases = {
@@ -78,6 +87,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -103,6 +113,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema.prisma",
       }
     `)
 
@@ -161,6 +172,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -187,6 +199,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets.prisma",
       }
     `)
 
@@ -252,6 +265,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -278,6 +292,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
       }
     `)
 
@@ -343,6 +358,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -369,6 +385,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
       }
     `)
 
@@ -435,6 +452,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -476,6 +494,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
       }
     `)
 
@@ -541,6 +560,7 @@ describe('getGenerators', () => {
             "name": "db",
             "provider": "sqlite",
             "schemas": [],
+            "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -566,6 +586,7 @@ describe('getGenerators', () => {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
+        "sourceFilePath": "valid-minimal-schema-binaryTargets-env-var.prisma",
       }
     `)
 
@@ -758,7 +779,7 @@ describe('getGenerators', () => {
   test('fail if no model(s) found - mongodb', async () => {
     expect.assertions(5)
     const aliases = {
-      'predefined-generator': {
+      'prisma-client-js': {
         generatorPath: generatorPath,
         outputPath: __dirname,
       },
@@ -822,5 +843,43 @@ describe('getGenerators', () => {
         `"The generator invalid_generator specified via --generator does not exist in your Prisma schema"`,
       )
     }
+  })
+
+  test('pass if no model(s) found but allow-no-models flag is passed - sqlite', async () => {
+    expect.assertions(1)
+
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+      providerAliases: aliases,
+      allowNoModels: true,
+    })
+
+    return expect(generators.length).toBeGreaterThanOrEqual(1)
+  })
+
+  test('pass if no model(s) found but allow-no-models flag is passed - mongodb', async () => {
+    expect.assertions(1)
+
+    const aliases = {
+      'prisma-client-js': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
+      providerAliases: aliases,
+      allowNoModels: true,
+    })
+
+    expect(generators.length).toBeGreaterThanOrEqual(1)
   })
 })

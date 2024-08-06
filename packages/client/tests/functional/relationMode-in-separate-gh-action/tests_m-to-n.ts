@@ -1,4 +1,4 @@
-import { ProviderFlavors, Providers, RelationModes } from '../_utils/providers'
+import { AdapterProviders, Providers, RelationModes } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
@@ -103,7 +103,7 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
@@ -118,7 +118,7 @@ testMatrix.setupTestSuite(
     // Looking at CI results
     // 30s was often not enough for vitess
     // so we put it back to 60s for now in this case
-    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+    if (suiteConfig.driverAdapter === AdapterProviders.VITESS_8) {
       jest.setTimeout(60_000)
     }
 
@@ -211,6 +211,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
             )
@@ -371,6 +372,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
             )
@@ -462,6 +464,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
             )
@@ -660,6 +663,7 @@ testMatrix.setupTestSuite(
                           : // NoAction
                             'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
@@ -707,6 +711,7 @@ testMatrix.setupTestSuite(
                           : // NoAction
                             'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
@@ -904,6 +909,7 @@ testMatrix.setupTestSuite(
                         [Providers.SQLSERVER]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                         [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                        [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                       },
                       prisma:
                         "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
@@ -942,6 +948,7 @@ testMatrix.setupTestSuite(
                         [Providers.SQLSERVER]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                         [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                        [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                       },
                       prisma:
                         "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
@@ -983,6 +990,7 @@ testMatrix.setupTestSuite(
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
@@ -1021,6 +1029,7 @@ testMatrix.setupTestSuite(
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
@@ -1156,7 +1165,14 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [
+        Providers.MONGODB,
+        Providers.SQLSERVER,
+        Providers.MYSQL,
+        Providers.POSTGRESQL,
+        Providers.COCKROACHDB,
+        Providers.SQLITE,
+      ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
   },
