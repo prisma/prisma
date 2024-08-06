@@ -35,19 +35,19 @@
       "automerge": true,
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch"],
-      "excludePackageNames": [
-        "@prisma/studio",
-        "@prisma/studio-server",
-        "checkpoint-client"
-      ],
-      "schedule": ["before 7am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"],
+      "matchPackageNames": [
+        "!@prisma/studio",
+        "!@prisma/studio-server",
+        "!checkpoint-client"
+      ]
     },
     {
       "groupName": "dependencies patch (non-major)",
       "matchDepTypes": ["dependencies"],
       "matchUpdateTypes": ["patch"],
-      "excludePackageNames": ["checkpoint-client"],
-      "schedule": ["before 7am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"],
+      "matchPackageNames": ["!checkpoint-client"]
     },
     {
       "groupName": "ESM devDependencies & dependencies (patch & minor)",
@@ -135,15 +135,15 @@
     {
       "groupName": "definitelyTyped",
       "automerge": true,
-      "matchPackagePatterns": ["^@types/"],
       "matchUpdateTypes": ["patch", "minor"],
-      "schedule": ["before 7am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"],
+      "matchPackageNames": ["/^@types//"]
     },
     {
       "groupName": "Jest",
       "automerge": true,
-      "matchPackagePatterns": [".*jest.*"],
-      "schedule": ["before 7am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"],
+      "matchPackageNames": ["/.*jest.*/"]
     },
     {
       "groupName": "sql-template-tag",
@@ -173,8 +173,8 @@
     },
     {
       "groupName": "opentelemetry packages",
-      "matchPackagePatterns": ["^@opentelemetry/"],
-      "schedule": ["before 7am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"],
+      "matchPackageNames": ["/^@opentelemetry//"]
     },
     {
       "groupName": "opentelemetry packages for instrumentation package",
@@ -188,14 +188,14 @@
     },
     {
       "groupName": "esbuild packages",
-      "matchPackagePatterns": ["^esbuild"],
-      "schedule": ["before 7am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"],
+      "matchPackageNames": ["/^esbuild/"]
     },
     {
       "groupName": "e2e tests",
-      "excludePackageNames": ["typescript", "prisma", "@prisma/client"],
       "matchFileNames": ["packages/client/tests/e2e/**"],
-      "schedule": ["before 7am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"],
+      "matchPackageNames": ["!typescript", "!prisma", "!@prisma/client"]
     },
     {
       "groupName": "e2e tests - typescript",
@@ -208,7 +208,7 @@
       "groupName": "e2e ts-version (major/minor) tests - typescript",
       "enabled": false,
       "matchPackageNames": ["typescript"],
-      "matchUpdateTypes": ["minor","major"],
+      "matchUpdateTypes": ["minor", "major"],
       "matchFileNames": ["packages/client/tests/e2e/ts-version/**"]
     },
     {
