@@ -439,6 +439,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     const queryStr = JSON.stringify(query)
 
     try {
+      if(this.config.adapter) {
+        throw new PrismaClientUnknownRequestError("Requests from Driver Adapters are disabled", {
+          clientVersion: this.config.clientVersion!,
+        })
+      }
+
       await this.start()
 
       this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
