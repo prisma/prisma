@@ -66,3 +66,29 @@ test('introspection basic', async () => {
     }
   `)
 })
+
+test('consistently schema EOL', async () => {
+  const CRLF = '\r\n'
+  const LF = '\n'
+  const engine = new SchemaEngine({
+    projectDir: __dirname,
+    schemaPath: 'schema.prisma',
+  })
+
+  const schema = await fs.promises.readFile(path.join(__dirname, 'schema.prisma'), { encoding: 'utf-8' })
+
+  const dbVersion = await engine.getDatabaseVersion({
+    datasource: {
+      tag: 'SchemaString',
+      schema,
+    },
+  })
+  expect(dbVersion.length > 0).toBe(true)
+
+  const result = await engine.introspect({ schema })
+  // schema not contains CRLF
+  expect(result.datamodel.includes(CRLF)).toBeFalsy()
+  // schema end with LF and not in CRLF
+  expect(result.datamodel.endsWith(CRLF)).toBeFalsy()
+  expect(result.datamodel.endsWith(LF)).toBeTruthy()
+})
