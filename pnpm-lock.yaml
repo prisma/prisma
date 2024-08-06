@@ -615,8 +615,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
+        version: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -642,8 +642,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
+        version: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -861,8 +861,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
+        version: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -898,8 +898,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
+        version: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1223,8 +1223,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
+        version: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1383,8 +1383,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
+        version: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1538,8 +1538,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
+        version: 5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -3744,8 +3744,8 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169:
-    resolution: {integrity: sha512-a/+LpJj8vYU3nmtkg+N3X51ddbt35yYrRe8wqHTJtYQt7l1f8kjIBcCs6sHJvodW/EK5XGvboOiwm47fmNrbgg==}
+  /@prisma/engines-version@5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142:
+    resolution: {integrity: sha512-GNwjqh/20IpkJteouJxFYnMU1RxLYkbbOmZPzdQXanDBS+bXMXboePQeo3d4fNVLZk+alzmys4qnKtD9qd09yQ==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3753,12 +3753,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169:
-    resolution: {integrity: sha512-2h7MDiYVXHVSdz0CylOUktVouPHRKUw5ciXz2r/oZsO2T6Zycez/eSvh4SKiKbHuxDq6SSb3R97mO7bjzh+NVQ==}
+  /@prisma/prisma-schema-wasm@5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142:
+    resolution: {integrity: sha512-883NFRf0tgNDWO+vU/mBXq2x95eXaK34PDDE8xnGnyCw09XtAEumvvZVtzwu2ph6E+KFb/L8F53fc8SNBDJM1Q==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169:
-    resolution: {integrity: sha512-d4tDlNzf47XdBRlKstiZ9ExYZDYuQGrI9yOFLABMBj68J/dQc/F7hpj40s7pfhHUahPPFvXTAxV/2P5VcjoaWA==}
+  /@prisma/query-engine-wasm@5.19.0-1.integration-fix-d1-int64-61431bbd9716f47de3f303a09ece9b370da04142:
+    resolution: {integrity: sha512-KQ2+Ljpw6h2RSdvog/Taz8Qgaujghptzrh0UNrQMbJiBjNvxXoLte8hwgrttdu6UqMSXyb9GCG7rpcxztQpifQ==}
     dev: true
 
   /@prisma/studio-common@0.502.0:
@@ -7288,6 +7288,7 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8567,7 +8568,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
