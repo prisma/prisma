@@ -1,5 +1,6 @@
+import { JsonObject } from './Json'
 import { OperationPayload } from './Payload'
-import { Compute, Equals, JsonObject, PatchFlat, Select } from './Utils'
+import { Compute, Equals, PatchFlat, Select } from './Utils'
 
 // prettier-ignore
 export type Operation =
