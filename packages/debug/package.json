@@ -21,7 +21,7 @@
     "jest-junit": "16.0.0",
     "strip-ansi": "6.0.1",
     "kleur": "4.1.5",
-    "typescript": "5.4.5"
+    "typescript": "5.5.4"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
