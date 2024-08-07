@@ -6,7 +6,7 @@
   "devDependencies": {
     "@types/node": "16.18.96",
     "ts-node": "10.9.2",
-    "typescript": "5.4.5"
+    "typescript": "5.5.4"
   },
   "prisma": {
     "seed": "node --loader ts-node/esm prisma/seed.ts"

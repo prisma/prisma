@@ -19,7 +19,7 @@
     "@types/node": "18.19.31",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
-    "typescript": "5.4.5"
+    "typescript": "5.5.4"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.8",

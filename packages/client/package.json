@@ -248,7 +248,7 @@
     "ts-node": "10.9.2",
     "ts-pattern": "5.2.0",
     "tsd": "0.31.1",
-    "typescript": "5.4.5",
+    "typescript": "5.5.4",
     "undici": "5.28.4",
     "wrangler": "3.62.0",
     "zx": "7.2.3"

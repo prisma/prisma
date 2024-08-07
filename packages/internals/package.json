@@ -72,7 +72,7 @@
     "tmp": "0.2.3",
     "ts-node": "10.9.2",
     "ts-pattern": "5.2.0",
-    "typescript": "5.4.5",
+    "typescript": "5.5.4",
     "yarn": "1.22.22"
   },
   "dependencies": {
