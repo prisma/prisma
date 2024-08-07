@@ -744,7 +744,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
     definition.addGenericParameter(ts.genericParameter('ClientOptions').default(ts.objectType()))
   }
 
-  definition.add(ts.property('[Symbol.toStringTag]', ts.stringLiteral('PrismaPromise')).readonly())
+  definition.add(ts.property(ts.toStringTag, ts.stringLiteral('PrismaPromise')).readonly())
   definition.addMultiple(
     outputType.fields
       .filter(

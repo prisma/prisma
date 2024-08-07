@@ -1,7 +1,5 @@
-// we could use "is-identifier" package instead after
-// node 16 support is no longer necessary
-import identifierRegex from 'identifier-regex'
+import { isIdentifierName } from '@babel/helper-validator-identifier'
 
 export function isValidJsIdentifier(str: string): boolean {
-  return identifierRegex().test(str)
+  return isIdentifierName(str)
 }
