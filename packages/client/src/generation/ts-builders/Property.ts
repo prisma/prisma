@@ -1,4 +1,4 @@
-import isIdentifier from 'is-identifier'
+import { isValidJsIdentifier } from '@prisma/internals'
 
 import { BasicBuilder } from './BasicBuilder'
 import { DocComment } from './DocComment'
@@ -34,7 +34,7 @@ export class Property implements BasicBuilder {
     if (this.isReadonly) {
       writer.write('readonly ')
     }
-    if (isIdentifier(this.name)) {
+    if (isValidJsIdentifier(this.name)) {
       writer.write(this.name)
     } else {
       writer.write('[').write(JSON.stringify(this.name)).write(']')

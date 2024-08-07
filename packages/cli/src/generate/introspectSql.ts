@@ -1,6 +1,6 @@
+import { isValidJsIdentifier } from '@prisma/internals'
 import { introspectSql as migrateIntrospectSql } from '@prisma/migrate'
 import fs from 'fs/promises'
-import isIdentifier from 'is-identifier'
 import path from 'path'
 
 const SQL_DIR = 'sql'
@@ -25,7 +25,7 @@ async function readTypedSqlFiles(schemaPath: string): Promise<TypedSQLInput[]> {
       continue
     }
     const absPath = path.join(sqlPath, fileName)
-    if (!isIdentifier(name)) {
+    if (!isValidJsIdentifier(name)) {
       throw new Error(`${absPath} can not be used as a typed sql query: name must be a valid JS identifier`)
     }
     if (name.startsWith('$')) {
