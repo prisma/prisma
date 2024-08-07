@@ -6,7 +6,7 @@
     "test": "jest --verbose"
   },
   "dependencies": {
-    "@neondatabase/serverless": "0.9.3",
+    "@neondatabase/serverless": "0.9.4",
     "@prisma/adapter-neon": "/tmp/prisma-adapter-neon-0.0.0.tgz",
     "@prisma/adapter-pg": "/tmp/prisma-adapter-pg-0.0.0.tgz",
     "@prisma/adapter-pg-worker": "/tmp/prisma-adapter-pg-worker-0.0.0.tgz",
@@ -15,7 +15,7 @@
     "@prisma/extension-read-replicas": "0.3.0",
     "@prisma/pg-worker": "/tmp/prisma-pg-worker-0.0.0.tgz",
     "db": "link:custom",
-    "pg": "8.11.5",
+    "pg": "8.12.0",
     "ws": "8.17.0"
   },
   "devDependencies": {
