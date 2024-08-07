@@ -121,7 +121,7 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
-    $queryRawTyped: { args: 'Prisma.UnknownTypedSql', result: 'Prisma.JsonObject' },
+    $queryRawTyped: { args: 'runtime.UnknownTypedSql', result: 'Prisma.JsonObject' },
   } satisfies Record<keyof ClientOtherOps, { args: string; result: string }>
 
   return `{
