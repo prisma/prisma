@@ -2,10 +2,12 @@ import { Sql } from 'sql-template-tag'
 
 import { RequiredExtensionArgs as UserArgs } from './ExtensionArgs'
 import { ITXClientDenyList } from './itxClientDenyList'
+import { InputJsonObject, JsonObject } from './Json'
 import { OperationPayload } from './Payload'
 import { PrismaPromise } from './Public'
 import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './Result'
-import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, ToTuple, UnwrapTuple } from './Utils'
+import { TypedSql } from './TypedSql'
+import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, UnwrapTuple } from './Utils'
 
 export type InternalArgs<
   R = { [K in string]: { [K in string]: unknown } },
@@ -279,11 +281,7 @@ export type DynamicClientExtensionThis<
   [P in Exclude<TypeMap['meta']['modelProps'], keyof ExtArgs['client']>]:
     DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs, ClientOptions>
 } & {
-  [P in Exclude<keyof TypeMap['other']['operations'], keyof ExtArgs['client']>]: <
-    R = GetOperationResult<TypeMap['other']['payload'], any, P & Operation, ClientOptions>,
-  >(
-    ...args: ToTuple<TypeMap['other']['operations'][P]['args']>
-  ) => PrismaPromise<R>
+  [P in Exclude<keyof TypeMap['other']['operations'], keyof ExtArgs['client']>]: P extends keyof ClientOtherOps ? ClientOtherOps[P] : never
 } & {
   [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]:
     DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs, ClientOptions>[P]
@@ -406,6 +404,15 @@ export type ClientOptionDef =
   | {
       [K in string]: any
     }
+
+export type ClientOtherOps = {
+  $queryRaw<T = unknown>(query: TemplateStringsArray | Sql, ...values: any[]): PrismaPromise<T>
+  $queryRawTyped<T>(query: TypedSql<unknown[], T>): PrismaPromise<T[]>
+  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>
+  $executeRaw(query: TemplateStringsArray | Sql, ...values: any[]): PrismaPromise<number>
+  $executeRawUnsafe(query: string, ...values: any[]): PrismaPromise<number>
+  $runCommandRaw(command: InputJsonObject): PrismaPromise<JsonObject>
+}
 
 export type TypeMapCbDef = Fn<{ extArgs: InternalArgs; clientOptions: ClientOptionDef }, TypeMapDef>
 
