@@ -625,8 +625,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+        version: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -652,8 +652,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+        version: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -874,8 +874,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+        version: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -911,8 +911,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+        version: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1236,8 +1236,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+        version: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1396,8 +1396,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+        version: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1551,8 +1551,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
-        version: 5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169
+        specifier: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+        version: 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -3757,8 +3757,8 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169:
-    resolution: {integrity: sha512-a/+LpJj8vYU3nmtkg+N3X51ddbt35yYrRe8wqHTJtYQt7l1f8kjIBcCs6sHJvodW/EK5XGvboOiwm47fmNrbgg==}
+  /@prisma/engines-version@5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7:
+    resolution: {integrity: sha512-DK5/85Bo+qD5AYfZe/lCZ+8CqXyt9UCk/NiD6dlzhYgj9KjqS2Vi7G5BWXnmi965LnvGiJz/gyQtu7Uy4lr2Vw==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3766,12 +3766,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169:
-    resolution: {integrity: sha512-2h7MDiYVXHVSdz0CylOUktVouPHRKUw5ciXz2r/oZsO2T6Zycez/eSvh4SKiKbHuxDq6SSb3R97mO7bjzh+NVQ==}
+  /@prisma/prisma-schema-wasm@5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7:
+    resolution: {integrity: sha512-C+lVU/55Nw7QY2Yet91LpGeqQxo8liv1kt+Co6OtHYjzm6AfLS0tIdNII9hrlK1Cu3aOZPAdmVvaP8dd7Y/63g==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169:
-    resolution: {integrity: sha512-d4tDlNzf47XdBRlKstiZ9ExYZDYuQGrI9yOFLABMBj68J/dQc/F7hpj40s7pfhHUahPPFvXTAxV/2P5VcjoaWA==}
+  /@prisma/query-engine-wasm@5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7:
+    resolution: {integrity: sha512-osuE3yC+wzJg500Dak8AKQqGw6OSa9wrzZgdtMteb3Q2GJNowc9SuAZTJCxEq7y5OiNGys5XWxCMDObgAasERg==}
     dev: true
 
   /@prisma/studio-common@0.502.0:
@@ -7311,6 +7311,7 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8104,7 +8105,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.2(@swc/core@1.6.13)(@types/node@18.19.31)(typescript@5.4.5)
+      ts-node: 10.9.2(@types/node@20.12.7)(typescript@5.4.5)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8145,7 +8146,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.2(@swc/core@1.6.13)(@types/node@18.19.31)(typescript@5.4.5)
+      ts-node: 10.9.2(@types/node@20.12.7)(typescript@5.4.5)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8605,7 +8606,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.10
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
