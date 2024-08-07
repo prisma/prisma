@@ -2,6 +2,7 @@ import type { DataSource, DMMF } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
+import { ClientOtherOps } from '../../runtime'
 import { Operation } from '../../runtime/core/types/exported/Result'
 import * as ts from '../ts-builders'
 import {
@@ -102,11 +103,16 @@ function payloadToResult(modelName: string) {
 
 function clientTypeMapOthersDefinition(context: GenerateContext) {
   const otherOperationsNames = context.dmmf.getOtherOperationNames().flatMap((name) => {
+    const results = [`$${name}`]
     if (name === 'executeRaw' || name === 'queryRaw') {
-      return [`$${name}Unsafe`, `$${name}`]
+      results.push(`$${name}Unsafe`)
     }
 
-    return `$${name}`
+    if (name === 'queryRaw' && context.isPreviewFeatureOn('typedSql')) {
+      results.push(`$queryRawTyped`)
+    }
+
+    return results
   })
 
   const argsResultMap = {
@@ -115,7 +121,8 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
-  }
+    $queryRawTyped: { args: 'Prisma.UnknownTypedSql', result: 'Prisma.JsonObject' },
+  } satisfies Record<keyof ClientOtherOps, { args: string; result: string }>
 
   return `{
   other: {

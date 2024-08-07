@@ -152,6 +152,7 @@ export type GetResult<Payload extends OperationPayload, Args, OperationName exte
   count: GetCountResult<Args>,
   groupBy: GetGroupByResult<Payload, Args>,
   $queryRaw: unknown,
+  $queryRawTyped: unknown,
   $executeRaw: number,
   $queryRawUnsafe: unknown,
   $executeRawUnsafe: number,
