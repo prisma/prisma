@@ -29,10 +29,10 @@
     "build": "tsx helpers/build.ts"
   },
   "dependencies": {
-    "@libsql/client": "0.8.0",
-    "@neondatabase/serverless": "0.9.3",
+    "@libsql/client": "0.8.1",
+    "@neondatabase/serverless": "0.9.4",
     "@planetscale/database": "1.18.0",
     "@types/pg": "8.11.6",
-    "pg": "8.11.5"
+    "pg": "8.12.0"
   }
 }
