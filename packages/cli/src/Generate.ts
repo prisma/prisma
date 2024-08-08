@@ -2,7 +2,6 @@ import { enginesVersion } from '@prisma/engines'
 import {
   arg,
   Command,
-  drawBox,
   format,
   Generator,
   getCommandWithExecutor,
@@ -13,7 +12,6 @@ import {
   getSchemaWithPath,
   getSchemaWithPathOptional,
   HelpError,
-  highlightTS,
   isError,
   link,
   loadEnvFile,
@@ -25,12 +23,12 @@ import { printSchemaLoadedMessage } from '@prisma/migrate'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
-import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import { getRandomPromotion } from './utils/handlePromotions'
 import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
@@ -133,6 +131,7 @@ ${bold('Examples')}
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
+    const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
 
@@ -236,14 +235,6 @@ Please run \`prisma generate\` manually.`
 When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
         }
 
-        const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
-          ? prefixRelativePathIfNecessary(
-              replacePathSeparatorsIfNecessary(
-                path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
-              ),
-            )
-          : '@prisma/client'
-
         const breakingChangesStr = printBreakingChangesMessage
           ? `
 
@@ -265,64 +256,11 @@ Please make sure they have the same version.`
         if (hideHints) {
           hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         } else {
-          const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
-Try Prisma Accelerate for connection pooling and caching.
-${link('https://pris.ly/cli/--accelerate')}`
-
-          const boxedTryAccelerateMessage = drawBox({
-            height: tryAccelerateMessage.split('\n').length,
-            width: 0, // calculated automatically
-            str: tryAccelerateMessage,
-            horizontalPadding: 2,
-          })
-
           hint = `
-Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
-${dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}'
-const prisma = new PrismaClient()`)}
-${dim('```')}
-or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/accelerate')})
-${dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
-const prisma = new PrismaClient()`)}
-${dim('```')}
+Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
 
-See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
-
-${boxedTryAccelerateMessage}
+${promotion.text} ${promotion.link}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
-
-          if (generator?.previewFeatures.includes('driverAdapters')) {
-            if (generator?.isCustomOutput && isDeno) {
-              hint = `
-${bold('Start using Prisma Client')}
-${dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
-const prisma = new PrismaClient()`)}
-${dim('```')}
-
-More information: https://pris.ly/d/client`
-            } else {
-              hint = `
-${bold('Start using Prisma Client')}
-${dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}'
-const prisma = new PrismaClient()`)}
-${dim('```')}
-
-More information: https://pris.ly/d/client`
-            }
-
-            hint = `${hint}
-
-${boxedTryAccelerateMessage}
-${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
-          }
         }
       }
 
@@ -390,14 +328,6 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
   }
 }
 
-function prefixRelativePathIfNecessary(relativePath: string): string {
-  if (relativePath.startsWith('..')) {
-    return relativePath
-  }
-
-  return `./${relativePath}`
-}
-
 function getCurrentClientVersion(): string | null {
   try {
     let pkgPath = resolvePkg('.prisma/client', { cwd: process.cwd() })
@@ -419,14 +349,6 @@ function getCurrentClientVersion(): string | null {
   }
 
   return null
-}
-
-function replacePathSeparatorsIfNecessary(path: string): string {
-  const isWindows = os.platform() === 'win32'
-  if (isWindows) {
-    return path.replace(/\\/g, '/')
-  }
-  return path
 }
 
 async function getSchemaForGenerate(

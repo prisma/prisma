@@ -70,7 +70,6 @@ export class TSClient implements Generable {
       binaryPaths,
       generator,
       outputDir,
-      schemaPath,
       datamodel: inlineSchema,
       runtimeBase,
       runtimeNameJs,
@@ -103,10 +102,12 @@ export class TSClient implements Generable {
       .createHash('sha256')
       .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
       .digest('hex')
+
+    const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
-      relativePath: pathToPosix(path.relative(outputDir, path.dirname(schemaPath))),
+      relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
@@ -181,7 +182,6 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       this.options.outputDir,
       this.options.runtimeNameTs,
       this.options.browser,
-      path.dirname(this.options.schemaPath),
     )
 
     const commonCode = commonCodeTS(this.options)

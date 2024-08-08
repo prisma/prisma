@@ -44,6 +44,7 @@ export namespace DMMF {
     models: Model[]
     enums: DatamodelEnum[]
     types: Model[]
+    indexes: Index[]
   }>
 
   export type uniqueIndex = ReadonlyDeep<{
@@ -101,6 +102,28 @@ export namespace DMMF {
   }>
 
   export type FieldDefaultScalar = string | boolean | number
+
+  export type Index = ReadonlyDeep<{
+    model: string
+    type: IndexType
+    isDefinedOnField: boolean
+    name?: string
+    dbName?: string
+    algorithm?: string
+    clustered?: boolean
+    fields: IndexField[]
+  }>
+
+  export type IndexType = 'id' | 'normal' | 'unique' | 'fulltext'
+
+  export type IndexField = ReadonlyDeep<{
+    name: string
+    sortOrder?: SortOrder
+    length?: number
+    operatorClass?: string
+  }>
+
+  export type SortOrder = 'asc' | 'desc'
 
   export type Schema = ReadonlyDeep<{
     rootQueryType?: string

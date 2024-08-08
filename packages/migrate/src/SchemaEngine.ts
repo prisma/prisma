@@ -339,7 +339,7 @@ export class SchemaEngine {
         if (this.schemaPath) {
           const schema = await getSchema(this.schemaPath)
           const config = await getConfig({ datamodel: schema })
-          projectDir = getMigrateConfigDir(config)
+          projectDir = getMigrateConfigDir(config, this.schemaPath)
           const schemaArgs = schema.flatMap(([path]) => ['-d', path])
           args.push(...schemaArgs)
         }

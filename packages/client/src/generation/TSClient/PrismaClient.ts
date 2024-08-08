@@ -384,7 +384,6 @@ export class PrismaClientClass implements Generable {
     protected readonly outputDir: string,
     protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
     protected readonly browser?: boolean,
-    protected readonly cwd?: string,
   ) {}
   private get jsDoc(): string {
     const { dmmf } = this.context
