@@ -3,6 +3,7 @@
 //
 // https://www.jsonrpc.org/specification
 
+import type { SqlQueryOutput } from '@prisma/generator-helper'
 import type { MigrateTypes } from '@prisma/internals'
 
 import type { IntrospectionViewDefinition } from './views/handleViewsIO'
@@ -216,6 +217,17 @@ export namespace EngineArgs {
     schema: MigrateTypes.SchemasContainer
     force: boolean
   }
+
+  export interface IntrospectSqlParams {
+    url: string
+    queries: SqlQueryInput[]
+    force: boolean
+  }
+
+  export interface SqlQueryInput {
+    name: string
+    source: string
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -282,6 +294,10 @@ export namespace EngineResults {
     executedSteps: number
     warnings: string[]
     unexecutable: string[]
+  }
+
+  export interface IntrospectSqlOutput {
+    queries: SqlQueryOutput[]
   }
 }
 

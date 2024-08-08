@@ -1,5 +1,6 @@
+import { JsonObject } from './Json'
 import { OperationPayload } from './Payload'
-import { Compute, Equals, JsonObject, PatchFlat, Select } from './Utils'
+import { Compute, Equals, PatchFlat, Select } from './Utils'
 
 // prettier-ignore
 export type Operation =
@@ -152,6 +153,7 @@ export type GetResult<Payload extends OperationPayload, Args, OperationName exte
   count: GetCountResult<Args>,
   groupBy: GetGroupByResult<Payload, Args>,
   $queryRaw: unknown,
+  $queryRawTyped: unknown,
   $executeRaw: number,
   $queryRawUnsafe: unknown,
   $executeRawUnsafe: number,

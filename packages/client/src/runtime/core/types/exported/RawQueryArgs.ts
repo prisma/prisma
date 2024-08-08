@@ -1,3 +1,5 @@
 import { RawValue, Sql } from 'sql-template-tag'
 
-export type RawQueryArgs = Sql | [query: string, ...values: RawValue[]]
+import { UnknownTypedSql } from './TypedSql'
+
+export type RawQueryArgs = Sql | UnknownTypedSql | [query: string, ...values: RawValue[]]

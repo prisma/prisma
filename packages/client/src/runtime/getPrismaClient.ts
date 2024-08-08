@@ -61,6 +61,7 @@ import { getLockCountPromise } from './core/transaction/utils/createLockCountPro
 import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
 import { JsInputValue } from './core/types/exported/JsApi'
 import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
+import { UnknownTypedSql } from './core/types/exported/TypedSql'
 import { getLogLevel } from './getLogLevel'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
@@ -710,6 +711,22 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 `,
           { clientVersion: this._clientVersion },
         )
+      })
+    }
+
+    /**
+     * Counterpart to $queryRaw, that returns strongly typed results
+     * @param typedSql
+     */
+    $queryRawTyped(typedSql: UnknownTypedSql) {
+      return this._createPrismaPromise((transaction) => {
+        if (!this._hasPreviewFlag('typedSql')) {
+          throw new PrismaClientValidationError(
+            '`typedSql` preview feature must be enabled in order to access $queryRawTyped API',
+            { clientVersion: this._clientVersion },
+          )
+        }
+        return this.$queryRawInternal(transaction, '$queryRawTyped', typedSql)
       })
     }
 

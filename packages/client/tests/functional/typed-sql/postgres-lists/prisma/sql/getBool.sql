@@ -1,0 +1,1 @@
+SELECT "bool" FROM "public"."TestModel" WHERE id = $1

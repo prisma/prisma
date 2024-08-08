@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169",
+    "@prisma/engines-version": "5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

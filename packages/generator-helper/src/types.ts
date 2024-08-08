@@ -114,6 +114,7 @@ export type GeneratorOptions = {
   noHints?: boolean
   allowNoModels?: boolean
   envPaths?: EnvPaths
+  typedSql?: SqlQueryOutput[]
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'
@@ -130,3 +131,59 @@ export type GeneratorManifest = {
   version?: string
   requiresEngineVersion?: string
 }
+
+export type SqlQueryOutput = {
+  name: string
+  source: string
+  documentation: string | null
+  parameters: SqlQueryParameterOutput[]
+  resultColumns: SqlQueryColumnOutput[]
+}
+
+export type SqlQueryParameterOutput = {
+  name: string
+  query: string
+  // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
+  typ: string
+  documentation: string | null
+}
+
+export type SqlQueryColumnOutput = {
+  name: string
+  // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
+  typ: string
+}
+
+export type QueryIntrospectionType =
+  | 'int'
+  | 'bigint'
+  | 'float'
+  | 'double'
+  | 'string'
+  | 'enum'
+  | 'bytes'
+  | 'bool'
+  | 'char'
+  | 'decimal'
+  | 'json'
+  | 'xml'
+  | 'uuid'
+  | 'datetime'
+  | 'date'
+  | 'time'
+  | 'int-array'
+  | 'bigint-array'
+  | 'float-array'
+  | 'double-array'
+  | 'string-array'
+  | 'char-array'
+  | 'bytes-array'
+  | 'bool-array'
+  | 'decimal-array'
+  | 'json-array'
+  | 'xml-array'
+  | 'uuid-array'
+  | 'datetime-array'
+  | 'date-array'
+  | 'time-array'
+  | 'unknown'
