@@ -83,11 +83,11 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
       case Providers.COCKROACHDB:
         if (cliMeta.previewFeatures.includes('relationJoins')) {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT "t1"."id", "t1"."email", "t1"."age", "t1"."name" FROM "public"."User" AS "t1" WHERE "t1"."email" IN ($1,$2,$3,$4)"`,
+            `"SELECT "t1"."id", "t1"."email", "t1"."age", "t1"."name" FROM "public"."User" AS "t1" WHERE "t1"."email" IN ($1,$2,$3,$4) /* traceparent='-01' */"`,
           )
         } else {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5"`,
+            `"SELECT "public"."User"."id", "public"."User"."email", "public"."User"."age", "public"."User"."name" FROM "public"."User" WHERE "public"."User"."email" IN ($1,$2,$3,$4) OFFSET $5 /* traceparent='-01' */"`,
           )
         }
         break
@@ -95,24 +95,24 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
       case Providers.MYSQL:
         if (cliMeta.previewFeatures.includes('relationJoins')) {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT \`t1\`.\`id\`, \`t1\`.\`email\`, \`t1\`.\`age\`, \`t1\`.\`name\` FROM \`\`.\`User\` AS \`t1\` WHERE \`t1\`.\`email\` IN (?,?,?,?)"`,
+            `"SELECT \`t1\`.\`id\`, \`t1\`.\`email\`, \`t1\`.\`age\`, \`t1\`.\`name\` FROM \`\`.\`User\` AS \`t1\` WHERE \`t1\`.\`email\` IN (?,?,?,?) /* traceparent='-01' */"`,
           )
         } else {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT \`\`.\`User\`.\`id\`, \`\`.\`User\`.\`email\`, \`\`.\`User\`.\`age\`, \`\`.\`User\`.\`name\` FROM \`\`.\`User\` WHERE \`\`.\`User\`.\`email\` IN (?,?,?,?)"`,
+            `"SELECT \`\`.\`User\`.\`id\`, \`\`.\`User\`.\`email\`, \`\`.\`User\`.\`age\`, \`\`.\`User\`.\`name\` FROM \`\`.\`User\` WHERE \`\`.\`User\`.\`email\` IN (?,?,?,?) /* traceparent='-01' */"`,
           )
         }
         break
 
       case Providers.SQLITE:
         expect(executedBatchQuery).toMatchInlineSnapshot(
-          `"SELECT \`main\`.\`User\`.\`id\`, \`main\`.\`User\`.\`email\`, \`main\`.\`User\`.\`age\`, \`main\`.\`User\`.\`name\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`email\` IN (?,?,?,?) LIMIT ? OFFSET ?"`,
+          `"SELECT \`main\`.\`User\`.\`id\`, \`main\`.\`User\`.\`email\`, \`main\`.\`User\`.\`age\`, \`main\`.\`User\`.\`name\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`email\` IN (?,?,?,?) LIMIT ? OFFSET ? /* traceparent='-01' */"`,
         )
         break
 
       case Providers.SQLSERVER:
         expect(executedBatchQuery).toMatchInlineSnapshot(
-          `"SELECT [dbo].[User].[id], [dbo].[User].[email], [dbo].[User].[age], [dbo].[User].[name] FROM [dbo].[User] WHERE [dbo].[User].[email] IN (@P1,@P2,@P3,@P4)"`,
+          `"SELECT [dbo].[User].[id], [dbo].[User].[email], [dbo].[User].[age], [dbo].[User].[name] FROM [dbo].[User] WHERE [dbo].[User].[email] IN (@P1,@P2,@P3,@P4) /* traceparent='-01' */"`,
         )
         break
 

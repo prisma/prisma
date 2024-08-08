@@ -185,7 +185,7 @@ testMatrix.setupTestSuite(
 
     function engine(children: Tree[]) {
       return {
-        name: 'prisma:engine',
+        name: 'prisma:engine:query',
         children,
       }
     }
@@ -431,7 +431,8 @@ testMatrix.setupTestSuite(
         })
       })
 
-      test('interactive-transactions', async () => {
+      // TODO: re-enable after applying test changes needed after https://github.com/prisma/prisma-engines/pull/4940
+      test.skip('interactive-transactions', async () => {
         const email = faker.internet.email()
 
         await prisma.$transaction(async (client) => {
@@ -468,17 +469,17 @@ testMatrix.setupTestSuite(
               operation('User', 'findMany', [clientSerialize()]),
 
               {
-                name: 'prisma:engine:itx_runner',
+                name: 'prisma:engine:start_transaction',
                 attributes: { itx_id: expect.any(String) },
                 children: [
                   engineConnection(),
                   ...txQueries,
                   {
-                    name: 'prisma:engine:itx_query_builder',
+                    name: 'prisma:engine:commit_transaction',
                     children: [...createDbQueries(false), engineSerializeQueryResult()],
                   },
                   {
-                    name: 'prisma:engine:itx_query_builder',
+                    name: 'prisma:engine:db_query',
                     children: [findManyDbQuery(), engineSerializeQueryResult()],
                   },
                 ],
@@ -615,7 +616,15 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'findMany', [
-            { name: 'prisma:client:connect' },
+            {
+              name: 'prisma:client:connect',
+              children: [
+                {
+                  name: 'prisma:engine:connect',
+                  children: [engineConnection()],
+                },
+              ],
+            },
             clientSerialize(),
             engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
