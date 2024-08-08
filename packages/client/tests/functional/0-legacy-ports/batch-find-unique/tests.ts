@@ -62,7 +62,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     expect.assertions(2)
 
     prisma.$on('query', (event) => {
-      executedBatchQuery = event.query.replace(mySqlSchemaIdRegex, '').trim()
+      executedBatchQuery = event.query.replace(mySqlSchemaIdRegex, '').replace(` /* traceparent='-01' */`, '').trim()
     })
 
     const results = await Promise.all([
@@ -83,7 +83,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
       case Providers.COCKROACHDB:
         if (cliMeta.previewFeatures.includes('relationJoins')) {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT "t1"."id", "t1"."email", "t1"."age", "t1"."name" FROM "public"."User" AS "t1" WHERE "t1"."email" IN ($1,$2,$3,$4) /* traceparent='-01' */"`,
+            `"SELECT "t1"."id", "t1"."email", "t1"."age", "t1"."name" FROM "public"."User" AS "t1" WHERE "t1"."email" IN ($1,$2,$3,$4)"`,
           )
         } else {
           expect(executedBatchQuery).toMatchInlineSnapshot(
@@ -95,11 +95,11 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
       case Providers.MYSQL:
         if (cliMeta.previewFeatures.includes('relationJoins')) {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT \`t1\`.\`id\`, \`t1\`.\`email\`, \`t1\`.\`age\`, \`t1\`.\`name\` FROM \`\`.\`User\` AS \`t1\` WHERE \`t1\`.\`email\` IN (?,?,?,?) /* traceparent='-01' */"`,
+            `"SELECT \`t1\`.\`id\`, \`t1\`.\`email\`, \`t1\`.\`age\`, \`t1\`.\`name\` FROM \`\`.\`User\` AS \`t1\` WHERE \`t1\`.\`email\` IN (?,?,?,?)"`,
           )
         } else {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT \`\`.\`User\`.\`id\`, \`\`.\`User\`.\`email\`, \`\`.\`User\`.\`age\`, \`\`.\`User\`.\`name\` FROM \`\`.\`User\` WHERE \`\`.\`User\`.\`email\` IN (?,?,?,?) /* traceparent='-01' */"`,
+            `"SELECT \`\`.\`User\`.\`id\`, \`\`.\`User\`.\`email\`, \`\`.\`User\`.\`age\`, \`\`.\`User\`.\`name\` FROM \`\`.\`User\` WHERE \`\`.\`User\`.\`email\` IN (?,?,?,?)"`,
           )
         }
         break
@@ -112,7 +112,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
 
       case Providers.SQLSERVER:
         expect(executedBatchQuery).toMatchInlineSnapshot(
-          `"SELECT [dbo].[User].[id], [dbo].[User].[email], [dbo].[User].[age], [dbo].[User].[name] FROM [dbo].[User] WHERE [dbo].[User].[email] IN (@P1,@P2,@P3,@P4) /* traceparent='-01' */"`,
+          `"SELECT [dbo].[User].[id], [dbo].[User].[email], [dbo].[User].[age], [dbo].[User].[name] FROM [dbo].[User] WHERE [dbo].[User].[email] IN (@P1,@P2,@P3,@P4)"`,
         )
         break
 
