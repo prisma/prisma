@@ -15,6 +15,10 @@ export async function introspectSql(schemaPath: string) {
   return migrateIntrospectSql(schemaPath, sqlFiles)
 }
 
+export function sqlDirPath(schemaPath: string) {
+  return path.join(path.dirname(schemaPath), SQL_DIR)
+}
+
 async function readTypedSqlFiles(schemaPath: string): Promise<TypedSQLInput[]> {
   const sqlPath = path.join(path.dirname(schemaPath), SQL_DIR)
   const files = await fs.readdir(sqlPath)
