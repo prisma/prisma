@@ -98,7 +98,7 @@ export async function getos(): Promise<GetOSResult> {
   const distroInfo = await resolveDistro()
   const archFromUname = await getArchFromUname()
   const libsslSpecificPaths = computeLibSSLSpecificPaths({ arch, archFromUname, familyDistro: distroInfo.familyDistro })
-  const { libssl } = await getSSLVersion(libsslSpecificPaths)
+  const { libssl } = await getSSLVersion(libsslSpecificPaths, distroInfo.targetDistro)
 
   return {
     platform: 'linux',
@@ -228,9 +228,11 @@ export async function resolveDistro(): Promise<DistroInfo> {
   // https://github.com/retrohacker/getos/blob/master/os.json
 
   const osReleaseFile = '/etc/os-release'
+  let distroInfo: DistroInfo
+
   try {
     const osReleaseInput = await fs.readFile(osReleaseFile, { encoding: 'utf-8' })
-    return parseDistro(osReleaseInput)
+    distroInfo = parseDistro(osReleaseInput)
   } catch (_) {
     return {
       targetDistro: undefined,
@@ -238,6 +240,22 @@ export async function resolveDistro(): Promise<DistroInfo> {
       originalDistro: undefined,
     }
   }
+
+  // If it's a regular Linux distro with Nix as a package manager, and the Node.js
+  // version we are running under was installed with Nix, override the target
+  // distro and treat it as NixOS. The reason is because Nix-installed Node.js
+  // will not be able to load the query engine library that depends on the system
+  // OpenSSL.
+  if (distroInfo.targetDistro !== 'nixos' && process.argv[0].startsWith('/nix/store/')) {
+    debug(
+      'this Node.js or another runtime (%s) comes from the Nix store, overriding the target distro from "%s" to "nixos"',
+      process.argv[0],
+      distroInfo.targetDistro,
+    )
+    distroInfo.targetDistro = 'nixos'
+  }
+
+  return distroInfo
 }
 
 /**
@@ -313,6 +331,11 @@ export function computeLibSSLSpecificPaths(args: ComputeLibSSLSpecificPathsParam
       debug('Trying platform-specific paths for "rhel"')
       return ['/lib64', '/usr/lib64']
     })
+    .with({ familyDistro: 'nixos' }, () => {
+      /* NixOS */
+      debug('NixOS detected, no platform-specific shared library paths exist')
+      return []
+    })
     .otherwise(({ familyDistro, arch, archFromUname }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
       debug(`Don't know any platform-specific paths for "${familyDistro}" on ${arch} (${archFromUname})`)
@@ -340,7 +363,21 @@ type GetOpenSSLVersionResult =
  *
  * This function never throws.
  */
-export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetOpenSSLVersionResult> {
+export async function getSSLVersion(
+  libsslSpecificPaths: string[],
+  targetDistro?: DistroInfo['targetDistro'],
+): Promise<GetOpenSSLVersionResult> {
+  if (targetDistro === 'nixos') {
+    // On NixOS, the concept of detecting OpenSSL version fundamentally doesn't
+    // apply as there are no global libraries. Instead, we need to tell Nix
+    // that our binaries depends on a specific version of OpenSSL, and let Nix
+    // fulfill the dependency, download it if necessary, and set the RPATH in
+    // ELF headers of the downloaded engines to point at the specific locations
+    // of every library they depend on in the Nix store (even glibc). This is
+    // facilitated in `@prisma/fetch-engine`.
+    return {}
+  }
+
   const excludeLibssl0x = 'grep -v "libssl.so.0"'
   const libsslFilenameFromSpecificPath: string | undefined = await findLibSSLInLocations(libsslSpecificPaths)
 
@@ -483,7 +520,12 @@ export function getBinaryTargetForCurrentPlatformInternal(args: GetOSResult): Bi
 
   // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
   const defaultLibssl = '1.1.x' as const
-  if (platform === 'linux' && libssl === undefined) {
+
+  // openssl detection is irrelevant on nixos (also on linux-static-*: we don't currently
+  // support detecting those targets but if we were to in the future then it would make
+  // sense to move this check later and make it dependent on the `binaryTarget` rather than
+  // `platform` + `targetDistro`)
+  if (platform === 'linux' && libssl === undefined && targetDistro !== 'nixos') {
     /**
      * Ask the user to install libssl manually, and provide some additional instructions based on the detected Linux distro family.
      * TODO: we should also provide a pris.ly link to a documentation page with more details on how to install libssl.
@@ -534,7 +576,7 @@ ${additionalMessage}`,
   }
 
   if (platform === 'linux' && targetDistro === 'nixos') {
-    return 'linux-nixos'
+    return arch === 'arm64' ? 'linux-nixos-arm64' : 'linux-nixos'
   }
 
   if (platform === 'linux' && arch === 'arm64') {
