@@ -28,7 +28,7 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
-import { introspectSql } from './generate/introspectSql'
+import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { getRandomPromotion } from './utils/handlePromotions'
@@ -291,18 +291,27 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     } else {
       logUpdate(watchingText + '\n' + this.logText)
 
-      const watcher = new Watcher(schemaResult.schemaRootDir)
+      const watcher = new Watcher(schemaPath)
+      if (args['--sql']) {
+        watcher.add(sqlDirPath(schemaPath))
+      }
 
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
         let generatorsWatch: Generator[] | undefined
         try {
+          if (args['--sql']) {
+            const sqlResult = await introspectSql(schemaPath)
+            typedSql = sqlResult.queries
+          }
+
           generatorsWatch = await getGenerators({
             schemaPath,
             printDownloadProgress: !watchMode,
             version: enginesVersion,
             cliVersion: pkg.version,
             generatorNames: args['--generator'],
+            typedSql,
           })
 
           if (!generatorsWatch || generatorsWatch.length === 0) {
