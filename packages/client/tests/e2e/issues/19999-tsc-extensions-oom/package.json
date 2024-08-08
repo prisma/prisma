@@ -9,6 +9,6 @@
   "devDependencies": {
     "@types/node": "16.18.98",
     "prisma": "/tmp/prisma-0.0.0.tgz",
-    "typescript": "5.4.5"
+    "typescript": "5.5.4"
   }
 }
