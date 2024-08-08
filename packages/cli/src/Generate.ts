@@ -27,6 +27,7 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
+import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { getRandomPromotion } from './utils/handlePromotions'
 import { simpleDebounce } from './utils/simpleDebounce'
@@ -280,40 +281,39 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     } else {
       logUpdate(watchingText + '\n' + this.logText)
 
-      fs.watch(schemaPath, async (eventType) => {
-        if (eventType === 'change') {
-          let generatorsWatch: Generator[] | undefined
-          try {
-            generatorsWatch = await getGenerators({
-              schemaPath,
-              printDownloadProgress: !watchMode,
-              version: enginesVersion,
-              cliVersion: pkg.version,
-              generatorNames: args['--generator'],
-            })
+      const watcher = new Watcher(schemaResult.schemaRootDir)
 
-            if (!generatorsWatch || generatorsWatch.length === 0) {
-              this.logText += `${missingGeneratorMessage}\n`
-            } else {
-              logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
-              try {
-                await this.runGenerate({
-                  generators: generatorsWatch,
-                })
-                logUpdate(watchingText + '\n' + this.logText)
-              } catch (errRunGenerate) {
-                this.logText += `${errRunGenerate.message}\n\n`
-                logUpdate(watchingText + '\n' + this.logText)
-              }
+      for await (const changedPath of watcher) {
+        logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
+        let generatorsWatch: Generator[] | undefined
+        try {
+          generatorsWatch = await getGenerators({
+            schemaPath,
+            printDownloadProgress: !watchMode,
+            version: enginesVersion,
+            cliVersion: pkg.version,
+            generatorNames: args['--generator'],
+          })
+
+          if (!generatorsWatch || generatorsWatch.length === 0) {
+            this.logText += `${missingGeneratorMessage}\n`
+          } else {
+            logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
+            try {
+              await this.runGenerate({
+                generators: generatorsWatch,
+              })
+              logUpdate(watchingText + '\n' + this.logText)
+            } catch (errRunGenerate) {
+              this.logText += `${errRunGenerate.message}\n\n`
+              logUpdate(watchingText + '\n' + this.logText)
             }
-            // logUpdate(watchingText + '\n' + this.logText)
-          } catch (errGetGenerators) {
-            this.logText += `${errGetGenerators.message}\n\n`
-            logUpdate(watchingText + '\n' + this.logText)
           }
+        } catch (errGetGenerators) {
+          this.logText += `${errGetGenerators.message}\n\n`
+          logUpdate(watchingText + '\n' + this.logText)
         }
-      })
-      await new Promise((_) => null)
+      }
     }
 
     return ''

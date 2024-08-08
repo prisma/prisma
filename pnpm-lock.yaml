@@ -400,6 +400,10 @@ importers:
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
+    optionalDependencies:
+      fsevents:
+        specifier: 2.3.3
+        version: 2.3.3
     devDependencies:
       '@prisma/client':
         specifier: workspace:*
@@ -458,6 +462,9 @@ importers:
       checkpoint-client:
         specifier: 1.1.33
         version: 1.1.33
+      chokidar:
+        specifier: 3.6.0
+        version: 3.6.0
       debug:
         specifier: 4.3.5
         version: 4.3.5
