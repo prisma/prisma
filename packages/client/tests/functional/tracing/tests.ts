@@ -644,7 +644,7 @@ testMatrix.setupTestSuite(
       test('should trace $disconnect', async () => {
         await _prisma.$disconnect()
 
-        await waitForSpanTree({ name: 'prisma:client:disconnect' })
+        await waitForSpanTree({ name: 'prisma:client:disconnect', children: [{ name: 'prisma:engine:disconnect' }] })
       })
     })
   },
