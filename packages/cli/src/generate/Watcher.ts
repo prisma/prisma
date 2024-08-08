@@ -38,7 +38,6 @@ export class Watcher {
     })
 
     this.watcher.on('all', (e, path) => {
-      console.log('!!!!')
       this.changeQueue.push(path)
     })
   }
