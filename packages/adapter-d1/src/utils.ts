@@ -5,7 +5,7 @@ export function cleanArg(arg: unknown, argType: ArgType): unknown {
   if (arg !== null) {
     if (argType === 'Int64') {
       const asInt56 = Number.parseInt(arg as string)
-      if (Number.isNaN(asInt56) || Number.MAX_SAFE_INTEGER < asInt56 || Number.MIN_SAFE_INTEGER > asInt56) {
+      if (!Number.isSafeInteger(asInt56)) {
         throw new Error(`Invalid Int64-encoded value received: ${arg}`)
       }
 
