@@ -74,7 +74,10 @@ cp -r basic-sqlite my-repro && cd my-repro
 pnpm install
 # Ensure that the db and the schema are synced
 pnpm dbpush
-# Do some code changes, always re-generate the client, then try it out
+# Edit the desired package and build it
+# (or similar command, see above)
+pnpm -r run build 
+# Re-generate the client, then try it out
 pnpm generate && pnpm start
 ```
 
