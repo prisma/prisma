@@ -1236,8 +1236,8 @@ importers:
         version: 2.4.2
     devDependencies:
       '@antfu/ni':
-        specifier: 0.21.12
-        version: 0.21.12
+        specifier: 0.22.1
+        version: 0.22.1
       '@opentelemetry/api':
         specifier: 1.9.0
         version: 1.9.0
@@ -1563,8 +1563,8 @@ packages:
       '@jridgewell/trace-mapping': 0.3.22
     dev: true
 
-  /@antfu/ni@0.21.12:
-    resolution: {integrity: sha512-2aDL3WUv8hMJb2L3r/PIQWsTLyq7RQr3v9xD16fiz6O8ys1xEyLhhTOv8gxtZvJiTzjTF5pHoArvRdesGL1DMQ==}
+  /@antfu/ni@0.22.1:
+    resolution: {integrity: sha512-5STu7QHsLYWpt+K/+zRcMOIUnG51lOhnqPInImXGyC6PMHtkrZQjbqZ/R3GW8XdTYOnKiT77+R09Tl4fzuFK5w==}
     hasBin: true
     dev: true
 
