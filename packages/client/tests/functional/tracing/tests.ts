@@ -185,7 +185,7 @@ testMatrix.setupTestSuite(
 
     function engine(children: Tree[]) {
       return {
-        name: 'prisma:engine:query',
+        name: 'prisma:engine',
         children,
       }
     }
@@ -431,8 +431,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      // TODO: re-enable after applying test changes needed after https://github.com/prisma/prisma-engines/pull/4940
-      test.skip('interactive-transactions', async () => {
+      test('interactive-transactions', async () => {
         const email = faker.internet.email()
 
         await prisma.$transaction(async (client) => {
@@ -469,17 +468,17 @@ testMatrix.setupTestSuite(
               operation('User', 'findMany', [clientSerialize()]),
 
               {
-                name: 'prisma:engine:start_transaction',
+                name: 'prisma:engine:itx_runner',
                 attributes: { itx_id: expect.any(String) },
                 children: [
                   engineConnection(),
                   ...txQueries,
                   {
-                    name: 'prisma:engine:commit_transaction',
+                    name: 'prisma:engine:itx_query_builder',
                     children: [...createDbQueries(false), engineSerializeQueryResult()],
                   },
                   {
-                    name: 'prisma:engine:db_query',
+                    name: 'prisma:engine:itx_query_builder',
                     children: [findManyDbQuery(), engineSerializeQueryResult()],
                   },
                 ],
@@ -616,15 +615,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'findMany', [
-            {
-              name: 'prisma:client:connect',
-              children: [
-                {
-                  name: 'prisma:engine:connect',
-                  children: [engineConnection()],
-                },
-              ],
-            },
+            { name: 'prisma:client:connect' },
             clientSerialize(),
             engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
@@ -644,7 +635,7 @@ testMatrix.setupTestSuite(
       test('should trace $disconnect', async () => {
         await _prisma.$disconnect()
 
-        await waitForSpanTree({ name: 'prisma:client:disconnect', children: [{ name: 'prisma:engine:disconnect' }] })
+        await waitForSpanTree({ name: 'prisma:client:disconnect' })
       })
     })
   },
