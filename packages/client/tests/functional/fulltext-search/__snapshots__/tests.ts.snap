@@ -4,6 +4,7 @@ exports[`fulltext-search (provider=mysql) bad query 1`] = `
 "
 Invalid \`.findMany()\` invocation in
 /client/tests/functional/fulltext-search/tests.ts:0:0
+
   XX // TODO: Edge: skipped because of the error snapshot
   XX testIf(process.platform !== 'win32')('bad query', async () => {
   XX   const result = prisma.user
@@ -29,6 +30,7 @@ exports[`fulltext-search (provider=postgresql) bad query 1`] = `
 "
 Invalid \`.findMany()\` invocation in
 /client/tests/functional/fulltext-search/tests.ts:0:0
+
   XX // TODO: Edge: skipped because of the error snapshot
   XX testIf(process.platform !== 'win32')('bad query', async () => {
   XX   const result = prisma.user
