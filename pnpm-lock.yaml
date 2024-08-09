@@ -102,8 +102,8 @@ importers:
         specifier: 28.7.0
         version: 28.7.0(@typescript-eslint/eslint-plugin@7.15.0)(eslint@9.5.0)(typescript@5.4.5)
       eslint-plugin-local-rules:
-        specifier: 2.0.1
-        version: 2.0.1
+        specifier: 3.0.2
+        version: 3.0.2
       eslint-plugin-prettier:
         specifier: 4.2.1
         version: 4.2.1(eslint-config-prettier@9.1.0)(eslint@9.5.0)(prettier@2.8.8)
@@ -6525,8 +6525,8 @@ packages:
       - typescript
     dev: true
 
-  /eslint-plugin-local-rules@2.0.1:
-    resolution: {integrity: sha512-AJhGd+GcI5r2dbjiGPixM8jnBl0XFxqoVbqzwKbYz+nTk+Cj5dNE3+OlhC176bl5r25KsGsIthLi1VqIW5Ga+A==}
+  /eslint-plugin-local-rules@3.0.2:
+    resolution: {integrity: sha512-IWME7GIYHXogTkFsToLdBCQVJ0U4kbSuVyDT+nKoR4UgtnVrrVeNWuAZkdEu1nxkvi9nsPccGehEEF6dgA28IQ==}
     dev: true
 
   /eslint-plugin-prettier@4.2.1(eslint-config-prettier@9.1.0)(eslint@9.5.0)(prettier@2.8.8):

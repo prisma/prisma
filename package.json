@@ -61,7 +61,7 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.29.1",
     "eslint-plugin-jest": "28.7.0",
-    "eslint-plugin-local-rules": "2.0.1",
+    "eslint-plugin-local-rules": "3.0.2",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-simple-import-sort": "12.1.1",
     "execa": "5.1.1",
