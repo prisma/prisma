@@ -91,7 +91,7 @@
     "staged-git-files": "1.3.0",
     "ts-node": "10.9.2",
     "ts-toolbelt": "9.6.0",
-    "tsx": "4.15.6",
+    "tsx": "4.17.0",
     "typescript": "5.4.5",
     "zx": "7.2.3"
   },
