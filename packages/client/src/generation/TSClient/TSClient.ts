@@ -184,6 +184,11 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       this.options.browser,
     )
 
+    /**
+     * Specifying "readonly-input = true" marks all input types as readonly
+     */
+    const readonlyInput = this.options.generator?.config['readonly-input'] === 'true'
+
     const commonCode = commonCodeTS(this.options)
     const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
       if (this.dmmf.outputTypeMap.model[modelOrType.name]) {
@@ -298,17 +303,18 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType(inputType, this.genericsInfo).overrideName(`${inputType.name}Base`).toTS())
+      acc.push(new InputType(inputType, this.genericsInfo, readonlyInput).overrideName(`${inputType.name}Base`).toTS())
     } else {
-      acc.push(new InputType(inputType, this.genericsInfo).toTS())
+      acc.push(new InputType(inputType, this.genericsInfo, readonlyInput).toTS())
     }
     return acc
   }, [] as string[])
   .join('\n')}
 
 ${
-  this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
-  ''
+  this.dmmf.inputObjectTypes.model
+    ?.map((inputType) => new InputType(inputType, this.genericsInfo, readonlyInput).toTS())
+    .join('\n') ?? ''
 }
 
 /**
