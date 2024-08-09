@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 // default import does not work correctly for JS values inside,
 // i.e. client
 import * as planetScale from '@planetscale/database'
@@ -10,6 +9,7 @@ import type {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
@@ -31,7 +31,9 @@ class RollbackError extends Error {
   }
 }
 
-class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
+class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
+  implements Queryable
+{
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
@@ -142,6 +144,41 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 }
 
+class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Connection> implements TransactionContext {
+  constructor(private conn: planetScale.Connection) {
+    super(conn)
+  }
+
+  async startTransaction() {
+    const options: TransactionOptions = {
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug(`${tag} options: %O`, options)
+
+    return new Promise<Result<Transaction>>((resolve, reject) => {
+      const txResultPromise = this.conn
+        .transaction(async (tx) => {
+          const [txDeferred, deferredPromise] = createDeferred<void>()
+          const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
+
+          resolve(ok(txWrapper))
+          return deferredPromise
+        })
+        .catch((error) => {
+          // Rollback error is ignored (so that tx.rollback() won't crash)
+          // any other error is legit and is re-thrown
+          if (!(error instanceof RollbackError)) {
+            return reject(error)
+          }
+
+          return undefined
+        })
+    })
+  }
+}
+
 export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
   constructor(client: planetScale.Client) {
     // this used to be a check for constructor name at same point (more reliable when having multiple copies
@@ -164,32 +201,9 @@ const adapter = new PrismaPlanetScale(client)
     })
   }
 
-  async startTransaction() {
-    const options: TransactionOptions = {
-      usePhantomQuery: true,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
-
-    return new Promise<Result<Transaction>>((resolve, reject) => {
-      const txResultPromise = this.client
-        .transaction(async (tx) => {
-          const [txDeferred, deferredPromise] = createDeferred<void>()
-          const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
-
-          resolve(ok(txWrapper))
-          return deferredPromise
-        })
-        .catch((error) => {
-          // Rollback error is ignored (so that tx.rollback() won't crash)
-          // any other error is legit and is re-thrown
-          if (!(error instanceof RollbackError)) {
-            return reject(error)
-          }
-
-          return undefined
-        })
-    })
+  async transactionContext(): Promise<Result<TransactionContext>> {
+    const conn = this.client.connection()
+    const ctx = new PlanetScaleTransactionContext(conn)
+    return Promise.resolve(ok(ctx))
   }
 }

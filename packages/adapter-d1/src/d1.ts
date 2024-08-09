@@ -10,6 +10,7 @@ import {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
@@ -129,6 +130,25 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
   }
 }
 
+class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext {
+  constructor(readonly client: StdClient) {
+    super(client)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async startTransaction(): Promise<Result<Transaction>> {
+    const options: TransactionOptions = {
+      // TODO: D1 does not have a Transaction API.
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug(`${tag} options: %O`, options)
+
+    return ok(new D1Transaction(this.client, options))
+  }
+}
+
 export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
   readonly tags = {
     error: red('prisma:error'),
@@ -167,20 +187,12 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async startTransaction(): Promise<Result<Transaction>> {
-    const options: TransactionOptions = {
-      // TODO: D1 does not have a Transaction API.
-      usePhantomQuery: true,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
-
+  async transactionContext(): Promise<Result<TransactionContext>> {
     this.warnOnce(
       'D1 Transaction',
       "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
     )
 
-    return ok(new D1Transaction(this.client, options))
+    return ok(new D1TransactionContext(this.client))
   }
 }

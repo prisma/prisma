@@ -1,5 +1,12 @@
 import { err, Result } from './result'
-import type { DriverAdapter, ErrorCapturingDriverAdapter, ErrorRecord, ErrorRegistry, Transaction } from './types'
+import type {
+  DriverAdapter,
+  ErrorCapturingDriverAdapter,
+  ErrorRecord,
+  ErrorRegistry,
+  Transaction,
+  TransactionContext,
+} from './types'
 
 class ErrorRegistryInternal implements ErrorRegistry {
   private registeredErrors: ErrorRecord[] = []
@@ -23,16 +30,17 @@ class ErrorRegistryInternal implements ErrorRegistry {
 export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter => {
   const errorRegistry = new ErrorRegistryInternal()
 
-  const startTransaction = wrapAsync(errorRegistry, adapter.startTransaction.bind(adapter))
+  const createTransactionContext = wrapAsync(errorRegistry, adapter.transactionContext.bind(adapter))
+
   const boundAdapter: ErrorCapturingDriverAdapter = {
     adapterName: adapter.adapterName,
     errorRegistry,
     queryRaw: wrapAsync(errorRegistry, adapter.queryRaw.bind(adapter)),
     executeRaw: wrapAsync(errorRegistry, adapter.executeRaw.bind(adapter)),
     provider: adapter.provider,
-    startTransaction: async (...args) => {
-      const result = await startTransaction(...args)
-      return result.map((tx) => bindTransaction(errorRegistry, tx))
+    transactionContext: async (...args) => {
+      const ctx = await createTransactionContext(...args)
+      return ctx.map((tx) => bindTransactionContext(errorRegistry, tx))
     },
   }
 
@@ -41,6 +49,23 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
   }
 
   return boundAdapter
+}
+
+// *.bind(ctx) is required to preserve the `this` context of functions whose
+// execution is delegated to napi.rs.
+const bindTransactionContext = (errorRegistry: ErrorRegistryInternal, ctx: TransactionContext): TransactionContext => {
+  const startTransaction = wrapAsync(errorRegistry, ctx.startTransaction.bind(ctx))
+
+  return {
+    adapterName: ctx.adapterName,
+    provider: ctx.provider,
+    queryRaw: wrapAsync(errorRegistry, ctx.queryRaw.bind(ctx)),
+    executeRaw: wrapAsync(errorRegistry, ctx.executeRaw.bind(ctx)),
+    startTransaction: async (...args) => {
+      const result = await startTransaction(...args)
+      return result.map((tx) => bindTransaction(errorRegistry, tx))
+    },
+  }
 }
 
 // *.bind(transaction) is required to preserve the `this` context of functions whose
