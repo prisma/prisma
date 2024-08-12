@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.19.0-8.44f753d2ce0008a24ce36e34aff65a5afe266839",
+    "@prisma/prisma-schema-wasm": "5.19.0-9.integration-fix-planetscale-transactions-6b0a78a8af3fae4debef82ff443972dff0807722",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
