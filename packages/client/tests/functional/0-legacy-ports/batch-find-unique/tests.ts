@@ -62,7 +62,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     expect.assertions(2)
 
     prisma.$on('query', (event) => {
-      executedBatchQuery = event.query.replace(mySqlSchemaIdRegex, '').trim()
+      executedBatchQuery = event.query.replace(mySqlSchemaIdRegex, '').replace(` /* traceparent='-01' */`, '').trim()
     })
 
     const results = await Promise.all([
