@@ -81,7 +81,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765",
+    "@prisma/prisma-schema-wasm": "5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"

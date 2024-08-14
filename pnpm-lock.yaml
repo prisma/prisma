@@ -622,8 +622,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
-        version: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
+        specifier: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
+        version: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -649,8 +649,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
-        version: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
+        specifier: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
+        version: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -868,8 +868,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
-        version: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
+        specifier: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
+        version: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -905,8 +905,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
-        version: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
+        specifier: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
+        version: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1230,8 +1230,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
-        version: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
+        specifier: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
+        version: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1390,8 +1390,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
-        version: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
+        specifier: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
+        version: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1545,8 +1545,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
-        version: 5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765
+        specifier: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
+        version: 5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -3751,8 +3751,8 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765:
-    resolution: {integrity: sha512-4iaKjEzuAkxC+w5/ztBw/VMS0wPMHEpdRAskOvnmy/sQnujUV+qqpuQuSUFtXR6qMG3qOqqYnXxZX7dSGjD1IQ==}
+  /@prisma/engines-version@5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf:
+    resolution: {integrity: sha512-44a/15x1sIXe1bgslzBXae1YvPMEnOpE1Q7MhktA6h43h7shbs79VvaaA24DNnhoLQDPeO1RqEIk5OpzvDmXrg==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3760,12 +3760,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765:
-    resolution: {integrity: sha512-JBTZ+bP6FV55aJ8LeBm9vEOlLTSV6pJBoBOla/r6ANWdWXhyhRDS9Uk3FPVGRfYXkkS7tnEdrHMmev0PIc1IqA==}
+  /@prisma/prisma-schema-wasm@5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf:
+    resolution: {integrity: sha512-iWDlSGkb/PhhnkF6REGLhmpwkQ9NiqXzoM7L4TlNxrhFAxib7+rSIjqW+lFP/CRjdUSUFSpXxUmtUvsmcjT/4g==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765:
-    resolution: {integrity: sha512-lvvm0dfXY7gS4AFijEccKrF2LRu6LO9oWDIHM2vdnO6YYDx42aF1lFQR5URG8q0IVnMzPxF0Poh3/QUdd7IOJw==}
+  /@prisma/query-engine-wasm@5.19.0-16.feat-typed-sql-nullability-c79c3569f88658b971ff948a55aff64ff3a4e4bf:
+    resolution: {integrity: sha512-xGJDRHHBlCf6Q18Yktvw7wtEJzUxIJT591kXVa0GXIvU2IlaZp9GT5EIOPmwSgU0dDQQiUstiheH/l3+FYH0zQ==}
     dev: true
 
   /@prisma/studio-common@0.502.0:
