@@ -34,6 +34,7 @@ type PrismaType =
   | 'datetime-array'
   | 'date-array'
   | 'time-array'
+  | 'null'
   | 'unknown'
 
 export type RawResponse = {

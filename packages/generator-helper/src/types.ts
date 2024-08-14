@@ -144,14 +144,15 @@ export type SqlQueryParameterOutput = {
   name: string
   query: string
   // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
-  typ: string
+  typ: QueryIntrospectionType
   documentation: string | null
 }
 
 export type SqlQueryColumnOutput = {
   name: string
   // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
-  typ: string
+  typ: QueryIntrospectionType
+  nullable: boolean
 }
 
 export type QueryIntrospectionType =
@@ -186,4 +187,5 @@ export type QueryIntrospectionType =
   | 'datetime-array'
   | 'date-array'
   | 'time-array'
+  | 'null'
   | 'unknown'

@@ -44,6 +44,7 @@ const typeMappings: Record<QueryIntrospectionType, TypeMappingConfig | ts.TypeBu
   date: date,
   datetime: date,
   time: date,
+  null: ts.nullType,
   'int-array': ts.array(ts.numberType),
   'string-array': ts.array(ts.stringType),
   'json-array': {
@@ -70,25 +71,43 @@ const typeMappings: Record<QueryIntrospectionType, TypeMappingConfig | ts.TypeBu
   },
 }
 
-export function getInputType(introspectionType: string, enums: DbEnumsList): ts.TypeBuilder {
+export function getInputType(introspectionType: QueryIntrospectionType, enums: DbEnumsList): ts.TypeBuilder {
   return getMappingConfig(introspectionType, enums).in
 }
 
-export function getOutputType(introspectionType: string, enums: DbEnumsList): ts.TypeBuilder {
-  return getMappingConfig(introspectionType, enums).out
+export function getOutputType(
+  introspectionType: QueryIntrospectionType,
+  nullable: boolean,
+  enums: DbEnumsList,
+): ts.TypeBuilder {
+  const out = getMappingConfig(introspectionType, enums).out
+
+  if (!nullable) {
+    return out
+  } else {
+    return new ts.UnionType(out).addVariant(ts.nullType)
+  }
 }
 
-function getMappingConfig(introspectionType: string, enums: DbEnumsList) {
+function getMappingConfig(
+  introspectionType: QueryIntrospectionType,
+  enums: DbEnumsList,
+): { in: ts.TypeBuilder; out: ts.TypeBuilder } {
   const config = typeMappings[introspectionType]
+
   if (!config) {
     if (enums.hasEnum(introspectionType)) {
       const type = ts.namedType(`$DbEnums.${introspectionType}`)
+
       return { in: type, out: type }
     }
+
     throw new Error('Unknown type')
   }
+
   if (config instanceof ts.TypeBuilder) {
     return { in: config, out: config }
   }
+
   return config
 }

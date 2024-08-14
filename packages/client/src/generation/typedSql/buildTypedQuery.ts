@@ -52,7 +52,9 @@ export function buildTypedQueryTs({ query, runtimeBase, runtimeName, enums }: Bu
 function buildResultType(query: SqlQueryOutput, enums: DbEnumsList) {
   const type = ts
     .objectType()
-    .addMultiple(query.resultColumns.map((column) => ts.property(column.name, getOutputType(column.typ, enums))))
+    .addMultiple(
+      query.resultColumns.map((column) => ts.property(column.name, getOutputType(column.typ, column.nullable, enums))),
+    )
   return ts.moduleExport(ts.typeDeclaration('Result', type))
 }
 
