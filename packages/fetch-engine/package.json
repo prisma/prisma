@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765",
+    "@prisma/engines-version": "5.19.0-18.feat-typed-sql-nullability-c4dc3c5083115b65abe4436e4ec6e1c8c2afbecd",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
