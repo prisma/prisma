@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765",
+    "@prisma/prisma-schema-wasm": "5.19.0-17.feat-typed-sql-nullability-4b818550ffc9da4e66541525cca08569a58a78e2",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
