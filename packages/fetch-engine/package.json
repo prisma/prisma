@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.19.0-12.ae18f9165678fc6c7b7b107340ca0435be434765",
+    "@prisma/engines-version": "5.19.0-20.integration-mongodb-ipv6-fix-52a7684de6884ddf5b7e91ac5f37254a02a69774",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
