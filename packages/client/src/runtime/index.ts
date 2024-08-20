@@ -36,3 +36,6 @@ export { warnOnce } from '@prisma/internals'
 export { default as Decimal } from 'decimal.js'
 export type { RawValue, Value } from 'sql-template-tag'
 export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
+
+// allows to use buffer polyfill in test environment
+export { Buffer }

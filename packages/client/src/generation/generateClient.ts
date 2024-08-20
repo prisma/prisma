@@ -299,15 +299,21 @@ export * from './edge.js'`
       require: {
         types: './sql/index.d.ts',
         node: './sql/index.js',
+        'edge-light': './sql/index.edge.js',
+        workerd: './sql/index.edge.js',
+        worker: './sql/index.edge.js',
         default: './sql/index.js',
       },
       import: {
         types: './sql/index.d.ts',
         node: './sql/index.mjs',
+        'edge-light': './sql/index.edge.mjs',
+        workerd: './sql/index.edge.mjs',
+        worker: './sql/index.edge.mjs',
         default: './sql/index.mjs',
       },
       default: './sql/index.js',
-    }
+    } as any
     fileMap['sql'] = buildTypedSql({
       dmmf,
       runtimeBase: getTypedSqlRuntimeBase(runtimeBase),

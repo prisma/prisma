@@ -35,6 +35,7 @@ import {
   defineDmmfProperty,
   Public,
   getRuntime,
+  Buffer
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
@@ -44,6 +45,7 @@ const {
   makeStrictEnum,
   Public,
   getRuntime,
+  Buffer
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
@@ -67,7 +69,8 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
-  getRuntime
+  getRuntime,
+  Buffer
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
@@ -121,6 +124,8 @@ Prisma.NullTypes = {
   JsonNull: objectEnumValues.classes.JsonNull,
   AnyNull: objectEnumValues.classes.AnyNull
 }
+
+Prisma.Buffer = Buffer
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
@@ -171,6 +176,11 @@ export import empty = runtime.empty
 export import join = runtime.join
 export import raw = runtime.raw
 export import Sql = runtime.Sql
+
+/**
+ * Buffer
+ */
+export import Buffer = runtime.Buffer
 
 /**
  * Decimal.js

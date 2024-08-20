@@ -97,16 +97,25 @@ export async function setupTestSuiteClient({
     typedSql,
   })
 
-  const clientPathForRuntime: Record<ClientRuntime, string> = {
-    node: 'node_modules/@prisma/client',
-    edge: 'node_modules/@prisma/client/edge',
-    wasm: 'node_modules/@prisma/client/wasm',
+  const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
+    node: {
+      client: 'node_modules/@prisma/client',
+      sql: 'node_modules/@prisma/client/sql',
+    },
+    edge: {
+      client: 'node_modules/@prisma/client/edge',
+      sql: 'node_modules/@prisma/client/sql/index.edge.js',
+    },
+    wasm: {
+      client: 'node_modules/@prisma/client/wasm',
+      sql: 'node_modules/@prisma/client/sql/index.edge.js',
+    },
   }
 
-  const clientModule = require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
+  const clientModule = require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime].client))
   let sqlModule = undefined
   if (hasTypedSql) {
-    sqlModule = require(path.join(suiteFolderPath, 'node_modules', '@prisma', 'client', 'sql'))
+    sqlModule = require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime].sql))
   }
 
   return [clientModule, sqlModule]

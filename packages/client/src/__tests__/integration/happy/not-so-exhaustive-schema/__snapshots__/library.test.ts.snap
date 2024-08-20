@@ -10,6 +10,7 @@ const {
   makeStrictEnum,
   Public,
   getRuntime,
+  Buffer
 } = require('@prisma/client/runtime/index-browser.js')
 
 
@@ -110,6 +111,8 @@ Prisma.NullTypes = {
   JsonNull: objectEnumValues.classes.JsonNull,
   AnyNull: objectEnumValues.classes.AnyNull
 }
+
+Prisma.Buffer = Buffer
 
 /**
  * Enums
@@ -759,6 +762,11 @@ export namespace Prisma {
   export import join = runtime.join
   export import raw = runtime.raw
   export import Sql = runtime.Sql
+
+  /**
+   * Buffer
+   */
+  export import Buffer = runtime.Buffer
 
   /**
    * Decimal.js

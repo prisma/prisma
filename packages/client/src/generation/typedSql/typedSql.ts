@@ -2,7 +2,7 @@ import { DMMF, SqlQueryOutput } from '@prisma/generator-helper'
 
 import { FileMap } from '../generateClient'
 import { buildDbEnums, DbEnumsList } from './buildDbEnums'
-import { buildIndexCjs, buildIndexTs } from './buildIndex'
+import { buildIndexCjs, buildIndexEsm, buildIndexTs } from './buildIndex'
 import { buildTypedQueryCjs, buildTypedQueryEsm, buildTypedQueryTs } from './buildTypedQuery'
 
 type TypeSqlBuildOptions = {
@@ -21,11 +21,17 @@ export function buildTypedSql({ queries, runtimeBase, mainRuntimeName, dmmf }: T
   }
   for (const query of queries) {
     const options = { query, runtimeBase, runtimeName: mainRuntimeName, enums }
+    const edgeOptions = { ...options, runtimeName: 'edge.js' }
     fileMap[`${query.name}.d.ts`] = buildTypedQueryTs(options)
     fileMap[`${query.name}.js`] = buildTypedQueryCjs(options)
+    fileMap[`${query.name}.edge.js`] = buildTypedQueryCjs(edgeOptions)
     fileMap[`${query.name}.mjs`] = buildTypedQueryEsm(options)
+    fileMap[`${query.name}.edge.mjs`] = buildTypedQueryEsm(edgeOptions)
   }
   fileMap['index.d.ts'] = buildIndexTs(queries, enums)
-  fileMap['index.js'] = buildIndexCjs(queries)
+  fileMap['index.js'] = buildIndexCjs(queries, false)
+  fileMap['index.mjs'] = buildIndexEsm(queries, false)
+  fileMap['index.edge.mjs'] = buildIndexEsm(queries, true)
+  fileMap['index.edge.js'] = buildIndexCjs(queries, true)
   return fileMap
 }

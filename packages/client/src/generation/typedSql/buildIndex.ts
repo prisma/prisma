@@ -15,19 +15,21 @@ export function buildIndexTs(queries: SqlQueryOutput[], enums: DbEnumsList) {
   return ts.stringify(file)
 }
 
-export function buildIndexCjs(queries: SqlQueryOutput[]) {
+export function buildIndexCjs(queries: SqlQueryOutput[], edge: boolean) {
   const writer = new Writer(0, undefined)
   writer.writeLine('"use strict"')
   for (const { name } of queries) {
-    writer.writeLine(`exports.${name} = require("./${name}.js").${name}`)
+    const fileName = edge ? `${name}.edge` : name
+    writer.writeLine(`exports.${name} = require("./${fileName}.js").${name}`)
   }
   return writer.toString()
 }
 
-export function buildIndexEsm(queries: SqlQueryOutput[]) {
+export function buildIndexEsm(queries: SqlQueryOutput[], edge: boolean) {
   const writer = new Writer(0, undefined)
   for (const { name } of queries) {
-    writer.writeLine(`export * from "./${name}.mjs"`)
+    const fileName = edge ? `${name}.edge` : name
+    writer.writeLine(`export * from "./${fileName}.mjs"`)
   }
   return writer.toString()
 }

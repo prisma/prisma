@@ -15,7 +15,6 @@ const bigInt = BigInt('12345')
 const dateTime = new Date('2024-07-31T14:37:36.570Z')
 const date = new Date('2024-07-31T00:00:00.000Z')
 const time = new Date('1970-01-01T14:37:36.000Z')
-const bytes = Buffer.from('hello')
 testMatrix.setupTestSuite(
   () => {
     beforeAll(async () => {
@@ -33,7 +32,7 @@ testMatrix.setupTestSuite(
           dateTime,
           date,
           time,
-          bytes,
+          bytes: Prisma.Buffer.from('hello'),
           decimal: new Prisma.Decimal('12.34'),
         },
       })
@@ -146,12 +145,12 @@ testMatrix.setupTestSuite(
 
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
-      expect(result[0].bytes).toEqual(bytes)
+      expect(result[0].bytes).toEqual(Prisma.Buffer.from('hello'))
       expectTypeOf(result[0].bytes).toEqualTypeOf<Buffer>()
     })
 
     test('bytes - input', async () => {
-      const result = await prisma.$queryRawTyped(sql.findBytes(bytes))
+      const result = await prisma.$queryRawTyped(sql.findBytes(Prisma.Buffer.from('hello')))
       expect(result[0].id).toEqual(id)
     })
 
