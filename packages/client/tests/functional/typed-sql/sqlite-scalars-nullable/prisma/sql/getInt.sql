@@ -1,1 +1,1 @@
-SELECT `int` FROM `TestModel` WHERE id = ?
+SELECT `int` FROM `TestModel` WHERE `id` = ?

@@ -1,1 +1,1 @@
-SELECT `dateTime` FROM `TestModel` WHERE id = ?
+SELECT `dateTime` FROM `TestModel` WHERE `id` = ?

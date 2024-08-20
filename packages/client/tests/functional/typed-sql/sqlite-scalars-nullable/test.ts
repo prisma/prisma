@@ -115,6 +115,21 @@ testMatrix.setupTestSuite(
       const result = await prisma.$queryRawTyped(sql.findBytes(bytes))
       expect(result[0].id).toEqual(id)
     })
+
+    test('forced nullable param', async () => {
+      const result = await prisma.$queryRawTyped(sql.nullableParam(null))
+
+      expect(result[0].value).toEqual(0n)
+      expectTypeOf(result[0].value).toEqualTypeOf<bigint>()
+      expectTypeOf(sql.nullableParam).parameters.toEqualTypeOf<[number | null]>()
+    })
+
+    test('forced nullable column', async () => {
+      const result = await prisma.$queryRawTyped(sql.nullableColumn())
+
+      expect(result[0]['value?']).toEqual(1n)
+      expectTypeOf(result[0]['value?']).toEqualTypeOf<bigint | null>()
+    })
   },
   {
     optOut: {

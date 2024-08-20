@@ -1,1 +1,1 @@
-SELECT `decimal` FROM `TestModel` WHERE id = ?
+SELECT `decimal` FROM `TestModel` WHERE `id` = ?

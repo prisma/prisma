@@ -25,7 +25,7 @@ export function buildTypedQueryTs({ query, runtimeBase, runtimeName, enums }: Bu
   const parametersType = ts.tupleType()
 
   for (const param of query.parameters) {
-    const paramType = getInputType(param.typ, enums)
+    const paramType = getInputType(param.typ, param.nullable, enums)
     factoryType.addParameter(ts.parameter(param.name, paramType))
     parametersType.add(ts.tupleItem(paramType).setName(param.name))
     if (param.documentation) {

@@ -1,1 +1,1 @@
-SELECT `string` FROM `TestModel` WHERE id = ?
+SELECT `string` FROM `TestModel` WHERE `id` = ?

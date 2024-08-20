@@ -1,1 +1,1 @@
-SELECT `bytes` FROM `TestModel` WHERE id = ?
+SELECT `bytes` FROM `TestModel` WHERE `id` = ?

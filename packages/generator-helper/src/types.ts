@@ -146,6 +146,7 @@ export type SqlQueryParameterOutput = {
   // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
   typ: QueryIntrospectionType
   documentation: string | null
+  nullable: boolean
 }
 
 export type SqlQueryColumnOutput = {

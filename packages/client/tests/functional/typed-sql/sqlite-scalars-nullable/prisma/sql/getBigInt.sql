@@ -1,1 +1,1 @@
-SELECT `bigInt` FROM `TestModel` WHERE id = ?
+SELECT `bigInt` FROM `TestModel` WHERE `id` = ?

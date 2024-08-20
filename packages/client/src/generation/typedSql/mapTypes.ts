@@ -71,8 +71,18 @@ const typeMappings: Record<QueryIntrospectionType, TypeMappingConfig | ts.TypeBu
   },
 }
 
-export function getInputType(introspectionType: QueryIntrospectionType, enums: DbEnumsList): ts.TypeBuilder {
-  return getMappingConfig(introspectionType, enums).in
+export function getInputType(
+  introspectionType: QueryIntrospectionType,
+  nullable: boolean,
+  enums: DbEnumsList,
+): ts.TypeBuilder {
+  const inn = getMappingConfig(introspectionType, enums).in
+
+  if (!nullable) {
+    return inn
+  } else {
+    return new ts.UnionType(inn).addVariant(ts.nullType)
+  }
 }
 
 export function getOutputType(
