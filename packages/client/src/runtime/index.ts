@@ -38,4 +38,7 @@ export type { RawValue, Value } from 'sql-template-tag'
 export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
 
 // allows to use buffer polyfill in test environment
-export { Buffer }
+// weird dance with re-assignment to variable is needed because `export { Buffer }`
+// confuses api-extractor
+const _Buffer = Buffer
+export { _Buffer as Buffer }
