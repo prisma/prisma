@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from '@prisma/client'
-// @ts-ignore
-import * as Sql from '@prisma/client/sql'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+// @ts-ignore
+import * as Sql from './node_modules/@prisma/client/sql'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -149,7 +149,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.$queryRawTyped(sql.getDecimal(id))
       expect(result[0].decimal).toBeInstanceOf(Prisma.Decimal)
       expect(result[0].decimal).toEqual(new Prisma.Decimal('12.34'))
-      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+
       expectTypeOf(result[0].decimal).toEqualTypeOf<PrismaNamespace.Decimal | null>()
     })
 
