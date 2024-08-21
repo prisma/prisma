@@ -17,6 +17,8 @@ const dateTime = [new Date('2024-07-31T14:37:36.570Z'), new Date('2024-08-01T15:
 const date = [new Date('2024-08-01T00:00:00.000Z'), new Date('2024-07-31T00:00:00.000Z')]
 const time = [new Date('1970-01-01T14:37:36.570Z'), new Date('1970-01-01T15:37:36.570Z')]
 const uuid = [faker.string.uuid(), faker.string.uuid()]
+const bytes = [Buffer.from('hello'), Buffer.from('world')]
+
 testMatrix.setupTestSuite(
   () => {
     beforeAll(async () => {
@@ -36,7 +38,7 @@ testMatrix.setupTestSuite(
           dateTime,
           date,
           time,
-          bytes: [Prisma.Buffer.from('hello'), Prisma.Buffer.from('world')],
+          bytes,
           decimal: [new Prisma.Decimal('12.34'), new Prisma.Decimal('45.67')],
         },
       })
