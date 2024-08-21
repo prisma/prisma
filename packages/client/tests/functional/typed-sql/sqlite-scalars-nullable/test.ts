@@ -136,5 +136,9 @@ testMatrix.setupTestSuite(
       from: ['postgresql', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql'],
       reason: 'Focusing on sqlite only',
     },
+    skipDriverAdapter: {
+      from: ['js_d1'],
+      reason: '--sql does not work on D1',
+    },
   },
 )

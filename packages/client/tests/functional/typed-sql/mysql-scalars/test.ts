@@ -145,7 +145,7 @@ testMatrix.setupTestSuite(
 
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
-      if (clientRuntime === 'wasm') {
+      if (clientRuntime === 'node') {
         // edge/wasm runtimes polyfill Buffer and so this assertion does not work
         expect(result[0].bytes).toEqual(Buffer.from('hello'))
       }
