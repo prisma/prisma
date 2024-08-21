@@ -20,7 +20,7 @@ const uuid = [faker.string.uuid(), faker.string.uuid()]
 const bytes = [Buffer.from('hello'), Buffer.from('world')]
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ clientRuntime }) => {
     beforeAll(async () => {
       await prisma.testModel.create({
         data: {
@@ -170,14 +170,15 @@ testMatrix.setupTestSuite(
 
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
-      expect(result[0].bytes).toEqual(bytes)
+      if (clientRuntime == 'node') {
+        // edge/wasm runtimes polyfill Buffer and so this assertion does not work
+        expect(result[0].bytes).toEqual(bytes)
+      }
       expectTypeOf(result[0].bytes).toEqualTypeOf<Buffer[] | null>()
     })
 
     test('bytes - input', async () => {
-      const result = await prisma.$queryRawTyped(
-        sql.findBytes([Prisma.Buffer.from('hello'), Prisma.Buffer.from('world')]),
-      )
+      const result = await prisma.$queryRawTyped(sql.findBytes([Buffer.from('hello'), Buffer.from('world')]))
       expect(result[0].id).toEqual(id)
     })
 

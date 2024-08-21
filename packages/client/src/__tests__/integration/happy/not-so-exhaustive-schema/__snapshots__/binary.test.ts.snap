@@ -9,8 +9,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
-  getRuntime,
-  Buffer
+  getRuntime
 } = require('@prisma/client/runtime/index-browser.js')
 
 
@@ -762,11 +761,6 @@ export namespace Prisma {
   export import join = runtime.join
   export import raw = runtime.raw
   export import Sql = runtime.Sql
-
-  /**
-   * Buffer
-   */
-  export import Buffer = runtime.Buffer
 
   /**
    * Decimal.js

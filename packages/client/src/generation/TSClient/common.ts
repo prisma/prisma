@@ -34,8 +34,7 @@ import {
   Extensions,
   defineDmmfProperty,
   Public,
-  getRuntime,
-  Buffer
+  getRuntime
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
@@ -44,8 +43,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
-  getRuntime,
-  Buffer
+  getRuntime
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
@@ -69,8 +67,7 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
-  getRuntime,
-  Buffer
+  getRuntime
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
@@ -176,11 +173,6 @@ export import empty = runtime.empty
 export import join = runtime.join
 export import raw = runtime.raw
 export import Sql = runtime.Sql
-
-/**
- * Buffer
- */
-export import Buffer = runtime.Buffer
 
 /**
  * Decimal.js
