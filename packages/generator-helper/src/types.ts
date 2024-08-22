@@ -156,6 +156,8 @@ export type SqlQueryColumnOutput = {
   nullable: boolean
 }
 
+// This must remain in sync with the `quaint::ColumnType` enum in the QueryEngine.
+// ./quaint/src/connector/column_type.rs
 export type QueryIntrospectionType =
   | 'int'
   | 'bigint'

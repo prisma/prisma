@@ -1,49 +1,13 @@
+import type { QueryIntrospectionType } from '@prisma/generator-helper'
 import Decimal from 'decimal.js'
-
-// This must remain in sync with the `quaint::ColumnType` enum in the QueryEngine.
-// ./quaint/src/connector/column_type.rs
-type PrismaType =
-  | 'int'
-  | 'bigint'
-  | 'float'
-  | 'double'
-  | 'string'
-  | 'enum'
-  | 'bytes'
-  | 'bool'
-  | 'char'
-  | 'decimal'
-  | 'json'
-  | 'xml'
-  | 'uuid'
-  | 'datetime'
-  | 'date'
-  | 'time'
-  | 'int-array'
-  | 'bigint-array'
-  | 'float-array'
-  | 'double-array'
-  | 'string-array'
-  | 'bytes-array'
-  | 'bool-array'
-  | 'char-array'
-  | 'decimal-array'
-  | 'json-array'
-  | 'xml-array'
-  | 'uuid-array'
-  | 'datetime-array'
-  | 'date-array'
-  | 'time-array'
-  | 'null'
-  | 'unknown'
 
 export type RawResponse = {
   columns: string[]
-  types: PrismaType[]
+  types: QueryIntrospectionType[]
   rows: unknown[][]
 }
 
-function deserializeValue(type: PrismaType, value: unknown): unknown {
+function deserializeValue(type: QueryIntrospectionType, value: unknown): unknown {
   if (value === null) {
     return value
   }
