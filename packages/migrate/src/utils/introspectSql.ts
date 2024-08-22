@@ -3,15 +3,21 @@ import { type ConfigMetaFormat, getConfig, getEffectiveUrl, getSchemaWithPath } 
 import { SchemaEngine } from '../SchemaEngine'
 import { EngineArgs, EngineResults } from '../types'
 
+const supportedProviders = ['postgresql', 'mysql', 'sqlite']
+
 export async function introspectSql(
   schemaPath: string | undefined,
   queries: EngineArgs.SqlQueryInput[],
 ): Promise<EngineResults.IntrospectSqlOutput> {
   const schema = await getSchemaWithPath(schemaPath)
   const config = await getConfig({ datamodel: schema.schemas })
+  if (!supportedProviders.includes(config.datasources?.[0]?.activeProvider)) {
+    throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
+  }
   if (!isTypedSqlEnabled(config)) {
     throw new Error(`\`typedSql\` preview feature needs to be enabled in ${schema.schemaPath}`)
   }
+
   const firstDatasource = config.datasources[0]
   if (!firstDatasource) {
     throw new Error(`Could not find datasource in schema ${schema.schemaPath}`)
