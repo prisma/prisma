@@ -10,6 +10,7 @@ void executeSteps({
   },
   test: async () => {
     await $`ts-node src/index.ts`
+    await $`node src/esm-import.mjs`
     await $`pnpm exec tsc --noEmit`
     await $`pnpm exec jest`
   },

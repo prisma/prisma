@@ -49,7 +49,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
   '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz':
-    resolution: {integrity: sha512-SEkU4ePGJqsdL6KAoduKEX683Zjqq2UH9pocSZ6XuQpuycr+97gU2VHPOwEwTcKznc9oND+9dZmW64+M9HMPsQ==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-K67utmIifUVp69IEiPrpO2tt/4pW8eXOs8AXLCfhuMPlO77kDJoklblUxbSrWLZBAGwPhLfhYHEemW1B5iB9Xw==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=16.13'}
     peerDependencies:
@@ -62,19 +62,19 @@ packages:
     resolution: {integrity: sha512-wwja1z9F/AlHQnxNbyWP2rCo1E5tOwJEC97Dtj3G+/8ssgr8jyHrdi9lCexo81vApcmPeoDhizCIKe47z118dQ==, tarball: file:../../tmp/prisma-debug-0.0.0.tgz}
     version: 0.0.0
 
-  '@prisma/engines-version@5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7':
-    resolution: {integrity: sha512-DK5/85Bo+qD5AYfZe/lCZ+8CqXyt9UCk/NiD6dlzhYgj9KjqS2Vi7G5BWXnmi965LnvGiJz/gyQtu7Uy4lr2Vw==}
+  '@prisma/engines-version@5.19.0-25.feat-typed-sql-nullability-860858bb818708261f36cd05bc915e603aae5004':
+    resolution: {integrity: sha512-g6aboVH18zfUsNfW7GCv05xevhiNG2UOb3VtQ3KDjHQ7rbseABfFAvruMz55UbObEU6vWbUme+qPhk0XH0XHkg==}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
-    resolution: {integrity: sha512-2T8ov/nlJrCfLriQz6PHBFOdn9hkOPvpXSYoun+N/o8P5fpuu/zEuOfxRdvDkb31WWMmwLCtqIX9b2pD7NqbUQ==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
+    resolution: {integrity: sha512-CT3ZVnyIAClH1XVKA3DipGQjciRAIEDeRYaTmYgJjmZV7CCbALNQ2x5lmH1fatsmLnWqhodtLJg5jdFwEg85Yg==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
-    resolution: {integrity: sha512-A/+mN9CnCAgtvZ05H54k+vZmDvv3/8ZImjno79BzNw9chAObZu7yXQirYGOgKgiIuKEkSCzThpoC/zlv6nS6Ow==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
+    resolution: {integrity: sha512-dF4fYczM8EjdW9txkvkVVkXpdxOOoCo+Tl18wjFssHkaYv4EPtoNXJjh6Gdw774IQtoHhpFMj8hMkNzLaLpkmw==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
-    resolution: {integrity: sha512-BcR+8HfQJd+H77OZeqYU1mg82gv0300LxpvXHLKO5J1EuJdz67EoLOearNTnhWPz1ARu5r85ZYGZXRC1x2iyhw==, tarball: file:../../tmp/prisma-get-platform-0.0.0.tgz}
+    resolution: {integrity: sha512-s1xjGocOenORqrtWbwjU0g5SKOCBWD8MseL7qXSUXYAg/gfA7tE38qW/T8QnTkRklH3qluJGaF//kMKRZ4M+Tw==, tarball: file:../../tmp/prisma-get-platform-0.0.0.tgz}
     version: 0.0.0
 
   '@sinclair/typebox@0.27.8':
@@ -165,6 +165,11 @@ packages:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
 
+  fsevents@2.3.3:
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
@@ -219,7 +224,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
   prisma@file:../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-4QQd05fDQT0tYDoRvqK91ZzscGt/bSIAwdBvaKwb5TQEOYuoS+EDFSaOapBId+7qBW3NCW8SXiAcFOzD6JQSYQ==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-MS9R30uryWX9q89Jzmx6yjWWA0NrvdZAajsn132v4a/2Qbwl7W9/lHHhl9+SIKX58rjKr/NRcrPhVAFzMzEUmg==, tarball: file:../../tmp/prisma-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=16.13'}
     hasBin: true
@@ -286,19 +291,19 @@ snapshots:
 
   '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz': {}
 
-  '@prisma/engines-version@5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7': {}
+  '@prisma/engines-version@5.19.0-25.feat-typed-sql-nullability-860858bb818708261f36cd05bc915e603aae5004': {}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+      '@prisma/engines-version': 5.19.0-25.feat-typed-sql-nullability-860858bb818708261f36cd05bc915e603aae5004
       '@prisma/fetch-engine': file:../../tmp/prisma-fetch-engine-0.0.0.tgz
       '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 5.18.0-26.feat-introspect-sql-4dcdf8b8304815e12f4af0e41837efb42c98e9b7
+      '@prisma/engines-version': 5.19.0-25.feat-typed-sql-nullability-860858bb818708261f36cd05bc915e603aae5004
       '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
@@ -389,6 +394,9 @@ snapshots:
     dependencies:
       to-regex-range: 5.0.1
 
+  fsevents@2.3.3:
+    optional: true
+
   graceful-fs@4.2.11: {}
 
   has-flag@3.0.0: {}
@@ -454,6 +462,8 @@ snapshots:
   prisma@file:../../tmp/prisma-0.0.0.tgz:
     dependencies:
       '@prisma/engines': file:../../tmp/prisma-engines-0.0.0.tgz
+    optionalDependencies:
+      fsevents: 2.3.3
 
   react-is@18.3.1: {}
 
