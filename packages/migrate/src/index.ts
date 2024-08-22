@@ -17,4 +17,9 @@ export * from './types'
 export { default as byline } from './utils/byline'
 export { getDatabaseVersionSafe } from './utils/getDatabaseVersionSafe'
 export { getSchemaPathAndPrint, printSchemaLoadedMessage } from './utils/getSchemaPathAndPrint'
-export { introspectSql } from './utils/introspectSql'
+export {
+  introspectSql,
+  type IntrospectSqlError,
+  type IntrospectSqlInput,
+  type IntrospectSqlResult,
+} from './utils/introspectSql'

@@ -150,8 +150,7 @@ ${bold('Examples')}
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined
     if (args['--sql']) {
-      const sqlResult = await introspectSql(schemaPath)
-      typedSql = sqlResult.queries
+      typedSql = await introspectSql(schemaPath)
     }
     try {
       generators = await getGenerators({
@@ -301,8 +300,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         let generatorsWatch: Generator[] | undefined
         try {
           if (args['--sql']) {
-            const sqlResult = await introspectSql(schemaPath)
-            typedSql = sqlResult.queries
+            typedSql = await introspectSql(schemaPath)
           }
 
           generatorsWatch = await getGenerators({

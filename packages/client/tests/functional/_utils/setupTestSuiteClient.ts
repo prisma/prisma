@@ -69,8 +69,7 @@ export async function setupTestSuiteClient({
 
   let typedSql: SqlQueryOutput[] | undefined
   if (hasTypedSql) {
-    const { queries } = await introspectSql(schemaPath)
-    typedSql = queries
+    typedSql = await introspectSql(schemaPath)
   }
 
   if (clientMeta.dataProxy === true) {
