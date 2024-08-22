@@ -90,6 +90,8 @@ testMatrix.setupTestSuite(
       const result = await prisma.$queryRawTyped(sql.getEnum(id))
       expect(result[0].enum).toEqual('ONE')
       expectTypeOf(result[0].enum).toEqualTypeOf<'ONE' | 'TWO' | null>()
+      // rule does not function correctly until test is run
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       expectTypeOf(result[0].enum).toEqualTypeOf<Sql.$DbEnums.Enum | null>()
     })
 
@@ -150,6 +152,8 @@ testMatrix.setupTestSuite(
       expect(result[0].decimal).toBeInstanceOf(Prisma.Decimal)
       expect(result[0].decimal).toEqual(new Prisma.Decimal('12.34'))
 
+      // rule does not function correctly until test is run
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       expectTypeOf(result[0].decimal).toEqualTypeOf<PrismaNamespace.Decimal | null>()
     })
 
