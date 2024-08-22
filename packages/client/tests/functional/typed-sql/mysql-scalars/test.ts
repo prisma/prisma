@@ -169,5 +169,9 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'postgresql', 'mongodb', 'cockroachdb', 'sqlserver'],
       reason: 'Focusing on mysql only',
     },
+    skipDriverAdapter: {
+      from: ['js_planetscale'],
+      reason: 'Type inference for inputs is broken on vitess and requires explicit type annotations',
+    },
   },
 )
