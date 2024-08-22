@@ -108,7 +108,7 @@ export async function setupTestSuiteClient({
     },
     wasm: {
       client: 'node_modules/@prisma/client/wasm',
-      sql: 'node_modules/@prisma/client/sql/index.edge.js',
+      sql: 'node_modules/@prisma/client/sql/index.wasm.js',
     },
   }
 

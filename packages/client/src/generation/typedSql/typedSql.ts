@@ -8,11 +8,18 @@ import { buildTypedQueryCjs, buildTypedQueryEsm, buildTypedQueryTs } from './bui
 type TypeSqlBuildOptions = {
   runtimeBase: string
   mainRuntimeName: string
+  edgeRuntimeName: 'wasm' | 'edge'
   dmmf: DMMF.Document
   queries: SqlQueryOutput[]
 }
 
-export function buildTypedSql({ queries, runtimeBase, mainRuntimeName, dmmf }: TypeSqlBuildOptions): FileMap {
+export function buildTypedSql({
+  queries,
+  runtimeBase,
+  edgeRuntimeName,
+  mainRuntimeName,
+  dmmf,
+}: TypeSqlBuildOptions): FileMap {
   const fileMap = {}
 
   const enums = new DbEnumsList(dmmf.datamodel.enums)
@@ -21,17 +28,17 @@ export function buildTypedSql({ queries, runtimeBase, mainRuntimeName, dmmf }: T
   }
   for (const query of queries) {
     const options = { query, runtimeBase, runtimeName: mainRuntimeName, enums }
-    const edgeOptions = { ...options, runtimeName: 'edge.js' }
+    const edgeOptions = { ...options, runtimeName: `${edgeRuntimeName}.js` }
     fileMap[`${query.name}.d.ts`] = buildTypedQueryTs(options)
     fileMap[`${query.name}.js`] = buildTypedQueryCjs(options)
-    fileMap[`${query.name}.edge.js`] = buildTypedQueryCjs(edgeOptions)
+    fileMap[`${query.name}.${edgeRuntimeName}.js`] = buildTypedQueryCjs(edgeOptions)
     fileMap[`${query.name}.mjs`] = buildTypedQueryEsm(options)
     fileMap[`${query.name}.edge.mjs`] = buildTypedQueryEsm(edgeOptions)
   }
   fileMap['index.d.ts'] = buildIndexTs(queries, enums)
-  fileMap['index.js'] = buildIndexCjs(queries, false)
-  fileMap['index.mjs'] = buildIndexEsm(queries, false)
-  fileMap['index.edge.mjs'] = buildIndexEsm(queries, true)
-  fileMap['index.edge.js'] = buildIndexCjs(queries, true)
+  fileMap['index.js'] = buildIndexCjs(queries)
+  fileMap['index.mjs'] = buildIndexEsm(queries)
+  fileMap[`index.${edgeRuntimeName}.mjs`] = buildIndexEsm(queries, edgeRuntimeName)
+  fileMap[`index.${edgeRuntimeName}.js`] = buildIndexCjs(queries, edgeRuntimeName)
   return fileMap
 }

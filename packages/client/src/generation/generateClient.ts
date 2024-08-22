@@ -208,7 +208,9 @@ export async function buildClient({
     fileMap['react-native.d.ts'] = TS(rnTsClient)
   }
 
-  if (generator.previewFeatures.includes('driverAdapters')) {
+  const usesWasmRuntime = generator.previewFeatures.includes('driverAdapters')
+
+  if (usesWasmRuntime) {
     // The trampoline client points to #main-entry-point (see below).  We use
     // imports similar to an exports map to ensure correct imports.❗ Before
     // going GA, please notify @millsp as some things can be cleaned up:
@@ -295,21 +297,24 @@ export * from './edge.js'`
   }
 
   if (typedSql && typedSql.length > 0) {
+    const edgeRuntimeName = usesWasmRuntime ? 'wasm' : 'edge'
+    const cjsEdgeIndex = `./sql/index.${edgeRuntimeName}.js`
+    const esmEdgeIndex = `./sql/index.${edgeRuntimeName}.mjs`
     pkgJson.exports['./sql'] = {
       require: {
         types: './sql/index.d.ts',
+        'edge-light': cjsEdgeIndex,
+        workerd: cjsEdgeIndex,
+        worker: cjsEdgeIndex,
         node: './sql/index.js',
-        'edge-light': './sql/index.edge.js',
-        workerd: './sql/index.edge.js',
-        worker: './sql/index.edge.js',
         default: './sql/index.js',
       },
       import: {
         types: './sql/index.d.ts',
+        'edge-light': esmEdgeIndex,
+        workerd: esmEdgeIndex,
+        worker: esmEdgeIndex,
         node: './sql/index.mjs',
-        'edge-light': './sql/index.edge.mjs',
-        workerd: './sql/index.edge.mjs',
-        worker: './sql/index.edge.mjs',
         default: './sql/index.mjs',
       },
       default: './sql/index.js',
@@ -319,6 +324,7 @@ export * from './edge.js'`
       runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
       mainRuntimeName: getNodeRuntimeName(clientEngineType),
       queries: typedSql,
+      edgeRuntimeName,
     })
   }
   fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
