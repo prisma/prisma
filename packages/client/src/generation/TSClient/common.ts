@@ -121,8 +121,6 @@ Prisma.NullTypes = {
   JsonNull: objectEnumValues.classes.JsonNull,
   AnyNull: objectEnumValues.classes.AnyNull
 }
-
-Prisma.Buffer = Buffer
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {

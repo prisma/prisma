@@ -111,8 +111,6 @@ Prisma.NullTypes = {
   AnyNull: objectEnumValues.classes.AnyNull
 }
 
-Prisma.Buffer = Buffer
-
 /**
  * Enums
  */
