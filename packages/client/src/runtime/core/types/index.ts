@@ -10,5 +10,7 @@ export { Extensions }
 export { Utils }
 export { Public }
 
+export { type UnknownTypedSql } from './exported/TypedSql'
+
 /** General types */
 export { type OperationPayload as Payload }

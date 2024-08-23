@@ -107,6 +107,19 @@
       "import": "./generator-build/index.js",
       "default": "./generator-build/index.js"
     },
+    "./sql": {
+      "require": {
+        "types": "./sql.d.ts",
+        "node": "./sql.js",
+        "default": "./sql.js"
+      },
+      "import": {
+        "types": "./sql.d.ts",
+        "node": "./sql.mjs",
+        "default": "./sql.mjs"
+      },
+      "default": "./sql.js"
+    },
     "./*": "./*"
   },
   "license": "Apache-2.0",
@@ -154,7 +167,10 @@
     "default.d.ts",
     "index-browser.js",
     "extension.js",
-    "extension.d.ts"
+    "extension.d.ts",
+    "sql.d.ts",
+    "sql.js",
+    "sql.mjs"
   ],
   "devDependencies": {
     "@cloudflare/workers-types": "4.20240614.0",
