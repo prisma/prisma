@@ -21,19 +21,23 @@ export type InternalArgs<
 
 export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
-export type GetPayloadResult<
-  Base extends Record<any, any>,
+export declare type GetPayloadResultExtensionKeys<
   R extends InternalArgs['result'][string],
   KR extends keyof R = string extends keyof R ? never : keyof R,
-> = unknown extends R
-  ? Base
-  : {
-      [K in KR | keyof Base]: K extends KR
-        ? R[K] extends () => { compute: (...args: any) => infer C }
-          ? C
-          : never
-        : Base[K]
-    }
+> = KR
+
+export declare type GetPayloadResultExtensionObject<R extends InternalArgs['result'][string]> = {
+  [K in GetPayloadResultExtensionKeys<R>]: R[K] extends () => {
+    compute: (...args: any) => infer C
+  }
+    ? C
+    : never
+}
+export declare type GetPayloadResult<Base extends Record<any, any>, R extends InternalArgs['result'][string]> = Omit<
+  Base,
+  GetPayloadResultExtensionKeys<R>
+> &
+  GetPayloadResultExtensionObject<R>
 
 export type GetSelect<
   Base extends Record<any, any>,
