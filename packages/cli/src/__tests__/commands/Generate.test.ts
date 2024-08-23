@@ -930,4 +930,18 @@ describe('with --sql', () => {
       "
     `)
   })
+
+  it('throws error on mssql', async () => {
+    ctx.fixture('typed-sql-invalid-mssql')
+    await expect(Generate.new().parse(['--sql'])).rejects.toMatchInlineSnapshot(
+      `"Typed SQL is supported only for postgresql, mysql, sqlite providers"`,
+    )
+  })
+
+  it('throws error on mongo', async () => {
+    ctx.fixture('typed-sql-invalid-mongo')
+    await expect(Generate.new().parse(['--sql'])).rejects.toMatchInlineSnapshot(
+      `"Typed SQL is supported only for postgresql, mysql, sqlite providers"`,
+    )
+  })
 })

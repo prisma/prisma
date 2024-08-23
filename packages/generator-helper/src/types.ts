@@ -143,7 +143,6 @@ export type SqlQueryOutput = {
 export type SqlQueryParameterOutput = {
   name: string
   query: string
-  // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
   typ: QueryIntrospectionType
   documentation: string | null
   nullable: boolean
@@ -151,14 +150,16 @@ export type SqlQueryParameterOutput = {
 
 export type SqlQueryColumnOutput = {
   name: string
-  // can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
   typ: QueryIntrospectionType
   nullable: boolean
 }
 
+// can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
+export type QueryIntrospectionType = QueryIntrospectionBuiltinType | (string & {})
+
 // This must remain in sync with the `quaint::ColumnType` enum in the QueryEngine.
 // ./quaint/src/connector/column_type.rs
-export type QueryIntrospectionType =
+export type QueryIntrospectionBuiltinType =
   | 'int'
   | 'bigint'
   | 'float'

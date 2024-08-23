@@ -1,4 +1,4 @@
-import { QueryIntrospectionType } from '@prisma/generator-helper'
+import { QueryIntrospectionBuiltinType, QueryIntrospectionType } from '@prisma/generator-helper'
 
 import * as ts from '../ts-builders'
 import { DbEnumsList } from './buildDbEnums'
@@ -17,7 +17,7 @@ const jsonValue = ts.namedType('$runtime.JsonValue')
 const bigintIn = ts.unionType([ts.numberType, ts.bigintType])
 const decimalIn = ts.unionType([ts.numberType, decimal])
 
-const typeMappings: Record<QueryIntrospectionType, TypeMappingConfig | ts.TypeBuilder> = {
+const typeMappings: Record<QueryIntrospectionBuiltinType, TypeMappingConfig | ts.TypeBuilder> = {
   unknown: ts.unknownType,
   string: ts.stringType,
   int: ts.numberType,

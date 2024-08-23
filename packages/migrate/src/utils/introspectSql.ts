@@ -4,7 +4,7 @@ import { type ConfigMetaFormat, getConfig, getEffectiveUrl, getSchemaWithPath } 
 import { SchemaEngine } from '../SchemaEngine'
 import { EngineArgs } from '../types'
 
-const supportedProviders = ['postgresql', 'mysql', 'sqlite']
+const supportedProviders = ['postgresql', 'cockroachdb', 'mysql', 'sqlite']
 
 export interface IntrospectSqlInput extends EngineArgs.SqlQueryInput {
   fileName: string

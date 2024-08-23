@@ -1,13 +1,13 @@
-import type { QueryIntrospectionType } from '@prisma/generator-helper'
+import type { QueryIntrospectionBuiltinType } from '@prisma/generator-helper'
 import Decimal from 'decimal.js'
 
 export type RawResponse = {
   columns: string[]
-  types: QueryIntrospectionType[]
+  types: QueryIntrospectionBuiltinType[]
   rows: unknown[][]
 }
 
-function deserializeValue(type: QueryIntrospectionType, value: unknown): unknown {
+function deserializeValue(type: QueryIntrospectionBuiltinType, value: unknown): unknown {
   if (value === null) {
     return value
   }
