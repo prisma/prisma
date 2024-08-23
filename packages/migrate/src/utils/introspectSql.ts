@@ -90,7 +90,6 @@ async function introspectSingleQuery(
     const result = await schemaEngine.introspectSql({
       url,
       queries: [query],
-      force: false,
     })
     const queryResult = result.queries[0]
     if (!queryResult) {

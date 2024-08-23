@@ -221,7 +221,6 @@ export namespace EngineArgs {
   export interface IntrospectSqlParams {
     url: string
     queries: SqlQueryInput[]
-    force: boolean
   }
 
   export interface SqlQueryInput {
