@@ -1,0 +1,1 @@
+SELECT "double" FROM "public"."TestModel" WHERE id = $1

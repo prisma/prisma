@@ -1,0 +1,1 @@
+SELECT * FROM Not!A!Valid!Table;

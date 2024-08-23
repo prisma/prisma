@@ -1,10 +1,10 @@
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
 const { types } = pg
 const { builtins: ScalarColumnType, getTypeParser } = types
-import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
 /**
  * PostgreSQL array column types (not defined in ScalarColumnType).
@@ -323,6 +323,13 @@ function normalize_money(money: string): string {
   return money.slice(1)
 }
 
+/******************/
+/* XML handling */
+/******************/
+function normalize_xml(xml: string): string {
+  return xml
+}
+
 /*****************/
 /* JSON handling */
 /*****************/
@@ -403,6 +410,7 @@ export const customParsers = {
   [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
   [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),
   [ArrayColumnType.VARBIT_ARRAY]: normalize_array(normalizeBit),
+  [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
 }
 
 // https://github.com/brianc/node-postgres/pull/2930
