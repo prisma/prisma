@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["typedSql"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("TEST_MONGO_URI")
+}
+
+model User {
+  id      String      @default(auto()) @id @map("_id")  @db.ObjectId
+  email   String   @unique
+  name    String?
+}

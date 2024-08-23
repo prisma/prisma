@@ -1,4 +1,5 @@
 import { enginesVersion } from '@prisma/engines'
+import { SqlQueryOutput } from '@prisma/generator-helper'
 import {
   arg,
   Command,
@@ -27,6 +28,7 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
+import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { getRandomPromotion } from './utils/handlePromotions'
@@ -57,6 +59,7 @@ ${bold('Options')}
          --no-engine   Generate a client for use with Accelerate only
          --no-hints    Hides the hint messages but still outputs errors and warnings
    --allow-no-models   Allow generating a client without models
+   --sql               Generate typed sql module
 
 ${bold('Examples')}
 
@@ -112,6 +115,7 @@ ${bold('Examples')}
       '--postinstall': String,
       '--telemetry-information': String,
       '--allow-no-models': Boolean,
+      '--sql': Boolean,
     })
 
     const postinstallCwd = process.env.PRISMA_GENERATE_IN_POSTINSTALL
@@ -144,6 +148,10 @@ ${bold('Examples')}
     let hasJsClient
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
+    let typedSql: SqlQueryOutput[] | undefined
+    if (args['--sql']) {
+      typedSql = await introspectSql(schemaPath)
+    }
     try {
       generators = await getGenerators({
         schemaPath,
@@ -152,6 +160,7 @@ ${bold('Examples')}
         cliVersion: pkg.version,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
+        typedSql,
         noEngine:
           Boolean(args['--no-engine']) ||
           Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
@@ -281,18 +290,26 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     } else {
       logUpdate(watchingText + '\n' + this.logText)
 
-      const watcher = new Watcher(schemaResult.schemaRootDir)
+      const watcher = new Watcher(schemaPath)
+      if (args['--sql']) {
+        watcher.add(sqlDirPath(schemaPath))
+      }
 
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
         let generatorsWatch: Generator[] | undefined
         try {
+          if (args['--sql']) {
+            typedSql = await introspectSql(schemaPath)
+          }
+
           generatorsWatch = await getGenerators({
             schemaPath,
             printDownloadProgress: !watchMode,
             version: enginesVersion,
             cliVersion: pkg.version,
             generatorNames: args['--generator'],
+            typedSql,
           })
 
           if (!generatorsWatch || generatorsWatch.length === 0) {
