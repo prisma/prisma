@@ -164,7 +164,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     // in some cases, we just re-export the existing types
     if (reusedTs) {
-      const topExports = ts.moduleExportFrom('*', `./${reusedTs}`)
+      const topExports = ts.moduleExportFrom(`./${reusedTs}`)
 
       return ts.stringify(topExports)
     }

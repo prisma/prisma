@@ -2,6 +2,7 @@ import type { DataSource, DMMF } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
+import { ClientOtherOps } from '../../runtime'
 import { Operation } from '../../runtime/core/types/exported/Result'
 import * as ts from '../ts-builders'
 import {
@@ -15,7 +16,7 @@ import {
   getPayloadName,
 } from '../utils'
 import { lowerCase } from '../utils/common'
-import { runtimeImport } from '../utils/runtimeImport'
+import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
@@ -101,12 +102,17 @@ function payloadToResult(modelName: string) {
 }
 
 function clientTypeMapOthersDefinition(context: GenerateContext) {
-  const otherOperationsNames = context.dmmf.getOtherOperationNames().flatMap((n) => {
-    if (n === 'executeRaw' || n === 'queryRaw') {
-      return [`$${n}Unsafe`, `$${n}`]
+  const otherOperationsNames = context.dmmf.getOtherOperationNames().flatMap((name) => {
+    const results = [`$${name}`]
+    if (name === 'executeRaw' || name === 'queryRaw') {
+      results.push(`$${name}Unsafe`)
     }
 
-    return `$${n}`
+    if (name === 'queryRaw' && context.isPreviewFeatureOn('typedSql')) {
+      results.push(`$queryRawTyped`)
+    }
+
+    return results
   })
 
   const argsResultMap = {
@@ -115,7 +121,8 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
-  }
+    $queryRawTyped: { args: 'runtime.UnknownTypedSql', result: 'Prisma.JsonObject' },
+  } satisfies Record<keyof ClientOtherOps, { args: string; result: string }>
 
   return `{
   other: {
@@ -304,6 +311,42 @@ function executeRawDefinition(context: GenerateContext) {
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
 }
 
+function queryRawTypedDefinition(context: GenerateContext) {
+  if (!context.isPreviewFeatureOn('typedSql')) {
+    return ''
+  }
+  if (!context.dmmf.mappings.otherOperations.write.includes('queryRaw')) {
+    return ''
+  }
+
+  const param = ts.genericParameter('T')
+  const method = ts
+    .method('$queryRawTyped')
+    .setDocComment(
+      ts.docComment`
+        Executes a typed SQL query and returns a typed result
+        @example
+        \`\`\`
+        import { myQuery } from '@prisma/client/sql'
+
+        const result = await prisma.$queryRawTyped(myQuery())
+        \`\`\`
+      `,
+    )
+    .addGenericParameter(param)
+    .addParameter(
+      ts.parameter(
+        'typedSql',
+        runtimeImportedType('TypedSql')
+          .addGenericArgument(ts.array(ts.unknownType))
+          .addGenericArgument(param.toArgument()),
+      ),
+    )
+    .setReturnType(ts.prismaPromise(ts.array(param.toArgument())))
+
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
+}
+
 function metricDefinition(context: GenerateContext) {
   if (!context.isPreviewFeatureOn('metrics')) {
     return ''
@@ -451,6 +494,7 @@ export class PrismaClient<
 ${[
   executeRawDefinition(this.context),
   queryRawDefinition(this.context),
+  queryRawTypedDefinition(this.context),
   batchingTransactionDefinition(this.context),
   interactiveTransactionDefinition(this.context),
   runCommandRawDefinition(this.context),

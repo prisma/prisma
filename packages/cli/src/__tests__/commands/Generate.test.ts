@@ -915,3 +915,33 @@ describe('--schema from parent directory', () => {
     )
   })
 })
+
+describe('with --sql', () => {
+  it('should throw error on invalid sql', async () => {
+    ctx.fixture('typed-sql-invalid')
+    await expect(Generate.new().parse(['--sql'])).rejects.toMatchInlineSnapshot(`
+      "Errors while reading sql files:
+
+      In prisma/sql/invalidQuery.sql:
+      Error: Error describing the query.
+      error returned from database: (code: 1) near "Not": syntax error
+
+
+      "
+    `)
+  })
+
+  it('throws error on mssql', async () => {
+    ctx.fixture('typed-sql-invalid-mssql')
+    await expect(Generate.new().parse(['--sql'])).rejects.toMatchInlineSnapshot(
+      `"Typed SQL is supported only for postgresql, cockroachdb, mysql, sqlite providers"`,
+    )
+  })
+
+  it('throws error on mongo', async () => {
+    ctx.fixture('typed-sql-invalid-mongo')
+    await expect(Generate.new().parse(['--sql'])).rejects.toMatchInlineSnapshot(
+      `"Typed SQL is supported only for postgresql, cockroachdb, mysql, sqlite providers"`,
+    )
+  })
+})
