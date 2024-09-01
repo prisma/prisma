@@ -1,3 +1,0 @@
-model Link {
-  id        String   @id @default(uuid())
-}

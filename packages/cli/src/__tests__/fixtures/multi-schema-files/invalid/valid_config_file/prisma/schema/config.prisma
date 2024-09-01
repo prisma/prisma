@@ -1,9 +1,0 @@
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["prismaSchemaFolder"]
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
