@@ -148,7 +148,7 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
   }
 }
 
-export function getPayloadName(modelName, namespace = true) {
+export function getPayloadName(modelName: string, namespace = true): string {
   if (namespace) {
     return `Prisma.${getPayloadName(modelName, false)}`
   }
