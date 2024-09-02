@@ -36,15 +36,20 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {
     fieldType = ts.unionType(fieldType).addVariant(ts.nullType)
   }
   const property = ts.property(field.name, fieldType)
-  if (!field.isRequired) {
-    property.optional()
-  }
   if (field.documentation) {
     property.setDocComment(ts.docComment(field.documentation))
   }
   return property
 }
 
+export function buildModelScalarOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {
+  const property = buildModelOutputProperty(field, dmmf)
+  if (!field.isRequired) {
+    property.optional()
+  }
+
+  return property
+}
 export function buildOutputType(type: DMMF.OutputType) {
   return ts.moduleExport(ts.typeDeclaration(type.name, ts.objectType().addMultiple(type.fields.map(buildOutputField))))
 }

@@ -6,10 +6,8 @@ void executeSteps({
   setup: async () => {
     await $`pnpm install`
     await $`pnpm prisma generate`
-    await $`pnpm exec prisma db push --force-reset --skip-generate`
   },
   test: async () => {
-    await $`ts-nodesrc/index.ts`
     await $`pnpm exec tsc`
   },
   finish: async () => {

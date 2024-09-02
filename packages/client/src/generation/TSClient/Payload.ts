@@ -3,7 +3,7 @@ import * as ts from '../ts-builders'
 import { extArgsParam, getPayloadName } from '../utils'
 import { lowerCase } from '../utils/common'
 import { GenerateContext } from './GenerateContext'
-import { buildModelOutputProperty } from './Output'
+import { buildModelOutputProperty, buildModelScalarOutputProperty } from './Output'
 
 export function buildModelPayload(model: DMMF.Model, context: GenerateContext) {
   const isComposite = context.dmmf.isComposite(model.name)
@@ -20,7 +20,7 @@ export function buildModelPayload(model: DMMF.Model, context: GenerateContext) {
         objects.add(buildModelOutputProperty(field, context.dmmf))
       }
     } else if (field.kind === 'enum' || field.kind === 'scalar') {
-      scalars.add(buildModelOutputProperty(field, context.dmmf))
+      scalars.add(buildModelScalarOutputProperty(field, context.dmmf))
     }
   }
 
