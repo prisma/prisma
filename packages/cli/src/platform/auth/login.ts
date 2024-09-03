@@ -7,7 +7,7 @@ import open from 'open'
 
 import { credentialsFile } from '../_lib/credentials'
 import { successMessage } from '../_lib/messages'
-import { consoleUrl, optimizeUrl } from '../_lib/pdp'
+import { consoleUrl } from '../_lib/pdp'
 import { unknownToError } from '../_lib/prelude'
 import { getUserAgent } from '../_lib/userAgent'
 
@@ -34,7 +34,10 @@ export class Login implements Command {
     })
     if (isError(args)) return args
 
-    const optimize = args['--optimize'] ?? false
+    if (args['--optimize']) {
+      console.warn("The '--optimize' flag is deprecated. Use API keys instead.")
+    }
+
     const credentials = await credentialsFile.load()
     if (isError(credentials)) throw credentials
     if (credentials) return `Already authenticated. Run ${green(getCommandWithExecutor('prisma platform auth show --early-access'),)} to see the current user.` // prettier-ignore
@@ -47,9 +50,7 @@ export class Login implements Command {
      */
     const randomPort = 0
     const redirectUrl = await listen(server, randomPort, '127.0.0.1')
-    const loginUrl = optimize
-      ? await createOptimizeLoginUrl(redirectUrl.href)
-      : await createLoginUrl({ connection: 'github', redirectTo: redirectUrl.href })
+    const loginUrl = await createLoginUrl({ connection: 'github', redirectTo: redirectUrl.href })
 
     console.info('Visit the following URL in your browser to authenticate:')
     console.info(link(loginUrl.href))
@@ -62,7 +63,7 @@ export class Login implements Command {
           const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
           const token = searchParams.get('token') ?? ''
           const error = searchParams.get('error')
-          const location = optimize ? getOptimizeBaseAuthUrl() : getBaseAuthUrl()
+          const location = getBaseAuthUrl()
 
           if (error) {
             location.pathname += '/error'
@@ -111,7 +112,6 @@ export class Login implements Command {
 }
 
 const getBaseAuthUrl = () => new URL('/auth/cli', consoleUrl)
-const getOptimizeBaseAuthUrl = () => new URL('/login/cli', optimizeUrl)
 
 const createLoginUrl = async (params: { connection: string; redirectTo: string }) => {
   const userAgent = await getUserAgent()
@@ -126,31 +126,13 @@ const createLoginUrl = async (params: { connection: string; redirectTo: string }
   return url
 }
 
-const createOptimizeLoginUrl = async (redirect: string) => {
-  const userAgent = await getUserAgent()
-  const state: OptimizeState = {
-    client: userAgent,
-    redirect,
-  }
-
-  const url = getOptimizeBaseAuthUrl()
-  url.searchParams.set('state', encodeState(state))
-
-  return url
-}
-
 interface State {
   client: string
   connection: string
   redirectTo: string
 }
 
-interface OptimizeState {
-  client: string
-  redirect: string
-}
-
-const encodeState = (state: State | OptimizeState) => Buffer.from(JSON.stringify(state), 'utf-8').toString('base64')
+const encodeState = (state: State) => Buffer.from(JSON.stringify(state), 'utf-8').toString('base64')
 
 const decodeUser = (stringifiedUser: string) => {
   try {
