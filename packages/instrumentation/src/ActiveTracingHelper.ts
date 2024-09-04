@@ -1,6 +1,6 @@
 import {
   Context,
-  context as _context,
+  context as otelContext,
   ROOT_CONTEXT,
   Span,
   SpanContext,
@@ -8,7 +8,7 @@ import {
   trace,
   TraceFlags,
 } from '@opentelemetry/api'
-import { Span as SpanConstructor, Tracer } from '@opentelemetry/sdk-trace-base'
+import { Tracer } from '@opentelemetry/sdk-trace-base'
 import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 // If true, will publish internal spans as well
@@ -34,7 +34,7 @@ export class ActiveTracingHelper implements TracingHelper {
   }
 
   getTraceParent(context?: Context | undefined): string {
-    const span = trace.getSpanContext(context ?? _context.active())
+    const span = trace.getSpanContext(context ?? otelContext.active())
     if (span) {
       return `00-${span.traceId}-${span.spanId}-0${span.traceFlags}`
     }
@@ -61,27 +61,26 @@ export class ActiveTracingHelper implements TracingHelper {
         }
       })
 
-      const span = new SpanConstructor(
-        tracer,
-        ROOT_CONTEXT,
-        engineSpan.name,
-        spanContext,
-        SpanKind.INTERNAL,
-        engineSpan.parent_span_id,
-        links,
-        engineSpan.start_time,
-      )
+      const context = trace.setSpanContext(ROOT_CONTEXT, spanContext)
 
-      if (engineSpan.attributes) {
-        span.setAttributes(engineSpan.attributes)
-      }
+      const span = tracer.startSpan(
+        engineSpan.name,
+        {
+          kind: SpanKind.INTERNAL,
+          links,
+          startTime: engineSpan.start_time,
+          attributes: engineSpan.attributes,
+          root: false,
+        },
+        context,
+      )
 
       span.end(engineSpan.end_time)
     })
   }
 
   getActiveContext(): Context | undefined {
-    return _context.active()
+    return otelContext.active()
   }
 
   runInChildSpan<R>(options: string | ExtendedSpanOptions, callback: SpanCallback<R>): R {
