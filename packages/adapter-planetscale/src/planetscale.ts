@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
+
 // default import does not work correctly for JS values inside,
 // i.e. client
 import * as planetScale from '@planetscale/database'
@@ -133,14 +135,14 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     debug(`[js::commit]`)
 
     this.txDeferred.resolve()
-    return Promise.resolve(ok(await this.txResultPromise))
+    return ok(await this.txResultPromise)
   }
 
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
     this.txDeferred.reject(new RollbackError())
-    return Promise.resolve(ok(await this.txResultPromise))
+    return ok(await this.txResultPromise)
   }
 }
 
@@ -204,6 +206,6 @@ const adapter = new PrismaPlanetScale(client)
   async transactionContext(): Promise<Result<TransactionContext>> {
     const conn = this.client.connection()
     const ctx = new PlanetScaleTransactionContext(conn)
-    return Promise.resolve(ok(ctx))
+    return ok(ctx)
   }
 }

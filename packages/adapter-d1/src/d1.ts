@@ -1,4 +1,6 @@
-import { D1Database, D1Response } from '@cloudflare/workers-types'
+/* eslint-disable @typescript-eslint/require-await */
+
+import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
   ConnectionInfo,
   Debug,
@@ -115,14 +117,12 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
     super(client)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
     return ok(undefined)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
@@ -135,7 +135,6 @@ class D1TransactionContext extends D1Queryable<StdClient> implements Transaction
     super(client)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async startTransaction(): Promise<Result<Transaction>> {
     const options: TransactionOptions = {
       // TODO: D1 does not have a Transaction API.
@@ -186,7 +185,6 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
     })
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async transactionContext(): Promise<Result<TransactionContext>> {
     this.warnOnce(
       'D1 Transaction',

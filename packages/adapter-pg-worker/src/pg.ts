@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
+
 import type {
   ColumnType,
   ConnectionInfo,

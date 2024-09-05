@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
+
 import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
@@ -172,7 +174,6 @@ class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements
     super(conn)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async startTransaction(): Promise<Result<Transaction>> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
