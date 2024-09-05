@@ -18,4 +18,4 @@ jobs:
           # See <https://github.com/rhysd/actionlint/blob/main/docs/usage.md#ignore-some-errors>.
           # We ignore this error because it's a false positive due to a bug in actionlint
           # (https://github.com/rhysd/actionlint/issues/133).
-          args: "-ignore 'section must be sequence node but got alias node'"
+          args: -ignore "section must be sequence node but got alias node"
