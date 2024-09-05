@@ -13,6 +13,9 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/instrumentation": "0.53.0",
+    "@opentelemetry/sdk-trace-base": "1.26.0",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.6.13",
     "@types/jest": "29.5.12",
@@ -21,7 +24,7 @@
     "jest-junit": "16.0.0",
     "typescript": "5.4.5"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@opentelemetry/api": "^1.8",
     "@opentelemetry/instrumentation": "^0.49 || ^0.50 || ^0.51 || ^0.52.0 || ^0.53.0",
     "@opentelemetry/sdk-trace-base": "^1.22"
