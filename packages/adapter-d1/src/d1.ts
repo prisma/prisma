@@ -142,7 +142,7 @@ class D1TransactionContext extends D1Queryable<StdClient> implements Transaction
     }
 
     const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
+    debug('%s options: %O', tag, options)
 
     return ok(new D1Transaction(this.client, options))
   }

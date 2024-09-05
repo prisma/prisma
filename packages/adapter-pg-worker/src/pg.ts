@@ -169,7 +169,7 @@ class PgTransactionContext extends PgQueryable<pg.PoolClient> implements Transac
     }
 
     const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
+    debug('%s options: %O', tag, options)
 
     return ok(new PgTransaction(this.conn, options))
   }

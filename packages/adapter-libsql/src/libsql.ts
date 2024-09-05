@@ -138,7 +138,7 @@ class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements Tra
     }
 
     const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
+    debug('%s options: %O', tag, options)
 
     try {
       const tx = await this.client.transaction('deferred')

@@ -180,7 +180,7 @@ class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements
     }
 
     const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
+    debug('%s options: %O', tag, options)
 
     return ok(new NeonTransaction(this.conn, options))
   }

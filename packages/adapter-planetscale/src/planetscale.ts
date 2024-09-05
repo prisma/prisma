@@ -157,7 +157,7 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
     }
 
     const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
+    debug('%s options: %O', tag, options)
 
     return new Promise<Result<Transaction>>((resolve, reject) => {
       const txResultPromise = this.conn
