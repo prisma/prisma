@@ -37,6 +37,8 @@ importers:
         specifier: /tmp/prisma-0.0.0.tgz
         version: file:../../../../../../../../../../tmp/prisma-0.0.0.tgz
 
+  prisma/client: {}
+
 packages:
 
   /@cspotcode/source-map-support@0.8.1:
@@ -2164,7 +2166,7 @@ packages:
     dev: false
 
   file:../../../../../../../../../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-7rzdp9tHP7Hk8STAmikWIIpv2WYHtRMVQsk0eNfwYXQw1BB7vWKqOlR9z9Ue44DNTYNdHKTqBPjJPJcs0a0a8Q==, tarball: file:../../../../../../../../../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-0Vvug5L50itrQmV3o1DXxX9AO7OKR9LRHdpq7jEy4C/yKJ7MIif25eYBv9BISfhJIu3ayFL/9EytJryddOl1ug==, tarball: file:../../../../../../../../../../tmp/prisma-0.0.0.tgz}
     name: prisma
     version: 0.0.0
     engines: {node: '>=16.13'}
@@ -2176,7 +2178,7 @@ packages:
       fsevents: 2.3.3
 
   file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz(prisma@0.0.0):
-    resolution: {integrity: sha512-Z479SFrO7MDcyr1bHZJ40XXLObR7150svJlwbaoX/P/aMolS22ae2476Kd8GSAweY0qoCJBuevdcJscH0u775A==, tarball: file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-mdQ8noEz6cg4mwNEZL7//7Dqiqs1ZMk9EvkpNbeOfyRKA04rlm+Pfa98JWlkiL4iUGV6XFz0wKc5rLYP62lTNg==, tarball: file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz}
     id: file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz
     name: '@prisma/client'
     version: 0.0.0

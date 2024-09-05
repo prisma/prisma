@@ -20,7 +20,7 @@ import {
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { WasmLoadingConfig } from './core/engines/common/Engine'
+import { NativeEngineMapLoader, WasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
@@ -302,6 +302,11 @@ export type GetPrismaClientConfig = {
    * Optional wasm loading configuration
    */
   engineWasm?: WasmLoadingConfig
+
+  /**
+   * Loader for mapping between binary target and file on disk
+   */
+  loadEnginesMap: NativeEngineMapLoader
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -470,6 +475,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             timeout: options.transactionOptions?.timeout ?? 5000,
             isolationLevel: options.transactionOptions?.isolationLevel,
           },
+          loadNativeEnginesMap: config.loadEnginesMap,
           logEmitter,
           isBundled: config.isBundled,
           adapter,

@@ -104,7 +104,7 @@ export class TSClient implements Generable {
       .digest('hex')
 
     const datasourceFilePath = datasources[0].sourceFilePath
-    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
+    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname' | 'loadEnginesMap'> = {
       generator,
       relativeEnvPaths,
       relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
@@ -146,6 +146,7 @@ ${new Enum(
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
+config.loadEnginesMap = () => import('./engines-map.mjs').then(module => module.default)
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}

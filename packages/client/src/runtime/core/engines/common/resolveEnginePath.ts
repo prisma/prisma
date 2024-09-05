@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
-import { chmodPlusX, ClientEngineType } from '@prisma/internals'
+import { chmodPlusX, ClientEngineType, hasOwnProperty } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -85,10 +85,11 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
  */
 async function findEnginePath(engineType: ClientEngineType, config: EngineConfig) {
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
+  const engineFilesMap = await config.loadNativeEnginesMap()
   const searchedLocations: string[] = []
 
   const dirname = eval('__dirname') as string
-  const searchLocations: string[] = [
+  const searchDirectories: string[] = [
     config.dirname, // generation directory
     path.resolve(dirname, '..'), // generation directory one level up
     config.generator?.output?.value ?? dirname, // custom generator local path
@@ -98,14 +99,19 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
   ]
 
   if (__filename.includes('resolveEnginePath')) {
-    searchLocations.push(getEnginesPath()) // for old tests
+    searchDirectories.push(getEnginesPath()) // for old tests
   }
 
-  for (const location of searchLocations) {
-    const engineName = getQueryEngineName(engineType, binaryTarget)
-    const enginePath = path.join(location, engineName)
+  const engineName = getQueryEngineName(engineType, binaryTarget)
+  const searchPaths = searchDirectories.map((dir) => path.join(dir, engineName))
 
-    searchedLocations.push(location)
+  if (hasOwnProperty(engineFilesMap, binaryTarget)) {
+    const pathFromMap = engineFilesMap[binaryTarget]()
+    searchPaths.unshift(pathFromMap)
+  }
+
+  for (const enginePath of searchPaths) {
+    searchedLocations.push(enginePath)
     if (fs.existsSync(enginePath)) {
       return { enginePath, searchedLocations }
     }

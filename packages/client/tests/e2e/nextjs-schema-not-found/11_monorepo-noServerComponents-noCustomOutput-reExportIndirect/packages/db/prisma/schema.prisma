@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("TEST_E2E_POSTGRES_URI")
+  provider = "sqlite"
+  url      = "file:dev.db" //env("TEST_E2E_POSTGRES_URI")
 }
 
 model User {
