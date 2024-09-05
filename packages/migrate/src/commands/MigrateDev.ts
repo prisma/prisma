@@ -53,8 +53,10 @@ ${bold('Options')}
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
+                    Use --skip-empty to skip creating empty migration
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
+     --skip-empty   Skip creating empty migration when --create-only is used
 
 ${bold('Examples')}
 
@@ -66,6 +68,9 @@ ${bold('Examples')}
 
   Create a migration without applying it
   ${dim('$')} prisma migrate dev --create-only
+
+  Create a migration without applying it only if there are changes in Prisma schema
+  ${dim('$')} prisma migrate dev --create-only --skip-empty
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -80,6 +85,7 @@ ${bold('Examples')}
       '--schema': String,
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
+      '--skip-empty': Boolean,
       '--telemetry-information': String,
     })
 
@@ -235,7 +241,10 @@ ${bold('Examples')}
     }
 
     let migrationName: undefined | string = undefined
-    if (evaluateDataLossResult.migrationSteps > 0 || args['--create-only']) {
+    if (evaluateDataLossResult.migrationSteps === 0 && args['--create-only'] && args['--skip-empty']) {
+      migrate.stop()
+      return 'Prisma Migrate did not create a new migration because no changes were detected in your schema.'
+    } else if (evaluateDataLossResult.migrationSteps > 0 || args['--create-only']) {
       const getMigrationNameResult = await getMigrationName(args['--name'])
 
       if (getMigrationNameResult.userCancelled) {
