@@ -5,8 +5,8 @@ on:
     branches:
       - main
       - '*.*.x'
-    paths-ignore: &paths-ignore
-      # Any update here needs to be done for all files
+    paths-ignore:
+      # Any update here needs to be done for `pull_request` (see below) and all files
       # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       # - '*.bench.ts' -> should not be ignored in this workflow
@@ -22,7 +22,22 @@ on:
       - 'graphs/**'
       - 'sandbox/**'
   pull_request:
-    paths-ignore: *paths-ignore
+    paths-ignore:
+      # Any update here needs to be done for `branches` (see above) and all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
+      - '*.md'
+      # - '*.bench.ts' -> should not be ignored in this workflow
+      - 'LICENSE'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - '.github/CODEOWNERS'
+      - '.github/renovate.json'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'graphs/**'
+      - 'sandbox/**'
   workflow_dispatch:
 
 env:
