@@ -1,283 +1,354 @@
-lockfileVersion: '6.0'
+lockfileVersion: '9.0'
 
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-dependencies:
-  '@prisma/client':
-    specifier: ../prisma-client-0.0.0.tgz
-    version: file:../prisma-client-0.0.0.tgz(prisma@0.0.0)
+importers:
 
-devDependencies:
-  '@types/node':
-    specifier: 16.18.11
-    version: 16.18.11
-  esbuild:
-    specifier: ^0.18.17
-    version: 0.18.17
-  prisma:
-    specifier: ../prisma-0.0.0.tgz
-    version: file:../prisma-0.0.0.tgz
+  .:
+    dependencies:
+      '@prisma/client':
+        specifier: /tmp/prisma-client-0.0.0.tgz
+        version: file:../../tmp/prisma-client-0.0.0.tgz(prisma@file:../../tmp/prisma-0.0.0.tgz)
+    devDependencies:
+      '@types/node':
+        specifier: 16.18.98
+        version: 16.18.98
+      esbuild:
+        specifier: latest
+        version: 0.23.1
+      prisma:
+        specifier: /tmp/prisma-0.0.0.tgz
+        version: file:../../tmp/prisma-0.0.0.tgz
 
 packages:
 
-  /@esbuild/android-arm64@0.18.17:
-    resolution: {integrity: sha512-9np+YYdNDed5+Jgr1TdWBsozZ85U1Oa3xW0c7TWqH0y2aGghXtZsuT8nYRbzOMcl0bXZXjOGbksoTtVOlWrRZg==}
-    engines: {node: '>=12'}
+  '@esbuild/aix-ppc64@0.23.1':
+    resolution: {integrity: sha512-6VhYk1diRqrhBAqpJEdjASR/+WVRtfjpqKuNw11cLiaWpAT/Uu+nokB+UJnevzy/P9C/ty6AOe0dwueMrGh/iQ==}
+    engines: {node: '>=18'}
+    cpu: [ppc64]
+    os: [aix]
+
+  '@esbuild/android-arm64@0.23.1':
+    resolution: {integrity: sha512-xw50ipykXcLstLeWH7WRdQuysJqejuAGPd30vd1i5zSyKK3WE+ijzHmLKxdiCMtH1pHz78rOg0BKSYOSB/2Khw==}
+    engines: {node: '>=18'}
     cpu: [arm64]
     os: [android]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/android-arm@0.18.17:
-    resolution: {integrity: sha512-wHsmJG/dnL3OkpAcwbgoBTTMHVi4Uyou3F5mf58ZtmUyIKfcdA7TROav/6tCzET4A3QW2Q2FC+eFneMU+iyOxg==}
-    engines: {node: '>=12'}
+  '@esbuild/android-arm@0.23.1':
+    resolution: {integrity: sha512-uz6/tEy2IFm9RYOyvKl88zdzZfwEfKZmnX9Cj1BHjeSGNuGLuMD1kR8y5bteYmwqKm1tj8m4cb/aKEorr6fHWQ==}
+    engines: {node: '>=18'}
     cpu: [arm]
     os: [android]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/android-x64@0.18.17:
-    resolution: {integrity: sha512-O+FeWB/+xya0aLg23hHEM2E3hbfwZzjqumKMSIqcHbNvDa+dza2D0yLuymRBQQnC34CWrsJUXyH2MG5VnLd6uw==}
-    engines: {node: '>=12'}
+  '@esbuild/android-x64@0.23.1':
+    resolution: {integrity: sha512-nlN9B69St9BwUoB+jkyU090bru8L0NA3yFvAd7k8dNsVH8bi9a8cUAUSEcEEgTp2z3dbEDGJGfP6VUnkQnlReg==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [android]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/darwin-arm64@0.18.17:
-    resolution: {integrity: sha512-M9uJ9VSB1oli2BE/dJs3zVr9kcCBBsE883prage1NWz6pBS++1oNn/7soPNS3+1DGj0FrkSvnED4Bmlu1VAE9g==}
-    engines: {node: '>=12'}
+  '@esbuild/darwin-arm64@0.23.1':
+    resolution: {integrity: sha512-YsS2e3Wtgnw7Wq53XXBLcV6JhRsEq8hkfg91ESVadIrzr9wO6jJDMZnCQbHm1Guc5t/CdDiFSSfWP58FNuvT3Q==}
+    engines: {node: '>=18'}
     cpu: [arm64]
     os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/darwin-x64@0.18.17:
-    resolution: {integrity: sha512-XDre+J5YeIJDMfp3n0279DFNrGCXlxOuGsWIkRb1NThMZ0BsrWXoTg23Jer7fEXQ9Ye5QjrvXpxnhzl3bHtk0g==}
-    engines: {node: '>=12'}
+  '@esbuild/darwin-x64@0.23.1':
+    resolution: {integrity: sha512-aClqdgTDVPSEGgoCS8QDG37Gu8yc9lTHNAQlsztQ6ENetKEO//b8y31MMu2ZaPbn4kVsIABzVLXYLhCGekGDqw==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/freebsd-arm64@0.18.17:
-    resolution: {integrity: sha512-cjTzGa3QlNfERa0+ptykyxs5A6FEUQQF0MuilYXYBGdBxD3vxJcKnzDlhDCa1VAJCmAxed6mYhA2KaJIbtiNuQ==}
-    engines: {node: '>=12'}
+  '@esbuild/freebsd-arm64@0.23.1':
+    resolution: {integrity: sha512-h1k6yS8/pN/NHlMl5+v4XPfikhJulk4G+tKGFIOwURBSFzE8bixw1ebjluLOjfwtLqY0kewfjLSrO6tN2MgIhA==}
+    engines: {node: '>=18'}
     cpu: [arm64]
     os: [freebsd]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/freebsd-x64@0.18.17:
-    resolution: {integrity: sha512-sOxEvR8d7V7Kw8QqzxWc7bFfnWnGdaFBut1dRUYtu+EIRXefBc/eIsiUiShnW0hM3FmQ5Zf27suDuHsKgZ5QrA==}
-    engines: {node: '>=12'}
+  '@esbuild/freebsd-x64@0.23.1':
+    resolution: {integrity: sha512-lK1eJeyk1ZX8UklqFd/3A60UuZ/6UVfGT2LuGo3Wp4/z7eRTRYY+0xOu2kpClP+vMTi9wKOfXi2vjUpO1Ro76g==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [freebsd]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-arm64@0.18.17:
-    resolution: {integrity: sha512-c9w3tE7qA3CYWjT+M3BMbwMt+0JYOp3vCMKgVBrCl1nwjAlOMYzEo+gG7QaZ9AtqZFj5MbUc885wuBBmu6aADQ==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-arm64@0.23.1':
+    resolution: {integrity: sha512-/93bf2yxencYDnItMYV/v116zff6UyTjo4EtEQjUBeGiVpMmffDNUyD9UN2zV+V3LRV3/on4xdZ26NKzn6754g==}
+    engines: {node: '>=18'}
     cpu: [arm64]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-arm@0.18.17:
-    resolution: {integrity: sha512-2d3Lw6wkwgSLC2fIvXKoMNGVaeY8qdN0IC3rfuVxJp89CRfA3e3VqWifGDfuakPmp90+ZirmTfye1n4ncjv2lg==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-arm@0.23.1':
+    resolution: {integrity: sha512-CXXkzgn+dXAPs3WBwE+Kvnrf4WECwBdfjfeYHpMeVxWE0EceB6vhWGShs6wi0IYEqMSIzdOF1XjQ/Mkm5d7ZdQ==}
+    engines: {node: '>=18'}
     cpu: [arm]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-ia32@0.18.17:
-    resolution: {integrity: sha512-1DS9F966pn5pPnqXYz16dQqWIB0dmDfAQZd6jSSpiT9eX1NzKh07J6VKR3AoXXXEk6CqZMojiVDSZi1SlmKVdg==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-ia32@0.23.1':
+    resolution: {integrity: sha512-VTN4EuOHwXEkXzX5nTvVY4s7E/Krz7COC8xkftbbKRYAl96vPiUssGkeMELQMOnLOJ8k3BY1+ZY52tttZnHcXQ==}
+    engines: {node: '>=18'}
     cpu: [ia32]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-loong64@0.18.17:
-    resolution: {integrity: sha512-EvLsxCk6ZF0fpCB6w6eOI2Fc8KW5N6sHlIovNe8uOFObL2O+Mr0bflPHyHwLT6rwMg9r77WOAWb2FqCQrVnwFg==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-loong64@0.23.1':
+    resolution: {integrity: sha512-Vx09LzEoBa5zDnieH8LSMRToj7ir/Jeq0Gu6qJ/1GcBq9GkfoEAoXvLiW1U9J1qE/Y/Oyaq33w5p2ZWrNNHNEw==}
+    engines: {node: '>=18'}
     cpu: [loong64]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-mips64el@0.18.17:
-    resolution: {integrity: sha512-e0bIdHA5p6l+lwqTE36NAW5hHtw2tNRmHlGBygZC14QObsA3bD4C6sXLJjvnDIjSKhW1/0S3eDy+QmX/uZWEYQ==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-mips64el@0.23.1':
+    resolution: {integrity: sha512-nrFzzMQ7W4WRLNUOU5dlWAqa6yVeI0P78WKGUo7lg2HShq/yx+UYkeNSE0SSfSure0SqgnsxPvmAUu/vu0E+3Q==}
+    engines: {node: '>=18'}
     cpu: [mips64el]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-ppc64@0.18.17:
-    resolution: {integrity: sha512-BAAilJ0M5O2uMxHYGjFKn4nJKF6fNCdP1E0o5t5fvMYYzeIqy2JdAP88Az5LHt9qBoUa4tDaRpfWt21ep5/WqQ==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-ppc64@0.23.1':
+    resolution: {integrity: sha512-dKN8fgVqd0vUIjxuJI6P/9SSSe/mB9rvA98CSH2sJnlZ/OCZWO1DJvxj8jvKTfYUdGfcq2dDxoKaC6bHuTlgcw==}
+    engines: {node: '>=18'}
     cpu: [ppc64]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-riscv64@0.18.17:
-    resolution: {integrity: sha512-Wh/HW2MPnC3b8BqRSIme/9Zhab36PPH+3zam5pqGRH4pE+4xTrVLx2+XdGp6fVS3L2x+DrsIcsbMleex8fbE6g==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-riscv64@0.23.1':
+    resolution: {integrity: sha512-5AV4Pzp80fhHL83JM6LoA6pTQVWgB1HovMBsLQ9OZWLDqVY8MVobBXNSmAJi//Csh6tcY7e7Lny2Hg1tElMjIA==}
+    engines: {node: '>=18'}
     cpu: [riscv64]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-s390x@0.18.17:
-    resolution: {integrity: sha512-j/34jAl3ul3PNcK3pfI0NSlBANduT2UO5kZ7FCaK33XFv3chDhICLY8wJJWIhiQ+YNdQ9dxqQctRg2bvrMlYgg==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-s390x@0.23.1':
+    resolution: {integrity: sha512-9ygs73tuFCe6f6m/Tb+9LtYxWR4c9yg7zjt2cYkjDbDpV/xVn+68cQxMXCjUpYwEkze2RcU/rMnfIXNRFmSoDw==}
+    engines: {node: '>=18'}
     cpu: [s390x]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/linux-x64@0.18.17:
-    resolution: {integrity: sha512-QM50vJ/y+8I60qEmFxMoxIx4de03pGo2HwxdBeFd4nMh364X6TIBZ6VQ5UQmPbQWUVWHWws5MmJXlHAXvJEmpQ==}
-    engines: {node: '>=12'}
+  '@esbuild/linux-x64@0.23.1':
+    resolution: {integrity: sha512-EV6+ovTsEXCPAp58g2dD68LxoP/wK5pRvgy0J/HxPGB009omFPv3Yet0HiaqvrIrgPTBuC6wCH1LTOY91EO5hQ==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/netbsd-x64@0.18.17:
-    resolution: {integrity: sha512-/jGlhWR7Sj9JPZHzXyyMZ1RFMkNPjC6QIAan0sDOtIo2TYk3tZn5UDrkE0XgsTQCxWTTOcMPf9p6Rh2hXtl5TQ==}
-    engines: {node: '>=12'}
+  '@esbuild/netbsd-x64@0.23.1':
+    resolution: {integrity: sha512-aevEkCNu7KlPRpYLjwmdcuNz6bDFiE7Z8XC4CPqExjTvrHugh28QzUXVOZtiYghciKUacNktqxdpymplil1beA==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [netbsd]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/openbsd-x64@0.18.17:
-    resolution: {integrity: sha512-rSEeYaGgyGGf4qZM2NonMhMOP/5EHp4u9ehFiBrg7stH6BYEEjlkVREuDEcQ0LfIl53OXLxNbfuIj7mr5m29TA==}
-    engines: {node: '>=12'}
+  '@esbuild/openbsd-arm64@0.23.1':
+    resolution: {integrity: sha512-3x37szhLexNA4bXhLrCC/LImN/YtWis6WXr1VESlfVtVeoFJBRINPJ3f0a/6LV8zpikqoUg4hyXw0sFBt5Cr+Q==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [openbsd]
+
+  '@esbuild/openbsd-x64@0.23.1':
+    resolution: {integrity: sha512-aY2gMmKmPhxfU+0EdnN+XNtGbjfQgwZj43k8G3fyrDM/UdZww6xrWxmDkuz2eCZchqVeABjV5BpildOrUbBTqA==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [openbsd]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/sunos-x64@0.18.17:
-    resolution: {integrity: sha512-Y7ZBbkLqlSgn4+zot4KUNYst0bFoO68tRgI6mY2FIM+b7ZbyNVtNbDP5y8qlu4/knZZ73fgJDlXID+ohY5zt5g==}
-    engines: {node: '>=12'}
+  '@esbuild/sunos-x64@0.23.1':
+    resolution: {integrity: sha512-RBRT2gqEl0IKQABT4XTj78tpk9v7ehp+mazn2HbUeZl1YMdaGAQqhapjGTCe7uw7y0frDi4gS0uHzhvpFuI1sA==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [sunos]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/win32-arm64@0.18.17:
-    resolution: {integrity: sha512-bwPmTJsEQcbZk26oYpc4c/8PvTY3J5/QK8jM19DVlEsAB41M39aWovWoHtNm78sd6ip6prilxeHosPADXtEJFw==}
-    engines: {node: '>=12'}
+  '@esbuild/win32-arm64@0.23.1':
+    resolution: {integrity: sha512-4O+gPR5rEBe2FpKOVyiJ7wNDPA8nGzDuJ6gN4okSA1gEOYZ67N8JPk58tkWtdtPeLz7lBnY6I5L3jdsr3S+A6A==}
+    engines: {node: '>=18'}
     cpu: [arm64]
     os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/win32-ia32@0.18.17:
-    resolution: {integrity: sha512-H/XaPtPKli2MhW+3CQueo6Ni3Avggi6hP/YvgkEe1aSaxw+AeO8MFjq8DlgfTd9Iz4Yih3QCZI6YLMoyccnPRg==}
-    engines: {node: '>=12'}
+  '@esbuild/win32-ia32@0.23.1':
+    resolution: {integrity: sha512-BcaL0Vn6QwCwre3Y717nVHZbAa4UBEigzFm6VdsVdT/MbZ38xoj1X9HPkZhbmaBGUD1W8vxAfffbDe8bA6AKnQ==}
+    engines: {node: '>=18'}
     cpu: [ia32]
     os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@esbuild/win32-x64@0.18.17:
-    resolution: {integrity: sha512-fGEb8f2BSA3CW7riJVurug65ACLuQAzKq0SSqkY2b2yHHH0MzDfbLyKIGzHwOI/gkHcxM/leuSW6D5w/LMNitA==}
-    engines: {node: '>=12'}
+  '@esbuild/win32-x64@0.23.1':
+    resolution: {integrity: sha512-BHpFFeslkWrXWyUPnbKm+xYYVYruCinGcftSBaa8zoF9hZO4BcSCFUvHVTtzpIY6YzUnYtuEhZ+C9iEXjxnasg==}
+    engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
 
-  /@types/node@16.18.11:
-    resolution: {integrity: sha512-3oJbGBUWuS6ahSnEq1eN2XrCyf4YsWI8OyCvo7c64zQJNplk3mO84t53o8lfTk+2ji59g5ycfc6qQ3fdHliHuA==}
-    dev: true
-
-  /esbuild@0.18.17:
-    resolution: {integrity: sha512-1GJtYnUxsJreHYA0Y+iQz2UEykonY66HNWOb0yXYZi9/kNrORUEHVg87eQsCtqh59PEJ5YVZJO98JHznMJSWjg==}
-    engines: {node: '>=12'}
-    hasBin: true
-    requiresBuild: true
-    optionalDependencies:
-      '@esbuild/android-arm': 0.18.17
-      '@esbuild/android-arm64': 0.18.17
-      '@esbuild/android-x64': 0.18.17
-      '@esbuild/darwin-arm64': 0.18.17
-      '@esbuild/darwin-x64': 0.18.17
-      '@esbuild/freebsd-arm64': 0.18.17
-      '@esbuild/freebsd-x64': 0.18.17
-      '@esbuild/linux-arm': 0.18.17
-      '@esbuild/linux-arm64': 0.18.17
-      '@esbuild/linux-ia32': 0.18.17
-      '@esbuild/linux-loong64': 0.18.17
-      '@esbuild/linux-mips64el': 0.18.17
-      '@esbuild/linux-ppc64': 0.18.17
-      '@esbuild/linux-riscv64': 0.18.17
-      '@esbuild/linux-s390x': 0.18.17
-      '@esbuild/linux-x64': 0.18.17
-      '@esbuild/netbsd-x64': 0.18.17
-      '@esbuild/openbsd-x64': 0.18.17
-      '@esbuild/sunos-x64': 0.18.17
-      '@esbuild/win32-arm64': 0.18.17
-      '@esbuild/win32-ia32': 0.18.17
-      '@esbuild/win32-x64': 0.18.17
-    dev: true
-
-  file:../prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-qYYuArI1LWdiN8sp9LkOc4+fv4u5pvDEKjcYeBGgGxax6uGc5EmheB1CxEIc1f0b0nR2UxHf7Y/gWziXFFLotQ==, tarball: file:../prisma-0.0.0.tgz}
-    name: prisma
+  '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz':
+    resolution: {integrity: sha512-ay37guKo2BhNHZ2XDYhCEcSqs3J96CJYDdnCs/AmpbMnF+H/6u1eEy2WQYucXRLBtQvX6lszfP/0dlnH6TZspw==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=16.13'}
-    hasBin: true
-    requiresBuild: true
-    bundledDependencies:
-      - '@prisma/engines'
-
-  file:../prisma-client-0.0.0.tgz(prisma@0.0.0):
-    resolution: {integrity: sha512-SnP9TVppjD8oWwldrMrcv3atihO5EKZfuweNuaxGlKOifwPG2B6/eNURvqHENC/c7me80dlGS3DQzz4HWZm48g==, tarball: file:../prisma-client-0.0.0.tgz}
-    id: file:../prisma-client-0.0.0.tgz
-    name: '@prisma/client'
-    version: 0.0.0
-    engines: {node: '>=16.13'}
-    requiresBuild: true
     peerDependencies:
       prisma: '*'
     peerDependenciesMeta:
       prisma:
         optional: true
+
+  '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz':
+    resolution: {integrity: sha512-wwja1z9F/AlHQnxNbyWP2rCo1E5tOwJEC97Dtj3G+/8ssgr8jyHrdi9lCexo81vApcmPeoDhizCIKe47z118dQ==, tarball: file:../../tmp/prisma-debug-0.0.0.tgz}
+    version: 0.0.0
+
+  '@prisma/engines-version@5.20.0-4.f2561ec470647d6a14db84d3c1dc6fc1c2414386':
+    resolution: {integrity: sha512-PL960pD4I0xVZSbs+TLxc7mPOR/5CB/t8Rc0Srqo/5ogT8HhVuBJRb6KVthEp37jDp8i7sMUXgwKaJbDdqFiQQ==}
+
+  '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
+    resolution: {integrity: sha512-wtcyQNsbMUv9rUV+11oHWDPaBgOO0vrqIQxEJCDBlKTM99Cy6XJtT02agtSnektWIRjbySxDMeVgbon7a8wNTA==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
+    version: 0.0.0
+
+  '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
+    resolution: {integrity: sha512-RLG8vlfRXblVbDK/7NWZcQ695YRTEKgSr/F6tPR81b5BI6LZ4u8zrH6oWq2EFdhONpxEcBi+/SPRILrE1SQvFA==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
+    version: 0.0.0
+
+  '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
+    resolution: {integrity: sha512-s1xjGocOenORqrtWbwjU0g5SKOCBWD8MseL7qXSUXYAg/gfA7tE38qW/T8QnTkRklH3qluJGaF//kMKRZ4M+Tw==, tarball: file:../../tmp/prisma-get-platform-0.0.0.tgz}
+    version: 0.0.0
+
+  '@types/node@16.18.98':
+    resolution: {integrity: sha512-fpiC20NvLpTLAzo3oVBKIqBGR6Fx/8oAK/SSf7G+fydnXMY1x4x9RZ6sBXhqKlCU21g2QapUsbLlhv3+a7wS+Q==}
+
+  esbuild@0.23.1:
+    resolution: {integrity: sha512-VVNz/9Sa0bs5SELtn3f7qhJCDPCF5oMEl5cO9/SSinpE9hbPVvxbd572HH5AKiP7WD8INO53GgfDDhRjkylHEg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  fsevents@2.3.3:
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
+  prisma@file:../../tmp/prisma-0.0.0.tgz:
+    resolution: {integrity: sha512-gCR5xZAz9M6CZOYSv0oJ/n9RapXnXTpwJdW/x2TivmGpBDakXRjCPC4/DnhP+0GdKzekbV44uQainCjQyXKrog==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    version: 0.0.0
+    engines: {node: '>=16.13'}
+    hasBin: true
+
+snapshots:
+
+  '@esbuild/aix-ppc64@0.23.1':
+    optional: true
+
+  '@esbuild/android-arm64@0.23.1':
+    optional: true
+
+  '@esbuild/android-arm@0.23.1':
+    optional: true
+
+  '@esbuild/android-x64@0.23.1':
+    optional: true
+
+  '@esbuild/darwin-arm64@0.23.1':
+    optional: true
+
+  '@esbuild/darwin-x64@0.23.1':
+    optional: true
+
+  '@esbuild/freebsd-arm64@0.23.1':
+    optional: true
+
+  '@esbuild/freebsd-x64@0.23.1':
+    optional: true
+
+  '@esbuild/linux-arm64@0.23.1':
+    optional: true
+
+  '@esbuild/linux-arm@0.23.1':
+    optional: true
+
+  '@esbuild/linux-ia32@0.23.1':
+    optional: true
+
+  '@esbuild/linux-loong64@0.23.1':
+    optional: true
+
+  '@esbuild/linux-mips64el@0.23.1':
+    optional: true
+
+  '@esbuild/linux-ppc64@0.23.1':
+    optional: true
+
+  '@esbuild/linux-riscv64@0.23.1':
+    optional: true
+
+  '@esbuild/linux-s390x@0.23.1':
+    optional: true
+
+  '@esbuild/linux-x64@0.23.1':
+    optional: true
+
+  '@esbuild/netbsd-x64@0.23.1':
+    optional: true
+
+  '@esbuild/openbsd-arm64@0.23.1':
+    optional: true
+
+  '@esbuild/openbsd-x64@0.23.1':
+    optional: true
+
+  '@esbuild/sunos-x64@0.23.1':
+    optional: true
+
+  '@esbuild/win32-arm64@0.23.1':
+    optional: true
+
+  '@esbuild/win32-ia32@0.23.1':
+    optional: true
+
+  '@esbuild/win32-x64@0.23.1':
+    optional: true
+
+  '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz(prisma@file:../../tmp/prisma-0.0.0.tgz)':
+    optionalDependencies:
+      prisma: file:../../tmp/prisma-0.0.0.tgz
+
+  '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz': {}
+
+  '@prisma/engines-version@5.20.0-4.f2561ec470647d6a14db84d3c1dc6fc1c2414386': {}
+
+  '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
     dependencies:
-      prisma: file:../prisma-0.0.0.tgz
-    dev: false
-    bundledDependencies:
-      - '@prisma/engines-version'
+      '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
+      '@prisma/engines-version': 5.20.0-4.f2561ec470647d6a14db84d3c1dc6fc1c2414386
+      '@prisma/fetch-engine': file:../../tmp/prisma-fetch-engine-0.0.0.tgz
+      '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
+
+  '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
+    dependencies:
+      '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
+      '@prisma/engines-version': 5.20.0-4.f2561ec470647d6a14db84d3c1dc6fc1c2414386
+      '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
+
+  '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
+    dependencies:
+      '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
+
+  '@types/node@16.18.98': {}
+
+  esbuild@0.23.1:
+    optionalDependencies:
+      '@esbuild/aix-ppc64': 0.23.1
+      '@esbuild/android-arm': 0.23.1
+      '@esbuild/android-arm64': 0.23.1
+      '@esbuild/android-x64': 0.23.1
+      '@esbuild/darwin-arm64': 0.23.1
+      '@esbuild/darwin-x64': 0.23.1
+      '@esbuild/freebsd-arm64': 0.23.1
+      '@esbuild/freebsd-x64': 0.23.1
+      '@esbuild/linux-arm': 0.23.1
+      '@esbuild/linux-arm64': 0.23.1
+      '@esbuild/linux-ia32': 0.23.1
+      '@esbuild/linux-loong64': 0.23.1
+      '@esbuild/linux-mips64el': 0.23.1
+      '@esbuild/linux-ppc64': 0.23.1
+      '@esbuild/linux-riscv64': 0.23.1
+      '@esbuild/linux-s390x': 0.23.1
+      '@esbuild/linux-x64': 0.23.1
+      '@esbuild/netbsd-x64': 0.23.1
+      '@esbuild/openbsd-arm64': 0.23.1
+      '@esbuild/openbsd-x64': 0.23.1
+      '@esbuild/sunos-x64': 0.23.1
+      '@esbuild/win32-arm64': 0.23.1
+      '@esbuild/win32-ia32': 0.23.1
+      '@esbuild/win32-x64': 0.23.1
+
+  fsevents@2.3.3:
+    optional: true
+
+  prisma@file:../../tmp/prisma-0.0.0.tgz:
+    dependencies:
+      '@prisma/engines': file:../../tmp/prisma-engines-0.0.0.tgz
+    optionalDependencies:
+      fsevents: 2.3.3

@@ -35,11 +35,11 @@ We would appreciate if you could take the time to share some information with us
 Please help us by answering a few questions: https://pris.ly/engine-not-found-bundler-investigation
 
 The following locations have been searched:
-  /test/bundler-detection-error/generated/client
-  /test/bundler-detection-error
-  /.prisma/client
-  /tmp/prisma-engines
-  /test/bundler-detection-error/prisma"
+  /test/bundler-detection-error/generated/client/libquery_engine-debian-openssl-3.0.x.so.node
+  /test/bundler-detection-error/libquery_engine-debian-openssl-3.0.x.so.node
+  /.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+  /tmp/prisma-engines/libquery_engine-debian-openssl-3.0.x.so.node
+  /test/bundler-detection-error/prisma/libquery_engine-debian-openssl-3.0.x.so.node"
 `)
 })
 
