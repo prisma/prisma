@@ -74,6 +74,12 @@ export interface GenerateClientOptions {
   typedSql?: SqlQueryOutput[]
 }
 
+export interface BuildClientOptions extends O.Required<GenerateClientOptions, 'runtimeBase'> {
+  enginePaths: {
+    [binaryTarget: string]: string
+  }
+}
+
 export interface FileMap {
   [name: string]: string | FileMap
 }
@@ -99,8 +105,9 @@ export async function buildClient({
   postinstall,
   copyEngine,
   envPaths,
+  enginePaths,
   typedSql,
-}: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
+}: BuildClientOptions): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
   const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
@@ -204,7 +211,7 @@ export async function buildClient({
   fileMap['edge.js'] = JS(edgeClient)
   fileMap['edge.d.ts'] = TS(edgeClient)
   // TODO: engine type
-  fileMap['binary-target-file-map.mjs'] = buildBinaryTargetFileMap(binaryPaths.libqueryEngine ?? {})
+  fileMap['binary-target-file-map.mjs'] = buildBinaryTargetFileMap(enginePaths)
 
   if (generator.previewFeatures.includes('reactNative')) {
     fileMap['react-native.js'] = JS(rnTsClient)
@@ -401,6 +408,16 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const clientEngineType = getClientEngineType(generator)
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
+  const enginePaths =
+    clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
+
+  if (!enginePaths) {
+    throw new Error(
+      `Prisma Client needs \`${
+        clientEngineType === ClientEngineType.Library ? 'libqueryEngine' : 'queryEngine'
+      }\` in the \`binaryPaths\` object.`,
+    )
+  }
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
@@ -419,6 +436,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     testMode,
     envPaths,
     typedSql,
+    enginePaths,
   })
 
   const provider = datasources[0].provider
@@ -465,23 +483,12 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     })
   }
 
-  const enginePath =
-    clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
-
-  if (!enginePath) {
-    throw new Error(
-      `Prisma Client needs \`${
-        clientEngineType === ClientEngineType.Library ? 'libqueryEngine' : 'queryEngine'
-      }\` in the \`binaryPaths\` object.`,
-    )
-  }
-
   if (copyEngine) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
 
-    for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
+    for (const [binaryTarget, filePath] of Object.entries(enginePaths)) {
       const fileName = path.basename(filePath)
       let target: string
 
