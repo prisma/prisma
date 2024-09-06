@@ -21,11 +21,11 @@ We would appreciate if you could take the time to share some information with us
 Please help us by answering a few questions: https://pris.ly/engine-not-found-bundler-investigation
 
 The following locations have been searched:
-  /test/engine-not-found-error/bundler-tampered-with-engine-copy/prisma/client
-  /test/engine-not-found-error/bundler-tampered-with-engine-copy
-  /test/.prisma/client
-  /tmp/prisma-engines
-  /test/engine-not-found-error/bundler-tampered-with-engine-copy/prisma"
+  /test/engine-not-found-error/bundler-tampered-with-engine-copy/prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+  /test/engine-not-found-error/bundler-tampered-with-engine-copy/libquery_engine-debian-openssl-3.0.x.so.node
+  /test/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+  /tmp/prisma-engines/libquery_engine-debian-openssl-3.0.x.so.node
+  /test/engine-not-found-error/bundler-tampered-with-engine-copy/prisma/libquery_engine-debian-openssl-3.0.x.so.node"
 `)
 })
 

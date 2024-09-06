@@ -27,10 +27,10 @@ generator client {
 }
 
 The following locations have been searched:
-  /test/engine-not-found-error/native-generated-different-platform/prisma/client
-  /test/engine-not-found-error/native-generated-different-platform/.prisma/client
-  /tmp/prisma-engines
-  /test/engine-not-found-error/native-generated-different-platform/prisma"
+  /test/engine-not-found-error/native-generated-different-platform/prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+  /test/engine-not-found-error/native-generated-different-platform/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node
+  /tmp/prisma-engines/libquery_engine-debian-openssl-3.0.x.so.node
+  /test/engine-not-found-error/native-generated-different-platform/prisma/libquery_engine-debian-openssl-3.0.x.so.node"
 `)
 })
 
