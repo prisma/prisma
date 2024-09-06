@@ -162,7 +162,7 @@ export interface EngineConfig {
   /**
    * Loads the mapping from binary targets to a file path
    */
-  loadNativeEnginesMap: BinaryTargetFileMapLoad
+  loadBinaryTargetFileMap: BinaryTargetFileMapLoad
 
   /**
    * Allows Accelerate to use runtime utilities from the client. These are

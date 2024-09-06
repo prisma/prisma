@@ -6,7 +6,7 @@ import fs from 'fs'
 import path from 'path'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { EngineConfig } from './Engine'
+import { BinaryTargetFileMapLoad, EngineConfig } from './Engine'
 import { binaryTargetsWasIncorrectlyPinned } from './errors/engine-not-found/binaryTargetsWasIncorrectlyPinned'
 import { bundlerHasTamperedWithEngineCopy } from './errors/engine-not-found/bundlerHasTamperedWithEngineCopy'
 import { EngineNotFoundErrorInput } from './errors/engine-not-found/EngineNotFoundErrorInput'
@@ -85,8 +85,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
  */
 async function findEnginePath(engineType: ClientEngineType, config: EngineConfig) {
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
-  // loadNativeEnginesMap uses dynamic import that does not work in Jest untransformed
-  const engineFilesMap = isRunningInJest() ? {} : await config.loadNativeEnginesMap()
+  const engineFilesMap = await safeLoadBinaryTargetFileMap(config.loadBinaryTargetFileMap)
   const searchedLocations: string[] = []
 
   const dirname = eval('__dirname') as string
@@ -119,6 +118,21 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
   }
 
   return { enginePath: undefined, searchedLocations }
+}
+
+async function safeLoadBinaryTargetFileMap(callback: BinaryTargetFileMapLoad) {
+  try {
+    return await callback()
+  } catch (error) {
+    // without the transforms, current (29.7) jest version can not
+    // load ESM dynamically, so we have no other choice but to ignore
+    // target-to-file map. Usually, other paths will find engine correctly
+    // regardless.
+    if (isRunningInJest()) {
+      return {}
+    }
+    throw error
+  }
 }
 
 function isRunningInJest() {

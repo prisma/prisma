@@ -58,7 +58,7 @@ function setupMockLibraryEngine() {
       overrideDatasources: {},
       clientVersion: '0.0.0',
       engineVersion: '0000000000000000000000000000000000000000',
-      loadNativeEnginesMap: () => Promise.resolve({}),
+      loadBinaryTargetFileMap: () => Promise.resolve({}),
     },
     loader,
   )
@@ -139,7 +139,7 @@ test('responds to initialization error with PrismaClientInitializationError', as
       overrideDatasources: {},
       clientVersion: '0.0.0',
       engineVersion: '0000000000000000000000000000000000000000',
-      loadNativeEnginesMap: () => Promise.resolve({}),
+      loadBinaryTargetFileMap: () => Promise.resolve({}),
     },
     loader,
   )

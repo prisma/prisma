@@ -304,7 +304,9 @@ export type GetPrismaClientConfig = {
   engineWasm?: WasmLoadingConfig
 
   /**
-   * Loader for mapping between binary target and file on disk
+   * Loader for mapping between binary target and file on disk.
+   * Function is async, because it needs to load ESM module from CJS
+   * and until node 22 this can be done only via async dynamic `import()`.
    */
   loadBinaryTargetFileMap: BinaryTargetFileMapLoad
 }
@@ -475,7 +477,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             timeout: options.transactionOptions?.timeout ?? 5000,
             isolationLevel: options.transactionOptions?.isolationLevel,
           },
-          loadNativeEnginesMap: config.loadBinaryTargetFileMap,
+          loadBinaryTargetFileMap: config.loadBinaryTargetFileMap,
           logEmitter,
           isBundled: config.isBundled,
           adapter,
