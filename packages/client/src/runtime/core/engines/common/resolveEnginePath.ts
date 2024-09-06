@@ -85,7 +85,8 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
  */
 async function findEnginePath(engineType: ClientEngineType, config: EngineConfig) {
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
-  const engineFilesMap = await config.loadNativeEnginesMap()
+  // loadNativeEnginesMap uses dynamic import that does not work in Jest untransformed
+  const engineFilesMap = isRunningInJest() ? {} : await config.loadNativeEnginesMap()
   const searchedLocations: string[] = []
 
   const dirname = eval('__dirname') as string
@@ -118,6 +119,10 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
   }
 
   return { enginePath: undefined, searchedLocations }
+}
+
+function isRunningInJest() {
+  return Boolean(process.env.JEST_WORKER_ID)
 }
 
 /**
