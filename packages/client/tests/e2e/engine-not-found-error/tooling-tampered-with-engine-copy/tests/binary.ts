@@ -25,10 +25,10 @@ We would appreciate if you could take the time to share some information with us
 Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation
 
 The following locations have been searched:
-  /test/engine-not-found-error/tooling-tampered-with-engine-copy/prisma/client
-  /test/engine-not-found-error/tooling-tampered-with-engine-copy/.prisma/client
-  /tmp/prisma-engines
-  /test/engine-not-found-error/tooling-tampered-with-engine-copy/prisma"
+  /test/engine-not-found-error/tooling-tampered-with-engine-copy/prisma/client/query-engine-debian-openssl-3.0.x
+  /test/engine-not-found-error/tooling-tampered-with-engine-copy/.prisma/client/query-engine-debian-openssl-3.0.x
+  /tmp/prisma-engines/query-engine-debian-openssl-3.0.x
+  /test/engine-not-found-error/tooling-tampered-with-engine-copy/prisma/query-engine-debian-openssl-3.0.x"
 `)
 })
 

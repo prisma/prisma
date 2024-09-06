@@ -27,10 +27,10 @@ generator client {
 }
 
 The following locations have been searched:
-  /test/engine-not-found-error/binary-targets-incorrectly-pinned/prisma/client
-  /test/engine-not-found-error/binary-targets-incorrectly-pinned/.prisma/client
-  /tmp/prisma-engines
-  /test/engine-not-found-error/binary-targets-incorrectly-pinned/prisma"
+  /test/engine-not-found-error/binary-targets-incorrectly-pinned/prisma/client/query-engine-debian-openssl-3.0.x
+  /test/engine-not-found-error/binary-targets-incorrectly-pinned/.prisma/client/query-engine-debian-openssl-3.0.x
+  /tmp/prisma-engines/query-engine-debian-openssl-3.0.x
+  /test/engine-not-found-error/binary-targets-incorrectly-pinned/prisma/query-engine-debian-openssl-3.0.x"
 `)
 })
 
