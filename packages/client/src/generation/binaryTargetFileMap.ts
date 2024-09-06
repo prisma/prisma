@@ -7,7 +7,7 @@ export type EnginePaths = {
   [binaryTarget: string]: string
 }
 
-export function buildEnginesMap(paths: EnginePaths) {
+export function buildBinaryTargetFileMap(paths: EnginePaths) {
   const writer = new Writer(0, undefined)
   writer.writeLine('export default {')
   writer.withIndent(() => {

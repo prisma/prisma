@@ -28,8 +28,8 @@ import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
 import clientPkg from '../../package.json'
+import { buildBinaryTargetFileMap } from './binaryTargetFileMap'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
-import { buildEnginesMap } from './enginesMap'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
@@ -204,7 +204,7 @@ export async function buildClient({
   fileMap['edge.js'] = JS(edgeClient)
   fileMap['edge.d.ts'] = TS(edgeClient)
   // TODO: engine type
-  fileMap['engines-map.mjs'] = buildEnginesMap(binaryPaths.libqueryEngine ?? {})
+  fileMap['binary-target-file-map.mjs'] = buildBinaryTargetFileMap(binaryPaths.libqueryEngine ?? {})
 
   if (generator.previewFeatures.includes('reactNative')) {
     fileMap['react-native.js'] = JS(rnTsClient)

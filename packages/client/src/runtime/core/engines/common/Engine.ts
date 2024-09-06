@@ -162,7 +162,7 @@ export interface EngineConfig {
   /**
    * Loads the mapping from binary targets to a file path
    */
-  loadNativeEnginesMap: NativeEngineMapLoader
+  loadNativeEnginesMap: BinaryTargetFileMapLoad
 
   /**
    * Allows Accelerate to use runtime utilities from the client. These are
@@ -199,12 +199,12 @@ export type WasmLoadingConfig = {
   getQueryEngineWasmModule: () => Promise<unknown>
 }
 
-export type EngineMap = {
+export type BinaryTargetFileMap = {
   // key: binary target, value: function that returns absolute path
   [binaryTarget: string]: () => string
 }
 
-export type NativeEngineMapLoader = () => Promise<EngineMap>
+export type BinaryTargetFileMapLoad = () => Promise<BinaryTargetFileMap>
 
 export type GetConfigResult = {
   datasources: DataSource[]

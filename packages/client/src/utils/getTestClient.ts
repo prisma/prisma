@@ -62,7 +62,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     inlineDatasources: { db: { url: config.datasources[0].url } },
     inlineSchema: datamodel[0][1], // TODO: merge schemas
     inlineSchemaHash: '',
-    loadEnginesMap: () => Promise.resolve({}),
+    loadBinaryTargetFileMap: () => Promise.resolve({}),
   }
 
   return getPrismaClient(options)
