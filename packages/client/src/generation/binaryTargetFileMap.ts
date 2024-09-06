@@ -33,7 +33,7 @@ export function buildBinaryTargetFileMap(paths: EnginePaths) {
   const writer = new Writer(0, undefined)
   // import.meta.url can be undefined after some of the bundling
   // steps. In particular, esbuild with `--format=cjs` output
-  writer.writeLine('export default (import.meta.url ? {')
+  writer.writeLine('export default {')
   writer.withIndent(() => {
     for (const [binaryTarget, filePath] of Object.entries(paths)) {
       const key = JSON.stringify(binaryTarget)
@@ -41,7 +41,7 @@ export function buildBinaryTargetFileMap(paths: EnginePaths) {
       writer.writeLine(`[${key}]: () => new URL(${relName}, import.meta.url).pathname,`)
     }
   })
-  writer.writeLine('} : {})')
+  writer.writeLine('}')
 
   return writer.toString()
 }
