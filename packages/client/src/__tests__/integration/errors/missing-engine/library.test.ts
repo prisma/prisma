@@ -52,10 +52,10 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine: library', asyn
     Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation
 
     The following locations have been searched:
-      /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
-      /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client
-      /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime
-      /tmp/prisma-engines
-      /client/src/__tests__/integration/errors/missing-engine"
+      /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node
+      /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node
+      /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node
+      /tmp/prisma-engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node
+      /client/src/__tests__/integration/errors/missing-engine/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node"
   `)
 })

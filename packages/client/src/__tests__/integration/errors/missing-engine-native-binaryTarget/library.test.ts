@@ -52,10 +52,10 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('missing-engine-native-binaryTa
     Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation
 
     The following locations have been searched:
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
-      /tmp/prisma-engines
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget"
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node
+      /tmp/prisma-engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node"
   `)
 })
