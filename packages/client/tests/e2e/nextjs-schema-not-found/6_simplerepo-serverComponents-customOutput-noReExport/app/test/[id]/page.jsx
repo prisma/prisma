@@ -1,4 +1,4 @@
-const { PrismaClient } = require('../../../prisma/client')
+const { PrismaClient } = require('@prisma/client')
 
 export async function generateStaticParams() {
   return [{ id: '1' }]
@@ -9,14 +9,9 @@ async function doPrismaQuery(params) {
 
   const prisma = new PrismaClient()
 
-  await prisma.user.deleteMany()
-  const user = await prisma.user.create({
-    data: {
-      email: 'test',
-    },
-  })
+  const result = await prisma.$queryRaw`SELECT 1`
 
-  return JSON.stringify(user)
+  return JSON.stringify(result)
 }
 
 export default async function Page({ params }) {
