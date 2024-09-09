@@ -3,3 +3,5 @@ services:
     build:
       context: .
       dockerfile: ./standard.dockerfile
+    extra_hosts:
+      - 'host.docker.internal=host-gateway'
