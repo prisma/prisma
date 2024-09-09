@@ -14,10 +14,10 @@ export const DEFAULT_SERVER = '.next/standalone/server.js'
  * @param endpoint the endpoint to test
  */
 async function test({ endpoint, server = DEFAULT_SERVER }: { endpoint: string; server?: string }) {
-  console.log(`Testing ${endpoint} with WORKAROUND=${process.env.WORKAROUND}`)
+  console.log(`Testing ${endpoint}`)
 
   // prepare and start the next.js server
-  const nextJsBuild = await $`pnpm exec next build`.nothrow()
+  await $`pnpm exec next build`
   await $`rm -fr .next/standalone/node_modules/next`.nothrow()
   const nextJsProcess = $`HOSTNAME=127.0.0.1 node ${server}`.nothrow()
 
@@ -32,26 +32,6 @@ async function test({ endpoint, server = DEFAULT_SERVER }: { endpoint: string; s
   // kill and proceed with test assertions
   await nextJsProcess.kill('SIGINT')
 
-  // Path 1: No workaround + a nice error message
-  if (process.env.WORKAROUND !== 'true' && (code === 500 || nextJsBuild.exitCode !== 0)) {
-    // Dual logic: server components error at build & runtime, non-Server components at runtime
-    // this is also why we use `.nothrow()` and only check for exit codes as well as http codes
-    const stderr = nextJsBuild.stderr + (await nextJsProcess).stderr // dual logic
-    const message = `We detected that you are using Next.js, learn how to fix this: https://pris.ly/d/engine-not-found-nextjs`
-
-    if (stderr.includes(message) === false) {
-      throw new Error(`Expected an error message starting with "${message}" but got "${stderr}"`)
-    }
-
-    return
-  }
-
-  // Path 2: Workaround + no error message
-  if (process.env.WORKAROUND === 'true' && code === 200) {
-    return
-  }
-
-  // Path 3: Otherwise, it should succeed
   if (code !== 200) {
     throw new Error(`Expected 200 but got ${code}`)
   }
@@ -82,8 +62,5 @@ export async function testNonServerComponents(options?: TestOptions) {
 
 async function testEndpoint(endpoint, { monorepo = true }: TestOptions = {}) {
   const server = monorepo ? MONOREPO_APP_DIR_SERVER : DEFAULT_SERVER
-  process.env.WORKAROUND = 'true'
-  await test({ endpoint, server })
-  process.env.WORKAROUND = 'false'
   await test({ endpoint, server })
 }
