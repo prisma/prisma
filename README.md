@@ -39,7 +39,8 @@ Prisma Client can be used in _any_ Node.js or TypeScript backend application (in
 
 - [Prisma Accelerate](https://prisma.io/docs/data-platform/accelerate?utm_source=github&utm_medium=prisma-readme): Global database cache with scalable connection pooling
 - [Prisma Pulse](https://www.prisma.io/docs/data-platform/pulse?utm_source=github&utm_medium=prisma-readme): Real-time database events with type-safe subscriptions
-- [Prisma Optimize](https://www.prisma.io/docs/data-platform/optimize?utm_source=github&utm_medium=prisma-readme): Ai-powered query optimization and performance insights
+- [Prisma Optimize](https://www.prisma.io/docs/data-platform/optimize?utm_source=github&utm_medium=prisma-readme): AI-powered query optimization and performance insights
+- [Prisma Studio](https://www.prisma.io/docs/orm/tools/prisma-studio?utm_source=github&utm_medium=org-readme): A visual editor for the data in your database
 
 ## Getting started
 
