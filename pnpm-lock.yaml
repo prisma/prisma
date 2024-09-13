@@ -587,7 +587,7 @@ importers:
         version: 1.25.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-base':
         specifier: 1.25.1
-        version: 1.26.0(@opentelemetry/api@1.9.0)
+        version: 1.25.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions':
         specifier: 1.25.1
         version: 1.25.1
@@ -622,8 +622,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
-        version: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
+        specifier: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
+        version: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -649,8 +649,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
-        version: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
+        specifier: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
+        version: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -868,8 +868,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
-        version: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
+        specifier: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
+        version: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -905,8 +905,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
-        version: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
+        specifier: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
+        version: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1230,8 +1230,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
-        version: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
+        specifier: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
+        version: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1402,8 +1402,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
-        version: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
+        specifier: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
+        version: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1557,8 +1557,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
-        version: 5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce
+        specifier: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
+        version: 5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -3619,6 +3619,7 @@ packages:
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/semantic-conventions': 1.27.0
+    dev: false
 
   /@opentelemetry/instrumentation@0.52.1(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-uXJbYU/5/MBHjMp1FqrILLRuiJCs3Ofk0MeRDk8g1S1gD47U8X3JnSwcMO1rtRo1x1a7zKaQHaoYu49p/4eSKw==}
@@ -3656,6 +3657,19 @@ packages:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 1.26.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.27.0
+    dev: false
+
+  /@opentelemetry/sdk-trace-base@1.25.1(@opentelemetry/api@1.9.0):
+    resolution: {integrity: sha512-C8k4hnEbc5FamuZQ92nTOp8X/diCY56XUTnMiv9UTuJitCzaNNHAVsdm5+HLCdI8SLQsLWIrG38tddMxLVoftw==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.10.0'
+    dependencies:
+      '@opentelemetry/api': 1.9.0
+      '@opentelemetry/core': 1.25.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/resources': 1.25.1(@opentelemetry/api@1.9.0)
+      '@opentelemetry/semantic-conventions': 1.25.1
+    dev: true
 
   /@opentelemetry/sdk-trace-base@1.26.0(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-olWQldtvbK4v22ymrKLbIcBi9L2SpMO84sCPY54IVsJhP9fRsxJT194C/AVaAuJzLE30EdhhM1VmvVYR7az+cw==}
@@ -3667,6 +3681,7 @@ packages:
       '@opentelemetry/core': 1.26.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/resources': 1.26.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.27.0
+    dev: false
 
   /@opentelemetry/semantic-conventions@1.25.1:
     resolution: {integrity: sha512-ZDjMJJQRlyk8A1KZFCc+bCbsyrn1wTwdNt56F7twdfUfnHUZUq77/WfONCj8p72NZOyP7pNTdUWSTYC3GTbuuQ==}
@@ -3676,6 +3691,7 @@ packages:
   /@opentelemetry/semantic-conventions@1.27.0:
     resolution: {integrity: sha512-sAay1RrB+ONOem0OZanAR1ZI/k7yDpnOQSQmTMuGImUQb2y8EbSaCJ94FQluM74xoU03vlb2d2U90hZluL6nQg==}
     engines: {node: '>=14'}
+    dev: false
 
   /@oxc-resolver/binding-darwin-arm64@1.10.2:
     resolution: {integrity: sha512-aOCZYXqmFL+2sXlaVkYbAOtICGGeTFtmdul8OimQfOXHJods6YHJ2nR6+rEeBcJzaXyXPP18ne1IsEc4AYL1IA==}
@@ -3771,8 +3787,8 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce:
-    resolution: {integrity: sha512-yNfBG+f4z+yIBckkv3JbmvLNtTovLZa8ljDJt9OTrXAsW6VwH5O6EFp5NxTNc6N1JAnvoHnFYpA49W97Udi/Ag==}
+  /@prisma/engines-version@5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7:
+    resolution: {integrity: sha512-eYEw5NURBuh5Lcvm1+JnxKVKwgQxhAceA9kTVtl5mfd5R6ajfaMYY3bKOhhMmg0GQqV3QR4W3sycj4E4/f7NWw==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3780,12 +3796,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce:
-    resolution: {integrity: sha512-JYh10d1JzlZH0s1euRj65Y63foJrboVYWV5OBMoZI7jA/OtPeBqRdDA3IKnx33J+xgCOWwMMmIFMkqBdroBTZg==}
+  /@prisma/prisma-schema-wasm@5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7:
+    resolution: {integrity: sha512-R+x/Iy/8t0zSS1VlxFc/tDYb770DkyAgeVQnYwiGDFihRZURy76VeB8aMVrU5XqXISWoqazlt5zhySkyAnULKg==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.20.0-7.190a98ffde8db4fe0b9ddeea2be06344bbc8edce:
-    resolution: {integrity: sha512-EF7LudWGDZ51VLRLmYFXgji4ZXtqkXA+4Q1leOpaqsmqiTL23IJ7/zzoDgern7nJIR9hwRps2kvSLb6t6KlK3A==}
+  /@prisma/query-engine-wasm@5.20.0-8.c9ff5773c72b821ff6daf2c55dbe3809eae7c2c7:
+    resolution: {integrity: sha512-wMOrgLL0N2rAP/VvPuPEH2l7aAOoaxatbVObhuZjv1VtZO99YQYHLJZhQs7Z5ZtD4xKmH7Z893ivpuwP41hRbg==}
     dev: true
 
   /@prisma/studio-common@0.502.0:
@@ -8102,7 +8118,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.2(@swc/core@1.2.204)(@types/node@18.19.31)(typescript@5.4.5)
+      ts-node: 10.9.2(@types/node@20.12.7)(typescript@5.4.5)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8143,7 +8159,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.2(@swc/core@1.2.204)(@types/node@18.19.31)(typescript@5.4.5)
+      ts-node: 10.9.2(@types/node@20.12.7)(typescript@5.4.5)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
