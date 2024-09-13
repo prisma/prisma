@@ -4,7 +4,7 @@ import ciInfo from 'ci-info'
 import crypto from 'crypto'
 import indent from 'indent-string'
 import path from 'path'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import { DMMFHelper } from '../dmmf'

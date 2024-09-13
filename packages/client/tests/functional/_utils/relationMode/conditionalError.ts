@@ -1,4 +1,4 @@
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import { AdapterProviders, Providers } from '../providers'
 
