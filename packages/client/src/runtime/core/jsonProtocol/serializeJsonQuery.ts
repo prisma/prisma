@@ -19,6 +19,7 @@ import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { computeEngineSideOmissions, computeEngineSideSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
 import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
+import { isSkip, Skip } from '../types'
 import {
   Action,
   JsArgs,
@@ -75,6 +76,8 @@ export type SerializeParams = {
   globalOmit?: GlobalOmitOptions
 }
 
+const STRICT_UNDEFINED_ERROR_MESSAGE = 'explicitly `undefined` values are not allowed'
+
 export function serializeJsonQuery({
   modelName,
   action,
@@ -128,7 +131,7 @@ function serializeFieldSelection(
 function serializeSelectionSet(
   select: Selection | undefined,
   include: Selection | undefined,
-  omit: Record<string, boolean> | undefined,
+  omit: Omission | undefined,
   context: SerializeContext,
 ): JsonSelectionSet {
   if (select) {
@@ -156,7 +159,7 @@ function serializeSelectionSet(
 function createImplicitSelection(
   context: SerializeContext,
   include: Selection | undefined,
-  omit: Record<string, boolean> | undefined,
+  omit: Omission | undefined,
 ) {
   const selectionSet: JsonSelectionSet = {}
 
@@ -178,7 +181,12 @@ function createImplicitSelection(
 
 function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
   for (const [key, value] of Object.entries(include)) {
-    if (value === false) {
+    if (isSkip(value)) {
+      continue
+    }
+    const nestedContext = context.nestSelection(key)
+    validateSelectionForUndefined(value, nestedContext)
+    if (value === false || value === undefined) {
       selectionSet[key] = false
       continue
     }
@@ -192,7 +200,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
       })
     }
     if (field) {
-      selectionSet[key] = serializeFieldSelection(value === true ? {} : value, context.nestSelection(key))
+      selectionSet[key] = serializeFieldSelection(value === true ? {} : value, nestedContext)
       continue
     }
 
@@ -205,7 +213,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     // this can either be user error (in that case, qe will respond with an error)
     // or virtual field not present on datamodel (like `_count`).
     // Since we don't know which one cast is, we still attempt to serialize selection
-    selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
+    selectionSet[key] = serializeFieldSelection(value, nestedContext)
   }
 }
 
@@ -214,6 +222,10 @@ function omitFields(selectionSet: JsonSelectionSet, localOmit: Omission | undefi
   const combinedOmits = { ...context.getGlobalOmit(), ...localOmit }
   const omitWithComputedFields = computeEngineSideOmissions(combinedOmits, computedFields)
   for (const [key, value] of Object.entries(omitWithComputedFields)) {
+    if (isSkip(value)) {
+      continue
+    }
+    validateSelectionForUndefined(value, context.nestSelection(key))
     const field = context.findField(key)
     if (computedFields?.[key] && !field) {
       continue
@@ -228,29 +240,34 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
   const selectWithComputedFields = computeEngineSideSelection(select, computedFields)
 
   for (const [key, value] of Object.entries(selectWithComputedFields)) {
+    if (isSkip(value)) {
+      continue
+    }
+    const nestedContext = context.nestSelection(key)
+    validateSelectionForUndefined(value, nestedContext)
     const field = context.findField(key)
     if (computedFields?.[key] && !field) {
       continue
     }
-    if (value === false) {
+    if (value === false || value === undefined || isSkip(value)) {
       selectionSet[key] = false
       continue
     }
     if (value === true) {
       if (field?.kind === 'object') {
-        selectionSet[key] = serializeFieldSelection({}, context.nestSelection(key))
+        selectionSet[key] = serializeFieldSelection({}, nestedContext)
       } else {
         selectionSet[key] = true
       }
       continue
     }
-    selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
+    selectionSet[key] = serializeFieldSelection(value, nestedContext)
   }
   return selectionSet
 }
 
 function serializeArgumentsValue(
-  jsValue: Exclude<JsInputValue, undefined>,
+  jsValue: Exclude<JsInputValue, undefined | Skip>,
   context: SerializeContext,
 ): JsonArgumentValue {
   if (jsValue === null) {
@@ -341,8 +358,20 @@ function serializeArgumentsObject(
   const result: Record<string, JsonArgumentValue> = {}
   for (const key in object) {
     const value = object[key]
+    const nestedContext = context.nestArgument(key)
+    if (isSkip(value)) {
+      continue
+    }
     if (value !== undefined) {
-      result[key] = serializeArgumentsValue(value, context.nestArgument(key))
+      result[key] = serializeArgumentsValue(value, nestedContext)
+    } else if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
+      context.throwValidationError({
+        kind: 'InvalidArgumentValue',
+        argumentPath: nestedContext.getArgumentPath(),
+        selectionPath: context.getSelectionPath(),
+        argument: { name: context.getArgumentName(), typeNames: [] },
+        underlyingError: STRICT_UNDEFINED_ERROR_MESSAGE,
+      })
     }
   }
   return result
@@ -353,7 +382,8 @@ function serializeArgumentsArray(array: JsInputValue[], context: SerializeContex
   for (let i = 0; i < array.length; i++) {
     const itemContext = context.nestArgument(String(i))
     const value = array[i]
-    if (value === undefined) {
+    if (value === undefined || isSkip(value)) {
+      const valueName = value === undefined ? 'undefined' : `Prisma.skip`
       context.throwValidationError({
         kind: 'InvalidArgumentValue',
         selectionPath: itemContext.getSelectionPath(),
@@ -362,7 +392,7 @@ function serializeArgumentsArray(array: JsInputValue[], context: SerializeContex
           name: `${context.getArgumentName()}[${i}]`,
           typeNames: [],
         },
-        underlyingError: 'Can not use `undefined` value within array. Use `null` or filter out `undefined` values',
+        underlyingError: `Can not use \`${valueName}\` value within array. Use \`null\` or filter out \`${valueName}\` values`,
       })
     }
     result.push(serializeArgumentsValue(value, itemContext))
@@ -376,6 +406,16 @@ function isRawParameters(value: JsInputValue): value is RawParameters {
 
 function isJSONConvertible(value: JsInputValue): value is JsonConvertible {
   return typeof value === 'object' && value !== null && typeof value['toJSON'] === 'function'
+}
+
+function validateSelectionForUndefined(value: unknown, context: SerializeContext) {
+  if (value === undefined && context.isPreviewFeatureOn('strictUndefinedChecks')) {
+    context.throwValidationError({
+      kind: 'InvalidSelectionValue',
+      selectionPath: context.getSelectionPath(),
+      underlyingError: STRICT_UNDEFINED_ERROR_MESSAGE,
+    })
+  }
 }
 
 type ContextParams = {
