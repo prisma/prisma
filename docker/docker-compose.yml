@@ -156,7 +156,7 @@ services:
       retries: 20
 
   mongodb_migrate:
-    image: mongo:4
+    image: mongo:8
     restart: unless-stopped
     environment:
       MONGO_INITDB_DATABASE: tests-migrate
