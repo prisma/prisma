@@ -1123,6 +1123,308 @@ describe('UnknownSelectionField', () => {
   })
 })
 
+describe('InvalidSelectionValue', () => {
+  test('top level select', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('top level include', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          include: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        include: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        include: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('top level omit', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          omit: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        omit: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        omit: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested select', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            user: {
+              select: {
+                // @ts-expect-error
+                name: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          user: {
+            select: {
+              name: undefined
+                    ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          user: {
+            select: {
+              name: <red>undefined</color>
+                    <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested include', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          include: {
+            user: {
+              include: {
+                // @ts-expect-error
+                name: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        include: {
+          user: {
+            include: {
+              name: undefined
+                    ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        include: {
+          user: {
+            include: {
+              name: <red>undefined</color>
+                    <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested omit', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'password'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            user: {
+              omit: {
+                // @ts-expect-error
+                password: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          user: {
+            omit: {
+              password: undefined
+                        ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`password\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          user: {
+            omit: {
+              password: <red>undefined</color>
+                        <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>password</color>\`: Not allowed
+      "
+    `)
+  })
+})
+
 describe('UnknownArgument', () => {
   test('top level with suggestion', () => {
     expect(

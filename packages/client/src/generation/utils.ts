@@ -2,6 +2,7 @@ import { assertNever } from '@prisma/internals'
 
 import { DMMF } from './dmmf-types'
 import * as ts from './ts-builders'
+import { GenerateContext } from './TSClient/GenerateContext'
 
 export function getSelectName(modelName: string): string {
   return `${modelName}Select`
@@ -174,6 +175,13 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
   }
 
   return `'${typeName}'`
+}
+
+export function appendSkipType(context: GenerateContext, type: ts.TypeBuilder) {
+  if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
+    return ts.unionType([type, ts.namedType('$Types.Skip')])
+  }
+  return type
 }
 
 export const extArgsParam = ts

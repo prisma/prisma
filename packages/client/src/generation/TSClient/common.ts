@@ -9,6 +9,7 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
+  generator,
   deno,
 }: TSClientOptions): string => `${deno ? 'const exports = {}' : ''}
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -34,7 +35,8 @@ import {
   Extensions,
   defineDmmfProperty,
   Public,
-  getRuntime
+  getRuntime,
+  skip
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
@@ -43,7 +45,8 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
-  getRuntime
+  getRuntime,
+  skip
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
@@ -59,6 +62,7 @@ const {
   empty,
   join,
   raw,
+  skip,
   Decimal,
   Debug,
   objectEnumValues,
@@ -121,6 +125,8 @@ Prisma.NullTypes = {
   JsonNull: objectEnumValues.classes.JsonNull,
   AnyNull: objectEnumValues.classes.AnyNull
 }
+
+${buildPrismaSkipJs(generator.previewFeatures)}
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
@@ -134,7 +140,13 @@ In case this error is unexpected for you, please report it in https://pris.ly/pr
   return fnc
 }
 
-export const commonCodeTS = ({ runtimeBase, runtimeNameTs, clientVersion, engineVersion }: TSClientOptions) => ({
+export const commonCodeTS = ({
+  runtimeBase,
+  runtimeNameTs,
+  clientVersion,
+  engineVersion,
+  generator,
+}: TSClientOptions) => ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
@@ -171,6 +183,8 @@ export import empty = runtime.empty
 export import join = runtime.join
 export import raw = runtime.raw
 export import Sql = runtime.Sql
+
+${buildPrismaSkipTs(generator.previewFeatures)}
 
 /**
  * Decimal.js
@@ -564,4 +578,27 @@ class ${name} {
   private constructor()
 }`
   return indent(source, TAB_SIZE)
+}
+
+function buildPrismaSkipTs(previewFeatures: string[]) {
+  if (previewFeatures.includes('strictUndefinedChecks')) {
+    return `
+/**
+ * Prisma.skip
+ */
+export import skip = runtime.skip
+`
+  }
+
+  return ''
+}
+
+function buildPrismaSkipJs(previewFeatures: string[]) {
+  if (previewFeatures.includes('strictUndefinedChecks')) {
+    return `
+Prisma.skip = skip
+`
+  }
+
+  return ''
 }

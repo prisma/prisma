@@ -298,18 +298,15 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType(inputType, this.genericsInfo).overrideName(`${inputType.name}Base`).toTS())
+      acc.push(new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS())
     } else {
-      acc.push(new InputType(inputType, this.genericsInfo).toTS())
+      acc.push(new InputType(inputType, context).toTS())
     }
     return acc
   }, [] as string[])
   .join('\n')}
 
-${
-  this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
-  ''
-}
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
 
 /**
  * Aliases for legacy arg types

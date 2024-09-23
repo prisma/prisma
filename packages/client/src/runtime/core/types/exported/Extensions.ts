@@ -47,8 +47,8 @@ export type GetSelect<
   KR extends keyof R = string extends keyof R ? never : keyof R,
 > = { [K in KR | keyof Base]?: K extends KR ? boolean : Base[K] }
 
-export type GetOmit<BaseKeys extends string, R extends InternalArgs['result'][string]> = {
-  [K in (string extends keyof R ? never : keyof R) | BaseKeys]?: boolean
+export type GetOmit<BaseKeys extends string, R extends InternalArgs['result'][string], ExtraType = never> = {
+  [K in (string extends keyof R ? never : keyof R) | BaseKeys]?: boolean | ExtraType
 }
 /** Query */
 
