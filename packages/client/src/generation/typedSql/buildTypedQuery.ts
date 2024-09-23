@@ -17,7 +17,7 @@ export function buildTypedQueryTs({ query, runtimeBase, runtimeName, enums }: Bu
 
   file.addImport(ts.moduleImport(`${runtimeBase}/${runtimeName}`).asNamespace('$runtime'))
   if (queryUsesEnums(query, enums)) {
-    file.addImport(ts.moduleImport('./$DbEnums').asNamespace('$DbEnums'))
+    file.addImport(ts.moduleImport('./$DbEnums').named('$DbEnums'))
   }
 
   const doc = ts.docComment(query.documentation ?? undefined)

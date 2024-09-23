@@ -1,4 +1,5 @@
 import { QueryIntrospectionBuiltinType, QueryIntrospectionType } from '@prisma/generator-helper'
+import { isValidJsIdentifier } from '@prisma/internals'
 
 import * as ts from '../ts-builders'
 import { DbEnumsList } from './buildDbEnums'
@@ -107,7 +108,7 @@ function getMappingConfig(
 
   if (!config) {
     if (enums.hasEnum(introspectionType)) {
-      const type = ts.namedType(`$DbEnums.${introspectionType}`)
+      const type = getEnumType(introspectionType)
 
       return { in: type, out: type }
     }
@@ -120,4 +121,11 @@ function getMappingConfig(
   }
 
   return config
+}
+
+function getEnumType(name: string) {
+  if (isValidJsIdentifier(name)) {
+    return ts.namedType(`$DbEnums.${name}`)
+  }
+  return ts.namedType('$DbEnums').subKey(name)
 }
