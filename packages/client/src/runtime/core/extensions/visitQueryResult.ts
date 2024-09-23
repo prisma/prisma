@@ -1,4 +1,5 @@
 import { RuntimeDataModel } from '../runtimeDataModel'
+import { isSkip } from '../types'
 import { JsArgs, Selection } from '../types/exported/JsApi'
 
 type ModelVisitor = (value: object, modelName: string, queryArgs: JsArgs) => object | undefined
@@ -66,7 +67,7 @@ type VisitNestedParams = {
 
 function visitNested({ includeOrSelect, result, parentModelName, runtimeDataModel, visitor }: VisitNestedParams) {
   for (const [fieldName, subConfig] of Object.entries(includeOrSelect)) {
-    if (!subConfig || result[fieldName] == null) {
+    if (!subConfig || result[fieldName] == null || isSkip(subConfig)) {
       continue
     }
     const parentModel = runtimeDataModel.models[parentModelName]
