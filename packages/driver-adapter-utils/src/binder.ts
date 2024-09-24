@@ -1,4 +1,4 @@
-import { err, Result } from './result'
+import { err, ok, Result } from './result'
 import type {
   DriverAdapter,
   ErrorCapturingDriverAdapter,
@@ -30,7 +30,19 @@ class ErrorRegistryInternal implements ErrorRegistry {
 export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter => {
   const errorRegistry = new ErrorRegistryInternal()
 
-  const createTransactionContext = wrapAsync(errorRegistry, adapter.transactionContext.bind(adapter))
+  if (adapter.transactionContext === undefined && adapter.startTransaction === undefined) {
+    // TypeScript interfaces don't support union types, so we have a runtime check here in case
+    // neither `transactionContext` nor `startTransaction` is defined.
+    throw new Error(
+      '[prisma:driverAdapters] Either `adapter.transactionContext` or `adapter.startTransaction` must be defined.',
+    )
+  }
+  const createTransactionContext =
+    adapter.transactionContext === undefined
+      ? wrapAsync(errorRegistry, () => {
+          return Promise.resolve(ok(adapter as TransactionContext))
+        })
+      : wrapAsync(errorRegistry, adapter.transactionContext.bind(adapter))
 
   const boundAdapter: ErrorCapturingDriverAdapter = {
     adapterName: adapter.adapterName,
@@ -39,7 +51,7 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
     executeRaw: wrapAsync(errorRegistry, adapter.executeRaw.bind(adapter)),
     provider: adapter.provider,
     transactionContext: async (...args) => {
-      const ctx = await createTransactionContext(...args)
+      const ctx: Result<TransactionContext> = await createTransactionContext(...args)
       return ctx.map((tx) => bindTransactionContext(errorRegistry, tx))
     },
   }
