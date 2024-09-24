@@ -15,7 +15,7 @@
     "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz",
     "@types/node": "18.19.34",
     "@types/react": "18.3.3",
-    "webpack": "5.91.0"
+    "webpack": "5.94.0"
   },
   "dependencies": {
     "db": "workspace:*",
