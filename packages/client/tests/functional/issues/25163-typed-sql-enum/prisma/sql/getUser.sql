@@ -1,0 +1,1 @@
+SELECT "role", "favoriteAnimal" FROM "User"

@@ -9,7 +9,8 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
-  getRuntime
+  getRuntime,
+  skip
 } = require('@prisma/client/runtime/index-browser.js')
 
 
@@ -110,6 +111,8 @@ Prisma.NullTypes = {
   JsonNull: objectEnumValues.classes.JsonNull,
   AnyNull: objectEnumValues.classes.AnyNull
 }
+
+
 
 /**
  * Enums
@@ -759,6 +762,8 @@ export namespace Prisma {
   export import join = runtime.join
   export import raw = runtime.raw
   export import Sql = runtime.Sql
+
+
 
   /**
    * Decimal.js
