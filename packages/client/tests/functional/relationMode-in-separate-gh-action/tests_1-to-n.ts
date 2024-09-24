@@ -131,7 +131,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint failed on the field`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
