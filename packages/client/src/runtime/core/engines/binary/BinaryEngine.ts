@@ -285,7 +285,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private getEngineEnvVars() {
-    const env: any = {
+    const env: Record<string, string> = {
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
@@ -299,6 +299,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     if (!process.env.NO_COLOR && this.showColors) {
       env.CLICOLOR_FORCE = '1'
+    }
+
+    const traceparent = this.tracingHelper.getTraceParent()
+    if (traceparent) {
+      env.TRACE_CONTEXT = JSON.stringify({ traceparent })
     }
 
     return {
