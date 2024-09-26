@@ -2,7 +2,7 @@ import { AdapterProviders, Providers } from '../_utils/providers'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
@@ -93,7 +93,7 @@ testMatrix.setupTestSuite(
             ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                  [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
                 },
               }),
             )
@@ -148,18 +148,14 @@ testMatrix.setupTestSuite(
           ).rejects.toThrow(
             conditionalError.snapshot({
               foreignKeys: {
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
                 [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
-                [AdapterProviders.JS_NEON]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [AdapterProviders.JS_PG]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                [AdapterProviders.JS_NEON]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                [AdapterProviders.JS_PG]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
               },
             }),
           )
@@ -178,7 +174,7 @@ testMatrix.setupTestSuite(
             ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                  [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
                 },
               }),
             )
@@ -228,18 +224,14 @@ testMatrix.setupTestSuite(
           ).rejects.toThrow(
             conditionalError.snapshot({
               foreignKeys: {
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
                 [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
-                [AdapterProviders.JS_NEON]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [AdapterProviders.JS_PG]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                [AdapterProviders.JS_NEON]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                [AdapterProviders.JS_PG]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
               },
             }),
           )

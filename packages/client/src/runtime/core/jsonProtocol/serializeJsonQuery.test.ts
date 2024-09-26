@@ -3,6 +3,7 @@ import Decimal from 'decimal.js'
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { FieldRefImpl } from '../model/FieldRef'
+import { skip } from '../types'
 import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { serializeJsonQuery, SerializeParams } from './serializeJsonQuery'
 
@@ -1366,6 +1367,146 @@ test('nested globalOmit (select)', () => {
               "title": false
             }
           }
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in arguments`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: skip },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in input object fields`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name: 'Steve', occupation: skip } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Steve"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in include`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name: 'Steve' }, include: { posts: true, profile: skip } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Steve"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          }
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in select`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name: 'Steve' }, select: { posts: true, profile: skip } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Steve"
+          }
+        },
+        "selection": {
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          }
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in omit`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name: 'Steve' }, omit: { password: true, name: skip } },
+      previewFeatures: ['omitApi'],
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Steve"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "password": false
         }
       }
     }"
