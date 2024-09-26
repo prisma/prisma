@@ -521,25 +521,21 @@ testMatrix.setupTestSuite(
           })
         })
 
-        let txQueries: Tree[] = []
-
-        if (provider !== Providers.MONGODB) {
-          txQueries = [
-            {
-              name: 'prisma:engine:commit_transaction',
-              children: [
-                {
-                  name: 'prisma:engine:itx_commit',
-                  children: [txCommit()],
-                },
-              ],
-            },
-            {
-              name: 'prisma:engine:start_transaction',
-              children: [engineConnection(), txBegin()],
-            },
-          ]
-        }
+        const txQueries: Tree[] = [
+          {
+            name: 'prisma:engine:commit_transaction',
+            children: [
+              {
+                name: 'prisma:engine:itx_commit',
+                children: isMongoDb ? undefined : [txCommit()],
+              },
+            ],
+          },
+          {
+            name: 'prisma:engine:start_transaction',
+            children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
+          },
+        ]
 
         // skipping on data proxy because the functionality is broken
         // in this case at the moment and `itx_runner` span occasionally does
