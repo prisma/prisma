@@ -173,6 +173,14 @@ testMatrix.setupTestSuite(
       }
     }
 
+    function txRollback() {
+      if (usesSyntheticTxQueries) {
+        return dbQuery('-- Implicit "ROLLBACK" query via underlying driver', AdapterQueryChildSpans.None)
+      } else {
+        return dbQuery('ROLLBACK', AdapterQueryChildSpans.ArgsOnly)
+      }
+    }
+
     function operation(model: string | undefined, method: string, children: Tree[]) {
       const attributes: Attributes = {
         method,
@@ -525,6 +533,7 @@ testMatrix.setupTestSuite(
         // in this case at the moment and `itx_runner` span occasionally does
         // not make it to the client when running via DP.
         // See https://github.com/prisma/prisma/issues/20694
+        // TODO: check if it's still the case after actor system removal
         if (!clientMeta.dataProxy) {
           await waitForSpanTree({
             name: 'prisma:client:transaction',
@@ -552,6 +561,69 @@ testMatrix.setupTestSuite(
                   {
                     name: 'prisma:engine:itx_commit',
                     children: isMongoDb ? undefined : [txCommit()],
+                  },
+                ],
+              },
+              {
+                name: 'prisma:engine:start_transaction',
+                children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
+              },
+            ],
+          })
+        }
+      })
+
+      test('interactive transaction rollback', async () => {
+        const email = faker.internet.email()
+
+        await prisma
+          .$transaction(async (client) => {
+            await client.user.create({
+              data: {
+                email,
+              },
+            })
+            await client.user.findMany({
+              where: {
+                email,
+              },
+            })
+            throw new Error('rollback')
+          })
+          .catch(() => {})
+
+        // skipping on data proxy because the functionality is broken
+        // in this case at the moment and `itx_runner` span occasionally does
+        // not make it to the client when running via DP.
+        // See https://github.com/prisma/prisma/issues/20694
+        // TODO: check if it's still the case after actor system removal
+        if (!clientMeta.dataProxy) {
+          await waitForSpanTree({
+            name: 'prisma:client:transaction',
+            attributes: {
+              method: '$transaction',
+            },
+            children: [
+              operation('User', 'create', [
+                clientSerialize(),
+                engine([
+                  itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
+                  ...engineSerializeFinalResponse(),
+                ]),
+              ]),
+              operation('User', 'findMany', [
+                clientSerialize(),
+                engine([
+                  itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
+                  ...engineSerializeFinalResponse(),
+                ]),
+              ]),
+              {
+                name: 'prisma:engine:rollback_transaction',
+                children: [
+                  {
+                    name: 'prisma:engine:itx_rollback',
+                    children: isMongoDb ? undefined : [txRollback()],
                   },
                 ],
               },
