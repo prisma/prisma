@@ -715,7 +715,13 @@ testMatrix.setupTestSuite(
       test('should trace $disconnect', async () => {
         await _prisma.$disconnect()
 
-        await waitForSpanTree({ name: 'prisma:client:disconnect' })
+        await waitForSpanTree({
+          name: 'prisma:client:disconnect',
+          // There's not disconnect method in the binary engine, we terminate the process instead.
+          // Since we immediately close the pipe, there's no chance to get any spans we could
+          // emit from a signal handler.
+          children: engineType === 'binary' ? undefined : [{ name: 'prisma:engine:disconnect' }],
+        })
       })
     })
   },
