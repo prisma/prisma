@@ -818,12 +818,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
-        this.httpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/commit`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
-        this.httpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/rollback`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
     }
 
