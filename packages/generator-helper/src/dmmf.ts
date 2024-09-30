@@ -86,6 +86,11 @@ export namespace DMMF {
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
+    /**
+     * @example If native type is '@db.Text', then nativeType: ['Text', []]
+     * @example If native type is '@db.Timestamptz(6)', then nativeType: ['Timestamptz', [6]]
+     */
+    nativeType: [string, string[]] | null
     dbName?: string | null
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
