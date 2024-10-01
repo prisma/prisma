@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { faker } from '@faker-js/faker'
 import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
@@ -257,7 +256,11 @@ testMatrix.setupTestSuite(
             },
           })
         })
-        .catch(() => {})
+        .catch((err) => {
+          if ((err as PrismaNamespace.PrismaClientKnownRequestError).code !== 'P2002') {
+            throw err
+          }
+        })
 
       const usersAfter = await xprisma.user.findMany()
 
