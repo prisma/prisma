@@ -234,9 +234,9 @@ testMatrix.setupTestSuite(
     // after 5 seconds. On library engine (and previously on binary engine before the iTX refactor) the query manages
     // to grab the lock, eventually allowing the transaction to finish, but with binary engine the timing is a little
     // different and the transaction starts first, blocking the query from starting, which blocks the transaction from
-    // finishing until the query times out. It only happens to somehow mysteriously work on library engine by chance.
-    // The correct fix for this test is to expose SQLite transaction types in transaction options and make this
-    // transaction DEFERRED instead of IMMEDIATE.
+    // finishing until the query times out. It only happens to somehow work on library engine by chance. The correct fix
+    // for this test is to expose SQLite transaction types in transaction options and make this transaction DEFERRED
+    // instead of IMMEDIATE.
     testIf(provider !== Providers.SQLITE || engineType !== 'binary')(
       'middleware exclude from transaction also works with extended client',
       async () => {
