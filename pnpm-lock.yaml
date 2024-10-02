@@ -28,7 +28,7 @@ importers:
         version: 1.1.2
       '@size-limit/file':
         specifier: 9.0.0
-        version: 9.0.0(size-limit@9.0.0)
+        version: 9.0.0(size-limit@11.1.6)
       '@slack/webhook':
         specifier: 7.0.3
         version: 7.0.3
@@ -174,8 +174,8 @@ importers:
         specifier: 7.6.3
         version: 7.6.3
       size-limit:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 11.1.6
+        version: 11.1.6
       spdx-exceptions:
         specifier: 2.5.0
         version: 2.5.0
@@ -3933,14 +3933,14 @@ packages:
       '@sinonjs/commons': 2.0.0
     dev: true
 
-  /@size-limit/file@9.0.0(size-limit@9.0.0):
+  /@size-limit/file@9.0.0(size-limit@11.1.6):
     resolution: {integrity: sha512-oM2UaH2FRq4q22k+R+P6xCpzET10T94LFdSjb9svVu/vOD7NaB9LGcG6se8TW1BExXiyXO4GEhLsBt3uMKM3qA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       size-limit: 9.0.0
     dependencies:
       semver: 7.5.4
-      size-limit: 9.0.0
+      size-limit: 11.1.6
     dev: true
 
   /@slack/types@2.9.0:
@@ -5644,6 +5644,13 @@ packages:
     optionalDependencies:
       fsevents: 2.3.3
 
+  /chokidar@4.0.1:
+    resolution: {integrity: sha512-n8enUVCED/KVRQlab1hr3MVpcVMvxtZjmEa956u+4YijlmQED223XMSYj2tLuKvr4jcCTzNNMpQDUer72MMmzA==}
+    engines: {node: '>= 14.16.0'}
+    dependencies:
+      readdirp: 4.0.1
+    dev: true
+
   /chownr@2.0.0:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
     engines: {node: '>=10'}
@@ -6906,6 +6913,17 @@ packages:
       bser: 2.1.1
     dev: true
 
+  /fdir@6.4.0(picomatch@4.0.2):
+    resolution: {integrity: sha512-3oB133prH1o4j/L5lLW7uOCF1PlD+/It2L0eL/iAqWMB91RBbqTewABqxhj0ibBd90EEmWZq7ntIWzVaWcXTGQ==}
+    peerDependencies:
+      picomatch: ^3 || ^4
+    peerDependenciesMeta:
+      picomatch:
+        optional: true
+    dependencies:
+      picomatch: 4.0.2
+    dev: true
+
   /fetch-blob@3.2.0:
     resolution: {integrity: sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ==}
     engines: {node: ^12.20 || >= 14.13}
@@ -7342,7 +7360,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8530,6 +8547,11 @@ packages:
       - ts-node
     dev: true
 
+  /jiti@2.1.0:
+    resolution: {integrity: sha512-Nftp80J8poC3u+93ZxpjstsgfQ5d0o5qyD6yStv32sgnWr74xRxBppEwsUoA/GIdrJpgGRkC1930YkLcAsFdSw==}
+    hasBin: true
+    dev: true
+
   /jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
     dev: true
@@ -8619,7 +8641,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -8732,11 +8754,6 @@ packages:
       '@libsql/linux-x64-gnu': 0.3.10
       '@libsql/linux-x64-musl': 0.3.10
       '@libsql/win32-x64-msvc': 0.3.10
-
-  /lilconfig@2.1.0:
-    resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
-    engines: {node: '>=10'}
-    dev: true
 
   /lilconfig@3.1.2:
     resolution: {integrity: sha512-eop+wDAvpItUys0FWkHIKeC9ybYrTGbU41U5K7+bttZZeohvnY7M9dZ5kB21GNWiFT2q1OoPTvncPCgSOVO5ow==}
@@ -9376,7 +9393,7 @@ packages:
   /nanospinner@1.1.0:
     resolution: {integrity: sha512-yFvNYMig4AthKYfHFl1sLj7B2nkHL4lzdig4osvl9/LdGbXwrdFRoqBS98gsEsOakr0yH+r5NZ/1Y9gdVB8trA==}
     dependencies:
-      picocolors: 1.0.0
+      picocolors: 1.1.0
     dev: true
 
   /native-duplexpair@1.0.0:
@@ -9984,6 +10001,10 @@ packages:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
     dev: true
 
+  /picocolors@1.1.0:
+    resolution: {integrity: sha512-TQ92mBOW0l3LeMeyLV6mzy/kWr8lkd/hp3mTg7wYK7zJhuBStmGMBG0BdeDZS/dZx1IukaX6Bk11zcln25o1Aw==}
+    dev: true
+
   /picomatch@2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
@@ -10322,6 +10343,11 @@ packages:
     engines: {node: '>=8.10.0'}
     dependencies:
       picomatch: 2.3.1
+
+  /readdirp@4.0.1:
+    resolution: {integrity: sha512-GkMg9uOTpIWWKbSsgwb5fA4EavTR+SG/PMPoAY8hkhHfEEY0/vqljY+XHqtDf2cr2IJtoNRDbrrEpZUiZCkYRw==}
+    engines: {node: '>= 14.16.0'}
+    dev: true
 
   /redent@3.0.0:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
@@ -10686,17 +10712,18 @@ packages:
   /sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  /size-limit@9.0.0:
-    resolution: {integrity: sha512-DrA7o2DeRN3s+vwCA9nn7Ck9Y4pn9t0GNUwQRpKqBtBmNkl6LA2s/NlNCdtKHrEkRTeYA1ZQ65mnYveo9rUqgA==}
+  /size-limit@11.1.6:
+    resolution: {integrity: sha512-S5ux2IB8rU26xwVgMskmknGMFkieaIAqDLuwgKiypk6oa4lFsie8yFPrzRFV+yrLDY2GddjXuCaVk5PveVOHiQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     dependencies:
       bytes-iec: 3.1.1
-      chokidar: 3.6.0
-      globby: 11.1.0
-      lilconfig: 2.1.0
+      chokidar: 4.0.1
+      jiti: 2.1.0
+      lilconfig: 3.1.2
       nanospinner: 1.1.0
-      picocolors: 1.0.0
+      picocolors: 1.1.0
+      tinyglobby: 0.2.9
     dev: true
 
   /slash@3.0.0:
@@ -11232,6 +11259,14 @@ packages:
   /timeout-signal@2.0.0:
     resolution: {integrity: sha512-YBGpG4bWsHoPvofT6y/5iqulfXIiIErl5B0LdtHT1mGXDFTAhhRrbUpTvBgYbovr+3cKblya2WAOcpoy90XguA==}
     engines: {node: '>=16'}
+    dev: true
+
+  /tinyglobby@0.2.9:
+    resolution: {integrity: sha512-8or1+BGEdk1Zkkw2ii16qSS7uVrQJPre5A9o/XkWPATkk23FZh/15BKFxPnlTy6vkljZxLqYCzzBMj30ZrSvjw==}
+    engines: {node: '>=12.0.0'}
+    dependencies:
+      fdir: 6.4.0(picomatch@4.0.2)
+      picomatch: 4.0.2
     dev: true
 
   /tmp@0.0.33:
