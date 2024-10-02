@@ -60,7 +60,7 @@
     "mock-stdin": "1.0.0",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "3.3.2",
-    "npm-packlist": "5.1.3",
+    "npm-packlist": "9.0.0",
     "open": "7.4.2",
     "p-map": "4.0.0",
     "read-package-up": "11.0.0",
