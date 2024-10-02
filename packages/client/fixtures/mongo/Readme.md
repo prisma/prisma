@@ -14,7 +14,7 @@
 
 4. Generate a client _(from `packages/client`)_
 
-   ts-node fixtures/generate.ts ./fixtures/mongo/ --skip-transpile
+   ts-node fixtures/generate.ts ./fixtures/mongo/
 
 5. Run the `main.ts` _(from `packages/client/fixtures/mongo`)_
 
