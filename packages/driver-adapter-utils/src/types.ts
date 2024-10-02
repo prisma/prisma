@@ -156,30 +156,12 @@ export interface TransactionContext extends Queryable {
   startTransaction(): Promise<Result<Transaction>>
 }
 
-interface WithTransactionDeprecated extends Queryable {
+export interface DriverAdapter extends Queryable {
   /**
    * Starts new transaction.
-   * @deprecated Use `transactionContext` instead.
    */
-  startTransaction?(): Promise<Result<Transaction>>
-}
+  transactionContext(): Promise<Result<TransactionContext>>
 
-interface WithTransaction extends Queryable {
-  /**
-   * Starts new transaction.
-   * If `startTransaction` is not defined, `transactionContext` must be defined.
-   */
-  transactionContext?(): Promise<Result<TransactionContext>>
-}
-
-export interface DriverAdapter extends Queryable, WithTransactionDeprecated, WithTransaction {
-  /**
-   * Optional method that returns extra connection info
-   */
-  getConnectionInfo?(): Result<ConnectionInfo>
-}
-
-export interface BoundDriverAdapter extends Queryable, WithTransaction {
   /**
    * Optional method that returns extra connection info
    */
@@ -205,7 +187,7 @@ export interface Transaction extends Queryable {
   rollback(): Promise<Result<void>>
 }
 
-export interface ErrorCapturingDriverAdapter extends BoundDriverAdapter {
+export interface ErrorCapturingDriverAdapter extends DriverAdapter {
   readonly errorRegistry: ErrorRegistry
 }
 
