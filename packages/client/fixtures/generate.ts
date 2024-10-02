@@ -18,7 +18,7 @@ async function main() {
     projectDir: path.join(process.cwd(), projectDir),
   })
 
-  console.log(`Generated Prisma Client local runtime in ${time.toFixed(3)}ms`)
+  console.log(`Generated Prisma Client in ${time.toFixed(3)}ms`)
 }
 
 main().catch(console.error)
