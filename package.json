@@ -36,7 +36,7 @@
     "@microsoft/api-extractor": "7.47.7",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
-    "@size-limit/file": "9.0.0",
+    "@size-limit/file": "11.1.6",
     "@slack/webhook": "7.0.3",
     "@types/benchmark": "2.1.5",
     "@types/fs-extra": "9.0.13",
