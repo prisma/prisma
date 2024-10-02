@@ -13,7 +13,7 @@ declare let Prisma: typeof PrismaNamespace
 const email = faker.internet.email()
 
 testMatrix.setupTestSuite(
-  ({ provider }, _suiteMeta, _clientMeta) => {
+  ({ provider, engineType }, _suiteMeta, _clientMeta) => {
     beforeEach(async () => {
       await prisma.post.deleteMany()
       await prisma.user.deleteMany()
@@ -229,43 +229,54 @@ testMatrix.setupTestSuite(
       ).resolves.not.toThrow()
     })
 
-    test('middleware exclude from transaction also works with extended client', async () => {
-      const xprisma = prisma.$extends({})
+    // This test can lead to a deadlock on SQLite because we start a write transaction and a write query outside of it
+    // at the same time, and completing the transaction requires the query to finish. This leads a SQLITE_BUSY error
+    // after 5 seconds. On library engine (and previously on binary engine before the iTX refactor) the query manages
+    // to grab the lock, eventually allowing the transaction to finish, but with binary engine the timing is a little
+    // different and the transaction starts first, blocking the query from starting, which blocks the transaction from
+    // finishing until the query times out. It only happens to somehow mysteriously work on library engine by chance.
+    // The correct fix for this test is to expose SQLite transaction types in transaction options and make this
+    // transaction DEFERRED instead of IMMEDIATE.
+    testIf(provider !== Providers.SQLITE || engineType !== 'binary')(
+      'middleware exclude from transaction also works with extended client',
+      async () => {
+        const xprisma = prisma.$extends({})
 
-      prisma.$use((params, next) => {
-        return next({ ...params, runInTransaction: false })
-      })
-
-      const usersBefore = await xprisma.user.findMany()
-
-      await xprisma
-        .$transaction(async (prisma) => {
-          await prisma.user.create({
-            data: {
-              email: 'jane@smith.com',
-              firstName: 'Jane',
-              lastName: 'Smith',
-            },
-          })
-
-          await prisma.user.create({
-            data: {
-              email: 'jane@smith.com',
-              firstName: 'Jane',
-              lastName: 'Smith',
-            },
-          })
-        })
-        .catch((err) => {
-          if ((err as PrismaNamespace.PrismaClientKnownRequestError).code !== 'P2002') {
-            throw err
-          }
+        prisma.$use((params, next) => {
+          return next({ ...params, runInTransaction: false })
         })
 
-      const usersAfter = await xprisma.user.findMany()
+        const usersBefore = await xprisma.user.findMany()
 
-      expect(usersAfter).toHaveLength(usersBefore.length + 1)
-    })
+        await xprisma
+          .$transaction(async (prisma) => {
+            await prisma.user.create({
+              data: {
+                email: 'jane@smith.com',
+                firstName: 'Jane',
+                lastName: 'Smith',
+              },
+            })
+
+            await prisma.user.create({
+              data: {
+                email: 'jane@smith.com',
+                firstName: 'Jane',
+                lastName: 'Smith',
+              },
+            })
+          })
+          .catch((err) => {
+            if ((err as PrismaNamespace.PrismaClientKnownRequestError).code !== 'P2002') {
+              throw err
+            }
+          })
+
+        const usersAfter = await xprisma.user.findMany()
+
+        expect(usersAfter).toHaveLength(usersBefore.length + 1)
+      },
+    )
 
     test('client component is available within itx callback', async () => {
       const helper = jest.fn()
