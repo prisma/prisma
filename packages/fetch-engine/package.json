@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.21.0-8.031f4d3fc290d071071bf02083dc6e7b783469e2",
+    "@prisma/engines-version": "5.21.0-30.integration-mongodb-aggregate-tracing-3d4b90e67bb5d48bbedf382a8f95a61c63d31c47",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
