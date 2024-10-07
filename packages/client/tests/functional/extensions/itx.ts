@@ -13,7 +13,7 @@ declare let Prisma: typeof PrismaNamespace
 const email = faker.internet.email()
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, _suiteMeta, _clientMeta) => {
+  ({ provider }, _suiteMeta, _clientMeta) => {
     beforeEach(async () => {
       await prisma.post.deleteMany()
       await prisma.user.deleteMany()
@@ -231,13 +231,9 @@ testMatrix.setupTestSuite(
 
     // This test can lead to a deadlock on SQLite because we start a write transaction and a write query outside of it
     // at the same time, and completing the transaction requires the query to finish. This leads a SQLITE_BUSY error
-    // after 5 seconds. On library engine (and previously on binary engine before the iTX refactor) the query manages
-    // to grab the lock, eventually allowing the transaction to finish, but with binary engine the timing is a little
-    // different and the transaction starts first, blocking the query from starting, which blocks the transaction from
-    // finishing until the query times out. It only happens to somehow work on library engine by chance. The correct fix
-    // for this test is to expose SQLite transaction types in transaction options and make this transaction DEFERRED
-    // instead of IMMEDIATE.
-    testIf(provider !== Providers.SQLITE || engineType !== 'binary')(
+    // after 5 seconds if the transaction grabs the lock first. For this test to work on SQLite, we need to expose
+    // SQLite transaction types in transaction options and make this transaction DEFERRED instead of IMMEDIATE.
+    testIf(provider !== Providers.SQLITE)(
       'middleware exclude from transaction also works with extended client',
       async () => {
         const xprisma = prisma.$extends({})
@@ -302,9 +298,13 @@ testMatrix.setupTestSuite(
           testContextMethods(isTransaction: boolean) {
             const ctx = Prisma.getExtensionContext(this)
 
+            // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
             expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
+            // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
             expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
+
             expectTypeOf(ctx.$transaction).toMatchTypeOf<Function | undefined>()
+            // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
             expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
             expectTypeOf(ctx).not.toHaveProperty('$use')
             expectTypeOf(ctx).not.toHaveProperty('$on')
