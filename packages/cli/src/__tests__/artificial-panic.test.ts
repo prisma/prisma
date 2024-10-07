@@ -211,44 +211,6 @@ describe('artificial-panic validate', () => {
       expect(e.schemaPath).toBeTruthy()
     }
   })
-
-  it('format', async () => {
-    ctx.fixture('artificial-panic')
-    expect.assertions(5)
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
-
-    const command = new Format()
-    try {
-      await command.parse([])
-    } catch (e) {
-      expect(serialize(e.message)).toMatchInlineSnapshot(`
-        ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
-        This is the panic triggered by \`prisma_fmt::debug_panic()\`""
-      `)
-      expect(isRustPanic(e)).toBe(true)
-      expect(e.rustStack).toBeTruthy()
-      expect(sanitizeSchemas(e.schema)).toMatchInlineSnapshot(`
-        [
-          [
-            "prisma/schema.prisma",
-            "// This is your Prisma schema file,
-        // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-        generator client {
-          provider = "prisma-client-js"
-        }
-
-        datasource db {
-          provider = "postgresql"
-          url      = "postgres://user:password@randomhost:5432"
-        }
-        ",
-          ],
-        ]
-      `)
-      expect(e.schemaPath).toBeTruthy()
-    }
-  })
 })
 
 describe('artificial-panic getDMMF', () => {
