@@ -513,7 +513,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      test('interactive-transactions', async () => {
+      test('interactive transaction commit', async () => {
         const email = faker.internet.email()
 
         await prisma.$transaction(async (client) => {
@@ -529,48 +529,41 @@ testMatrix.setupTestSuite(
           })
         })
 
-        // skipping on data proxy because the functionality is broken
-        // in this case at the moment and `itx_runner` span occasionally does
-        // not make it to the client when running via DP.
-        // See https://github.com/prisma/prisma/issues/20694
-        // TODO: check if it's still the case after actor system removal
-        if (!clientMeta.dataProxy) {
-          await waitForSpanTree({
-            name: 'prisma:client:transaction',
-            attributes: {
-              method: '$transaction',
+        await waitForSpanTree({
+          name: 'prisma:client:transaction',
+          attributes: {
+            method: '$transaction',
+          },
+          children: [
+            operation('User', 'create', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            operation('User', 'findMany', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            {
+              name: 'prisma:engine:commit_transaction',
+              children: [
+                {
+                  name: 'prisma:engine:itx_commit',
+                  children: isMongoDb ? undefined : [txCommit()],
+                },
+              ],
             },
-            children: [
-              operation('User', 'create', [
-                clientSerialize(),
-                engine([
-                  itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
-                  ...engineSerializeFinalResponse(),
-                ]),
-              ]),
-              operation('User', 'findMany', [
-                clientSerialize(),
-                engine([
-                  itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
-                  ...engineSerializeFinalResponse(),
-                ]),
-              ]),
-              {
-                name: 'prisma:engine:commit_transaction',
-                children: [
-                  {
-                    name: 'prisma:engine:itx_commit',
-                    children: isMongoDb ? undefined : [txCommit()],
-                  },
-                ],
-              },
-              {
-                name: 'prisma:engine:start_transaction',
-                children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
-              },
-            ],
-          })
-        }
+            {
+              name: 'prisma:engine:start_transaction',
+              children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
+            },
+          ],
+        })
       })
 
       test('interactive transaction rollback', async () => {
@@ -592,48 +585,41 @@ testMatrix.setupTestSuite(
           })
           .catch(() => {})
 
-        // skipping on data proxy because the functionality is broken
-        // in this case at the moment and `itx_runner` span occasionally does
-        // not make it to the client when running via DP.
-        // See https://github.com/prisma/prisma/issues/20694
-        // TODO: check if it's still the case after actor system removal
-        if (!clientMeta.dataProxy) {
-          await waitForSpanTree({
-            name: 'prisma:client:transaction',
-            attributes: {
-              method: '$transaction',
+        await waitForSpanTree({
+          name: 'prisma:client:transaction',
+          attributes: {
+            method: '$transaction',
+          },
+          children: [
+            operation('User', 'create', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            operation('User', 'findMany', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            {
+              name: 'prisma:engine:rollback_transaction',
+              children: [
+                {
+                  name: 'prisma:engine:itx_rollback',
+                  children: isMongoDb ? undefined : [txRollback()],
+                },
+              ],
             },
-            children: [
-              operation('User', 'create', [
-                clientSerialize(),
-                engine([
-                  itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
-                  ...engineSerializeFinalResponse(),
-                ]),
-              ]),
-              operation('User', 'findMany', [
-                clientSerialize(),
-                engine([
-                  itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
-                  ...engineSerializeFinalResponse(),
-                ]),
-              ]),
-              {
-                name: 'prisma:engine:rollback_transaction',
-                children: [
-                  {
-                    name: 'prisma:engine:itx_rollback',
-                    children: isMongoDb ? undefined : [txRollback()],
-                  },
-                ],
-              },
-              {
-                name: 'prisma:engine:start_transaction',
-                children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
-              },
-            ],
-          })
-        }
+            {
+              name: 'prisma:engine:start_transaction',
+              children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
+            },
+          ],
+        })
       })
     })
 
