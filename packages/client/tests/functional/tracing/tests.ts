@@ -385,6 +385,51 @@ testMatrix.setupTestSuite(
           ]),
         )
       })
+
+      test('count', async () => {
+        await prisma.user.count({
+          where: {
+            email: sharedEmail,
+          },
+        })
+
+        await waitForSpanTree(
+          operation('User', 'count', [
+            clientSerialize(),
+            engine([
+              engineConnection(),
+              isMongoDb
+                ? dbQuery(expect.stringContaining('db.User.aggregate(*)'))
+                : dbQuery(expect.stringContaining('SELECT COUNT')),
+              ...engineSerialize(),
+            ]),
+          ]),
+        )
+      })
+
+      test('aggregate', async () => {
+        await prisma.user.aggregate({
+          where: {
+            email: sharedEmail,
+          },
+          _max: {
+            id: true,
+          },
+        })
+
+        await waitForSpanTree(
+          operation('User', 'aggregate', [
+            clientSerialize(),
+            engine([
+              engineConnection(),
+              isMongoDb
+                ? dbQuery(expect.stringContaining('db.User.aggregate(*)'))
+                : dbQuery(expect.stringContaining('SELECT MAX')),
+              ...engineSerialize(),
+            ]),
+          ]),
+        )
+      })
     })
 
     describe('tracing on transactions', () => {
