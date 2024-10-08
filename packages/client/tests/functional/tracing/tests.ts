@@ -214,7 +214,7 @@ testMatrix.setupTestSuite(
     }
 
     function findManyDbQuery() {
-      const statement = isMongoDb ? 'db.User.findMany(*)' : 'SELECT'
+      const statement = isMongoDb ? 'db.User.aggregate' : 'SELECT'
 
       return dbQuery(expect.stringContaining(statement))
     }
@@ -222,8 +222,8 @@ testMatrix.setupTestSuite(
     function createDbQueries(tx = true) {
       if (isMongoDb) {
         return [
-          dbQuery(expect.stringContaining('db.User.insertOne(*)')),
-          dbQuery(expect.stringContaining('db.User.findOne(*)')),
+          dbQuery(expect.stringContaining('db.User.insertOne')),
+          dbQuery(expect.stringContaining('db.User.aggregate')),
         ]
       }
 
@@ -295,9 +295,9 @@ testMatrix.setupTestSuite(
 
         if (isMongoDb) {
           expectedDbQueries = [
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.updateMany(*)')),
-            dbQuery(expect.stringContaining('db.User.findOne(*)')),
+            dbQuery(expect.stringContaining('db.User.aggregate')),
+            dbQuery(expect.stringContaining('db.User.updateMany')),
+            dbQuery(expect.stringContaining('db.User.aggregate')),
           ]
         } else if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
           expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
@@ -329,7 +329,7 @@ testMatrix.setupTestSuite(
         let expectedDbQueries: Tree[]
 
         if (isMongoDb) {
-          expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify(*)'))]
+          expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify'))]
         } else if (isMySql || isSqlServer) {
           expectedDbQueries = [
             txBegin(),
@@ -364,8 +364,8 @@ testMatrix.setupTestSuite(
 
         if (isMongoDb) {
           expectedDbQueries = [
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
+            dbQuery(expect.stringContaining('db.User.aggregate')),
+            dbQuery(expect.stringContaining('db.User.deleteMany')),
           ]
         } else if (relationMode === RelationModes.PRISMA) {
           expectedDbQueries = [
@@ -399,7 +399,7 @@ testMatrix.setupTestSuite(
             engine([
               engineConnection(),
               isMongoDb
-                ? dbQuery(expect.stringContaining('db.User.aggregate(*)'))
+                ? dbQuery(expect.stringContaining('db.User.aggregate'))
                 : dbQuery(expect.stringContaining('SELECT COUNT')),
               ...engineSerialize(),
             ]),
@@ -423,7 +423,7 @@ testMatrix.setupTestSuite(
             engine([
               engineConnection(),
               isMongoDb
-                ? dbQuery(expect.stringContaining('db.User.aggregate(*)'))
+                ? dbQuery(expect.stringContaining('db.User.aggregate'))
                 : dbQuery(expect.stringContaining('SELECT MAX')),
               ...engineSerialize(),
             ]),
