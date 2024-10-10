@@ -1,14 +1,5 @@
-import {
-  Context,
-  context as _context,
-  ROOT_CONTEXT,
-  Span,
-  SpanContext,
-  SpanKind,
-  trace,
-  TraceFlags,
-} from '@opentelemetry/api'
-import { Span as SpanConstructor, Tracer } from '@opentelemetry/sdk-trace-base'
+import { Context, context as otelContext, Span, SpanContext, SpanKind, trace, TraceFlags } from '@opentelemetry/api'
+import { type Tracer } from '@opentelemetry/sdk-trace-base'
 import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 // If true, will publish internal spans as well
@@ -34,7 +25,7 @@ export class ActiveTracingHelper implements TracingHelper {
   }
 
   getTraceParent(context?: Context | undefined): string {
-    const span = trace.getSpanContext(context ?? _context.active())
+    const span = trace.getSpanContext(context ?? otelContext.active())
     if (span) {
       return `00-${span.traceId}-${span.spanId}-0${span.traceFlags}`
     }
@@ -45,10 +36,11 @@ export class ActiveTracingHelper implements TracingHelper {
     const tracer = trace.getTracer('prisma') as Tracer
 
     engineSpanEvent.spans.forEach((engineSpan) => {
-      const spanContext: SpanContext = {
+      const parentSpanContext: SpanContext = {
+        spanId: engineSpan.parent_span_id,
         traceId: engineSpan.trace_id,
-        spanId: engineSpan.span_id,
         traceFlags: TraceFlags.SAMPLED,
+        traceState: undefined,
       }
 
       const links = engineSpan.links?.map((link) => {
@@ -61,27 +53,47 @@ export class ActiveTracingHelper implements TracingHelper {
         }
       })
 
-      const span = new SpanConstructor(
-        tracer,
-        ROOT_CONTEXT,
+      /**
+       * Create a new span with the given `options` and `context`.
+       * `context` is used internally to find the parent of the span to create.
+       *
+       * On new child spans, `context.spanId` is used as the `parentSpanId` for the new span.
+       * See: https://github.com/open-telemetry/opentelemetry-js/blob/b78fec34060f15499c1756fd966f745262e148d9/packages/opentelemetry-sdk-trace-base/src/Tracer.ts#L84-L100.
+       *
+       * However, we need `context.spanId` to be the `spanId` of the new span!
+       * The trick to obtain so is to modify the `spanId` of the new span's context immediately after creating the span.
+       *
+       * Before using this public API, we used to instantiate a new `Span` object directly, abusing the private API
+       * and missing out on the logic that `tracer.startActiveSpan` / `tracer.startSpan` provide (e.g.: sampling setup).
+       */
+      tracer.startActiveSpan(
         engineSpan.name,
-        spanContext,
-        SpanKind.INTERNAL,
-        engineSpan.parent_span_id,
-        links,
-        engineSpan.start_time,
+        /* options */
+        {
+          kind: SpanKind.INTERNAL,
+          links,
+          startTime: engineSpan.start_time,
+          attributes: engineSpan.attributes,
+        },
+        /* context */
+        trace.setSpanContext(otelContext.active(), parentSpanContext),
+        (span) => {
+          /**
+           * The span is already created and has `engineSpan.parent_span_id` as a `parentId`, so we
+           * reset the `spanId` saved in its context to `engineSpan.span_id`.
+           * Note: `span.spanContext()` isn't guaranteed to be mutable in the future.
+           * */
+          const currentSpanContext = span.spanContext()
+          currentSpanContext.spanId = engineSpan.span_id
+
+          span.end(engineSpan.end_time)
+        },
       )
-
-      if (engineSpan.attributes) {
-        span.setAttributes(engineSpan.attributes)
-      }
-
-      span.end(engineSpan.end_time)
     })
   }
 
   getActiveContext(): Context | undefined {
-    return _context.active()
+    return otelContext.active()
   }
 
   runInChildSpan<R>(options: string | ExtendedSpanOptions, callback: SpanCallback<R>): R {

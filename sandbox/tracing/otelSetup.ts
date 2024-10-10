@@ -37,7 +37,6 @@ export function otelSetup() {
   })
 
   registerInstrumentations({
-    // @ts-ignore
     instrumentations: [new PrismaInstrumentation({ middleware: true })],
   })
 
