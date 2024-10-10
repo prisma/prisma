@@ -79,7 +79,7 @@
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/studio": "0.502.0",
     "@prisma/studio-server": "0.502.0",
-    "@swc/core": "1.6.13",
+    "@swc/core": "1.7.26",
     "@swc/jest": "0.2.36",
     "@types/debug": "4.1.12",
     "@types/fs-extra": "9.0.13",
