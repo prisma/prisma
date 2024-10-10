@@ -6,6 +6,33 @@ import type { DMMF } from '../dmmf-types'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'
 
+export class DataModelEnum implements Generable {
+  constructor(protected readonly type: DMMF.DatamodelEnum) {}
+
+  public toJS(): string {
+    const { type } = this
+
+    const enumVariants = `{
+${indent(type.values.map((v) => `${v.name}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
+}`
+    return `exports.${type.name} = exports.$Enums.${type.name} = ${enumVariants};`
+  }
+
+  public toTS(): string {
+    const { type } = this
+
+    return `export const ${type.name}: {
+${indent(type.values.map((v) => `${v.name}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
+};
+
+export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name}]\n`
+  }
+
+  private getValueJS(value: DMMF.EnumValue): string {
+    return value.dbName ? `'${value.dbName}'` : `'${value.name}'`
+  }
+}
+
 export class Enum implements Generable {
   constructor(protected readonly type: DMMF.SchemaEnum, protected readonly useNamespace: boolean) {}
 

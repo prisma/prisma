@@ -24,7 +24,7 @@ import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { DefaultArgsAliases } from './DefaultArgsAliases'
-import { Enum } from './Enum'
+import { DataModelEnum, Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
 import { type Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
@@ -133,7 +133,7 @@ ${buildRequirePath(edge)}
  * Enums
  */
 ${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.datamodel.enums?.map((type) => new DataModelEnum(type).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
@@ -198,8 +198,8 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
-    for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
-      modelEnums.push(new Enum(enumType, false).toTS())
+    for (const enumType of this.dmmf.datamodel.enums ?? []) {
+      modelEnums.push(new DataModelEnum(enumType).toTS())
       modelEnumsAliases.push(
         ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, ts.namedType(`$Enums.${enumType.name}`)))),
         ts.stringify(
@@ -343,7 +343,7 @@ export const dmmf: runtime.BaseDMMF
  */
 
 ${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.datamodel.enums?.map((type) => new DataModelEnum(type).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
