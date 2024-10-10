@@ -500,7 +500,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
     const { protocol, host, searchParams } = url
 
-    if (protocol !== 'prisma:') {
+    if (protocol !== 'prisma:' && protocol !== 'prisma+postgres:') {
       throw new InvalidDatasourceError(
         `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\``,
         errorInfo,
