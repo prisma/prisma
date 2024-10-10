@@ -30,7 +30,9 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     // means we can't use the DataProxyEngine and will default to LibraryEngine
   }
 
-  if (copyEngine && url?.startsWith('prisma://')) {
+  const isAccelerateUrlScheme = Boolean(url?.startsWith('prisma://') || url?.startsWith('prisma+postgres://'))
+
+  if (copyEngine && isAccelerateUrlScheme) {
     warnOnce(
       'recommend--no-engine',
       'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
@@ -39,7 +41,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
 
   const engineType = getClientEngineType(engineConfig.generator!)
 
-  const accelerateConfigured = Boolean(url?.startsWith('prisma://') || !copyEngine)
+  const accelerateConfigured = isAccelerateUrlScheme || !copyEngine
   const driverAdapterConfigured = Boolean(engineConfig.adapter)
   const libraryEngineConfigured = engineType === ClientEngineType.Library
   const binaryEngineConfigured = engineType === ClientEngineType.Binary
