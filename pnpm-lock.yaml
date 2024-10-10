@@ -329,8 +329,8 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
       undici:
-        specifier: 5.28.4
-        version: 5.28.4
+        specifier: 6.20.0
+        version: 6.20.0
 
   packages/bundle-size:
     dependencies:
@@ -820,8 +820,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       undici:
-        specifier: 5.28.4
-        version: 5.28.4
+        specifier: 6.20.0
+        version: 6.20.0
       wrangler:
         specifier: 3.62.0
         version: 3.62.0(@cloudflare/workers-types@4.20240614.0)
@@ -7342,7 +7342,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8619,7 +8618,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -11568,6 +11567,11 @@ packages:
     engines: {node: '>=14.0'}
     dependencies:
       '@fastify/busboy': 2.0.0
+
+  /undici@6.20.0:
+    resolution: {integrity: sha512-AITZfPuxubm31Sx0vr8bteSalEbs9wQb/BOBi9FPlD9Qpd6HxZ4Q0+hI742jBhkPb4RT2v5MQzaW5VhRVyj+9A==}
+    engines: {node: '>=18.17'}
+    dev: true
 
   /unenv-nightly@1.10.0-1717606461.a117952:
     resolution: {integrity: sha512-u3TfBX02WzbHTpaEfWEKwDijDSFAHcgXkayUZ+MVDrjhLFvgAJzFGTSTmwlEhwWi2exyRQey23ah9wELMM6etg==}
