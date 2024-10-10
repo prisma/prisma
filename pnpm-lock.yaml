@@ -529,8 +529,8 @@ importers:
         specifier: 6.0.1
         version: 6.0.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.4.0
+        version: 5.4.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -811,8 +811,8 @@ importers:
         specifier: 10.9.2
         version: 10.9.2(@swc/core@1.6.13)(@types/node@18.19.31)(typescript@5.4.5)
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.4.0
+        version: 5.4.0
       tsd:
         specifier: 0.31.1
         version: 0.31.1
@@ -1088,8 +1088,8 @@ importers:
         specifier: 2.1.1
         version: 2.1.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.4.0
+        version: 5.4.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1384,8 +1384,8 @@ importers:
         specifier: 10.9.2
         version: 10.9.2(@swc/core@1.2.204)(@types/node@18.19.31)(typescript@5.4.5)
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.4.0
+        version: 5.4.0
       ts-toolbelt:
         specifier: 9.6.0
         version: 9.6.0
@@ -1508,8 +1508,8 @@ importers:
         specifier: 1.0.1
         version: 1.0.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.4.0
+        version: 5.4.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -7342,7 +7342,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8619,7 +8618,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -11395,8 +11394,8 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-pattern@5.2.0:
-    resolution: {integrity: sha512-aGaSpOlDcns7ZoeG/OMftWyQG1KqPVhgplhJxNCvyIXqWrumM5uIoOSarw/hmmi/T1PnuQ/uD8NaFHvLpHicDg==}
+  /ts-pattern@5.4.0:
+    resolution: {integrity: sha512-hgfOMfjlrARCnYtGD/xEAkFHDXuSyuqjzFSltyQCbN689uNvoQL20TVN2XFcLMjfNuwSsQGU+xtH6MrjIwhwUg==}
     dev: true
 
   /ts-toolbelt@9.6.0:
