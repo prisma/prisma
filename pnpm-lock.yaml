@@ -469,8 +469,8 @@ importers:
         specifier: 4.3.6
         version: 4.3.6
       dotenv:
-        specifier: 16.0.3
-        version: 16.0.3
+        specifier: 16.4.5
+        version: 16.4.5
       esbuild:
         specifier: 0.23.0
         version: 0.23.0
@@ -1279,8 +1279,8 @@ importers:
         specifier: 2.1.0
         version: 2.1.0
       dotenv:
-        specifier: 16.0.3
-        version: 16.0.3
+        specifier: 16.4.5
+        version: 16.4.5
       esbuild:
         specifier: 0.23.0
         version: 0.23.0
@@ -6147,7 +6147,7 @@ packages:
     hasBin: true
     dependencies:
       cross-spawn: 7.0.3
-      dotenv: 16.3.1
+      dotenv: 16.4.5
       dotenv-expand: 10.0.0
       minimist: 1.2.8
     dev: true
@@ -6157,13 +6157,8 @@ packages:
     engines: {node: '>=12'}
     dev: true
 
-  /dotenv@16.0.3:
-    resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
-    engines: {node: '>=12'}
-    dev: true
-
-  /dotenv@16.3.1:
-    resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
+  /dotenv@16.4.5:
+    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
     dev: true
 
