@@ -12,7 +12,7 @@
     "@prisma/adapter-libsql": "/tmp/prisma-adapter-libsql-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
     "@prisma/extension-accelerate": "1.2.1",
-    "@prisma/extension-read-replicas": "0.3.0",
+    "@prisma/extension-read-replicas": "0.4.0",
     "db": "link:custom"
   },
   "devDependencies": {
