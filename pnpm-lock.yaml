@@ -703,8 +703,8 @@ importers:
         specifier: 1.0.4
         version: 1.0.4
       env-paths:
-        specifier: 2.2.1
-        version: 2.2.1
+        specifier: 3.0.0
+        version: 3.0.0
       esbuild:
         specifier: 0.23.0
         version: 0.23.0
@@ -6222,6 +6222,11 @@ packages:
   /env-paths@2.2.1:
     resolution: {integrity: sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==}
     engines: {node: '>=6'}
+    dev: true
+
+  /env-paths@3.0.0:
+    resolution: {integrity: sha512-dtJUTepzMW3Lm/NPxRf3wP4642UWhjL2sQxc+ym2YMj1m/H2zDNQOlezafzkHwn6sMstjHTwG6iQQsctDW/b1A==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dev: true
 
   /environment@1.1.0:
