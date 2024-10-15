@@ -5,7 +5,7 @@
   "scripts": {},
   "dependencies": {
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
-    "typescript": "5.4.5"
+    "typescript": "5.6.3"
   },
   "devDependencies": {
     "@types/node": "18.19.50",
