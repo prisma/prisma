@@ -44,7 +44,7 @@
     "@swc/jest": "0.2.36",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
-    "undici": "5.28.4"
+    "undici": "6.20.1"
   },
   "peerDependencies": {
     "@planetscale/database": "^1.15.0"
