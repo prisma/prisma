@@ -51,7 +51,7 @@
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
     "buffer": "6.0.3",
-    "chokidar": "3.6.0",
+    "chokidar": "4.0.1",
     "decimal.js-light": "2.5.1",
     "dotenv-cli": "7.4.2",
     "esbuild": "0.23.0",
