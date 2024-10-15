@@ -20,7 +20,7 @@
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
     "@types/mssql": "9.1.5",
-    "@types/node": "18.19.31",
+    "@types/node": "18.19.55",
     "@types/pg": "8.11.6",
     "@types/sqlite3": "3.1.11",
     "decimal.js": "10.4.3",

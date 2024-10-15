@@ -21,7 +21,7 @@
     "@swc/core": "1.6.13",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.31",
+    "@types/node": "18.19.55",
     "@types/pg": "8.11.6",
     "@types/prompts": "2.4.9",
     "@types/sqlite3": "3.1.11",

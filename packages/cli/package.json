@@ -84,7 +84,7 @@
     "@types/debug": "4.1.12",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.31",
+    "@types/node": "18.19.55",
     "@types/rimraf": "3.0.2",
     "async-listen": "3.0.1",
     "checkpoint-client": "1.1.33",

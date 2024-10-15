@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "16.18.96"
+    "@types/node": "16.18.113"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
