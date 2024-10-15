@@ -6,7 +6,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "/tmp/prisma-adapter-pg-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
-    "pg": "8.11.5"
+    "pg": "8.13.0"
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
