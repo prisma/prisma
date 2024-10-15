@@ -80,7 +80,7 @@
     "p-retry": "4.6.2",
     "prettier": "2.8.8",
     "redis": "3.1.2",
-    "redis-lock": "0.1.4",
+    "redis-lock": "1.0.0",
     "regenerator-runtime": "0.14.1",
     "resolve": "1.22.8",
     "safe-buffer": "5.2.1",
