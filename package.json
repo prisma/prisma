@@ -85,7 +85,7 @@
     "resolve": "1.22.8",
     "safe-buffer": "5.2.1",
     "semver": "7.6.3",
-    "size-limit": "9.0.0",
+    "size-limit": "11.1.6",
     "spdx-exceptions": "2.5.0",
     "spdx-license-ids": "3.0.20",
     "staged-git-files": "1.3.0",
