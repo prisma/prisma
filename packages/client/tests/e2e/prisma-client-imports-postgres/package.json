@@ -16,7 +16,7 @@
     "@prisma/pg-worker": "/tmp/prisma-pg-worker-0.0.0.tgz",
     "db": "link:custom",
     "pg": "8.11.5",
-    "ws": "8.17.0"
+    "ws": "8.17.1"
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
