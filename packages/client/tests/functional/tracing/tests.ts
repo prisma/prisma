@@ -167,6 +167,14 @@ testMatrix.setupTestSuite(
       }
     }
 
+    function txRollback() {
+      if (usesSyntheticTxQueries) {
+        return dbQuery('-- Implicit "ROLLBACK" query via underlying driver', AdapterQueryChildSpans.None)
+      } else {
+        return dbQuery('ROLLBACK', AdapterQueryChildSpans.ArgsOnly)
+      }
+    }
+
     function operation(model: string | undefined, method: string, children: Tree[]) {
       const attributes: Attributes = {
         method,
@@ -185,7 +193,7 @@ testMatrix.setupTestSuite(
 
     function engine(children: Tree[]) {
       return {
-        name: 'prisma:engine',
+        name: 'prisma:engine:query',
         children,
       }
     }
@@ -213,10 +221,18 @@ testMatrix.setupTestSuite(
       return { name: 'prisma:engine:connection', attributes: { 'db.type': expect.any(String) } }
     }
 
+    function engineConnect() {
+      return { name: 'prisma:engine:connect', children: [engineConnection()] }
+    }
+
     function findManyDbQuery() {
       const statement = isMongoDb ? 'db.User.aggregate' : 'SELECT'
 
       return dbQuery(expect.stringContaining(statement))
+    }
+
+    function itxExecuteSingle(children: Tree[]) {
+      return { name: 'prisma:engine:itx_execute_single', children }
     }
 
     function createDbQueries(tx = true) {
@@ -476,7 +492,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      test('interactive-transactions', async () => {
+      test('interactive transaction commit', async () => {
         const email = faker.internet.email()
 
         await prisma.$transaction(async (client) => {
@@ -492,45 +508,97 @@ testMatrix.setupTestSuite(
           })
         })
 
-        let txQueries: Tree[] = []
-
-        if (provider !== Providers.MONGODB) {
-          txQueries = [txBegin(), txCommit()]
-        }
-
-        // skipping on data proxy because the functionality is broken
-        // in this case at the moment and `itx_runner` span occasionally does
-        // not make it to the client when running via DP.
-        // See https://github.com/prisma/prisma/issues/20694
-        if (!clientMeta.dataProxy) {
-          await waitForSpanTree({
-            name: 'prisma:client:transaction',
-            attributes: {
-              method: '$transaction',
+        await waitForSpanTree({
+          name: 'prisma:client:transaction',
+          attributes: {
+            method: '$transaction',
+          },
+          children: [
+            operation('User', 'create', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            operation('User', 'findMany', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            {
+              name: 'prisma:engine:commit_transaction',
+              children: [
+                {
+                  name: 'prisma:engine:itx_commit',
+                  children: isMongoDb ? undefined : [txCommit()],
+                },
+              ],
             },
-            children: [
-              operation('User', 'create', [clientSerialize()]),
-              operation('User', 'findMany', [clientSerialize()]),
+            {
+              name: 'prisma:engine:start_transaction',
+              children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
+            },
+          ],
+        })
+      })
 
-              {
-                name: 'prisma:engine:itx_runner',
-                attributes: { itx_id: expect.any(String) },
-                children: [
-                  engineConnection(),
-                  ...txQueries,
-                  {
-                    name: 'prisma:engine:itx_query_builder',
-                    children: [...createDbQueries(false), engineSerializeQueryResult()],
-                  },
-                  {
-                    name: 'prisma:engine:itx_query_builder',
-                    children: [findManyDbQuery(), engineSerializeQueryResult()],
-                  },
-                ],
+      test('interactive transaction rollback', async () => {
+        const email = faker.internet.email()
+
+        await prisma
+          .$transaction(async (client) => {
+            await client.user.create({
+              data: {
+                email,
               },
-            ],
+            })
+            await client.user.findMany({
+              where: {
+                email,
+              },
+            })
+            throw new Error('rollback')
           })
-        }
+          .catch(() => {})
+
+        await waitForSpanTree({
+          name: 'prisma:client:transaction',
+          attributes: {
+            method: '$transaction',
+          },
+          children: [
+            operation('User', 'create', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            operation('User', 'findMany', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            {
+              name: 'prisma:engine:rollback_transaction',
+              children: [
+                {
+                  name: 'prisma:engine:itx_rollback',
+                  children: isMongoDb ? undefined : [txRollback()],
+                },
+              ],
+            },
+            {
+              name: 'prisma:engine:start_transaction',
+              children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
+            },
+          ],
+        })
       })
     })
 
@@ -660,7 +728,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'findMany', [
-            { name: 'prisma:client:connect' },
+            { name: 'prisma:client:connect', children: [engineConnect()] },
             clientSerialize(),
             engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
@@ -680,7 +748,13 @@ testMatrix.setupTestSuite(
       test('should trace $disconnect', async () => {
         await _prisma.$disconnect()
 
-        await waitForSpanTree({ name: 'prisma:client:disconnect' })
+        await waitForSpanTree({
+          name: 'prisma:client:disconnect',
+          // There's no disconnect method in the binary engine, we terminate the process instead.
+          // Since we immediately close the pipe, there's no chance to get any spans we could
+          // emit from a signal handler.
+          children: engineType === 'binary' ? undefined : [{ name: 'prisma:engine:disconnect' }],
+        })
       })
     })
   },

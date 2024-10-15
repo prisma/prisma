@@ -466,7 +466,11 @@ testMatrix.setupTestSuite(
         expect(users.length).toBe(2)
       })
 
-      test('middleware exclude from transaction', async () => {
+      // This test can lead to a deadlock on SQLite because we start a write transaction and a write query outside of it
+      // at the same time, and completing the transaction requires the query to finish. This leads a SQLITE_BUSY error
+      // after 5 seconds if the transaction grabs the lock first. For this test to work on SQLite, we need to expose
+      // SQLite transaction types in transaction options and make this transaction DEFERRED instead of IMMEDIATE.
+      testIf(provider !== Providers.SQLITE)('middleware exclude from transaction', async () => {
         const isolatedPrisma = newPrismaClient()
 
         isolatedPrisma.$use((params, next) => {
@@ -487,7 +491,11 @@ testMatrix.setupTestSuite(
               },
             })
           })
-          .catch(() => {})
+          .catch((err) => {
+            if ((err as PrismaNamespace.PrismaClientKnownRequestError).code !== 'P2002') {
+              throw err
+            }
+          })
 
         const users = await isolatedPrisma.user.findMany()
         expect(users).toHaveLength(1)
