@@ -340,32 +340,6 @@ describe('[wasm] incomplete-schemas', () => {
         `)
       }
     })
-
-    it('format', async () => {
-      expect.assertions(1)
-
-      try {
-        await Format.new().parse([])
-      } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
-          "Prisma schema validation - (validate wasm)
-          Error code: P1012
-          error: Argument "url" is missing in data source block "db".
-            -->  schema.prisma:3
-             | 
-           2 | 
-           3 | datasource db {
-           4 |   provider = "postgresql"
-           5 | }
-             | 
-
-          Validation Error Count: 1
-          [Context: validate]
-
-          Prisma CLI Version : 0.0.0"
-        `)
-      }
-    })
   })
 
   describe('empty-schema', () => {
