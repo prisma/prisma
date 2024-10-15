@@ -13,4 +13,4 @@ jobs:
       # see https://github.com/rhysd/actionlint/blob/main/docs/usage.md
       - name: Check workflow files
         # https://hub.docker.com/r/rhysd/actionlint/tags
-        uses: docker://rhysd/actionlint:1.7.1
+        uses: docker://rhysd/actionlint:1.7.3
