@@ -20,7 +20,7 @@
     "@sindresorhus/slugify": "1.1.2",
     "@swc/core": "1.6.13",
     "@swc/jest": "0.2.36",
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/node": "18.19.31",
     "@types/pg": "8.11.6",
     "@types/prompts": "2.4.9",

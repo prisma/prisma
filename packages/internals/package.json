@@ -33,7 +33,7 @@
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.36",
     "@types/babel__helper-validator-identifier": "7.15.2",
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/node": "18.19.31",
     "@types/resolve": "1.20.6",
     "archiver": "6.0.2",
