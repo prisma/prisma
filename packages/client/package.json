@@ -262,7 +262,7 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.2.0",
+    "ts-pattern": "5.5.0",
     "tsd": "0.31.1",
     "typescript": "5.4.5",
     "undici": "5.28.4",

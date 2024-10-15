@@ -31,7 +31,7 @@
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
-    "ts-pattern": "5.2.0"
+    "ts-pattern": "5.5.0"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*"
