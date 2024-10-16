@@ -92,7 +92,7 @@ services:
       retries: 20
 
   mysql:
-    image: mysql:9.0
+    image: mysql:9.1
     command: --lower_case_table_names=1
     restart: unless-stopped
     environment:
@@ -109,7 +109,7 @@ services:
       retries: 20
 
   mysql_isolated:
-    image: mysql:9.0
+    image: mysql:9.1
     command: --lower_case_table_names=1
     restart: unless-stopped
     environment:
