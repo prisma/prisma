@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.50",
+    "@types/node": "20.16.11",
     "@types/pg": "8.11.6",
     "@types/ws": "8.5.10",
     "jest": "29.7.0",

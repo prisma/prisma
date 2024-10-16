@@ -7,7 +7,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "18.19.34",
+    "@types/node": "20.16.11",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   },
   "dependencies": {
