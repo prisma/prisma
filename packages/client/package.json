@@ -209,7 +209,7 @@
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
     "@prisma/query-engine-wasm": "5.21.0-36.08713a93b99d58f31485621c634b04983ae01d95",
-    "@snaplet/copycat": "0.17.3",
+    "@snaplet/copycat": "0.18.1",
     "@swc-node/register": "1.10.9",
     "@swc/core": "1.6.13",
     "@swc/jest": "0.2.36",
