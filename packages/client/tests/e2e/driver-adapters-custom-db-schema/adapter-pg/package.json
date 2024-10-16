@@ -9,8 +9,8 @@
     "pg": "^8.12.0"
   },
   "devDependencies": {
-    "@types/jest": "29.5.12",
-    "@types/node": "18.19.50",
+    "@types/jest": "29.5.13",
+    "@types/node": "18.19.55",
     "@types/pg": "^8.11.6",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   }

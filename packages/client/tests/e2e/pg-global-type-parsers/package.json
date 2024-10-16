@@ -10,7 +10,7 @@
     "pg": "8.11.5"
   },
   "devDependencies": {
-    "@types/jest": "29.5.12",
-    "@types/node": "18.19.50"
+    "@types/jest": "29.5.13",
+    "@types/node": "18.19.55"
   }
 }
