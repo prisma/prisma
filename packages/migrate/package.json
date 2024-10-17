@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.21.0-36.08713a93b99d58f31485621c634b04983ae01d95",
+    "@prisma/engines-version": "5.22.0-1.fix-shadow-db-ws-a57fc564c92d0e3eac830e38694dd44c464c82aa",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
