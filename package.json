@@ -32,7 +32,7 @@
   "devDependencies": {
     "@eslint/compat": "1.1.1",
     "@eslint/eslintrc": "3.1.0",
-    "@eslint/js": "9.5.0",
+    "@eslint/js": "9.12.0",
     "@microsoft/api-extractor": "7.47.7",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
@@ -56,7 +56,7 @@
     "dotenv-cli": "7.4.2",
     "esbuild": "0.23.0",
     "esbuild-register": "3.5.0",
-    "eslint": "9.5.0",
+    "eslint": "9.12.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.29.1",
