@@ -17,7 +17,7 @@
   "devDependencies": {
     "@swc/core": "1.6.13",
     "@swc/jest": "0.2.36",
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/node": "18.19.31",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
