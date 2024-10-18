@@ -34,7 +34,7 @@
     "@swc/jest": "0.2.36",
     "@types/babel__helper-validator-identifier": "7.15.2",
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.31",
+    "@types/node": "18.19.55",
     "@types/resolve": "1.20.6",
     "archiver": "6.0.2",
     "checkpoint-client": "1.1.33",

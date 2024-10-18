@@ -42,7 +42,7 @@
     "@types/fs-extra": "9.0.13",
     "@types/graphviz": "0.0.39",
     "@types/jest": "29.5.12",
-    "@types/node": "20.12.7",
+    "@types/node": "20.16.11",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.6",
     "@typescript-eslint/eslint-plugin": "7.15.0",

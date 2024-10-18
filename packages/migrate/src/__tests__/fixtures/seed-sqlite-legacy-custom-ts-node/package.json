@@ -6,6 +6,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "16.18.96"
+    "@types/node": "16.18.113"
   }
 }
