@@ -40,7 +40,7 @@
     "checkpoint-client": "1.1.33",
     "cli-truncate": "2.1.0",
     "dotenv": "16.0.3",
-    "esbuild": "0.23.0",
+    "esbuild": "0.24.0",
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
     "fast-glob": "3.3.2",
