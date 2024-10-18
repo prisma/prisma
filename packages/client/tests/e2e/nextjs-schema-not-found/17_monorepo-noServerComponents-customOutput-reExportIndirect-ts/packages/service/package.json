@@ -13,16 +13,16 @@
   "license": "ISC",
   "devDependencies": {
     "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz",
-    "@types/node": "18.19.34",
-    "@types/react": "18.3.3",
-    "webpack": "5.91.0"
+    "@types/node": "18.19.55",
+    "@types/react": "18.3.11",
+    "webpack": "5.95.0"
   },
   "dependencies": {
     "db": "workspace:*",
-    "next": "14.2.8",
+    "next": "14.2.15",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "typescript": "5.4.5",
-    "vercel": "33.5.0"
+    "vercel": "33.7.1"
   }
 }

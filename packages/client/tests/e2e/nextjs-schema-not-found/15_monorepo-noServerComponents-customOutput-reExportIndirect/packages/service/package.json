@@ -13,8 +13,8 @@
   "license": "ISC",
   "devDependencies": {
     "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz",
-    "@types/node": "18.19.34",
-    "@types/react": "18.3.3",
+    "@types/node": "18.19.55",
+    "@types/react": "18.3.11",
     "webpack": "5.91.0"
   },
   "dependencies": {
@@ -23,6 +23,6 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "typescript": "5.4.5",
-    "vercel": "33.5.0"
+    "vercel": "33.7.1"
   }
 }

@@ -7,11 +7,11 @@
     "@neondatabase/serverless": "0.9.4",
     "@prisma/adapter-neon": "/tmp/prisma-adapter-neon-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
-    "undici": "^6.19.2"
+    "undici": "6.19.8"
   },
   "devDependencies": {
-    "@types/jest": "29.5.12",
-    "@types/node": "18.19.50",
+    "@types/jest": "29.5.13",
+    "@types/node": "18.19.55",
     "prisma": "/tmp/prisma-0.0.0.tgz"
   },
   "pnpm": {
