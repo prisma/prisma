@@ -553,8 +553,8 @@ importers:
         specifier: 8.4.1
         version: 8.4.1
       '@fast-check/jest':
-        specifier: 1.8.2
-        version: 1.8.2(@jest/globals@29.7.0)
+        specifier: 2.0.2
+        version: 2.0.2(@jest/globals@29.7.0)
       '@inquirer/prompts':
         specifier: 5.0.5
         version: 5.0.5
@@ -2891,8 +2891,8 @@ packages:
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
     dev: true
 
-  /@fast-check/jest@1.8.2(@jest/globals@29.7.0):
-    resolution: {integrity: sha512-+UgQKZ0og0olUZXWgZ5Zcw42eN+3OB0Nfw0CU9OnlHBhHFnd8xppUYviX5HriAyUsAko1t/li5LZ9mSIIakmhg==}
+  /@fast-check/jest@2.0.2(@jest/globals@29.7.0):
+    resolution: {integrity: sha512-MDBM3c18rvUo3r2VnUKG3eqWFnucuDC2kTuna3lQpn5nNwnsEtF//ewxUjmJEhSqN3crFDukrBK15rWLFoRYHw==}
     peerDependencies:
       '@fast-check/worker': '>=0.0.7 <0.5.0'
       '@jest/expect': '>=28.0.0'
@@ -7342,7 +7342,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8619,7 +8618,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
