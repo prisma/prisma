@@ -1,3 +1,7 @@
+/**
+ * TODO: remove file, this is unused and unimported anywhere.
+ */
+
 import arg from 'arg'
 import execa from 'execa'
 import { promises as fs } from 'fs'
@@ -92,7 +96,7 @@ async function main() {
         await pMap(
           packageUsers,
           async (u) => {
-            await run(path.dirname(u.path), `yarn add ${packageName}@${latestVersion}${u.dev ? ' -D' : ''}`)
+            await run(path.dirname(u.path), `pnpm add ${packageName}@${latestVersion}${u.dev ? ' -D' : ''}`)
           },
           { concurrency: 1 },
         )
