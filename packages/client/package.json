@@ -265,7 +265,7 @@
     "ts-pattern": "5.2.0",
     "tsd": "0.31.1",
     "typescript": "5.4.5",
-    "undici": "5.28.4",
+    "undici": "6.20.1",
     "wrangler": "3.62.0",
     "zx": "7.2.3"
   },
