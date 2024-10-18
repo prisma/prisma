@@ -28,7 +28,7 @@
   ],
   "devDependencies": {
     "@antfu/ni": "0.21.12",
-    "@babel/helper-validator-identifier": "7.24.7",
+    "@babel/helper-validator-identifier": "7.25.7",
     "@opentelemetry/api": "1.9.0",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.36",
