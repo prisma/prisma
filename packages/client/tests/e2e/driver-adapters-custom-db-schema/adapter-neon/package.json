@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "@neondatabase/serverless": "0.9.4",
+    "@neondatabase/serverless": "0.10.1",
     "@prisma/adapter-neon": "/tmp/prisma-adapter-neon-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
     "undici": "^6.19.2"
