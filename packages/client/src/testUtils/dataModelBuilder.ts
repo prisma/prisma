@@ -7,6 +7,7 @@ export function field(kind: DMMF.FieldKind, name: string, type: string, extra?: 
     kind,
     name,
     type,
+    nativeType: null,
     isRequired: false,
     isList: false,
     isUnique: true,
