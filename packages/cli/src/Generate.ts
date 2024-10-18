@@ -267,7 +267,7 @@ Please make sure they have the same version.`
           hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
-Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
 ${promotion.text} ${promotion.link}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
