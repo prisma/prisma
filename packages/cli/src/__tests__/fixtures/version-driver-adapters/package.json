@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "@prisma/adapter-d1": "file:../adapter-d1",
+    "@prisma/adapter-neon": "file:../adapter-neon",
+    "@prisma/adapter-pg": "file:../adapter-pg",
+    "@prisma/adapter-planetscale": "file:../adapter-planetscale",
+    "@prisma/adapter-not-recognized": "file:../adapter-not-recognized",
+    "@prisma/non-adapter": "file:../non-adapter",
+    "@prisma/client": "file:../client",
+    "@neondatabase/serverless": "<NEON_VERSION>"
+  },
+  "devDependencies": {
+    "wrangler": "<WRANGLER_DEV_VERSION>",
+    "pg": "<PG_DEV_VERSION>"
+  }
+}
