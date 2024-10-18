@@ -173,7 +173,7 @@
     "sql.mjs"
   ],
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20240614.0",
+    "@cloudflare/workers-types": "4.20241011.0",
     "@codspeed/benchmark.js-plugin": "3.1.1",
     "@faker-js/faker": "8.4.1",
     "@fast-check/jest": "1.8.2",
