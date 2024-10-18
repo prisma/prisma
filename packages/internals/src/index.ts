@@ -8,6 +8,7 @@ export {
   type GetSchemaResult,
   getSchemaWithPath,
   getSchemaWithPathOptional,
+  findNearestPackageJson,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
