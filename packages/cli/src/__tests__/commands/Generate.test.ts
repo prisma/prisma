@@ -945,3 +945,31 @@ describe('with --sql', () => {
     )
   })
 })
+
+test('big-schema-odoo', async () => {
+  expect.assertions(2)
+  ctx.fixture('big-schema-odoo')
+  const result = await Generate.new().parse(['--schema=./schema.prisma'])
+  const output = stripAnsi(replaceEngineType(result))
+  expect(output).toMatchInlineSnapshot(`
+
+    ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
+    You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+    \`\`\`
+    import { PrismaClient } from './@prisma/client'
+    const prisma = new PrismaClient()
+    \`\`\`
+  `)
+  // Check that the client path in the import statement actually contains
+  // forward slashes regardless of the platform (a snapshot test wouldn't
+  // detect the difference because backward slashes are replaced with forward
+  // slashes by the snapshot serializer).
+  expect(output).toContain("import { PrismaClient } from './@prisma/client'")
+})
+
+function replaceEngineType(result: string | Error) {
+  if (result instanceof Error) {
+    return result
+  }
+  return result.replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
+}
