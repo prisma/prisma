@@ -210,7 +210,18 @@ testMatrix.setupTestSuite(
     }
 
     function engineConnection() {
-      return { name: 'prisma:engine:connection', attributes: { 'db.type': expect.any(String) } }
+      return {
+        name: 'prisma:engine:connection',
+        attributes: {
+          'db.system': expect.toSatisfy((dbSystem) => {
+            if (provider === Providers.SQLSERVER) {
+              return dbSystem === 'sqlserver'
+            }
+
+            return dbSystem === provider
+          }),
+        },
+      }
     }
 
     function findManyDbQuery() {
