@@ -1,0 +1,17 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mongodb"
+    url      = env("DATABASE_URL")
+}
+
+type NestedType {
+    this_causes_error Unsupported("RegularExpression")
+}
+
+model sample_model {
+    id         String     @id @default(auto()) @map("_id") @db.ObjectId
+    some_field NestedType
+}
