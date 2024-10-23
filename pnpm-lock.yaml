@@ -159,8 +159,8 @@ importers:
         specifier: 3.1.2
         version: 3.1.2
       redis-lock:
-        specifier: 0.1.4
-        version: 0.1.4
+        specifier: 1.0.0
+        version: 1.0.0
       regenerator-runtime:
         specifier: 0.14.1
         version: 0.14.1
@@ -7342,7 +7342,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8619,7 +8618,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -10340,9 +10339,9 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /redis-lock@0.1.4:
-    resolution: {integrity: sha512-7/+zu86XVQfJVx1nHTzux5reglDiyUCDwmW7TSlvVezfhH2YLc/Rc8NE0ejQG+8/0lwKzm29/u/4+ogKeLosiA==}
-    engines: {node: '>=0.6'}
+  /redis-lock@1.0.0:
+    resolution: {integrity: sha512-zfI+Il36jXwRT/W8SBsG132Bc2yp3tMuf3KTGjSzXimadI17NEGBvb/KrDkCuAC2hzVxW5uR5ns/rxuqiWeV3Q==}
+    engines: {node: '>=12'}
     dev: true
 
   /redis-parser@3.0.0:
