@@ -124,6 +124,10 @@ testMatrix.setupTestSuite(
         },
       }
 
+      if (provider === Providers.MONGODB) {
+        span.attributes['db.operation.name'] = expect.toBeString()
+      }
+
       // extra children spans for driver adapters, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
       if (clientMeta.driverAdapter && driverAdapterChildSpans !== AdapterQueryChildSpans.None) {
         const children = [] as Tree[]
