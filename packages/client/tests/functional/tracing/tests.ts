@@ -213,7 +213,7 @@ testMatrix.setupTestSuite(
     function dbSystemExpectation() {
       return expect.toSatisfy((dbSystem) => {
         if (provider === Providers.SQLSERVER) {
-          return dbSystem === 'sqlserver'
+          return dbSystem === 'mssql'
         }
 
         return dbSystem === provider
