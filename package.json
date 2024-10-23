@@ -67,7 +67,7 @@
     "execa": "5.1.1",
     "format-util": "1.0.5",
     "fs-extra": "11.1.1",
-    "globals": "15.6.0",
+    "globals": "15.11.0",
     "globby": "11.1.0",
     "graphviz-mit": "0.0.9",
     "husky": "9.0.11",
