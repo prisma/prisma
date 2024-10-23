@@ -60,7 +60,7 @@ export function createMemoryTest<ModuleT extends PrismaModule, PrepareResult = v
       await run(runParams)
       gc()
 
-      await new Promise((resolve) => resultStream.write(process.memoryUsage().heapUsed + '\n', resolve))
+      await new Promise((resolve) => resultStream.write(process.memoryUsage().rss + '\n', resolve))
     }
 
     await cleanup?.(runParams)

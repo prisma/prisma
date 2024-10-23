@@ -349,7 +349,7 @@ expression.
 ## Memory tests
 
 This suite tests client for memory leaks. It works by repeatedly running test code in a loop
-and monitoring V8 heap usage after every iteration. If it detects that memory usage grows
+and monitoring V8 rss usage after every iteration. If it detects that memory usage grows
 with a rate higher than the threshold, it will report a memory leak and fail the test.
 
 To create a memory test you need 2 files:
