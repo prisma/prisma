@@ -537,6 +537,19 @@ function getJson(stdout: string): any {
   return JSON.parse(sliced)
 }
 
+export async function findNearestPackageJson(cwd?: string): Promise<{ path: string; data: PackageJson } | null> {
+  const pkgJson = await readPackageUp({ cwd, normalize: false })
+
+  if (!pkgJson) {
+    return null
+  }
+
+  return {
+    path: pkgJson.path,
+    data: pkgJson.packageJson,
+  }
+}
+
 function isPkgJsonWorkspaceRoot(pkgJson: PackageJson) {
   const workspaces = pkgJson.workspaces
 
