@@ -74,7 +74,7 @@
     "terminal-link": "2.1.1",
     "tmp": "0.2.3",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.2.0",
+    "ts-pattern": "5.5.0",
     "ts-toolbelt": "9.6.0",
     "typescript": "5.4.5",
     "yarn": "1.22.22"
