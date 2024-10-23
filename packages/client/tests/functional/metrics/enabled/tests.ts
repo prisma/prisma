@@ -272,11 +272,13 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_idle',
               labels: {},
-              // This can sometimes be reported as 0, 1 or 2,
-              // as metrics are reported asynchronously.
-              // Note: We want to investigate why these different values are reported in our test setup
-              // https://github.com/prisma/team-orm/issues/587
-              value: expect.toBeOneOf([0, 1, 2]),
+              value: usesDriverAdapter
+                ? expect.toBe(0)
+                : // This can sometimes be reported as 0, 1 or 2,
+                  // as metrics are reported asynchronously.
+                  // Note: We want to investigate why these different values are reported in our test setup
+                  // https://github.com/prisma/team-orm/issues/587
+                  expect.toBeOneOf([0, 1, 2]),
               description: 'The number of pool connections that are not busy running a query',
             },
             {
@@ -311,6 +313,8 @@ testMatrix.setupTestSuite(
                 description: 'The distribution of the time all datasource queries spent waiting for a free connection',
               },
             ])
+          } else {
+            expect(histogramsBefore).toEqual([])
           }
 
           // Send 1 query
@@ -496,7 +500,7 @@ testMatrix.setupTestSuite(
         expect((metrics.match(/prisma_pool_connections_closed_total \d/g) || []).length).toBe(1)
         expect((metrics.match(/prisma_pool_connections_opened_total \d/g) || []).length).toBe(1)
 
-        if (provider === Providers.MONGODB) {
+        if (provider === Providers.MONGODB || usesDriverAdapter) {
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_bucket/g) || []).length).toBe(0)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_sum .*/g) || []).length).toBe(0)
           expect((metrics.match(/prisma_client_queries_wait_histogram_ms_count \d/g) || []).length).toBe(0)
@@ -600,9 +604,6 @@ testMatrix.setupTestSuite(
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: 'Metrics are not supported with Data Proxy yet',
-    },
-    skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', 'Metrics are not supported with WASM engine yet')
     },
   },
 )
