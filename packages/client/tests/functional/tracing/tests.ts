@@ -119,6 +119,7 @@ testMatrix.setupTestSuite(
       const span = {
         name: 'prisma:engine:db_query',
         attributes: {
+          'db.system': dbSystemExpectation(),
           'db.statement': statement,
         },
       }
@@ -209,17 +210,21 @@ testMatrix.setupTestSuite(
       return [...engineSerializeFinalResponse(), engineSerializeQueryResult()]
     }
 
+    function dbSystemExpectation() {
+      return expect.toSatisfy((dbSystem) => {
+        if (provider === Providers.SQLSERVER) {
+          return dbSystem === 'sqlserver'
+        }
+
+        return dbSystem === provider
+      })
+    }
+
     function engineConnection() {
       return {
         name: 'prisma:engine:connection',
         attributes: {
-          'db.system': expect.toSatisfy((dbSystem) => {
-            if (provider === Providers.SQLSERVER) {
-              return dbSystem === 'sqlserver'
-            }
-
-            return dbSystem === provider
-          }),
+          'db.system': dbSystemExpectation(),
         },
       }
     }
