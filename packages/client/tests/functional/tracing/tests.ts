@@ -119,8 +119,8 @@ testMatrix.setupTestSuite(
       const span = {
         name: 'prisma:engine:db_query',
         attributes: {
-          'db.system': dbSystemExpectation(),
           'db.statement': statement,
+          'db.system': dbSystemExpectation(),
         },
       }
 
@@ -147,6 +147,7 @@ testMatrix.setupTestSuite(
           name: 'js:query:sql',
           attributes: {
             'db.statement': statement,
+            'db.system': dbSystemExpectation(),
           },
         })
 
