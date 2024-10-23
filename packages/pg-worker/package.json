@@ -15,7 +15,7 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/node": "18.19.31",
     "pg": "8.11.5",
     "pg-cloudflare": "1.1.1",
