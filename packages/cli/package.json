@@ -111,7 +111,7 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.1",
     "ts-pattern": "5.2.0",
-    "typescript": "5.4.5",
+    "typescript": "5.6.3",
     "xdg-app-paths": "8.3.0",
     "zx": "7.2.3"
   },
