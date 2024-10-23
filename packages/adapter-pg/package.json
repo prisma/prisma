@@ -42,10 +42,10 @@
   "devDependencies": {
     "@swc/core": "1.6.13",
     "@swc/jest": "0.2.36",
-    "@types/pg": "8.11.6",
+    "@types/pg": "8.11.10",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
-    "pg": "8.11.5"
+    "pg": "8.13.0"
   },
   "peerDependencies": {
     "pg": "^8.11.3"
