@@ -21,7 +21,7 @@ export async function runCheckpointClientCheck({
   command,
   telemetryInformation,
 }: {
-  isPrismaInstalledGlobally: 'npm' | 'yarn' | false
+  isPrismaInstalledGlobally: 'npm' | false
   version: string
   command: string
   telemetryInformation: string

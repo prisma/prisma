@@ -148,20 +148,6 @@ it('throws error if explicit --schema arg is used and preview feature is not on'
   )
 })
 
-it('finds the schema path in the root package.json of a yarn workspace from a child package', async () => {
-  const res = await testSchemaPath('pkg-json-workspace-parent/packages/a')
-
-  expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/db/schema.prisma"`)
-})
-
-it('finds the conventional schema path with yarn workspaces', async () => {
-  const res = await testSchemaPath('conventional-path-workspaces')
-
-  expect(res).toMatchInlineSnapshot(
-    `"src/__tests__/__fixtures__/getSchema/conventional-path-workspaces/packages/b/schema.prisma"`,
-  )
-})
-
 it('fails with no schema in workspaces', async () => {
   const res = await testSchemaPath('no-schema-workspaces')
 
@@ -173,12 +159,6 @@ it('fails with no schema in workspaces', async () => {
     schema.prisma: file not found
     prisma/schema.prisma: file not found
     prisma/schema: directory not found
-    packages/a/schema.prisma: file not found
-    packages/a/prisma/schema.prisma: file not found
-    packages/a/prisma/schema: directory not found
-    packages/b/schema.prisma: file not found
-    packages/b/prisma/schema.prisma: file not found
-    packages/b/prisma/schema: directory not found
 
     See also https://pris.ly/d/prisma-schema-location]
   `)
