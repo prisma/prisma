@@ -82,7 +82,7 @@ jobs:
 
       - name: Slack Notification on Failure
         if: ${{ failure() }}
-        uses: rtCamp/action-slack-notify@v2.3.0
+        uses: rtCamp/action-slack-notify@v2.3.2
         env:
           SLACK_TITLE: 'Update Studio Version failed :x:'
           SLACK_COLOR: '#FF0000'
