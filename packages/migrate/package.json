@@ -57,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.22.0-12.8263a1f2b3deb0a72687cad83ceb981a25624db8",
+    "@prisma/engines-version": "5.22.0-15.integration-itx-refactor-e6a1a87cfa6c4940596af734f1adf379b009e288",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
