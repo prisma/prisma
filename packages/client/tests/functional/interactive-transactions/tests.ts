@@ -530,12 +530,12 @@ testMatrix.setupTestSuite(
 
     /**
      * Makes sure that the engine does not deadlock
-     * For sqlite, it sometimes causes DB lock up and all subsequent
+     * For SQLite and MySQL 8, it sometimes causes DB lock up and all subsequent
      * tests fail. We might want to re-enable it either after we implemented
      * WAL mode (https://github.com/prisma/prisma/issues/3303) or identified the
      * issue on our side
      */
-    testIf(provider !== Providers.SQLITE)('high concurrency', async () => {
+    testIf(provider !== Providers.SQLITE && provider !== Providers.MYSQL)('high concurrency', async () => {
       jest.setTimeout(30_000)
 
       await prisma.user.create({
