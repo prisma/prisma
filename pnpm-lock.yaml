@@ -652,8 +652,8 @@ importers:
         specifier: 5.22.0-12.8263a1f2b3deb0a72687cad83ceb981a25624db8
         version: 5.22.0-12.8263a1f2b3deb0a72687cad83ceb981a25624db8
       '@snaplet/copycat':
-        specifier: 0.17.3
-        version: 0.17.3
+        specifier: 0.18.1
+        version: 0.18.1
       '@swc-node/register':
         specifier: 1.10.9
         version: 1.10.9(@swc/core@1.6.13)(typescript@5.4.5)
@@ -3257,7 +3257,7 @@ packages:
       chalk: 4.1.2
       convert-source-map: 2.0.0
       fast-json-stable-stringify: 2.1.0
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
       jest-haste-map: 29.7.0
       jest-regex-util: 29.6.3
       jest-util: 29.7.0
@@ -3959,11 +3959,11 @@ packages:
       - debug
     dev: true
 
-  /@snaplet/copycat@0.17.3:
-    resolution: {integrity: sha512-cwX6zphBd1KNuOPmILggXkddLf+juIrXsFhfOz0nMDIIAkWyoFQAqwt4pn5lS2RNMJTzT7IZRKplnFt/D2t8zw==}
+  /@snaplet/copycat@0.18.1:
+    resolution: {integrity: sha512-j7X6IoN1TK/8dKB6+ZorXs6US1ENmR/vOg6Nr6THRlYjZQL8b58FTD+nVO2O04ZCLNFIR0pe4l+WqGLsIEMOYg==}
     dependencies:
       '@faker-js/faker': 8.4.1
-      fictional: 0.8.4
+      fictional: 0.10.1
       uuid: 8.3.2
     dev: true
 
@@ -6913,8 +6913,8 @@ packages:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.2.1
 
-  /fictional@0.8.4:
-    resolution: {integrity: sha512-wSYTdLJkQ/h4NOMI6FCp9xxjMzEcCxwSjIK4f5zZveOKFUPAxi4/sAb3pyjaiz3fCSA2PGEGLY6ZWQplRl7ygQ==}
+  /fictional@0.10.1:
+    resolution: {integrity: sha512-+VbL3ahSeu1hfNSKEfTvVBuXHI/1GjxTeD4ebKHtkdIs0Q4rNzudpLRRr/FqBFnk53fn2WwSAuPWIIwPw0eH/Q==}
     dependencies:
       decimal.js: 10.4.3
       fast-json-stable-stringify: 2.1.0
@@ -7342,7 +7342,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8279,7 +8278,7 @@ packages:
       '@jest/types': 29.6.3
       '@types/stack-utils': 2.0.1
       chalk: 4.1.2
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
       micromatch: 4.0.6
       pretty-format: 29.7.0
       slash: 3.0.0
@@ -8439,7 +8438,7 @@ packages:
       '@types/node': 20.12.7
       chalk: 4.1.2
       ci-info: 3.9.0
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
       picomatch: 2.3.1
     dev: true
 
@@ -8619,7 +8618,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
