@@ -120,7 +120,12 @@ testMatrix.setupTestSuite(
         name: 'prisma:engine:db_query',
         attributes: {
           'db.statement': statement,
+          'db.system': dbSystemExpectation(),
         },
+      }
+
+      if (provider === Providers.MONGODB) {
+        span.attributes['db.operation.name'] = expect.toBeString()
       }
 
       // extra children spans for driver adapters, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
@@ -142,6 +147,7 @@ testMatrix.setupTestSuite(
           name: 'js:query:sql',
           attributes: {
             'db.statement': statement,
+            'db.system': dbSystemExpectation(),
           },
         })
 
@@ -209,8 +215,23 @@ testMatrix.setupTestSuite(
       return [...engineSerializeFinalResponse(), engineSerializeQueryResult()]
     }
 
+    function dbSystemExpectation() {
+      return expect.toSatisfy((dbSystem) => {
+        if (provider === Providers.SQLSERVER) {
+          return dbSystem === 'mssql'
+        }
+
+        return dbSystem === provider
+      })
+    }
+
     function engineConnection() {
-      return { name: 'prisma:engine:connection', attributes: { 'db.type': expect.any(String) } }
+      return {
+        name: 'prisma:engine:connection',
+        attributes: {
+          'db.system': dbSystemExpectation(),
+        },
+      }
     }
 
     function findManyDbQuery() {
