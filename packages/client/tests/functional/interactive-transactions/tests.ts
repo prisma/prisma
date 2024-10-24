@@ -534,32 +534,56 @@ testMatrix.setupTestSuite(
      * tests fail. We might want to re-enable it either after we implemented
      * WAL mode (https://github.com/prisma/prisma/issues/3303) or identified the
      * issue on our side
+     * On SQL Server, it fails because the database kills the connections.
      */
-    testIf(provider !== Providers.SQLITE && provider !== Providers.MYSQL)('high concurrency', async () => {
-      jest.setTimeout(30_000)
+    testIf(provider !== Providers.SQLITE && provider !== Providers.MYSQL && provider !== Providers.SQLSERVER)(
+      'high concurrency',
+      async () => {
+        jest.setTimeout(30_000)
 
-      await prisma.user.create({
-        data: {
-          email: 'x',
-          name: 'y',
-        },
-      })
+        await prisma.user.create({
+          data: {
+            email: 'x',
+            name: 'y',
+          },
+        })
 
-      for (let i = 0; i < 5; i++) {
-        await Promise.allSettled([
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), { timeout: 25 }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), { timeout: 25 }),
-        ]).catch(() => {}) // we don't care for errors, there will be
-      }
-    })
+        for (let i = 0; i < 5; i++) {
+          await Promise.allSettled([
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+          ]).catch(() => {}) // we don't care for errors, there will be
+        }
+      },
+    )
 
     /**
      * Rollback should happen even with `then` calls
