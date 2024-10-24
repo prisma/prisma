@@ -36,8 +36,8 @@ importers:
         specifier: 2.1.5
         version: 2.1.5
       '@types/fs-extra':
-        specifier: 9.0.13
-        version: 9.0.13
+        specifier: 11.0.4
+        version: 11.0.4
       '@types/graphviz':
         specifier: 0.0.39
         version: 0.0.39
@@ -117,8 +117,8 @@ importers:
         specifier: 1.0.5
         version: 1.0.5
       fs-extra:
-        specifier: 11.1.1
-        version: 11.1.1
+        specifier: 11.2.0
+        version: 11.2.0
       globals:
         specifier: 15.6.0
         version: 15.6.0
@@ -445,8 +445,8 @@ importers:
         specifier: 4.1.12
         version: 4.1.12
       '@types/fs-extra':
-        specifier: 9.0.13
-        version: 9.0.13
+        specifier: 11.0.4
+        version: 11.0.4
       '@types/jest':
         specifier: 29.5.12
         version: 29.5.12
@@ -481,8 +481,8 @@ importers:
         specifier: 3.3.2
         version: 3.3.2
       fs-extra:
-        specifier: 11.1.1
-        version: 11.1.1
+        specifier: 11.2.0
+        version: 11.2.0
       fs-jetpack:
         specifier: 5.1.0
         version: 5.1.0
@@ -670,8 +670,8 @@ importers:
         specifier: 4.1.12
         version: 4.1.12
       '@types/fs-extra':
-        specifier: 9.0.13
-        version: 9.0.13
+        specifier: 11.0.4
+        version: 11.0.4
       '@types/jest':
         specifier: 29.5.12
         version: 29.5.12
@@ -718,8 +718,8 @@ importers:
         specifier: 0.3.8
         version: 0.3.8
       fs-extra:
-        specifier: 11.1.1
-        version: 11.1.1
+        specifier: 11.2.0
+        version: 11.2.0
       get-stream:
         specifier: 6.0.1
         version: 6.0.1
@@ -936,8 +936,8 @@ importers:
         specifier: 5.0.0
         version: 5.0.0
       fs-extra:
-        specifier: 11.1.1
-        version: 11.1.1
+        specifier: 11.2.0
+        version: 11.2.0
       hasha:
         specifier: 5.2.2
         version: 5.2.2
@@ -1300,8 +1300,8 @@ importers:
         specifier: 2.16.9
         version: 2.16.9
       fs-extra:
-        specifier: 11.1.1
-        version: 11.1.1
+        specifier: 11.2.0
+        version: 11.2.0
       fs-jetpack:
         specifier: 5.1.0
         version: 5.1.0
@@ -1560,8 +1560,8 @@ importers:
         specifier: 5.22.0-12.8263a1f2b3deb0a72687cad83ceb981a25624db8
         version: 5.22.0-12.8263a1f2b3deb0a72687cad83ceb981a25624db8
       fs-extra:
-        specifier: 11.1.1
-        version: 11.1.1
+        specifier: 11.2.0
+        version: 11.2.0
     devDependencies:
       jest:
         specifier: 29.7.0
@@ -4420,16 +4420,10 @@ packages:
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
     dev: true
 
-  /@types/fs-extra@11.0.1:
-    resolution: {integrity: sha512-MxObHvNl4A69ofaTRU8DFqvgzzv8s9yRtaPPm5gud9HDNvpB3GPQFvNuTWAI59B9huVGV5jXYJwbCsmBsOGYWA==}
+  /@types/fs-extra@11.0.4:
+    resolution: {integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==}
     dependencies:
       '@types/jsonfile': 6.1.1
-      '@types/node': 20.12.7
-    dev: true
-
-  /@types/fs-extra@9.0.13:
-    resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
-    dependencies:
       '@types/node': 20.12.7
     dev: true
 
@@ -7077,11 +7071,11 @@ packages:
     resolution: {integrity: sha512-twe20eF1OxVxp/ML/kq2p1uc6KvFK/+vs8WjEbeKmV2He22MKm7YF2ANIt+EOqhJ5L3K/SuuPhk0hWQDjOM23g==}
     dev: true
 
-  /fs-extra@11.1.1:
-    resolution: {integrity: sha512-MGIE4HOvQCeUCzmlHs0vXpih4ysz4wg9qiSAu6cd42lVwPbTM1TjV7RusoyQqMmk/95gdQZX72u+YW+c3eEpFQ==}
+  /fs-extra@11.2.0:
+    resolution: {integrity: sha512-PmDi3uwK5nFuXh7XDTlVnS17xJS7vW36is2+w3xcv8SVxiB4NyATf4ctkVY5bkSjX0Y4nbvZCq1/EjtEyr9ktw==}
     engines: {node: '>=14.14'}
     dependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
       jsonfile: 6.1.0
       universalify: 2.0.0
 
@@ -7339,10 +7333,10 @@ packages:
 
   /graceful-fs@4.2.10:
     resolution: {integrity: sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==}
+    dev: true
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8619,7 +8613,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -12063,13 +12057,13 @@ packages:
     engines: {node: '>= 16.0.0'}
     hasBin: true
     dependencies:
-      '@types/fs-extra': 11.0.1
+      '@types/fs-extra': 11.0.4
       '@types/minimist': 1.2.2
       '@types/node': 18.19.31
       '@types/ps-tree': 1.1.2
       '@types/which': 3.0.0
       chalk: 5.2.0
-      fs-extra: 11.1.1
+      fs-extra: 11.2.0
       fx: 28.0.0
       globby: 13.1.4
       minimist: 1.2.8
