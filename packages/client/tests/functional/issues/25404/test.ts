@@ -25,7 +25,7 @@ testMatrix.setupTestSuite(
   {
     optOut: {
       from: ['postgresql', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
-      reason: 'This is a SQLite-specific test',
+      reason: 'This is a SQLite specific test',
     },
     skipDriverAdapter: {
       from: ['js_libsql'],
