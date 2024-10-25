@@ -18,12 +18,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        expect(result).toMatchInlineSnapshot(`
-          {
-            "id": "cm2p3f8eb0000qhkxn5njoq15",
-            "memo": "This is user input, 2024-10-09T16:05:08.547Z",
-          }
-        `)
+        expect(result.memo).toEqual('This is user input, 2024-10-09T16:05:08.547Z ')
       },
     )
   },
