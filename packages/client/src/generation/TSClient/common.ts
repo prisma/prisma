@@ -35,7 +35,8 @@ import {
   defineDmmfProperty,
   Public,
   getRuntime,
-  skip
+  skip,
+  Param
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
@@ -45,7 +46,8 @@ const {
   makeStrictEnum,
   Public,
   getRuntime,
-  skip
+  skip,
+  Param
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
@@ -69,7 +71,8 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
-  getRuntime
+  getRuntime,
+  Param
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
@@ -123,6 +126,7 @@ Prisma.NullTypes = {
   AnyNull: objectEnumValues.classes.AnyNull
 }
 
+${buildPrismaParamJs()}
 ${buildPrismaSkipJs(generator.previewFeatures)}
 `
 
@@ -180,6 +184,7 @@ export import join = runtime.join
 export import raw = runtime.raw
 export import Sql = runtime.Sql
 
+${buildPrismaParamTs()}
 ${buildPrismaSkipTs(generator.previewFeatures)}
 
 /**
@@ -597,4 +602,19 @@ Prisma.skip = skip
   }
 
   return ''
+}
+
+function buildPrismaParamTs() {
+  return /* typescript */ `
+/**
+ * Prisma.Param
+ */
+export import Param = runtime.Param
+`
+}
+
+function buildPrismaParamJs() {
+  return /* javascript */ `
+Prisma.Param = Param
+`
 }
