@@ -10,9 +10,15 @@ async function main() {
     },
   })
 
-  const users = await prisma.user.findMany()
+  // @ts-ignore
+  const query = prisma.$prepare(prisma.user.findMany());
+  console.log("result", await query({ fieldA: "foo", fieldB: "bar" }));
 
-  console.log(users)
+  // @ts-ignore
+  const query2 = prisma.$prepare(prisma.user.findFirst());
+  console.log("result", await query2({ fieldA: "foo", fieldB: "bar" }));
+
+  // console.log(users)
 }
 
 void main().catch((e) => {

@@ -637,6 +637,34 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       })
     }
 
+    $prepare<T extends PrismaPromise<any>>(operation: T) {
+      // TODO: call the Query Engine prepare with the operation
+      // this._engine.prepare(operation);
+      // type Result = T extends PrismaPromise<infer R, any> ? R : never
+      // type Spec = T extends PrismaPromise<any, infer R> ? R : never
+      // sql: string
+      // paramOrder: string[]
+      const { sql, paramOrder } = { sql: `SELECT $1 AS "fieldA", $2 AS "fieldB"`, paramOrder: ['fieldA', 'fieldB'] }
+      return async (values: Record<string, unknown>) => {
+        const params = paramOrder.map((param) => {
+          if (!(param in values)) {
+            throw new Error(`you done goofed up now`)
+          }
+          return values[param]
+        })
+        // TODO: driver adapter stuff
+        const results = (await this.$queryRawUnsafe(sql, ...params)) as unknown[]
+        switch (operation.spec.action) {
+          // TODO: other cases that may return single entries or throw
+          case 'findFirst':
+          case 'findUnique':
+            return results.at(0)
+          default:
+            return results
+        }
+      }
+    }
+
     /**
      * Executes a raw command only for MongoDB
      *

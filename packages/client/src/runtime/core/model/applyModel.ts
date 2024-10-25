@@ -82,29 +82,36 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
-        return client._createPrismaPromise((transaction) => {
-          const params: InternalRequestParams = {
-            // data and its dataPath for nested results
-            args: userArgs,
-            dataPath: [],
+        return client._createPrismaPromise(
+          (transaction) => {
+            const params: InternalRequestParams = {
+              // data and its dataPath for nested results
+              args: userArgs,
+              dataPath: [],
 
-            // action name and its related model
+              // action name and its related model
+              action: dmmfActionName,
+              model: dmmfModelName,
+
+              // method name for display only
+              clientMethod: `${jsModelName}.${key}`,
+              jsModelName,
+
+              // transaction information
+              transaction,
+
+              // stack trace
+              callsite: callSite,
+            }
+
+            return requestFn({ ...params, ...paramOverrides })
+          },
+          {
             action: dmmfActionName,
+            args: userArgs,
             model: dmmfModelName,
-
-            // method name for display only
-            clientMethod: `${jsModelName}.${key}`,
-            jsModelName,
-
-            // transaction information
-            transaction,
-
-            // stack trace
-            callsite: callSite,
-          }
-
-          return requestFn({ ...params, ...paramOverrides })
-        })
+          },
+        )
       }
 
       // we give the control over action for building the fluent api
