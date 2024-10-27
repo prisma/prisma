@@ -482,12 +482,49 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return this.library?.debugPanic(message) as Promise<never>
   }
 
-  prepare(_query: JsonQuery): Promise<QueryPlanNode> {
-    throw new Error('not implemented')
+  async prepare(query: JsonQuery): Promise<QueryPlanNode> {
+    try {
+      await this.start()
+      const response = await this.engine!.prepare(JSON.stringify(query), false)
+      return JSON.parse(response)
+    } catch (e: any) {
+      if (e instanceof PrismaClientInitializationError) {
+        throw e
+      }
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
+        throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
+      }
+      const error = this.parseRequestError(e.message)
+      if (typeof error === 'string') {
+        throw e
+      } else {
+        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
+          clientVersion: this.config.clientVersion!,
+        })
+      }
+    }
   }
 
-  debugQueryPlan(_query: JsonQuery): Promise<string> {
-    throw new Error('not implemented')
+  async debugQueryPlan(query: JsonQuery): Promise<string> {
+    try {
+      await this.start()
+      return await this.engine!.prepare(JSON.stringify(query), true)
+    } catch (e: any) {
+      if (e instanceof PrismaClientInitializationError) {
+        throw e
+      }
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
+        throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
+      }
+      const error = this.parseRequestError(e.message)
+      if (typeof error === 'string') {
+        throw e
+      } else {
+        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
+          clientVersion: this.config.clientVersion!,
+        })
+      }
+    }
   }
 
   async request<T>(
