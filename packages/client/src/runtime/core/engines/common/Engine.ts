@@ -60,6 +60,65 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
 
 export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
 
+export type QueryPlanBinding = {
+  name: string
+  expr: QueryPlanNode
+}
+
+export type QueryPlanDbQuery = {
+  query: string
+  params: PrismaValue[]
+}
+
+export type PrismaValue =
+  | string
+  | boolean
+  | number
+  | PrismaValue[]
+  | null
+  | Record<string, unknown>
+  | { prisma__type: 'param'; prisma__value: { name: string; type: string } }
+
+export type QueryPlanNode =
+  | {
+      type: 'Seq'
+      args: QueryPlanNode[]
+    }
+  | {
+      type: 'Get'
+      args: {
+        name: string
+      }
+    }
+  | {
+      type: 'Let'
+      args: {
+        expr: QueryPlanNode
+      }
+    }
+  | {
+      type: 'GetFirstNonEmpty'
+      args: {
+        names: string[]
+      }
+    }
+  | {
+      type: 'Query'
+      args: QueryPlanDbQuery
+    }
+  | {
+      type: 'Execute'
+      args: QueryPlanDbQuery
+    }
+  | {
+      type: 'Sum'
+      args: QueryPlanNode[]
+    }
+  | {
+      type: 'Concat'
+      args: QueryPlanNode[]
+    }
+
 export interface Engine<InteractiveTransactionPayload = unknown> {
   /** The name of the engine. This is meant to be consumed externally */
   readonly name: string
@@ -67,6 +126,8 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   start(): Promise<void>
   stop(): Promise<void>
   version(forceRun?: boolean): Promise<string> | string
+  prepare(query: JsonQuery): Promise<QueryPlanNode>
+  debugQueryPlan(query: JsonQuery): Promise<string>
   request<T>(query: JsonQuery, options: RequestOptions<InteractiveTransactionPayload>): Promise<QueryEngineResult<T>>
   requestBatch<T>(
     queries: JsonQuery[],

@@ -17,7 +17,13 @@ import { PrismaClientRustError } from '../../errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
+import type {
+  BatchQueryEngineResult,
+  EngineConfig,
+  QueryPlanNode,
+  RequestBatchOptions,
+  RequestOptions,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
@@ -656,6 +662,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     this.lastVersion = result.stdout
     return this.lastVersion
+  }
+
+  prepare(_query: JsonQuery): Promise<QueryPlanNode> {
+    throw new Error('not implemented')
+  }
+
+  debugQueryPlan(_query: JsonQuery): Promise<string> {
+    throw new Error('not implemented')
   }
 
   async request<T>(
