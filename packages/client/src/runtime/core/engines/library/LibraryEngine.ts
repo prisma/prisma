@@ -10,7 +10,13 @@ import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownReq
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
+import type {
+  BatchQueryEngineResult,
+  EngineConfig,
+  QueryPlanNode,
+  RequestBatchOptions,
+  RequestOptions,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
@@ -474,6 +480,14 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
    */
   debugPanic(message?: string): Promise<never> {
     return this.library?.debugPanic(message) as Promise<never>
+  }
+
+  prepare(_query: JsonQuery): Promise<QueryPlanNode> {
+    throw new Error('not implemented')
+  }
+
+  debugQueryPlan(_query: JsonQuery): Promise<string> {
+    throw new Error('not implemented')
   }
 
   async request<T>(
