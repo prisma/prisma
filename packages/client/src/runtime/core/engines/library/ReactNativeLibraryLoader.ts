@@ -54,6 +54,10 @@ class ReactNativeQueryEngine implements QueryEngineInstance {
     return __PrismaProxy.execute(this.engineObject, requestStr, headersStr, transactionId)
   }
 
+  prepare(): Promise<string> {
+    throw new Error('not implemented')
+  }
+
   sdlSchema(): Promise<string> {
     return Promise.resolve('{}')
   }
@@ -87,7 +91,6 @@ class ReactNativeQueryEngine implements QueryEngineInstance {
 // before the engine can be created, so this loader just checks the bindings are there
 // and returns a dummy constructor that just wraps the methods so that the libraryEngine remains agnosti
 export const reactNativeLibraryLoader: LibraryLoader = {
-  // eslint-disable-next-line @typescript-eslint/require-await
   async loadLibrary(config) {
     if (!__PrismaProxy) {
       throw new PrismaClientInitializationError(
