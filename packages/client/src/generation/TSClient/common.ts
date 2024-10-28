@@ -72,7 +72,7 @@ const {
   defineDmmfProperty,
   Public,
   getRuntime,
-  Param
+  createParam,
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
@@ -615,6 +615,6 @@ export import Param = runtime.Param
 
 function buildPrismaParamJs() {
   return /* javascript */ `
-Prisma.Param = (name) => ({ $type: 'param', value: name })
+Prisma.Param = createParam
 `
 }
