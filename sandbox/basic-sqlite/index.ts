@@ -27,7 +27,6 @@ async function main() {
   console.log(
     await prisma.$debugQueryPlan(query),
   )
-  
   const compiledQuery = await prisma.$prepare(query)
 
   console.log(
@@ -45,6 +44,25 @@ async function main() {
       startDate: new Date(Date.now() - 1000).toISOString(),
     }),
   )
+
+  // --------------
+  // timings
+  // --------------
+
+  // warm up native connector
+  await prisma.user.findMany()
+
+  console.time('old way')
+  await prisma.user.findMany()
+  console.timeEnd('old way')
+
+  console.time('compilation')
+  const findAllCompiled = await prisma.$prepare(prisma.user.findMany())
+  console.timeEnd('compilation')
+
+  console.time('compiled')
+  await findAllCompiled({})
+  console.timeEnd('compiled')
 }
 
 void main()
