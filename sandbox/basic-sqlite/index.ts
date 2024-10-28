@@ -48,6 +48,25 @@ async function main() {
       startDate: new Date(Date.now() - 1000).toISOString(),
     }),
   )
+
+  // --------------
+  // timings
+  // --------------
+
+  // warm up native connector
+  await prisma.user.findMany()
+
+  const findAll = prisma.user.findMany()
+  // @ts-ignore
+  const findAllCompiled = await prisma.$prepare(findAll)
+
+  console.time('engine')
+  await findAll
+  console.timeEnd('engine')
+
+  console.time('compiled')
+  await findAllCompiled({})
+  console.timeEnd('compiled')
 }
 
 void main()
