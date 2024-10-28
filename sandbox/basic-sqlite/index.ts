@@ -10,31 +10,39 @@ async function main() {
     },
   })
 
-  console.log(
-    // @ts-ignore
-    await prisma.$debugQueryPlan(
-      prisma.user.findMany({
-        where: {
-          date: {
-            gt: Prisma.Param('startDate'),
-          },
-        },
-      }),
-    ),
+  // const promiseFindManyUser = prisma.user.findMany()
+
+  const result$DebugQueryPlan = prisma.$debugQueryPlan(
+    prisma.user.findMany({
+      where: {
+        email: Prisma.Param('email'),
+      },
+    }),
   )
 
-  // @ts-ignore
-  const query = prisma.$prepare(prisma.user.findMany())
-  console.log('result', await query({ fieldA: 'foo', fieldB: 'bar' }))
+  console.log(
+    'result$DebugQueryPlan',
+    await result$DebugQueryPlan,
+  )
 
-  // @ts-ignore
-  const query2 = prisma.$prepare(prisma.user.findFirst())
-  console.log('result', await query2({ fieldA: 'foo', fieldB: 'bar' }))
+  // // @ts-ignore
+  // const query = prisma.$prepare(prisma.user.findMany())
+  // console.log('result', await query({ fieldA: 'foo', fieldB: 'bar' }))
 
-  // console.log(users)
+  // // @ts-ignore
+  // const query2 = prisma.$prepare(prisma.user.findFirst())
+  // console.log('result', await query2({ fieldA: 'foo', fieldB: 'bar' }))
+
+  // // console.log(users)
 }
 
-void main().catch((e) => {
-  console.log(e.message)
-  process.exit(1)
-})
+void main()
+  .then(() => {
+    console.log('✅ done')
+    process.exit(0)
+  })
+  .catch((e) => {
+    console.log('❌ error')
+    console.error(e)
+    process.exit(1)
+  })
