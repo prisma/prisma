@@ -51,17 +51,25 @@ async function main() {
   // warm up native connector
   await prisma.user.findMany()
 
-  console.time('old way')
-  await prisma.user.findMany()
-  console.timeEnd('old way')
+  console.log()
 
-  console.time('compilation')
-  const findAllCompiled = await prisma.$prepare(prisma.user.findMany())
-  console.timeEnd('compilation')
+  // console.time('old way')
+  const [, oldWayMs] = await benchmark(() => prisma.user.findMany())
+  // console.timeEnd('old way')
+  console.log('old way', oldWayMs)
 
-  console.time('compiled')
-  await findAllCompiled({})
-  console.timeEnd('compiled')
+  // console.time('compilation')
+  const [findAllCompiled, compilationMs] = await benchmark(() => prisma.$prepare(prisma.user.findMany()))
+  // console.timeEnd('compilation')
+  console.log('compilation', compilationMs)
+
+  // console.time('compiled')
+  const [, compiledMs] = await benchmark(() => findAllCompiled({}))
+  // console.timeEnd('compiled')
+  console.log('compiled', compiledMs)
+
+  console.log()
+  console.log(`The old way is ${(oldWayMs / compiledMs).toFixed(2)} times slower than the new compiled one!`);
 
   /// --------------
   /// misc
@@ -97,6 +105,15 @@ async function main() {
   //     startDate: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
   //   }),
   // )
+}
+
+const benchmark = async <T>(fn: () => Promise<T>): Promise<[result: T, ms: number]> => {
+    const start = process.hrtime.bigint()
+    const result = await fn()
+    const end = process.hrtime.bigint()
+    const ms = Number(end - start) / 1e6 // Duration in milliseconds
+
+    return [result, ms]
 }
 
 void main()
