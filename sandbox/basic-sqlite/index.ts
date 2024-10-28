@@ -34,8 +34,18 @@ async function main() {
   const compiledQuery = await prisma.$prepare(query)
 
   console.log(
+    'last day:',
+    (
+      await compiledQuery({
+        startDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      })
+    ).length,
+  )
+
+  console.log(
+    'last second:',
     await compiledQuery({
-      startDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      startDate: new Date(Date.now() - 1000).toISOString(),
     }),
   )
 }
