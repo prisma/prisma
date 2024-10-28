@@ -63,7 +63,7 @@ class ReactNativeQueryEngine implements QueryEngineInstance {
     return __PrismaProxy.execute(this.engineObject, requestStr, headersStr, transactionId, requestId)
   }
 
-  prepare(): Promise<string> {
+  compile(): Promise<string> {
     throw new Error('not implemented')
   }
 
