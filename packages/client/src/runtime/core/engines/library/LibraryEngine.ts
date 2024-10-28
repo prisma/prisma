@@ -439,7 +439,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async prepare(query: JsonQuery): Promise<QueryPlanNode> {
     try {
       await this.start()
-      const response = await this.engine!.prepare(JSON.stringify(query), false)
+      const response = await this.engine!.compile(JSON.stringify(query), false)
       return JSON.parse(response)
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
@@ -462,7 +462,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async debugQueryPlan(query: JsonQuery): Promise<string> {
     try {
       await this.start()
-      return await this.engine!.prepare(JSON.stringify(query), true)
+      return await this.engine!.compile(JSON.stringify(query), true)
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
         throw e
