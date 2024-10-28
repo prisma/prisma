@@ -159,6 +159,12 @@ export type QueryPlanDbQuery = {
   params: PrismaValue[]
 }
 
+export type PrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
+
+export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePlaceholder {
+  return typeof value === 'object' && value !== null && value['prisma__type'] === 'param'
+}
+
 export type PrismaValue =
   | string
   | boolean
@@ -166,7 +172,7 @@ export type PrismaValue =
   | PrismaValue[]
   | null
   | Record<string, unknown>
-  | { prisma__type: 'param'; prisma__value: { name: string; type: string } }
+  | PrismaValuePlaceholder
 
 export type QueryPlanNode =
   | {
@@ -182,6 +188,7 @@ export type QueryPlanNode =
   | {
       type: 'Let'
       args: {
+        bindings: QueryPlanBinding[]
         expr: QueryPlanNode
       }
     }
