@@ -678,6 +678,26 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
+    $debugQueryPlan<T extends PrismaPromise<any>>(operation: T) {
+      const { model: modelName, action, args } = operation.spec
+
+      const request = serializeJsonQuery({
+        modelName,
+        runtimeDataModel: this._runtimeDataModel,
+        action,
+        args,
+        clientMethod: action,
+        callsite: undefined,
+        extensions: this._extensions,
+        errorFormat: this._errorFormat,
+        clientVersion: this._clientVersion,
+        previewFeatures: this._previewFeatures,
+        globalOmit: this._globalOmit,
+      })
+
+      return this._engine.debugQueryPlan(request)
+    }
+
     /**
      * Executes a raw command only for MongoDB
      *
