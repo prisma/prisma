@@ -19,18 +19,15 @@ async function main() {
   const query = prisma.user.findMany({
     where: {
       createdAt: {
-        // @ts-ignore
         gt: Prisma.Param('startDate'),
       },
     },
   })
 
   console.log(
-    // @ts-ignore
     await prisma.$debugQueryPlan(query),
   )
-
-  // @ts-ignore
+  
   const compiledQuery = await prisma.$prepare(query)
 
   console.log(
