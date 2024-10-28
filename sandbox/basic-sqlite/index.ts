@@ -53,13 +53,14 @@ async function main() {
   // warm up native connector
   await prisma.user.findMany()
 
-  const findAll = prisma.user.findMany()
-  // @ts-ignore
-  const findAllCompiled = await prisma.$prepare(findAll)
+  console.time('old way')
+  await prisma.user.findMany()
+  console.timeEnd('old way')
 
-  console.time('engine')
-  await findAll
-  console.timeEnd('engine')
+  console.time('compilation')
+  // @ts-ignore
+  const findAllCompiled = await prisma.$prepare(prisma.user.findMany())
+  console.timeEnd('compilation')
 
   console.time('compiled')
   await findAllCompiled({})
