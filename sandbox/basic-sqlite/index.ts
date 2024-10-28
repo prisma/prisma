@@ -27,7 +27,7 @@ async function main() {
   console.log(
     await prisma.$debugQueryPlan(query),
   )
-  
+
   const compiledQuery = await prisma.$prepare(query)
 
   console.log(
@@ -58,7 +58,6 @@ async function main() {
   console.timeEnd('old way')
 
   console.time('compilation')
-  // @ts-ignore
   const findAllCompiled = await prisma.$prepare(prisma.user.findMany())
   console.timeEnd('compilation')
 
