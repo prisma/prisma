@@ -20,6 +20,7 @@ export {
   type Metrics,
   MetricsClient,
 } from './core/metrics/MetricsClient'
+export { createParam } from './core/model/Param'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'
