@@ -14,7 +14,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "../../packages/client"
+    "@prisma/client": "../../packages/client",
+    "@prisma/adapter-libsql": "../../packages/adapter-libsql",
+    "@libsql/client": "../../packages/adapter-libsql/node_modules/@libsql/client"
   },
   "devDependencies": {
     "@types/node": "18.18.9",
