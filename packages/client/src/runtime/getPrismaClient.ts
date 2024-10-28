@@ -18,7 +18,7 @@ import {
   PrismaClientValidationError,
 } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, JsonQueryAction, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
 import { CustomDataProxyFetch, WasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
@@ -50,6 +50,7 @@ import {
 } from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromiseFactory } from './core/request/createPrismaPromise'
 import {
+  PrismaOperationSpec,
   PrismaPromise,
   PrismaPromiseInteractiveTransaction,
   PrismaPromiseTransaction,
@@ -637,7 +638,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       })
     }
 
-    $prepare<T extends PrismaPromise<any>>(operation: T) {
+    $prepare<T extends PrismaPromise<any, PrismaOperationSpec<unknown, JsonQueryAction>>>(operation: T) {
       // TODO: call the Query Engine prepare with the operation
       // this._engine.prepare(operation);
       // type Result = T extends PrismaPromise<infer R, any> ? R : never
@@ -656,11 +657,23 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         const results = (await this.$queryRawUnsafe(sql, ...params)) as unknown[]
         switch (operation.spec.action) {
           // TODO: other cases that may return single entries or throw
+          case 'findUniqueOrThrow':
+            if (results.length !== 1) {
+              throw new Error('Expected at least one result')
+            }
+            return results.at(0)
+          case 'findFirstOrThrow':
+            if (results.length === 0) {
+              throw new Error('Expected at least one result')
+            }
+            return results.at(0)
           case 'findFirst':
           case 'findUnique':
             return results.at(0)
-          default:
+          case 'findMany':
             return results
+          default:
+            throw new Error(`Not supported yet: ${operation.spec.action}`)
         }
       }
     }

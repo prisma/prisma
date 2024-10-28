@@ -1,8 +1,8 @@
 import { IsolationLevel } from '../engines'
 
-export type PrismaOperationSpec<TArgs> = {
+export type PrismaOperationSpec<TArgs, TAction = string> = {
   args: TArgs
-  action: string
+  action: TAction
   model: string
 }
 
