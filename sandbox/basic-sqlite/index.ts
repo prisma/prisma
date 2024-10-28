@@ -1,39 +1,53 @@
 import { Prisma, PrismaClient } from '.prisma/client'
+import { PrismaLibSQL } from '@prisma/adapter-libsql'
+import { createClient } from '@libsql/client'
 
 async function main() {
-  const prisma = new PrismaClient()
+  const prisma = new PrismaClient({
+    adapter: new PrismaLibSQL(
+      createClient({
+        url: 'file:./prisma/dev.db',
+      }),
+    ),
+  })
 
   const email = `user.${Date.now()}@prisma.io`
   await prisma.user.create({
-    data: {
-      email: email,
+    data: { email },
+  })
+
+  const query = prisma.user.findMany({
+    where: {
+      createdAt: {
+        // @ts-ignore
+        gt: Prisma.Param('startDate'),
+      },
     },
   })
 
-  // const promiseFindManyUser = prisma.user.findMany()
+  console.log(
+    // @ts-ignore
+    await prisma.$debugQueryPlan(query),
+  )
 
-  const result$DebugQueryPlan = prisma.$debugQueryPlan(
-    prisma.user.findMany({
-      where: {
-        email: Prisma.Param('email'),
-      },
-    }),
+  // @ts-ignore
+  const compiledQuery = await prisma.$prepare(query)
+
+  console.log(
+    'last day:',
+    (
+      await compiledQuery({
+        startDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      })
+    ).length,
   )
 
   console.log(
-    'result$DebugQueryPlan',
-    await result$DebugQueryPlan,
+    'last second:',
+    await compiledQuery({
+      startDate: new Date(Date.now() - 1000).toISOString(),
+    }),
   )
-
-  // // @ts-ignore
-  // const query = prisma.$prepare(prisma.user.findMany())
-  // console.log('result', await query({ fieldA: 'foo', fieldB: 'bar' }))
-
-  // // @ts-ignore
-  // const query2 = prisma.$prepare(prisma.user.findFirst())
-  // console.log('result', await query2({ fieldA: 'foo', fieldB: 'bar' }))
-
-  // // console.log(users)
 }
 
 void main()
