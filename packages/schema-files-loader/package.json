@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.22.0-12.8263a1f2b3deb0a72687cad83ceb981a25624db8",
+    "@prisma/prisma-schema-wasm": "5.22.0-25.bump-rust-postgres-integration-9fa55196fd05878be9db69ba3b4e6c08f9dc0591",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
