@@ -8,6 +8,7 @@ import { findPrismaClientDir } from './auto-installation/findPrismaClientDir'
 import { getPackageCmd } from './auto-installation/getPackageCmd'
 import { runPackageCmd } from './auto-installation/runPackageCmd'
 import { checkTypeScriptVersion } from './check-dependencies/checkTypeScriptVersion'
+import { isYarnUsed } from './check-dependencies/isYarnUsed'
 import { resolvePkg } from './check-dependencies/resolve'
 
 export const debug = Debug('prisma:generator')
@@ -55,6 +56,24 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     }
 
     const prismaCliDir = await resolvePkg('prisma', { basedir: baseDir })
+
+    // Automatically installing the packages with Yarn on Windows won't work because
+    // Yarn will try to unlink the Query Engine DLL, which is currently being used.
+    // See https://github.com/prisma/prisma/issues/9184
+    if (process.platform === 'win32' && (await isYarnUsed(baseDir))) {
+      const hasCli = (s: string) => (prismaCliDir !== undefined ? s : '')
+      const missingCli = (s: string) => (prismaCliDir === undefined ? s : '')
+
+      throw new Error(
+        `Could not resolve ${missingCli(`${bold('prisma')} and `)}${bold(
+          '@prisma/client',
+        )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
+          `${bold(green(`${await getPackageCmd(baseDir, 'add', 'prisma', '-D')}`))} and `,
+        )}${bold(green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`))}, and rerun ${bold(
+          await getPackageCmd(baseDir, 'execute', 'prisma generate'),
+        )} 🙏.`,
+      )
+    }
 
     if (!prismaCliDir) {
       await runPackageCmd(projectRoot, 'add', `prisma@${version ?? 'latest'}`, '-D', '--silent')
