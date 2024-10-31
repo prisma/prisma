@@ -466,7 +466,7 @@ describe('--schema from project directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
         "
@@ -502,7 +502,7 @@ describe('--schema from project directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
         "
@@ -583,7 +583,7 @@ describe('--schema from parent directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
         "
@@ -621,7 +621,7 @@ describe('--schema from parent directory', () => {
         "
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
         "
@@ -664,7 +664,7 @@ describe('--schema from parent directory', () => {
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client_3 in XXXms
 
-        Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
         Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
         "
