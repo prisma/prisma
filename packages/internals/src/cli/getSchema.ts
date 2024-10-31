@@ -1,10 +1,9 @@
 import { Debug } from '@prisma/debug'
 import { loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
-import execa from 'execa'
 import fs from 'fs'
 import { green } from 'kleur/colors'
 import path from 'path'
-import { PackageJson, readPackageUp } from 'read-package-up'
+import { readPackageUp } from 'read-package-up'
 import { promisify } from 'util'
 
 import { getConfig } from '../engine-commands'
@@ -81,15 +80,6 @@ type PackageJsonLookupResult =
       ok: false
       error: {
         kind: 'PackageJsonNotConfigured'
-      }
-    }
-
-type YarnWorkspaceLookupResult =
-  | DefaultLookupResult
-  | {
-      ok: false
-      error: {
-        kind: 'Yarn1WorkspaceSchemaNotFound'
       }
     }
 
@@ -276,15 +266,9 @@ async function getSchemaWithPathInternal(
     return defaultResult
   }
 
-  const yarnResult = await getSchemaFromYarn1Workspace(cwd, defaultResult.error.failures)
-  if (yarnResult.ok) {
-    return yarnResult
-  }
-
-  const finalError = yarnResult.error.kind === 'Yarn1WorkspaceSchemaNotFound' ? defaultResult.error : yarnResult.error
   return {
     ok: false as const,
-    error: finalError,
+    error: defaultResult.error,
   }
 }
 
@@ -384,61 +368,6 @@ export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJson
   return lookupResult
 }
 
-async function getSchemaFromYarn1Workspace(
-  cwd: string,
-  pastFailures: DefaultLookupRuleFailure[],
-): Promise<YarnWorkspaceLookupResult> {
-  if (!process.env.npm_config_user_agent?.includes('yarn')) {
-    return { ok: false, error: { kind: 'Yarn1WorkspaceSchemaNotFound' } }
-  }
-
-  let workspaces: Array<{ location: string }>
-  try {
-    const { stdout: version } = await execa.command('yarn --version', {
-      cwd,
-    })
-
-    if (version.startsWith('2')) {
-      return { ok: false, error: { kind: 'Yarn1WorkspaceSchemaNotFound' } }
-    }
-    const { stdout } = await execa.command('yarn workspaces info --json', {
-      cwd,
-    })
-    const json = getJson(stdout)
-    workspaces = Object.values(json)
-  } catch {
-    return { ok: false, error: { kind: 'Yarn1WorkspaceSchemaNotFound' } }
-  }
-
-  const workspaceRootDir = await findWorkspaceRoot(cwd)
-
-  if (!workspaceRootDir) {
-    return { ok: false, error: { kind: 'Yarn1WorkspaceSchemaNotFound' } }
-  }
-
-  // Iterate over the workspaces
-  for (const workspace of workspaces) {
-    const workspacePath = path.join(workspaceRootDir, workspace.location)
-    const workspaceSchema = await tryWorkspacePath(workspacePath, pastFailures)
-
-    if (workspaceSchema.ok) {
-      return workspaceSchema
-    }
-  }
-
-  const rootPathSchema = await tryWorkspacePath(workspaceRootDir, pastFailures)
-  return rootPathSchema
-}
-
-async function tryWorkspacePath(cwd: string, pastFailures: DefaultLookupRuleFailure[]) {
-  const pkgJson = await getSchemaFromPackageJson(cwd)
-  if (pkgJson.ok) {
-    return pkgJson
-  }
-
-  return getDefaultSchema(cwd, pastFailures)
-}
-
 async function getDefaultSchema(cwd: string, failures: DefaultLookupRuleFailure[] = []): Promise<DefaultLookupResult> {
   const schemaPrisma: DefaultLookupRule = {
     schemaPath: {
@@ -528,56 +457,4 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<MultipleSc
   const schemaPathResult = await getSchemaWithPath(schemaPathFromArgs)
 
   return schemaPathResult.schemas
-}
-
-function getJson(stdout: string): any {
-  const firstCurly = stdout.indexOf('{')
-  const lastCurly = stdout.lastIndexOf('}')
-  const sliced = stdout.slice(firstCurly, lastCurly + 1)
-  return JSON.parse(sliced)
-}
-
-function isPkgJsonWorkspaceRoot(pkgJson: PackageJson) {
-  const workspaces = pkgJson.workspaces
-
-  if (!workspaces) {
-    return false
-  }
-
-  return Array.isArray(workspaces) || workspaces.packages !== undefined
-}
-
-async function isNearestPkgJsonWorkspaceRoot(cwd: string) {
-  const pkgJson = await readPackageUp({ cwd, normalize: false })
-
-  if (!pkgJson) {
-    return null
-  }
-
-  return {
-    isRoot: isPkgJsonWorkspaceRoot(pkgJson.packageJson),
-    path: pkgJson.path,
-  }
-}
-
-async function findWorkspaceRoot(cwd: string): Promise<string | null> {
-  let pkgJson = await isNearestPkgJsonWorkspaceRoot(cwd)
-
-  if (!pkgJson) {
-    return null
-  }
-
-  if (pkgJson.isRoot === true) {
-    return path.dirname(pkgJson.path)
-  }
-
-  const pkgJsonParentDir = path.dirname(path.dirname(pkgJson.path))
-
-  pkgJson = await isNearestPkgJsonWorkspaceRoot(pkgJsonParentDir)
-
-  if (!pkgJson || pkgJson.isRoot === false) {
-    return null
-  }
-
-  return path.dirname(pkgJson.path)
 }
