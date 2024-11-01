@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.22.0-12.8263a1f2b3deb0a72687cad83ceb981a25624db8",
+    "@prisma/prisma-schema-wasm": "5.22.0-28.metrics3-phantasmagoria-of-the-lost-recorder-e55689884a2dc34c5fd62635ea96a7f666277679",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
