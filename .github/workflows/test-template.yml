@@ -158,7 +158,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
+        uses: buildpulse/buildpulse-action@v0.12.0
         with:
           account: 17219288
           repository: 192925833
@@ -219,7 +219,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
+        uses: buildpulse/buildpulse-action@v0.12.0
         with:
           account: 17219288
           repository: 192925833
@@ -277,7 +277,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
+        uses: buildpulse/buildpulse-action@v0.12.0
         with:
           account: 17219288
           repository: 192925833
@@ -493,7 +493,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
+        uses: buildpulse/buildpulse-action@v0.12.0
         with:
           account: 17219288
           repository: 192925833
@@ -903,7 +903,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason =='buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
+        uses: buildpulse/buildpulse-action@v0.12.0
         with:
           account: 17219288
           repository: 192925833
@@ -1046,7 +1046,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
+        uses: buildpulse/buildpulse-action@v0.12.0
         with:
           account: 17219288
           repository: 192925833
