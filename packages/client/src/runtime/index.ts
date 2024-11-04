@@ -14,6 +14,8 @@ export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRe
 export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
 export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnknownRequestError'
 export { PrismaClientValidationError } from './core/errors/PrismaClientValidationError'
+export { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
+export { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 export {
   type Metric,
   type MetricHistogram,
