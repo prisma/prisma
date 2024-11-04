@@ -7,6 +7,7 @@ export { Extensions }
 export { Public }
 
 export { type BaseDMMF, type DMMF } from '../generation/dmmf-types'
+export { type JsonQuery } from './core/engines'
 export { NotFoundError } from './core/errors/NotFoundError'
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
