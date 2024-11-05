@@ -73,10 +73,13 @@ export class ActiveTracingHelper implements TracingHelper {
         }
       })
 
+      // TODO(aqrln): backward compatibility hack to not break Optimize. Update the client extension and remove this in Prisma 6.
+      const spanName = engineSpan.name === 'prisma:engine:query' ? 'prisma:engine' : engineSpan.name
+
       const span = new SpanConstructor(
         tracer,
         ROOT_CONTEXT,
-        engineSpan.name,
+        spanName,
         spanContext,
         spanKind,
         engineSpan.parent_span_id,
