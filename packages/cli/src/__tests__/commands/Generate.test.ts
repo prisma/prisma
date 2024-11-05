@@ -4,21 +4,26 @@ import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platfo
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { Generate } from '../../Generate'
-import { promotions } from '../../utils/handlePromotions'
+import { promotions, renderPromotion } from '../../utils/handlePromotions'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('using cli', () => {
+  // Replace any possible entry in `promotions`'s texts with a fixed string to make the snapshot stable
+  function sanitiseStdout(stdout: string): string {
+    return Object.values(promotions)
+      .map((promotion) => renderPromotion(promotion))
+      .reduce((acc, curr) => {
+        return acc.replace(curr, 'Tip: MOCKED RANDOM TIP')
+      }, stdout)
+      .trimEnd()
+  }
+
   it('should work with a custom output dir', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate')
 
-    // Replace any possible entry in `promotions`'s texts with a fixed string to make the snapshot stable
-    const stdout = Object.values(promotions)
-      .map(({ text }) => text)
-      .reduce((acc, curr) => {
-        return acc.replace(new RegExp(`${curr}.*`, 's'), 'Tip: MOCKED RANDOM TIP')
-      }, data.stdout)
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -78,7 +83,7 @@ describe('using cli', () => {
   it('should work with prisma schema folder', async () => {
     ctx.fixture('multi-schema-files/valid-custom-output')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(stdout).toMatchInlineSnapshot(`
@@ -131,7 +136,7 @@ describe('using cli', () => {
   it('should display the right yarn command for custom outputs', async () => {
     ctx.fixture('custom-output-yarn')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -153,7 +158,7 @@ describe('using cli', () => {
   it('should display the right npm command for custom outputs', async () => {
     ctx.fixture('custom-output-npm')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -175,7 +180,7 @@ describe('using cli', () => {
   it('should display the right pnpm command for custom outputs', async () => {
     ctx.fixture('custom-output-pnpm')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -204,7 +209,7 @@ describe('using cli', () => {
 
     // use regex to extract the output location below with a dummy location
     const outputLocation = data.stdout.match(/to (.*) in/)?.[1]
-    let stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    let stdout = sanitiseStdout(data.stdout)
     stdout = stdout.replace(outputLocation!, '<output>')
 
     if (getClientEngineType() === ClientEngineType.Library) {
@@ -281,7 +286,7 @@ describe('using cli', () => {
   it('should work with --no-engine', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate', '--no-engine')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -372,7 +377,7 @@ describe('using cli', () => {
   it('should warn when `url` is hardcoded', async () => {
     ctx.fixture('hardcoded-url')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -414,7 +419,9 @@ describe('using cli', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: MOCKED RANDOM TIP"
+        Tip: MOCKED RANDOM TIP
+
+        🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env"
       `)
     }
   })
@@ -422,7 +429,7 @@ describe('using cli', () => {
   it('should not warn when `url` is not hardcoded', async () => {
     ctx.fixture('env-url')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -470,7 +477,7 @@ describe('using cli', () => {
   it('should not warn when `directUrl` is not hardcoded', async () => {
     ctx.fixture('env-direct-url')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -518,7 +525,7 @@ describe('using cli', () => {
   it('should warn when `directUrl` is hardcoded', async () => {
     ctx.fixture('hardcoded-direct-url')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+    const stdout = sanitiseStdout(data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
@@ -560,7 +567,9 @@ describe('using cli', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: MOCKED RANDOM TIP"
+        Tip: MOCKED RANDOM TIP
+
+        🛑 Hardcoding URLs in your schema poses a security risk: https://pris.ly/d/datasource-env"
       `)
     }
   })

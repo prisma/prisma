@@ -1,3 +1,8 @@
+type Promotion = {
+  text: string
+  link: string
+}
+
 const promotions = [
   {
     text: `Tip: Want real-time updates to your database without manual polling? Discover how with Pulse:`,
@@ -31,10 +36,14 @@ const promotions = [
     text: `Help us improve the Prisma ORM for everyone. Share your feedback in a short 2-min survey:`,
     link: 'https://pris.ly/orm/survey/release-5-22',
   },
-]
+] satisfies Promotion[]
 
-const getRandomPromotion = () => {
+function renderPromotion(promotion: Promotion) {
+  return `${promotion.text} ${promotion.link}`
+}
+
+function getRandomPromotion() {
   return promotions[Math.floor(Math.random() * promotions.length)]
 }
 
-export { getRandomPromotion, promotions }
+export { getRandomPromotion, promotions, renderPromotion }
