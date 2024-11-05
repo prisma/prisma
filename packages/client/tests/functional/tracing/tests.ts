@@ -199,7 +199,7 @@ testMatrix.setupTestSuite(
 
     function engine(children: Tree[]) {
       return {
-        name: 'prisma:engine:query',
+        name: 'prisma:engine',
         children,
       }
     }
