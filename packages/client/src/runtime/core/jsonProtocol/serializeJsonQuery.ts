@@ -67,7 +67,7 @@ export type SerializeParams = {
   modelName?: string
   action: Action
   args?: JsArgs
-  extensions: MergedExtensionsList
+  extensions?: MergedExtensionsList
   callsite?: CallSite
   clientMethod: string
   clientVersion: string
@@ -83,7 +83,7 @@ export function serializeJsonQuery({
   action,
   args,
   runtimeDataModel,
-  extensions,
+  extensions = MergedExtensionsList.empty(),
   callsite,
   clientMethod,
   errorFormat,
