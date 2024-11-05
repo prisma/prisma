@@ -285,7 +285,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private getEngineEnvVars() {
-    const env: any = {
+    const env: Record<string, string> = {
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
@@ -299,6 +299,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     if (!process.env.NO_COLOR && this.showColors) {
       env.CLICOLOR_FORCE = '1'
+    }
+
+    const traceparent = this.tracingHelper.getTraceParent()
+    if (traceparent) {
+      env.TRACE_CONTEXT = JSON.stringify({ traceparent })
     }
 
     return {
@@ -813,12 +818,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
-        this.httpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/commit`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
-        this.httpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/rollback`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
     }
 
