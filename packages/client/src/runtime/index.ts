@@ -7,7 +7,7 @@ export { Extensions }
 export { Public }
 
 export { type BaseDMMF, type DMMF } from '../generation/dmmf-types'
-export { type JsonQuery } from './core/engines'
+export { type JsonBatchQuery, type JsonQuery } from './core/engines'
 export { NotFoundError } from './core/errors/NotFoundError'
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
@@ -23,6 +23,7 @@ export {
   type Metrics,
   MetricsClient,
 } from './core/metrics/MetricsClient'
+export { dmmfToRuntimeDataModel, type RuntimeDataModel } from './core/runtimeDataModel'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'
