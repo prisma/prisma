@@ -1,8 +1,10 @@
+import path from 'node:path'
+
 import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
-import path from 'path'
 
 import { Generate } from '../../Generate'
+import { promotions } from '../../utils/handlePromotions'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -10,7 +12,13 @@ describe('using cli', () => {
   it('should work with a custom output dir', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate')
-    const stdout = data.stdout.replace(/Tip:.*/s, 'Tip: MOCKED RANDOM TIP')
+
+    // Replace any possible entry in `promotions`'s texts with a fixed string to make the snapshot stable
+    const stdout = Object.values(promotions)
+      .map(({ text }) => text)
+      .reduce((acc, curr) => {
+        return acc.replace(new RegExp(`${curr}.*`, 's'), 'Tip: MOCKED RANDOM TIP')
+      }, data.stdout)
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
