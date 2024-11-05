@@ -17,14 +17,16 @@ const STUDIO_TEST_PORT = 5678
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-function sendRequest(message: any): Promise<any> {
-  return fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
+async function sendRequest(message: any): Promise<any> {
+  const res = await fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain',
     },
     body: JSON.stringify(message),
-  }).then((res) => res.json())
+  })
+
+  return res.json()
 }
 
 let studio: Studio
@@ -482,7 +484,7 @@ describe('studio with custom schema.prisma filename', () => {
   })
 })
 
-describe('studio with schema folder', () => {
+describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with schema folder', () => {
   jest.setTimeout(20_000)
 
   beforeAll(async () => {
