@@ -27,6 +27,10 @@ const promotions = [
     text: `Tip: Want to turn off tips and other hints?`,
     link: 'https://pris.ly/tip-4-nohints',
   },
+  {
+    text: `Help us improve the Prisma ORM for everyone. Share your feedback in a short 2-min survey:`,
+    link: 'https://pris.ly/orm/survey/release-5-22',
+  },
 ]
 
 const getRandomPromotion = () => {
