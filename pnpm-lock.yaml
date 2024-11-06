@@ -42,8 +42,8 @@ importers:
         specifier: 0.0.39
         version: 0.0.39
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 20.12.7
         version: 20.12.7
@@ -99,8 +99,8 @@ importers:
         specifier: 2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.15.0)(eslint@9.5.0)
       eslint-plugin-jest:
-        specifier: 28.8.2
-        version: 28.8.2(@typescript-eslint/eslint-plugin@7.15.0)(eslint@9.5.0)(typescript@5.4.5)
+        specifier: 28.9.0
+        version: 28.9.0(@typescript-eslint/eslint-plugin@7.15.0)(eslint@9.5.0)(typescript@5.4.5)
       eslint-plugin-local-rules:
         specifier: 2.0.1
         version: 2.0.1
@@ -245,8 +245,8 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2)
@@ -267,8 +267,8 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@types/pg':
         specifier: 8.11.6
         version: 8.11.6
@@ -298,8 +298,8 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2)
@@ -320,8 +320,8 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2)
@@ -439,8 +439,8 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@types/debug':
         specifier: 4.1.12
         version: 4.1.12
@@ -448,8 +448,8 @@ importers:
         specifier: 9.0.13
         version: 9.0.13
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -661,8 +661,8 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@timsuchanek/copy':
         specifier: 1.4.5
         version: 1.4.5
@@ -673,8 +673,8 @@ importers:
         specifier: 9.0.13
         version: 9.0.13
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/js-levenshtein':
         specifier: 1.1.3
         version: 1.1.3
@@ -832,8 +832,8 @@ importers:
   packages/debug:
     devDependencies:
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -881,11 +881,11 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -915,11 +915,11 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -1000,14 +1000,14 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@types/cross-spawn':
         specifier: 6.0.6
         version: 6.0.6
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -1046,11 +1046,11 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -1113,8 +1113,8 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -1146,11 +1146,11 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/mssql':
         specifier: 9.1.5
         version: 9.1.5
@@ -1255,14 +1255,14 @@ importers:
         specifier: 1.2.204
         version: 1.2.204
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.2.204)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.2.204)
       '@types/babel__helper-validator-identifier':
         specifier: 7.15.2
         version: 7.15.2
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -1424,11 +1424,11 @@ importers:
         specifier: 1.6.13
         version: 1.6.13
       '@swc/jest':
-        specifier: 0.2.36
-        version: 0.2.36(@swc/core@1.6.13)
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.6.13)
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -1530,8 +1530,8 @@ importers:
         version: 8.11.6
     devDependencies:
       '@types/jest':
-        specifier: 29.5.12
-        version: 29.5.12
+        specifier: 29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: 18.19.31
         version: 18.19.31
@@ -4260,8 +4260,8 @@ packages:
     resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
     dev: true
 
-  /@swc/jest@0.2.36(@swc/core@1.2.204):
-    resolution: {integrity: sha512-8X80dp81ugxs4a11z1ka43FPhP+/e+mJNXJSxiNYk8gIX/jPBtY4gQTrKu/KIoco8bzKuPI5lUxjfLiGsfvnlw==}
+  /@swc/jest@0.2.37(@swc/core@1.2.204):
+    resolution: {integrity: sha512-CR2BHhmXKGxTiFr21DYPRHQunLkX3mNIFGFkxBGji6r9uyIR5zftTOVYj1e0sFNMV2H7mf/+vpaglqaryBtqfQ==}
     engines: {npm: '>= 7.0.0'}
     peerDependencies:
       '@swc/core': '*'
@@ -4272,8 +4272,8 @@ packages:
       jsonc-parser: 3.2.0
     dev: true
 
-  /@swc/jest@0.2.36(@swc/core@1.6.13):
-    resolution: {integrity: sha512-8X80dp81ugxs4a11z1ka43FPhP+/e+mJNXJSxiNYk8gIX/jPBtY4gQTrKu/KIoco8bzKuPI5lUxjfLiGsfvnlw==}
+  /@swc/jest@0.2.37(@swc/core@1.6.13):
+    resolution: {integrity: sha512-CR2BHhmXKGxTiFr21DYPRHQunLkX3mNIFGFkxBGji6r9uyIR5zftTOVYj1e0sFNMV2H7mf/+vpaglqaryBtqfQ==}
     engines: {npm: '>= 7.0.0'}
     peerDependencies:
       '@swc/core': '*'
@@ -4472,8 +4472,8 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest@29.5.12:
-    resolution: {integrity: sha512-eDC8bTvT/QhYdxJAulQikueigY5AsdBRH2yDKW3yveW7svY3+DzN84/2NUgkw10RTiJbWqZrTtoGVdYlvFJdLw==}
+  /@types/jest@29.5.14:
+    resolution: {integrity: sha512-ZN+4sdnLUbo8EVvVc2ao0GFW6oVrQRPn4K2lglySj7APvSrgzxHiNNK99us4WDMi57xxA2yggblIAMNhXOotLQ==}
     dependencies:
       expect: 29.7.0
       pretty-format: 29.7.0
@@ -6548,8 +6548,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-jest@28.8.2(@typescript-eslint/eslint-plugin@7.15.0)(eslint@9.5.0)(typescript@5.4.5):
-    resolution: {integrity: sha512-mC3OyklHmS5i7wYU1rGId9EnxRI8TVlnFG56AE+8U9iRy6zwaNygZR+DsdZuCL0gRG0wVeyzq+uWcPt6yJrrMA==}
+  /eslint-plugin-jest@28.9.0(@typescript-eslint/eslint-plugin@7.15.0)(eslint@9.5.0)(typescript@5.4.5):
+    resolution: {integrity: sha512-rLu1s1Wf96TgUUxSw6loVIkNtUjq1Re7A9QdCCHSohnvXEBAjuL420h0T/fMmkQlNsQP2GhQzEUpYHPfxBkvYQ==}
     engines: {node: ^16.10.0 || ^18.12.0 || >=20.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -7342,7 +7342,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8118,7 +8117,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.2(@swc/core@1.6.13)(@types/node@18.19.31)(typescript@5.4.5)
+      ts-node: 10.9.2(@types/node@20.12.7)(typescript@5.4.5)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8619,7 +8618,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
