@@ -529,8 +529,8 @@ importers:
         specifier: 6.0.1
         version: 6.0.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.5.0
+        version: 5.5.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -811,8 +811,8 @@ importers:
         specifier: 10.9.2
         version: 10.9.2(@swc/core@1.6.13)(@types/node@18.19.31)(typescript@5.4.5)
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.5.0
+        version: 5.5.0
       tsd:
         specifier: 0.31.2
         version: 0.31.2
@@ -1088,8 +1088,8 @@ importers:
         specifier: 2.1.1
         version: 2.1.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.5.0
+        version: 5.5.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1384,8 +1384,8 @@ importers:
         specifier: 10.9.2
         version: 10.9.2(@swc/core@1.2.204)(@types/node@18.19.31)(typescript@5.4.5)
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.5.0
+        version: 5.5.0
       ts-toolbelt:
         specifier: 9.6.0
         version: 9.6.0
@@ -1508,8 +1508,8 @@ importers:
         specifier: 1.0.1
         version: 1.0.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.5.0
+        version: 5.5.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -11394,8 +11394,8 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-pattern@5.2.0:
-    resolution: {integrity: sha512-aGaSpOlDcns7ZoeG/OMftWyQG1KqPVhgplhJxNCvyIXqWrumM5uIoOSarw/hmmi/T1PnuQ/uD8NaFHvLpHicDg==}
+  /ts-pattern@5.5.0:
+    resolution: {integrity: sha512-jqbIpTsa/KKTJYWgPNsFNbLVpwCgzXfFJ1ukNn4I8hMwyQzHMJnk/BqWzggB0xpkILuKzaO/aMYhS0SkaJyKXg==}
     dev: true
 
   /ts-toolbelt@9.6.0:
