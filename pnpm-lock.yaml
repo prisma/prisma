@@ -239,8 +239,8 @@ importers:
         version: 3.0.2
     devDependencies:
       '@neondatabase/serverless':
-        specifier: 0.9.3
-        version: 0.9.3
+        specifier: 0.10.2
+        version: 0.10.2
       '@swc/core':
         specifier: 1.6.13
         version: 1.6.13
@@ -338,8 +338,8 @@ importers:
         specifier: 0.8.0
         version: 0.8.0
       '@neondatabase/serverless':
-        specifier: 0.9.3
-        version: 0.9.3
+        specifier: 0.9.5
+        version: 0.9.5
       '@planetscale/database':
         specifier: 1.18.0
         version: 1.18.0
@@ -383,8 +383,8 @@ importers:
         specifier: 0.8.0
         version: 0.8.0
       '@neondatabase/serverless':
-        specifier: 0.9.3
-        version: 0.9.3
+        specifier: 0.9.5
+        version: 0.9.5
       '@planetscale/database':
         specifier: 1.18.0
         version: 1.18.0
@@ -571,8 +571,8 @@ importers:
         specifier: 0.8.0
         version: 0.8.0
       '@neondatabase/serverless':
-        specifier: 0.9.3
-        version: 0.9.3
+        specifier: 0.10.2
+        version: 0.10.2
       '@opentelemetry/api':
         specifier: 1.9.0
         version: 1.9.0
@@ -3536,10 +3536,17 @@ packages:
     resolution: {integrity: sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw==}
     requiresBuild: true
 
-  /@neondatabase/serverless@0.9.3:
-    resolution: {integrity: sha512-6ZBK8asl2Z3+ADEaELvbaVVGVlmY1oAzkxxZfpmXPKFuJhbDN+5fU3zYBamsahS/Ch1zE+CVWB3R+8QEI2LMSw==}
+  /@neondatabase/serverless@0.10.2:
+    resolution: {integrity: sha512-XaIMQ9fXDPWLiShfsg+YJQvmMMIyVQB7J3jnirckyoDxN7YIATyzXBThpUeFJqBUkbFJQ0e5PCxXTpK2rG4WbQ==}
     dependencies:
       '@types/pg': 8.11.6
+    dev: true
+
+  /@neondatabase/serverless@0.9.5:
+    resolution: {integrity: sha512-siFas6gItqv6wD/pZnvdu34wEqgG3nSE6zWZdq5j2DEsa+VvX8i/5HXJOo06qrw5axPXn+lGCxeR+NLaSPIXug==}
+    dependencies:
+      '@types/pg': 8.11.6
+    dev: false
 
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -7342,7 +7349,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8118,7 +8124,7 @@ packages:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.2(@swc/core@1.6.13)(@types/node@18.19.31)(typescript@5.4.5)
+      ts-node: 10.9.2(@types/node@20.12.7)(typescript@5.4.5)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -8619,7 +8625,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}

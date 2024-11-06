@@ -239,22 +239,7 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
         //
         // requires @neondatabase/serverless >= 0.9.5
         // - types option added in https://github.com/neondatabase/serverless/pull/92
-        //
-        // requires https://github.com/neondatabase/serverless/pull/110 for the typescript types to be correct
-        //
         types: {
-          // This is the error expected:
-          // No overload matches this call.
-          // The last overload gave the following error.
-          //   Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
-          //     Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
-          //       Types of parameters 'json' and 'value' are incompatible.
-          //         Type 'Buffer' is not assignable to type 'string'.ts(2769)
-          //
-          // Because pg-types types expect us to handle both binary and text protocol versions,
-          // where as far we can see, pg will ever pass only text version.
-          //
-          // @ts-expect-error
           getTypeParser: (oid: number, format?) => {
             if (format === 'text' && customParsers[oid]) {
               return customParsers[oid]
@@ -263,7 +248,9 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
             return neon.types.getTypeParser(oid, format)
           },
         },
-      }),
+        // type `as` cast required until neon types are corrected:
+        // https://github.com/neondatabase/serverless/pull/110#issuecomment-2458992991
+      } as neon.HTTPQueryOptions<true, true>),
     )
   }
 
