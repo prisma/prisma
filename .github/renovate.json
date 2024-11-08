@@ -26,7 +26,7 @@
   ],
   "ignorePaths": ["sandbox/**"],
   "constraints": {
-    "pnpm": "8"
+    "pnpm": "9"
   },
   "configMigration": true,
   "packageRules": [
