@@ -292,7 +292,8 @@ export class SchemaEngine {
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(`Could not parse Schema engine response: ${response.slice(0, 200)}`)
+
+      console.error(`Could not parse Schema engine response: ${response.slice(0, 200)}. Error: ${e.message}`)
     }
 
     // See https://www.jsonrpc.org/specification for the expected shape of messages.
