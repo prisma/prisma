@@ -754,9 +754,9 @@ jobs:
         node: [18, 20, 22]
         include:
           - os: windows-latest
-            version: 16
+            version: 18
           - os: macos-latest
-            version: 16
+            version: 18
     steps:
       - uses: actions/checkout@v4
 
@@ -925,7 +925,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [16]
+        node: [18]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
     steps:
       - uses: actions/checkout@v4
