@@ -13,7 +13,7 @@ import { QueryEngineConstructor } from '../library/types/Library'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
-import type { QueryEngineResult } from './types/QueryEngine'
+import type { QueryEngineResultData } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
 import type { getBatchRequestPayload } from './utils/getBatchRequestPayload'
 
@@ -58,7 +58,7 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
   customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
-export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
+export type BatchQueryEngineResult<T> = QueryEngineResultData<T> | Error
 
 export interface Engine<InteractiveTransactionPayload = unknown> {
   /** The name of the engine. This is meant to be consumed externally */
@@ -67,7 +67,10 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   start(): Promise<void>
   stop(): Promise<void>
   version(forceRun?: boolean): Promise<string> | string
-  request<T>(query: JsonQuery, options: RequestOptions<InteractiveTransactionPayload>): Promise<QueryEngineResult<T>>
+  request<T>(
+    query: JsonQuery,
+    options: RequestOptions<InteractiveTransactionPayload>,
+  ): Promise<QueryEngineResultData<T>>
   requestBatch<T>(
     queries: JsonQuery[],
     options: RequestBatchOptions<InteractiveTransactionPayload>,

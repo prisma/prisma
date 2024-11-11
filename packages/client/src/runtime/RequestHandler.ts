@@ -17,7 +17,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { QueryEngineResult } from './core/engines/common/types/QueryEngine'
+import { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
 import { NotFoundError } from './core/errors/NotFoundError'
@@ -153,16 +153,15 @@ export class RequestHandler {
     }
   }
 
-  mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResult<any>) {
+  mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResultData<any>) {
     const data = response?.data
-    const elapsed = response?.elapsed
 
     /**
      * Unpack
      */
     const result = this.unpack(data, dataPath, unpacker)
     if (process.env.PRISMA_CLIENT_GET_TIME) {
-      return { data: result, elapsed }
+      return { data: result }
     }
     return result
   }

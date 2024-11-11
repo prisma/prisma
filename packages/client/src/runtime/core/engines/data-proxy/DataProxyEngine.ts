@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { EngineSpan, TracingHelper } from '@prisma/internals'
+import { TracingHelper } from '@prisma/internals'
 
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
@@ -15,10 +15,14 @@ import { Engine } from '../common/Engine'
 import type { LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
+import {
+  QueryEngineBatchResult,
+  QueryEngineResult,
+  QueryEngineResultData,
+  QueryEngineResultExtensions,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
-import { LogLevel } from '../common/utils/log'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -28,7 +32,7 @@ import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { toBase64 } from './utils/base64'
 import { checkForbiddenMetrics } from './utils/checkForbiddenMetrics'
-import { dateFromEngineTimestamp, EngineTimestamp } from './utils/EngineTimestamp'
+import { dateFromEngineTimestamp } from './utils/EngineTimestamp'
 import { getClientVersion } from './utils/getClientVersion'
 import { Fetch, request } from './utils/request'
 
@@ -49,19 +53,6 @@ type RequestInternalOptions = {
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
 }
 
-type DataProxyLog = {
-  span_id: string
-  name: string
-  level: LogLevel
-  timestamp: EngineTimestamp
-  attributes: Record<string, unknown> & { duration_ms: number; params: string; target: string }
-}
-
-type DataProxyExtensions = {
-  logs?: DataProxyLog[]
-  traces?: EngineSpan[]
-}
-
 type DataProxyHeaders = {
   Authorization: string
   'X-capture-telemetry'?: string
@@ -72,6 +63,18 @@ type DataProxyHeaders = {
 type HeaderBuilderOptions = {
   traceparent?: string
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
+}
+
+type StartTransactionResult = {
+  id: string
+  'data-proxy': {
+    endpoint: string
+  }
+  extensions?: QueryEngineResultExtensions
+}
+
+type CloseTransactionResult = {
+  extensions?: QueryEngineResultExtensions
 }
 
 class DataProxyHeaderBuilder {
@@ -218,7 +221,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
   async stop() {}
 
-  private propagateResponseExtensions(extensions: DataProxyExtensions): void {
+  private propagateResponseExtensions(extensions: QueryEngineResultExtensions): void {
     if (extensions?.logs?.length) {
       extensions.logs.forEach((log) => {
         switch (log.level) {
@@ -310,7 +313,6 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     query: JsonQuery,
     { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
-    // TODO: `elapsed`?
     return this.requestInternal<T>({
       body: query,
       traceparent,
@@ -327,7 +329,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
     const body = getBatchRequestPayload(queries, transaction)
 
-    const { batchResult, elapsed } = await this.requestInternal<T, true>({
+    const batchResult = await this.requestInternal<T, true>({
       body,
       customDataProxyFetch,
       interactiveTransaction,
@@ -336,11 +338,10 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
     return batchResult.map((result) => {
       if ('errors' in result && result.errors.length > 0) {
-        return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
+        return prismaGraphQLToJSError(result.errors[0], this.clientVersion, this.config.activeProvider!)
       }
       return {
         data: result as T,
-        elapsed,
       }
     })
   }
@@ -350,9 +351,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     traceparent,
     customDataProxyFetch,
     interactiveTransaction,
-  }: RequestInternalOptions): Promise<
-    Batch extends true ? { batchResult: QueryEngineResultBatchQueryResult<T>[]; elapsed: number } : QueryEngineResult<T>
-  > {
+  }: RequestInternalOptions): Promise<Batch extends true ? QueryEngineResult<T>[] : QueryEngineResultData<T>> {
     return this.withRetry({
       actionGerund: 'querying',
       callback: async ({ logHttpCall }) => {
@@ -379,24 +378,33 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
         await this.handleError(await responseToError(response, this.clientVersion))
 
-        const json = await response.json()
+        const result = (await response.json()) as Batch extends true ? QueryEngineBatchResult<T> : QueryEngineResult<T>
 
-        const extensions = json.extensions as DataProxyExtensions | undefined
-        if (extensions) {
-          this.propagateResponseExtensions(extensions)
+        if (result.extensions) {
+          this.propagateResponseExtensions(result.extensions)
         }
 
-        // TODO: headers contain `x-elapsed` and it needs to be returned
-
-        if (json.errors) {
-          if (json.errors.length === 1) {
-            throw prismaGraphQLToJSError(json.errors[0], this.config.clientVersion!, this.config.activeProvider!)
+        if ('errors' in result) {
+          if (result.errors.length === 1) {
+            throw prismaGraphQLToJSError(result.errors[0], this.config.clientVersion!, this.config.activeProvider!)
           } else {
-            throw new PrismaClientUnknownRequestError(json.errors, { clientVersion: this.config.clientVersion! })
+            throw new PrismaClientUnknownRequestError(JSON.stringify(result.errors), {
+              clientVersion: this.config.clientVersion,
+            })
           }
         }
 
-        return json
+        if ('batchResult' in result) {
+          result.batchResult
+        }
+
+        // TODO: TypeScript 5.8+ should be able to narrow it correctly:
+        // <https://github.com/microsoft/TypeScript/pull/56941>.
+        // Since these are internal types, we should be able to rely on it once TypeScript 5.8 is released,
+        // and change this to just `return result`.
+        return result as QueryEngineResultData<T> as Batch extends true
+          ? QueryEngineResult<T>[]
+          : QueryEngineResultData<T>
       },
     })
   }
@@ -441,15 +449,15 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
           await this.handleError(await responseToError(response, this.clientVersion))
 
-          const json = await response.json()
+          const result = (await response.json()) as StartTransactionResult
 
-          const extensions = json.extensions as DataProxyExtensions | undefined
+          const { extensions } = result
           if (extensions) {
             this.propagateResponseExtensions(extensions)
           }
 
-          const id = json.id as string
-          const endpoint = json['data-proxy'].endpoint as string
+          const id = result.id as string
+          const endpoint = result['data-proxy'].endpoint as string
 
           return { id, payload: { endpoint } }
         } else {
@@ -465,9 +473,9 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
           await this.handleError(await responseToError(response, this.clientVersion))
 
-          const json = await response.json()
+          const result = (await response.json()) as CloseTransactionResult
 
-          const extensions = json.extensions as DataProxyExtensions | undefined
+          const { extensions } = result
           if (extensions) {
             this.propagateResponseExtensions(extensions)
           }
