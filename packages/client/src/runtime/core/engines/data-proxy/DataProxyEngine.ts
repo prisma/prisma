@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
 import { TracingHelper } from '@prisma/internals'
 
+import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
@@ -22,6 +23,7 @@ import {
   QueryEngineResultData,
   QueryEngineResultExtensions,
 } from '../common/types/QueryEngine'
+import { RequestError } from '../common/types/RequestError'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { DataProxyError } from './errors/DataProxyError'
@@ -338,12 +340,15 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     })
 
     return batchResult.map((result) => {
-      if ('errors' in result && result.errors.length > 0) {
-        return prismaGraphQLToJSError(result.errors[0], this.clientVersion, this.config.activeProvider!)
+      if (result.extensions) {
+        this.propagateResponseExtensions(result.extensions)
       }
-      return {
-        data: result as T,
+
+      if ('errors' in result) {
+        return this.convertProtocolErrorsToClientError(result.errors)
       }
+
+      return result
     })
   }
 
@@ -386,23 +391,23 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
         }
 
         if ('errors' in result) {
-          if (result.errors.length === 1) {
-            throw prismaGraphQLToJSError(result.errors[0], this.config.clientVersion!, this.config.activeProvider!)
-          } else {
-            throw new PrismaClientUnknownRequestError(JSON.stringify(result.errors), {
-              clientVersion: this.config.clientVersion,
-            })
-          }
+          throw this.convertProtocolErrorsToClientError(result.errors)
         }
 
         if ('batchResult' in result) {
-          result.batchResult
+          // TODO: TypeScript 5.8+ should be able to narrow the expected result type correctly,
+          // so this will be assignable (https://github.com/microsoft/TypeScript/pull/56941).
+          // Since these are internal types, we should be able to rely on it once TypeScript 5.8
+          // is released, and change this to just `return result.batchResult`.
+          return result.batchResult as QueryEngineResult<T>[] as Batch extends true
+            ? QueryEngineResult<T>[]
+            : QueryEngineResultData<T>
         }
 
-        // TODO: TypeScript 5.8+ should be able to narrow it correctly:
-        // <https://github.com/microsoft/TypeScript/pull/56941>.
-        // Since these are internal types, we should be able to rely on it once TypeScript 5.8 is released,
-        // and change this to just `return result`.
+        // TODO: TypeScript 5.8+ should be able to narrow the expected result type correctly,
+        // so this will be assignable (https://github.com/microsoft/TypeScript/pull/56941).
+        // Since these are internal types, we should be able to rely on it once TypeScript 5.8
+        // is released, and change this to just `return result`.
         return result as QueryEngineResultData<T> as Batch extends true
           ? QueryEngineResult<T>[]
           : QueryEngineResultData<T>
@@ -587,6 +592,19 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
       })
     } else if (error) {
       throw error
+    }
+  }
+
+  private convertProtocolErrorsToClientError(
+    errors: RequestError[],
+  ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
+    // TODO: handle Rust panics and driver adapter errors correctly. See `LibraryEngine#buildQueryError`.
+    if (errors.length === 1) {
+      return prismaGraphQLToJSError(errors[0], this.config.clientVersion, this.config.activeProvider!)
+    } else {
+      return new PrismaClientUnknownRequestError(JSON.stringify(errors), {
+        clientVersion: this.config.clientVersion,
+      })
     }
   }
 
