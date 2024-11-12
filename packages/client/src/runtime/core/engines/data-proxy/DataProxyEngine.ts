@@ -6,6 +6,7 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type {
   BatchQueryEngineResult,
+  CustomDataProxyFetch,
   EngineConfig,
   InteractiveTransactionOptions,
   RequestBatchOptions,
@@ -34,7 +35,7 @@ import { toBase64 } from './utils/base64'
 import { checkForbiddenMetrics } from './utils/checkForbiddenMetrics'
 import { dateFromEngineTimestamp } from './utils/EngineTimestamp'
 import { getClientVersion } from './utils/getClientVersion'
-import { Fetch, request } from './utils/request'
+import { request } from './utils/request'
 
 const MAX_RETRIES = 3
 
@@ -48,7 +49,7 @@ type DataProxyTxInfo = Tx.InteractiveTransactionInfo<DataProxyTxInfoPayload>
 
 type RequestInternalOptions = {
   body: Record<string, unknown>
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
   traceparent?: string
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
 }
