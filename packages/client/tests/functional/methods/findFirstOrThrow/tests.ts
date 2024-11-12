@@ -41,15 +41,15 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       ])
 
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+        "
         Invalid \`prisma.user.findFirstOrThrow()\` invocation in
         /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
 
-          34 const newEmail = faker.internet.email()
-          35 const result = prisma.$transaction([
-          36   prisma.user.create({ data: { email: newEmail } }),
-        → 37   prisma.user.findFirstOrThrow(
-        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.
+          37 const newEmail = faker.internet.email()
+          38 const result = prisma.$transaction([
+          39   prisma.user.create({ data: { email: newEmail } }),
+        → 40   prisma.user.findFirstOrThrow(
+        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
       `)
 
       const record = await prisma.user.findFirst({ where: { email: newEmail } })
@@ -67,15 +67,15 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       })
 
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+        "
         Invalid \`prisma.user.findFirstOrThrow()\` invocation in
         /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
 
-          57 const newEmail = faker.internet.email()
-          58 const result = prisma.$transaction(async (prisma) => {
-          59   await prisma.user.create({ data: { email: newEmail } })
-        → 60   await prisma.user.findFirstOrThrow(
-        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.
+          63 const newEmail = faker.internet.email()
+          64 const result = prisma.$transaction(async (prisma) => {
+          65   await prisma.user.create({ data: { email: newEmail } })
+        → 66   await prisma.user.findFirstOrThrow(
+        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
       `)
 
       const record = await prisma.user.findFirst({ where: { email: newEmail } })

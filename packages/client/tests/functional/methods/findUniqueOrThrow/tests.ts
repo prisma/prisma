@@ -40,15 +40,15 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       ])
 
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+        "
         Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
         /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
 
-          33 const newEmail = faker.internet.email()
-          34 const result = prisma.$transaction([
-          35   prisma.user.create({ data: { email: newEmail } }),
-        → 36   prisma.user.findUniqueOrThrow(
-        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.
+          36 const newEmail = faker.internet.email()
+          37 const result = prisma.$transaction([
+          38   prisma.user.create({ data: { email: newEmail } }),
+        → 39   prisma.user.findUniqueOrThrow(
+        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
       `)
 
       const record = await prisma.user.findUnique({ where: { email: newEmail } })
@@ -66,15 +66,15 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       })
 
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+        "
         Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
         /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
 
-          56 const newEmail = faker.internet.email()
-          57 const result = prisma.$transaction(async (prisma) => {
-          58   await prisma.user.create({ data: { email: newEmail } })
-        → 59   await prisma.user.findUniqueOrThrow(
-        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.
+          62 const newEmail = faker.internet.email()
+          63 const result = prisma.$transaction(async (prisma) => {
+          64   await prisma.user.create({ data: { email: newEmail } })
+        → 65   await prisma.user.findUniqueOrThrow(
+        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
       `)
 
       const record = await prisma.user.findUnique({ where: { email: newEmail } })
