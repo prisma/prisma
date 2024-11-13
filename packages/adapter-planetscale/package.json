@@ -39,7 +39,7 @@
     "@prisma/driver-adapter-utils": "workspace:*"
   },
   "devDependencies": {
-    "@planetscale/database": "1.18.0",
+    "@planetscale/database": "1.19.0",
     "@swc/core": "1.6.13",
     "@swc/jest": "0.2.36",
     "jest": "29.7.0",
