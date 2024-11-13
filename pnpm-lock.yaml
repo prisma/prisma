@@ -652,8 +652,8 @@ importers:
         specifier: 5.23.0-5.29bc8ca375232bc314ff30d684056b8c5a8f0583
         version: 5.23.0-5.29bc8ca375232bc314ff30d684056b8c5a8f0583
       '@snaplet/copycat':
-        specifier: 0.17.3
-        version: 0.17.3
+        specifier: 0.18.1
+        version: 0.18.1
       '@swc-node/register':
         specifier: 1.10.9
         version: 1.10.9(@swc/core@1.6.13)(typescript@5.4.5)
@@ -3959,11 +3959,11 @@ packages:
       - debug
     dev: true
 
-  /@snaplet/copycat@0.17.3:
-    resolution: {integrity: sha512-cwX6zphBd1KNuOPmILggXkddLf+juIrXsFhfOz0nMDIIAkWyoFQAqwt4pn5lS2RNMJTzT7IZRKplnFt/D2t8zw==}
+  /@snaplet/copycat@0.18.1:
+    resolution: {integrity: sha512-j7X6IoN1TK/8dKB6+ZorXs6US1ENmR/vOg6Nr6THRlYjZQL8b58FTD+nVO2O04ZCLNFIR0pe4l+WqGLsIEMOYg==}
     dependencies:
       '@faker-js/faker': 8.4.1
-      fictional: 0.8.4
+      fictional: 0.10.1
       uuid: 8.3.2
     dev: true
 
@@ -6913,8 +6913,8 @@ packages:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.2.1
 
-  /fictional@0.8.4:
-    resolution: {integrity: sha512-wSYTdLJkQ/h4NOMI6FCp9xxjMzEcCxwSjIK4f5zZveOKFUPAxi4/sAb3pyjaiz3fCSA2PGEGLY6ZWQplRl7ygQ==}
+  /fictional@0.10.1:
+    resolution: {integrity: sha512-+VbL3ahSeu1hfNSKEfTvVBuXHI/1GjxTeD4ebKHtkdIs0Q4rNzudpLRRr/FqBFnk53fn2WwSAuPWIIwPw0eH/Q==}
     dependencies:
       decimal.js: 10.4.3
       fast-json-stable-stringify: 2.1.0
@@ -7342,7 +7342,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8619,7 +8618,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
