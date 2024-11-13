@@ -72,8 +72,8 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
       chokidar:
-        specifier: 3.6.0
-        version: 3.6.0
+        specifier: 4.0.1
+        version: 4.0.1
       decimal.js-light:
         specifier: 2.5.1
         version: 2.5.1
@@ -463,8 +463,8 @@ importers:
         specifier: 1.1.33
         version: 1.1.33
       chokidar:
-        specifier: 3.6.0
-        version: 3.6.0
+        specifier: 4.0.1
+        version: 4.0.1
       debug:
         specifier: 4.3.7
         version: 4.3.7
@@ -5644,6 +5644,13 @@ packages:
     optionalDependencies:
       fsevents: 2.3.3
 
+  /chokidar@4.0.1:
+    resolution: {integrity: sha512-n8enUVCED/KVRQlab1hr3MVpcVMvxtZjmEa956u+4YijlmQED223XMSYj2tLuKvr4jcCTzNNMpQDUer72MMmzA==}
+    engines: {node: '>= 14.16.0'}
+    dependencies:
+      readdirp: 4.0.2
+    dev: true
+
   /chownr@2.0.0:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
     engines: {node: '>=10'}
@@ -10330,6 +10337,11 @@ packages:
     engines: {node: '>=8.10.0'}
     dependencies:
       picomatch: 2.3.1
+
+  /readdirp@4.0.2:
+    resolution: {integrity: sha512-yDMz9g+VaZkqBYS/ozoBJwaBhTbZo3UNYQHNRw1D3UFQB8oHB4uS/tAODO+ZLjGWmUbKnIlOWO+aaIiAxrUWHA==}
+    engines: {node: '>= 14.16.0'}
+    dev: true
 
   /redent@3.0.0:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
