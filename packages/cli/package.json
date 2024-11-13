@@ -89,7 +89,7 @@
     "async-listen": "3.0.1",
     "checkpoint-client": "1.1.33",
     "chokidar": "3.6.0",
-    "debug": "4.3.6",
+    "debug": "4.3.7",
     "dotenv": "16.0.3",
     "esbuild": "0.23.0",
     "execa": "5.1.1",
