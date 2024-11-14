@@ -7,11 +7,18 @@ if [ "$RUNNER_OS" = "Windows" ]; then
 fi
 
 if [ "$RUNNER_OS" = "macOS" ]; then
-    brew install mysql || true
+    brew install mysql
+
+    cat <<EOF > /usr/local/etc/my.cnf
+[mysqld]
+bind-address = ::1
+mysqlx-bind-address = ::1
+EOF
+
     brew services run mysql
 fi
 
-echo 'TEST_MYSQL_URI=mysql://root@127.0.0.1:3306/tests' >> "$GITHUB_ENV"
-echo 'TEST_FUNCTIONAL_MYSQL_URI=mysql://root@127.0.0.1:3306/PRISMA_DB_NAME' >> "$GITHUB_ENV"
-echo 'TEST_MYSQL_URI_MIGRATE=mysql://root@127.0.0.1:3306/tests-migrate' >> "$GITHUB_ENV"
-echo 'TEST_MYSQL_SHADOWDB_URI_MIGRATE=mysql://root@127.0.0.1:3306/tests-migrate-shadowdb' >> "$GITHUB_ENV"
+echo 'TEST_MYSQL_URI=mysql://root@localhost:3306/tests' >> "$GITHUB_ENV"
+echo 'TEST_FUNCTIONAL_MYSQL_URI=mysql://root@localhost:3306/PRISMA_DB_NAME' >> "$GITHUB_ENV"
+echo 'TEST_MYSQL_URI_MIGRATE=mysql://root@localhost:3306/tests-migrate' >> "$GITHUB_ENV"
+echo 'TEST_MYSQL_SHADOWDB_URI_MIGRATE=mysql://root@localhost:3306/tests-migrate-shadowdb' >> "$GITHUB_ENV"
