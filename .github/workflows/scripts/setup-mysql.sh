@@ -9,7 +9,7 @@ fi
 if [ "$RUNNER_OS" = "macOS" ]; then
     brew install mysql
 
-    cat <<EOF > /etc/my.cnf
+    sudo cat <<EOF > /etc/my.cnf
 [mysqld]
 bind-address = ::1
 mysqlx-bind-address = ::1
