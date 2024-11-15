@@ -78,8 +78,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       dotenv-cli:
-        specifier: 7.4.3
-        version: 7.4.3
+        specifier: 7.4.2
+        version: 7.4.2
       esbuild:
         specifier: 0.23.0
         version: 0.23.0
@@ -622,8 +622,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
-        version: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
+        specifier: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
+        version: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -649,8 +649,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
-        version: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
+        specifier: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
+        version: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -868,8 +868,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
-        version: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
+        specifier: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
+        version: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -905,8 +905,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
-        version: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
+        specifier: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
+        version: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1012,8 +1012,8 @@ importers:
         specifier: 18.19.31
         version: 18.19.31
       cross-spawn:
-        specifier: 7.0.6
-        version: 7.0.6
+        specifier: 7.0.5
+        version: 7.0.5
       esbuild:
         specifier: 0.23.0
         version: 0.23.0
@@ -1230,8 +1230,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
-        version: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
+        specifier: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
+        version: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1402,8 +1402,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
-        version: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
+        specifier: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
+        version: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1459,6 +1459,9 @@ importers:
       get-stdin:
         specifier: 8.0.0
         version: 8.0.0
+      has-yarn:
+        specifier: 2.1.0
+        version: 2.1.0
       indent-string:
         specifier: 4.0.0
         version: 4.0.0
@@ -1554,8 +1557,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
-        version: 5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c
+        specifier: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
+        version: 5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -3784,8 +3787,8 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  /@prisma/engines-version@5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c:
-    resolution: {integrity: sha512-OBzHzJ8HWAhSfL2QdCxpblesqTuZ85wZh+Ar6N31uNam/wQQ+v2qm43c2XBI/iw2vcckDT9a7IrvxsmYe7sCYw==}
+  /@prisma/engines-version@5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650:
+    resolution: {integrity: sha512-hNVvZ4Tt0kUQG4FLjxp4AKgyK65eZSOfeojboUX+W+TVyFpVmJFbJuGlr2R9bsxjDKh7jV0Sz0gJKBaIEN5fSQ==}
 
   /@prisma/mini-proxy@0.9.5:
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
@@ -3793,12 +3796,12 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c:
-    resolution: {integrity: sha512-UOKN+jRGm8Slx4e6BUuVcIdhMprDUmjHQcpGXiiuOTFmcx5o6chmUIEFPZB6o6n2hLozCp0O26cz0EBKAVE61w==}
+  /@prisma/prisma-schema-wasm@5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650:
+    resolution: {integrity: sha512-/ijvxYfw9rTcHI3+cb6CW0WLxL6+UZZnRYmzBKCgMpO7aQODD09RzyeKGxJLzkXmvEBWlW0xPxtpWvhqidsWnA==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c:
-    resolution: {integrity: sha512-sVrlzFMG0FF72HfMpDw/fQ40HX57oi//vzwbFZrENhuveVM1PQ6fYWiR7H/5rD8Wmd6V0bUrXCfa8eR8lgHAog==}
+  /@prisma/query-engine-wasm@5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650:
+    resolution: {integrity: sha512-vpEw2J0hQ4qaag5jPB6KwIU0zaUDU7ak902deucTIXl3juUSRQuJd3WJytyDaPQWf6wXGfxkdSm52iOMzUieOQ==}
     dev: true
 
   /@prisma/studio-common@0.503.0:
@@ -5928,8 +5931,8 @@ packages:
       which: 2.0.2
     dev: true
 
-  /cross-spawn@7.0.6:
-    resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
+  /cross-spawn@7.0.5:
+    resolution: {integrity: sha512-ZVJrKKYunU38/76t0RMOulHOnUcbU9GbpWKAOZ0mhjr7CX6FVrH+4FrAapSOekrgFQ3f/8gwMEuIft0aKq6Hug==}
     engines: {node: '>= 8'}
     dependencies:
       path-key: 3.1.1
@@ -6148,11 +6151,11 @@ packages:
       esutils: 2.0.3
     dev: true
 
-  /dotenv-cli@7.4.3:
-    resolution: {integrity: sha512-lf1E+TL1xFeoOHy2hSO3kLkx3KX8CDi17ccn5z5dVCnk2PuWqUKAnBVgQmhfS0BPuzFbptTEHVcIKFsGF0NAcg==}
+  /dotenv-cli@7.4.2:
+    resolution: {integrity: sha512-SbUj8l61zIbzyhIbg0FwPJq6+wjbzdn9oEtozQpZ6kW2ihCcapKVZj49oCT3oPM+mgQm+itgvUQcG5szxVrZTA==}
     hasBin: true
     dependencies:
-      cross-spawn: 7.0.6
+      cross-spawn: 7.0.5
       dotenv: 16.3.1
       dotenv-expand: 10.0.0
       minimist: 1.2.8
@@ -6649,7 +6652,7 @@ packages:
       '@nodelib/fs.walk': 1.2.8
       ajv: 6.12.6
       chalk: 4.1.2
-      cross-spawn: 7.0.6
+      cross-spawn: 7.0.5
       debug: 4.3.7
       escape-string-regexp: 4.0.0
       eslint-scope: 8.0.1
@@ -6774,7 +6777,7 @@ packages:
     resolution: {integrity: sha512-VyhnebXciFV2DESc+p6B+y0LjSm0krU4OgJN44qFAhBY0TJ+1V61tYD2+wHusZ6F9n5K+vl8k0sTy7PEfV4qpg==}
     engines: {node: '>=16.17'}
     dependencies:
-      cross-spawn: 7.0.6
+      cross-spawn: 7.0.5
       get-stream: 8.0.1
       human-signals: 5.0.0
       is-stream: 3.0.0
@@ -7406,6 +7409,11 @@ packages:
 
   /has-unicode@2.0.1:
     resolution: {integrity: sha512-8Rf9Y83NBReMnx0gFzA8JImQACstCYWUplepDa9xprwwtmgEZUF0h/i5xSA625zB/I37EtrswSST6OXxwaaIJQ==}
+    dev: true
+
+  /has-yarn@2.1.0:
+    resolution: {integrity: sha512-UqBRqi4ju7T+TqGNdqAO0PaSVGsDGJUBQvk9eUWNGRY1CFGDzYhLWoM7JQEemnlvVcv/YEmc2wNW8BC24EnUsw==}
+    engines: {node: '>=8'}
     dev: true
 
   /has@1.0.3:

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "This package is intended for Prisma's internal use",
   "main": "dist/index.js",
-  "types": "dist/migrate/src/index.d.ts",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
@@ -31,6 +31,7 @@
     "fp-ts": "2.16.9",
     "fs-jetpack": "5.1.0",
     "get-stdin": "8.0.0",
+    "has-yarn": "2.1.0",
     "indent-string": "4.0.0",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
@@ -56,7 +57,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.23.0-11.90c6eb338aab4ebc379a3dfb6d0130b1535db96c",
+    "@prisma/engines-version": "5.23.0-8.integration-include-field-native-type-data-to-dmmf-f616ccc38c3d791e452ebd52f830a7fad0161650",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
