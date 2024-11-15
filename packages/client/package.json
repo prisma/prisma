@@ -124,7 +124,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=16.13"
+    "node": ">=18.18"
   },
   "homepage": "https://www.prisma.io",
   "repository": {

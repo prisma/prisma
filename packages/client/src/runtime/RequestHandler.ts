@@ -5,7 +5,6 @@ import stripAnsi from 'strip-ansi'
 
 import {
   EngineValidationError,
-  Fetch,
   InteractiveTransactionOptions,
   JsonQuery,
   LogEmitter,
@@ -17,7 +16,8 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { QueryEngineResult } from './core/engines/common/types/QueryEngine'
+import { CustomDataProxyFetch } from './core/engines/common/Engine'
+import { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
@@ -52,7 +52,7 @@ export type RequestParams = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   globalOmit?: GlobalOmitOptions
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
 }
 
 export type HandleErrorParams = {
@@ -152,16 +152,15 @@ export class RequestHandler {
     }
   }
 
-  mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResult<any>) {
+  mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResultData<any>) {
     const data = response?.data
-    const elapsed = response?.elapsed
 
     /**
      * Unpack
      */
     const result = this.unpack(data, dataPath, unpacker)
     if (process.env.PRISMA_CLIENT_GET_TIME) {
-      return { data: result, elapsed }
+      return { data: result }
     }
     return result
   }

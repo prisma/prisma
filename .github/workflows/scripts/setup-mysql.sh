@@ -1,4 +1,4 @@
-#/bin/bash
+#!/usr/bin/env bash
 
 set -ex
 
@@ -7,7 +7,14 @@ if [ "$RUNNER_OS" = "Windows" ]; then
 fi
 
 if [ "$RUNNER_OS" = "macOS" ]; then
-    brew install mysql || true
+    brew install mysql
+
+    cat <<EOF > /opt/homebrew/etc/my.cnf
+[mysqld]
+bind-address = ::1
+mysqlx-bind-address = ::1
+EOF
+
     brew services run mysql
 fi
 
