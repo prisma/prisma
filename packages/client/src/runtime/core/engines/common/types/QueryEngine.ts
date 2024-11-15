@@ -1,7 +1,8 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import { EngineSpanEvent } from '@prisma/internals'
+import { EngineSpan, EngineSpanEvent } from '@prisma/internals'
 
 import { EngineProtocol } from '../Engine'
+import { LogLevel } from '../utils/log'
 import { JsonBatchQuery } from './JsonProtocol'
 import { RequestError } from './RequestError'
 import * as Transaction from './Transaction'
@@ -62,19 +63,44 @@ export type QueryEngineRequest = {
   variables: Object
 }
 
-export type QueryEngineResult<T> = {
-  data: T
-  elapsed: number
+type WithResultExtensions<T> = T & {
+  extensions?: QueryEngineResultExtensions
 }
 
-export type QueryEngineResultBatchQueryResult<T> =
-  | {
-      data: T
-      elapsed: number
-    }
+type WithErrors<T> =
+  | T
   | {
       errors: RequestError[]
     }
+
+type WithErrorsAndResultExtensions<T> = WithResultExtensions<WithErrors<T>>
+
+export type QueryEngineResultData<T> = {
+  data: T
+}
+
+export type QueryEngineResult<T> = WithErrorsAndResultExtensions<QueryEngineResultData<T>>
+
+export type QueryEngineBatchResult<T> = WithErrorsAndResultExtensions<{
+  batchResult: QueryEngineResult<T>[]
+}>
+
+export type QueryEngineResultExtensions = {
+  logs?: QueryEngineRawEvent[]
+  traces?: EngineSpan[]
+}
+
+export type QueryEngineRawEvent = {
+  span_id: string
+  name: string
+  level: LogLevel
+  timestamp: [seconds: number, nanoseconds: number]
+  attributes: Record<string, unknown> & {
+    duration_ms: number
+    params: string
+    target: string
+  }
+}
 
 export type QueryEngineBatchRequest = QueryEngineBatchGraphQLRequest | JsonBatchQuery
 
