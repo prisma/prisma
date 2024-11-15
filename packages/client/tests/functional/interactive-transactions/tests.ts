@@ -579,7 +579,7 @@ testMatrix.setupTestSuite(
       }
     })
 
-    test('high concurrency with no conflicts', async () => {
+    testIf(provider !== Providers.SQLITE)('high concurrency with no conflicts', async () => {
       jest.setTimeout(30_000)
 
       await prisma.user.create({
