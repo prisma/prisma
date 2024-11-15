@@ -4,7 +4,7 @@ import ciInfo from 'ci-info'
 import crypto from 'crypto'
 import indent from 'indent-string'
 import path from 'path'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import { DMMFHelper } from '../dmmf'
@@ -70,7 +70,6 @@ export class TSClient implements Generable {
       binaryPaths,
       generator,
       outputDir,
-      schemaPath,
       datamodel: inlineSchema,
       runtimeBase,
       runtimeNameJs,
@@ -103,10 +102,12 @@ export class TSClient implements Generable {
       .createHash('sha256')
       .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
       .digest('hex')
+
+    const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
-      relativePath: pathToPosix(path.relative(outputDir, path.dirname(schemaPath))),
+      relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
@@ -163,7 +164,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     // in some cases, we just re-export the existing types
     if (reusedTs) {
-      const topExports = ts.moduleExportFrom('*', `./${reusedTs}`)
+      const topExports = ts.moduleExportFrom(`./${reusedTs}`)
 
       return ts.stringify(topExports)
     }
@@ -181,7 +182,6 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       this.options.outputDir,
       this.options.runtimeNameTs,
       this.options.browser,
-      path.dirname(this.options.schemaPath),
     )
 
     const commonCode = commonCodeTS(this.options)
@@ -298,18 +298,15 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType(inputType, this.genericsInfo).overrideName(`${inputType.name}Base`).toTS())
+      acc.push(new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS())
     } else {
-      acc.push(new InputType(inputType, this.genericsInfo).toTS())
+      acc.push(new InputType(inputType, context).toTS())
     }
     return acc
   }, [] as string[])
   .join('\n')}
 
-${
-  this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
-  ''
-}
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
 
 /**
  * Aliases for legacy arg types

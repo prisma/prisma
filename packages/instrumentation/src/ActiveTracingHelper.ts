@@ -9,7 +9,7 @@ import {
   TraceFlags,
 } from '@opentelemetry/api'
 import { Span as SpanConstructor, Tracer } from '@opentelemetry/sdk-trace-base'
-import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import { EngineSpanEvent, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 // If true, will publish internal spans as well
 const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
@@ -21,6 +21,16 @@ const nonSampledTraceParent = `00-10-10-00`
 
 type Options = {
   traceMiddleware: boolean
+}
+
+function engineSpanKindToOTELSpanKind(engineSpanKind: EngineSpanKind): SpanKind {
+  switch (engineSpanKind) {
+    case 'client':
+      return SpanKind.CLIENT
+    case 'internal':
+    default: // Other span kinds aren't currently supported
+      return SpanKind.INTERNAL
+  }
 }
 
 export class ActiveTracingHelper implements TracingHelper {
@@ -45,6 +55,8 @@ export class ActiveTracingHelper implements TracingHelper {
     const tracer = trace.getTracer('prisma') as Tracer
 
     engineSpanEvent.spans.forEach((engineSpan) => {
+      const spanKind = engineSpanKindToOTELSpanKind(engineSpan.kind)
+
       const spanContext: SpanContext = {
         traceId: engineSpan.trace_id,
         spanId: engineSpan.span_id,
@@ -66,7 +78,7 @@ export class ActiveTracingHelper implements TracingHelper {
         ROOT_CONTEXT,
         engineSpan.name,
         spanContext,
-        SpanKind.INTERNAL,
+        spanKind,
         engineSpan.parent_span_id,
         links,
         engineSpan.start_time,

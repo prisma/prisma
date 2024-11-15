@@ -107,11 +107,24 @@
       "import": "./generator-build/index.js",
       "default": "./generator-build/index.js"
     },
+    "./sql": {
+      "require": {
+        "types": "./sql.d.ts",
+        "node": "./sql.js",
+        "default": "./sql.js"
+      },
+      "import": {
+        "types": "./sql.d.ts",
+        "node": "./sql.mjs",
+        "default": "./sql.mjs"
+      },
+      "default": "./sql.js"
+    },
     "./*": "./*"
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=16.13"
+    "node": ">=18.18"
   },
   "homepage": "https://www.prisma.io",
   "repository": {
@@ -154,18 +167,21 @@
     "default.d.ts",
     "index-browser.js",
     "extension.js",
-    "extension.d.ts"
+    "extension.d.ts",
+    "sql.d.ts",
+    "sql.js",
+    "sql.mjs"
   ],
   "devDependencies": {
     "@cloudflare/workers-types": "4.20240614.0",
-    "@codspeed/benchmark.js-plugin": "3.1.0",
+    "@codspeed/benchmark.js-plugin": "3.1.1",
     "@faker-js/faker": "8.4.1",
-    "@fast-check/jest": "1.8.2",
+    "@fast-check/jest": "2.0.3",
     "@inquirer/prompts": "5.0.5",
     "@jest/create-cache-key-function": "29.7.0",
     "@jest/globals": "29.7.0",
     "@jest/test-sequencer": "29.7.0",
-    "@libsql/client": "0.6.2",
+    "@libsql/client": "0.8.0",
     "@neondatabase/serverless": "0.9.3",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/context-async-hooks": "1.25.1",
@@ -183,7 +199,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.16.0-24.34ace0eb2704183d2c05b60b52fba5c43c13f303",
+    "@prisma/engines-version": "5.23.0-5.29bc8ca375232bc314ff30d684056b8c5a8f0583",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -192,10 +208,10 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
-    "@prisma/query-engine-wasm": "5.16.0-24.34ace0eb2704183d2c05b60b52fba5c43c13f303",
+    "@prisma/query-engine-wasm": "5.23.0-5.29bc8ca375232bc314ff30d684056b8c5a8f0583",
     "@snaplet/copycat": "0.17.3",
-    "@swc-node/register": "1.10.0",
-    "@swc/core": "1.6.3",
+    "@swc-node/register": "1.10.9",
+    "@swc/core": "1.6.13",
     "@swc/jest": "0.2.36",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.12",
@@ -211,7 +227,7 @@
     "decimal.js": "10.4.3",
     "detect-runtime": "1.0.4",
     "env-paths": "2.2.1",
-    "esbuild": "0.21.5",
+    "esbuild": "0.23.0",
     "execa": "5.1.1",
     "expect-type": "0.19.0",
     "flat-map-polyfill": "0.3.8",
@@ -229,7 +245,7 @@
     "klona": "2.0.6",
     "mariadb": "3.3.1",
     "memfs": "4.9.3",
-    "mssql": "11.0.0",
+    "mssql": "11.0.1",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "3.3.2",
     "p-retry": "4.6.2",
@@ -238,7 +254,7 @@
     "pluralize": "8.0.0",
     "resolve": "1.22.8",
     "rimraf": "3.0.2",
-    "simple-statistics": "7.8.3",
+    "simple-statistics": "7.8.7",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.21",
     "sql-template-tag": "5.2.1",
@@ -247,7 +263,7 @@
     "strip-indent": "3.0.0",
     "ts-node": "10.9.2",
     "ts-pattern": "5.2.0",
-    "tsd": "0.31.1",
+    "tsd": "0.31.2",
     "typescript": "5.4.5",
     "undici": "5.28.4",
     "wrangler": "3.62.0",

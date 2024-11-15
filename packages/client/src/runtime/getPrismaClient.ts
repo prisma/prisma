@@ -18,9 +18,9 @@ import {
   PrismaClientValidationError,
 } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { WasmLoadingConfig } from './core/engines/common/Engine'
+import { CustomDataProxyFetch, WasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
@@ -61,13 +61,13 @@ import { getLockCountPromise } from './core/transaction/utils/createLockCountPro
 import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
 import { JsInputValue } from './core/types/exported/JsApi'
 import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
+import { UnknownTypedSql } from './core/types/exported/TypedSql'
 import { getLogLevel } from './getLogLevel'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
-import { deserializeRawResults } from './utils/deserializeRawResults'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
 
@@ -176,7 +176,7 @@ export type InternalRequestParams = {
   /** Used to convert args for middleware and back */
   middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>
   /** Used for Accelerate client extension via Data Proxy */
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 export type MiddlewareArgsMapper<RequestArgs, MiddlewareArgs> = {
@@ -684,7 +684,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
-      }).then(deserializeRawResults)
+      })
     }
 
     /**
@@ -711,6 +711,22 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 `,
           { clientVersion: this._clientVersion },
         )
+      })
+    }
+
+    /**
+     * Counterpart to $queryRaw, that returns strongly typed results
+     * @param typedSql
+     */
+    $queryRawTyped(typedSql: UnknownTypedSql) {
+      return this._createPrismaPromise((transaction) => {
+        if (!this._hasPreviewFlag('typedSql')) {
+          throw new PrismaClientValidationError(
+            '`typedSql` preview feature must be enabled in order to access $queryRawTyped API',
+            { clientVersion: this._clientVersion },
+          )
+        }
+        return this.$queryRawInternal(transaction, '$queryRawTyped', typedSql)
       })
     }
 

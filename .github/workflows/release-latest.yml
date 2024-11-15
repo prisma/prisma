@@ -103,7 +103,7 @@ jobs:
               owner: 'prisma',
               repo: '${{ env.REPO_NAME }}',
               tag: '${{ env.TAG_NAME }}',
-              message: '${{ env.MESSAGE }}',
+              message: '${{ env.TAG_NAME }}',
               object: '${{ env.COMMIT_HASH }}',
               type: 'commit',
             })

@@ -13,8 +13,8 @@ importers:
         version: file:../../tmp/prisma-generator-helper-0.0.0.tgz
     devDependencies:
       '@types/node':
-        specifier: 16.18.98
-        version: 16.18.98
+        specifier: 18.19.50
+        version: 18.19.50
       expect-type:
         specifier: 0.19.0
         version: 0.19.0
@@ -25,58 +25,66 @@ importers:
 packages:
 
   '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz':
-    resolution: {integrity: sha512-2VXtJtsATHPvvDKHtmwL1OhbkUlpKbwP+1JhBMUunIVakWlmHUagOepgoHzYoAxP5lVYfukxKCscPA0MHOIBXg==, tarball: file:../../tmp/prisma-debug-0.0.0.tgz}
+    resolution: {integrity: sha512-z0w+08URde9VzV8zvZOtepFgysBgSf7pNeiVffL+cniV1WNb594nMiQT7Y9rlnWcEjDTx/A8J1xHcR5au0YGEw==, tarball: file:../../tmp/prisma-debug-0.0.0.tgz}
     version: 0.0.0
 
-  '@prisma/engines-version@5.16.0-5.6f3b8db04fa234ab2812fdd27456e9d9590eedb1':
-    resolution: {integrity: sha512-GG/bi6v9Dyi7nXuwxuBUPfRfOY+6+CuIOColL4/eCOmoDg8BKew/XFGD6Fhun0okj9ZQx9p7j5ciWJ1H1K1jGw==}
+  '@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2':
+    resolution: {integrity: sha512-2PTmxFR2yHW/eB3uqWtcgRcgAbG1rwG9ZriSvQw+nnb7c4uCr3RAcGMb6/zfE88SKlC1Nj2ziUvc96Z379mHgQ==}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
-    resolution: {integrity: sha512-3V4ciyXO0kMnubWa0V+fZoT31vgMWwq9lsvGtgixfmvqEK+Mzyop5HU9yRHtLIXlJECxTjM5CRITzcFAwSPbJw==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
+    resolution: {integrity: sha512-KhE9LcSamgtOswm7ibtqZhcqd8h1NrhlR/PSfxqHTzq/dSUo0zb9tiLSRtGmRu1GPQ+5wG30O5x/Bnd6g5SZcA==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
-    resolution: {integrity: sha512-jtnDWE7OxEQzyNo4DyKVAVQqk+eBUrekyTKzpXxWiX4ddGGfKDMXJRCiqq1P3hTYoCOciXkZk9idL3MXr5d49A==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
+    resolution: {integrity: sha512-fVBMRmWEyev6Q9+8YZBxSun+PB4DIUoLna8ViMbLcFKs1s46lTrBSOnQpVWI7SA1nLbown3LduCWTxgsGjWVEQ==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/generator-helper@file:../../tmp/prisma-generator-helper-0.0.0.tgz':
-    resolution: {integrity: sha512-bJLInAqdeNOO3yzdIYIq59jFWYDJVMnqlhD/cRKACSP9nqWVNQAhnFzJ+4U68gA4AhRBnsUFRCtBDgYmiLHuLQ==, tarball: file:../../tmp/prisma-generator-helper-0.0.0.tgz}
+    resolution: {integrity: sha512-qOtwFe5jBJ7bSCcTSsDOJrq8Keyx+Gq2DsXoqBtxeriOFShx1kWanoVSMGRt3/Gx0GWw0L9GhhdeYhYqPgKvaA==, tarball: file:../../tmp/prisma-generator-helper-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
-    resolution: {integrity: sha512-E4eYJaJH14bTVpkcYBtWqjhaoxJV2tT/nO5o2jL/U5YfBNjH+ucqECTonB2n82jXSiC5c4YFhUEBA0fHW+Xf5Q==, tarball: file:../../tmp/prisma-get-platform-0.0.0.tgz}
+    resolution: {integrity: sha512-m6YtMWtCYtq73BVtvmFG/UEK7CUHY8GIzX25KjBILVcX3xbePCWx8yjFm8X70TeJG3Hre1I/iX+noYt2HnL8Uw==, tarball: file:../../tmp/prisma-get-platform-0.0.0.tgz}
     version: 0.0.0
 
-  '@types/node@16.18.98':
-    resolution: {integrity: sha512-fpiC20NvLpTLAzo3oVBKIqBGR6Fx/8oAK/SSf7G+fydnXMY1x4x9RZ6sBXhqKlCU21g2QapUsbLlhv3+a7wS+Q==}
+  '@types/node@18.19.50':
+    resolution: {integrity: sha512-xonK+NRrMBRtkL1hVCc3G+uXtjh1Al4opBLjqVmipe5ZAaBYWW6cNAiBVZ1BvmkBhep698rP3UM3aRAdSALuhg==}
 
   expect-type@0.19.0:
     resolution: {integrity: sha512-piv9wz3IrAG4Wnk2A+n2VRCHieAyOSxrRLU872Xo6nyn39kYXKDALk4OcqnvLRnFvkz659CnWC8MWZLuuQnoqg==}
     engines: {node: '>=12.0.0'}
 
+  fsevents@2.3.3:
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   prisma@file:../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-oBzwJaiLpw6IvEAhc73UFC5XIDEZekYD8osi/uPb7OyPKoAdlTGypIyL/qdgea9Zpb2tRlkdP+K67NMK+/T6sw==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-d8gMwcHmvd7TWcvCmUebMrdE8tqCVlUZwNM1ZFSZsqT6Hh5+J9AVTRGcpxYS6HweEDhw/GsIasnjMa8Wzs/lNw==, tarball: file:../../tmp/prisma-0.0.0.tgz}
     version: 0.0.0
-    engines: {node: '>=16.13'}
+    engines: {node: '>=18.18'}
     hasBin: true
+
+  undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
 snapshots:
 
   '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz': {}
 
-  '@prisma/engines-version@5.16.0-5.6f3b8db04fa234ab2812fdd27456e9d9590eedb1': {}
+  '@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2': {}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 5.16.0-5.6f3b8db04fa234ab2812fdd27456e9d9590eedb1
+      '@prisma/engines-version': 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
       '@prisma/fetch-engine': file:../../tmp/prisma-fetch-engine-0.0.0.tgz
       '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 5.16.0-5.6f3b8db04fa234ab2812fdd27456e9d9590eedb1
+      '@prisma/engines-version': 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
       '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/generator-helper@file:../../tmp/prisma-generator-helper-0.0.0.tgz':
@@ -87,10 +95,19 @@ snapshots:
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
 
-  '@types/node@16.18.98': {}
+  '@types/node@18.19.50':
+    dependencies:
+      undici-types: 5.26.5
 
   expect-type@0.19.0: {}
+
+  fsevents@2.3.3:
+    optional: true
 
   prisma@file:../../tmp/prisma-0.0.0.tgz:
     dependencies:
       '@prisma/engines': file:../../tmp/prisma-engines-0.0.0.tgz
+    optionalDependencies:
+      fsevents: 2.3.3
+
+  undici-types@5.26.5: {}

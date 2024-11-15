@@ -42,5 +42,6 @@ export function runtimeDataModel({ models }: { models: DMMF.Model[] }): RuntimeD
     models,
     enums: [],
     types: [],
+    indexes: [],
   })
 }

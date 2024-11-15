@@ -70,6 +70,7 @@ function dmmf(inputObjectTypes: DMMF.InputType[]) {
       models: [],
       types: [],
       enums: [],
+      indexes: [],
     },
 
     mappings: {

@@ -260,6 +260,15 @@ export class SchemaEngine {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
 
+  /**
+   * SQL introspection that powers TypedSQL feature
+   * @param args
+   * @returns
+   */
+  public introspectSql(args: EngineArgs.IntrospectSqlParams): Promise<EngineResults.IntrospectSqlOutput> {
+    return this.runCommand(this.getRPCPayload('introspectSql', args))
+  }
+
   public stop(): void {
     if (this.child) {
       this.child.kill()
@@ -339,7 +348,7 @@ export class SchemaEngine {
         if (this.schemaPath) {
           const schema = await getSchema(this.schemaPath)
           const config = await getConfig({ datamodel: schema })
-          projectDir = getMigrateConfigDir(config)
+          projectDir = getMigrateConfigDir(config, this.schemaPath)
           const schemaArgs = schema.flatMap(([path]) => ['-d', path])
           args.push(...schemaArgs)
         }

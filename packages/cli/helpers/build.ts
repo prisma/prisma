@@ -60,6 +60,7 @@ const cliBuildConfig: BuildOptions = {
   outfile: 'build/index',
   plugins: [cliLifecyclePlugin],
   bundle: true,
+  external: ['fsevents'],
   emitTypes: false,
   minify: true,
 }

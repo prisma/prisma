@@ -1,8 +1,8 @@
 import { enginesVersion } from '@prisma/engines'
+import { SqlQueryOutput } from '@prisma/generator-helper'
 import {
   arg,
   Command,
-  drawBox,
   format,
   Generator,
   getCommandWithExecutor,
@@ -13,7 +13,6 @@ import {
   getSchemaWithPath,
   getSchemaWithPathOptional,
   HelpError,
-  highlightTS,
   isError,
   link,
   loadEnvFile,
@@ -25,12 +24,14 @@ import { printSchemaLoadedMessage } from '@prisma/migrate'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
-import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
+import { introspectSql, sqlDirPath } from './generate/introspectSql'
+import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
 import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
@@ -58,6 +59,7 @@ ${bold('Options')}
          --no-engine   Generate a client for use with Accelerate only
          --no-hints    Hides the hint messages but still outputs errors and warnings
    --allow-no-models   Allow generating a client without models
+   --sql               Generate typed sql module
 
 ${bold('Examples')}
 
@@ -113,6 +115,7 @@ ${bold('Examples')}
       '--postinstall': String,
       '--telemetry-information': String,
       '--allow-no-models': Boolean,
+      '--sql': Boolean,
     })
 
     const postinstallCwd = process.env.PRISMA_GENERATE_IN_POSTINSTALL
@@ -133,6 +136,7 @@ ${bold('Examples')}
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
+    const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
 
@@ -144,6 +148,10 @@ ${bold('Examples')}
     let hasJsClient
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
+    let typedSql: SqlQueryOutput[] | undefined
+    if (args['--sql']) {
+      typedSql = await introspectSql(schemaPath)
+    }
     try {
       generators = await getGenerators({
         schemaPath,
@@ -152,6 +160,7 @@ ${bold('Examples')}
         cliVersion: pkg.version,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
+        typedSql,
         noEngine:
           Boolean(args['--no-engine']) ||
           Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
@@ -159,6 +168,7 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
+        allowNoModels: Boolean(args['--allow-no-models']),
       })
 
       if (!generators || generators.length === 0) {
@@ -235,14 +245,6 @@ Please run \`prisma generate\` manually.`
 When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
         }
 
-        const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
-          ? prefixRelativePathIfNecessary(
-              replacePathSeparatorsIfNecessary(
-                path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
-              ),
-            )
-          : '@prisma/client'
-
         const breakingChangesStr = printBreakingChangesMessage
           ? `
 
@@ -264,64 +266,11 @@ Please make sure they have the same version.`
         if (hideHints) {
           hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         } else {
-          const tryAccelerateMessage = `Deploying your app to serverless or edge functions?
-Try Prisma Accelerate for connection pooling and caching.
-${link('https://pris.ly/cli/--accelerate')}`
-
-          const boxedTryAccelerateMessage = drawBox({
-            height: tryAccelerateMessage.split('\n').length,
-            width: 0, // calculated automatically
-            str: tryAccelerateMessage,
-            horizontalPadding: 2,
-          })
-
           hint = `
-Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
-${dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}'
-const prisma = new PrismaClient()`)}
-${dim('```')}
-or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/accelerate')})
-${dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
-const prisma = new PrismaClient()`)}
-${dim('```')}
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
-
-${boxedTryAccelerateMessage}
+${renderPromotion(promotion)}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
-
-          if (generator?.previewFeatures.includes('driverAdapters')) {
-            if (generator?.isCustomOutput && isDeno) {
-              hint = `
-${bold('Start using Prisma Client')}
-${dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
-const prisma = new PrismaClient()`)}
-${dim('```')}
-
-More information: https://pris.ly/d/client`
-            } else {
-              hint = `
-${bold('Start using Prisma Client')}
-${dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}'
-const prisma = new PrismaClient()`)}
-${dim('```')}
-
-More information: https://pris.ly/d/client`
-            }
-
-            hint = `${hint}
-
-${boxedTryAccelerateMessage}
-${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
-          }
         }
       }
 
@@ -341,40 +290,47 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     } else {
       logUpdate(watchingText + '\n' + this.logText)
 
-      fs.watch(schemaPath, async (eventType) => {
-        if (eventType === 'change') {
-          let generatorsWatch: Generator[] | undefined
-          try {
-            generatorsWatch = await getGenerators({
-              schemaPath,
-              printDownloadProgress: !watchMode,
-              version: enginesVersion,
-              cliVersion: pkg.version,
-              generatorNames: args['--generator'],
-            })
+      const watcher = new Watcher(schemaPath)
+      if (args['--sql']) {
+        watcher.add(sqlDirPath(schemaPath))
+      }
 
-            if (!generatorsWatch || generatorsWatch.length === 0) {
-              this.logText += `${missingGeneratorMessage}\n`
-            } else {
-              logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
-              try {
-                await this.runGenerate({
-                  generators: generatorsWatch,
-                })
-                logUpdate(watchingText + '\n' + this.logText)
-              } catch (errRunGenerate) {
-                this.logText += `${errRunGenerate.message}\n\n`
-                logUpdate(watchingText + '\n' + this.logText)
-              }
-            }
-            // logUpdate(watchingText + '\n' + this.logText)
-          } catch (errGetGenerators) {
-            this.logText += `${errGetGenerators.message}\n\n`
-            logUpdate(watchingText + '\n' + this.logText)
+      for await (const changedPath of watcher) {
+        logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
+        let generatorsWatch: Generator[] | undefined
+        try {
+          if (args['--sql']) {
+            typedSql = await introspectSql(schemaPath)
           }
+
+          generatorsWatch = await getGenerators({
+            schemaPath,
+            printDownloadProgress: !watchMode,
+            version: enginesVersion,
+            cliVersion: pkg.version,
+            generatorNames: args['--generator'],
+            typedSql,
+          })
+
+          if (!generatorsWatch || generatorsWatch.length === 0) {
+            this.logText += `${missingGeneratorMessage}\n`
+          } else {
+            logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
+            try {
+              await this.runGenerate({
+                generators: generatorsWatch,
+              })
+              logUpdate(watchingText + '\n' + this.logText)
+            } catch (errRunGenerate) {
+              this.logText += `${errRunGenerate.message}\n\n`
+              logUpdate(watchingText + '\n' + this.logText)
+            }
+          }
+        } catch (errGetGenerators) {
+          this.logText += `${errGetGenerators.message}\n\n`
+          logUpdate(watchingText + '\n' + this.logText)
         }
-      })
-      await new Promise((_) => null)
+      }
     }
 
     return ''
@@ -387,14 +343,6 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     }
     return Generate.help
   }
-}
-
-function prefixRelativePathIfNecessary(relativePath: string): string {
-  if (relativePath.startsWith('..')) {
-    return relativePath
-  }
-
-  return `./${relativePath}`
 }
 
 function getCurrentClientVersion(): string | null {
@@ -418,14 +366,6 @@ function getCurrentClientVersion(): string | null {
   }
 
   return null
-}
-
-function replacePathSeparatorsIfNecessary(path: string): string {
-  const isWindows = os.platform() === 'win32'
-  if (isWindows) {
-    return path.replace(/\\/g, '/')
-  }
-  return path
 }
 
 async function getSchemaForGenerate(

@@ -79,7 +79,7 @@ export async function getDatasourceInfo({
       url: url || undefined,
       schema: undefined,
       schemas: firstDatasource.schemas,
-      configDir: getMigrateConfigDir(config),
+      configDir: getMigrateConfigDir(config, schemaPath),
     }
   }
 
@@ -104,7 +104,7 @@ export async function getDatasourceInfo({
       url,
       schema,
       schemas: firstDatasource.schemas,
-      configDir: getMigrateConfigDir(config),
+      configDir: getMigrateConfigDir(config, schemaPath),
     }
 
     // Default to `postgres` database name for PostgreSQL
@@ -123,7 +123,7 @@ export async function getDatasourceInfo({
       url,
       schema: undefined,
       schemas: firstDatasource.schemas,
-      configDir: getMigrateConfigDir(config),
+      configDir: getMigrateConfigDir(config, schemaPath),
     }
   }
 }
@@ -140,7 +140,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const schemaDir = getMigrateConfigDir(config)
+  const schemaDir = getMigrateConfigDir(config, schemaPath)
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
@@ -164,7 +164,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const schemaDir = getMigrateConfigDir(config)
+  const schemaDir = getMigrateConfigDir(config, schemaPath)
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not

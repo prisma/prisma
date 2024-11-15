@@ -35,7 +35,7 @@ export class ArgsTypeBuilder {
 
   addSchemaArgs(args: readonly DMMF.SchemaArg[]): this {
     for (const arg of args) {
-      const inputField = buildInputField(arg, this.context.genericArgsInfo)
+      const inputField = buildInputField(arg, this.context)
 
       const docComment = getArgFieldJSDoc(this.type, this.action, arg)
       if (docComment) {

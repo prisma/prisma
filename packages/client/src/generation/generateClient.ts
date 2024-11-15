@@ -7,6 +7,7 @@ import type {
   DataSource,
   DMMF,
   GeneratorConfig,
+  SqlQueryOutput,
 } from '@prisma/generator-helper'
 import {
   assertNever,
@@ -24,14 +25,14 @@ import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
-import { type O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import clientPkg from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
-import type { Dictionary } from './utils/common'
+import { buildTypedSql } from './typedSql/typedSql'
 
 const debug = Debug('prisma:client:generateClient')
 
@@ -69,10 +70,15 @@ export interface GenerateClientOptions {
   postinstall?: boolean
   /** When --no-engine is passed via CLI */
   copyEngine?: boolean
+  typedSql?: SqlQueryOutput[]
+}
+
+export interface FileMap {
+  [name: string]: string | FileMap
 }
 
 export interface BuildClientResult {
-  fileMap: Dictionary<string>
+  fileMap: FileMap
   prismaClientDmmf: PrismaClientDMMF.Document
 }
 
@@ -92,6 +98,7 @@ export async function buildClient({
   postinstall,
   copyEngine,
   envPaths,
+  typedSql,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
@@ -187,7 +194,7 @@ export async function buildClient({
   }
 
   // we store the generated contents here
-  const fileMap: Record<string, string> = {}
+  const fileMap: FileMap = {}
   fileMap['index.js'] = JS(nodeClient)
   fileMap['index.d.ts'] = TS(nodeClient)
   fileMap['default.js'] = JS(defaultClient)
@@ -201,7 +208,9 @@ export async function buildClient({
     fileMap['react-native.d.ts'] = TS(rnTsClient)
   }
 
-  if (generator.previewFeatures.includes('driverAdapters')) {
+  const usesWasmRuntime = generator.previewFeatures.includes('driverAdapters')
+
+  if (usesWasmRuntime) {
     // The trampoline client points to #main-entry-point (see below).  We use
     // imports similar to an exports map to ensure correct imports.❗ Before
     // going GA, please notify @millsp as some things can be cleaned up:
@@ -217,8 +226,8 @@ export async function buildClient({
     // In short: A lot can be simplified, but can only happen in GA & P6.
     fileMap['default.js'] = JS(trampolineTsClient)
     fileMap['default.d.ts'] = TS(trampolineTsClient)
-    fileMap['wasm-worker-loader.js'] = `export default import('./query_engine_bg.wasm')`
-    fileMap['wasm-edge-light-loader.js'] = `export default import('./query_engine_bg.wasm?module')`
+    fileMap['wasm-worker-loader.mjs'] = `export default import('./query_engine_bg.wasm')`
+    fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_engine_bg.wasm?module')`
 
     pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
     pkgJson['imports'] = {
@@ -229,23 +238,23 @@ export async function buildClient({
         /**
          * Vercel Edge Functions / Next.js Middlewares
          */
-        'edge-light': './wasm-edge-light-loader.js',
+        'edge-light': './wasm-edge-light-loader.mjs',
 
         /**
          * Cloudflare Workers, Cloudflare Pages
          */
-        workerd: './wasm-worker-loader.js',
+        workerd: './wasm-worker-loader.mjs',
 
         /**
          * (Old) Cloudflare Workers
          * @millsp It's a fallback, in case both other keys didn't work because we could be on a different edge platform. It's a hypothetical case rather than anything actually tested.
          */
-        worker: './wasm-worker-loader.js',
+        worker: './wasm-worker-loader.mjs',
 
         /**
          * Fallback for every other JavaScript runtime
          */
-        default: './wasm-worker-loader.js',
+        default: './wasm-worker-loader.mjs',
       },
       // when `require('#main-entry-point')` is called, it will be resolved to the correct file
       '#main-entry-point': exportsMapDefault,
@@ -287,12 +296,59 @@ export * from './edge.js'`
     fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
   }
 
+  if (typedSql && typedSql.length > 0) {
+    const edgeRuntimeName = usesWasmRuntime ? 'wasm' : 'edge'
+    const cjsEdgeIndex = `./sql/index.${edgeRuntimeName}.js`
+    const esmEdgeIndex = `./sql/index.${edgeRuntimeName}.mjs`
+    pkgJson.exports['./sql'] = {
+      require: {
+        types: './sql/index.d.ts',
+        'edge-light': cjsEdgeIndex,
+        workerd: cjsEdgeIndex,
+        worker: cjsEdgeIndex,
+        node: './sql/index.js',
+        default: './sql/index.js',
+      },
+      import: {
+        types: './sql/index.d.ts',
+        'edge-light': esmEdgeIndex,
+        workerd: esmEdgeIndex,
+        worker: esmEdgeIndex,
+        node: './sql/index.mjs',
+        default: './sql/index.mjs',
+      },
+      default: './sql/index.js',
+    } as any
+    fileMap['sql'] = buildTypedSql({
+      dmmf,
+      runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
+      mainRuntimeName: getNodeRuntimeName(clientEngineType),
+      queries: typedSql,
+      edgeRuntimeName,
+    })
+  }
   fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
 
   return {
     fileMap, // a map of file names to their contents
     prismaClientDmmf: dmmf, // the DMMF document
   }
+}
+
+// relativizes runtime import base for typed sql
+// absolute path stays unmodified, relative goes up a level
+function getTypedSqlRuntimeBase(runtimeBase: string) {
+  if (!runtimeBase.startsWith('.')) {
+    // absolute path
+    return runtimeBase
+  }
+
+  if (runtimeBase.startsWith('./')) {
+    // replace ./ with ../
+    return `.${runtimeBase}`
+  }
+
+  return `../${runtimeBase}`
 }
 
 // TODO: explore why we have a special case for excluding pnpm
@@ -337,6 +393,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     postinstall,
     envPaths,
     copyEngine = true,
+    typedSql,
   } = options
 
   const clientEngineType = getClientEngineType(generator)
@@ -358,6 +415,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     copyEngine,
     testMode,
     envPaths,
+    typedSql,
   })
 
   const provider = datasources[0].provider
@@ -387,17 +445,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await ensureDir(path.join(outputDir, 'deno'))
   }
 
-  await Promise.all(
-    Object.entries(fileMap).map(async ([fileName, file]) => {
-      const filePath = path.join(outputDir, fileName)
-      // The deletion of the file is necessary, so VSCode
-      // picks up the changes.
-      if (existsSync(filePath)) {
-        await fs.unlink(filePath)
-      }
-      await fs.writeFile(filePath, file)
-    }),
-  )
+  await writeFileMap(outputDir, fileMap)
 
   const runtimeDir = path.join(__dirname, `${testMode ? '../' : ''}../runtime`)
 
@@ -474,6 +522,25 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await fs.mkdir(prismaCache, { recursive: true })
     await fs.writeFile(signalsPath, Date.now().toString())
   } catch {}
+}
+
+function writeFileMap(outputDir: string, fileMap: FileMap) {
+  return Promise.all(
+    Object.entries(fileMap).map(async ([fileName, content]) => {
+      const absolutePath = path.join(outputDir, fileName)
+      // The deletion of the file is necessary, so VSCode
+      // picks up the changes.
+      await fs.rm(absolutePath, { recursive: true, force: true })
+      if (typeof content === 'string') {
+        // file
+        await fs.writeFile(absolutePath, content)
+      } else {
+        // subdirectory
+        await fs.mkdir(absolutePath)
+        await writeFileMap(absolutePath, content)
+      }
+    }),
+  )
 }
 
 function isWasmEngineSupported(provider: ConnectorType) {

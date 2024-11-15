@@ -1,5 +1,7 @@
+import { JsonObject } from './Json'
 import { OperationPayload } from './Payload'
-import { Compute, Equals, JsonObject, PatchFlat, Select } from './Utils'
+import { Skip } from './Skip'
+import { Compute, Equals, PatchFlat, Select } from './Utils'
 
 // prettier-ignore
 export type Operation =
@@ -53,7 +55,7 @@ export type GetFindResult<P extends OperationPayload, A, ClientOptions> =
   | { select: infer S extends object } & Record<string, unknown>
   | { include: infer I extends object } & Record<string, unknown>
   ? {
-      [K in keyof S | keyof I as (S & I)[K] extends false | undefined | null ? never : K]:
+      [K in keyof S | keyof I as (S & I)[K] extends false | undefined | Skip | null ? never : K]:
         (S & I)[K] extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
           ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], ClientOptions>[] : never
@@ -152,6 +154,7 @@ export type GetResult<Payload extends OperationPayload, Args, OperationName exte
   count: GetCountResult<Args>,
   groupBy: GetGroupByResult<Payload, Args>,
   $queryRaw: unknown,
+  $queryRawTyped: unknown,
   $executeRaw: number,
   $queryRawUnsafe: unknown,
   $executeRawUnsafe: number,

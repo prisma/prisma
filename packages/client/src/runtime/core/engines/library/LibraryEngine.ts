@@ -3,7 +3,7 @@ import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineSpanEvent } from '@prisma/internals'
-import { bold, green, red, yellow } from 'kleur/colors'
+import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -48,7 +48,6 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 }
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
-let engineInstanceCount = 0
 
 export class LibraryEngine implements Engine<undefined> {
   name = 'LibraryEngine' as const
@@ -112,24 +111,6 @@ export class LibraryEngine implements Engine<undefined> {
     }
 
     this.libraryInstantiationPromise = this.instantiateLibrary()
-
-    this.checkForTooManyEngines()
-  }
-
-  private checkForTooManyEngines() {
-    // We don't show this warning for Edge Functions,
-    // see https://github.com/prisma/team-orm/issues/1094.
-    if (this.config.adapter && ['wasm'].includes(TARGET_BUILD_TYPE)) {
-      return
-    }
-
-    if (engineInstanceCount === 10) {
-      console.warn(
-        `${yellow(
-          'warn(prisma-client)',
-        )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
-      )
-    }
   }
 
   async applyPendingMigrations(): Promise<void> {
@@ -236,9 +217,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         clientVersion: this.config.clientVersion!,
       })
     }
+
     try {
-      const config = JSON.parse(response)
-      return config as T
+      return JSON.parse(response) as T
     } catch (err) {
       throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine`, {
         clientVersion: this.config.clientVersion!,
@@ -283,7 +264,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         },
         adapter,
       )
-      engineInstanceCount++
     } catch (_e) {
       const e = _e as Error
       const error = this.parseInitError(e.message)
@@ -453,7 +433,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async request<T>(
     query: JsonQuery,
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
-  ): Promise<{ data: T; elapsed: number }> {
+  ): Promise<{ data: T }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(query)
@@ -477,8 +457,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       } else if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
-      // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
-      return { data, elapsed: 0 }
+      return { data }
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
         throw e
@@ -534,7 +513,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         }
         return {
           data: result,
-          elapsed: 0, // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
         }
       })
     } else {

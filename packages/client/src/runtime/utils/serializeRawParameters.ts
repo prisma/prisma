@@ -17,6 +17,9 @@ function serializeRawParametersInternal(parameters: any[], objectSerialization: 
 }
 
 function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): unknown {
+  if (Array.isArray(parameter)) {
+    return parameter.map((item) => encodeParameter(item, objectSerialization))
+  }
   if (typeof parameter === 'bigint') {
     return {
       prisma__type: 'bigint',
@@ -48,8 +51,7 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
   if (isArrayBufferLike(parameter) || ArrayBuffer.isView(parameter)) {
     return {
       prisma__type: 'bytes',
-      // TODO Can we change this now in v16?
-      // TODO: node typings do not include ArrayBufferView as of 14.x
+      // TODO: node typings do not include ArrayBufferView as of 20.x
       prisma__value: Buffer.from(parameter as ArrayBuffer).toString('base64'),
     }
   }

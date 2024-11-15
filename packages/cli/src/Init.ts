@@ -4,7 +4,6 @@ import {
   canConnectToDatabase,
   checkUnsupportedDataProxy,
   Command,
-  drawBox,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -210,7 +209,6 @@ export class Init implements Command {
     ${dim('$')} prisma init --with-model
   `)
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async parse(argv: string[]): Promise<any> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -401,6 +399,12 @@ export class Init implements Command {
       )} to generate the Prisma Client. You can then start querying your database.`,
     )
 
+    steps.push(
+      `Tip: Explore how you can extend the ${green(
+        'ORM',
+      )} with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm`,
+    )
+
     if (!url || args['--datasource-provider']) {
       if (!args['--datasource-provider']) {
         steps.unshift(
@@ -419,17 +423,6 @@ export class Init implements Command {
       )
     }
 
-    const promoMessage = `Developing real-time features?
-Prisma Pulse lets you respond instantly to database changes.
-${link('https://pris.ly/cli/pulse')}`
-
-    const boxedPromoMessage = drawBox({
-      height: promoMessage.split('\n').length,
-      width: 0, // calculated automatically
-      str: promoMessage,
-      horizontalPadding: 2,
-    })
-
     return `
 ✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
@@ -439,8 +432,6 @@ ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
 More information in our documentation:
 ${link('https://pris.ly/d/getting-started')}
-
-${boxedPromoMessage}
     `
   }
 

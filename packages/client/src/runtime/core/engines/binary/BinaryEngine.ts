@@ -7,7 +7,7 @@ import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
-import { blue, bold, green, red, yellow } from 'kleur/colors'
+import { blue, bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
 import type { Readable } from 'stream'
 
@@ -23,7 +23,7 @@ import { resolveEnginePath } from '../common/resolveEnginePath'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { QueryEngineResult } from '../common/types/QueryEngine'
+import type { QueryEngineResultData } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
@@ -176,7 +176,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       Debug.enable('*')
     }
     engines.push(this)
-    this.checkForTooManyEngines()
   }
 
   // Set error sets an error for async processing, when this doesn't happen in the span of a request
@@ -196,19 +195,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         if (this.currentRequestPromise?.cancel) {
           this.currentRequestPromise.cancel()
         }
-      }
-    }
-  }
-
-  private checkForTooManyEngines() {
-    if (engines.length >= 10) {
-      const runningEngines = engines.filter((e) => e.child)
-      if (runningEngines.length === 10) {
-        console.warn(
-          `${bold(
-            yellow('warn(prisma-client)'),
-          )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
-        )
       }
     }
   }
@@ -236,7 +222,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private async getCurrentBinaryTarget(): Promise<BinaryTarget> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (this.binaryTargetPromise) {
       return this.binaryTargetPromise
     }
@@ -300,7 +285,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private getEngineEnvVars() {
-    const env: any = {
+    const env: Record<string, string> = {
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
@@ -316,6 +301,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       env.CLICOLOR_FORCE = '1'
     }
 
+    const traceparent = this.tracingHelper.getTraceParent()
+    if (traceparent) {
+      env.TRACE_CONTEXT = JSON.stringify({ traceparent })
+    }
+
     return {
       ...this.env, // user-provided env vars
       ...process.env,
@@ -327,7 +317,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private internalStart(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await new Promise((r) => process.nextTick(r))
       if (this.stopPromise) {
@@ -676,7 +666,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async request<T>(
     query: JsonQuery,
     { traceparent, numTry = 1, isWrite, interactiveTransaction }: RequestOptions<undefined>,
-  ): Promise<QueryEngineResult<T>> {
+  ): Promise<QueryEngineResultData<T>> {
     await this.start()
     const headers: Record<string, string> = {}
     if (traceparent) {
@@ -694,7 +684,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.lastQuery = queryStr
 
     try {
-      const { data, headers } = await this.currentRequestPromise
+      const { data } = await this.currentRequestPromise
 
       if (data.errors) {
         if (data.errors.length === 1) {
@@ -704,16 +694,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
       }
 
-      // Rust engine returns time in microseconds and we want it in milliseconds
-      const elapsed = parseInt(headers['x-elapsed']) / 1000
-
       // reset restart count after successful request
       if (this.startCount > 0) {
         this.startCount = 0
       }
 
       this.currentRequestPromise = undefined
-      return { data, elapsed } as any
+      return { data }
     } catch (e: any) {
       logger('req - e', e)
 
@@ -753,9 +740,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     )
 
     return this.currentRequestPromise
-      .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in milliseconds
-        const elapsed = parseInt(headers['x-elapsed']) / 1000
+      .then(({ data }) => {
         const { batchResult } = data
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
@@ -764,7 +749,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
             return {
               data: result,
-              elapsed,
             }
           })
         } else {
@@ -828,12 +812,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
-        this.httpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/commit`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
-        this.httpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/rollback`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
     }
 
