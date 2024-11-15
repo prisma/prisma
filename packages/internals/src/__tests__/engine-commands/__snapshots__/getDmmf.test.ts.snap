@@ -13497,7 +13497,7 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserRelationFilter",
+                  "type": "UserScalarRelationFilter",
                 },
                 {
                   "isList": false,
@@ -13741,7 +13741,7 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserRelationFilter",
+                  "type": "UserScalarRelationFilter",
                 },
                 {
                   "isList": false,
@@ -17897,7 +17897,7 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isNot",
             },
           ],
-          "name": "UserRelationFilter",
+          "name": "UserScalarRelationFilter",
         },
         {
           "constraints": {
@@ -27707,7 +27707,7 @@ exports[`getDMMF success @@unique model 1`] = `
 
 exports[`getDMMF success big schema read via datamodel path 1`] = `153813466`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `982134`;
+exports[`getDMMF success chinook introspected schema 1`] = `982320`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -33842,7 +33842,7 @@ exports[`getDMMF success multiple files 1`] = `
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `137257967`;
+exports[`getDMMF success odoo introspected schema 1`] = `137264711`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
