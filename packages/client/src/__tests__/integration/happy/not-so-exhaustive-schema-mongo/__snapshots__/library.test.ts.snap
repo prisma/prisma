@@ -17014,7 +17014,7 @@ export namespace Prisma {
     content?: StringNullableFilter<"Post"> | string | null
     published?: BoolFilter<"Post"> | boolean
     authorId?: StringFilter<"Post"> | string
-    author?: XOR<UserRelationFilter, UserWhereInput>
+    author?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type PostOrderByWithRelationInput = {
@@ -17037,7 +17037,7 @@ export namespace Prisma {
     content?: StringNullableFilter<"Post"> | string | null
     published?: BoolFilter<"Post"> | boolean
     authorId?: StringFilter<"Post"> | string
-    author?: XOR<UserRelationFilter, UserWhereInput>
+    author?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
   export type PostOrderByWithAggregationInput = {
@@ -17084,7 +17084,7 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
     embedHolderId?: StringFilter<"User"> | string
     posts?: PostListRelationFilter
-    embedHolder?: XOR<EmbedHolderRelationFilter, EmbedHolderWhereInput>
+    embedHolder?: XOR<EmbedHolderScalarRelationFilter, EmbedHolderWhereInput>
   }
 
   export type UserOrderByWithRelationInput = {
@@ -17127,7 +17127,7 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
     embedHolderId?: StringFilter<"User"> | string
     posts?: PostListRelationFilter
-    embedHolder?: XOR<EmbedHolderRelationFilter, EmbedHolderWhereInput>
+    embedHolder?: XOR<EmbedHolderScalarRelationFilter, EmbedHolderWhereInput>
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -17552,7 +17552,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"ManyRequired"> | boolean
     optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
-    one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
+    one?: XOR<OneOptionalNullableScalarRelationFilter, OneOptionalWhereInput> | null
   }
 
   export type ManyRequiredOrderByWithRelationInput = {
@@ -17591,7 +17591,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"ManyRequired"> | boolean
     optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
-    one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
+    one?: XOR<OneOptionalNullableScalarRelationFilter, OneOptionalWhereInput> | null
   }, "id">
 
   export type ManyRequiredOrderByWithAggregationInput = {
@@ -17654,7 +17654,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide1"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide1"> | boolean | null
-    opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
+    opti?: XOR<OptionalSide2NullableScalarRelationFilter, OptionalSide2WhereInput> | null
   }
 
   export type OptionalSide1OrderByWithRelationInput = {
@@ -17693,7 +17693,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide1"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide1"> | boolean | null
-    opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
+    opti?: XOR<OptionalSide2NullableScalarRelationFilter, OptionalSide2WhereInput> | null
   }, "id" | "optionalSide2Id">
 
   export type OptionalSide1OrderByWithAggregationInput = {
@@ -17755,7 +17755,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide2"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide2"> | boolean | null
-    opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
+    opti?: XOR<OptionalSide1NullableScalarRelationFilter, OptionalSide1WhereInput> | null
   }
 
   export type OptionalSide2OrderByWithRelationInput = {
@@ -17792,7 +17792,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide2"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide2"> | boolean | null
-    opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
+    opti?: XOR<OptionalSide1NullableScalarRelationFilter, OptionalSide1WhereInput> | null
   }, "id">
 
   export type OptionalSide2OrderByWithAggregationInput = {
@@ -19369,7 +19369,7 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
-  export type UserRelationFilter = {
+  export type UserScalarRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
   }
@@ -19556,7 +19556,7 @@ export namespace Prisma {
     none?: PostWhereInput
   }
 
-  export type EmbedHolderRelationFilter = {
+  export type EmbedHolderScalarRelationFilter = {
     is?: EmbedHolderWhereInput
     isNot?: EmbedHolderWhereInput
   }
@@ -20043,7 +20043,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OneOptionalNullableRelationFilter = {
+  export type OneOptionalNullableScalarRelationFilter = {
     is?: OneOptionalWhereInput | null
     isNot?: OneOptionalWhereInput | null
   }
@@ -20109,7 +20109,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OptionalSide2NullableRelationFilter = {
+  export type OptionalSide2NullableScalarRelationFilter = {
     is?: OptionalSide2WhereInput | null
     isNot?: OptionalSide2WhereInput | null
   }
@@ -20175,7 +20175,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OptionalSide1NullableRelationFilter = {
+  export type OptionalSide1NullableScalarRelationFilter = {
     is?: OptionalSide1WhereInput | null
     isNot?: OptionalSide1WhereInput | null
   }
