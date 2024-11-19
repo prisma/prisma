@@ -1,4 +1,4 @@
-import type { DotenvConfigOutput } from 'dotenv'
+import type { DotenvConfigOutput, DotenvPopulateInput } from 'dotenv'
 
 /**
  * Modified version of https://github.com/motdotla/dotenv-expand
@@ -30,9 +30,9 @@ import type { DotenvConfigOutput } from 'dotenv'
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: boolean }) {
-  // if ignoring process.env, use a blank object
-  const environment = config.ignoreProcessEnv ? {} : process.env
+export function dotenvExpand(config: DotenvConfigOutput & { processEnv?: DotenvPopulateInput }) {
+  // if `config.processEnv` is provided, write to it, rather than to the global `process.env`
+  const environment = config.processEnv ? config.processEnv : process.env
 
   const interpolate = (envValue: string) => {
     const matches = envValue.match(/(.?\${(?:[a-zA-Z0-9_]+)?})/g)
@@ -66,6 +66,7 @@ export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: b
     )
   }
 
+  // dotenv.config() ran before this so the assumption is `config.processEnv` has already been set
   for (const configKey in config.parsed) {
     const value = Object.hasOwnProperty.call(environment, configKey) ? environment[configKey] : config.parsed[configKey]
 

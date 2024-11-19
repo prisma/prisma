@@ -15,4 +15,6 @@ export async function loadEnvFile({
   if (printMessage && envData && envData.message) {
     process.stdout.write(envData.message + '\n')
   }
+
+  return envData
 }

@@ -42,6 +42,7 @@ export function tryLoadEnvs(
   },
 ): LoadedEnv {
   const rootEnvInfo = loadEnv(rootEnvPath)
+
   if (opts.conflictCheck !== 'none') {
     // This will throw an error if there are conflicts
     checkForConflicts(rootEnvInfo, schemaEnvPath, opts.conflictCheck)
@@ -116,12 +117,16 @@ Env vars from ${underline(relativeEnvPath)} overwrite the ones from ${underline(
   }
 }
 
+// TODO: consider turning this into a global? Mostly for `handlePanic` and related utils
+const processEnvCache: dotenv.DotenvPopulateInput = {}
+
 export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult | null {
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
 
     const dotenvOutput = dotenv.config({
       path: envPath,
+      processEnv: processEnvCache,
       // Useful to debug dotenv parsing, prints errors & warnings
       // Set to any value to enable
       // Example for empty .env file
@@ -132,7 +137,9 @@ export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult
       debug: process.env.DOTENV_CONFIG_DEBUG ? true : undefined,
     })
 
-    const dotenvExpandOutput = dotenvExpand(dotenvOutput)
+    console.log('[loadEnv] dotenvOutput:')
+    console.dir(dotenvOutput, { depth: null })
+    const dotenvExpandOutput = dotenvExpand({ ...dotenvOutput, processEnv: processEnvCache })
 
     return {
       dotenvResult: dotenvExpandOutput,
