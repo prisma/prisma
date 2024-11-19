@@ -4,6 +4,7 @@ import {
   getGeneratorSuccessMessage,
   type GetSchemaResult,
   getSchemaWithPath,
+  type LoadedEnv,
   toSchemasContainer,
 } from '@prisma/internals'
 import { dim } from 'kleur/colors'
@@ -17,12 +18,18 @@ import type { EngineArgs, EngineResults } from './types'
 // We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.
 const packageJson = eval(`require('../package.json')`)
 
+type MigrateInput = {
+  env: LoadedEnv
+  schemaPath?: string
+  enabledPreviewFeatures?: string[]
+}
+
 export class Migrate {
   public engine: SchemaEngine
   private schemaPath?: string
   public migrationsDirectoryPath?: string
 
-  constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
+  constructor({ env, schemaPath, enabledPreviewFeatures }: MigrateInput) {
     // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
     if (schemaPath) {
@@ -31,10 +38,12 @@ export class Migrate {
       this.engine = new SchemaEngine({
         schemaPath: this.schemaPath,
         enabledPreviewFeatures,
+        env,
       })
     } else {
       this.engine = new SchemaEngine({
         enabledPreviewFeatures,
+        env,
       })
     }
   }

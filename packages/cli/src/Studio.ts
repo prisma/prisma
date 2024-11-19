@@ -24,7 +24,7 @@ import path from 'path'
 // See packages/client/tests/e2e/issues/studio-1128-spawn-enoent/_steps.ts
 const debug = Debug('prisma:cli:studio')
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json')
 
 export class Studio implements Command {
   public instance?: StudioServer
@@ -109,9 +109,14 @@ ${bold('Examples')}
       schemas,
     })
 
-    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const config = await getConfig({
+      datamodel: schemas,
+      ignoreEnvVarErrors: true,
+    })
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
+
+    // TODO: do we need to pass the result of `loadEnvFile` to `StudioServer`?
     const studio = new StudioServer({
       schemaPath,
       schemaText: mergedSchema,

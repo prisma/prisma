@@ -68,16 +68,16 @@ Check the status of your database migrations
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    const loadedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     // TODO: handle the case where the schemaPath is null
     const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    printDatasource({ datasourceInfo: await getDatasourceInfo(loadedEnv, { schemaPath }) })
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate({ env: loadedEnv, schemaPath })
 
-    await ensureCanConnectToDatabase(schemaPath)
+    await ensureCanConnectToDatabase(loadedEnv, schemaPath)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

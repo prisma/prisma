@@ -93,11 +93,11 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    const loadedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema']))!
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath })
+    const datasourceInfo = await getDatasourceInfo(loadedEnv, { schemaPath })
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
@@ -109,15 +109,16 @@ ${bold('Examples')}
     await getConfig({
       datamodel: schemas,
       ignoreEnvVarErrors: false,
+      env: loadedEnv,
     })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
+    const wasDbCreated = await ensureDatabaseExists(loadedEnv, 'create', schemaPath)
     if (wasDbCreated) {
       process.stdout.write(wasDbCreated + '\n\n')
     }
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate({ env: loadedEnv, schemaPath })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {

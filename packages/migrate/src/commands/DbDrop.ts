@@ -80,11 +80,11 @@ ${bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    const loadedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const { schemaPath } = await getSchemaPathAndPrint(args['--schema'])
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
+    const datasourceInfo = await getDatasourceInfo(loadedEnv, { schemaPath, throwIfEnvError: true })
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line

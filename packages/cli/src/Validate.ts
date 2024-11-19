@@ -62,7 +62,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    const loadedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
@@ -89,6 +89,7 @@ ${bold('Examples')}
     await getConfig({
       datamodel: schemas,
       ignoreEnvVarErrors: false,
+      env: loadedEnv,
     })
 
     const schemaRelativePath = path.relative(process.cwd(), schemaPath)

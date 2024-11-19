@@ -78,11 +78,11 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    const loadedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    printDatasource({ datasourceInfo: await getDatasourceInfo(loadedEnv, { schemaPath }) })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {
@@ -106,9 +106,9 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaPath)
+      await ensureCanConnectToDatabase(loadedEnv, schemaPath)
 
-      const migrate = new Migrate(schemaPath)
+      const migrate = new Migrate({ env: loadedEnv, schemaPath })
       try {
         await migrate.markMigrationApplied({
           migrationId: args['--applied'],
@@ -128,9 +128,9 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaPath)
+      await ensureCanConnectToDatabase(loadedEnv, schemaPath)
 
-      const migrate = new Migrate(schemaPath)
+      const migrate = new Migrate({ env: loadedEnv, schemaPath })
       try {
         await migrate.markMigrationRolledBack({
           migrationId: args['--rolled-back'],

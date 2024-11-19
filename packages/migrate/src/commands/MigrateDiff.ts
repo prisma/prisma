@@ -226,11 +226,11 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
+      const loadedEnv = await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
       const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), {
         argumentName: '--from-schema-datasource',
       })
-      const config = await getConfig({ datamodel: schema.schemas })
+      const config = await getConfig({ datamodel: schema.schemas, env: loadedEnv })
       from = {
         tag: 'schemaDatasource',
         ...toSchemasWithConfigDir(schema, config),
@@ -261,6 +261,7 @@ ${bold('Examples')}
       }
     }
 
+    const loadedEnv = await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
     let to: EngineArgs.MigrateDiffTarget
     if (args['--to-empty']) {
       to = {
@@ -268,11 +269,10 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
       const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), {
         argumentName: '--to-schema-datasource',
       })
-      const config = await getConfig({ datamodel: schema.schemas })
+      const config = await getConfig({ datamodel: schema.schemas, env: loadedEnv })
       to = {
         tag: 'schemaDatasource',
         ...toSchemasWithConfigDir(schema, config),
@@ -303,7 +303,7 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate()
+    const migrate = new Migrate({ env: loadedEnv })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()

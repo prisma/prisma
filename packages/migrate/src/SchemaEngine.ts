@@ -7,6 +7,7 @@ import {
   getConfig,
   getMigrateConfigDir,
   getSchema,
+  type LoadedEnv,
   type MigrateTypes,
   relativizePathInPSLError,
   resolveBinary,
@@ -28,6 +29,7 @@ const debugStderr = Debug('prisma:schemaEngine:stderr')
 const debugStdin = Debug('prisma:schemaEngine:stdin')
 
 export interface SchemaEngineOptions {
+  env: LoadedEnv
   schemaPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
@@ -48,6 +50,7 @@ let messageId = 1
 
 export class SchemaEngine {
   private debug: boolean
+  private env: LoadedEnv
   private child?: ChildProcess
   private schemaPath?: string
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
@@ -65,8 +68,8 @@ export class SchemaEngine {
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
-  constructor({ debug = false, schemaPath, enabledPreviewFeatures }: SchemaEngineOptions) {
-    this.schemaPath = schemaPath
+  constructor({ debug = false, env, schemaPath, enabledPreviewFeatures }: SchemaEngineOptions) {
+    ;(this.env = env), (this.schemaPath = schemaPath)
     if (debug) {
       Debug.enable('SchemaEngine*')
     }
@@ -339,7 +342,7 @@ export class SchemaEngine {
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
-        const { PWD, ...processEnv } = process.env
+        const { PWD, ...processEnv } = this.env?.parsed || {}
         const binaryPath = await resolveBinary(BinaryType.SchemaEngineBinary)
         debugRpc('starting Schema engine with binary: ' + binaryPath)
         const args: string[] = []
@@ -347,7 +350,7 @@ export class SchemaEngine {
         let projectDir: string = process.cwd()
         if (this.schemaPath) {
           const schema = await getSchema(this.schemaPath)
-          const config = await getConfig({ datamodel: schema })
+          const config = await getConfig({ datamodel: schema, env: this.env })
           projectDir = getMigrateConfigDir(config, this.schemaPath)
           const schemaArgs = schema.flatMap(([path]) => ['-d', path])
           args.push(...schemaArgs)

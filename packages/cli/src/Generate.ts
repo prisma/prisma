@@ -142,7 +142,10 @@ ${bold('Examples')}
 
     const { schemas, schemaPath } = schemaResult
     printSchemaLoadedMessage(schemaPath)
-    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const config = await getConfig({
+      datamodel: schemas,
+      ignoreEnvVarErrors: true,
+    })
 
     // TODO Extract logic from here
     let hasJsClient
