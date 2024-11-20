@@ -7,8 +7,8 @@ import {
   getConfig,
   getMigrateConfigDir,
   getSchema,
-  type LoadedEnv,
   type MigrateTypes,
+  type ParsedEnv,
   relativizePathInPSLError,
   resolveBinary,
   RustPanic,
@@ -29,7 +29,7 @@ const debugStderr = Debug('prisma:schemaEngine:stderr')
 const debugStdin = Debug('prisma:schemaEngine:stdin')
 
 export interface SchemaEngineOptions {
-  env: LoadedEnv
+  env: ParsedEnv
   schemaPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
@@ -50,7 +50,7 @@ let messageId = 1
 
 export class SchemaEngine {
   private debug: boolean
-  private env: LoadedEnv
+  private env: ParsedEnv
   private child?: ChildProcess
   private schemaPath?: string
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
@@ -342,7 +342,7 @@ export class SchemaEngine {
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
-        const { PWD, ...processEnv } = this.env?.parsed || {}
+        const { PWD, ...processEnv } = this.env || {}
         const binaryPath = await resolveBinary(BinaryType.SchemaEngineBinary)
         debugRpc('starting Schema engine with binary: ' + binaryPath)
         const args: string[] = []

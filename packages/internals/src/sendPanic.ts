@@ -21,21 +21,27 @@ import type { MigrateTypes } from './migrateTypes'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
 import { mapScalarValues, maskSchema, maskSchemas } from './utils/maskSchema'
-import { MultipleSchemas } from './utils/schemaFileInput'
+import type { MultipleSchemas } from './utils/schemaFileInput'
 import { toSchemasContainer } from './utils/toSchemasContainer'
+import type { ParsedEnv } from './utils/tryLoadEnvs'
 
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
 type SendPanic = {
+  env: ParsedEnv
   error: RustPanic
   cliVersion: string
   enginesVersion: string
 
   // retrieve the database version for the given schema or url, without throwing any error
-  getDatabaseVersionSafe: (args: MigrateTypes.GetDatabaseVersionParams | undefined) => Promise<string | undefined>
+  getDatabaseVersionSafe: (
+    env: ParsedEnv,
+    args: MigrateTypes.GetDatabaseVersionParams | undefined,
+  ) => Promise<string | undefined>
 }
 export async function sendPanic({
+  env,
   error,
   cliVersion,
   enginesVersion,
@@ -75,7 +81,7 @@ export async function sendPanic({
       })
       .otherwise(() => undefined)
 
-    dbVersion = await getDatabaseVersionSafe(getDatabaseVersionParams)
+    dbVersion = await getDatabaseVersionSafe(env, getDatabaseVersionParams)
   }
 
   const migrateRequest = error.request

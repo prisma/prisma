@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import {
+import type {
   arg,
   checkUnsupportedDataProxy,
   Command,
@@ -13,12 +13,13 @@ import {
   link,
   loadEnvFile,
   locateLocalCloudflareD1,
+  MigrateTypes,
   type MultipleSchemas,
+  ParsedEnv,
   protocolToConnectorType,
   relativizePathInPSLError,
   toSchemasContainer,
 } from '@prisma/internals'
-import { LoadedEnv, MigrateTypes } from '@prisma/internals'
 import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'
@@ -127,19 +128,19 @@ Set composite types introspection depth to 2 levels
     const rootDir = schemaPathResult?.schemaRootDir ?? process.cwd()
     debug('schemaPathResult', schemaPathResult)
 
-    let loadedEnv: LoadedEnv | undefined = undefined
+    let parsedEnv: ParsedEnv | undefined = undefined
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
       process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 
       // Load and print where the .env was loaded (if loaded)
-      loadedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+      parsedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
-      printDatasource({ datasourceInfo: await getDatasourceInfo(loadedEnv, { schemaPath }) })
+      printDatasource({ datasourceInfo: await getDatasourceInfo(parsedEnv, { schemaPath }) })
     } else {
       // Load .env but don't print
-      loadedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+      parsedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
     }
 
     const fromD1 = Boolean(args['--local-d1'])
@@ -237,7 +238,7 @@ Set composite types introspection depth to 2 levels
             await getConfig({
               datamodel: rawSchema,
               ignoreEnvVarErrors: false,
-              env: loadedEnv,
+              env: parsedEnv,
             })
           }
 
@@ -302,8 +303,8 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     }
 
     const engine = new SchemaEngine({
+      env: parsedEnv,
       schemaPath: schemaPath ?? undefined,
-      env: loadedEnv,
     })
 
     const basedOn =

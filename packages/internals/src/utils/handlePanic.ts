@@ -7,6 +7,7 @@ import { sendPanic } from '../sendPanic'
 import { canPrompt } from './canPrompt'
 import { wouldYouLikeToCreateANewIssue } from './getGitHubIssueUrl'
 import { link } from './link'
+import type { ParsedEnv } from './tryLoadEnvs'
 
 type HandlePanic = {
   error: RustPanic
@@ -15,7 +16,10 @@ type HandlePanic = {
   command: string
 
   // retrieve the database version for the given schema or url, without throwing any error
-  getDatabaseVersionSafe: (args: MigrateTypes.GetDatabaseVersionParams | undefined) => Promise<string | undefined>
+  getDatabaseVersionSafe: (
+    env: ParsedEnv,
+    args: MigrateTypes.GetDatabaseVersionParams | undefined,
+  ) => Promise<string | undefined>
 }
 
 export async function handlePanic(args: HandlePanic): Promise<void> {
@@ -66,8 +70,9 @@ ${dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
 
   if (shouldSubmitReport) {
     try {
+      const env = globalThis['PRISMA_PROCESS_ENV']
       console.log('Submitting...')
-      const reportId = await sendPanic({ error, cliVersion, enginesVersion, getDatabaseVersionSafe })
+      const reportId = await sendPanic({ env, error, cliVersion, enginesVersion, getDatabaseVersionSafe })
       console.log(`\n${bold(`We successfully received the error report id: ${reportId}`)}`)
       console.log(`\n${bold('Thanks a lot for your help! 🙏')}`)
     } catch (error) {

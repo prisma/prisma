@@ -1,8 +1,7 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { getSchema, pathToPosix, toSchemasContainer } from '@prisma/internals'
+import { getSchema, loadEnvFile, pathToPosix, toSchemasContainer } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
@@ -93,9 +92,10 @@ describe('postgresql-views', () => {
 
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
+        const parsedEnv = await loadEnvFile({ schemaPath: fixturePath })
 
         const engine = new SchemaEngine({
-          projectDir: process.cwd(),
+          env: parsedEnv,
           schemaPath: undefined,
         })
 
@@ -117,9 +117,10 @@ describe('postgresql-views', () => {
 
       it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
+        const parsedEnv = await loadEnvFile({ schemaPath: fixturePath })
 
         const engine = new SchemaEngine({
-          projectDir: process.cwd(),
+          env: parsedEnv,
           schemaPath: undefined,
         })
 
@@ -140,6 +141,7 @@ describe('postgresql-views', () => {
 
       it('`views` is [] and an empty existing views folder is deleted', async () => {
         ctx.fixture(path.join(fixturePath))
+        const parsedEnv = await loadEnvFile({ schemaPath: fixturePath })
 
         // Empty dir should be deleted along the views dir
         await ctx.fs.dirAsync('views/empty-dir')
@@ -148,7 +150,7 @@ describe('postgresql-views', () => {
         expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
 
         const engine = new SchemaEngine({
-          projectDir: process.cwd(),
+          env: parsedEnv,
           schemaPath: undefined,
         })
 
@@ -171,13 +173,14 @@ describe('postgresql-views', () => {
 
       it('`views` is [] and a non-empty existing views folder is kept', async () => {
         ctx.fixture(path.join(fixturePath))
+        const parsedEnv = await loadEnvFile({ schemaPath: fixturePath })
 
         ctx.fs.write('views/README.md', 'Some readme markdown')
         expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
         expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
 
         const engine = new SchemaEngine({
-          projectDir: process.cwd(),
+          env: parsedEnv,
           schemaPath: undefined,
         })
 

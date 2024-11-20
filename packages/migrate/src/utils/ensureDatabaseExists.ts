@@ -1,4 +1,4 @@
-import type { ConfigMetaFormat, DatabaseCredentials, LoadedEnv } from '@prisma/internals'
+import type { ConfigMetaFormat, DatabaseCredentials, ParsedEnv } from '@prisma/internals'
 import {
   canConnectToDatabase,
   createDatabase,
@@ -32,7 +32,7 @@ export type DatasourceInfo = {
 // TODO: sometimes this function is called with a `schemaPath`, even though the schema(s) have already been read from disk.
 // (e.g., check `MigrateDev.ts`).
 export async function getDatasourceInfo(
-  loadedEnv: LoadedEnv,
+  parsedEnv: ParsedEnv,
   { schemaPath, throwIfEnvError }: { schemaPath?: string; throwIfEnvError?: boolean } = {},
 ): Promise<DatasourceInfo> {
   const schema = await getSchema(schemaPath)
@@ -42,7 +42,7 @@ export async function getDatasourceInfo(
   // Because we want to get the database name from the url later in the function
   // If it fails we try again but ignore the env var error
   try {
-    config = await getConfig({ datamodel: schema, env: loadedEnv, ignoreEnvVarErrors: false })
+    config = await getConfig({ datamodel: schema, env: parsedEnv, ignoreEnvVarErrors: false })
   } catch (error) {
     // Note: only used for db drop (which is not exposed in the CLI)
     if (throwIfEnvError) {
@@ -131,9 +131,9 @@ export async function getDatasourceInfo(
 // check if we can connect to the database
 // if true: return true
 // if false: throw error
-export async function ensureCanConnectToDatabase(loadedEnv: LoadedEnv, schemaPath?: string): Promise<Boolean | Error> {
+export async function ensureCanConnectToDatabase(parsedEnv: ParsedEnv, schemaPath?: string): Promise<Boolean | Error> {
   const schema = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel: schema, env: loadedEnv, ignoreEnvVarErrors: false })
+  const config = await getConfig({ datamodel: schema, env: parsedEnv, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
@@ -157,10 +157,10 @@ export async function ensureCanConnectToDatabase(loadedEnv: LoadedEnv, schemaPat
 /**
  * TODO: remove `action` parameter, as it's never consumed.
  */
-export async function ensureDatabaseExists(loadedEnv: LoadedEnv, action: MigrateAction, schemaPath?: string) {
+export async function ensureDatabaseExists(parsedEnv: ParsedEnv, action: MigrateAction, schemaPath?: string) {
   const schemas = await getSchema(schemaPath)
 
-  const config = await getConfig({ datamodel: schemas, env: loadedEnv, ignoreEnvVarErrors: false })
+  const config = await getConfig({ datamodel: schemas, env: parsedEnv, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {

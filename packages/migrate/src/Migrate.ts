@@ -4,7 +4,7 @@ import {
   getGeneratorSuccessMessage,
   type GetSchemaResult,
   getSchemaWithPath,
-  type LoadedEnv,
+  type ParsedEnv,
   toSchemasContainer,
 } from '@prisma/internals'
 import { dim } from 'kleur/colors'
@@ -19,7 +19,7 @@ import type { EngineArgs, EngineResults } from './types'
 const packageJson = eval(`require('../package.json')`)
 
 type MigrateInput = {
-  env: LoadedEnv
+  env: ParsedEnv
   schemaPath?: string
   enabledPreviewFeatures?: string[]
 }

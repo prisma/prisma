@@ -1,5 +1,5 @@
 import { SqlQueryOutput } from '@prisma/generator-helper'
-import { type ConfigMetaFormat, getConfig, getEffectiveUrl, getSchemaWithPath } from '@prisma/internals'
+import { type ConfigMetaFormat, getConfig, getEffectiveUrl, getSchemaWithPath, ParsedEnv } from '@prisma/internals'
 
 import { SchemaEngine } from '../SchemaEngine'
 import { EngineArgs } from '../types'
@@ -36,11 +36,12 @@ export type IntrospectSqlResult =
     }
 
 export async function introspectSql(
+  parsedEnv: ParsedEnv,
   schemaPath: string | undefined,
   queries: IntrospectSqlInput[],
 ): Promise<IntrospectSqlResult> {
   const schema = await getSchemaWithPath(schemaPath)
-  const config = await getConfig({ datamodel: schema.schemas })
+  const config = await getConfig({ env: parsedEnv, datamodel: schema.schemas })
   if (!supportedProviders.includes(config.datasources?.[0]?.activeProvider)) {
     throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
   }
@@ -57,7 +58,7 @@ export async function introspectSql(
     throw new Error(`Could not get url from datasource ${firstDatasource.name} in ${schema.schemaPath}`)
   }
 
-  const schemaEngine = new SchemaEngine({ schemaPath: schema.schemaPath })
+  const schemaEngine = new SchemaEngine({ env: parsedEnv, schemaPath: schema.schemaPath })
   const results: SqlQueryOutput[] = []
   const errors: IntrospectSqlError[] = []
   try {

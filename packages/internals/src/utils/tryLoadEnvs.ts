@@ -8,6 +8,12 @@ import { dotenvExpand } from '../dotenvExpand'
 
 const debug = Debug('prisma:tryLoadEnv')
 
+function filterUndefinedEntries(obj: { [key: string]: string | undefined }): { [key: string]: string } {
+  return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined)) as { [key: string]: string }
+}
+
+globalThis['PRISMA_PROCESS_ENV'] = filterUndefinedEntries(process.env)
+
 type DotenvResult = dotenv.DotenvConfigOutput & {
   ignoreProcessEnv?: boolean | undefined
 }
@@ -19,13 +25,15 @@ interface DotenvLoadEnvResult {
   dotenvResult: DotenvResult
 }
 
+export type ParsedEnv = {
+  [key: string]: string
+}
+
 // our type for loaded env data
 export type LoadedEnv =
   | {
       message?: string
-      parsed: {
-        [x: string]: string
-      }
+      parsed: ParsedEnv
     }
   | undefined
 
@@ -60,7 +68,8 @@ export function tryLoadEnvs(
 
   // Print the error if any (if internal dotenv readFileSync throws)
   if (schemaEnvInfo?.dotenvResult.error) {
-    return console.error(red(bold('Schema Env Error: ')) + schemaEnvInfo.dotenvResult.error) as undefined
+    console.error(red(bold('Schema Env Error: ')) + schemaEnvInfo.dotenvResult.error)
+    return undefined
   }
   const messages = [rootEnvInfo?.message, schemaEnvInfo?.message].filter(Boolean)
 
@@ -117,16 +126,13 @@ Env vars from ${underline(relativeEnvPath)} overwrite the ones from ${underline(
   }
 }
 
-// TODO: consider turning this into a global? Mostly for `handlePanic` and related utils
-const processEnvCache: dotenv.DotenvPopulateInput = {}
-
 export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult | null {
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
 
     const dotenvOutput = dotenv.config({
       path: envPath,
-      processEnv: processEnvCache,
+      processEnv: globalThis['PRISMA_PROCESS_ENV'],
       // Useful to debug dotenv parsing, prints errors & warnings
       // Set to any value to enable
       // Example for empty .env file
@@ -137,9 +143,8 @@ export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult
       debug: process.env.DOTENV_CONFIG_DEBUG ? true : undefined,
     })
 
-    console.log('[loadEnv] dotenvOutput:')
-    console.dir(dotenvOutput, { depth: null })
-    const dotenvExpandOutput = dotenvExpand({ ...dotenvOutput, processEnv: processEnvCache })
+    debug('[loadEnv] dotenvOutput %o:', dotenvOutput)
+    const dotenvExpandOutput = dotenvExpand({ ...dotenvOutput, processEnv: globalThis['PRISMA_PROCESS_ENV'] })
 
     return {
       dotenvResult: dotenvExpandOutput,

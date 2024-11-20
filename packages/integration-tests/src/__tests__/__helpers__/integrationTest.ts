@@ -1,3 +1,4 @@
+import { loadEnvFile } from '@prisma/internals'
 import { SchemaEngine } from '@prisma/migrate'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
@@ -302,17 +303,16 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     ${datasourceBlock}
   `
 
-  const engine = new SchemaEngine({
-    projectDir: process.cwd(),
-  })
+  const prismaSchemaPath = ctx.fs.path('schema.prisma')
+  const parsedEnv = await loadEnvFile({ schemaPath: prismaSchemaPath })
+
+  const engine = new SchemaEngine({ env: parsedEnv })
   const introspectionResult = await engine.introspect({
     schema: {
       files: [{ path: 'schema.prisma', content: schemaBase }],
     },
     baseDirectoryPath: process.cwd(),
   })
-
-  const prismaSchemaPath = ctx.fs.path('schema.prisma')
 
   await fs.writeAsync(prismaSchemaPath, introspectionResult.schema.files[0].content)
   return {

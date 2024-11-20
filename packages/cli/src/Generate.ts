@@ -133,7 +133,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    const parsedEnv = await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
@@ -153,7 +153,7 @@ ${bold('Examples')}
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined
     if (args['--sql']) {
-      typedSql = await introspectSql(schemaPath)
+      typedSql = await introspectSql(parsedEnv, schemaPath)
     }
     try {
       generators = await getGenerators({
@@ -303,7 +303,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         let generatorsWatch: Generator[] | undefined
         try {
           if (args['--sql']) {
-            typedSql = await introspectSql(schemaPath)
+            typedSql = await introspectSql(parsedEnv, schemaPath)
           }
 
           generatorsWatch = await getGenerators({

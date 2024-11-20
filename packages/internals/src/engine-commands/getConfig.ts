@@ -8,7 +8,7 @@ import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { type SchemaFileInput, toMultipleSchemas } from '../utils/schemaFileInput'
-import { LoadedEnv } from '../utils/tryLoadEnvs'
+import type { ParsedEnv } from '../utils/tryLoadEnvs'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
@@ -53,7 +53,7 @@ export type GetConfigOptions = {
       /**
        * Since Prisma 6.0.0, we no longer write the env vars from .env file to `process.env`.
        */
-      env: LoadedEnv
+      env: ParsedEnv
     }
 )
 
@@ -114,15 +114,15 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           prismaSchemaWasm.debug_panic()
         }
 
-        debug('options.env?.parsed')
+        debug('options.env')
         // @ts-ignore
-        debug(options.env?.parsed)
+        debug(options.env)
 
         const params = JSON.stringify({
           prismaSchema: options.datamodel,
           datasourceOverrides: {},
           ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
-          env: options.ignoreEnvVarErrors ? {} : options.env?.parsed,
+          env: options.ignoreEnvVarErrors ? {} : options.env,
         })
 
         const data = prismaSchemaWasm.get_config(params)

@@ -1,5 +1,5 @@
 import { getEnvPaths } from './getEnvPaths'
-import { tryLoadEnvs } from './tryLoadEnvs'
+import { type ParsedEnv, tryLoadEnvs } from './tryLoadEnvs'
 
 /**
  * Read .env file only if next to schema.prisma
@@ -8,7 +8,7 @@ import { tryLoadEnvs } from './tryLoadEnvs'
 export async function loadEnvFile({
   schemaPath,
   printMessage = false,
-}: { schemaPath?: string; printMessage?: boolean } = {}) {
+}: { schemaPath?: string; printMessage?: boolean } = {}): Promise<ParsedEnv> {
   const envPaths = await getEnvPaths(schemaPath)
   const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
 
@@ -16,5 +16,9 @@ export async function loadEnvFile({
     process.stdout.write(envData.message + '\n')
   }
 
-  return envData
+  if (envData === undefined) {
+    return globalThis['PRISMA_PROCESS_ENV']
+  }
+
+  return envData.parsed
 }

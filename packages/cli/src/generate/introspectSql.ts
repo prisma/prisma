@@ -1,4 +1,4 @@
-import { isValidJsIdentifier } from '@prisma/internals'
+import { isValidJsIdentifier, type ParsedEnv } from '@prisma/internals'
 import { introspectSql as migrateIntrospectSql, IntrospectSqlError, IntrospectSqlInput } from '@prisma/migrate'
 import fs from 'fs/promises'
 import { bold } from 'kleur/colors'
@@ -6,9 +6,9 @@ import path from 'path'
 
 const SQL_DIR = 'sql'
 
-export async function introspectSql(schemaPath: string) {
+export async function introspectSql(env: ParsedEnv, schemaPath: string) {
   const sqlFiles = await readTypedSqlFiles(schemaPath)
-  const introspectionResult = await migrateIntrospectSql(schemaPath, sqlFiles)
+  const introspectionResult = await migrateIntrospectSql(env, schemaPath, sqlFiles)
   if (introspectionResult.ok) {
     return introspectionResult.queries
   }
