@@ -4,7 +4,7 @@
   "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=16.13",
+    "node": ">=18.18",
     "pnpm": ">=8.6.7 <9"
   },
   "scripts": {
@@ -33,7 +33,7 @@
     "@eslint/compat": "1.1.1",
     "@eslint/eslintrc": "3.1.0",
     "@eslint/js": "9.5.0",
-    "@microsoft/api-extractor": "7.47.7",
+    "@microsoft/api-extractor": "7.47.11",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "9.0.0",
@@ -53,7 +53,7 @@
     "buffer": "6.0.3",
     "chokidar": "3.6.0",
     "decimal.js-light": "2.5.1",
-    "dotenv-cli": "7.4.2",
+    "dotenv-cli": "7.4.3",
     "esbuild": "0.23.0",
     "esbuild-register": "3.5.0",
     "eslint": "9.5.0",

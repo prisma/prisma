@@ -119,7 +119,7 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
 
 ```sh
 cd packages/client
-ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
+ts-node fixtures/generate.ts ./fixtures/blog/
 cd fixtures/blog
 npx prisma db push --skip-generate
 ts-node main.ts # Try it out

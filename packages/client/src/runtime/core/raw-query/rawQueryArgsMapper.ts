@@ -4,7 +4,7 @@ import { Sql } from 'sql-template-tag'
 import { MiddlewareArgsMapper } from '../../getPrismaClient'
 import { mssqlPreparedStatement } from '../../utils/mssqlPreparedStatement'
 import { serializeRawParameters } from '../../utils/serializeRawParameters'
-import { TypedSql } from '../types/exported'
+import { isTypedSql } from '../types/exported'
 import { RawQueryArgs } from '../types/exported/RawQueryArgs'
 
 const ALTER_RE = /^(\s*alter\s)/i
@@ -40,7 +40,7 @@ export const rawQueryArgsMapper =
     // TODO Clean up types
     let queryString = ''
     let parameters: { values: string; __prismaRawParameters__: true } | undefined
-    if (args instanceof TypedSql) {
+    if (isTypedSql(args)) {
       queryString = args.sql
       parameters = {
         values: serializeRawParameters(args.values),

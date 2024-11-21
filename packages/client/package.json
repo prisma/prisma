@@ -124,7 +124,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=16.13"
+    "node": ">=18.18"
   },
   "homepage": "https://www.prisma.io",
   "repository": {
@@ -176,7 +176,7 @@
     "@cloudflare/workers-types": "4.20240614.0",
     "@codspeed/benchmark.js-plugin": "3.1.1",
     "@faker-js/faker": "8.4.1",
-    "@fast-check/jest": "1.8.2",
+    "@fast-check/jest": "2.0.3",
     "@inquirer/prompts": "5.0.5",
     "@jest/create-cache-key-function": "29.7.0",
     "@jest/globals": "29.7.0",
@@ -199,7 +199,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "5.21.0-8.031f4d3fc290d071071bf02083dc6e7b783469e2",
+    "@prisma/engines-version": "5.23.0-10.5b155e0290acbe06ba32edc234026b6943efee9a",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -208,7 +208,7 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
-    "@prisma/query-engine-wasm": "5.21.0-8.031f4d3fc290d071071bf02083dc6e7b783469e2",
+    "@prisma/query-engine-wasm": "5.23.0-10.5b155e0290acbe06ba32edc234026b6943efee9a",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.10.9",
     "@swc/core": "1.6.13",
@@ -254,7 +254,7 @@
     "pluralize": "8.0.0",
     "resolve": "1.22.8",
     "rimraf": "3.0.2",
-    "simple-statistics": "7.8.5",
+    "simple-statistics": "7.8.7",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.21",
     "sql-template-tag": "5.2.1",
@@ -263,7 +263,7 @@
     "strip-indent": "3.0.0",
     "ts-node": "10.9.2",
     "ts-pattern": "5.2.0",
-    "tsd": "0.31.1",
+    "tsd": "0.31.2",
     "typescript": "5.4.5",
     "undici": "5.28.4",
     "wrangler": "3.62.0",
