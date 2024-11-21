@@ -108,7 +108,6 @@
         "find-up",
         "get-stdin",
         "globby",
-        "has-yarn",
         "indent-string",
         "log-update",
         "new-github-issue-url",
