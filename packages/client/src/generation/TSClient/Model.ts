@@ -152,7 +152,6 @@ export class Model implements Generable {
     }
 
     const groupByArgsName = getGroupByArgsName(model.name)
-    this.context.defaultArgsAliases.registerArgName(groupByArgsName)
 
     return `
 
@@ -235,7 +234,6 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
     }
 
     const aggregateArgsName = getAggregateArgsName(model.name)
-    this.context.defaultArgsAliases.registerArgName(aggregateArgsName)
 
     const aggregateName = getAggregateName(model.name)
 
@@ -433,7 +431,6 @@ export class ModelDelegate implements Generable {
     const nonAggregateActions = this.getNonAggregateActions(availableActions)
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
-    this.context.defaultArgsAliases.registerArgName(countArgsName)
 
     const genericDelegateParams = [extArgsParam]
 
