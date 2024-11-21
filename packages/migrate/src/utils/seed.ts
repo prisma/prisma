@@ -2,7 +2,6 @@ import Debug from '@prisma/debug'
 import { getPrismaConfigFromPackageJson, link, logger } from '@prisma/internals'
 import execa from 'execa'
 import fs from 'fs'
-import hasYarn from 'has-yarn'
 import { bold, green, italic, red, yellow } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
@@ -27,7 +26,7 @@ export async function verifySeedConfigAndReturnMessage(schemaPath: string | null
   }
 
   // If new "seed" config is not set, help user to set it
-  const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
+  const packageManager = 'npm i -D'
 
   let message = `${red(
     'To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:',
