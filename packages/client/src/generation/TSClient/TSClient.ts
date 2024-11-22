@@ -23,7 +23,6 @@ import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
-import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
 import { type Generable } from './Generable'
@@ -173,7 +172,6 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
-      defaultArgsAliases: new DefaultArgsAliases(),
     })
 
     const prismaClientClass = new PrismaClientClass(
@@ -307,11 +305,6 @@ ${this.dmmf.inputObjectTypes.prisma
   .join('\n')}
 
 ${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
-
-/**
- * Aliases for legacy arg types
- */
-${context.defaultArgsAliases.generateAliases()}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany
