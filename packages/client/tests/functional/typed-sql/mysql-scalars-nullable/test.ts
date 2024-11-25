@@ -15,9 +15,9 @@ const bigInt = BigInt('12345')
 const dateTime = new Date('2024-07-31T14:37:36.570Z')
 const date = new Date('2024-07-31T00:00:00.000Z')
 const time = new Date('1970-01-01T14:37:36.000Z')
-const bytes = Buffer.from('hello')
+const bytes = Uint8Array.of(1, 2, 3)
 testMatrix.setupTestSuite(
-  ({ clientRuntime }) => {
+  () => {
     beforeAll(async () => {
       await prisma.testModel.create({
         data: {
@@ -147,11 +147,8 @@ testMatrix.setupTestSuite(
 
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
-      if (clientRuntime == 'node') {
-        // edge/wasm runtimes polyfill Buffer and so this assertion does not work
-        expect(result[0].bytes).toEqual(Buffer.from('hello'))
-      }
-      expectTypeOf(result[0].bytes).toEqualTypeOf<Buffer | null>()
+      expect(result[0].bytes).toEqual(Uint8Array.of(1, 2, 3))
+      expectTypeOf(result[0].bytes).toEqualTypeOf<Uint8Array | null>()
     })
 
     test('bytes - input', async () => {
