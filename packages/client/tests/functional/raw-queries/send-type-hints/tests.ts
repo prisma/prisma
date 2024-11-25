@@ -8,11 +8,11 @@ declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
   ({ provider }) => {
-    test('Buffer ($queryRaw)', async () => {
+    test('Uint8Array ($queryRaw)', async () => {
       if (provider === Providers.MYSQL) {
-        await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('1', ${Buffer.from('hello')})`
+        await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('1', ${Uint8Array.from([1, 2, 3])})`
       } else {
-        await prisma.$queryRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('1', ${Buffer.from('hello')})`
+        await prisma.$queryRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('1', ${Uint8Array.from([1, 2, 3])})`
       }
 
       const record = await prisma.entry.findUnique({
@@ -21,14 +21,14 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary).toEqual(Uint8Array.from([1, 2, 3]))
     })
 
-    test('Buffer ($executeRaw)', async () => {
+    test('Uint8Array ($executeRaw)', async () => {
       if (provider === Providers.MYSQL) {
-        await prisma.$executeRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('2', ${Buffer.from('hello')})`
+        await prisma.$executeRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('2', ${Uint8Array.from([1, 2, 3])})`
       } else {
-        await prisma.$executeRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('2', ${Buffer.from('hello')})`
+        await prisma.$executeRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('2', ${Uint8Array.from([1, 2, 3])})`
       }
 
       const record = await prisma.entry.findUnique({
@@ -37,16 +37,18 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary).toEqual(Uint8Array.from([1, 2, 3]))
     })
 
-    test('Buffer ($queryRaw + Prisma.sql)', async () => {
+    test('Uint8Array ($queryRaw + Prisma.sql)', async () => {
       if (provider === Providers.MYSQL) {
         await prisma.$queryRaw(
-          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('3', ${Buffer.from('hello')})`,
+          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('3', ${Uint8Array.from([1, 2, 3])})`,
         )
       } else {
-        await prisma.$queryRaw(Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('3', ${Buffer.from('hello')})`)
+        await prisma.$queryRaw(
+          Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('3', ${Uint8Array.from([1, 2, 3])})`,
+        )
       }
 
       const record = await prisma.entry.findUnique({
@@ -55,16 +57,18 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary).toEqual(Uint8Array.from([1, 2, 3]))
     })
 
-    test('Buffer ($executeRaw + Prisma.sql)', async () => {
+    test('Uint8Array ($executeRaw + Prisma.sql)', async () => {
       if (provider === Providers.MYSQL) {
         await prisma.$executeRaw(
-          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('4', ${Buffer.from('hello')})`,
+          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('4', ${Uint8Array.from([1, 2, 3])})`,
         )
       } else {
-        await prisma.$executeRaw(Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('4', ${Buffer.from('hello')})`)
+        await prisma.$executeRaw(
+          Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('4', ${Uint8Array.from([1, 2, 3])})`,
+        )
       }
 
       const record = await prisma.entry.findUnique({
@@ -73,25 +77,13 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary).toEqual(Uint8Array.from([1, 2, 3]))
     })
   },
   {
     optOut: {
       from: [Providers.MONGODB],
       reason: '$queryRaw only works on SQL based providers',
-    },
-    skipDataProxy: {
-      runtimes: ['edge'],
-      reason: `
-        This test is broken with the edge client. It needs to be updated to
-        send ArrayBuffers and expect them as results, and the client might need
-        to be fixed to return ArrayBuffers and not polyfilled Buffers in
-        query results.
-      `,
-    },
-    skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', 'All buffer assertions fail with different binary data')
     },
   },
 )

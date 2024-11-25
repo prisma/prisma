@@ -13,9 +13,9 @@ declare let sql: typeof Sql
 const id = '1234'
 const bigInt = BigInt('12345')
 const dateTime = new Date('2024-07-31T14:37:36.570Z')
-const bytes = Buffer.from('hello')
+const bytes = Uint8Array.of(1, 2, 3)
 testMatrix.setupTestSuite(
-  ({ clientRuntime }) => {
+  () => {
     beforeAll(async () => {
       await prisma.testModel.create({
         data: {
@@ -106,10 +106,8 @@ testMatrix.setupTestSuite(
 
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
-      if (clientRuntime === 'node') {
-        expect(result[0].bytes).toEqual(bytes)
-      }
-      expectTypeOf(result[0].bytes).toEqualTypeOf<Buffer>()
+      expect(result[0].bytes).toEqual(bytes)
+      expectTypeOf(result[0].bytes).toEqualTypeOf<Uint8Array>()
     })
 
     test('bytes - input', async () => {
