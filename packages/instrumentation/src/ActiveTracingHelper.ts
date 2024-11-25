@@ -73,16 +73,11 @@ export class ActiveTracingHelper implements TracingHelper {
         }
       })
 
-      const span = new SpanConstructor(
-        tracer,
-        ROOT_CONTEXT,
+      const span = tracer.startSpan(
         engineSpan.name,
-        spanContext,
-        spanKind,
-        engineSpan.parent_span_id,
-        links,
-        engineSpan.start_time,
-      )
+        { kind: spanKind, links, startTime: engineSpan.start_time },
+        ROOT_CONTEXT
+      );
 
       if (engineSpan.attributes) {
         span.setAttributes(engineSpan.attributes)
