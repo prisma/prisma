@@ -1096,16 +1096,16 @@ importers:
 
   packages/instrumentation:
     dependencies:
-      '@opentelemetry/api':
-        specifier: ^1.8
-        version: 1.9.0
       '@opentelemetry/instrumentation':
         specifier: ^0.49 || ^0.50 || ^0.51 || ^0.52.0 || ^0.53.0
         version: 0.52.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-trace-base':
-        specifier: ^1.22
-        version: 1.26.0(@opentelemetry/api@1.9.0)
     devDependencies:
+      '@opentelemetry/api':
+        specifier: 1.9.0
+        version: 1.9.0
+      '@opentelemetry/sdk-trace-base':
+        specifier: 1.26.0
+        version: 1.26.0(@opentelemetry/api@1.9.0)
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
@@ -3616,7 +3616,7 @@ packages:
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/semantic-conventions': 1.27.0
-    dev: false
+    dev: true
 
   /@opentelemetry/instrumentation@0.52.1(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-uXJbYU/5/MBHjMp1FqrILLRuiJCs3Ofk0MeRDk8g1S1gD47U8X3JnSwcMO1rtRo1x1a7zKaQHaoYu49p/4eSKw==}
@@ -3654,7 +3654,7 @@ packages:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 1.26.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.27.0
-    dev: false
+    dev: true
 
   /@opentelemetry/sdk-trace-base@1.25.1(@opentelemetry/api@1.9.0):
     resolution: {integrity: sha512-C8k4hnEbc5FamuZQ92nTOp8X/diCY56XUTnMiv9UTuJitCzaNNHAVsdm5+HLCdI8SLQsLWIrG38tddMxLVoftw==}
@@ -3678,7 +3678,7 @@ packages:
       '@opentelemetry/core': 1.26.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/resources': 1.26.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.27.0
-    dev: false
+    dev: true
 
   /@opentelemetry/semantic-conventions@1.25.1:
     resolution: {integrity: sha512-ZDjMJJQRlyk8A1KZFCc+bCbsyrn1wTwdNt56F7twdfUfnHUZUq77/WfONCj8p72NZOyP7pNTdUWSTYC3GTbuuQ==}
@@ -3688,7 +3688,7 @@ packages:
   /@opentelemetry/semantic-conventions@1.27.0:
     resolution: {integrity: sha512-sAay1RrB+ONOem0OZanAR1ZI/k7yDpnOQSQmTMuGImUQb2y8EbSaCJ94FQluM74xoU03vlb2d2U90hZluL6nQg==}
     engines: {node: '>=14'}
-    dev: false
+    dev: true
 
   /@oxc-resolver/binding-darwin-arm64@1.10.2:
     resolution: {integrity: sha512-aOCZYXqmFL+2sXlaVkYbAOtICGGeTFtmdul8OimQfOXHJods6YHJ2nR6+rEeBcJzaXyXPP18ne1IsEc4AYL1IA==}
