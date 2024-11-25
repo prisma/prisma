@@ -308,7 +308,8 @@ function serializeArgumentsValue(
   }
 
   if (ArrayBuffer.isView(jsValue)) {
-    return { $type: 'Bytes', value: Buffer.from(jsValue).toString('base64') }
+    const { buffer, byteOffset, byteLength } = jsValue
+    return { $type: 'Bytes', value: Buffer.from(buffer, byteOffset, byteLength).toString('base64') }
   }
 
   if (isRawParameters(jsValue)) {

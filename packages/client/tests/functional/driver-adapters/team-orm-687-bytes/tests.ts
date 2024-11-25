@@ -13,24 +13,12 @@ testMatrix.setupTestSuite(
       const inputs = [...inputStrings, ...inputBtoas]
 
       const inputBuffers = inputs.map((s) => Buffer.from(s))
-      const inputData = inputBuffers.map((b, i) => ({ id: `${i + 1}`, bytes: b }))
+      const inputData = inputBuffers.map((b, i) => ({ id: `${i + 1}`, bytes: new Uint8Array(b) }))
 
       // sqlite doesn't support `createMany` yet
       await prisma.$transaction(inputData.map((data) => prisma.a.create({ data })))
 
-      const results = await prisma.a.findMany()
-
-      // We can't compare buffers directly, or else we'd see this diff in the test output:
-      // ```
-      // - "bytes": Buffer [
-      // + "bytes": C [
-      // ```
-      const outputData = results.map((result) => {
-        return {
-          id: result.id,
-          bytes: Buffer.from(result.bytes),
-        }
-      })
+      const outputData = await prisma.a.findMany()
 
       expect(outputData).toEqual(inputData)
     })

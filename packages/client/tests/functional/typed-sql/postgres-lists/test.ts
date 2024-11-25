@@ -17,10 +17,10 @@ const dateTime = [new Date('2024-07-31T14:37:36.570Z'), new Date('2024-08-01T15:
 const date = [new Date('2024-08-01T00:00:00.000Z'), new Date('2024-07-31T00:00:00.000Z')]
 const time = [new Date('1970-01-01T14:37:36.570Z'), new Date('1970-01-01T15:37:36.570Z')]
 const uuid = [faker.string.uuid(), faker.string.uuid()]
-const bytes = [Buffer.from('hello'), Buffer.from('world')]
+const bytes = [Uint8Array.of(1, 2, 3), Uint8Array.of(4, 5, 6)]
 
 testMatrix.setupTestSuite(
-  ({ clientRuntime }) => {
+  () => {
     beforeAll(async () => {
       await prisma.testModel.create({
         data: {
@@ -170,15 +170,12 @@ testMatrix.setupTestSuite(
 
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
-      if (clientRuntime == 'node') {
-        // edge/wasm runtimes polyfill Buffer and so this assertion does not work
-        expect(result[0].bytes).toEqual(bytes)
-      }
-      expectTypeOf(result[0].bytes).toEqualTypeOf<Buffer[] | null>()
+      expect(result[0].bytes).toEqual(bytes)
+      expectTypeOf(result[0].bytes).toEqualTypeOf<Uint8Array[] | null>()
     })
 
     test('bytes - input', async () => {
-      const result = await prisma.$queryRawTyped(sql.findBytes([Buffer.from('hello'), Buffer.from('world')]))
+      const result = await prisma.$queryRawTyped(sql.findBytes([Uint8Array.of(1, 2, 3), Uint8Array.of(4, 5, 6)]))
       expect(result[0].id).toEqual(id)
     })
 
