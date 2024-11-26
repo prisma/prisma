@@ -4,7 +4,6 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as O from 'fp-ts/Option'
 import * as TE from 'fp-ts/TaskEither'
-import path from 'path'
 import { match, P } from 'ts-pattern'
 
 import { safeResolveBinary } from '../resolveBinary'
@@ -107,7 +106,7 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
     })
     .exhaustive()
 
-  const versionMessage = `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
+  const versionMessage = `${version} (at ${absolutePath}${resolved})`
   return [versionMessage, errors] as const
 }
 
