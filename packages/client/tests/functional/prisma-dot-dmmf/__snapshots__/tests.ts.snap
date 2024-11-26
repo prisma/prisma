@@ -10,7 +10,9 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
