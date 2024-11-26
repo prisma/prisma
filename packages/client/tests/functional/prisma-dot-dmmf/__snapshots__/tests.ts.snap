@@ -10,7 +10,9 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -66,7 +68,9 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -292,7 +296,9 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -348,7 +354,9 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -432,7 +440,9 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -488,7 +498,9 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -572,7 +584,9 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -628,7 +642,9 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -712,7 +728,9 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -768,7 +786,9 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -852,7 +872,9 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -908,7 +930,9 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -992,7 +1016,9 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -1048,7 +1074,9 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -1132,7 +1160,9 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -1188,7 +1218,9 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -1272,7 +1304,9 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -1328,7 +1362,9 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -1412,7 +1448,9 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -1468,7 +1506,9 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
