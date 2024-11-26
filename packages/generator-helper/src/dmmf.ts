@@ -98,7 +98,7 @@ export namespace DMMF {
 
   export type FieldDefault = ReadonlyDeep<{
     name: string
-    args: any[]
+    args: Array<string | number>
   }>
 
   export type FieldDefaultScalar = string | boolean | number
