@@ -78,8 +78,8 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       dotenv-cli:
-        specifier: 7.4.3
-        version: 7.4.3
+        specifier: 7.4.4
+        version: 7.4.4
       esbuild:
         specifier: 0.23.0
         version: 0.23.0
@@ -649,8 +649,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 5.23.0-13.06d4b2f30bf4fc71a1cb03bdc0f69f8c2a5c2b9c
-        version: 5.23.0-13.06d4b2f30bf4fc71a1cb03bdc0f69f8c2a5c2b9c
+        specifier: 5.23.0-15.4180c299dc941abed5230a37241c42318c5a3868
+        version: 5.23.0-15.4180c299dc941abed5230a37241c42318c5a3868
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -3797,8 +3797,8 @@ packages:
     resolution: {integrity: sha512-/QNeMJ4oE3Ajjfm32BlTvWf9ZQJ4jzAjjvAgd3i8hKSSE9GSuj5ztaunNWfOVjBPMstDhudEkXxbQFy9nF0Ozg==}
     dev: false
 
-  /@prisma/query-engine-wasm@5.23.0-13.06d4b2f30bf4fc71a1cb03bdc0f69f8c2a5c2b9c:
-    resolution: {integrity: sha512-anvyUhRwr+eYgWTVkFUqBipXoIwrhgqvY15tUL/obRolP98hADbWhXHS+lMJaw/8WmsSnIEbRMvw7pg+93OZhA==}
+  /@prisma/query-engine-wasm@5.23.0-15.4180c299dc941abed5230a37241c42318c5a3868:
+    resolution: {integrity: sha512-oA2Zeztgtk4HyJIygtVaVKrcIM3O4fyXTv+s8pL1IVpzYdb/RYHcQ6SG45edijif/qJpLr4u/h/MV0kMKwfQBg==}
     dev: true
 
   /@prisma/studio-common@0.503.0:
@@ -6148,8 +6148,8 @@ packages:
       esutils: 2.0.3
     dev: true
 
-  /dotenv-cli@7.4.3:
-    resolution: {integrity: sha512-lf1E+TL1xFeoOHy2hSO3kLkx3KX8CDi17ccn5z5dVCnk2PuWqUKAnBVgQmhfS0BPuzFbptTEHVcIKFsGF0NAcg==}
+  /dotenv-cli@7.4.4:
+    resolution: {integrity: sha512-XkBYCG0tPIes+YZr4SpfFv76SQrV/LeCE8CI7JSEMi3VR9MvTihCGTOtbIexD6i2mXF+6px7trb1imVCXSNMDw==}
     hasBin: true
     dependencies:
       cross-spawn: 7.0.6
@@ -7348,7 +7348,6 @@ packages:
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-    dev: true
 
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -8620,7 +8619,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.10
+      graceful-fs: 4.2.11
 
   /jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
