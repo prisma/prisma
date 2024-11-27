@@ -19,7 +19,7 @@
     "@types/node": "18.19.31",
     "pg": "8.11.5",
     "pg-cloudflare": "1.1.1",
-    "esbuild": "0.23.0",
+    "esbuild": "0.24.0",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "typescript": "5.4.5"
