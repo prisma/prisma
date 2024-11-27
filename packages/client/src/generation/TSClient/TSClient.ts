@@ -131,6 +131,7 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.datamodel.enums
   .map(({ name, values }) => new Enum({ name, values: values.map(({ name }) => name) }, true).toJS())
   .join('\n\n')}
