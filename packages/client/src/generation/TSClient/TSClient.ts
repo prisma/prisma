@@ -131,8 +131,9 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.datamodel.enums
+  .map(({ name, values }) => new Enum({ name, values: values.map(({ name }) => name) }, true).toJS())
+  .join('\n\n')}
 
 ${new Enum(
   {
@@ -196,8 +197,8 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
-    for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
-      modelEnums.push(new Enum(enumType, false).toTS())
+    for (const enumType of this.dmmf.datamodel.enums) {
+      modelEnums.push(new Enum({ name: enumType.name, values: enumType.values.map(({ name }) => name) }, false).toTS())
       modelEnumsAliases.push(
         ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, ts.namedType(`$Enums.${enumType.name}`)))),
         ts.stringify(
