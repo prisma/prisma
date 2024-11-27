@@ -76,12 +76,12 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
         return fs.promises.readFile(options.datamodelPath!, { encoding: 'utf-8' })
       },
       (e) =>
-        ({
-          type: 'read-datamodel-path' as const,
-          reason: 'Error while trying to read the datamodel path',
-          error: e as Error,
-          datamodelPath: options.datamodelPath,
-        } as const),
+      ({
+        type: 'read-datamodel-path' as const,
+        reason: 'Error while trying to read the datamodel path',
+        error: e as Error,
+        datamodelPath: options.datamodelPath,
+      } as const),
     ),
     TE.chainW((datamodel) => {
       return pipe(
@@ -100,11 +100,11 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
             return data
           },
           (e) =>
-            ({
-              type: 'wasm-error' as const,
-              reason: '(get-dmmf wasm)',
-              error: e as Error | WasmPanic,
-            } as const),
+          ({
+            type: 'wasm-error' as const,
+            reason: '(get-dmmf wasm)',
+            error: e as Error | WasmPanic,
+          } as const),
         ),
         E.map((result) => ({ result })),
         E.chainW(({ result }) =>
@@ -181,31 +181,39 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 // See also removedFlags at
 // https://github.com/prisma/prisma/blob/main/packages/client/src/runtime/core/engine/BinaryEngine.ts
 function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
-  const getMessage = (flag: string) =>
-    `${blue(bold('info'))} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
+  // List of deprecated feature flags
+  const removedFeatureFlagMap = [
+    'insensitiveFilters',
+    'atomicNumberOperations',
+    'connectOrCreate',
+    'transaction',
+    'nApi',
+    'transactionApi',
+    'uncheckedScalarInputs',
+    'nativeTypes',
+    'createMany',
+    'groupBy',
+    'referentialActions',
+    'microsoftSqlServer',
+    'selectRelationCount',
+    'orderByRelation',
+    'orderByAggregateGroup',
+  ];
 
-  const removedFeatureFlagMap = {
-    insensitiveFilters: getMessage('insensitiveFilters'),
-    atomicNumberOperations: getMessage('atomicNumberOperations'),
-    connectOrCreate: getMessage('connectOrCreate'),
-    transaction: getMessage('transaction'),
-    nApi: getMessage('nApi'),
-    transactionApi: getMessage('transactionApi'),
-    uncheckedScalarInputs: getMessage('uncheckedScalarInputs'),
-    nativeTypes: getMessage('nativeTypes'),
-    createMany: getMessage('createMany'),
-    groupBy: getMessage('groupBy'),
-    referentialActions: getMessage('referentialActions'),
-    microsoftSqlServer: getMessage('microsoftSqlServer'),
-    selectRelationCount: getMessage('selectRelationCount'),
-    orderByRelation: getMessage('orderByRelation'),
-    orderByAggregateGroup: getMessage('orderByAggregateGroup'),
-  }
+  const getMessage = (flag: string) =>
+    `${blue(bold('info'))} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`;
 
   previewFeatures?.forEach((f) => {
-    const removedMessage = removedFeatureFlagMap[f]
-    if (removedMessage && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-      console.warn(removedMessage)
+    if (removedFeatureFlagMap.includes(f) && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+      console.warn(getMessage(f));
     }
-  })
+  });
+
+
+previewFeatures?.forEach((f) => {
+  const removedMessage = removedFeatureFlagMap[f]
+  if (removedMessage && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+    console.warn(removedMessage)
+  }
+})
 }
