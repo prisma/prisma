@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "5.23.0-15.4180c299dc941abed5230a37241c42318c5a3868",
+    "@prisma/prisma-schema-wasm": "5.23.0-20.integration-enum-mapped-values-5951ba0974e3e23a86bf5e9ff7eb9c5dd7519e23",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
