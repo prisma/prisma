@@ -181,6 +181,7 @@ export async function buildClient({
 
   const pkgJson = {
     name: getUniquePackageName(datamodel),
+    type: "commonjs",
     main: 'index.js',
     types: 'index.d.ts',
     browser: 'index-browser.js',
