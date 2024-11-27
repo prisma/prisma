@@ -25,6 +25,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -38,6 +39,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -51,6 +53,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -60,6 +63,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -83,6 +87,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -96,6 +101,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -109,6 +115,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -122,6 +129,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -135,6 +143,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -168,6 +177,10 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": [
+              "ObjectId",
+              [],
+            ],
             "type": "String",
           },
           {
@@ -181,6 +194,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -194,6 +208,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -203,6 +218,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -225,6 +241,10 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": [
+              "ObjectId",
+              [],
+            ],
             "type": "String",
           },
           {
@@ -238,6 +258,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -251,6 +272,10 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": [
+              "ObjectId",
+              [],
+            ],
             "type": "String",
           },
           {
@@ -264,6 +289,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -277,6 +303,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -311,6 +338,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -324,6 +352,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -337,6 +366,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -346,6 +376,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -369,6 +400,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -382,6 +414,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -395,6 +428,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -408,6 +442,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -421,6 +456,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -455,6 +491,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -468,6 +505,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -481,6 +519,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -490,6 +529,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -513,6 +553,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -526,6 +567,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -539,6 +581,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -552,6 +595,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -565,6 +609,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -599,6 +644,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -612,6 +658,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -625,6 +672,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -634,6 +682,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -657,6 +706,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -670,6 +720,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -683,6 +734,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -696,6 +748,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -709,6 +762,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -743,6 +797,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -756,6 +811,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -769,6 +825,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -778,6 +835,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -801,6 +859,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -814,6 +873,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -827,6 +887,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -840,6 +901,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -853,6 +915,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -887,6 +950,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -900,6 +964,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -913,6 +978,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -922,6 +988,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -945,6 +1012,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -958,6 +1026,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -971,6 +1040,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -984,6 +1054,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -997,6 +1068,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (defau
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -1031,6 +1103,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1044,6 +1117,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1057,6 +1131,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -1066,6 +1141,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -1089,6 +1165,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1102,6 +1179,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1115,6 +1193,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1128,6 +1207,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -1141,6 +1221,7 @@ exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -1175,6 +1256,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1188,6 +1270,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1201,6 +1284,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -1210,6 +1294,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -1233,6 +1318,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1246,6 +1332,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1259,6 +1346,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1272,6 +1360,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -1285,6 +1374,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -1319,6 +1409,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1332,6 +1423,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1345,6 +1437,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -1354,6 +1447,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -1377,6 +1471,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1390,6 +1485,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1403,6 +1499,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1416,6 +1513,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -1429,6 +1527,7 @@ exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (defau
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -1463,6 +1562,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1476,6 +1576,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1489,6 +1590,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -1498,6 +1600,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -1521,6 +1624,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1534,6 +1638,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1547,6 +1652,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -1560,6 +1666,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -1573,6 +1680,7 @@ exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] 
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
