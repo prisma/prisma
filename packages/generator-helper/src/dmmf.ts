@@ -58,6 +58,7 @@ export namespace DMMF {
   export type Model = ReadonlyDeep<{
     name: string
     dbName: string | null
+    schema: string | null
     fields: Field[]
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
@@ -86,6 +87,12 @@ export namespace DMMF {
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
+    /**
+     * Native database type, if specified.
+     * For example, `@db.VarChar(191)` is encoded as `['VarChar', ['191']]`,
+     * `@db.Text` is encoded as `['Text', []]`.
+     */
+    nativeType?: [string, string[]] | null
     dbName?: string | null
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
