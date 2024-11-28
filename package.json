@@ -103,9 +103,9 @@
     }
   },
   "lint-staged": {
-    "*.{md,yml,json}": "prettier --write",
+    "*.{md,yml,json}": "prettier --check",
     "*.{js,ts}": [
-      "eslint --fix"
+      "eslint"
     ]
   },
   "size-limit": [

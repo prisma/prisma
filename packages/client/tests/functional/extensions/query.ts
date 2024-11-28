@@ -24,6 +24,8 @@ jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter }) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -49,7 +51,6 @@ testMatrix.setupTestSuite(
       const fnPost = jest.fn()
       const fnEmitter = jest.fn()
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma.$on('query', fnEmitter)
 
       const xprisma = prisma.$extends({
@@ -477,13 +478,17 @@ testMatrix.setupTestSuite(
           ]
         `)
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )
@@ -518,13 +523,17 @@ testMatrix.setupTestSuite(
           }
         `)
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )
@@ -571,7 +580,7 @@ testMatrix.setupTestSuite(
       `)
       await waitFor(() => {
         // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(5)
+        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
@@ -581,12 +590,17 @@ testMatrix.setupTestSuite(
           calls.pop()
         }
 
-        expect(calls).toMatchObject([
+        const expectation = [
           [{ query: expect.stringContaining('BEGIN') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('COMMIT') }],
-        ])
+        ]
+        if (isSqlServer) {
+          expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+        }
+
+        expect(calls).toMatchObject(expectation)
       })
     })
 
@@ -664,7 +678,7 @@ testMatrix.setupTestSuite(
 
       await waitFor(() => {
         // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(5)
+        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
@@ -675,12 +689,17 @@ testMatrix.setupTestSuite(
         }
 
         if (provider !== Providers.MONGODB) {
-          expect(calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+
+          expect(calls).toMatchObject(expectation)
         }
       })
     })
