@@ -27743,7 +27743,7 @@ exports[`getDMMF success @@unique model 1`] = `
 
 exports[`getDMMF success big schema read via datamodel path 1`] = `154156458`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `984022`;
+exports[`getDMMF success chinook introspected schema 1`] = `993396`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -38294,6 +38294,12 @@ exports[`getDMMF success simple model, mysql 2`] = `
             "desc",
           ],
         },
+        {
+          "name": "AOrderByRelevanceFieldEnum",
+          "values": [
+            "name",
+          ],
+        },
       ],
     },
     "fieldRefTypes": {
@@ -38540,6 +38546,19 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "name",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_relevance",
             },
           ],
           "name": "AOrderByWithRelationInput",
@@ -39440,6 +39459,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
                 {
                   "isList": false,
                   "location": "inputObjectTypes",
@@ -39453,6 +39484,59 @@ exports[`getDMMF success simple model, mysql 2`] = `
             },
           ],
           "name": "StringFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceFieldEnum",
+                },
+                {
+                  "isList": true,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceFieldEnum",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "fields",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "sort",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "search",
+            },
+          ],
+          "name": "AOrderByRelevanceInput",
         },
         {
           "constraints": {
@@ -39990,6 +40074,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
                 {
                   "isList": false,
                   "location": "inputObjectTypes",
@@ -40447,6 +40543,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
             },
             {
               "inputTypes": [
@@ -40989,6 +41097,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
             },
             {
               "inputTypes": [
