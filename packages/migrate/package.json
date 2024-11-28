@@ -47,7 +47,7 @@
     "strip-indent": "3.0.0",
     "tempy": "1.0.1",
     "ts-pattern": "5.2.0",
-    "typescript": "5.4.5",
+    "typescript": "5.7.2",
     "wrangler": "3.91.0"
   },
   "peerDependencies": {
