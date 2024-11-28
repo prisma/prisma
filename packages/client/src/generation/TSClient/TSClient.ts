@@ -7,7 +7,7 @@ import path from 'path'
 import type { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
-import { DMMFHelper } from '../dmmf'
+import { datamodelEnumToSchemaEnum, DMMFHelper } from '../dmmf'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
 import type { buildClient } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
@@ -132,7 +132,9 @@ ${buildRequirePath(edge)}
  * Enums
  */
 ${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.datamodel.enums
+  .map((datamodelEnum) => new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toJS())
+  .join('\n\n')}
 
 ${new Enum(
   {
@@ -196,12 +198,14 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
-    for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
-      modelEnums.push(new Enum(enumType, false).toTS())
+    for (const datamodelEnum of this.dmmf.datamodel.enums) {
+      modelEnums.push(new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toTS())
       modelEnumsAliases.push(
-        ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, ts.namedType(`$Enums.${enumType.name}`)))),
         ts.stringify(
-          ts.moduleExport(ts.constDeclaration(enumType.name, ts.namedType(`typeof $Enums.${enumType.name}`))),
+          ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
+        ),
+        ts.stringify(
+          ts.moduleExport(ts.constDeclaration(datamodelEnum.name, ts.namedType(`typeof $Enums.${datamodelEnum.name}`))),
         ),
       )
     }
