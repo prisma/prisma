@@ -2,6 +2,13 @@ export type ReadonlyDeep<O> = {
   +readonly [K in keyof O]: ReadonlyDeep<O[K]>
 }
 
+export function datamodelEnumToSchemaEnum(datamodelEnum: DMMF.DatamodelEnum): DMMF.SchemaEnum {
+  return {
+    name: datamodelEnum.name,
+    values: datamodelEnum.values.map((v) => v.name),
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
   export type Document = ReadonlyDeep<{
