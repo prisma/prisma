@@ -15,6 +15,8 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     beforeEach(() => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -379,13 +381,18 @@ testMatrix.setupTestSuite(
       `)
 
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+
+          expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 5 : 4)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )
@@ -432,13 +439,18 @@ testMatrix.setupTestSuite(
               `)
 
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+
+          expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 5 : 4)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )

@@ -10,6 +10,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
   const isMongoDb = provider === Providers.MONGODB
+  const isSqlServer = provider === Providers.SQLSERVER
 
   let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
 
@@ -112,7 +113,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
         expect(logs[2].query).toContain('SELECT')
         expect(logs[3].query).toContain('COMMIT')
       } else {
-        if (provider === 'sqlserver') {
+        if (isSqlServer) {
           expect(logs).toHaveLength(6)
           expect(logs.shift()?.query).toContain('SET TRANSACTION')
         } else {
@@ -182,7 +183,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      if (provider === 'sqlserver') {
+      if (isSqlServer) {
         expect(logs).toHaveLength(5)
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       } else {
@@ -248,7 +249,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      if (provider === 'sqlserver') {
+      if (isSqlServer) {
         expect(logs).toHaveLength(5)
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       } else {
