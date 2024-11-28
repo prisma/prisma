@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { expectTypeOf } from 'expect-type'
 
 import { Providers } from '../_utils/providers'
