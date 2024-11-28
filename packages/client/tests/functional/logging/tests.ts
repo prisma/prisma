@@ -112,12 +112,18 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
         expect(logs[2].query).toContain('SELECT')
         expect(logs[3].query).toContain('COMMIT')
       } else {
-        expect(logs).toHaveLength(5)
-        expect(logs[0].query).toContain('BEGIN')
-        expect(logs[1].query).toContain('INSERT')
-        expect(logs[2].query).toContain('SELECT')
-        expect(logs[3].query).toContain('SELECT')
-        expect(logs[4].query).toContain('COMMIT')
+        if (provider === 'sqlserver') {
+          expect(logs).toHaveLength(6)
+          expect(logs.shift()?.query).toContain('SET TRANSACTION')
+        } else {
+          expect(logs).toHaveLength(5)
+        }
+
+        expect(logs.shift()?.query).toContain('BEGIN')
+        expect(logs.shift()?.query).toContain('INSERT')
+        expect(logs.shift()?.query).toContain('SELECT')
+        expect(logs.shift()?.query).toContain('SELECT')
+        expect(logs.shift()?.query).toContain('COMMIT')
       }
     }
   })
@@ -176,12 +182,17 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      expect(logs).toHaveLength(4)
+      if (provider === 'sqlserver') {
+        expect(logs).toHaveLength(5)
+        expect(logs.shift()?.query).toContain('SET TRANSACTION')
+      } else {
+        expect(logs).toHaveLength(4)
+      }
 
-      expect(logs[0].query).toContain('BEGIN')
-      expect(logs[1].query).toContain('SELECT')
-      expect(logs[2].query).toContain('SELECT')
-      expect(logs[3].query).toContain('COMMIT')
+      expect(logs.shift()?.query).toContain('BEGIN')
+      expect(logs.shift()?.query).toContain('SELECT')
+      expect(logs.shift()?.query).toContain('SELECT')
+      expect(logs.shift()?.query).toContain('COMMIT')
     }
   })
 
@@ -237,12 +248,17 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      expect(logs).toHaveLength(4)
+      if (provider === 'sqlserver') {
+        expect(logs).toHaveLength(5)
+        expect(logs.shift()?.query).toContain('SET TRANSACTION')
+      } else {
+        expect(logs).toHaveLength(4)
+      }
 
-      expect(logs[0].query).toContain('BEGIN')
-      expect(logs[1].query).toContain('SELECT')
-      expect(logs[2].query).toContain('SELECT')
-      expect(logs[3].query).toContain('COMMIT')
+      expect(logs.shift()?.query).toContain('BEGIN')
+      expect(logs.shift()?.query).toContain('SELECT')
+      expect(logs.shift()?.query).toContain('SELECT')
+      expect(logs.shift()?.query).toContain('COMMIT')
     }
   })
 })
