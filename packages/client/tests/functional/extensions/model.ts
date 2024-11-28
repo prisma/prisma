@@ -389,7 +389,6 @@ testMatrix.setupTestSuite(
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
-
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
           expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
@@ -447,7 +446,6 @@ testMatrix.setupTestSuite(
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
-
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
           expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
