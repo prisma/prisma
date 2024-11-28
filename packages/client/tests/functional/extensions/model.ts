@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { expectTypeOf } from 'expect-type'
 
 import { Providers } from '../_utils/providers'
@@ -391,7 +390,7 @@ testMatrix.setupTestSuite(
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
 
-          expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 5 : 4)
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
           expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
@@ -449,7 +448,7 @@ testMatrix.setupTestSuite(
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
 
-          expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 5 : 4)
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
           expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
