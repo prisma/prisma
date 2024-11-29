@@ -47,6 +47,6 @@
     "jest-junit": "16.0.0"
   },
   "peerDependencies": {
-    "@prisma/pg-worker": "^5.11.0"
+    "@prisma/pg-worker": "^5.11.0 || ^6.0.0"
   }
 }
