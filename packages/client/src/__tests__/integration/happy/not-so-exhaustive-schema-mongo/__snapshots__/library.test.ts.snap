@@ -53,11 +53,6 @@ Prisma.PrismaClientValidationError = () => {
   throw new Error(\`PrismaClientValidationError is unable to run in this browser environment, or has been bundled for the browser (running in \${runtimeName}).
 In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report\`,
 )}
-Prisma.NotFoundError = () => {
-  const runtimeName = getRuntime().prettyName;
-  throw new Error(\`NotFoundError is unable to run in this browser environment, or has been bundled for the browser (running in \${runtimeName}).
-In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report\`,
-)}
 Prisma.Decimal = Decimal
 
 /**
@@ -723,7 +718,6 @@ export namespace Prisma {
   export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
   export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
   export import PrismaClientValidationError = runtime.PrismaClientValidationError
-  export import NotFoundError = runtime.NotFoundError
 
   /**
    * Re-export of sql-template-tag
@@ -14878,14 +14872,14 @@ export namespace Prisma {
   export type DMinAggregateOutputType = {
     id: string | null
     bool: boolean | null
-    byteA: Buffer | null
+    byteA: Uint8Array | null
     xml: string | null
   }
 
   export type DMaxAggregateOutputType = {
     id: string | null
     bool: boolean | null
-    byteA: Buffer | null
+    byteA: Uint8Array | null
     xml: string | null
   }
 
@@ -15023,7 +15017,7 @@ export namespace Prisma {
   export type DGroupByOutputType = {
     id: string
     bool: boolean
-    byteA: Buffer
+    byteA: Uint8Array
     xml: string
     json: JsonValue
     jsonb: JsonValue
@@ -15077,7 +15071,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       bool: boolean
-      byteA: Buffer
+      byteA: Uint8Array
       xml: string
       json: Prisma.JsonValue
       jsonb: Prisma.JsonValue
@@ -17020,7 +17014,7 @@ export namespace Prisma {
     content?: StringNullableFilter<"Post"> | string | null
     published?: BoolFilter<"Post"> | boolean
     authorId?: StringFilter<"Post"> | string
-    author?: XOR<UserRelationFilter, UserWhereInput>
+    author?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type PostOrderByWithRelationInput = {
@@ -17043,7 +17037,7 @@ export namespace Prisma {
     content?: StringNullableFilter<"Post"> | string | null
     published?: BoolFilter<"Post"> | boolean
     authorId?: StringFilter<"Post"> | string
-    author?: XOR<UserRelationFilter, UserWhereInput>
+    author?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
   export type PostOrderByWithAggregationInput = {
@@ -17090,7 +17084,7 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
     embedHolderId?: StringFilter<"User"> | string
     posts?: PostListRelationFilter
-    embedHolder?: XOR<EmbedHolderRelationFilter, EmbedHolderWhereInput>
+    embedHolder?: XOR<EmbedHolderScalarRelationFilter, EmbedHolderWhereInput>
   }
 
   export type UserOrderByWithRelationInput = {
@@ -17133,7 +17127,7 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
     embedHolderId?: StringFilter<"User"> | string
     posts?: PostListRelationFilter
-    embedHolder?: XOR<EmbedHolderRelationFilter, EmbedHolderWhereInput>
+    embedHolder?: XOR<EmbedHolderScalarRelationFilter, EmbedHolderWhereInput>
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -17558,7 +17552,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"ManyRequired"> | boolean
     optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
-    one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
+    one?: XOR<OneOptionalNullableScalarRelationFilter, OneOptionalWhereInput> | null
   }
 
   export type ManyRequiredOrderByWithRelationInput = {
@@ -17597,7 +17591,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"ManyRequired"> | boolean
     optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
-    one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
+    one?: XOR<OneOptionalNullableScalarRelationFilter, OneOptionalWhereInput> | null
   }, "id">
 
   export type ManyRequiredOrderByWithAggregationInput = {
@@ -17660,7 +17654,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide1"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide1"> | boolean | null
-    opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
+    opti?: XOR<OptionalSide2NullableScalarRelationFilter, OptionalSide2WhereInput> | null
   }
 
   export type OptionalSide1OrderByWithRelationInput = {
@@ -17699,7 +17693,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide1"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide1"> | boolean | null
-    opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
+    opti?: XOR<OptionalSide2NullableScalarRelationFilter, OptionalSide2WhereInput> | null
   }, "id" | "optionalSide2Id">
 
   export type OptionalSide1OrderByWithAggregationInput = {
@@ -17761,7 +17755,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide2"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide2"> | boolean | null
-    opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
+    opti?: XOR<OptionalSide1NullableScalarRelationFilter, OptionalSide1WhereInput> | null
   }
 
   export type OptionalSide2OrderByWithRelationInput = {
@@ -17798,7 +17792,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide2"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide2"> | boolean | null
-    opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
+    opti?: XOR<OptionalSide1NullableScalarRelationFilter, OptionalSide1WhereInput> | null
   }, "id">
 
   export type OptionalSide2OrderByWithAggregationInput = {
@@ -18012,7 +18006,7 @@ export namespace Prisma {
     NOT?: DWhereInput | DWhereInput[]
     id?: StringFilter<"D"> | string
     bool?: BoolFilter<"D"> | boolean
-    byteA?: BytesFilter<"D"> | Buffer
+    byteA?: BytesFilter<"D"> | Uint8Array
     xml?: StringFilter<"D"> | string
     json?: JsonFilter<"D">
     jsonb?: JsonFilter<"D">
@@ -18035,7 +18029,7 @@ export namespace Prisma {
     OR?: DWhereInput[]
     NOT?: DWhereInput | DWhereInput[]
     bool?: BoolFilter<"D"> | boolean
-    byteA?: BytesFilter<"D"> | Buffer
+    byteA?: BytesFilter<"D"> | Uint8Array
     xml?: StringFilter<"D"> | string
     json?: JsonFilter<"D">
     jsonb?: JsonFilter<"D">
@@ -18063,7 +18057,7 @@ export namespace Prisma {
     NOT?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"D"> | string
     bool?: BoolWithAggregatesFilter<"D"> | boolean
-    byteA?: BytesWithAggregatesFilter<"D"> | Buffer
+    byteA?: BytesWithAggregatesFilter<"D"> | Uint8Array
     xml?: StringWithAggregatesFilter<"D"> | string
     json?: JsonWithAggregatesFilter<"D">
     jsonb?: JsonWithAggregatesFilter<"D">
@@ -19220,7 +19214,7 @@ export namespace Prisma {
   export type DCreateInput = {
     id?: string
     bool: boolean
-    byteA: Buffer
+    byteA: Uint8Array
     xml: string
     json: InputJsonValue
     jsonb: InputJsonValue
@@ -19230,7 +19224,7 @@ export namespace Prisma {
   export type DUncheckedCreateInput = {
     id?: string
     bool: boolean
-    byteA: Buffer
+    byteA: Uint8Array
     xml: string
     json: InputJsonValue
     jsonb: InputJsonValue
@@ -19239,7 +19233,7 @@ export namespace Prisma {
 
   export type DUpdateInput = {
     bool?: BoolFieldUpdateOperationsInput | boolean
-    byteA?: BytesFieldUpdateOperationsInput | Buffer
+    byteA?: BytesFieldUpdateOperationsInput | Uint8Array
     xml?: StringFieldUpdateOperationsInput | string
     json?: InputJsonValue | InputJsonValue
     jsonb?: InputJsonValue | InputJsonValue
@@ -19248,7 +19242,7 @@ export namespace Prisma {
 
   export type DUncheckedUpdateInput = {
     bool?: BoolFieldUpdateOperationsInput | boolean
-    byteA?: BytesFieldUpdateOperationsInput | Buffer
+    byteA?: BytesFieldUpdateOperationsInput | Uint8Array
     xml?: StringFieldUpdateOperationsInput | string
     json?: InputJsonValue | InputJsonValue
     jsonb?: InputJsonValue | InputJsonValue
@@ -19258,7 +19252,7 @@ export namespace Prisma {
   export type DCreateManyInput = {
     id?: string
     bool: boolean
-    byteA: Buffer
+    byteA: Uint8Array
     xml: string
     json: InputJsonValue
     jsonb: InputJsonValue
@@ -19267,7 +19261,7 @@ export namespace Prisma {
 
   export type DUpdateManyMutationInput = {
     bool?: BoolFieldUpdateOperationsInput | boolean
-    byteA?: BytesFieldUpdateOperationsInput | Buffer
+    byteA?: BytesFieldUpdateOperationsInput | Uint8Array
     xml?: StringFieldUpdateOperationsInput | string
     json?: InputJsonValue | InputJsonValue
     jsonb?: InputJsonValue | InputJsonValue
@@ -19276,7 +19270,7 @@ export namespace Prisma {
 
   export type DUncheckedUpdateManyInput = {
     bool?: BoolFieldUpdateOperationsInput | boolean
-    byteA?: BytesFieldUpdateOperationsInput | Buffer
+    byteA?: BytesFieldUpdateOperationsInput | Uint8Array
     xml?: StringFieldUpdateOperationsInput | string
     json?: InputJsonValue | InputJsonValue
     jsonb?: InputJsonValue | InputJsonValue
@@ -19375,7 +19369,7 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
-  export type UserRelationFilter = {
+  export type UserScalarRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
   }
@@ -19562,7 +19556,7 @@ export namespace Prisma {
     none?: PostWhereInput
   }
 
-  export type EmbedHolderRelationFilter = {
+  export type EmbedHolderScalarRelationFilter = {
     is?: EmbedHolderWhereInput
     isNot?: EmbedHolderWhereInput
   }
@@ -20049,7 +20043,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OneOptionalNullableRelationFilter = {
+  export type OneOptionalNullableScalarRelationFilter = {
     is?: OneOptionalWhereInput | null
     isNot?: OneOptionalWhereInput | null
   }
@@ -20115,7 +20109,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OptionalSide2NullableRelationFilter = {
+  export type OptionalSide2NullableScalarRelationFilter = {
     is?: OptionalSide2WhereInput | null
     isNot?: OptionalSide2WhereInput | null
   }
@@ -20181,7 +20175,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OptionalSide1NullableRelationFilter = {
+  export type OptionalSide1NullableScalarRelationFilter = {
     is?: OptionalSide1WhereInput | null
     isNot?: OptionalSide1WhereInput | null
   }
@@ -20369,10 +20363,10 @@ export namespace Prisma {
   }
 
   export type BytesFilter<$PrismaModel = never> = {
-    equals?: Buffer | BytesFieldRefInput<$PrismaModel>
-    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
-    not?: NestedBytesFilter<$PrismaModel> | Buffer
+    equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
+    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesFilter<$PrismaModel> | Uint8Array
   }
 
   export type IntNullableListFilter<$PrismaModel = never> = {
@@ -20416,10 +20410,10 @@ export namespace Prisma {
   }
 
   export type BytesWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Buffer | BytesFieldRefInput<$PrismaModel>
-    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
-    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Buffer
+    equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
+    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Uint8Array
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBytesFilter<$PrismaModel>
     _max?: NestedBytesFilter<$PrismaModel>
@@ -20875,7 +20869,7 @@ export namespace Prisma {
   }
 
   export type BytesFieldUpdateOperationsInput = {
-    set?: Buffer
+    set?: Uint8Array
   }
 
   export type DUpdatelistInput = {
@@ -21225,17 +21219,17 @@ export namespace Prisma {
   }
 
   export type NestedBytesFilter<$PrismaModel = never> = {
-    equals?: Buffer | BytesFieldRefInput<$PrismaModel>
-    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
-    not?: NestedBytesFilter<$PrismaModel> | Buffer
+    equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
+    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesFilter<$PrismaModel> | Uint8Array
   }
 
   export type NestedBytesWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Buffer | BytesFieldRefInput<$PrismaModel>
-    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
-    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Buffer
+    equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
+    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Uint8Array
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBytesFilter<$PrismaModel>
     _max?: NestedBytesFilter<$PrismaModel>
@@ -22331,94 +22325,6 @@ export namespace Prisma {
   }
 
 
-
-  /**
-   * Aliases for legacy arg types
-   */
-    /**
-     * @deprecated Use UserCountOutputTypeDefaultArgs instead
-     */
-    export type UserCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserCountOutputTypeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use EmbedHolderCountOutputTypeDefaultArgs instead
-     */
-    export type EmbedHolderCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmbedHolderCountOutputTypeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use MCountOutputTypeDefaultArgs instead
-     */
-    export type MCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MCountOutputTypeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use NCountOutputTypeDefaultArgs instead
-     */
-    export type NCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = NCountOutputTypeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use OneOptionalCountOutputTypeDefaultArgs instead
-     */
-    export type OneOptionalCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OneOptionalCountOutputTypeDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use EmbedDefaultArgs instead
-     */
-    export type EmbedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmbedDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use EmbedEmbedDefaultArgs instead
-     */
-    export type EmbedEmbedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmbedEmbedDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use PostDefaultArgs instead
-     */
-    export type PostArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PostDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use UserDefaultArgs instead
-     */
-    export type UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use EmbedHolderDefaultArgs instead
-     */
-    export type EmbedHolderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmbedHolderDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use MDefaultArgs instead
-     */
-    export type MArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use NDefaultArgs instead
-     */
-    export type NArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = NDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use OneOptionalDefaultArgs instead
-     */
-    export type OneOptionalArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OneOptionalDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use ManyRequiredDefaultArgs instead
-     */
-    export type ManyRequiredArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ManyRequiredDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use OptionalSide1DefaultArgs instead
-     */
-    export type OptionalSide1Args<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OptionalSide1DefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use OptionalSide2DefaultArgs instead
-     */
-    export type OptionalSide2Args<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OptionalSide2DefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use ADefaultArgs instead
-     */
-    export type AArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ADefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use BDefaultArgs instead
-     */
-    export type BArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = BDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use CDefaultArgs instead
-     */
-    export type CArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use DDefaultArgs instead
-     */
-    export type DArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DDefaultArgs<ExtArgs>
-    /**
-     * @deprecated Use EDefaultArgs instead
-     */
-    export type EArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

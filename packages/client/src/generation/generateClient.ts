@@ -181,6 +181,7 @@ export async function buildClient({
 
   const pkgJson = {
     name: getUniquePackageName(datamodel),
+    type: 'commonjs',
     main: 'index.js',
     types: 'index.d.ts',
     browser: 'index-browser.js',
@@ -558,6 +559,8 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
       'PrismaClient',
       'Prisma',
       // JavaScript keywords
+      'async',
+      'await',
       'break',
       'case',
       'catch',
@@ -596,6 +599,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
       'throw',
       'true',
       'try',
+      'using',
       'typeof',
       'var',
       'void',

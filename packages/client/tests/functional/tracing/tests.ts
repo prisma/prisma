@@ -157,6 +157,14 @@ testMatrix.setupTestSuite(
       return span
     }
 
+    function txSetIsolationLevel() {
+      if (usesSyntheticTxQueries) {
+        return dbQuery('-- Implicit "SET TRANSACTION" query via underlying driver', AdapterQueryChildSpans.None)
+      } else {
+        return dbQuery(expect.stringContaining('SET TRANSACTION'), AdapterQueryChildSpans.ArgsOnly)
+      }
+    }
+
     function txBegin() {
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "BEGIN" query via underlying driver', AdapterQueryChildSpans.None)
@@ -199,7 +207,7 @@ testMatrix.setupTestSuite(
 
     function engine(children: Tree[]) {
       return {
-        name: 'prisma:engine',
+        name: 'prisma:engine:query',
         children,
       }
     }
@@ -270,6 +278,9 @@ testMatrix.setupTestSuite(
 
       const dbQueries: Tree[] = []
       if (tx) {
+        if (isSqlServer) {
+          dbQueries.push(txSetIsolationLevel())
+        }
         dbQueries.push(txBegin())
       }
 
@@ -346,6 +357,9 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('SELECT')),
             txCommit(),
           ]
+          if (isSqlServer) {
+            expectedDbQueries.unshift(txSetIsolationLevel())
+          }
         }
 
         await waitForSpanTree(
@@ -374,6 +388,9 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
+          if (isSqlServer) {
+            expectedDbQueries.unshift(txSetIsolationLevel())
+          }
         } else {
           expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'))]
         }
@@ -411,6 +428,9 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
+          if (isSqlServer) {
+            expectedDbQueries.unshift(txSetIsolationLevel())
+          }
         } else {
           expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly)]
         }
@@ -492,6 +512,9 @@ testMatrix.setupTestSuite(
           expectedDbQueries = [...createDbQueries(false), findManyDbQuery()]
         } else {
           expectedDbQueries = [txBegin(), ...createDbQueries(false), findManyDbQuery(), txCommit()]
+          if (isSqlServer) {
+            expectedDbQueries.unshift(txSetIsolationLevel())
+          }
         }
 
         await waitForSpanTree({
@@ -560,7 +583,11 @@ testMatrix.setupTestSuite(
             },
             {
               name: 'prisma:engine:start_transaction',
-              children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
+              children: isMongoDb
+                ? [engineConnection()]
+                : isSqlServer
+                ? [engineConnection(), txSetIsolationLevel(), txBegin()]
+                : [engineConnection(), txBegin()],
             },
           ],
         })
@@ -616,7 +643,11 @@ testMatrix.setupTestSuite(
             },
             {
               name: 'prisma:engine:start_transaction',
-              children: isMongoDb ? [engineConnection()] : [engineConnection(), txBegin()],
+              children: isMongoDb
+                ? [engineConnection()]
+                : isSqlServer
+                ? [engineConnection(), txSetIsolationLevel(), txBegin()]
+                : [engineConnection(), txBegin()],
             },
           ],
         })

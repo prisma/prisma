@@ -2,6 +2,7 @@ import { applyFieldsProxy } from './applyFieldsProxy'
 
 const fields = applyFieldsProxy('MyModel', {
   dbName: '',
+  schema: null,
   fields: [
     {
       name: 'intField',

@@ -23,7 +23,7 @@ import { resolveEnginePath } from '../common/resolveEnginePath'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { QueryEngineResult } from '../common/types/QueryEngine'
+import type { QueryEngineResultData } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
@@ -666,7 +666,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async request<T>(
     query: JsonQuery,
     { traceparent, numTry = 1, isWrite, interactiveTransaction }: RequestOptions<undefined>,
-  ): Promise<QueryEngineResult<T>> {
+  ): Promise<QueryEngineResultData<T>> {
     await this.start()
     const headers: Record<string, string> = {}
     if (traceparent) {
@@ -684,7 +684,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.lastQuery = queryStr
 
     try {
-      const { data, headers } = await this.currentRequestPromise
+      const { data } = await this.currentRequestPromise
 
       if (data.errors) {
         if (data.errors.length === 1) {
@@ -694,16 +694,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
       }
 
-      // Rust engine returns time in microseconds and we want it in milliseconds
-      const elapsed = parseInt(headers['x-elapsed']) / 1000
-
       // reset restart count after successful request
       if (this.startCount > 0) {
         this.startCount = 0
       }
 
       this.currentRequestPromise = undefined
-      return { data, elapsed } as any
+      return { data }
     } catch (e: any) {
       logger('req - e', e)
 
@@ -743,9 +740,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     )
 
     return this.currentRequestPromise
-      .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in milliseconds
-        const elapsed = parseInt(headers['x-elapsed']) / 1000
+      .then(({ data }) => {
         const { batchResult } = data
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
@@ -754,7 +749,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
             return {
               data: result,
-              elapsed,
             }
           })
         } else {

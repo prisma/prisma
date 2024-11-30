@@ -529,61 +529,82 @@ testMatrix.setupTestSuite(
     })
 
     /**
-     * Makes sure that the engine does not deadlock
-     * For SQLite and MySQL 8, it sometimes causes DB lock up and all subsequent
-     * tests fail. We might want to re-enable it either after we implemented
-     * WAL mode (https://github.com/prisma/prisma/issues/3303) or identified the
-     * issue on our side
-     * On SQL Server, it fails because the database kills the connections.
+     * Makes sure that the engine itself does not deadlock (regression test for https://github.com/prisma/prisma/issues/11750).
+     * Issues on the database side are to be expected though: for SQLite, MySQL 8+ and MongoDB, it sometimes causes DB lock up
+     * and all subsequent tests fail for some time. On SQL Server, the database kills the connections.
      */
-    testIf(provider !== Providers.SQLITE && provider !== Providers.MYSQL && provider !== Providers.SQLSERVER)(
-      'high concurrency',
-      async () => {
-        jest.setTimeout(30_000)
+    testIf(provider === Providers.POSTGRESQL)('high concurrency with write conflicts', async () => {
+      jest.setTimeout(30_000)
 
-        await prisma.user.create({
-          data: {
-            email: 'x',
-            name: 'y',
-          },
-        })
+      await prisma.user.create({
+        data: {
+          email: 'x',
+          name: 'y',
+        },
+      })
 
-        for (let i = 0; i < 5; i++) {
-          await Promise.allSettled([
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-            prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
-              timeout: 25,
-            }),
-          ]).catch(() => {}) // we don't care for errors, there will be
-        }
-      },
-    )
+      for (let i = 0; i < 5; i++) {
+        await Promise.allSettled([
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+          prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
+            timeout: 25,
+          }),
+        ]).catch(() => {}) // we don't care for errors, there will be
+      }
+    })
+
+    testIf(provider !== Providers.SQLITE)('high concurrency with no conflicts', async () => {
+      jest.setTimeout(30_000)
+
+      await prisma.user.create({
+        data: {
+          email: 'x',
+          name: 'y',
+        },
+      })
+
+      // None of these transactions should fail.
+      for (let i = 0; i < 5; i++) {
+        await Promise.allSettled([
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+          prisma.$transaction((tx) => tx.user.findMany()),
+        ])
+      }
+    })
 
     /**
      * Rollback should happen even with `then` calls

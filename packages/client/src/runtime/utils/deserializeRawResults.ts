@@ -16,8 +16,10 @@ function deserializeValue(type: QueryIntrospectionBuiltinType, value: unknown): 
     case 'bigint':
       return BigInt(value as string)
 
-    case 'bytes':
-      return Buffer.from(value as string, 'base64')
+    case 'bytes': {
+      const { buffer, byteOffset, byteLength } = Buffer.from(value as string, 'base64')
+      return new Uint8Array(buffer, byteOffset, byteLength)
+    }
 
     case 'decimal':
       return new Decimal(value as string)

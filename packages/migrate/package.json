@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "This package is intended for Prisma's internal use",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/migrate/src/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
@@ -19,19 +19,18 @@
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
     "@swc/core": "1.6.13",
-    "@swc/jest": "0.2.36",
-    "@types/jest": "29.5.12",
+    "@swc/jest": "0.2.37",
+    "@types/jest": "29.5.14",
     "@types/node": "18.19.31",
     "@types/pg": "8.11.6",
     "@types/prompts": "2.4.9",
     "@types/sqlite3": "3.1.11",
     "arg": "5.0.2",
-    "esbuild": "0.23.0",
+    "esbuild": "0.24.0",
     "execa": "5.1.1",
     "fp-ts": "2.16.9",
     "fs-jetpack": "5.1.0",
     "get-stdin": "8.0.0",
-    "has-yarn": "2.1.0",
     "indent-string": "4.0.0",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
@@ -39,7 +38,7 @@
     "log-update": "4.0.0",
     "mariadb": "3.3.1",
     "mock-stdin": "1.0.0",
-    "mongoose": "8.4.3",
+    "mongoose": "8.8.3",
     "mssql": "11.0.1",
     "ora": "5.4.1",
     "pg": "8.11.5",
@@ -49,7 +48,7 @@
     "tempy": "1.0.1",
     "ts-pattern": "5.2.0",
     "typescript": "5.4.5",
-    "wrangler": "3.62.0"
+    "wrangler": "3.91.0"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -57,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+    "@prisma/engines-version": "6.1.0-3.025d69d4aa1362e128e0bcc53b5147a416dfebad",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",

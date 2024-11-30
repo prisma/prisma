@@ -16,8 +16,8 @@
   "enginesOverride": {},
   "devDependencies": {
     "@swc/core": "1.6.13",
-    "@swc/jest": "0.2.36",
-    "@types/jest": "29.5.12",
+    "@swc/jest": "0.2.37",
+    "@types/jest": "29.5.14",
     "@types/node": "18.19.31",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2",
+    "@prisma/engines-version": "6.1.0-3.025d69d4aa1362e128e0bcc53b5147a416dfebad",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
