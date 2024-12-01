@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "@prisma/adapter-pg": "/tmp/prisma-adapter-pg-0.0.0.tgz",
+    "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.12",
+    "@types/node": "18.19.50",
+    "@types/pg": "^8.11.6",
+    "prisma": "/tmp/prisma-0.0.0.tgz"
+  }
+}

@@ -1,10 +1,12 @@
+import { Writer } from '../../../generation/ts-builders/Writer'
 import { lowerCase } from '../../../generation/utils/common'
+import { ErrorFormat } from '../../getPrismaClient'
 import { isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
 import { isFieldRef } from '../model/FieldRef'
 import { ObjectEnumValue } from '../types/exported/ObjectEnums'
 import { ArrayValue } from './ArrayValue'
-import { Colors, ErrorBasicBuilder, ErrorWriter } from './base'
+import { activeColors, Colors, ErrorBasicBuilder, ErrorWriter, inactiveColors } from './base'
 import { ObjectField } from './ObjectField'
 import { ObjectValue } from './ObjectValue'
 import { ScalarValue } from './ScalarValue'
@@ -117,4 +119,13 @@ function buildInputArray(array: unknown[]) {
     result.addItem(buildInputValue(item))
   }
   return result
+}
+
+export function renderArgsTree(argsTree: ArgumentsRenderingTree, errorFormat: ErrorFormat) {
+  const colors = errorFormat === 'pretty' ? activeColors : inactiveColors
+
+  const message = argsTree.renderAllMessages(colors)
+  const args = new Writer(0, { colors }).write(argsTree).toString()
+
+  return { message, args }
 }

@@ -5,11 +5,10 @@ import {
   getClientEngineType,
   getConfig,
   getEnvPaths,
-  getRelativeSchemaPath,
+  getSchemaWithPath,
   parseEnvValue,
   printConfigWarnings,
 } from '@prisma/internals'
-import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 
@@ -27,8 +26,9 @@ import { generateInFolder } from './generateInFolder'
 export async function getTestClient(schemaDir?: string, printWarnings?: boolean): Promise<any> {
   const callSite = path.dirname(require.main?.filename ?? '')
   const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
-  const schemaPath = await getRelativeSchemaPath(absSchemaDir)
-  const datamodel = await fs.promises.readFile(schemaPath!, 'utf-8')
+
+  const { schemaPath, schemas: datamodel } = (await getSchemaWithPath(undefined, { cwd: absSchemaDir }))!
+
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   if (printWarnings) {
     printConfigWarnings(config.warnings)
@@ -47,7 +47,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     previewFeatures,
   })
   const outputDir = absSchemaDir
-  const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
+  const relativeEnvPaths = await getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
     runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),
@@ -60,7 +60,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
     inlineDatasources: { db: { url: config.datasources[0].url } },
-    inlineSchema: datamodel,
+    inlineSchema: datamodel[0][1], // TODO: merge schemas
     inlineSchemaHash: '',
   }
 

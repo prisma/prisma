@@ -20,7 +20,7 @@ testMatrix.setupTestSuite(
       // Message doesn't know if one or more values failed, which one failed,
       // errors on the first https://github.com/prisma/prisma/issues/11885
       await expect(user).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+        "
         Invalid \`prisma.user.create()\` invocation in
         /client/tests/functional/0-legacy-ports/malformed-id/tests.ts:0:0
 
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
           XX   () => {
           XX     test('should throw Malformed ObjectID error: in 2 different fields', async () => {
         → XX       const user = prisma.user.create(
-        Inconsistent column data: Malformed ObjectID: provided hex string representation must be exactly 12 bytes, instead got: "something invalid 1", length 19 for the field 'id'.
+        Inconsistent column data: Malformed ObjectID: provided hex string representation must be exactly 12 bytes, instead got: "something invalid 1", length 19 for the field 'id'."
       `)
     })
 

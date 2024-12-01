@@ -5,7 +5,6 @@ import stripAnsi from 'strip-ansi'
 
 import {
   EngineValidationError,
-  Fetch,
   InteractiveTransactionOptions,
   JsonQuery,
   LogEmitter,
@@ -17,15 +16,16 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { QueryEngineResult } from './core/engines/common/types/QueryEngine'
+import { CustomDataProxyFetch } from './core/engines/common/Engine'
+import { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
-import { NotFoundError } from './core/errors/NotFoundError'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
+import { GlobalOmitOptions } from './core/jsonProtocol/serializeJsonQuery'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { Action, JsArgs } from './core/types/exported/JsApi'
 import { DataLoader } from './DataLoader'
@@ -33,6 +33,7 @@ import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { deepGet } from './utils/deep-set'
+import { deserializeRawResult, RawResponse } from './utils/deserializeRawResults'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -50,7 +51,8 @@ export type RequestParams = {
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  globalOmit?: GlobalOmitOptions
+  customDataProxyFetch?: CustomDataProxyFetch
 }
 
 export type HandleErrorParams = {
@@ -60,6 +62,7 @@ export type HandleErrorParams = {
   callsite?: CallSite
   transaction?: PrismaPromiseTransaction
   modelName?: string
+  globalOmit?: GlobalOmitOptions
 }
 
 export class RequestHandler {
@@ -137,20 +140,27 @@ export class RequestHandler {
       return await this.dataloader.request(params)
     } catch (error) {
       const { clientMethod, callsite, transaction, args, modelName } = params
-      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args, modelName })
+      this.handleAndLogRequestError({
+        error,
+        clientMethod,
+        callsite,
+        transaction,
+        args,
+        modelName,
+        globalOmit: params.globalOmit,
+      })
     }
   }
 
-  mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResult<any>) {
+  mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResultData<any>) {
     const data = response?.data
-    const elapsed = response?.elapsed
 
     /**
      * Unpack
      */
     const result = this.unpack(data, dataPath, unpacker)
     if (process.env.PRISMA_CLIENT_GET_TIME) {
-      return { data: result, elapsed }
+      return { data: result }
     }
     return result
   }
@@ -170,18 +180,20 @@ export class RequestHandler {
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite, transaction, args, modelName }: HandleErrorParams): never {
+  handleRequestError({
+    error,
+    clientMethod,
+    callsite,
+    transaction,
+    args,
+    modelName,
+    globalOmit,
+  }: HandleErrorParams): never {
     debug(error)
 
     if (isMismatchingBatchIndex(error, transaction)) {
       // if this is batch error and current request was not it's cause, we don't add
       // context information to the error: this wasn't a request that caused batch to fail
-      throw error
-    }
-
-    if (error instanceof NotFoundError) {
-      // TODO: This is a workaround to keep backwards compatibility with clients
-      // consuming NotFoundError
       throw error
     }
 
@@ -194,6 +206,7 @@ export class RequestHandler {
         errorFormat: this.client._errorFormat,
         originalMethod: clientMethod,
         clientVersion: this.client._clientVersion,
+        globalOmit,
       })
     }
 
@@ -254,11 +267,16 @@ export class RequestHandler {
     if (!data) {
       return data
     }
+    const operation = Object.keys(data)[0]
     const response = Object.values(data)[0]
     const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
-    const deserializeResponse = deserializeJsonResponse(deepGet(response, pathForGet))
+    const extractedResponse = deepGet(response, pathForGet)
+    const deserializedResponse =
+      operation === 'queryRaw'
+        ? deserializeRawResult(extractedResponse as RawResponse)
+        : (deserializeJsonResponse(extractedResponse) as unknown)
 
-    return unpacker ? unpacker(deserializeResponse) : deserializeResponse
+    return unpacker ? unpacker(deserializedResponse) : deserializedResponse
   }
 
   get [Symbol.toStringTag]() {

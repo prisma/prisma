@@ -7,9 +7,8 @@ import {
   BasicTracerProvider,
   ConsoleSpanExporter,
   SimpleSpanProcessor,
-  TraceIdRatioBasedSampler,
 } from '@opentelemetry/sdk-trace-base'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 /** SETUP */
@@ -32,8 +31,8 @@ export function otelSetup() {
   const provider = new BasicTracerProvider({
     resource: new Resource({
       // we can define some metadata about the trace resource
-      [SemanticResourceAttributes.SERVICE_NAME]: 'basic-service',
-      [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
+      [ATTR_SERVICE_NAME]: 'basic-service',
+      [ATTR_SERVICE_VERSION]: '1.0.0',
     }),
   })
 

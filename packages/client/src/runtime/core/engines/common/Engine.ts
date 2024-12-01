@@ -8,12 +8,11 @@ import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownReq
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
-import { Fetch } from '../data-proxy/utils/request'
 import { QueryEngineConstructor } from '../library/types/Library'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
-import type { QueryEngineResult } from './types/QueryEngine'
+import type { QueryEngineResultData } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
 import type { getBatchRequestPayload } from './utils/getBatchRequestPayload'
 
@@ -40,13 +39,44 @@ export type GraphQLQuery = {
 
 export type EngineProtocol = 'graphql' | 'json'
 
+/**
+ * Custom fetch function for `DataProxyEngine`.
+ *
+ * We can't use the actual type of `globalThis.fetch` because this will result
+ * in API Extractor referencing Node.js type definitions in the `.d.ts` bundle
+ * for the client runtime. We can only use such types in internal types that
+ * don't end up exported anywhere.
+
+ * It's also not possible to write a definition of `fetch` that would accept the
+ * actual `fetch` function from different environments such as Node.js and
+ * Cloudflare Workers (with their extensions to `RequestInit` and `Response`).
+ * `fetch` is used in both covariant and contravariant positions in
+ * `CustomDataProxyFetch`, making it invariant, so we need the exact same type.
+ * Even if we removed the argument and left `fetch` in covariant position only,
+ * then for an extension-supplied function to be assignable to `customDataProxyFetch`,
+ * the platform-specific (or custom) `fetch` function needs to be assignable
+ * to our `fetch` definition. This, in turn, requires the third-party `Response`
+ * to be a subtype of our `Response` (which is not a problem, we could declare
+ * a minimal `Response` type that only includes what we use) *and* requires the
+ * third-party `RequestInit` to be a supertype of our `RequestInit` (i.e. we
+ * have to declare all properties any `RequestInit` implementation in existence
+ * could possibly have), which is not possible.
+ *
+ * Since `@prisma/extension-accelerate` redefines the type of
+ * `__internalParams.customDataProxyFetch` to its own type anyway (probably for
+ * exactly this reason), our definition is never actually used and is completely
+ * ignored, so it doesn't matter, and we can just use `unknown` as the type of
+ * `fetch` here. 
+ */
+export type CustomDataProxyFetch = (fetch: unknown) => unknown
+
 export type RequestOptions<InteractiveTransactionPayload> = {
   traceparent?: string
   numTry?: number
   interactiveTransaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
   isWrite: boolean
   // only used by the data proxy engine
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
 }
 
 export type RequestBatchOptions<InteractiveTransactionPayload> = {
@@ -55,10 +85,10 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
   numTry?: number
   containsWrite: boolean
   // only used by the data proxy engine
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
 }
 
-export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
+export type BatchQueryEngineResult<T> = QueryEngineResultData<T> | Error
 
 export interface Engine<InteractiveTransactionPayload = unknown> {
   /** The name of the engine. This is meant to be consumed externally */
@@ -67,7 +97,10 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   start(): Promise<void>
   stop(): Promise<void>
   version(forceRun?: boolean): Promise<string> | string
-  request<T>(query: JsonQuery, options: RequestOptions<InteractiveTransactionPayload>): Promise<QueryEngineResult<T>>
+  request<T>(
+    query: JsonQuery,
+    options: RequestOptions<InteractiveTransactionPayload>,
+  ): Promise<QueryEngineResultData<T>>
   requestBatch<T>(
     queries: JsonQuery[],
     options: RequestBatchOptions<InteractiveTransactionPayload>,
@@ -89,6 +122,8 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   ): Promise<void>
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
+  // Methods dedicated for the C/RN engine, other versions should throw error
+  applyPendingMigrations(): Promise<void>
 }
 
 export interface EngineConfig {

@@ -55,9 +55,9 @@ test('mapLineAt', () => {
 test('mapLines', () => {
   const slice = SourceFileSlice.fromContent('one\ntwo\nthree').mapLines((line, number) => `line ${number}: ${line}`)
   expect(slice.toString()).toMatchInlineSnapshot(`
-    line 1: one
+    "line 1: one
     line 2: two
-    line 3: three
+    line 3: three"
   `)
 })
 
@@ -66,9 +66,9 @@ test('mapLines after slice', () => {
     .slice(2, 4)
     .mapLines((line, number) => `line ${number}: ${line}`)
   expect(slice.toString()).toMatchInlineSnapshot(`
-    line 2: two
+    "line 2: two
     line 3: three
-    line 4: four
+    line 4: four"
   `)
 })
 

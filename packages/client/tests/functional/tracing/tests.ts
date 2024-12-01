@@ -10,7 +10,7 @@ import {
   SimpleSpanProcessor,
   SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { ClientEngineType } from '@prisma/internals'
 
@@ -66,8 +66,8 @@ beforeAll(() => {
 
   const basicTracerProvider = new BasicTracerProvider({
     resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: `test-name`,
-      [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
+      [SEMRESATTRS_SERVICE_NAME]: 'test-name',
+      [SEMRESATTRS_SERVICE_VERSION]: '1.0.0',
     }),
   })
 
@@ -120,7 +120,12 @@ testMatrix.setupTestSuite(
         name: 'prisma:engine:db_query',
         attributes: {
           'db.statement': statement,
+          'db.system': dbSystemExpectation(),
         },
+      }
+
+      if (provider === Providers.MONGODB) {
+        span.attributes['db.operation.name'] = expect.toBeString()
       }
 
       // extra children spans for driver adapters, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
@@ -142,6 +147,7 @@ testMatrix.setupTestSuite(
           name: 'js:query:sql',
           attributes: {
             'db.statement': statement,
+            'db.system': dbSystemExpectation(),
           },
         })
 
@@ -149,6 +155,14 @@ testMatrix.setupTestSuite(
       }
 
       return span
+    }
+
+    function txSetIsolationLevel() {
+      if (usesSyntheticTxQueries) {
+        return dbQuery('-- Implicit "SET TRANSACTION" query via underlying driver', AdapterQueryChildSpans.None)
+      } else {
+        return dbQuery(expect.stringContaining('SET TRANSACTION'), AdapterQueryChildSpans.ArgsOnly)
+      }
     }
 
     function txBegin() {
@@ -164,6 +178,14 @@ testMatrix.setupTestSuite(
         return dbQuery('-- Implicit "COMMIT" query via underlying driver', AdapterQueryChildSpans.None)
       } else {
         return dbQuery('COMMIT', AdapterQueryChildSpans.ArgsOnly)
+      }
+    }
+
+    function txRollback() {
+      if (usesSyntheticTxQueries) {
+        return dbQuery('-- Implicit "ROLLBACK" query via underlying driver', AdapterQueryChildSpans.None)
+      } else {
+        return dbQuery('ROLLBACK', AdapterQueryChildSpans.ArgsOnly)
       }
     }
 
@@ -185,7 +207,7 @@ testMatrix.setupTestSuite(
 
     function engine(children: Tree[]) {
       return {
-        name: 'prisma:engine',
+        name: 'prisma:engine:query',
         children,
       }
     }
@@ -209,21 +231,44 @@ testMatrix.setupTestSuite(
       return [...engineSerializeFinalResponse(), engineSerializeQueryResult()]
     }
 
+    function dbSystemExpectation() {
+      return expect.toSatisfy((dbSystem) => {
+        if (provider === Providers.SQLSERVER) {
+          return dbSystem === 'mssql'
+        }
+
+        return dbSystem === provider
+      })
+    }
+
     function engineConnection() {
-      return { name: 'prisma:engine:connection', attributes: { 'db.type': expect.any(String) } }
+      return {
+        name: 'prisma:engine:connection',
+        attributes: {
+          'db.system': dbSystemExpectation(),
+        },
+      }
+    }
+
+    function engineConnect() {
+      return { name: 'prisma:engine:connect', children: [engineConnection()] }
     }
 
     function findManyDbQuery() {
-      const statement = isMongoDb ? 'db.User.findMany(*)' : 'SELECT'
+      const statement = isMongoDb ? 'db.User.aggregate' : 'SELECT'
 
       return dbQuery(expect.stringContaining(statement))
+    }
+
+    function itxExecuteSingle(children: Tree[]) {
+      return { name: 'prisma:engine:itx_execute_single', children }
     }
 
     function createDbQueries(tx = true) {
       if (isMongoDb) {
         return [
-          dbQuery(expect.stringContaining('db.User.insertOne(*)')),
-          dbQuery(expect.stringContaining('db.User.findOne(*)')),
+          dbQuery(expect.stringContaining('db.User.insertOne')),
+          dbQuery(expect.stringContaining('db.User.aggregate')),
         ]
       }
 
@@ -233,6 +278,9 @@ testMatrix.setupTestSuite(
 
       const dbQueries: Tree[] = []
       if (tx) {
+        if (isSqlServer) {
+          dbQueries.push(txSetIsolationLevel())
+        }
         dbQueries.push(txBegin())
       }
 
@@ -295,9 +343,9 @@ testMatrix.setupTestSuite(
 
         if (isMongoDb) {
           expectedDbQueries = [
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.updateMany(*)')),
-            dbQuery(expect.stringContaining('db.User.findOne(*)')),
+            dbQuery(expect.stringContaining('db.User.aggregate')),
+            dbQuery(expect.stringContaining('db.User.updateMany')),
+            dbQuery(expect.stringContaining('db.User.aggregate')),
           ]
         } else if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
           expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
@@ -309,6 +357,9 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('SELECT')),
             txCommit(),
           ]
+          if (isSqlServer) {
+            expectedDbQueries.unshift(txSetIsolationLevel())
+          }
         }
 
         await waitForSpanTree(
@@ -329,7 +380,7 @@ testMatrix.setupTestSuite(
         let expectedDbQueries: Tree[]
 
         if (isMongoDb) {
-          expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify(*)'))]
+          expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify'))]
         } else if (isMySql || isSqlServer) {
           expectedDbQueries = [
             txBegin(),
@@ -337,6 +388,9 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
+          if (isSqlServer) {
+            expectedDbQueries.unshift(txSetIsolationLevel())
+          }
         } else {
           expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'))]
         }
@@ -364,8 +418,8 @@ testMatrix.setupTestSuite(
 
         if (isMongoDb) {
           expectedDbQueries = [
-            dbQuery(expect.stringContaining('db.User.findMany(*)')),
-            dbQuery(expect.stringContaining('db.User.deleteMany(*)')),
+            dbQuery(expect.stringContaining('db.User.aggregate')),
+            dbQuery(expect.stringContaining('db.User.deleteMany')),
           ]
         } else if (relationMode === RelationModes.PRISMA) {
           expectedDbQueries = [
@@ -374,6 +428,9 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
+          if (isSqlServer) {
+            expectedDbQueries.unshift(txSetIsolationLevel())
+          }
         } else {
           expectedDbQueries = [dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly)]
         }
@@ -382,6 +439,51 @@ testMatrix.setupTestSuite(
           operation('User', 'deleteMany', [
             clientSerialize(),
             engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+          ]),
+        )
+      })
+
+      test('count', async () => {
+        await prisma.user.count({
+          where: {
+            email: sharedEmail,
+          },
+        })
+
+        await waitForSpanTree(
+          operation('User', 'count', [
+            clientSerialize(),
+            engine([
+              engineConnection(),
+              isMongoDb
+                ? dbQuery(expect.stringContaining('db.User.aggregate'))
+                : dbQuery(expect.stringContaining('SELECT COUNT')),
+              ...engineSerialize(),
+            ]),
+          ]),
+        )
+      })
+
+      test('aggregate', async () => {
+        await prisma.user.aggregate({
+          where: {
+            email: sharedEmail,
+          },
+          _max: {
+            id: true,
+          },
+        })
+
+        await waitForSpanTree(
+          operation('User', 'aggregate', [
+            clientSerialize(),
+            engine([
+              engineConnection(),
+              isMongoDb
+                ? dbQuery(expect.stringContaining('db.User.aggregate'))
+                : dbQuery(expect.stringContaining('SELECT MAX')),
+              ...engineSerialize(),
+            ]),
           ]),
         )
       })
@@ -410,6 +512,9 @@ testMatrix.setupTestSuite(
           expectedDbQueries = [...createDbQueries(false), findManyDbQuery()]
         } else {
           expectedDbQueries = [txBegin(), ...createDbQueries(false), findManyDbQuery(), txCommit()]
+          if (isSqlServer) {
+            expectedDbQueries.unshift(txSetIsolationLevel())
+          }
         }
 
         await waitForSpanTree({
@@ -431,7 +536,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      test('interactive-transactions', async () => {
+      test('interactive transaction commit', async () => {
         const email = faker.internet.email()
 
         await prisma.$transaction(async (client) => {
@@ -447,45 +552,105 @@ testMatrix.setupTestSuite(
           })
         })
 
-        let txQueries: Tree[] = []
-
-        if (provider !== Providers.MONGODB) {
-          txQueries = [txBegin(), txCommit()]
-        }
-
-        // skipping on data proxy because the functionality is broken
-        // in this case at the moment and `itx_runner` span occasionally does
-        // not make it to the client when running via DP.
-        // See https://github.com/prisma/prisma/issues/20694
-        if (!clientMeta.dataProxy) {
-          await waitForSpanTree({
-            name: 'prisma:client:transaction',
-            attributes: {
-              method: '$transaction',
+        await waitForSpanTree({
+          name: 'prisma:client:transaction',
+          attributes: {
+            method: '$transaction',
+          },
+          children: [
+            operation('User', 'create', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            operation('User', 'findMany', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            {
+              name: 'prisma:engine:commit_transaction',
+              children: [
+                {
+                  name: 'prisma:engine:itx_commit',
+                  children: isMongoDb ? undefined : [txCommit()],
+                },
+              ],
             },
-            children: [
-              operation('User', 'create', [clientSerialize()]),
-              operation('User', 'findMany', [clientSerialize()]),
+            {
+              name: 'prisma:engine:start_transaction',
+              children: isMongoDb
+                ? [engineConnection()]
+                : isSqlServer
+                ? [engineConnection(), txSetIsolationLevel(), txBegin()]
+                : [engineConnection(), txBegin()],
+            },
+          ],
+        })
+      })
 
-              {
-                name: 'prisma:engine:itx_runner',
-                attributes: { itx_id: expect.any(String) },
-                children: [
-                  engineConnection(),
-                  ...txQueries,
-                  {
-                    name: 'prisma:engine:itx_query_builder',
-                    children: [...createDbQueries(false), engineSerializeQueryResult()],
-                  },
-                  {
-                    name: 'prisma:engine:itx_query_builder',
-                    children: [findManyDbQuery(), engineSerializeQueryResult()],
-                  },
-                ],
+      test('interactive transaction rollback', async () => {
+        const email = faker.internet.email()
+
+        await prisma
+          .$transaction(async (client) => {
+            await client.user.create({
+              data: {
+                email,
               },
-            ],
+            })
+            await client.user.findMany({
+              where: {
+                email,
+              },
+            })
+            throw new Error('rollback')
           })
-        }
+          .catch(() => {})
+
+        await waitForSpanTree({
+          name: 'prisma:client:transaction',
+          attributes: {
+            method: '$transaction',
+          },
+          children: [
+            operation('User', 'create', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            operation('User', 'findMany', [
+              clientSerialize(),
+              engine([
+                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
+                ...engineSerializeFinalResponse(),
+              ]),
+            ]),
+            {
+              name: 'prisma:engine:rollback_transaction',
+              children: [
+                {
+                  name: 'prisma:engine:itx_rollback',
+                  children: isMongoDb ? undefined : [txRollback()],
+                },
+              ],
+            },
+            {
+              name: 'prisma:engine:start_transaction',
+              children: isMongoDb
+                ? [engineConnection()]
+                : isSqlServer
+                ? [engineConnection(), txSetIsolationLevel(), txBegin()]
+                : [engineConnection(), txBegin()],
+            },
+          ],
+        })
       })
     })
 
@@ -615,7 +780,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'findMany', [
-            { name: 'prisma:client:connect' },
+            { name: 'prisma:client:connect', children: [engineConnect()] },
             clientSerialize(),
             engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
@@ -635,7 +800,13 @@ testMatrix.setupTestSuite(
       test('should trace $disconnect', async () => {
         await _prisma.$disconnect()
 
-        await waitForSpanTree({ name: 'prisma:client:disconnect' })
+        await waitForSpanTree({
+          name: 'prisma:client:disconnect',
+          // There's no disconnect method in the binary engine, we terminate the process instead.
+          // Since we immediately close the pipe, there's no chance to get any spans we could
+          // emit from a signal handler.
+          children: engineType === 'binary' ? undefined : [{ name: 'prisma:engine:disconnect' }],
+        })
       })
     })
   },

@@ -1,6 +1,8 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import fs from 'fs'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -40,6 +42,7 @@ Or specify a Prisma schema path
       '-h': '--help',
       '--schema': String,
       '--telemetry-information': String,
+      '--check': Boolean,
     })
 
     if (args instanceof Error) {
@@ -50,19 +53,39 @@ Or specify a Prisma schema path
       return this.help()
     }
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
-    const output = await formatSchema({ schemaPath })
+    const formattedDatamodel = await formatSchema({ schemas })
 
     // Validate whether the formatted output is a valid schema
     validate({
-      datamodel: output,
+      schemas: formattedDatamodel,
     })
 
-    fs.writeFileSync(schemaPath, output)
-    const after = Math.round(performance.now())
+    if (args['--check']) {
+      for (const [filename, formattedSchema] of formattedDatamodel) {
+        const originalSchemaTuple = schemas.find((s) => s[0] === filename)
+        if (!originalSchemaTuple) {
+          return new HelpError(`${bold(red(`!`))} The schema ${underline(filename)} is not found in the schema list.`)
+        }
+        const [, originalSchema] = originalSchemaTuple
+        if (originalSchema !== formattedSchema) {
+          return new HelpError(
+            `${bold(red(`!`))} There are unformatted files. Run ${underline('prisma format')} to format them.`,
+          )
+        }
+      }
+      return 'All files are formatted correctly!'
+    }
 
-    return `Formatted ${underline(schemaPath)} in ${formatms(after - before)} 🚀`
+    for (const [filename, data] of formattedDatamodel) {
+      await fs.writeFile(filename, data)
+    }
+
+    const after = Math.round(performance.now())
+    const schemaRelativePath = path.relative(process.cwd(), schemaPath)
+
+    return `Formatted ${underline(schemaRelativePath)} in ${formatms(after - before)} 🚀`
   }
 
   public help(error?: string): string | HelpError {

@@ -53,12 +53,12 @@ testMatrix.setupTestSuite(
         expect(await prisma['hub'].findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
           [
             {
-              id: 1,
-              name: hub-1,
+              "id": 1,
+              "name": "hub-1",
             },
             {
-              id: 2,
-              name: hub-2,
+              "id": 2,
+              "name": "hub-2",
             },
           ]
         `)
@@ -66,24 +66,24 @@ testMatrix.setupTestSuite(
         expect(await prisma['batteryLevel'].findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
           [
             {
-              hubId: 1,
-              id: 1,
-              name: battery-1-hub-1,
+              "hubId": 1,
+              "id": 1,
+              "name": "battery-1-hub-1",
             },
             {
-              hubId: 1,
-              id: 2,
-              name: battery-2-hub-1,
+              "hubId": 1,
+              "id": 2,
+              "name": "battery-2-hub-1",
             },
             {
-              hubId: 2,
-              id: 3,
-              name: battery-1-hub-2,
+              "hubId": 2,
+              "id": 3,
+              "name": "battery-1-hub-2",
             },
             {
-              hubId: 2,
-              id: 4,
-              name: battery-2-hub-2,
+              "hubId": 2,
+              "id": 4,
+              "name": "battery-2-hub-2",
             },
           ]
         `)
@@ -95,8 +95,8 @@ testMatrix.setupTestSuite(
         expect(await prisma['hub'].findMany({})).toMatchInlineSnapshot(`
           [
             {
-              id: 2,
-              name: hub-2,
+              "id": 2,
+              "name": "hub-2",
             },
           ]
         `)
@@ -104,24 +104,24 @@ testMatrix.setupTestSuite(
         expect(await prisma['batteryLevel'].findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
           [
             {
-              hubId: null,
-              id: 1,
-              name: battery-1-hub-1,
+              "hubId": null,
+              "id": 1,
+              "name": "battery-1-hub-1",
             },
             {
-              hubId: null,
-              id: 2,
-              name: battery-2-hub-1,
+              "hubId": null,
+              "id": 2,
+              "name": "battery-2-hub-1",
             },
             {
-              hubId: 2,
-              id: 3,
-              name: battery-1-hub-2,
+              "hubId": 2,
+              "id": 3,
+              "name": "battery-1-hub-2",
             },
             {
-              hubId: 2,
-              id: 4,
-              name: battery-2-hub-2,
+              "hubId": 2,
+              "id": 4,
+              "name": "battery-2-hub-2",
             },
           ]
         `)

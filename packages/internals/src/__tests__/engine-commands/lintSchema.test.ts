@@ -2,6 +2,7 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { lintSchema } from '../../engine-commands'
 import { getLintWarnings, LintError, LintWarning } from '../../engine-commands/lintSchema'
+import { type MultipleSchemas } from '../../utils/schemaFileInput'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -21,6 +22,7 @@ describe('lint valid schema with a deprecated preview feature', () => {
       id Int @id
     }
   `
+  const schemas: MultipleSchemas = [['schema.prisma', schema]]
 
   const expectedWarning: LintWarning = {
     start: 91,
@@ -30,7 +32,7 @@ describe('lint valid schema with a deprecated preview feature', () => {
   }
 
   test('should return a deprecated preview feature warning', () => {
-    const lintDiagnostics = lintSchema({ schema })
+    const lintDiagnostics = lintSchema({ schemas })
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -66,6 +68,7 @@ describe('lint invalid schema with a deprecated preview feature', () => {
       userId Int      @unique
     }
   `
+  const schemas: MultipleSchemas = [['schema.prisma', schema]]
 
   const expectedWarning: LintWarning = {
     start: 91,
@@ -84,7 +87,7 @@ Either choose another referential action, or make the referenced fields optional
   }
 
   test('should return a parsing error and a deprecated preview feature warning', () => {
-    const lintDiagnostics = lintSchema({ schema })
+    const lintDiagnostics = lintSchema({ schemas })
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)

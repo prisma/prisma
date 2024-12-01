@@ -18,25 +18,25 @@ testMatrix.setupTestSuite(
             relationLoadStrategy: 'query',
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.findMany()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-              Invalid \`prisma.user.findMany()\` invocation in
-              /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX describeIf(relationJoinsDisabled)('relationLoadStrategy with no relationJoins preview feature', () => {
+            XX   test('findMany', async () => {
+            XX     await expect(
+          → XX       prisma.user.findMany({
+                       relationLoadStrategy: "query",
+                       ~~~~~~~~~~~~~~~~~~~~
+                     ? where?: UserWhereInput,
+                     ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                     ? cursor?: UserWhereUniqueInput,
+                     ? take?: Int,
+                     ? skip?: Int,
+                     ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+                     })
 
-                XX describeIf(relationJoinsDisabled)('relationLoadStrategy with no relationJoins preview feature', () => {
-                XX   test('findMany', async () => {
-                XX     await expect(
-              → XX       prisma.user.findMany({
-                           relationLoadStrategy: "query",
-                           ~~~~~~~~~~~~~~~~~~~~
-                         ? where?: UserWhereInput,
-                         ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                         ? cursor?: UserWhereUniqueInput,
-                         ? take?: Int,
-                         ? skip?: Int,
-                         ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
-                         })
-
-              Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -50,27 +50,27 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.findFirst()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.findFirst()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('findFirst', async () => {
+            XX   await expect(
+          → XX     prisma.user.findFirst({
+                     relationLoadStrategy: "query",
+                     ~~~~~~~~~~~~~~~~~~~~
+                     where: {
+                       login: "user"
+                     },
+                   ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                   ? cursor?: UserWhereUniqueInput,
+                   ? take?: Int,
+                   ? skip?: Int,
+                   ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+                   })
 
-              XX 
-              XX test('findFirst', async () => {
-              XX   await expect(
-            → XX     prisma.user.findFirst({
-                       relationLoadStrategy: "query",
-                       ~~~~~~~~~~~~~~~~~~~~
-                       where: {
-                         login: "user"
-                       },
-                     ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                     ? cursor?: UserWhereUniqueInput,
-                     ? take?: Int,
-                     ? skip?: Int,
-                     ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
-                     })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -84,27 +84,27 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.findFirstOrThrow()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.findFirstOrThrow()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('findFirstOrThrow', async () => {
+            XX   await expect(
+          → XX     prisma.user.findFirstOrThrow({
+                     relationLoadStrategy: "query",
+                     ~~~~~~~~~~~~~~~~~~~~
+                     where: {
+                       login: "user"
+                     },
+                   ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                   ? cursor?: UserWhereUniqueInput,
+                   ? take?: Int,
+                   ? skip?: Int,
+                   ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+                   })
 
-              XX 
-              XX test('findFirstOrThrow', async () => {
-              XX   await expect(
-            → XX     prisma.user.findFirstOrThrow({
-                       relationLoadStrategy: "query",
-                       ~~~~~~~~~~~~~~~~~~~~
-                       where: {
-                         login: "user"
-                       },
-                     ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                     ? cursor?: UserWhereUniqueInput,
-                     ? take?: Int,
-                     ? skip?: Int,
-                     ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
-                     })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -118,22 +118,22 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.findUnique()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.findUnique()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('findUnique', async () => {
+            XX   await expect(
+          → XX     prisma.user.findUnique({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      where: {
+                        login: "user"
+                      }
+                    })
 
-              XX 
-              XX test('findUnique', async () => {
-              XX   await expect(
-            → XX     prisma.user.findUnique({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        where: {
-                          login: "user"
-                        }
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -147,22 +147,22 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('findUniqueOrThrow', async () => {
+            XX   await expect(
+          → XX     prisma.user.findUniqueOrThrow({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      where: {
+                        login: "user"
+                      }
+                    })
 
-              XX 
-              XX test('findUniqueOrThrow', async () => {
-              XX   await expect(
-            → XX     prisma.user.findUniqueOrThrow({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        where: {
-                          login: "user"
-                        }
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -176,22 +176,22 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.create()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.create()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('create', async () => {
+            XX   await expect(
+          → XX     prisma.user.create({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      data: {
+                        login: "user"
+                      }
+                    })
 
-              XX 
-              XX test('create', async () => {
-              XX   await expect(
-            → XX     prisma.user.create({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        data: {
-                          login: "user"
-                        }
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -208,25 +208,25 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.update()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.update()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('update', async () => {
+            XX   await expect(
+          → XX     prisma.user.update({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      where: {
+                        login: "user"
+                      },
+                      data: {
+                        login: "new-user"
+                      }
+                    })
 
-              XX 
-              XX test('update', async () => {
-              XX   await expect(
-            → XX     prisma.user.update({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        where: {
-                          login: "user"
-                        },
-                        data: {
-                          login: "new-user"
-                        }
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -240,22 +240,22 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.delete()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.delete()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('delete', async () => {
+            XX   await expect(
+          → XX     prisma.user.delete({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      where: {
+                        login: "user"
+                      }
+                    })
 
-              XX 
-              XX test('delete', async () => {
-              XX   await expect(
-            → XX     prisma.user.delete({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        where: {
-                          login: "user"
-                        }
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -275,28 +275,28 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.upsert()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.upsert()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('upsert', async () => {
+            XX   await expect(
+          → XX     prisma.user.upsert({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      where: {
+                        login: "user"
+                      },
+                      create: {
+                        login: "user"
+                      },
+                      update: {
+                        login: "new-user"
+                      }
+                    })
 
-              XX 
-              XX test('upsert', async () => {
-              XX   await expect(
-            → XX     prisma.user.upsert({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        where: {
-                          login: "user"
-                        },
-                        create: {
-                          login: "user"
-                        },
-                        update: {
-                          login: "new-user"
-                        }
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -310,31 +310,31 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.aggregate()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.aggregate()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
-
-              XX 
-              XX test('aggregate', async () => {
-              XX   await expect(
-            → XX     prisma.user.aggregate({
-                        select: {
-                          _count: {
-                            select: {
-                              _all: true
-                            }
+            XX 
+            XX test('aggregate', async () => {
+            XX   await expect(
+          → XX     prisma.user.aggregate({
+                      select: {
+                        _count: {
+                          select: {
+                            _all: true
                           }
-                        },
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                      ? where?: UserWhereInput,
-                      ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                      ? cursor?: UserWhereUniqueInput,
-                      ? take?: Int,
-                      ? skip?: Int
-                      })
+                        }
+                      },
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                    ? where?: UserWhereInput,
+                    ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                    ? cursor?: UserWhereUniqueInput,
+                    ? take?: Int,
+                    ? skip?: Int
+                    })
 
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -346,28 +346,28 @@ testMatrix.setupTestSuite(
             by: 'id',
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.groupBy()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.groupBy()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('groupBy', async () => {
+            XX   await expect(
+          → XX     prisma.user.groupBy({
+                      select: {
+                        id: true
+                      },
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      by: "id",
+                    ? where?: UserWhereInput,
+                    ? orderBy?: UserOrderByWithAggregationInput[] | UserOrderByWithAggregationInput,
+                    ? having?: UserScalarWhereWithAggregatesInput,
+                    ? take?: Int,
+                    ? skip?: Int
+                    })
 
-              XX 
-              XX test('groupBy', async () => {
-              XX   await expect(
-            → XX     prisma.user.groupBy({
-                        select: {
-                          id: true
-                        },
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        by: "id",
-                      ? where?: UserWhereInput,
-                      ? orderBy?: UserOrderByWithAggregationInput[] | UserOrderByWithAggregationInput,
-                      ? having?: UserScalarWhereWithAggregatesInput,
-                      ? take?: Int,
-                      ? skip?: Int
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -379,7 +379,7 @@ testMatrix.setupTestSuite(
             data: [{ login: 'user' }],
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.createMany()\` invocation in
           /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
@@ -397,7 +397,7 @@ testMatrix.setupTestSuite(
                     ? skipDuplicates?: Boolean
                     })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -411,7 +411,7 @@ testMatrix.setupTestSuite(
               data: [{ login: 'user' }],
             }),
           ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+            "
             Invalid \`prisma.user.createMany()\` invocation in
             /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
@@ -428,7 +428,7 @@ testMatrix.setupTestSuite(
                         ]
                       })
 
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
           `)
         },
       )
@@ -443,23 +443,23 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.updateMany()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.updateMany()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('updateMany', async () => {
+            XX   await expect(
+          → XX     prisma.user.updateMany({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                      data: {
+                        login: "user"
+                      },
+                    ? where?: UserWhereInput
+                    })
 
-              XX 
-              XX test('updateMany', async () => {
-              XX   await expect(
-            → XX     prisma.user.updateMany({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                        data: {
-                          login: "user"
-                        },
-                      ? where?: UserWhereInput
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -470,20 +470,20 @@ testMatrix.setupTestSuite(
             relationLoadStrategy: 'query',
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.deleteMany()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.deleteMany()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
+            XX 
+            XX test('deleteMany', async () => {
+            XX   await expect(
+          → XX     prisma.user.deleteMany({
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                    ? where?: UserWhereInput
+                    })
 
-              XX 
-              XX test('deleteMany', async () => {
-              XX   await expect(
-            → XX     prisma.user.deleteMany({
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                      ? where?: UserWhereInput
-                      })
-
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -494,31 +494,31 @@ testMatrix.setupTestSuite(
             relationLoadStrategy: 'query',
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
+          "
+          Invalid \`prisma.user.count()\` invocation in
+          /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-            Invalid \`prisma.user.count()\` invocation in
-            /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
-
-              XX 
-              XX test('count', async () => {
-              XX   await expect(
-            → XX     prisma.user.count({
-                        select: {
-                          _count: {
-                            select: {
-                              _all: true
-                            }
+            XX 
+            XX test('count', async () => {
+            XX   await expect(
+          → XX     prisma.user.count({
+                      select: {
+                        _count: {
+                          select: {
+                            _all: true
                           }
-                        },
-                        relationLoadStrategy: "query",
-                        ~~~~~~~~~~~~~~~~~~~~
-                      ? where?: UserWhereInput,
-                      ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
-                      ? cursor?: UserWhereUniqueInput,
-                      ? take?: Int,
-                      ? skip?: Int
-                      })
+                        }
+                      },
+                      relationLoadStrategy: "query",
+                      ~~~~~~~~~~~~~~~~~~~~
+                    ? where?: UserWhereInput,
+                    ? orderBy?: UserOrderByWithRelationInput[] | UserOrderByWithRelationInput,
+                    ? cursor?: UserWhereUniqueInput,
+                    ? take?: Int,
+                    ? skip?: Int
+                    })
 
-            Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
     })

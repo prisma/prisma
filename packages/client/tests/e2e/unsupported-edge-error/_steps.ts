@@ -8,7 +8,7 @@ void executeSteps({
     await $`pnpm prisma generate`
   },
   test: async () => {
-    const wrangler = $`pnpm wrangler dev`.nothrow()
+    const wrangler = $`pnpm wrangler dev --ip 127.0.0.1 --port 8787`.nothrow()
 
     let data = ''
     for await (const chunk of wrangler.stdout) {

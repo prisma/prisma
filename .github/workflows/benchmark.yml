@@ -6,8 +6,8 @@ on:
       - main
       - '*.*.x'
     paths-ignore:
-      # Any update here needs to be done for `pull_request`, see below
-      # and all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
+      # Any update here needs to be done for `pull_request` (see below) and all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       # - '*.bench.ts' -> should not be ignored in this workflow
       - 'LICENSE'
@@ -23,8 +23,8 @@ on:
       - 'sandbox/**'
   pull_request:
     paths-ignore:
-      # Any update here needs to be done for `push`, see above
-      # and all files (test.yml, benchmark.yml, release-ci.yml)
+      # Any update here needs to be done for `branches` (see above) and all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       # - '*.bench.ts' -> should not be ignored in this workflow
       - 'LICENSE'
@@ -81,7 +81,7 @@ jobs:
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@jkomyno'
+          alert-comment-cc-users: '@millsp,@aqrln,@SevInf,@jkomyno'
 
       - name: Run benchmarks for Codspeed
         uses: CodSpeedHQ/action@v2

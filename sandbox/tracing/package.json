@@ -6,6 +6,7 @@
   "scripts": {
     "dbpush": "prisma db push --skip-generate",
     "generate": "prisma generate",
+    "start": "npm run generate && npm run test",
     "test": "ts-node index.ts",
     "debug": "node -r ts-node/register --inspect-brk index.ts"
   },
@@ -17,17 +18,16 @@
     "@prisma/instrumentation": "../../packages/instrumentation"
   },
   "devDependencies": {
-    "@opentelemetry/api": "1.7.0",
-    "@opentelemetry/context-async-hooks": "1.18.1",
-    "@opentelemetry/core": "1.18.1",
-    "@opentelemetry/exporter-trace-otlp-http": "0.45.1",
-    "@opentelemetry/instrumentation": "0.45.1",
-    "@opentelemetry/resources": "1.18.1",
-    "@opentelemetry/sdk-trace-base": "1.18.1",
-    "@opentelemetry/semantic-conventions": "1.18.1",
-    "@types/node": "18.18.9",
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/context-async-hooks": "1.26.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.52.1",
+    "@opentelemetry/instrumentation": "0.52.1",
+    "@opentelemetry/resources": "1.26.0",
+    "@opentelemetry/sdk-trace-base": "1.26.0",
+    "@opentelemetry/semantic-conventions": "1.27.0",
+    "@types/node": "22.5.3",
     "prisma": "../../packages/cli",
-    "ts-node": "10.9.1",
-    "typescript": "5.2.2"
+    "ts-node": "10.9.2",
+    "typescript": "5.5.4"
   }
 }

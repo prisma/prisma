@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.findMany()\` invocation in
           /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -51,7 +51,7 @@ testMatrix.setupTestSuite(
                        }
                      })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -70,7 +70,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.findMany()\` invocation in
           /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -96,7 +96,7 @@ testMatrix.setupTestSuite(
                      }
                    })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -110,7 +110,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.aggregate()\` invocation in
           /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -134,7 +134,7 @@ testMatrix.setupTestSuite(
                     ? skip?: Int
                     })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -146,7 +146,7 @@ testMatrix.setupTestSuite(
             by: 'id',
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.groupBy()\` invocation in
           /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -167,7 +167,7 @@ testMatrix.setupTestSuite(
                     ? skip?: Int
                     })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -179,7 +179,7 @@ testMatrix.setupTestSuite(
             data: [{ login: 'user' }],
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.createMany()\` invocation in
           /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -197,7 +197,7 @@ testMatrix.setupTestSuite(
                     ? skipDuplicates?: Boolean
                     })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -211,7 +211,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.updateMany()\` invocation in
           /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -227,7 +227,7 @@ testMatrix.setupTestSuite(
                     ? where?: UserWhereInput
                     })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -238,7 +238,7 @@ testMatrix.setupTestSuite(
             relationLoadStrategy: 'query',
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.deleteMany()\` invocation in
           /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -251,7 +251,7 @@ testMatrix.setupTestSuite(
                     ? where?: UserWhereInput
                     })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
 
@@ -262,7 +262,7 @@ testMatrix.setupTestSuite(
             relationLoadStrategy: 'query',
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.count()\` invocation in
           /client/tests/functional/relation-load-strategy/unsupported-queries.ts:0:0
 
@@ -286,7 +286,7 @@ testMatrix.setupTestSuite(
                     ? skip?: Int
                     })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       })
     })

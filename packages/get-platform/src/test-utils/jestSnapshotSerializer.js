@@ -1,3 +1,4 @@
+'use strict'
 const path = require('path')
 const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
@@ -120,6 +121,11 @@ function prepareSchemaForSnapshot(str) {
     .join('\n')
 }
 
+// needed for jest to correctly handle indentation on multiline snapshot updates
+function wrapWithQuotes(str) {
+  return `"${str}"`
+}
+
 module.exports = {
   // Expected by Jest
   test(value) {
@@ -154,6 +160,7 @@ module.exports = {
       normalizeMigrateTimestamps,
       // artificial panic
       normalizeArtificialPanic,
+      wrapWithQuotes,
     )(message)
   },
 }

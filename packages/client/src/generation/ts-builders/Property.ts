@@ -1,6 +1,9 @@
+import { isValidJsIdentifier } from '@prisma/internals'
+
 import { BasicBuilder } from './BasicBuilder'
 import { DocComment } from './DocComment'
 import { TypeBuilder } from './TypeBuilder'
+import { WellKnownSymbol } from './WellKnownSymbol'
 import { Writer } from './Writer'
 
 export class Property implements BasicBuilder {
@@ -8,7 +11,7 @@ export class Property implements BasicBuilder {
   private isReadonly = false
   private docComment?: DocComment
 
-  constructor(private name: string, private type: TypeBuilder) {}
+  constructor(private name: string | WellKnownSymbol, private type: TypeBuilder) {}
 
   optional(): this {
     this.isOptional = true
@@ -32,7 +35,17 @@ export class Property implements BasicBuilder {
     if (this.isReadonly) {
       writer.write('readonly ')
     }
-    writer.write(this.name)
+
+    if (typeof this.name === 'string') {
+      if (isValidJsIdentifier(this.name)) {
+        writer.write(this.name)
+      } else {
+        writer.write('[').write(JSON.stringify(this.name)).write(']')
+      }
+    } else {
+      writer.write('[').write(this.name).write(']')
+    }
+
     if (this.isOptional) {
       writer.write('?')
     }
@@ -40,6 +53,6 @@ export class Property implements BasicBuilder {
   }
 }
 
-export function property(name: string, type: TypeBuilder) {
+export function property(name: string | WellKnownSymbol, type: TypeBuilder) {
   return new Property(name, type)
 }

@@ -3,7 +3,7 @@ import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineSpanEvent } from '@prisma/internals'
-import { bold, green, red, yellow } from 'kleur/colors'
+import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -29,6 +29,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
+import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
 
@@ -47,7 +48,6 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 }
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
-let engineInstanceCount = 0
 
 export class LibraryEngine implements Engine<undefined> {
   name = 'LibraryEngine' as const
@@ -77,7 +77,9 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
-    if (TARGET_BUILD_TYPE === 'library') {
+    if (TARGET_BUILD_TYPE === 'react-native') {
+      this.libraryLoader = reactNativeLibraryLoader
+    } else if (TARGET_BUILD_TYPE === 'library') {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
       // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
@@ -109,17 +111,14 @@ export class LibraryEngine implements Engine<undefined> {
     }
 
     this.libraryInstantiationPromise = this.instantiateLibrary()
-
-    this.checkForTooManyEngines()
   }
 
-  private checkForTooManyEngines() {
-    if (engineInstanceCount === 10) {
-      console.warn(
-        `${yellow(
-          'warn(prisma-client)',
-        )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
-      )
+  async applyPendingMigrations(): Promise<void> {
+    if (TARGET_BUILD_TYPE === 'react-native') {
+      await this.start()
+      await this.engine?.applyPendingMigrations()
+    } else {
+      throw new Error('Cannot call this method from this type of engine instance')
     }
   }
 
@@ -218,9 +217,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         clientVersion: this.config.clientVersion!,
       })
     }
+
     try {
-      const config = JSON.parse(response)
-      return config as T
+      return JSON.parse(response) as T
     } catch (err) {
       throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine`, {
         clientVersion: this.config.clientVersion!,
@@ -229,48 +228,49 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private async loadEngine(): Promise<void> {
-    if (!this.engine) {
-      if (!this.QueryEngineConstructor) {
-        this.library = await this.libraryLoader.loadLibrary(this.config)
-        this.QueryEngineConstructor = this.library.QueryEngine
+    if (this.engine) {
+      return
+    }
+
+    if (!this.QueryEngineConstructor) {
+      this.library = await this.libraryLoader.loadLibrary(this.config)
+      this.QueryEngineConstructor = this.library.QueryEngine
+    }
+    try {
+      // Using strong reference to `this` inside of log callback will prevent
+      // this instance from being GCed while native engine is alive. At the
+      // same time, `this.engine` field will prevent native instance from
+      // being GCed. Using weak ref helps to avoid this cycle
+      const weakThis = new WeakRef(this)
+      const { adapter } = this.config
+
+      if (adapter) {
+        debug('Using driver adapter: %O', adapter)
       }
-      try {
-        // Using strong reference to `this` inside of log callback will prevent
-        // this instance from being GCed while native engine is alive. At the
-        // same time, `this.engine` field will prevent native instance from
-        // being GCed. Using weak ref helps to avoid this cycle
-        const weakThis = new WeakRef(this)
-        const { adapter } = this.config
 
-        if (adapter) {
-          debug('Using driver adapter: %O', adapter)
-        }
-
-        this.engine = new this.QueryEngineConstructor(
-          {
-            datamodel: this.datamodel,
-            env: process.env,
-            logQueries: this.config.logQueries ?? false,
-            ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverrides ?? {},
-            logLevel: this.logLevel,
-            configDir: this.config.cwd,
-            engineProtocol: 'json',
-          },
-          (log) => {
-            weakThis.deref()?.logger(log)
-          },
-          adapter,
-        )
-        engineInstanceCount++
-      } catch (_e) {
-        const e = _e as Error
-        const error = this.parseInitError(e.message)
-        if (typeof error === 'string') {
-          throw e
-        } else {
-          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
-        }
+      this.engine = new this.QueryEngineConstructor(
+        {
+          datamodel: this.datamodel,
+          env: process.env,
+          logQueries: this.config.logQueries ?? false,
+          ignoreEnvVarErrors: true,
+          datasourceOverrides: this.datasourceOverrides ?? {},
+          logLevel: this.logLevel,
+          configDir: this.config.cwd,
+          engineProtocol: 'json',
+        },
+        (log) => {
+          weakThis.deref()?.logger(log)
+        },
+        adapter,
+      )
+    } catch (_e) {
+      const e = _e as Error
+      const error = this.parseInitError(e.message)
+      if (typeof error === 'string') {
+        throw e
+      } else {
+        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
       }
     }
   }
@@ -433,13 +433,14 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async request<T>(
     query: JsonQuery,
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
-  ): Promise<{ data: T; elapsed: number }> {
+  ): Promise<{ data: T }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(query)
 
     try {
       await this.start()
+
       this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
       this.lastQuery = queryStr
@@ -456,8 +457,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       } else if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
-      // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
-      return { data, elapsed: 0 }
+      return { data }
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
         throw e
@@ -485,11 +485,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
+
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
     )
+
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 
@@ -511,7 +513,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         }
         return {
           data: result,
-          elapsed: 0, // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
         }
       })
     } else {

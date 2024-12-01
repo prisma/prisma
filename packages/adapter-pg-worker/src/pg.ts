@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
+
 import type {
   ColumnType,
   ConnectionInfo,
@@ -8,20 +9,21 @@ import type {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 import * as pg from '@prisma/pg-worker'
 
 import { name as packageName } from '../package.json'
-import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
+const types = pg.types
 const debug = Debug('prisma:driver-adapter:pg')
 
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
   readonly provider = 'postgres'
   readonly adapterName = packageName
@@ -86,7 +88,36 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     const { sql, args: values } = query
 
     try {
-      const result = await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' })
+      const result = await this.client.query(
+        {
+          text: sql,
+          values: fixArrayBufferValues(values),
+          rowMode: 'array',
+          types: {
+            // This is the error expected:
+            // No overload matches this call.
+            // The last overload gave the following error.
+            // Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
+            //   Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
+            //     Types of parameters 'json' and 'value' are incompatible.
+            //       Type 'Buffer' is not assignable to type 'string'.ts(2769)
+            //
+            // Because pg-types types expect us to handle both binary and text protocol versions,
+            // where as far we can see, pg will ever pass only text version.
+            //
+            // @ts-expect-error
+            getTypeParser: (oid: number, format?) => {
+              if (format === 'text' && customParsers[oid]) {
+                return customParsers[oid]
+              }
+
+              return types.getTypeParser(oid, format)
+            },
+          },
+        },
+        fixArrayBufferValues(values),
+      )
+
       return ok(result)
     } catch (e) {
       const error = e as Error
@@ -127,6 +158,23 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
+class PgTransactionContext extends PgQueryable<pg.PoolClient> implements TransactionContext {
+  constructor(readonly conn: pg.PoolClient) {
+    super(conn)
+  }
+
+  async startTransaction(): Promise<Result<Transaction>> {
+    const options: TransactionOptions = {
+      usePhantomQuery: false,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    return ok(new PgTransaction(this.conn, options))
+  }
+}
+
 export type PrismaPgOptions = {
   schema?: string
 }
@@ -149,15 +197,8 @@ const adapter = new PrismaPg(pool)
     })
   }
 
-  async startTransaction(): Promise<Result<Transaction>> {
-    const options: TransactionOptions = {
-      usePhantomQuery: false,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
-
-    const connection = await this.client.connect()
-    return ok(new PgTransaction(connection, options))
+  async transactionContext(): Promise<Result<TransactionContext>> {
+    const conn = await this.client.connect()
+    return ok(new PgTransactionContext(conn))
   }
 }

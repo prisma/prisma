@@ -23,7 +23,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+          "
           Invalid \`prisma.user.findMany()\` invocation in
           /client/tests/functional/relation-load-strategy-unsupported/unsupported-strategy-for-db.ts:0:0
 
@@ -44,7 +44,7 @@ testMatrix.setupTestSuite(
                    ? distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
                    })
 
-          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?.
+          Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
         `)
       },
     )

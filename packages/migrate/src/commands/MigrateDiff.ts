@@ -4,17 +4,23 @@ import {
   checkUnsupportedDataProxy,
   Command,
   format,
+  getConfig,
   HelpError,
   isError,
   link,
   loadEnvFile,
   locateLocalCloudflareD1,
+  toSchemasContainer,
+  toSchemasWithConfigDir,
 } from '@prisma/internals'
+import fs from 'fs-jetpack'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
 
+import { getSchemaWithPath } from '../../../internals/src/cli/getSchema'
 import { Migrate } from '../Migrate'
 import type { EngineArgs, EngineResults } from '../types'
+import { CaptureStdout } from '../utils/captureStdout'
 
 const debug = Debug('prisma:migrate:diff')
 
@@ -26,6 +32,7 @@ const helpOptions = format(
 ${bold('Options')}
 
   -h, --help               Display this help message
+  -o, --output             Writes to a file instead of stdout
 
 ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
   --from-url               A datasource URL
@@ -142,6 +149,8 @@ ${bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
+        '--output': String,
+        '-o': '--output',
         // From
         '--from-empty': Boolean,
         '--from-schema-datasource': String,
@@ -217,15 +226,22 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), {
+        argumentName: '--from-schema-datasource',
+      })
+      const config = await getConfig({ datamodel: schema.schemas })
       from = {
         tag: 'schemaDatasource',
-        schema: path.resolve(args['--from-schema-datasource']),
+        ...toSchemasWithConfigDir(schema, config),
       }
     } else if (args['--from-schema-datamodel']) {
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), {
+        argumentName: '--from-schema-datamodel',
+      })
       from = {
         tag: 'schemaDatamodel',
-        schema: path.resolve(args['--from-schema-datamodel']),
+        ...toSchemasContainer(schema.schemas),
       }
     } else if (args['--from-url']) {
       from = {
@@ -252,15 +268,22 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), {
+        argumentName: '--to-schema-datasource',
+      })
+      const config = await getConfig({ datamodel: schema.schemas })
       to = {
         tag: 'schemaDatasource',
-        schema: path.resolve(args['--to-schema-datasource']),
+        ...toSchemasWithConfigDir(schema, config),
       }
     } else if (args['--to-schema-datamodel']) {
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), {
+        argumentName: '--to-schema-datamodel',
+      })
       to = {
         tag: 'schemaDatamodel',
-        schema: path.resolve(args['--to-schema-datamodel']),
+        ...toSchemasContainer(schema.schemas),
       }
     } else if (args['--to-url']) {
       to = {
@@ -282,6 +305,14 @@ ${bold('Examples')}
 
     const migrate = new Migrate()
 
+    // Capture stdout if --output is defined
+    const captureStdout = new CaptureStdout()
+    const outputPath = args['--output']
+    const isOutputDefined = Boolean(outputPath)
+    if (isOutputDefined) {
+      captureStdout.startCapture()
+    }
+
     let result: EngineResults.MigrateDiffOutput
     try {
       result = await migrate.engine.migrateDiff({
@@ -294,6 +325,14 @@ ${bold('Examples')}
     } finally {
       // Stop engine
       migrate.stop()
+    }
+
+    // Write output to file if --output is defined
+    if (isOutputDefined) {
+      captureStdout.stopCapture()
+      const diffOutput = captureStdout.getCapturedText()
+      captureStdout.clearCaptureText()
+      await fs.writeAsync(outputPath!, diffOutput.join('\n'))
     }
 
     // Note: only contains the exitCode

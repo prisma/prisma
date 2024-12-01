@@ -1,0 +1,9 @@
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["prismaSchemaFolder"]
+}
+
+model M {
+field
+
+Let me tell you a story about something. 

@@ -43,8 +43,8 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _min: {
-          age: 20,
+        "_min": {
+          "age": 20,
         },
       }
     `)
@@ -59,8 +59,8 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _max: {
-          age: 63,
+        "_max": {
+          "age": 63,
         },
       }
     `)
@@ -75,8 +75,8 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _sum: {
-          age: 188,
+        "_sum": {
+          "age": 188,
         },
       }
     `)
@@ -89,7 +89,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _count: 4,
+        "_count": 4,
       }
     `)
   })
@@ -103,8 +103,8 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _count: {
-          _all: 4,
+        "_count": {
+          "_all": 4,
         },
       }
     `)
@@ -119,8 +119,8 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _avg: {
-          age: 47,
+        "_avg": {
+          "age": 47,
         },
       }
     `)
@@ -145,18 +145,18 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _avg: {
-          age: 47,
+        "_avg": {
+          "age": 47,
         },
-        _count: 4,
-        _max: {
-          age: 63,
+        "_count": 4,
+        "_max": {
+          "age": 63,
         },
-        _min: {
-          age: 20,
+        "_min": {
+          "age": 20,
         },
-        _sum: {
-          age: 188,
+        "_sum": {
+          "age": 188,
         },
       }
     `)
@@ -188,20 +188,20 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        _avg: {
-          age: 56,
+        "_avg": {
+          "age": 56,
         },
-        _count: {
-          email: 3,
+        "_count": {
+          "email": 3,
         },
-        _max: {
-          age: 63,
+        "_max": {
+          "age": 63,
         },
-        _min: {
-          age: 45,
+        "_min": {
+          "age": 45,
         },
-        _sum: {
-          age: 168,
+        "_sum": {
+          "age": 168,
         },
       }
     `)
@@ -216,7 +216,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
@@ -238,7 +238,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserMinAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`posts\` for select statement on model \`UserMinAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 
@@ -251,7 +251,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
@@ -273,7 +273,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserMaxAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`posts\` for select statement on model \`UserMaxAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 
@@ -286,7 +286,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
@@ -305,7 +305,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
                 }
               })
 
-      Unknown field \`email\` for select statement on model \`UserSumAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`email\` for select statement on model \`UserSumAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 
@@ -318,7 +318,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
@@ -341,7 +341,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
                 }
               })
 
-      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 
@@ -354,7 +354,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.aggregate()\` invocation in
       /client/tests/functional/0-legacy-ports/aggregations/tests.ts:0:0
 
@@ -373,7 +373,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
                 }
               })
 
-      Unknown field \`email\` for select statement on model \`UserAvgAggregateOutputType\`. Available options are marked with ?.
+      Unknown field \`email\` for select statement on model \`UserAvgAggregateOutputType\`. Available options are marked with ?."
     `)
   })
 })

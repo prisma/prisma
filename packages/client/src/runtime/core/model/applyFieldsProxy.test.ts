@@ -2,6 +2,7 @@ import { applyFieldsProxy } from './applyFieldsProxy'
 
 const fields = applyFieldsProxy('MyModel', {
   dbName: '',
+  schema: null,
   fields: [
     {
       name: 'intField',
@@ -90,32 +91,32 @@ test('returns values', () => {
   expect(Object.values(fields)).toMatchInlineSnapshot(`
     [
       FieldRefImpl {
-        isEnum: false,
-        isList: false,
-        modelName: MyModel,
-        name: intField,
-        typeName: Int,
+        "isEnum": false,
+        "isList": false,
+        "modelName": "MyModel",
+        "name": "intField",
+        "typeName": "Int",
       },
       FieldRefImpl {
-        isEnum: false,
-        isList: true,
-        modelName: MyModel,
-        name: listField,
-        typeName: String,
+        "isEnum": false,
+        "isList": true,
+        "modelName": "MyModel",
+        "name": "listField",
+        "typeName": "String",
       },
       FieldRefImpl {
-        isEnum: true,
-        isList: false,
-        modelName: MyModel,
-        name: enumField,
-        typeName: MyEnum,
+        "isEnum": true,
+        "isList": false,
+        "modelName": "MyModel",
+        "name": "enumField",
+        "typeName": "MyEnum",
       },
       FieldRefImpl {
-        isEnum: true,
-        isList: true,
-        modelName: MyModel,
-        name: listEnumField,
-        typeName: MyEnum,
+        "isEnum": true,
+        "isList": true,
+        "modelName": "MyModel",
+        "name": "listEnumField",
+        "typeName": "MyEnum",
       },
     ]
   `)

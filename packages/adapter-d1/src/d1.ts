@@ -1,5 +1,8 @@
-import { D1Database, D1Response } from '@cloudflare/workers-types'
+/* eslint-disable @typescript-eslint/require-await */
+
+import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
+  ConnectionInfo,
   Debug,
   DriverAdapter,
   err,
@@ -9,6 +12,7 @@ import {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
@@ -80,12 +84,12 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     debug(`${tag} %O`, query)
 
     const res = await this.performIO(query, true)
-    return res.map((result) => (result as D1Response).meta.rows_written ?? 0)
+    return res.map((result) => (result as D1Response).meta.changes ?? 0)
   }
 
   private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
     try {
-      query.args = query.args.map((arg) => cleanArg(arg))
+      query.args = query.args.map((arg, i) => cleanArg(arg, query.argTypes[i]))
 
       const stmt = this.client.prepare(query.sql).bind(...query.args)
 
@@ -113,18 +117,34 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
     super(client)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
     return ok(undefined)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
     return ok(undefined)
+  }
+}
+
+class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext {
+  constructor(readonly client: StdClient) {
+    super(client)
+  }
+
+  async startTransaction(): Promise<Result<Transaction>> {
+    const options: TransactionOptions = {
+      // TODO: D1 does not have a Transaction API.
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    return ok(new D1Transaction(this.client, options))
   }
 }
 
@@ -152,28 +172,25 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
    * await prisma.$transaction([ ...moreQueries ])
    * ```
    */
-  warnOnce = (key: string, message: string, ...args: unknown[]) => {
+  private warnOnce = (key: string, message: string, ...args: unknown[]) => {
     if (!this.alreadyWarned.has(key)) {
       this.alreadyWarned.add(key)
       console.info(`${this.tags.warn} ${message}`, ...args)
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async startTransaction(): Promise<Result<Transaction>> {
-    const options: TransactionOptions = {
-      // TODO: D1 does not have a Transaction API.
-      usePhantomQuery: true,
-    }
+  getConnectionInfo(): Result<ConnectionInfo> {
+    return ok({
+      maxBindValues: 98,
+    })
+  }
 
-    const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
-
+  async transactionContext(): Promise<Result<TransactionContext>> {
     this.warnOnce(
       'D1 Transaction',
-      "Cloudflare D1 - currently in Beta - does not support transactions. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and ran as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
+      "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
     )
 
-    return ok(new D1Transaction(this.client, options))
+    return ok(new D1TransactionContext(this.client))
   }
 }

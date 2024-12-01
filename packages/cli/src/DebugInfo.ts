@@ -2,7 +2,7 @@ import type { Command } from '@prisma/internals'
 import {
   arg,
   format,
-  getSchemaPath,
+  getSchemaWithPath,
   HelpError,
   isCi,
   isError,
@@ -51,7 +51,7 @@ export class DebugInfo implements Command {
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
@@ -65,7 +65,7 @@ export class DebugInfo implements Command {
 
     let schemaPath
     try {
-      schemaPath = link(await getSchemaPath(args['--schema']))
+      schemaPath = link((await getSchemaWithPath(args['--schema']))?.schemaPath)
     } catch (e) {
       schemaPath = e.message
     }

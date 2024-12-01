@@ -118,7 +118,7 @@ class PrismaPlugin {
             const ntfLoadedAsJson = JSON.parse(oldSourceContents)
 
             // update sources
-            Object.entries(fromDestPrismaMap).forEach(([from, dest]) => {
+            Object.entries(fromDestPrismaMap).forEach(([_from, dest]) => {
               ntfLoadedAsJson.files.push(path.relative(assetDir, dest))
             })
 

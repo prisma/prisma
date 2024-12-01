@@ -20,7 +20,7 @@ class CaptureStdout {
   }
 
   private writeCapture = (string) => {
-    this.capturedText.push(string.replace(/\n/g, ''))
+    this.capturedText.push(string)
   }
 
   public getCapturedText = () => {

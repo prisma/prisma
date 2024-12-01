@@ -50,16 +50,16 @@ testMatrix.setupTestSuite(
       expect(users).toMatchInlineSnapshot(`
         [
           {
-            _id: 60,
-            total: 2,
+            "_id": 60,
+            "total": 2,
           },
           {
-            _id: 45,
-            total: 1,
+            "_id": 45,
+            "total": 1,
           },
           {
-            _id: 20,
-            total: 1,
+            "_id": 20,
+            "total": 1,
           },
         ]
       `)
@@ -73,10 +73,10 @@ testMatrix.setupTestSuite(
       expect(users).toMatchInlineSnapshot(`
         [
           {
-            email: Kyla_Beer587@fraternise-assassination.name,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
           },
           {
-            email: Arielle.Reichel85426@hunker-string.org,
+            "email": "Arielle.Reichel85426@hunker-string.org",
           },
         ]
       `)

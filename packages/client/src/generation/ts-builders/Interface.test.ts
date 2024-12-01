@@ -10,26 +10,26 @@ const A = namedType('A')
 test('empty', () => {
   const obj = interfaceDeclaration('MyInterface')
   expect(stringify(obj)).toMatchInlineSnapshot(`
-    interface MyInterface {}
-
+    "interface MyInterface {}
+    "
   `)
 })
 
 test('with property', () => {
   const obj = interfaceDeclaration('SomeInterface').add(property('foo', A))
   expect(stringify(obj)).toMatchInlineSnapshot(`
-    interface SomeInterface {
+    "interface SomeInterface {
       foo: A
-    }
+    }"
   `)
 })
 
 test('with method', () => {
   const obj = interfaceDeclaration('MyInterface').add(method('doThing'))
   expect(stringify(obj)).toMatchInlineSnapshot(`
-    interface MyInterface {
+    "interface MyInterface {
       doThing(): void
-    }
+    }"
   `)
 })
 
@@ -38,18 +38,18 @@ test('with generic parameter', () => {
     .addGenericParameter(genericParameter('T').extends(namedType('U')))
     .add(property('foo', A))
   expect(stringify(obj)).toMatchInlineSnapshot(`
-    interface SomeInterface<T extends U> {
+    "interface SomeInterface<T extends U> {
       foo: A
-    }
+    }"
   `)
 })
 
 test('extending the type', () => {
   const obj = interfaceDeclaration('SomeInterface').extends(namedType('Foo')).add(property('foo', A))
   expect(stringify(obj)).toMatchInlineSnapshot(`
-    interface SomeInterface extends Foo {
+    "interface SomeInterface extends Foo {
       foo: A
-    }
+    }"
   `)
 })
 
@@ -59,8 +59,8 @@ test('extending multiple types', () => {
     .extends(namedType('Bar'))
     .add(property('foo', A))
   expect(stringify(obj)).toMatchInlineSnapshot(`
-    interface SomeInterface extends Foo, Bar {
+    "interface SomeInterface extends Foo, Bar {
       foo: A
-    }
+    }"
   `)
 })

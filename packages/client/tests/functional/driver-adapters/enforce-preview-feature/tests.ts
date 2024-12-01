@@ -20,8 +20,8 @@ testMatrix.setupTestSuite((suiteConfig, _, clientMeta) => {
       expect(initialize).not.toThrow()
     } else {
       expect(initialize).toThrowErrorMatchingInlineSnapshot(`
-        "adapter" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.
-        Read more at https://pris.ly/d/client-constructor
+        ""adapter" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.
+        Read more at https://pris.ly/d/client-constructor"
       `)
     }
   })

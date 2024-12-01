@@ -1,12 +1,12 @@
-import { DMMFHelper } from '../dmmf'
 import { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
 import { extArgsParam, getPayloadName } from '../utils'
 import { lowerCase } from '../utils/common'
+import { GenerateContext } from './GenerateContext'
 import { buildModelOutputProperty } from './Output'
 
-export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
-  const isComposite = dmmf.isComposite(model.name)
+export function buildModelPayload(model: DMMF.Model, context: GenerateContext) {
+  const isComposite = context.dmmf.isComposite(model.name)
 
   const objects = ts.objectType()
   const scalars = ts.objectType()
@@ -14,13 +14,13 @@ export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
 
   for (const field of model.fields) {
     if (field.kind === 'object') {
-      if (dmmf.isComposite(field.type)) {
-        composites.add(buildModelOutputProperty(field, dmmf))
+      if (context.dmmf.isComposite(field.type)) {
+        composites.add(buildModelOutputProperty(field, context.dmmf))
       } else {
-        objects.add(buildModelOutputProperty(field, dmmf))
+        objects.add(buildModelOutputProperty(field, context.dmmf))
       }
     } else if (field.kind === 'enum' || field.kind === 'scalar') {
-      scalars.add(buildModelOutputProperty(field, dmmf))
+      scalars.add(buildModelOutputProperty(field, context.dmmf))
     }
   }
 

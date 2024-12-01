@@ -108,6 +108,8 @@ const args = arg(
     '--engine-type': String,
     // Forces any given test to be run with an *added* set of preview features, comma-separated
     '--preview-features': String,
+    // Enable Node.js debugger
+    '--inspect-brk': Boolean,
 
     //
     // Jest params
@@ -132,6 +134,10 @@ async function main(): Promise<number | void> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       jestCli = jestCli.withArgs([cliArg, args[cliArg]])
     }
+  }
+
+  if (args['--inspect-brk']) {
+    jestCli = jestCli.withDebugger()
   }
 
   if (args['--preview-features']) {
@@ -235,7 +241,9 @@ async function main(): Promise<number | void> {
 
   try {
     if (args['--updateSnapshot']) {
-      const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
+      const snapshotUpdate = jestCli
+        .withArgs(['-u'])
+        .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
