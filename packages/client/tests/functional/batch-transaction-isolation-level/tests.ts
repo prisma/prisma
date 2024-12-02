@@ -80,6 +80,35 @@ testMatrix.setupTestSuite(
       }
     })
 
+    test('single query in a batch', async () => {
+      await prisma.$transaction([prisma.user.findFirst({})], {
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+      })
+
+      await waitFor(() => {
+        expect(queries).toContain('SET TRANSACTION ISOLATION LEVEL READ COMMITTED')
+      })
+    })
+
+    test('single query with runtime error in a batch 2', async () => {
+      const result = prisma.$transaction([prisma.user.findFirstOrThrow({ where: { email: 'not-found' } })], {
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+      })
+
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+        "
+        Invalid \`prisma.$transaction([prisma.user.findFirstOrThrow()\` invocation in
+        /client/tests/functional/batch-transaction-isolation-level/tests.ts:0:0
+
+          XX })
+          XX 
+          XX test('single query with runtime error in a batch 2', async () => {
+        → XX   const result = prisma.$transaction([prisma.user.findFirstOrThrow(
+        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
+      `)
+      expect(queries).toContain('SET TRANSACTION ISOLATION LEVEL READ COMMITTED')
+    })
+
     test('invalid level generates run- and compile- time error', async () => {
       // @ts-expect-error
       const result = prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
