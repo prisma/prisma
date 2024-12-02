@@ -8,8 +8,8 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
-    "@types/node": "16.18.98",
+    "@types/node": "18.19.50",
     "prisma": "/tmp/prisma-0.0.0.tgz",
-    "typescript": "4.8.4"
+    "typescript": "5.6.3"
   }
 }

@@ -433,7 +433,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async request<T>(
     query: JsonQuery,
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
-  ): Promise<{ data: T; elapsed: number }> {
+  ): Promise<{ data: T }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(query)
@@ -457,8 +457,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       } else if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
-      // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
-      return { data, elapsed: 0 }
+      return { data }
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
         throw e
@@ -514,7 +513,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         }
         return {
           data: result,
-          elapsed: 0, // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
         }
       })
     } else {

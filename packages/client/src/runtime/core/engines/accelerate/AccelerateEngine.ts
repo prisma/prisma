@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { BatchQueryEngineResult, Engine, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { QueryEngineResult } from '../common/types/QueryEngine'
+import { QueryEngineResultData } from '../common/types/QueryEngine'
 import { InteractiveTransactionInfo as ITXInfo, Options, TransactionHeaders } from '../common/types/Transaction'
 
 const ERROR_MESSAGE = `Accelerate has not been setup correctly. Make sure your client is using \`.$extends(withAccelerate())\`. See https://pris.ly/d/accelerate-getting-started`
@@ -55,7 +54,7 @@ export class AccelerateEngine implements Engine<any> {
     throw new PrismaClientInitializationError(ERROR_MESSAGE, this.config.clientVersion)
   }
 
-  request<T>(_query: JsonQuery, _options: RequestOptions<unknown>): Promise<QueryEngineResult<T>> {
+  request<T>(_query: JsonQuery, _options: RequestOptions<unknown>): Promise<QueryEngineResultData<T>> {
     throw new PrismaClientInitializationError(ERROR_MESSAGE, this.config.clientVersion)
   }
 
@@ -90,8 +89,8 @@ export type {
 export type { LogEmitter } from '../common/types/Events'
 export type { JsonQuery } from '../common/types/JsonProtocol'
 export type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-export type { QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
-export type { QueryEngineResult } from '../common/types/QueryEngine'
+export type { QueryEngineBatchResult } from '../common/types/QueryEngine'
+export type { QueryEngineResultData } from '../common/types/QueryEngine'
 export type { InteractiveTransactionInfo, Options, TransactionHeaders } from '../common/types/Transaction'
 export type { LogLevel } from '../common/utils/log'
 export type { EngineSpan, TracingHelper } from '@prisma/internals'

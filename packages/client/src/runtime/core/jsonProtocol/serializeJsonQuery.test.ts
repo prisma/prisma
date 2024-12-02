@@ -446,6 +446,35 @@ test('args - Buffer', () => {
   `)
 })
 
+test('args - Uint8Array', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { binary: new Uint8Array(Buffer.from('hello world')) } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "binary": {
+              "$type": "Bytes",
+              "value": "aGVsbG8gd29ybGQ="
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
 test('args - Decimal', () => {
   expect(
     serialize({

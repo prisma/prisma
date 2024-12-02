@@ -55,6 +55,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -68,6 +69,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "firstName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -81,6 +83,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "lastName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -95,6 +98,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "isAdmin",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
@@ -107,6 +111,7 @@ exports[`getDMMF success @@id model 1`] = `
           ],
           "name": "customName",
         },
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -128,6 +133,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -141,6 +147,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "firstName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -154,6 +161,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "lastName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -168,6 +176,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "isAdmin",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
@@ -181,6 +190,7 @@ exports[`getDMMF success @@id model 1`] = `
           ],
           "name": null,
         },
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -8161,6 +8171,7 @@ exports[`getDMMF success @@map model 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -8174,12 +8185,14 @@ exports[`getDMMF success @@map model 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "email",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "User",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -8223,6 +8236,7 @@ exports[`getDMMF success @@map model 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -8236,12 +8250,14 @@ exports[`getDMMF success @@map model 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "email",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -12656,6 +12672,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12669,6 +12686,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -12689,6 +12707,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12702,6 +12721,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12716,12 +12736,14 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "published",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [
           [
             "authorId",
@@ -12756,6 +12778,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12769,6 +12792,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "email",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12782,6 +12806,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -12791,6 +12816,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -12812,6 +12838,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12825,6 +12852,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "firstName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12838,6 +12866,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "lastName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12852,12 +12881,14 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "isAdmin",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
         "isGenerated": false,
         "name": "User1",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [
           [
             "firstName",
@@ -12892,6 +12923,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12905,6 +12937,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "firstName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12918,6 +12951,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "lastName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12932,12 +12966,14 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "isAdmin",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
         "isGenerated": false,
         "name": "User2",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [
           [
             "firstName",
@@ -13497,7 +13533,7 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserRelationFilter",
+                  "type": "UserScalarRelationFilter",
                 },
                 {
                   "isList": false,
@@ -13741,7 +13777,7 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserRelationFilter",
+                  "type": "UserScalarRelationFilter",
                 },
                 {
                   "isList": false,
@@ -17897,7 +17933,7 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isNot",
             },
           ],
-          "name": "UserRelationFilter",
+          "name": "UserScalarRelationFilter",
         },
         {
           "constraints": {
@@ -27705,9 +27741,9 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `153813466`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `154156458`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `982134`;
+exports[`getDMMF success chinook introspected schema 1`] = `993396`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -27868,6 +27904,7 @@ exports[`getDMMF success multiple files 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -27881,12 +27918,14 @@ exports[`getDMMF success multiple files 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -27904,6 +27943,7 @@ exports[`getDMMF success multiple files 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -27917,12 +27957,14 @@ exports[`getDMMF success multiple files 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "B",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -33842,7 +33884,7 @@ exports[`getDMMF success multiple files 1`] = `
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `137257967`;
+exports[`getDMMF success odoo introspected schema 1`] = `137324072`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -33875,6 +33917,7 @@ exports[`getDMMF success simple model, mongodb 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -33888,12 +33931,14 @@ exports[`getDMMF success simple model, mongodb 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -33934,6 +33979,7 @@ exports[`getDMMF success simple model, mongodb 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -33947,12 +33993,14 @@ exports[`getDMMF success simple model, mongodb 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -38103,6 +38151,7 @@ exports[`getDMMF success simple model, mysql 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -38116,12 +38165,14 @@ exports[`getDMMF success simple model, mysql 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -38161,6 +38212,7 @@ exports[`getDMMF success simple model, mysql 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -38174,12 +38226,14 @@ exports[`getDMMF success simple model, mysql 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -38238,6 +38292,12 @@ exports[`getDMMF success simple model, mysql 2`] = `
           "values": [
             "asc",
             "desc",
+          ],
+        },
+        {
+          "name": "AOrderByRelevanceFieldEnum",
+          "values": [
+            "name",
           ],
         },
       ],
@@ -38486,6 +38546,19 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "name",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_relevance",
             },
           ],
           "name": "AOrderByWithRelationInput",
@@ -39386,6 +39459,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
                 {
                   "isList": false,
                   "location": "inputObjectTypes",
@@ -39399,6 +39484,59 @@ exports[`getDMMF success simple model, mysql 2`] = `
             },
           ],
           "name": "StringFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceFieldEnum",
+                },
+                {
+                  "isList": true,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceFieldEnum",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "fields",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "sort",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "search",
+            },
+          ],
+          "name": "AOrderByRelevanceInput",
         },
         {
           "constraints": {
@@ -39936,6 +40074,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
                 {
                   "isList": false,
                   "location": "inputObjectTypes",
@@ -40393,6 +40543,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
             },
             {
               "inputTypes": [
@@ -40935,6 +41097,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
             },
             {
               "inputTypes": [
@@ -42219,6 +42393,7 @@ exports[`getDMMF success simple model, no datasource 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -42232,12 +42407,14 @@ exports[`getDMMF success simple model, no datasource 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -42277,6 +42454,7 @@ exports[`getDMMF success simple model, no datasource 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -42290,12 +42468,14 @@ exports[`getDMMF success simple model, no datasource 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -46035,6 +46215,7 @@ exports[`getDMMF success simple model, postgresql 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -46048,12 +46229,14 @@ exports[`getDMMF success simple model, postgresql 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -46093,6 +46276,7 @@ exports[`getDMMF success simple model, postgresql 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -46106,12 +46290,14 @@ exports[`getDMMF success simple model, postgresql 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -50469,6 +50655,7 @@ exports[`getDMMF success simple model, sql server 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -50482,12 +50669,14 @@ exports[`getDMMF success simple model, sql server 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -50527,6 +50716,7 @@ exports[`getDMMF success simple model, sql server 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -50540,12 +50730,14 @@ exports[`getDMMF success simple model, sql server 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -54574,6 +54766,7 @@ exports[`getDMMF success simple model, sqlite 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -54587,12 +54780,14 @@ exports[`getDMMF success simple model, sqlite 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -54632,6 +54827,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -54645,12 +54841,14 @@ exports[`getDMMF success simple model, sqlite 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },

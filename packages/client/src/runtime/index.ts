@@ -7,12 +7,14 @@ export { Extensions }
 export { Public }
 
 export { type BaseDMMF, type DMMF } from '../generation/dmmf-types'
-export { NotFoundError } from './core/errors/NotFoundError'
+export { type JsonBatchQuery, type JsonQuery } from './core/engines'
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
 export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
 export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnknownRequestError'
 export { PrismaClientValidationError } from './core/errors/PrismaClientValidationError'
+export { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
+export { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 export {
   type Metric,
   type MetricHistogram,
@@ -20,6 +22,7 @@ export {
   type Metrics,
   MetricsClient,
 } from './core/metrics/MetricsClient'
+export { dmmfToRuntimeDataModel, type RuntimeDataModel } from './core/runtimeDataModel'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'

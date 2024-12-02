@@ -97,10 +97,6 @@ export function getModelFieldArgsName(field: DMMF.SchemaField, modelName: string
   return `${modelName}$${field.name}Args`
 }
 
-export function getLegacyModelArgName(modelName: string) {
-  return `${modelName}Args`
-}
-
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
 export function getModelArgName(modelName: string, action?: DMMF.ModelAction): string {

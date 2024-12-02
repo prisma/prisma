@@ -171,6 +171,7 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
   switch (protocol) {
     case 'postgresql:':
     case 'postgres:':
+    case 'prisma+postgres:':
       return 'postgresql'
     case 'mongodb+srv:':
     case 'mongodb:':

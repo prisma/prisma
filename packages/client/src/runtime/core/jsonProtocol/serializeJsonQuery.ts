@@ -67,7 +67,7 @@ export type SerializeParams = {
   modelName?: string
   action: Action
   args?: JsArgs
-  extensions: MergedExtensionsList
+  extensions?: MergedExtensionsList
   callsite?: CallSite
   clientMethod: string
   clientVersion: string
@@ -83,7 +83,7 @@ export function serializeJsonQuery({
   action,
   args,
   runtimeDataModel,
-  extensions,
+  extensions = MergedExtensionsList.empty(),
   callsite,
   clientMethod,
   errorFormat,
@@ -308,7 +308,8 @@ function serializeArgumentsValue(
   }
 
   if (ArrayBuffer.isView(jsValue)) {
-    return { $type: 'Bytes', value: Buffer.from(jsValue).toString('base64') }
+    const { buffer, byteOffset, byteLength } = jsValue
+    return { $type: 'Bytes', value: Buffer.from(buffer, byteOffset, byteLength).toString('base64') }
   }
 
   if (isRawParameters(jsValue)) {
