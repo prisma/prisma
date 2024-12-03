@@ -24,6 +24,21 @@ testMatrix.setupTestSuite(
       await prisma.user.deleteMany()
     })
 
+    // Regression test for https://github.com/prisma/prisma/issues/19137.
+    test('issue #19137', async () => {
+      expect.assertions(1)
+
+      await prisma
+        // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
+        .$transaction(/* note how there's no `async` here */ (tx) => {
+            console.log('1')
+            console.log(tx)
+            console.log('2')
+          },
+        )
+        .then(() => expect(true).toBe(true))
+    }, 30_000)
+
     /**
      * Minimal example of an interactive transaction
      */
