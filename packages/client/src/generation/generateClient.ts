@@ -558,6 +558,8 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
       'PrismaClient',
       'Prisma',
       // JavaScript keywords
+      'async',
+      'await',
       'break',
       'case',
       'catch',
@@ -596,6 +598,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
       'throw',
       'true',
       'try',
+      'using',
       'typeof',
       'var',
       'void',

@@ -2,6 +2,13 @@ export type ReadonlyDeep<O> = {
   +readonly [K in keyof O]: ReadonlyDeep<O[K]>
 }
 
+export function datamodelEnumToSchemaEnum(datamodelEnum: DMMF.DatamodelEnum): DMMF.SchemaEnum {
+  return {
+    name: datamodelEnum.name,
+    values: datamodelEnum.values.map((v) => v.name),
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
   export type Document = ReadonlyDeep<{
@@ -58,6 +65,7 @@ export namespace DMMF {
   export type Model = ReadonlyDeep<{
     name: string
     dbName: string | null
+    schema: string | null
     fields: Field[]
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
@@ -86,6 +94,12 @@ export namespace DMMF {
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
+    /**
+     * Native database type, if specified.
+     * For example, `@db.VarChar(191)` is encoded as `['VarChar', ['191']]`,
+     * `@db.Text` is encoded as `['Text', []]`.
+     */
+    nativeType?: [string, string[]] | null
     dbName?: string | null
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
@@ -98,7 +112,7 @@ export namespace DMMF {
 
   export type FieldDefault = ReadonlyDeep<{
     name: string
-    args: any[]
+    args: Array<string | number>
   }>
 
   export type FieldDefaultScalar = string | boolean | number

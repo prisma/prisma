@@ -178,13 +178,16 @@ test('native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
   await prisma.d.deleteMany()
 
   const helloString = 'hello prisma ⚡️🚀'
+
+  const binaryString = (s: string) => new Uint8Array(Buffer.from(s))
+
   const data = {
     bool: true,
-    byteA: Buffer.from(helloString),
+    byteA: binaryString(helloString),
     json: { hello: 'world' },
     jsonb: { hello: 'world' },
     xml: '',
-    bytesArray: [Buffer.from(helloString), Buffer.from(helloString)],
+    bytesArray: [binaryString(helloString), binaryString(helloString)],
   }
   const d = await prisma.d.create({
     data,
@@ -198,7 +201,7 @@ test('native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
     },
   })
 
-  expect(Buffer.isBuffer(d.byteA)).toBe(true)
+  expect(ArrayBuffer.isView(d.byteA)).toBe(true)
 
   expect(d).toEqual(data)
 

@@ -22,8 +22,8 @@ test('BigInt', () => {
 
 test('Bytes', () => {
   const value = deserializeJsonResponse({ $type: 'Bytes', value: 'aGVsbG8gd29ybGQ=' })
-  expect(value).toBeInstanceOf(Buffer)
-  expect(value).toEqual(Buffer.from('hello world'))
+  expect(value).toBeInstanceOf(Uint8Array)
+  expect(value).toEqual(new Uint8Array(Buffer.from('hello world')))
 })
 
 test('Decimal', () => {
