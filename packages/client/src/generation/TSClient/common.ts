@@ -190,7 +190,7 @@ export import Decimal = runtime.Decimal
 export type DecimalJsLike = runtime.DecimalJsLike
 
 /**
- * Metrics 
+ * Metrics
  */
 export type Metrics = runtime.Metrics
 export type Metric<T> = runtime.Metric<T>
@@ -215,7 +215,7 @@ export type PrismaVersion = {
   client: string
 }
 
-export const prismaVersion: PrismaVersion 
+export const prismaVersion: PrismaVersion
 
 /**
  * Utility Types
@@ -231,7 +231,7 @@ export import InputJsonValue = runtime.InputJsonValue
 
 /**
  * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
- * 
+ *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 namespace NullTypes {
@@ -244,21 +244,21 @@ ${buildNullClass('AnyNull')}
 
 /**
  * Helper for filtering JSON entries that have \`null\` on the database (empty on the db)
- * 
+ *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 export const DbNull: NullTypes.DbNull
 
 /**
  * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
- * 
+ *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 export const JsonNull: NullTypes.JsonNull
 
 /**
  * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
- * 
+ *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 export const AnyNull: NullTypes.AnyNull
@@ -316,9 +316,7 @@ export type Subset<T, U> = {
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection.
  * Additionally, it validates, if both select and include are present. If the case, it errors.
  */
-export type SelectSubset<T, U> = {
-  [key in keyof T]: key extends keyof U ? T[key] : never
-} &
+export type SelectSubset<T, U> = T & Subset<T, U> &
   (T extends SelectAndInclude
     ? 'Please either choose \`select\` or \`include\`.'
     : T extends SelectAndOmit
@@ -564,9 +562,9 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 function buildNullClass(name: string) {
   const source = `/**
 * Type of \`Prisma.${name}\`.
-* 
+*
 * You cannot use other instances of this class. Please use the \`Prisma.${name}\` value.
-* 
+*
 * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
 */
 class ${name} {
