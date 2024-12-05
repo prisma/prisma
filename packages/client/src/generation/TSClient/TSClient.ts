@@ -276,7 +276,7 @@ ${
   fieldRefs.length > 0
     ? `
 /**
- * Field references 
+ * Field references
  */
 
 ${fieldRefs.join('\n\n')}`
@@ -294,12 +294,12 @@ ${this.dmmf.inputObjectTypes.prisma
       const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
       // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
       const baseName = `Required<${innerName}>`
-      acc.push(`export type ${typeName} = 
+      acc.push(`export type ${typeName} =
   | PatchUndefined<
       Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
       ${baseName}
     >
-  | OptionalFlat<Omit<${baseName}, 'path'>>`)
+  | OptionalFlat<${baseName} & Without<keyof ${baseName}, 'path'>>`)
       acc.push(new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS())
     } else {
       acc.push(new InputType(inputType, context).toTS())
@@ -367,7 +367,7 @@ class PrismaClient {
         } else {
           message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime.prettyName + '\`).'
         }
-        
+
         message += \`
 If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report\`
 
