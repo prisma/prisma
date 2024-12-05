@@ -6,7 +6,8 @@
   "scripts": {
     "dbpush": "prisma db push --skip-generate",
     "generate": "PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
-    "test": "node -r ts-node/register --enable-source-maps index.ts",
+    "start": "npm run generate && npm run test",
+    "test": "ts-node index.ts",
     "debug": "node -r ts-node/register --enable-source-maps index.ts"
   },
   "keywords": [],

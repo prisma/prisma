@@ -8,3 +8,4 @@ pnpm-debug.log
 write-test
 *.tsbuildinfo
 pnpm-lock.yaml
+*.db-journal

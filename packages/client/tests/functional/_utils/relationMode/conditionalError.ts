@@ -1,4 +1,4 @@
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import { AdapterProviders, Providers } from '../providers'
 
@@ -41,6 +41,14 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
 
     if (errorBase === undefined) {
       return `TODO: add error for relationMode=${relationMode}`
+    }
+
+    // The errors are exactly the same for SQLite and these driverAdapters
+    if (driverAdapter === 'js_d1' || driverAdapter === 'js_libsql') {
+      return (
+        errorBase['sqlite'] ||
+        `TODO: add error for provider=sqlite (which will be used for libSQL and D1 driver adapters snapshots)`
+      )
     }
 
     return (

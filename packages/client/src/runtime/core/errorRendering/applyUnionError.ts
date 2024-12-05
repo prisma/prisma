@@ -1,6 +1,7 @@
 import { maxWithComparator } from '@prisma/internals'
 
 import { EngineValidationError, InvalidArgumentTypeError, UnionError } from '../engines'
+import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { applyValidationError } from './applyValidationError'
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
 
@@ -20,12 +21,12 @@ type NonUnionError = Exclude<EngineValidationError, UnionError>
  * @param error
  * @param args
  */
-export function applyUnionError(error: UnionError, args: ArgumentsRenderingTree) {
+export function applyUnionError(error: UnionError, args: ArgumentsRenderingTree, globalOmit?: GlobalOmitOptions) {
   const allErrors = flattenUnionError(error)
   const merged = mergeInvalidArgumentTypeErrors(allErrors)
   const bestError = getBestScoringError(merged)
   if (bestError) {
-    applyValidationError(bestError, args)
+    applyValidationError(bestError, args, globalOmit)
   } else {
     args.addErrorMessage(() => 'Unknown error')
   }

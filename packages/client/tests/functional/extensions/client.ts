@@ -235,7 +235,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(`What a terrible failure`)
+    expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(`"What a terrible failure"`)
   })
 
   test('error in async extension method', async () => {
@@ -248,7 +248,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await expect(() => xprisma.$fail()).rejects.toThrowErrorMatchingInlineSnapshot(`What a terrible failure`)
+    await expect(() => xprisma.$fail()).rejects.toThrowErrorMatchingInlineSnapshot(`"What a terrible failure"`)
   })
 
   test('error in extension method with no name', () => {
@@ -260,7 +260,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(`What a terrible failure`)
+    expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(`"What a terrible failure"`)
   })
 
   test('custom method re-using input to augment', () => {
@@ -288,11 +288,11 @@ testMatrix.setupTestSuite(() => {
 
       const typeDataSql = await xprisma.$transaction([
         // @ts-test-if: provider !== Providers.MONGODB
-        xprisma.$executeRaw<1>(Prisma.sql`...`),
+        xprisma.$executeRaw(Prisma.sql`...`),
         // @ts-test-if: provider !== Providers.MONGODB
-        xprisma.$executeRaw<2>`...`,
+        xprisma.$executeRaw`...`,
         // @ts-test-if: provider !== Providers.MONGODB
-        xprisma.$executeRawUnsafe<3>('...'),
+        xprisma.$executeRawUnsafe('...'),
         // @ts-test-if: provider !== Providers.MONGODB
         xprisma.$queryRaw<4>(Prisma.sql`...`),
         // @ts-test-if: provider !== Providers.MONGODB
@@ -302,7 +302,7 @@ testMatrix.setupTestSuite(() => {
       ])
 
       // @ts-test-if: provider !== Providers.MONGODB
-      expectTypeOf(typeDataSql).toEqualTypeOf<[1, 2, 3, 4, 5, 6]>()
+      expectTypeOf(typeDataSql).toEqualTypeOf<[number, number, number, 4, 5, 6]>()
 
       const defaultDataSql = await xprisma.$transaction([
         // @ts-test-if: provider !== Providers.MONGODB
@@ -321,14 +321,6 @@ testMatrix.setupTestSuite(() => {
 
       // @ts-test-if: provider !== Providers.MONGODB
       expectTypeOf(defaultDataSql).toEqualTypeOf<[number, number, number, unknown, unknown, unknown]>()
-
-      const typeDataMongo = await xprisma.$transaction([
-        // @ts-test-if: provider === Providers.MONGODB
-        xprisma.$runCommandRaw<1>({ value: '...' }),
-      ])
-
-      // @ts-test-if: provider === Providers.MONGODB
-      expectTypeOf(typeDataMongo).toEqualTypeOf<[1]>()
 
       const defaultDataMongo = await xprisma.$transaction([
         // @ts-test-if: provider === Providers.MONGODB

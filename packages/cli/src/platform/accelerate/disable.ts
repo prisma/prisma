@@ -1,43 +1,47 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 
-import {
-  getPlatformTokenOrThrow,
-  getRequiredParameter,
-  platformParameters,
-  platformRequestOrThrow,
-  successMessage,
-} from '../../utils/platform'
+import { argOrThrow, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
+import { messages } from '../_lib/messages'
+import { requestOrThrow } from '../_lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Disable implements Command {
-  public static new(): Disable {
+  public static new() {
     return new Disable()
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
-      ...platformParameters.project,
+    const args = argOrThrow(argv, {
+      ...platformParameters.environment,
     })
-    if (isError(args)) return args
-    const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-    const project = getRequiredParameter(args, ['--project', '-p'])
-    if (isError(project)) return project
-    const payload = await platformRequestOrThrow<{ data: {}; error: null | { message: string } }>({
+    const token = await getTokenOrThrow(args)
+    const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
+    await requestOrThrow<
+      {
+        accelerateDisable: {}
+      },
+      { environmentId: string }
+    >({
       token,
-      path: `/${workspace}/${project}/accelerate/settings`,
-      route: '_app.$organizationId_.$projectId.accelerate.settings',
-      payload: {
-        intent: 'disable',
-        projectId: project,
+      body: {
+        query: /* GraphQL */ `
+          mutation ($input: MutationAccelerateDisableInput!) {
+            accelerateDisable(input: $input) {
+              __typename
+              ... on Error {
+                message
+              }
+            }
+          }
+        `,
+        variables: {
+          input: { environmentId },
+        },
       },
     })
-    if (payload.error?.message) {
-      throw new Error(payload.error.message)
-    }
-    return successMessage(
-      `Accelerate disabled. Prisma clients connected to ${args['--project']} will not be able to send queries through Accelerate.`,
+
+    return messages.success(
+      `Accelerate disabled. Prisma clients connected to ${environmentId} will not be able to send queries through Accelerate.`,
     )
   }
 }

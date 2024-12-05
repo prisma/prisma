@@ -48,6 +48,10 @@ function setupMockLibraryEngine() {
       tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
+      transactionOptions: {
+        maxWait: 2000,
+        timeout: 5000,
+      },
       inlineSchema: '',
       inlineSchemaHash: '',
       inlineDatasources: {},
@@ -124,6 +128,10 @@ test('responds to initialization error with PrismaClientInitializationError', as
       tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
+      transactionOptions: {
+        maxWait: 2000,
+        timeout: 5000,
+      },
       inlineSchema: '',
       inlineSchemaHash: '',
       inlineDatasources: {},

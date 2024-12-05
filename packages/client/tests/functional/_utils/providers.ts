@@ -30,7 +30,7 @@ export const adaptersForProvider = {
   [Providers.MONGODB]: [],
   [Providers.COCKROACHDB]: [],
   [Providers.SQLSERVER]: [],
-} as Record<Providers, AdapterProviders[]>
+} satisfies Record<Providers, AdapterProviders[]>
 
 export const relationModesForAdapter = {
   [AdapterProviders.JS_PG]: undefined,
@@ -39,7 +39,7 @@ export const relationModesForAdapter = {
   [AdapterProviders.JS_LIBSQL]: undefined,
   [AdapterProviders.JS_D1]: undefined,
   [AdapterProviders.VITESS_8]: RelationModes.PRISMA,
-} as Record<AdapterProviders, RelationModes | undefined>
+} satisfies Record<AdapterProviders, RelationModes | undefined>
 
 export const allProviders = Object.values(Providers).map((p) => ({ provider: p }))
 

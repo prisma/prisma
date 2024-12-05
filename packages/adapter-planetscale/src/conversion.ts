@@ -1,5 +1,7 @@
 import { cast as defaultCast } from '@planetscale/database'
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+
+import { decodeUtf8 } from './text'
 
 // See: https://github.com/planetscale/vitess-types/blob/06235e372d2050b4c0fff49972df8111e696c564/src/vitess/query/v16/query.proto#L108-L218
 export type PlanetScaleColumnType =
@@ -98,8 +100,8 @@ export function fieldToColumnType(field: PlanetScaleColumnType): ColumnType {
 }
 
 export const cast: typeof defaultCast = (field, value) => {
-  if (field.type === 'JSON' && value === 'null') {
-    return JsonNullMarker
+  if (field.type === 'JSON') {
+    return typeof value === 'string' && value.length ? decodeUtf8(value) : value
   }
 
   const defaultValue = defaultCast(field, value)

@@ -20,6 +20,8 @@ export type EngineSpanEvent = {
   spans: EngineSpan[]
 }
 
+export type EngineSpanKind = 'client' | 'internal'
+
 export type EngineSpan = {
   span: boolean
   name: string
@@ -30,6 +32,7 @@ export type EngineSpan = {
   end_time: [number, number]
   attributes?: Record<string, string>
   links?: { trace_id: string; span_id: string }[]
+  kind: EngineSpanKind
 }
 
 export interface TracingHelper {

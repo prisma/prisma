@@ -1,14 +1,12 @@
 import { arg, Command, isError } from '@prisma/internals'
 
-import {
-  getPlatformTokenOrThrow,
-  getRequiredParameter,
-  platformParameters,
-  platformRequestOrThrow,
-} from '../../utils/platform'
+import { getRequiredParameterOrThrow } from '../_lib/cli/parameters'
+import { messages } from '../_lib/messages'
+import { requestOrThrow } from '../_lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Show implements Command {
-  public static new(): Show {
+  public static new() {
     return new Show()
   }
 
@@ -17,24 +15,51 @@ export class Show implements Command {
       ...platformParameters.workspace,
     })
     if (isError(args)) return args
-    const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-
-    const payload = await platformRequestOrThrow<{
-      organization: { projects: { id: string; createdAt: string; displayName: string }[] }
-    }>({
+    const token = await getTokenOrThrow(args)
+    const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
+    const { workspace } = await requestOrThrow<
+      {
+        workspace: {
+          projects: {
+            __typename: string
+            id: string
+            createdAt: string
+            displayName: string
+          }[]
+        }
+      },
+      {
+        id: string
+      }
+    >({
       token,
-      path: `/${workspace}/overview`,
-      route: '_app.$organizationId.overview',
+      body: {
+        query: /* GraphQL */ `
+          query ($input: QueryWorkspaceInput!) {
+            workspace(input: $input) {
+              __typename
+              ... on Error {
+                message
+              }
+              ... on Workspace {
+                projects {
+                  __typename
+                  id
+                  createdAt
+                  displayName
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id: workspaceId,
+          },
+        },
+      },
     })
 
-    console.table(
-      payload.organization.projects.map(({ id, displayName, createdAt }) => ({ id, createdAt, name: displayName })),
-      ['id', 'name', 'createdAt'],
-    )
-
-    return ''
+    return messages.resourceList(workspace.projects)
   }
 }

@@ -24,7 +24,6 @@ testMatrix.setupTestSuite(({ provider }) => {
           [
             'createMany',
             (email: string) => {
-              // @ts-test-if: provider !== Providers.SQLITE
               return prisma.user.createMany({
                 data: [
                   {

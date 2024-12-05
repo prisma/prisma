@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "@prisma/adapter-neon": "/tmp/prisma-adapter-neon-0.0.0.tgz",
+    "@prisma/adapter-pg": "/tmp/prisma-adapter-pg-0.0.0.tgz",
+    "@prisma/adapter-pg-worker": "/tmp/prisma-adapter-pg-worker-0.0.0.tgz",
+    "pg": "8.11.5"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.12",
+    "@types/node": "18.19.50"
+  }
+}

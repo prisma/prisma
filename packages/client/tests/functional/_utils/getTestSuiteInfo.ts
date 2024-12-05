@@ -1,4 +1,5 @@
 import { ClientEngineType } from '@prisma/internals'
+import fs from 'fs/promises'
 import path from 'path'
 
 import { matrix } from '../../../../../helpers/blaze/matrix'
@@ -58,11 +59,14 @@ export function getTestSuitePreviewFeatures(schema: string): string[] {
 
 /**
  * Get the generated test suite path, where files will be copied to.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
+export function getTestSuiteFolderPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
   const generatedFolder = path.join(suiteMeta.prismaPath, '..', '.generated')
   const suiteName = getTestSuiteFullName(suiteMeta, suiteConfig)
   const suiteFolder = path.join(generatedFolder, suiteName)
@@ -72,12 +76,15 @@ export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
 
 /**
  * Get the generated test suite schema file path.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  const prismaFolder = getTestSuitePrismaPath(suiteMeta, suiteConfig)
+export function getTestSuiteSchemaPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
+  const prismaFolder = getTestSuitePrismaPath({ suiteMeta, suiteConfig })
   const schemaPath = path.join(prismaFolder, 'schema.prisma')
 
   return schemaPath
@@ -85,12 +92,15 @@ export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
 
 /**
  * Get the generated test suite prisma folder path.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+export function getTestSuitePrismaPath({
+  suiteMeta,
+  suiteConfig,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+}) {
+  const suiteFolder = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
   const prismaPath = path.join(suiteFolder, 'prisma')
 
   return prismaPath
@@ -155,15 +165,16 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
 
 /**
  * Inflate the base schema with a test suite config, used for schema generation.
- * @param suiteMeta
- * @param suiteConfig
- * @returns
  */
-export function getTestSuiteSchema(
-  cliMeta: CliMeta,
-  suiteMeta: TestSuiteMeta,
-  matrixOptions: NamedTestSuiteConfig['matrixOptions'],
-) {
+export function getTestSuiteSchema({
+  cliMeta,
+  suiteMeta,
+  matrixOptions,
+}: {
+  cliMeta: CliMeta
+  suiteMeta: TestSuiteMeta
+  matrixOptions: NamedTestSuiteConfig['matrixOptions']
+}) {
   let schema = require(suiteMeta._schemaPath).default(matrixOptions) as string
   const previewFeatureMatch = schema.match(schemaPreviewFeaturesRegex)
   const defaultGeneratorMatch = schema.match(schemaDefaultGeneratorRegex)
@@ -236,6 +247,7 @@ export function getTestSuiteMeta() {
   const prismaPath = path.join(testRoot, 'prisma')
   const _matrixPath = path.join(testRoot, '_matrix')
   const _schemaPath = path.join(prismaPath, '_schema')
+  const sqlPath = path.join(prismaPath, 'sql')
 
   return {
     testName,
@@ -245,6 +257,7 @@ export function getTestSuiteMeta() {
     rootRelativeTestDir,
     testFileName,
     prismaPath,
+    sqlPath,
     _matrixPath,
     _schemaPath,
   }
@@ -270,9 +283,29 @@ export function getTestSuiteCliMeta(): CliMeta {
 /**
  * Get `ClientMeta` information to be passed down into the test suite.
  */
-export function getTestSuiteClientMeta(suiteConfig: NamedTestSuiteConfig['matrixOptions']): ClientMeta {
+export function getTestSuiteClientMeta({
+  suiteConfig,
+}: {
+  suiteConfig: NamedTestSuiteConfig['matrixOptions']
+}): ClientMeta {
   return {
     ...getTestSuiteCliMeta(),
     driverAdapter: isDriverAdapterProviderLabel(suiteConfig.driverAdapter),
+  }
+}
+
+export async function testSuiteHasTypedSql(meta: TestSuiteMeta) {
+  return await isDirectory(meta.sqlPath)
+}
+
+async function isDirectory(path: string) {
+  try {
+    const stat = await fs.stat(path)
+    return stat.isDirectory()
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return false
+    }
+    throw e
   }
 }

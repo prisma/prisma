@@ -1,11 +1,12 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupCockroach, tearDownCockroach } from '../../utils/setupCockroach'
+import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -14,7 +15,7 @@ if (isMacOrWindowsCI) {
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 // To avoid the loading spinner locally
 process.env.CI = 'true'
@@ -22,6 +23,20 @@ process.env.CI = 'true'
 const originalEnv = { ...process.env }
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+  const captureStdout = new CaptureStdout()
+
+  beforeEach(() => {
+    captureStdout.startCapture()
+  })
+
+  afterEach(() => {
+    captureStdout.clearCaptureText()
+  })
+
+  afterAll(() => {
+    captureStdout.stopCapture()
+  })
+
   if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
@@ -65,10 +80,10 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection (with postgresql provider) should fail', async () => {
@@ -76,33 +91,32 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
+      "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
 
-
+      "
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection (no schema) --url', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection (with cockroach provider) --url ', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection (with postgresql provider) --url should fail', async () => {
@@ -116,12 +130,12 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
       'with-postgresql-provider.prisma',
     ])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
+      "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
 
-
+      "
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })

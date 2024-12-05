@@ -4,13 +4,14 @@ import {
   createDatabase,
   getConfig,
   getEffectiveUrl,
+  getMigrateConfigDir,
   getSchema,
-  getSchemaDir,
   uriToCredentials,
 } from '@prisma/internals'
 import { bold } from 'kleur/colors'
 
 import { ConnectorType } from './printDatasources'
+import { getSocketFromDatabaseCredentials } from './unixSocket'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB' | 'MongoDB'
@@ -25,8 +26,11 @@ export type DatasourceInfo = {
   dbName?: string // database name
   schema?: string // database schema (!= multiSchema, can be found in the connection string like `?schema=myschema`)
   schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
+  configDir?: string
 }
 
+// TODO: sometimes this function is called with a `schemaPath`, even though the schema(s) have already been read from disk.
+// (e.g., check `MigrateDev.ts`).
 export async function getDatasourceInfo({
   schemaPath,
   throwIfEnvError,
@@ -58,6 +62,7 @@ export async function getDatasourceInfo({
       url: undefined,
       schema: undefined,
       schemas: undefined,
+      configDir: undefined,
     }
   }
 
@@ -74,6 +79,7 @@ export async function getDatasourceInfo({
       url: url || undefined,
       schema: undefined,
       schemas: firstDatasource.schemas,
+      configDir: getMigrateConfigDir(config, schemaPath),
     }
   }
 
@@ -98,6 +104,7 @@ export async function getDatasourceInfo({
       url,
       schema,
       schemas: firstDatasource.schemas,
+      configDir: getMigrateConfigDir(config, schemaPath),
     }
 
     // Default to `postgres` database name for PostgreSQL
@@ -116,6 +123,7 @@ export async function getDatasourceInfo({
       url,
       schema: undefined,
       schemas: firstDatasource.schemas,
+      configDir: getMigrateConfigDir(config, schemaPath),
     }
   }
 }
@@ -132,7 +140,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const schemaDir = (await getSchemaDir(schemaPath))!
+  const schemaDir = getMigrateConfigDir(config, schemaPath)
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
@@ -147,15 +155,16 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 }
 
 export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
-  const schema = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+  const schemas = await getSchema(schemaPath)
+
+  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const schemaDir = (await getSchemaDir(schemaPath))!
+  const schemaDir = getMigrateConfigDir(config, schemaPath)
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
@@ -207,7 +216,11 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
     return credentials.uri!
   }
 
-  if (credentials.host && credentials.port) {
+  const socket = getSocketFromDatabaseCredentials(credentials)
+
+  if (socket) {
+    return `unix:${socket}`
+  } else if (credentials.host && credentials.port) {
     return `${credentials.host}:${credentials.port}`
   } else if (credentials.host) {
     return `${credentials.host}`

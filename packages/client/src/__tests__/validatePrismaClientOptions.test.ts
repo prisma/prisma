@@ -54,8 +54,8 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      Unknown property errorsFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
-      Read more at https://pris.ly/d/client-constructor
+      "Unknown property errorsFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
+      Read more at https://pris.ly/d/client-constructor"
     `)
     expect(() =>
       validatePrismaClientOptions(
@@ -68,8 +68,8 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      Unknown datasource asd provided to PrismaClient constructor. Available datasources: db
-      Read more at https://pris.ly/d/client-constructor
+      "Unknown datasource asd provided to PrismaClient constructor. Available datasources: db
+      Read more at https://pris.ly/d/client-constructor"
     `)
     expect(() =>
       validatePrismaClientOptions(
@@ -82,9 +82,9 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      Invalid value {"db":{"murl":""}} for datasource "db" provided to PrismaClient constructor.
+      "Invalid value {"db":{"murl":""}} for datasource "db" provided to PrismaClient constructor.
       It should have this form: { url: "CONNECTION_STRING" }
-      Read more at https://pris.ly/d/client-constructor
+      Read more at https://pris.ly/d/client-constructor"
     `)
     expect(() =>
       validatePrismaClientOptions(
@@ -95,8 +95,8 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      Invalid property helo for "log" provided to PrismaClient constructor
-      Read more at https://pris.ly/d/client-constructor
+      "Invalid property helo for "log" provided to PrismaClient constructor
+      Read more at https://pris.ly/d/client-constructor"
     `)
     expect(() =>
       validatePrismaClientOptions(
@@ -107,8 +107,8 @@ describe('invalid options', () => {
         config,
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      Invalid log level "muery" provided to PrismaClient constructor. Did you mean "query"?
-      Read more at https://pris.ly/d/client-constructor
+      "Invalid log level "muery" provided to PrismaClient constructor. Did you mean "query"?
+      Read more at https://pris.ly/d/client-constructor"
     `)
   })
 })

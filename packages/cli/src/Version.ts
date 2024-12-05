@@ -9,7 +9,7 @@ import {
   getConfig,
   getEnginesMetaInfo,
   getSchema,
-  getSchemaPath,
+  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
@@ -21,7 +21,7 @@ import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json')
 
 /**
  * $ prisma version
@@ -63,7 +63,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    loadEnvFile({ printMessage: true })
+    await loadEnvFile({ printMessage: !args['--json'] })
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
@@ -113,7 +113,12 @@ export class Version implements Command {
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
-    const schemaPath = await getSchemaPath()
+    let schemaPath: string | null = null
+    try {
+      schemaPath = (await getSchemaWithPath()).schemaPath
+    } catch {
+      schemaPath = null
+    }
     const featureFlags = await this.getFeatureFlags(schemaPath)
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])

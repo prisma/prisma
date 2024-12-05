@@ -19,7 +19,7 @@ test('defined args', () => {
       fieldRef: new FieldRefImpl('User', 'field', 'Int', false, false),
     }),
   ).toMatchInlineSnapshot(`
-    {
+    "{
       string: "hello",
       number: 123,
       bigint: 123n,
@@ -27,6 +27,6 @@ test('defined args', () => {
       decimal: new Prisma.Decimal("12.3"),
       date: new Date("2020-12-12T12:00:00.000Z"),
       fieldRef: prisma.user.$fields.field
-    }
+    }"
   `)
 })

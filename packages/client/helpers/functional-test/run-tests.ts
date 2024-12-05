@@ -2,6 +2,7 @@ import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/inte
 import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
+import path from 'path'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'
@@ -107,6 +108,8 @@ const args = arg(
     '--engine-type': String,
     // Forces any given test to be run with an *added* set of preview features, comma-separated
     '--preview-features': String,
+    // Enable Node.js debugger
+    '--inspect-brk': Boolean,
 
     //
     // Jest params
@@ -119,7 +122,6 @@ const args = arg(
 
 async function main(): Promise<number | void> {
   let miniProxyProcess: ExecaChildProcess | undefined
-  let wranglerProcess: ExecaChildProcess | undefined
 
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let jestCli = jestCliBase
@@ -132,6 +134,10 @@ async function main(): Promise<number | void> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       jestCli = jestCli.withArgs([cliArg, args[cliArg]])
     }
+  }
+
+  if (args['--inspect-brk']) {
+    jestCli = jestCli.withDebugger()
   }
 
   if (args['--preview-features']) {
@@ -154,10 +160,21 @@ async function main(): Promise<number | void> {
     )
 
     if (unknownAdapterProviders.length > 0) {
-      throw new Error(`Unknown adapter providers: ${unknownAdapterProviders.join(', ')}`)
+      const allAdaptersStr = Array.from(allAdapterProviders)
+        .map((provider) => `  - ${provider}`)
+        .join('\n')
+      throw new Error(
+        `Unknown adapter providers: ${unknownAdapterProviders.join(', ')}. Available options:\n${allAdaptersStr}\n\n`,
+      )
     }
 
     if (adapterProviders.some(isDriverAdapterProviderLabel)) {
+      // Locally, running D1 tests accumulates a lot of data in the .wrangler directory.
+      // Because we cannot reset the database contents programmatically at the moment,
+      // deleting it is the easy way
+      // It makes local tests consistently fast and clean
+      fs.rmSync(path.join(__dirname, '..', '..', '.wrangler'), { recursive: true, force: true })
+
       jestCli = jestCli.withArgs(['--runInBand'])
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
@@ -168,26 +185,6 @@ async function main(): Promise<number | void> {
     }
 
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_ADAPTERS: adapterProviders.join(',') })
-
-    // Start wrangler dev server with the `wrangler-proxy` for D1 tests
-    if (adapterProviders.includes(AdapterProviders.JS_D1)) {
-      wranglerProcess = execa(
-        'pnpm',
-        [
-          'wrangler',
-          'dev',
-          '--config=./tests/functional/_utils/wrangler.toml',
-          'node_modules/wrangler-proxy/dist/worker.js',
-        ],
-        {
-          preferLocal: true,
-          // stdio: 'inherit',
-          env: {
-            DEBUG: process.env.DEBUG,
-          },
-        },
-      )
-    }
   }
 
   if (args['--engine-type']) {
@@ -244,7 +241,9 @@ async function main(): Promise<number | void> {
 
   try {
     if (args['--updateSnapshot']) {
-      const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
+      const snapshotUpdate = jestCli
+        .withArgs(['-u'])
+        .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
@@ -270,9 +269,6 @@ async function main(): Promise<number | void> {
   } finally {
     if (miniProxyProcess) {
       miniProxyProcess.kill()
-    }
-    if (wranglerProcess) {
-      wranglerProcess.kill()
     }
   }
 }

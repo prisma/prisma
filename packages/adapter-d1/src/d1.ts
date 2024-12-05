@@ -1,6 +1,9 @@
-import { D1Database, D1Result } from '@cloudflare/workers-types'
+/* eslint-disable @typescript-eslint/require-await */
+
+import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
-  // Debug,
+  ConnectionInfo,
+  Debug,
   DriverAdapter,
   err,
   ok,
@@ -9,27 +12,24 @@ import {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
-// import { Mutex } from 'async-mutex'
-import { getColumnTypes } from './conversion'
+import { name as packageName } from '../package.json'
+import { getColumnTypes, mapRow } from './conversion'
+import { cleanArg, matchSQLiteErrorCode } from './utils'
 
-// TODO? Env var works differently in D1 so `debug` does not work.
-// const debug = Debug('prisma:driver-adapter:d1')
+const debug = Debug('prisma:driver-adapter:d1')
 
-type PerformIOResult = D1Result
-// type ExecIOResult = D1ExecResult
-
+type D1ResultsWithColumnNames = [string[], unknown[][]]
+type PerformIOResult = D1ResultsWithColumnNames | D1Response
 type StdClient = D1Database
-
-// const LOCK_TAG = Symbol()
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
   readonly provider = 'sqlite'
-
-  // [LOCK_TAG] = new Mutex()
+  readonly adapterName = packageName
 
   constructor(protected readonly client: ClientT) {}
 
@@ -37,21 +37,22 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * Execute a query given as SQL, interpolating the given parameters.
    */
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::query_raw]'
-    // console.debug(`${tag} %O`, query)
+    debug(`${tag} %O`, query)
 
     const ioResult = await this.performIO(query)
 
     return ioResult.map((data) => {
-      const convertedData = this.convertData(data)
-      // console.debug({ convertedData })
+      const convertedData = this.convertData(data as D1ResultsWithColumnNames)
       return convertedData
     })
   }
 
-  private convertData(ioResult: PerformIOResult): ResultSet {
-    if (ioResult.results.length === 0) {
+  private convertData(ioResult: D1ResultsWithColumnNames): ResultSet {
+    const columnNames = ioResult[0]
+    const results = ioResult[1]
+
+    if (results.length === 0) {
       return {
         columnNames: [],
         columnTypes: [],
@@ -59,29 +60,18 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       }
     }
 
-    const results = ioResult.results as Object[]
-    const columnNames = Object.keys(results[0])
-    const columnTypes = getColumnTypes(columnNames, results)
-    const rows = this.mapD1ToRows(results)
+    const columnTypes = Object.values(getColumnTypes(columnNames, results))
+    const rows = results.map((value) => mapRow(value, columnTypes))
 
     return {
       columnNames,
-      // Note: without Object.values the array looks like
-      // columnTypes: [ id: 128 ],
-      // and errors with:
-      // ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
-      columnTypes: Object.values(columnTypes),
+      // * Note: without Object.values the array looks like
+      // * columnTypes: [ id: 128 ],
+      // * and errors with:
+      // * ✘ [ERROR] A hanging Promise was canceled. This happens when the worker runtime is waiting for a Promise from JavaScript to resolve, but has detected that the Promise cannot possibly ever resolve because all code and events related to the Promise's I/O context have already finished.
+      columnTypes,
       rows,
     }
-  }
-
-  private mapD1ToRows(results: any) {
-    const rows: unknown[][] = []
-    for (const row of results) {
-      const entry = Object.keys(row).map((k) => row[k])
-      rows.push(entry)
-    }
-    return rows
   }
 
   /**
@@ -90,53 +80,34 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
   async executeRaw(query: Query): Promise<Result<number>> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const tag = '[js::execute_raw]'
-    // console.debug(`${tag} %O`, query)
+    debug(`${tag} %O`, query)
 
-    // TODO: rows_written or changes? Only rows_written is documented.
-    return (await this.performIO(query)).map(({ meta }) => meta.changes ?? 0)
+    const res = await this.performIO(query, true)
+    return res.map((result) => (result as D1Response).meta.changes ?? 0)
   }
 
-  private async performIO(query: Query): Promise<Result<PerformIOResult>> {
-    // const release = await this[LOCK_TAG].acquire()
-    // console.debug({ query })
-
+  private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
     try {
-      // Hack for
-      // ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
-      query.args = query.args.map((arg) => {
-        if (arg === true) {
-          return 1
-        } else if (arg === false) {
-          return 0
-        }
-        return arg
-      })
+      query.args = query.args.map((arg, i) => cleanArg(arg, query.argTypes[i]))
 
-      const result = await this.client
-        .prepare(query.sql)
-        .bind(...query.args)
-        .all()
+      const stmt = this.client.prepare(query.sql).bind(...query.args)
 
-      // console.debug({ result })
-
-      return ok(result)
-    } catch (e) {
-      const error = e as Error
-      console.error('Error in performIO: %O', error)
-
-      const rawCode = error['rawCode'] ?? e.cause?.['rawCode']
-      if (typeof rawCode === 'number') {
-        return err({
-          kind: 'Sqlite',
-          extendedCode: rawCode,
-          message: error.message,
-        })
+      if (executeRaw) {
+        return ok(await stmt.run())
+      } else {
+        const [columnNames, ...rows] = await stmt.raw({ columnNames: true })
+        return ok([columnNames, rows])
       }
-      throw error
-    } finally {
-      // release()
+    } catch (e) {
+      console.error('Error in performIO: %O', e)
+      const { message } = e
+
+      return err({
+        kind: 'Sqlite',
+        extendedCode: matchSQLiteErrorCode(message),
+        message,
+      })
     }
   }
 }
@@ -146,18 +117,34 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
     super(client)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<Result<void>> {
-    // console.debug(`[js::commit]`)
+    debug(`[js::commit]`)
 
     return ok(undefined)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<Result<void>> {
-    // console.debug(`[js::rollback]`)
+    debug(`[js::rollback]`)
 
     return ok(undefined)
+  }
+}
+
+class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext {
+  constructor(readonly client: StdClient) {
+    super(client)
+  }
+
+  async startTransaction(): Promise<Result<Transaction>> {
+    const options: TransactionOptions = {
+      // TODO: D1 does not have a Transaction API.
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    return ok(new D1Transaction(this.client, options))
   }
 }
 
@@ -185,29 +172,25 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
    * await prisma.$transaction([ ...moreQueries ])
    * ```
    */
-  warnOnce = (key: string, message: string, ...args: unknown[]) => {
+  private warnOnce = (key: string, message: string, ...args: unknown[]) => {
     if (!this.alreadyWarned.has(key)) {
       this.alreadyWarned.add(key)
       console.info(`${this.tags.warn} ${message}`, ...args)
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async startTransaction(): Promise<Result<Transaction>> {
-    const options: TransactionOptions = {
-      // TODO: D1 does not support transactions.
-      usePhantomQuery: true,
-    }
+  getConnectionInfo(): Result<ConnectionInfo> {
+    return ok({
+      maxBindValues: 98,
+    })
+  }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const tag = '[js::startTransaction]'
-    // console.debug(`${tag} options: %O`, options)
-
+  async transactionContext(): Promise<Result<TransactionContext>> {
     this.warnOnce(
       'D1 Transaction',
-      "Cloudflare D1 - currently in Beta - does not support transactions. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and ran as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
+      "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
     )
 
-    return ok(new D1Transaction(this.client, options))
+    return ok(new D1TransactionContext(this.client))
   }
 }

@@ -7,13 +7,14 @@ import {
   createCompositeProxy,
   removeProperties,
 } from '../compositeProxy'
-import { Selection } from '../types/exported/JsApi'
+import { Omission, Selection } from '../types/exported/JsApi'
 import { MergedExtensionsList } from './MergedExtensionsList'
 import { ComputedField } from './resultUtils'
 
 type ApplyExtensionsArgs = {
   result: object
   select?: Selection
+  omit?: Omission
   modelName: string
   extensions: MergedExtensionsList
 }
@@ -30,7 +31,7 @@ type ApplyExtensionsArgs = {
  * @param params
  * @returns
  */
-export function applyResultExtensions({ result, modelName, select, extensions }: ApplyExtensionsArgs) {
+export function applyResultExtensions({ result, modelName, select, omit, extensions }: ApplyExtensionsArgs) {
   const computedFields = extensions.getAllComputedFields(modelName)
   if (!computedFields) {
     return result
@@ -40,7 +41,15 @@ export function applyResultExtensions({ result, modelName, select, extensions }:
   const maskingLayers: CompositeProxyLayer[] = []
 
   for (const field of Object.values(computedFields)) {
-    if (select) {
+    if (omit) {
+      if (omit[field.name]) {
+        continue
+      }
+      const toMask = field.needs.filter((prop) => omit[prop])
+      if (toMask.length > 0) {
+        maskingLayers.push(removeProperties(toMask))
+      }
+    } else if (select) {
       if (!select[field.name]) {
         continue
       }

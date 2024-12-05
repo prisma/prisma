@@ -25,3 +25,25 @@ CREATE TABLE IF NOT EXISTS Test (
     boolean BOOLEAN,
     blob BLOB
 );
+
+DROP TABLE IF EXISTS PrismaTest;
+
+CREATE TABLE IF NOT EXISTS PrismaTest (
+    id INTEGER PRIMARY KEY,
+    date TEXT,
+    bigint INTEGER,
+    decimal TEXT
+);
+
+DROP TABLE IF EXISTS "Post";
+
+DROP TABLE IF EXISTS "User";
+
+CREATE TABLE "User" (id INTEGER PRIMARY KEY);
+
+CREATE TABLE "Post" (
+    id INTEGER PRIMARY KEY,
+    "authorId" INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    FOREIGN KEY ("authorId") REFERENCES "User"(id)
+);

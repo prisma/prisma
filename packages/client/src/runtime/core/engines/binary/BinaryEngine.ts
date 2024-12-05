@@ -7,7 +7,7 @@ import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
-import { blue, bold, green, red, yellow } from 'kleur/colors'
+import { bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
 import type { Readable } from 'stream'
 
@@ -23,7 +23,7 @@ import { resolveEnginePath } from '../common/resolveEnginePath'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { QueryEngineResult } from '../common/types/QueryEngine'
+import type { QueryEngineResultData } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
@@ -57,7 +57,8 @@ const engines: BinaryEngine[] = []
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
-export class BinaryEngine extends Engine<undefined> {
+export class BinaryEngine implements Engine<undefined> {
+  name = 'BinaryEngine' as const
   private config: EngineConfig
   private logEmitter: LogEmitter
   private showColors: boolean
@@ -101,8 +102,6 @@ export class BinaryEngine extends Engine<undefined> {
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
    */
   constructor(config: EngineConfig) {
-    super()
-
     this.config = config
     this.env = config.env
     this.cwd = this.resolveCwd(config.cwd)
@@ -128,36 +127,6 @@ export class BinaryEngine extends Engine<undefined> {
 
     initHooks()
 
-    // See also warnOnDeprecatedFeatureFlag at
-    // https://github.com/prisma/prisma/blob/9e5cc5bfb9ef0eb8251ab85a56302e835f607711/packages/sdk/src/engine-commands/getDmmf.ts#L179
-    const removedFlags = [
-      'middlewares',
-      'aggregateApi',
-      'distinct',
-      'aggregations',
-      'insensitiveFilters',
-      'atomicNumberOperations',
-      'transactionApi',
-      'transaction',
-      'connectOrCreate',
-      'uncheckedScalarInputs',
-      'nativeTypes',
-      'createMany',
-      'groupBy',
-      'referentialActions',
-      'microsoftSqlServer',
-    ]
-    const removedFlagsUsed = this.previewFeatures.filter((e) => removedFlags.includes(e))
-
-    if (removedFlagsUsed.length > 0 && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-      console.log(
-        `${blue(bold('info'))} The preview flags \`${removedFlagsUsed.join(
-          '`, `',
-        )}\` were removed, you can now safely remove them from your schema.prisma.`,
-      )
-    }
-
-    this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = config.engineEndpoint
 
     if (this.binaryTarget) {
@@ -177,7 +146,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       Debug.enable('*')
     }
     engines.push(this)
-    this.checkForTooManyEngines()
   }
 
   // Set error sets an error for async processing, when this doesn't happen in the span of a request
@@ -201,19 +169,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  private checkForTooManyEngines() {
-    if (engines.length >= 10) {
-      const runningEngines = engines.filter((e) => e.child)
-      if (runningEngines.length === 10) {
-        console.warn(
-          `${bold(
-            yellow('warn(prisma-client)'),
-          )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
-        )
-      }
-    }
-  }
-
   private resolveCwd(cwd: string): string {
     if (fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
       return cwd
@@ -222,7 +177,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return process.cwd()
   }
 
-  override onBeforeExit(listener: () => Promise<void>) {
+  onBeforeExit(listener: () => Promise<void>) {
     this.beforeExitListener = listener
   }
 
@@ -237,7 +192,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private async getCurrentBinaryTarget(): Promise<BinaryTarget> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (this.binaryTargetPromise) {
       return this.binaryTargetPromise
     }
@@ -301,7 +255,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private getEngineEnvVars() {
-    const env: any = {
+    const env: Record<string, string> = {
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
@@ -317,6 +271,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       env.CLICOLOR_FORCE = '1'
     }
 
+    const traceparent = this.tracingHelper.getTraceParent()
+    if (traceparent) {
+      env.TRACE_CONTEXT = JSON.stringify({ traceparent })
+    }
+
     return {
       ...this.env, // user-provided env vars
       ...process.env,
@@ -328,7 +287,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private internalStart(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await new Promise((r) => process.nextTick(r))
       if (this.stopPromise) {
@@ -677,7 +636,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async request<T>(
     query: JsonQuery,
     { traceparent, numTry = 1, isWrite, interactiveTransaction }: RequestOptions<undefined>,
-  ): Promise<QueryEngineResult<T>> {
+  ): Promise<QueryEngineResultData<T>> {
     await this.start()
     const headers: Record<string, string> = {}
     if (traceparent) {
@@ -695,18 +654,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.lastQuery = queryStr
 
     try {
-      const { data, headers } = await this.currentRequestPromise
+      const { data } = await this.currentRequestPromise
 
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
       }
-
-      // Rust engine returns time in microseconds and we want it in milliseconds
-      const elapsed = parseInt(headers['x-elapsed']) / 1000
 
       // reset restart count after successful request
       if (this.startCount > 0) {
@@ -714,7 +670,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       }
 
       this.currentRequestPromise = undefined
-      return { data, elapsed } as any
+      return { data }
     } catch (e: any) {
       logger('req - e', e)
 
@@ -754,22 +710,19 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     )
 
     return this.currentRequestPromise
-      .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in milliseconds
-        const elapsed = parseInt(headers['x-elapsed']) / 1000
+      .then(({ data }) => {
         const { batchResult } = data
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors && result.errors.length > 0) {
-              return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
+              return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
             }
             return {
               data: result,
-              elapsed,
             }
           })
         } else {
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
         }
       })
       .catch(async (e) => {
@@ -800,7 +753,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(
     action: 'start',
     headers: Tx.TransactionHeaders,
-    options?: Tx.Options,
+    options: Tx.Options,
   ): Promise<Tx.InteractiveTransactionInfo<undefined>>
   async transaction(
     action: 'commit',
@@ -817,9 +770,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-        isolation_level: arg?.isolationLevel,
+        max_wait: arg.maxWait,
+        timeout: arg.timeout,
+        isolation_level: arg.isolationLevel,
       })
 
       const result = await Connection.onHttpError(
@@ -829,12 +782,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
-        this.httpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/commit`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
-        this.httpErrorHandler(result),
+      await Connection.onHttpError(
+        this.connection.post(`/transaction/${arg.id}/rollback`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
     }
 
@@ -976,6 +931,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       clientVersion: this.clientVersion as string,
       meta: response.meta as Record<string, unknown>,
     })
+  }
+
+  applyPendingMigrations(): Promise<void> {
+    throw new Error('Method not implemented.')
   }
 }
 

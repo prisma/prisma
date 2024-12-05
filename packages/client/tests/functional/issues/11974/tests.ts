@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -49,5 +50,5 @@ testMatrix.setupTestSuite(
       expect(response).toMatchObject({ _count: 1 })
     })
   },
-  { optOut: { from: ['mongodb'], reason: 'Implicit relations are not supported in MongoDB' } },
+  { optOut: { from: [Providers.MONGODB], reason: 'Implicit relations are not supported in MongoDB' } },
 )

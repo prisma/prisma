@@ -191,11 +191,11 @@ export default defineMatrix(() => [
   ],
   [
     {
-      providerFeatures: '',
+      previewFeatures: '',
     },
 
     {
-      providerFeatures: 'improvedQueryRaw',
+      previewFeatures: 'improvedQueryRaw',
     },
   ],
 ])
@@ -203,10 +203,10 @@ export default defineMatrix(() => [
 
 Will generate following test suites:
 
-- `{ provider: Providers.SQLITE providerFeatures: '' }`
-- `{ provider: Providers.SQLITE providerFeatures: 'improvedQueryRaw' }`
-- `{ provider: Providers.POSTGRESQL providerFeatures: '' }`
-- `{ provider: Providers.POSTGRESQL providerFeatures: 'improvedQueryRaw' }`
+- `{ provider: Providers.SQLITE, previewFeatures: '' }`
+- `{ provider: Providers.SQLITE, previewFeatures: 'improvedQueryRaw' }`
+- `{ provider: Providers.POSTGRESQL, previewFeatures: '' }`
+- `{ provider: Providers.POSTGRESQL, previewFeatures: 'improvedQueryRaw' }`
 
 You can also optionally exclude certain combinations from matrix by using second argument of `defineMatrix` function:
 
@@ -225,17 +225,16 @@ export default defineMatrix(
     ],
     [
       {
-        providerFeatures: '',
+        previewFeatures: '',
       },
 
       {
-        providerFeatures: 'improvedQueryRaw',
+        previewFeatures: 'improvedQueryRaw',
       },
     ],
   ],
   {
-    exclude: ({ provider, providerFeatures }) =>
-      provider === Providers.SQLITE && providerFeatures === 'improvedQueryRaw',
+    exclude: ({ provider, previewFeatures }) => provider === Providers.SQLITE && previewFeatures === 'improvedQueryRaw',
   },
 )
 ```
@@ -276,6 +275,7 @@ export default testMatrix.setupSchema(({ provider }) => {
 `tests.ts` contains actual tests for the suite:
 
 ```ts
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
 // @ts-ignore at the moment this is necessary for typechecks
@@ -298,7 +298,7 @@ testMatrix.setupTestSuite(
     optOut: {
       // if you are skipping tests for certain providers, you
       // have to list them here and specify the reason
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'The test is for SQL databases only',
     },
     skipDataProxy: {

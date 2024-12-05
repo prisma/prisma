@@ -1,3 +1,4 @@
+import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -12,7 +13,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
     
     model TestModel {
-      id     Int       @id
+      id    ${idForProvider(provider)}
       string String?
       int    Int?
       bInt   BigInt?

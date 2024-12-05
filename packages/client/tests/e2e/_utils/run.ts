@@ -1,10 +1,13 @@
 import { arg } from '@prisma/internals'
+import { createReadStream, existsSync } from 'fs'
 import fs from 'fs/promises'
 import glob from 'globby'
 import path from 'path'
+import { pipeline } from 'stream/promises'
 import { $, ProcessOutput, sleep } from 'zx'
 
 const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
+const e2eRoot = path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')
 
 const args = arg(
   process.argv.slice(2),
@@ -52,7 +55,8 @@ async function main() {
 
   console.log('🎠 Preparing e2e tests')
 
-  const allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
+  let allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
+  allPackageFolderNames = allPackageFolderNames.filter((p) => !p.includes('DS_Store'))
 
   if (args['--skipPack'] === false) {
     // this process will need to modify some package.json, we save copies
@@ -93,17 +97,37 @@ async function main() {
     ...allPackageFolderNames.map((p) => `/tmp/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
     `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
-    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
-    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,
+    `${e2eRoot}:/e2e`,
+    `${path.join(e2eRoot, '.cache')}:/root/.cache`,
     `${(await $`pnpm store path`.quiet()).stdout.trim()}:/root/.local/share/pnpm/store/v3`,
   ]
-  const dockerVolumeArgs = dockerVolumes.map((v) => `-v ${v}`).join(' ')
+  const dockerVolumeArgs = dockerVolumes.flatMap((v) => ['-v', v])
 
-  await $`docker build -f ${__dirname}/standard.dockerfile -t prisma-e2e-test-runner .`
+  await $`docker compose -f ${__dirname}/docker-compose.yaml build test-e2e`
 
-  const dockerJobs = e2eTestNames.map((path) => {
-    return async () =>
-      await $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
+  const dockerJobs = e2eTestNames.map((testPath) => {
+    const composeFileArgs = ['-f', `${__dirname}/docker-compose.yaml`]
+    const localComposePath = path.join(e2eRoot, testPath, 'docker-compose.yaml')
+    if (existsSync(localComposePath)) {
+      composeFileArgs.push('-f', localComposePath)
+    }
+
+    const projectName = testPath.toLocaleLowerCase().replace(/[^0-9a-z_-]/g, '-')
+    const networkName = `${projectName}_default`
+    return async () => {
+      const result =
+        await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+
+      await $`docker compose ${composeFileArgs} -p ${projectName} logs > ${path.join(
+        e2eRoot,
+        testPath,
+        'LOGS.docker.txt',
+      )}`
+      await $`docker compose ${composeFileArgs} -p ${projectName} stop`
+      await $`docker compose ${composeFileArgs} -p ${projectName} rm -f`
+      await $`docker network rm -f ${networkName}`
+      return result
+    }
   })
 
   const jobResults: (ProcessOutput & { name: string })[] = []
@@ -142,7 +166,15 @@ async function main() {
   if (args['--verbose'] === true) {
     for (const result of failedJobResults) {
       console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
-      await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
+
+      const logsPath = path.resolve(__dirname, '..', result.name, 'LOGS.txt')
+      const dockerLogsPath = path.resolve(__dirname, '..', result.name, 'LOGS.docker.txt')
+
+      if (await isFile(logsPath)) {
+        await printFile(logsPath)
+      } else if (await isFile(dockerLogsPath)) {
+        await printFile(dockerLogsPath)
+      }
       await sleep(50) // give some time for the logs to be printed (CI issue)
     }
   }
@@ -162,6 +194,22 @@ async function main() {
 async function restoreOriginalState() {
   if (args['--skipPack'] === false) {
     await $`pnpm -r exec cp package.copy.json package.json`
+  }
+}
+
+async function printFile(filePath: string) {
+  await pipeline(createReadStream(filePath), process.stdout)
+}
+
+async function isFile(filePath: string) {
+  try {
+    const stat = await fs.stat(filePath)
+    return stat.isFile()
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return false
+    }
+    throw e
   }
 }
 

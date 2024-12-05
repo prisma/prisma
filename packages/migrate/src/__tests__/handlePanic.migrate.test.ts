@@ -1,4 +1,4 @@
-import { handlePanic, isCi, RustPanic } from '@prisma/internals'
+import { handlePanic, isCi, RustPanic, toSchemasContainer } from '@prisma/internals'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
@@ -33,7 +33,7 @@ const oldProcessCwd = process.cwd
 async function writeFiles(
   root: string,
   files: {
-    [name: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
+    [name: string]: any
   },
 ): Promise<string> {
   for (const name in files) {
@@ -79,7 +79,6 @@ describe('handlePanic migrate', () => {
         datasource my_db {
           provider = "sqlite"
           url = "file:./db/db_file.db"
-          default = true
         }
 
         model User {
@@ -100,7 +99,7 @@ describe('handlePanic migrate', () => {
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
-        prismaSchema: migrate.getPrismaSchema(),
+        schema: toSchemasContainer((await migrate.getPrismaSchema()).schemas),
       })
     } catch (err) {
       // No to send error report
@@ -124,13 +123,13 @@ describe('handlePanic migrate', () => {
     // We use prompts.inject() for testing in our CI
     if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
       expect(error).toMatchInlineSnapshot(`
-        Error in Schema engine.
+        "Error in Schema engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
-
+        "
       `)
     } else {
       const output = captureStdout.getCapturedText()
-      expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(``)
+      expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`""`)
     }
     captureStdout.stopCapture()
   })
@@ -143,7 +142,6 @@ describe('handlePanic migrate', () => {
         datasource my_db {
           provider = "sqlite"
           url = "file:./db/db_file.db"
-          default = true
         }
 
         model User {
@@ -161,7 +159,7 @@ describe('handlePanic migrate', () => {
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
-        prismaSchema: migrate.getPrismaSchema(),
+        schema: toSchemasContainer((await migrate.getPrismaSchema()).schemas),
       })
     } catch (e) {
       const error = e as RustPanic

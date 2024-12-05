@@ -1,9 +1,8 @@
 import { defineMatrix } from '../_utils/defineMatrix'
-import { allProviders } from '../_utils/providers'
-import { RelationLoadStrategy } from './_common'
+import { providersSupportingRelationJoins, RelationLoadStrategy } from './_common'
 
 export default defineMatrix(() => [
-  allProviders,
+  providersSupportingRelationJoins.map((provider) => ({ provider })),
   [
     {
       strategy: 'query' as RelationLoadStrategy,

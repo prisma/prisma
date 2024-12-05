@@ -9,6 +9,7 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
+  generator,
   deno,
 }: TSClientOptions): string => `${deno ? 'const exports = {}' : ''}
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -21,7 +22,6 @@ import {
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
-  NotFoundError,
   getPrismaClient,
   sqltag,
   empty,
@@ -34,7 +34,8 @@ import {
   Extensions,
   defineDmmfProperty,
   Public,
-  detectRuntime,
+  getRuntime,
+  skip
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
@@ -43,7 +44,8 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
-  detectRuntime,
+  getRuntime,
+  skip
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
@@ -53,12 +55,12 @@ const {
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
-  NotFoundError,
   getPrismaClient,
   sqltag,
   empty,
   join,
   raw,
+  skip,
   Decimal,
   Debug,
   objectEnumValues,
@@ -67,7 +69,7 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
-  detectRuntime,
+  getRuntime
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
@@ -91,7 +93,6 @@ Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser('PrismaClientUnkn
 Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser('PrismaClientRustPanicError', browser)}
 Prisma.PrismaClientInitializationError = ${notSupportOnBrowser('PrismaClientInitializationError', browser)}
 Prisma.PrismaClientValidationError = ${notSupportOnBrowser('PrismaClientValidationError', browser)}
-Prisma.NotFoundError = ${notSupportOnBrowser('NotFoundError', browser)}
 Prisma.Decimal = Decimal
 
 /**
@@ -121,18 +122,28 @@ Prisma.NullTypes = {
   JsonNull: objectEnumValues.classes.JsonNull,
   AnyNull: objectEnumValues.classes.AnyNull
 }
+
+${buildPrismaSkipJs(generator.previewFeatures)}
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
-  if (browser)
+  if (browser) {
     return `() => {
-  throw new Error(\`${fnc} is unable to be run \${runtimeDescription}.
+  const runtimeName = getRuntime().prettyName;
+  throw new Error(\`${fnc} is unable to run in this browser environment, or has been bundled for the browser (running in \${runtimeName}).
 In case this error is unexpected for you, please report it in https://pris.ly/prisma-prisma-bug-report\`,
 )}`
+  }
   return fnc
 }
 
-export const commonCodeTS = ({ runtimeBase, runtimeNameTs, clientVersion, engineVersion }: TSClientOptions) => ({
+export const commonCodeTS = ({
+  runtimeBase,
+  runtimeNameTs,
+  clientVersion,
+  engineVersion,
+  generator,
+}: TSClientOptions) => ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
@@ -159,7 +170,6 @@ export import PrismaClientUnknownRequestError = runtime.PrismaClientUnknownReque
 export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
 export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
 export import PrismaClientValidationError = runtime.PrismaClientValidationError
-export import NotFoundError = runtime.NotFoundError
 
 /**
  * Re-export of sql-template-tag
@@ -169,6 +179,8 @@ export import empty = runtime.empty
 export import join = runtime.join
 export import raw = runtime.raw
 export import Sql = runtime.Sql
+
+${buildPrismaSkipTs(generator.previewFeatures)}
 
 /**
  * Decimal.js
@@ -209,51 +221,13 @@ export const prismaVersion: PrismaVersion
  * Utility Types
  */
 
-/**
- * From https://github.com/sindresorhus/type-fest/
- * Matches a JSON object.
- * This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. 
- */
-export type JsonObject = {[Key in string]?: JsonValue}
 
-/**
- * From https://github.com/sindresorhus/type-fest/
- * Matches a JSON array.
- */
-export interface JsonArray extends Array<JsonValue> {}
-
-/**
- * From https://github.com/sindresorhus/type-fest/
- * Matches any valid JSON value.
- */
-export type JsonValue = string | number | boolean | JsonObject | JsonArray | null
-
-/**
- * Matches a JSON object.
- * Unlike \`JsonObject\`, this type allows undefined and read-only properties.
- */
-export type InputJsonObject = {readonly [Key in string]?: InputJsonValue | null}
-
-/**
- * Matches a JSON array.
- * Unlike \`JsonArray\`, readonly arrays are assignable to this type.
- */
-export interface InputJsonArray extends ReadonlyArray<InputJsonValue | null> {}
-
-/**
- * Matches any valid value that can be used as an input for operations like
- * create and update as the value of a JSON field. Unlike \`JsonValue\`, this
- * type allows read-only arrays and read-only object properties and disallows
- * \`null\` at the top level.
- *
- * \`null\` cannot be used as the value of a JSON field because its meaning
- * would be ambiguous. Use \`Prisma.JsonNull\` to store the JSON null value or
- * \`Prisma.DbNull\` to clear the JSON value and set the field to the database
- * NULL value instead.
- *
- * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-by-null-values
- */
-export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray | { toJSON(): unknown }
+export import JsonObject = runtime.JsonObject
+export import JsonArray = runtime.JsonArray
+export import JsonValue = runtime.JsonValue
+export import InputJsonObject = runtime.InputJsonObject
+export import InputJsonArray = runtime.InputJsonArray
+export import InputJsonValue = runtime.InputJsonValue
 
 /**
  * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
@@ -292,6 +266,11 @@ export const AnyNull: NullTypes.AnyNull
 type SelectAndInclude = {
   select: any
   include: any
+}
+
+type SelectAndOmit = {
+  select: any
+  omit: any
 }
 
 /**
@@ -342,7 +321,9 @@ export type SelectSubset<T, U> = {
 } &
   (T extends SelectAndInclude
     ? 'Please either choose \`select\` or \`include\`.'
-    : {})
+    : T extends SelectAndOmit
+      ? 'Please either choose \`select\` or \`omit\`.'
+      : {})
 
 /**
  * Subset + Intersection
@@ -593,4 +574,27 @@ class ${name} {
   private constructor()
 }`
   return indent(source, TAB_SIZE)
+}
+
+function buildPrismaSkipTs(previewFeatures: string[]) {
+  if (previewFeatures.includes('strictUndefinedChecks')) {
+    return `
+/**
+ * Prisma.skip
+ */
+export import skip = runtime.skip
+`
+  }
+
+  return ''
+}
+
+function buildPrismaSkipJs(previewFeatures: string[]) {
+  if (previewFeatures.includes('strictUndefinedChecks')) {
+    return `
+Prisma.skip = skip
+`
+  }
+
+  return ''
 }

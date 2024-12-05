@@ -28,12 +28,16 @@ export function idForProvider(provider: Providers, options: Options = { includeD
   return strs.join(' ')
 }
 
-export function foreignKeyForProvider(provider: Providers): string {
-  const strs = ['String']
+export interface ForeignKeyOptions {
+  optional?: boolean
+}
+
+export function foreignKeyForProvider(provider: Providers, { optional = false }: ForeignKeyOptions = {}): string {
+  const type = optional ? 'String?' : 'String'
 
   if (provider === Providers.MONGODB) {
-    strs.push('@db.ObjectId')
+    return `${type} @db.ObjectId`
   }
 
-  return strs.join(' ')
+  return type
 }

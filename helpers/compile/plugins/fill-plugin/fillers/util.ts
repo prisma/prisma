@@ -40,6 +40,8 @@ export function inspect(obj: any): string {
   })
 }
 
+export const format = require('format-util')!
+
 /**
  * A poor man's shim for the "util" module
  */
@@ -47,6 +49,7 @@ const util = {
   promisify,
   deprecate,
   inspect,
+  format,
 }
 
 export default util

@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
+import { type GetSchemaResult, getSchemaWithPath, mergeSchemas } from '@prisma/internals'
 import {
   ClientEngineType,
   extractPreviewFeatures,
@@ -41,14 +42,26 @@ export async function generateInFolder({
     throw new Error(`Path ${projectDir} does not exist`)
   }
 
-  const schemaPath = getSchemaPath(projectDir)
-  const datamodel = fs.readFileSync(schemaPath, 'utf-8')
+  let schemaPathResult: GetSchemaResult | null = null
+  const schemaNotFoundError = new Error(`Could not find any schema.prisma in ${projectDir} or sub directories.`)
+
+  try {
+    schemaPathResult = await getSchemaWithPath(undefined, { cwd: projectDir })
+  } catch (e) {
+    debug('Error in getSchemaPath', e)
+  }
+
+  if (!schemaPathResult) {
+    throw schemaNotFoundError
+  }
+
+  const { schemas, schemaPath } = schemaPathResult
 
   if (overrideEngineType) {
     process.env.PRISMA_CLIENT_ENGINE_TYPE = overrideEngineType
   }
 
-  const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
   const previewFeatures = extractPreviewFeatures(config)
   const clientEngineType = getClientEngineType(config.generators[0])
 
@@ -94,13 +107,15 @@ export async function generateInFolder({
 
   // TODO: use engine.getDmmf()
   const dmmf = await getDMMF({
-    datamodel,
+    datamodel: schemas,
     previewFeatures,
   })
 
+  const schema = mergeSchemas({ schemas })
+
   await generateClient({
     binaryPaths,
-    datamodel,
+    datamodel: schema,
     dmmf,
     ...config,
     outputDir,
@@ -117,14 +132,4 @@ export async function generateInFolder({
   debug(`Done generating client in ${time}`)
 
   return time
-}
-
-function getSchemaPath(projectDir: string): string {
-  if (fs.existsSync(path.join(projectDir, 'schema.prisma'))) {
-    return path.join(projectDir, 'schema.prisma')
-  }
-  if (fs.existsSync(path.join(projectDir, 'prisma/schema.prisma'))) {
-    return path.join(projectDir, 'prisma/schema.prisma')
-  }
-  throw new Error(`Could not find any schema.prisma in ${projectDir} or sub directories.`)
 }

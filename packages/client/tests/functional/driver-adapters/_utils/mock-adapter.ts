@@ -6,7 +6,7 @@ import { getDriverAdaptersProvider } from './provider'
 export const mockAdapterErrors = {
   queryRaw: new Error('Not implemented: queryRaw'),
   executeRaw: new Error('Not implemented: executeRaw'),
-  startTransaction: new Error('Not implemented: startTransaction'),
+  transactionContext: new Error('Not implemented: transactionContext'),
 }
 
 /**
@@ -15,8 +15,9 @@ export const mockAdapterErrors = {
 export function mockAdapter(provider: Provider): DriverAdapter {
   return {
     provider: getDriverAdaptersProvider(provider),
+    adapterName: getDriverAdaptersProvider(provider),
     queryRaw: () => Promise.reject(mockAdapterErrors.queryRaw),
     executeRaw: () => Promise.reject(mockAdapterErrors.executeRaw),
-    startTransaction: () => Promise.reject(mockAdapterErrors.startTransaction),
+    transactionContext: () => Promise.reject(mockAdapterErrors.transactionContext),
   }
 }

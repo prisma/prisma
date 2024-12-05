@@ -112,10 +112,10 @@ test('margin symbol', () => {
     .writeLine('}')
 
   expect(writer.toString()).toMatchInlineSnapshot(`
-    {
+    "{
     + foo
       bar
     }
-
+    "
   `)
 })

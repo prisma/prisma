@@ -10,7 +10,7 @@ export function handleUnexecutableSteps(unexecutableSteps: MigrationFeedback[], 
     for (const item of unexecutableSteps) {
       messages.push(`${`  • Step ${item.stepIndex} ${item.message}`}`)
     }
-    console.info() // empty line
+    process.stdout.write('\n') // empty line
 
     // If create only, allow to continue
     if (createOnly) {

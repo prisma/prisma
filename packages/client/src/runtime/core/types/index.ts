@@ -10,5 +10,8 @@ export { Extensions }
 export { Utils }
 export { Public }
 
+export { isSkip, Skip, skip } from './exported/Skip'
+export { type UnknownTypedSql } from './exported/TypedSql'
+
 /** General types */
 export { type OperationPayload as Payload }

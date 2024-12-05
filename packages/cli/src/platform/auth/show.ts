@@ -1,32 +1,61 @@
-import { arg, Command, formatTable, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
-import { getPlatformTokenOrThrow, platformParameters, platformRequestOrThrow } from '../../utils/platform'
+import { argOrThrow, getOptionalParameter } from '../_lib/cli/parameters'
+import { messages } from '../_lib/messages'
+import { requestOrThrow } from '../_lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Show implements Command {
-  public static new(): Show {
+  public static new() {
     return new Show()
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
+    const args = argOrThrow(argv, {
       ...platformParameters.global,
+      '--sensitive': Boolean,
     })
-    if (isError(args)) return args
-    const token = await getPlatformTokenOrThrow(args)
-    const payload = await platformRequestOrThrow<{
-      user: { id: string; handle: string; email: string; displayName: string }
+    const token = await getTokenOrThrow(args)
+    const { me } = await requestOrThrow<{
+      me: {
+        user: {
+          __typename: string
+          id: string
+          email: string
+          displayName: string
+        }
+      }
     }>({
       token,
-      path: `/settings/account`,
-      route: '_app._user.settings.account',
+      body: {
+        query: /* graphql */ `
+          query {
+            me {
+              __typename
+              user {
+                __typename
+                id
+                email
+                displayName
+              }
+            }
+          }
+        `,
+      },
     })
-    console.info(`Currently authenticated as ${green(payload.user.email)}\n`)
-    return formatTable([
-      ['id', payload.user.id],
-      ['handle', payload.user.handle],
-      ['email', payload.user.email],
-      ['displayName', payload.user.displayName],
+
+    const data = {
+      ...me.user,
+      token: getOptionalParameter(args, ['--sensitive']) ? token : null,
+    }
+
+    return messages.sections([
+      messages.info(`Currently authenticated as ${green(me.user.email)}`),
+      messages.resource(data, {
+        email: true,
+        token: true,
+      }),
     ])
   }
 }

@@ -5,7 +5,7 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
-import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { fillPlugin, smallBuffer, smallDecimal } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
@@ -46,9 +46,12 @@ function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): Bui
     minify: true,
     plugins: [
       fillPlugin({
-        Function: {
-          define: 'fn',
-          globals: functionPolyfillPath,
+        defaultFillers: false,
+        fillerOverrides: {
+          Function: {
+            define: 'fn',
+            globals: functionPolyfillPath,
+          },
         },
       }),
     ],
@@ -66,32 +69,36 @@ const browserBuildConfig: BuildOptions = {
   sourcemap: 'linked',
 }
 
-const commonEdgeWasmRuntimeBuildConfig = {
-  target: 'ES2018',
+/**
+ * Overrides meant for edge, wasm and react-native builds
+ * If at some point they diverge feel free to split them
+ */
+const commonRuntimesOverrides = {
+  // we remove eval and Function for vercel
+  eval: { define: 'undefined' },
+  Function: {
+    define: 'fn',
+    globals: functionPolyfillPath,
+  },
+  // we shim WeakRef, it does not exist on CF
+  WeakRef: {
+    globals: weakrefPolyfillPath,
+  },
+  // these can not be exported anymore
+  './warnEnvConflicts': { contents: '' },
+}
+
+const runtimesCommonBuildConfig = {
+  target: 'ES2021',
   entryPoints: ['src/runtime/index.ts'],
   bundle: true,
   minify: true,
   sourcemap: 'linked',
   emitTypes: false,
-  plugins: [
-    fillPlugin({
-      // we remove eval and Function for vercel
-      eval: { define: 'undefined' },
-      Function: {
-        define: 'fn',
-        globals: functionPolyfillPath,
-      },
-      // we shim WeakRef, it does not exist on CF
-      WeakRef: {
-        globals: weakrefPolyfillPath,
-      },
-      // these can not be exported anymore
-      './warnEnvConflicts': { contents: '' },
-    }),
-  ],
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
+    'globalThis.DEBUG_COLORS': 'false',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
@@ -101,34 +108,61 @@ const commonEdgeWasmRuntimeBuildConfig = {
 
 // we define the config for edge
 const edgeRuntimeBuildConfig: BuildOptions = {
-  ...commonEdgeWasmRuntimeBuildConfig,
+  ...runtimesCommonBuildConfig,
   name: 'edge',
   outfile: 'runtime/edge',
   define: {
-    ...commonEdgeWasmRuntimeBuildConfig.define,
+    ...runtimesCommonBuildConfig.define,
     // tree shake the Library and Binary engines out
     TARGET_BUILD_TYPE: '"edge"',
   },
+  plugins: [
+    fillPlugin({
+      fillerOverrides: commonRuntimesOverrides,
+    }),
+  ],
 }
 
 // we define the config for wasm
 const wasmRuntimeBuildConfig: BuildOptions = {
-  ...commonEdgeWasmRuntimeBuildConfig,
+  ...runtimesCommonBuildConfig,
   target: 'ES2022',
   name: 'wasm',
   outfile: 'runtime/wasm',
   define: {
-    ...commonEdgeWasmRuntimeBuildConfig.define,
+    ...runtimesCommonBuildConfig.define,
     TARGET_BUILD_TYPE: '"wasm"',
   },
   plugins: [
-    ...commonEdgeWasmRuntimeBuildConfig.plugins,
+    fillPlugin({
+      // not yet enabled in edge build while driverAdapters is not GA
+      fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
+    }),
     copyFilePlugin(
       DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
         from: path.join(wasmEngineDir, provider, 'query_engine_bg.wasm'),
         to: path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
       })),
     ),
+  ],
+}
+
+// React Native is similar to edge in the sense it doesn't have the node API/libraries
+// and also not all the browser APIs, therefore it needs to polyfill the same things as edge
+const reactNativeBuildConfig: BuildOptions = {
+  ...runtimesCommonBuildConfig,
+  name: 'react-native',
+  target: 'ES2022',
+  outfile: 'runtime/react-native',
+  emitTypes: true,
+  define: {
+    NODE_CLIENT: 'false',
+    TARGET_BUILD_TYPE: '"react-native"',
+  },
+  plugins: [
+    fillPlugin({
+      fillerOverrides: { ...commonRuntimesOverrides },
+    }),
   ],
 }
 
@@ -158,6 +192,15 @@ const defaultIndexConfig: BuildOptions = {
   emitTypes: false,
 }
 
+const accelerateContractBuildConfig: BuildOptions = {
+  name: 'accelerate-contract',
+  entryPoints: ['src/runtime/core/engines/accelerate/AccelerateEngine.ts'],
+  outfile: '../accelerate-contract/dist/index',
+  format: 'cjs',
+  bundle: true,
+  emitTypes: true,
+}
+
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -174,6 +217,8 @@ void build([
   wasmBindgenRuntimeConfig('mysql'),
   wasmBindgenRuntimeConfig('sqlite'),
   defaultIndexConfig,
+  reactNativeBuildConfig,
+  accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
 })

@@ -1,53 +1,64 @@
-import { arg, Command, isError } from '@prisma/internals'
+import { Command } from '@prisma/internals'
 
-import {
-  getOptionalParameter,
-  getPlatformTokenOrThrow,
-  getRequiredParameter,
-  platformParameters,
-  platformRequestOrThrow,
-  successMessage,
-} from '../../utils/platform'
-
-type Payload =
-  | { data: { id: string; createdAt: string; displayName: string }; error: null }
-  | {
-      data: null
-      error: {
-        name: string
-        message: string
-      }
-    }
+import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
+import { messages } from '../_lib/messages'
+import { requestOrThrow } from '../_lib/pdp'
+import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Create implements Command {
-  public static new(): Create {
+  public static new() {
     return new Create()
   }
 
   public async parse(argv: string[]) {
-    const args = arg(argv, {
+    const args = argOrThrow(argv, {
       ...platformParameters.workspace,
       '--name': String,
       '-n': '--name',
     })
-    if (isError(args)) return args
-    const token = await getPlatformTokenOrThrow(args)
-
-    const workspace = getRequiredParameter(args, ['--workspace', '-w'])
-    if (isError(workspace)) return workspace
-
+    const token = await getTokenOrThrow(args)
+    const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
-
-    const payload = await platformRequestOrThrow<Payload>({
+    const { projectCreate } = await requestOrThrow<
+      {
+        projectCreate: {
+          __typename: string
+          id: string
+          createdAt: string
+          displayName: string
+        }
+      },
+      {
+        workspaceId: string
+        displayName?: string
+      }
+    >({
       token,
-      path: `/${workspace}/overview/create`,
-      route: '_app.$organizationId.overview.create',
-      payload: {
-        displayName,
+      body: {
+        query: /* graphql */ `
+          mutation ($input: MutationProjectCreateInput!) {
+            projectCreate(input: $input) {
+              __typename
+              ...on Error {
+                message
+              }
+              ...on Project {
+                id
+                createdAt
+                displayName
+              }
+            }
+          }
+        `,
+        variables: {
+          input: {
+            workspaceId,
+            displayName,
+          },
+        },
       },
     })
-    if (payload.error) throw new Error(`${payload.error.name}: ${payload.error.message}`)
 
-    return successMessage(`Project ${payload.data.displayName} - ${payload.data.id} created.`)
+    return messages.resourceCreated(projectCreate)
   }
 }

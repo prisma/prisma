@@ -4,6 +4,7 @@ const writeMap: Record<JsonQueryAction, boolean> = {
   aggregate: false,
   aggregateRaw: false,
   createMany: true,
+  createManyAndReturn: true,
   createOne: true,
   deleteMany: true,
   deleteOne: true,
