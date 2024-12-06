@@ -1,5 +1,3 @@
-import { expectTypeOf } from 'expect-type'
-
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -22,6 +20,7 @@ testMatrix.setupTestSuite(() => {
       omit: { id: true },
     })
 
-    expectTypeOf(example?.model_b[0]).not.toHaveProperty('private_field')
+    // @ts-expect-error
+    example?.model_b[0].private_field
   })
 })

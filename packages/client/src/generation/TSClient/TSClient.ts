@@ -299,7 +299,7 @@ ${this.dmmf.inputObjectTypes.prisma
       Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
       ${baseName}
     >
-  | OptionalFlat<${baseName} & Without<keyof ${baseName}, 'path'>>`)
+  | OptionalFlat<Omit<${baseName}, 'path'>>`)
       acc.push(new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS())
     } else {
       acc.push(new InputType(inputType, context).toTS())

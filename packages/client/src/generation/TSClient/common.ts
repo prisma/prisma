@@ -307,16 +307,20 @@ export type TrueKeys<T> = TruthyKeys<Prisma__Pick<T, RequiredKeys<T>>>
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
  */
-export type Subset<T, U> = {
-  [key in keyof T]: key extends keyof U ? T[key] : never;
-};
+export type Subset<T, U> =
+  U extends {}
+    ? T extends {}
+      ? { [key in keyof T]: key extends keyof U ? Subset<Required<T[key]>, Required<U[key]>> : never }
+      : T & U
+    : T
 
 /**
  * SelectSubset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection.
  * Additionally, it validates, if both select and include are present. If the case, it errors.
  */
-export type SelectSubset<T, U> = T & Subset<T, U> &
+export type SelectSubset<T, U> =
+  T & Subset<Required<T>, Required<U>> &
   (T extends SelectAndInclude
     ? 'Please either choose \`select\` or \`include\`.'
     : T extends SelectAndOmit

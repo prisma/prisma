@@ -53,6 +53,7 @@ testMatrix.setupTestSuite(
             dateTime: date,
             // @ts-test-if: provider !== Providers.SQLITE
             date: date,
+            // @ts-test-if: provider !== Providers.SQLITE
             time: date,
           },
         })
