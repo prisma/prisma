@@ -885,16 +885,20 @@ export namespace Prisma {
    * Subset
    * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
    */
-  export type Subset<T, U> = {
-    [key in keyof T]: key extends keyof U ? T[key] : never;
-  };
+  export type Subset<T, U> =
+    U extends {}
+      ? T extends {}
+        ? { [key in keyof T]: key extends keyof U ? Subset<Required<T[key]>, Required<U[key]>> : never }
+        : T & U
+      : T
 
   /**
    * SelectSubset
    * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection.
    * Additionally, it validates, if both select and include are present. If the case, it errors.
    */
-  export type SelectSubset<T, U> = T & Subset<T, U> &
+  export type SelectSubset<T, U> =
+    T & Subset<Required<T>, Required<U>> &
     (T extends SelectAndInclude
       ? 'Please either choose \`select\` or \`include\`.'
       : T extends SelectAndOmit
@@ -19508,7 +19512,7 @@ export namespace Prisma {
         Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
         Required<JsonFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Required<JsonFilterBase<$PrismaModel>> & Without<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
 
   export type JsonFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
@@ -19519,7 +19523,7 @@ export namespace Prisma {
         Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
         Required<JsonNullableFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Required<JsonNullableFilterBase<$PrismaModel>> & Without<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
 
   export type JsonNullableFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
@@ -19697,7 +19701,7 @@ export namespace Prisma {
         Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
         Required<JsonWithAggregatesFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Required<JsonWithAggregatesFilterBase<$PrismaModel>> & Without<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
 
   export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
@@ -19711,7 +19715,7 @@ export namespace Prisma {
         Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
         Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>> & Without<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
 
   export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
@@ -21114,7 +21118,7 @@ export namespace Prisma {
         Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
         Required<NestedJsonFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Required<NestedJsonFilterBase<$PrismaModel>> & Without<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
 
   export type NestedJsonFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
@@ -21125,7 +21129,7 @@ export namespace Prisma {
         Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
         Required<NestedJsonNullableFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Required<NestedJsonNullableFilterBase<$PrismaModel>> & Without<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
 
   export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
