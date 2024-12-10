@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "dbpush": "prisma db push --skip-generate",
-    "generate": "PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
+    "generate": "cross-env PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
     "start": "npm run generate && npm run test",
     "test": "ts-node index.ts",
     "debug": "node -r ts-node/register --enable-source-maps index.ts"
@@ -14,7 +14,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "../../packages/client"
+    "@prisma/client": "../../packages/client",
+    "cross-env": "^7.0.3"
   },
   "devDependencies": {
     "@types/node": "18.18.9",
