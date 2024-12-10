@@ -252,8 +252,8 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
               // first part is in seconds, second is in nanoseconds, we need to convert both to milliseconds
               timestamp: dateFromEngineTimestamp(log.timestamp),
               duration: Number(log.attributes.duration_ms),
-              params: log.attributes.params,
-              target: log.attributes.target,
+              params: log.attributes.params ?? '',
+              target: log.attributes.target ?? '',
             })
           }
         }

@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, EngineSpanEvent } from '@prisma/internals'
+import { assertAlways, Trace } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -49,9 +49,11 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 
+const MAX_REQUEST_ID = 0xffffffffffffffffn
+
 export class LibraryEngine implements Engine<undefined> {
   name = 'LibraryEngine' as const
-  engine?: QueryEngineInstance
+  engine?: ReturnType<typeof this.wrapEngine>
   libraryInstantiationPromise?: Promise<void>
   libraryStartingPromise?: Promise<void>
   libraryStoppingPromise?: Promise<void>
@@ -70,6 +72,7 @@ export class LibraryEngine implements Engine<undefined> {
   logLevel: QueryEngineLogLevel
   lastQuery?: string
   loggerRustPanic?: any
+  nextRequestId: bigint = 1n
 
   versionInfo?: {
     commit: string
@@ -111,6 +114,54 @@ export class LibraryEngine implements Engine<undefined> {
     }
 
     this.libraryInstantiationPromise = this.instantiateLibrary()
+  }
+
+  private incrementRequestId(): bigint {
+    const requestId = this.nextRequestId++
+    if (this.nextRequestId > MAX_REQUEST_ID) {
+      this.nextRequestId = 1n
+    }
+    return requestId
+  }
+
+  private nextRequestIdString(): string {
+    return this.incrementRequestId().toString()
+  }
+
+  private wrapEngine(engine: QueryEngineInstance) {
+    return {
+      applyPendingMigrations: engine.applyPendingMigrations.bind(engine),
+      commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
+      connect: this.withRequestId(engine.connect.bind(engine)),
+      disconnect: this.withRequestId(engine.disconnect.bind(engine)),
+      dmmf: engine.dmmf.bind(engine),
+      metrics: engine.metrics.bind(engine),
+      query: this.withRequestId(engine.query.bind(engine)),
+      rollbackTransaction: this.withRequestId(engine.rollbackTransaction.bind(engine)),
+      sdlSchema: engine.sdlSchema.bind(engine),
+      startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
+      trace: engine.trace.bind(engine),
+    }
+  }
+
+  private withRequestId<T extends unknown[], U>(
+    fn: (...args: [...T, string]) => Promise<U>,
+  ): (...args: T) => Promise<U> {
+    return async (...args) => {
+      const requestId = this.nextRequestIdString()
+
+      try {
+        return await fn(...args, requestId)
+      } finally {
+        if (this.config.tracingHelper.isEnabled()) {
+          const traceJson = await this.engine?.trace(requestId)
+          if (traceJson) {
+            const trace = JSON.parse(traceJson) as Trace
+            this.config.tracingHelper.dispatchEngineSpans(trace.spans)
+          }
+        }
+      }
+    }
   }
 
   async applyPendingMigrations(): Promise<void> {
@@ -278,12 +329,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   private logger(log: string) {
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
     if (!event) return
-
-    if ('span' in event) {
-      void this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
-
-      return
-    }
 
     event.level = event?.level.toLowerCase() ?? 'unknown'
     if (isQueryEvent(event)) {

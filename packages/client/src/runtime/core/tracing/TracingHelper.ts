@@ -1,5 +1,5 @@
 import type { Context } from '@opentelemetry/api'
-import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import { EngineSpan, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 export const disabledTracingHelper: TracingHelper = {
   isEnabled() {
@@ -12,7 +12,7 @@ export const disabledTracingHelper: TracingHelper = {
     return `00-10-10-00`
   },
 
-  async createEngineSpan() {},
+  dispatchEngineSpans() {},
 
   getActiveContext() {
     return undefined
@@ -36,8 +36,8 @@ class DynamicTracingHelper implements TracingHelper {
     return this.getGlobalTracingHelper().getTraceParent(context)
   }
 
-  createEngineSpan(event: EngineSpanEvent) {
-    return this.getGlobalTracingHelper().createEngineSpan(event)
+  dispatchEngineSpans(spans: EngineSpan[]) {
+    return this.getGlobalTracingHelper().dispatchEngineSpans(spans)
   }
 
   getActiveContext() {
