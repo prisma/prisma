@@ -49,6 +49,8 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 
+const MAX_REQUEST_ID = 0xffffffffffffffffn
+
 export class LibraryEngine implements Engine<undefined> {
   name = 'LibraryEngine' as const
   engine?: QueryEngineInstance
@@ -70,6 +72,7 @@ export class LibraryEngine implements Engine<undefined> {
   logLevel: QueryEngineLogLevel
   lastQuery?: string
   loggerRustPanic?: any
+  nextRequestId: bigint = 1n
 
   versionInfo?: {
     commit: string
@@ -113,6 +116,18 @@ export class LibraryEngine implements Engine<undefined> {
     this.libraryInstantiationPromise = this.instantiateLibrary()
   }
 
+  private incrementRequestId(): bigint {
+    const requestId = this.nextRequestId++
+    if (this.nextRequestId > MAX_REQUEST_ID) {
+      this.nextRequestId = 1n
+    }
+    return requestId
+  }
+
+  private nextRequestIdString(): string {
+    return this.incrementRequestId().toString()
+  }
+
   async applyPendingMigrations(): Promise<void> {
     if (TARGET_BUILD_TYPE === 'react-native') {
       await this.start()
@@ -150,11 +165,11 @@ export class LibraryEngine implements Engine<undefined> {
         isolation_level: arg.isolationLevel,
       })
 
-      result = await this.engine?.startTransaction(jsonOptions, headerStr)
+      result = await this.engine?.startTransaction(jsonOptions, headerStr, this.nextRequestIdString())
     } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, headerStr)
+      result = await this.engine?.commitTransaction(arg.id, headerStr, this.nextRequestIdString())
     } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, headerStr)
+      result = await this.engine?.rollbackTransaction(arg.id, headerStr, this.nextRequestIdString())
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
@@ -359,7 +374,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           traceparent: this.config.tracingHelper.getTraceParent(),
         }
 
-        await this.engine?.connect(JSON.stringify(headers))
+        await this.engine?.connect(JSON.stringify(headers), this.nextRequestIdString())
 
         this.libraryStarted = true
 
@@ -406,7 +421,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         traceparent: this.config.tracingHelper.getTraceParent(),
       }
 
-      await this.engine?.disconnect(JSON.stringify(headers))
+      await this.engine?.disconnect(JSON.stringify(headers), this.nextRequestIdString())
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
@@ -441,7 +456,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     try {
       await this.start()
 
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
+      this.executingQueryPromise = this.engine?.query(
+        queryStr,
+        headerStr,
+        interactiveTransaction?.id,
+        this.nextRequestIdString(),
+      )
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
@@ -490,6 +510,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
+      this.nextRequestIdString(),
     )
 
     const result = await this.executingQueryPromise
