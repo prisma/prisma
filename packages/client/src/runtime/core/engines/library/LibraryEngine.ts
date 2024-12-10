@@ -153,8 +153,6 @@ export class LibraryEngine implements Engine<undefined> {
       try {
         return await fn(...args, requestId)
       } finally {
-        this.incrementRequestId()
-
         if (this.config.tracingHelper.isEnabled()) {
           const traceJson = await this.engine?.trace(requestId)
           if (traceJson) {
