@@ -30,7 +30,7 @@ declare const __PrismaProxy: {
   commitTransaction: (engine: QueryEngineObject, txId: string, headers: string, requestId: string) => string
   rollbackTransaction: (engine: QueryEngineObject, txId: string, headers: string, requestId: string) => string
   disconnect: (engine: QueryEngineObject, headers: string, requestId: string) => void
-  trace: (engine: QueryEngineObject, requestId: string) => Promise<string>
+  trace: (engine: QueryEngineObject, requestId: string) => Promise<string | null>
   pushSchema: (engine: QueryEngineObject, schema: string) => void
   applyPendingMigrations: (engine: QueryEngineObject) => void
 }
@@ -89,7 +89,7 @@ class ReactNativeQueryEngine implements QueryEngineInstance {
     return __PrismaProxy.applyPendingMigrations(this.engineObject)
   }
 
-  trace(requestId: string): Promise<string> {
+  trace(requestId: string): Promise<string | null> {
     return __PrismaProxy.trace(this.engineObject, requestId)
   }
 }
