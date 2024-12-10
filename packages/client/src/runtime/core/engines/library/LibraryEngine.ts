@@ -53,7 +53,7 @@ const MAX_REQUEST_ID = 0xffffffffffffffffn
 
 export class LibraryEngine implements Engine<undefined> {
   name = 'LibraryEngine' as const
-  engine?: QueryEngineInstance
+  engine?: ReturnType<typeof this.wrapEngine>
   libraryInstantiationPromise?: Promise<void>
   libraryStartingPromise?: Promise<void>
   libraryStoppingPromise?: Promise<void>
@@ -128,7 +128,7 @@ export class LibraryEngine implements Engine<undefined> {
     return this.incrementRequestId().toString()
   }
 
-  private wrapEngine(engine: QueryEngineInstance): QueryEngineInstance {
+  private wrapEngine(engine: QueryEngineInstance) {
     return {
       applyPendingMigrations: engine.applyPendingMigrations.bind(engine),
       commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
@@ -203,11 +203,11 @@ export class LibraryEngine implements Engine<undefined> {
         isolation_level: arg.isolationLevel,
       })
 
-      result = await this.engine?.startTransaction(jsonOptions, headerStr, this.nextRequestIdString())
+      result = await this.engine?.startTransaction(jsonOptions, headerStr)
     } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, headerStr, this.nextRequestIdString())
+      result = await this.engine?.commitTransaction(arg.id, headerStr)
     } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, headerStr, this.nextRequestIdString())
+      result = await this.engine?.rollbackTransaction(arg.id, headerStr)
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
@@ -406,7 +406,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           traceparent: this.config.tracingHelper.getTraceParent(),
         }
 
-        await this.engine?.connect(JSON.stringify(headers), this.nextRequestIdString())
+        await this.engine?.connect(JSON.stringify(headers))
 
         this.libraryStarted = true
 
@@ -453,7 +453,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         traceparent: this.config.tracingHelper.getTraceParent(),
       }
 
-      await this.engine?.disconnect(JSON.stringify(headers), this.nextRequestIdString())
+      await this.engine?.disconnect(JSON.stringify(headers))
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
@@ -488,12 +488,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     try {
       await this.start()
 
-      this.executingQueryPromise = this.engine?.query(
-        queryStr,
-        headerStr,
-        interactiveTransaction?.id,
-        this.nextRequestIdString(),
-      )
+      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
@@ -542,7 +537,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
-      this.nextRequestIdString(),
     )
 
     const result = await this.executingQueryPromise
