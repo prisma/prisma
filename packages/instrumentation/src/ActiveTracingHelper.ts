@@ -1,15 +1,14 @@
 import {
+  Attributes,
   Context,
   context as _context,
-  ROOT_CONTEXT,
   Span,
-  SpanContext,
   SpanKind,
+  SpanOptions,
   trace,
-  TraceFlags,
+  Tracer,
 } from '@opentelemetry/api'
-import { Span as SpanConstructor, Tracer } from '@opentelemetry/sdk-trace-base'
-import { EngineSpanEvent, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import { EngineSpan, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 // If true, will publish internal spans as well
 const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
@@ -23,7 +22,7 @@ type Options = {
   traceMiddleware: boolean
 }
 
-function engineSpanKindToOTELSpanKind(engineSpanKind: EngineSpanKind): SpanKind {
+function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind {
   switch (engineSpanKind) {
     case 'client':
       return SpanKind.CLIENT
@@ -51,45 +50,12 @@ export class ActiveTracingHelper implements TracingHelper {
     return nonSampledTraceParent
   }
 
-  createEngineSpan(engineSpanEvent: EngineSpanEvent) {
-    const tracer = trace.getTracer('prisma') as Tracer
-
-    engineSpanEvent.spans.forEach((engineSpan) => {
-      const spanKind = engineSpanKindToOTELSpanKind(engineSpan.kind)
-
-      const spanContext: SpanContext = {
-        traceId: engineSpan.trace_id,
-        spanId: engineSpan.span_id,
-        traceFlags: TraceFlags.SAMPLED,
-      }
-
-      const links = engineSpan.links?.map((link) => {
-        return {
-          context: {
-            traceId: link.trace_id,
-            spanId: link.span_id,
-            traceFlags: TraceFlags.SAMPLED,
-          },
-        }
-      })
-
-      const span = new SpanConstructor(
-        tracer,
-        ROOT_CONTEXT,
-        engineSpan.name,
-        spanContext,
-        spanKind,
-        engineSpan.parent_span_id,
-        links,
-        engineSpan.start_time,
-      )
-
-      if (engineSpan.attributes) {
-        span.setAttributes(engineSpan.attributes)
-      }
-
-      span.end(engineSpan.end_time)
-    })
+  dispatchEngineSpans(spans: EngineSpan[]): void {
+    const tracer = trace.getTracer('prisma')
+    const roots = spans.filter((span) => span.parentId === null)
+    for (const root of roots) {
+      dispatchEngineSpan(tracer, root, spans)
+    }
   }
 
   getActiveContext(): Context | undefined {
@@ -123,6 +89,23 @@ export class ActiveTracingHelper implements TracingHelper {
     // nested calls, which is useful for representing most of the calls
     return tracer.startActiveSpan(name, options, (span) => endSpan(span, callback(span, context)))
   }
+}
+
+function dispatchEngineSpan(tracer: Tracer, engineSpan: EngineSpan, allSpans: EngineSpan[]) {
+  const spanOptions = {
+    attributes: engineSpan.attributes as Attributes,
+    kind: engineSpanKindToOtelSpanKind(engineSpan.kind),
+    startTime: engineSpan.startTime,
+    // TODO: links
+  } satisfies SpanOptions
+
+  tracer.startActiveSpan(engineSpan.name, spanOptions, (span) => {
+    const children = allSpans.filter((s) => s.parentId === engineSpan.id)
+    for (const child of children) {
+      dispatchEngineSpan(tracer, child, allSpans)
+    }
+    span.end(engineSpan.endTime)
+  })
 }
 
 function endSpan<T>(span: Span, result: T): T {
