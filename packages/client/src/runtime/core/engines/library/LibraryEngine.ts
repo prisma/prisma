@@ -50,6 +50,15 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 
 const MAX_REQUEST_ID = 0xffffffffffffffffn
+let NEXT_REQUEST_ID = 1n
+
+function nextRequestId(): bigint {
+  const requestId = NEXT_REQUEST_ID++
+  if (NEXT_REQUEST_ID > MAX_REQUEST_ID) {
+    NEXT_REQUEST_ID = 1n
+  }
+  return requestId
+}
 
 export class LibraryEngine implements Engine<undefined> {
   name = 'LibraryEngine' as const
@@ -72,7 +81,6 @@ export class LibraryEngine implements Engine<undefined> {
   logLevel: QueryEngineLogLevel
   lastQuery?: string
   loggerRustPanic?: any
-  nextRequestId: bigint = 1n
 
   versionInfo?: {
     commit: string
@@ -116,18 +124,6 @@ export class LibraryEngine implements Engine<undefined> {
     this.libraryInstantiationPromise = this.instantiateLibrary()
   }
 
-  private incrementRequestId(): bigint {
-    const requestId = this.nextRequestId++
-    if (this.nextRequestId > MAX_REQUEST_ID) {
-      this.nextRequestId = 1n
-    }
-    return requestId
-  }
-
-  private nextRequestIdString(): string {
-    return this.incrementRequestId().toString()
-  }
-
   private wrapEngine(engine: QueryEngineInstance) {
     return {
       applyPendingMigrations: engine.applyPendingMigrations?.bind(engine),
@@ -148,7 +144,7 @@ export class LibraryEngine implements Engine<undefined> {
     fn: (...args: [...T, string]) => Promise<U>,
   ): (...args: T) => Promise<U> {
     return async (...args) => {
-      const requestId = this.nextRequestIdString()
+      const requestId = nextRequestId().toString()
       try {
         return await fn(...args, requestId)
       } finally {
