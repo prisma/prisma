@@ -139,7 +139,7 @@ export class LibraryEngine implements Engine<undefined> {
       query: this.withRequestId(engine.query?.bind(engine)),
       rollbackTransaction: this.withRequestId(engine.rollbackTransaction?.bind(engine)),
       sdlSchema: engine.sdlSchema?.bind(engine),
-      startTransaction: engine.startTransaction?.bind(engine),
+      startTransaction: this.withRequestId(engine.startTransaction?.bind(engine)),
       trace: engine.trace?.bind(engine),
     }
   }
