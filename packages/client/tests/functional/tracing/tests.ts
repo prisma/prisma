@@ -98,14 +98,18 @@ testMatrix.setupTestSuite(
       inMemorySpanExporter.reset()
     })
 
-    async function waitForSpanTree(expectedTree: Tree): Promise<void> {
+    async function waitForSpanTree(expectedTree: Tree | Tree[]): Promise<void> {
       await waitFor(async () => {
         await processor.forceFlush()
         const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree(rootSpan, spans)
+        const rootSpans = spans.filter((span) => !span.parentSpanId)
+        const trees = rootSpans.map((rootSpan) => buildTree(rootSpan, spans))
 
-        expect(tree).toEqual(expectedTree)
+        if (Array.isArray(expectedTree)) {
+          expect(expectedTree).toEqual(trees)
+        } else {
+          expect(expectedTree).toEqual(trees[0])
+        }
       })
     }
 
@@ -780,13 +784,15 @@ testMatrix.setupTestSuite(
           },
         })
 
-        await waitForSpanTree(
+        await waitForSpanTree([
+          { name: 'prisma:client:detect_platform' },
+          { name: 'prisma:client:load_engine' },
           operation('User', 'findMany', [
             { name: 'prisma:client:connect', children: [engineConnect()] },
             clientSerialize(),
             engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
-        )
+        ])
       })
     })
 

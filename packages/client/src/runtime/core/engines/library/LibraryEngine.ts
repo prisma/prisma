@@ -230,9 +230,11 @@ export class LibraryEngine implements Engine<undefined> {
       assertNodeAPISupported()
     }
 
-    this.binaryTarget = await this.getCurrentBinaryTarget()
+    this.binaryTarget = await this.config.tracingHelper.runInChildSpan('detect_platform', () =>
+      this.getCurrentBinaryTarget(),
+    )
 
-    await this.loadEngine()
+    await this.config.tracingHelper.runInChildSpan('load_engine', () => this.loadEngine())
 
     this.version()
   }
