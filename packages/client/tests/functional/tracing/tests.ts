@@ -523,15 +523,17 @@ testMatrix.setupTestSuite(
             method: '$transaction',
           },
           children: [
-            operation('User', 'create', [clientSerialize()]),
-            operation('User', 'findMany', [clientSerialize()]),
-            engine([
-              engineConnection(),
-              ...expectedDbQueries,
-              ...engineSerializeFinalResponse(),
-              engineSerializeQueryResult(),
-              engineSerializeQueryResult(),
+            operation('User', 'create', [
+              clientSerialize(),
+              engine([
+                engineConnection(),
+                ...expectedDbQueries,
+                ...engineSerializeFinalResponse(),
+                engineSerializeQueryResult(),
+                engineSerializeQueryResult(),
+              ]),
             ]),
+            operation('User', 'findMany', [clientSerialize()]),
           ],
         })
       })
