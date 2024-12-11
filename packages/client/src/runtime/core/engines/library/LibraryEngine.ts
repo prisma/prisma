@@ -130,17 +130,17 @@ export class LibraryEngine implements Engine<undefined> {
 
   private wrapEngine(engine: QueryEngineInstance) {
     return {
-      applyPendingMigrations: engine.applyPendingMigrations.bind(engine),
-      commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
-      connect: this.withRequestId(engine.connect.bind(engine)),
-      disconnect: this.withRequestId(engine.disconnect.bind(engine)),
-      dmmf: engine.dmmf.bind(engine),
-      metrics: engine.metrics.bind(engine),
-      query: this.withRequestId(engine.query.bind(engine)),
-      rollbackTransaction: this.withRequestId(engine.rollbackTransaction.bind(engine)),
-      sdlSchema: engine.sdlSchema.bind(engine),
-      startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
-      trace: engine.trace.bind(engine),
+      applyPendingMigrations: engine.applyPendingMigrations?.bind(engine),
+      commitTransaction: this.withRequestId(engine.commitTransaction?.bind(engine)),
+      connect: this.withRequestId(engine.connect?.bind(engine)),
+      disconnect: this.withRequestId(engine.disconnect?.bind(engine)),
+      dmmf: engine.dmmf?.bind(engine),
+      metrics: engine.metrics?.bind(engine),
+      query: this.withRequestId(engine.query?.bind(engine)),
+      rollbackTransaction: this.withRequestId(engine.rollbackTransaction?.bind(engine)),
+      sdlSchema: engine.sdlSchema?.bind(engine),
+      startTransaction: engine.startTransaction?.bind(engine),
+      trace: engine.trace?.bind(engine),
     }
   }
 
@@ -149,7 +149,6 @@ export class LibraryEngine implements Engine<undefined> {
   ): (...args: T) => Promise<U> {
     return async (...args) => {
       const requestId = this.nextRequestIdString()
-
       try {
         return await fn(...args, requestId)
       } finally {
@@ -299,21 +298,23 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         debug('Using driver adapter: %O', adapter)
       }
 
-      this.engine = new this.QueryEngineConstructor(
-        {
-          datamodel: this.datamodel,
-          env: process.env,
-          logQueries: this.config.logQueries ?? false,
-          ignoreEnvVarErrors: true,
-          datasourceOverrides: this.datasourceOverrides ?? {},
-          logLevel: this.logLevel,
-          configDir: this.config.cwd,
-          engineProtocol: 'json',
-        },
-        (log) => {
-          weakThis.deref()?.logger(log)
-        },
-        adapter,
+      this.engine = this.wrapEngine(
+        new this.QueryEngineConstructor(
+          {
+            datamodel: this.datamodel,
+            env: process.env,
+            logQueries: this.config.logQueries ?? false,
+            ignoreEnvVarErrors: true,
+            datasourceOverrides: this.datasourceOverrides ?? {},
+            logLevel: this.logLevel,
+            configDir: this.config.cwd,
+            engineProtocol: 'json',
+          },
+          (log) => {
+            weakThis.deref()?.logger(log)
+          },
+          adapter,
+        ),
       )
     } catch (_e) {
       const e = _e as Error
