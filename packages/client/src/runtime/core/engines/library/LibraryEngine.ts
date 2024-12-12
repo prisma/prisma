@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, Trace } from '@prisma/internals'
+import { assertAlways, EngineTrace } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -151,7 +151,7 @@ export class LibraryEngine implements Engine<undefined> {
         if (this.config.tracingHelper.isEnabled()) {
           const traceJson = await this.engine?.trace(requestId)
           if (traceJson) {
-            const trace = JSON.parse(traceJson) as Trace
+            const trace = JSON.parse(traceJson) as EngineTrace
             this.config.tracingHelper.dispatchEngineSpans(trace.spans)
           }
         }

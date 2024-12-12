@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import type { ConnectorType } from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { byline, ClientEngineType, TracingHelper } from '@prisma/internals'
+import { byline, ClientEngineType, EngineTrace, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
@@ -227,7 +227,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     const retries = { times: 10 }
     const retryInternalStart = async () => {
       try {
-        await this.internalStart()
+        await this.tracingHelper.runInChildSpan('start_engine', () => this.startAndFetchBootSpans())
       } catch (e) {
         if (e.retryable === true && retries.times > 0) {
           retries.times--
@@ -285,6 +285,16 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
       RUST_LOG: process.env.RUST_LOG ?? 'info',
     }
+  }
+
+  private async startAndFetchBootSpans(): Promise<void> {
+    await this.internalStart()
+
+    const trace = await Connection.onHttpError(this.connection.get<EngineTrace>('/boot_trace'), (result) =>
+      this.httpErrorHandler(result),
+    )
+
+    this.tracingHelper.dispatchEngineSpans(trace.data.spans)
   }
 
   private internalStart(): Promise<void> {

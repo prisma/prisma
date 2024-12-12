@@ -46,7 +46,7 @@ export type EngineTraceEvent = {
   }
 }
 
-export type Trace = {
+export type EngineTrace = {
   spans: EngineSpan[]
   events: EngineTraceEvent[]
 }
