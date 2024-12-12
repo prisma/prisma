@@ -62,7 +62,7 @@ export type QueryEngineRequest = {
   variables: Object
 }
 
-type WithResultExtensions<T> = T & {
+export type WithResultExtensions<T> = T & {
   extensions?: QueryEngineResultExtensions
 }
 

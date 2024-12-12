@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import type { ConnectorType } from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { byline, ClientEngineType, EngineSpanEvent, TracingHelper } from '@prisma/internals'
+import { byline, ClientEngineType, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
@@ -23,7 +23,11 @@ import { resolveEnginePath } from '../common/resolveEnginePath'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { QueryEngineResultData } from '../common/types/QueryEngine'
+import type {
+  QueryEngineResultData,
+  QueryEngineResultExtensions,
+  WithResultExtensions,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
@@ -196,7 +200,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       return this.binaryTargetPromise
     }
 
-    this.binaryTargetPromise = getBinaryTargetForCurrentPlatform()
+    this.binaryTargetPromise = this.tracingHelper.runInChildSpan('detect_platform', () =>
+      getBinaryTargetForCurrentPlatform(),
+    )
 
     return this.binaryTargetPromise
   }
@@ -269,11 +275,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     if (!process.env.NO_COLOR && this.showColors) {
       env.CLICOLOR_FORCE = '1'
-    }
-
-    const traceparent = this.tracingHelper.getTraceParent()
-    if (traceparent) {
-      env.TRACE_CONTEXT = JSON.stringify({ traceparent })
     }
 
     return {
@@ -398,12 +399,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             // they could also be a RustError, which has is_panic
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
-              if (json.span === true) {
-                this.tracingHelper.createEngineSpan(json as EngineSpanEvent)
-
-                return
-              }
-
               const log = convertLog(json)
               // boolean cast needed, because of TS. We return ` is RustLog`, useful in other context, but not here
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
@@ -654,7 +649,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.lastQuery = queryStr
 
     try {
-      const { data } = await this.currentRequestPromise
+      const { data, extensions } = await this.currentRequestPromise
+
+      if (extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(extensions.traces)
+      }
 
       if (data.errors) {
         if (data.errors.length === 1) {
@@ -710,13 +709,23 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     )
 
     return this.currentRequestPromise
-      .then(({ data }) => {
+      .then(({ data, extensions }) => {
+        if (extensions?.traces) {
+          this.tracingHelper.dispatchEngineSpans(extensions.traces)
+        }
+
         const { batchResult } = data
+
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
+            if (result.extensions?.traces) {
+              this.tracingHelper.dispatchEngineSpans(result.extensions.traces)
+            }
+
             if (result.errors && result.errors.length > 0) {
               return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
             }
+
             return {
               data: result,
             }
@@ -776,21 +785,37 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
 
       const result = await Connection.onHttpError(
-        this.connection.post<Tx.InteractiveTransactionInfo<undefined>>('/transaction/start', jsonOptions, headers),
+        this.connection.post<WithResultExtensions<Tx.InteractiveTransactionInfo<undefined>>>(
+          '/transaction/start',
+          jsonOptions,
+          headers,
+        ),
         (result) => this.httpErrorHandler(result),
       )
 
+      if (result.data.extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(result.data.extensions.traces)
+      }
+
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(
-        this.connection.post(`/transaction/${arg.id}/commit`, undefined, headers),
+      const result = await Connection.onHttpError(
+        this.connection.post<WithResultExtensions<{}>>(`/transaction/${arg.id}/commit`, undefined, headers),
         (result) => this.httpErrorHandler(result),
       )
+
+      if (result.data.extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(result.data.extensions.traces)
+      }
     } else if (action === 'rollback') {
-      await Connection.onHttpError(
-        this.connection.post(`/transaction/${arg.id}/rollback`, undefined, headers),
+      const result = await Connection.onHttpError(
+        this.connection.post<WithResultExtensions<{}>>(`/transaction/${arg.id}/rollback`, undefined, headers),
         (result) => this.httpErrorHandler(result),
       )
+
+      if (result.data.extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(result.data.extensions.traces)
+      }
     }
 
     return undefined
@@ -926,6 +951,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    */
   httpErrorHandler<R>(result: Result<R>): never {
     const response = result.data as { [K: string]: unknown }
+
+    const traces = (response.extensions as QueryEngineResultExtensions | undefined)?.traces
+    if (traces) {
+      this.tracingHelper.dispatchEngineSpans(traces)
+    }
+
     throw new PrismaClientKnownRequestError(response.message as string, {
       code: response.error_code as string,
       clientVersion: this.clientVersion as string,

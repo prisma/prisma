@@ -230,9 +230,7 @@ export class LibraryEngine implements Engine<undefined> {
       assertNodeAPISupported()
     }
 
-    this.binaryTarget = await this.config.tracingHelper.runInChildSpan('detect_platform', () =>
-      this.getCurrentBinaryTarget(),
-    )
+    this.binaryTarget = await this.getCurrentBinaryTarget()
 
     await this.config.tracingHelper.runInChildSpan('load_engine', () => this.loadEngine())
 
@@ -242,7 +240,9 @@ export class LibraryEngine implements Engine<undefined> {
   private async getCurrentBinaryTarget() {
     if (TARGET_BUILD_TYPE === 'library') {
       if (this.binaryTarget) return this.binaryTarget
-      const binaryTarget = await getBinaryTargetForCurrentPlatform()
+      const binaryTarget = await this.config.tracingHelper.runInChildSpan('detect_platform', () =>
+        getBinaryTargetForCurrentPlatform(),
+      )
       if (!knownBinaryTargets.includes(binaryTarget)) {
         throw new PrismaClientInitializationError(
           `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(binaryTarget))}. Possible binaryTargets: ${green(
