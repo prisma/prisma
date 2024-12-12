@@ -154,7 +154,7 @@ testMatrix.setupTestSuite(
         }
 
         children.push({
-          name: 'prisma:engine:db_query',
+          name: 'prisma:engine:js:query:sql',
           attributes: {
             'db.query.text': statement,
             'db.system': dbSystemExpectation(),
