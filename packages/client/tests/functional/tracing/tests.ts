@@ -123,7 +123,7 @@ testMatrix.setupTestSuite(
       const span = {
         name: 'prisma:engine:db_query',
         attributes: {
-          'db.statement': statement,
+          'db.query.text': statement,
           'db.system': dbSystemExpectation(),
         },
       }
@@ -137,20 +137,26 @@ testMatrix.setupTestSuite(
         const children = [] as Tree[]
 
         children.push({
-          name: 'js:query:args',
+          name: 'prisma:engine:js:query:args',
+          attributes: {
+            'db.query.params.count': expect.toBeNumber(),
+          },
         })
 
         // result span only exists for returning queries
         if (driverAdapterChildSpans !== AdapterQueryChildSpans.ArgsOnly) {
           children.push({
-            name: 'js:query:result',
+            name: 'prisma:engine:js:query:result',
+            attributes: {
+              'db.response.returned_rows': expect.toBeNumber(),
+            },
           })
         }
 
         children.push({
-          name: 'js:query:sql',
+          name: 'prisma:engine:db_query',
           attributes: {
-            'db.statement': statement,
+            'db.query.text': statement,
             'db.system': dbSystemExpectation(),
           },
         })
