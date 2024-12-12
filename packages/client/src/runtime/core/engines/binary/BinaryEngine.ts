@@ -649,10 +649,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.lastQuery = queryStr
 
     try {
-      const { data, extensions } = await this.currentRequestPromise
+      const { data } = await this.currentRequestPromise
 
-      if (extensions?.traces) {
-        this.tracingHelper.dispatchEngineSpans(extensions.traces)
+      if (data.extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(data.extensions.traces)
       }
 
       if (data.errors) {
@@ -709,9 +709,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     )
 
     return this.currentRequestPromise
-      .then(({ data, extensions }) => {
-        if (extensions?.traces) {
-          this.tracingHelper.dispatchEngineSpans(extensions.traces)
+      .then(({ data }) => {
+        if (data.extensions?.traces) {
+          this.tracingHelper.dispatchEngineSpans(data.extensions.traces)
         }
 
         const { batchResult } = data
