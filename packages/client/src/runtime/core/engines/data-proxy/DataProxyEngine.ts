@@ -236,16 +236,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
             // TODO these are propagated into the response.errors key
             break
           case 'query': {
-            let dbQuery = typeof log.attributes.query === 'string' ? log.attributes.query : ''
-
-            if (!this.tracingHelper.isEnabled()) {
-              // The engine uses tracing to consolidate logs
-              //  - and so we should strip the generated traceparent
-              //  - if tracing is disabled.
-              // Example query: 'SELECT /* traceparent=00-123-0-01 */'
-              const [query] = dbQuery.split('/* traceparent')
-              dbQuery = query
-            }
+            const dbQuery = typeof log.attributes.query === 'string' ? log.attributes.query : ''
 
             this.logEmitter.emit('query', {
               query: dbQuery,
@@ -261,7 +252,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     }
 
     if (extensions?.traces?.length) {
-      this.tracingHelper.createEngineSpan({ span: true, spans: extensions.traces })
+      this.tracingHelper.dispatchEngineSpans(extensions.traces)
     }
   }
 
