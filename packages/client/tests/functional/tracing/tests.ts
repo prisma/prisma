@@ -792,7 +792,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree([
           { name: 'prisma:client:detect_platform' },
-          ...(engineType === 'library' ? [{ name: 'prisma:client:load_engine' }] : []),
+          ...(engineType === 'binary' ? [] : [{ name: 'prisma:client:load_engine' }]),
           operation('User', 'findMany', [
             {
               name: 'prisma:client:connect',
