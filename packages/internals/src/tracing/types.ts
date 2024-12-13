@@ -36,13 +36,14 @@ export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'query'
 
 export type EngineTraceEvent = {
   spanId: EngineSpanId
-  name: string
+  target: string
   level: LogLevel
   timestamp: HrTime
   attributes: Record<string, unknown> & {
+    message?: string
+    query?: string
     duration_ms?: number
     params?: string
-    target: string
   }
 }
 

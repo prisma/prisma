@@ -229,24 +229,36 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
       extensions.logs.forEach((log) => {
         switch (log.level) {
           case 'debug':
-          case 'error':
           case 'trace':
-          case 'warn':
-          case 'info':
-            // TODO these are propagated into the response.errors key
+            debug(log)
             break
-          case 'query': {
-            const dbQuery = typeof log.attributes.query === 'string' ? log.attributes.query : ''
 
+          case 'error':
+          case 'warn':
+          case 'info': {
+            this.logEmitter.emit(log.level, {
+              timestamp: dateFromEngineTimestamp(log.timestamp),
+              message: log.attributes.message ?? '',
+              target: log.target,
+            })
+            break
+          }
+
+          case 'query': {
             this.logEmitter.emit('query', {
-              query: dbQuery,
+              query: log.attributes.query ?? '',
               // first part is in seconds, second is in nanoseconds, we need to convert both to milliseconds
               timestamp: dateFromEngineTimestamp(log.timestamp),
-              duration: Number(log.attributes.duration_ms),
+              duration: log.attributes.duration_ms ?? 0,
               params: log.attributes.params ?? '',
-              target: log.attributes.target ?? '',
+              target: log.target,
             })
+
+            break
           }
+
+          default:
+            log.level satisfies never
         }
       })
     }
