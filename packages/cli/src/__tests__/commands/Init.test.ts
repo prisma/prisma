@@ -19,6 +19,20 @@ test('is schema and env written on disk replace', async () => {
   expect(env).toMatch(defaultEnv())
 })
 
+test('consistently schema EOL', async () => {
+  const CRLF = '\r\n'
+  const LF = '\n'
+  ctx.fixture('init')
+  await ctx.cli('init', '--url', 'file:dev.db')
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  // schema not contains CRLF
+  expect(schema.includes(CRLF)).toBeFalsy()
+  // schema end with LF and not in CRLF
+  expect(schema.endsWith(CRLF)).toBeFalsy()
+  expect(schema.endsWith(LF)).toBeTruthy()
+})
+
 test('works with url param', async () => {
   ctx.fixture('init')
   const result = await ctx.cli('init', '--url', 'file:dev.db')
