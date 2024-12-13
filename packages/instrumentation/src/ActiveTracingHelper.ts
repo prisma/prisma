@@ -52,9 +52,11 @@ export class ActiveTracingHelper implements TracingHelper {
 
   dispatchEngineSpans(spans: EngineSpan[]): void {
     const tracer = trace.getTracer('prisma')
+    const linkIds = new Map<string, string>()
     const roots = spans.filter((span) => span.parentId === null)
+
     for (const root of roots) {
-      dispatchEngineSpan(tracer, root, spans)
+      dispatchEngineSpan(tracer, root, spans, linkIds)
     }
   }
 
@@ -91,19 +93,44 @@ export class ActiveTracingHelper implements TracingHelper {
   }
 }
 
-function dispatchEngineSpan(tracer: Tracer, engineSpan: EngineSpan, allSpans: EngineSpan[]) {
+function dispatchEngineSpan(
+  tracer: Tracer,
+  engineSpan: EngineSpan,
+  allSpans: EngineSpan[],
+  linkIds: Map<string, string>,
+) {
   const spanOptions = {
     attributes: engineSpan.attributes as Attributes,
     kind: engineSpanKindToOtelSpanKind(engineSpan.kind),
     startTime: engineSpan.startTime,
-    // TODO: links
   } satisfies SpanOptions
 
   tracer.startActiveSpan(engineSpan.name, spanOptions, (span) => {
+    linkIds.set(engineSpan.id, span.spanContext().spanId)
+
+    if (engineSpan.links) {
+      span.addLinks(
+        engineSpan.links.flatMap((link) => {
+          const linkedId = linkIds.get(link)
+          if (!linkedId) {
+            return []
+          }
+          return {
+            context: {
+              spanId: linkedId,
+              traceId: span.spanContext().traceId,
+              traceFlags: span.spanContext().traceFlags,
+            },
+          }
+        }),
+      )
+    }
+
     const children = allSpans.filter((s) => s.parentId === engineSpan.id)
     for (const child of children) {
-      dispatchEngineSpan(tracer, child, allSpans)
+      dispatchEngineSpan(tracer, child, allSpans, linkIds)
     }
+
     span.end(engineSpan.endTime)
   })
 }
