@@ -806,6 +806,22 @@ testMatrix.setupTestSuite(
           ]),
         ])
       })
+
+      test('should trace the explicit $connect call', async () => {
+        await _prisma.$connect()
+
+        await waitForSpanTree([
+          { name: 'prisma:client:detect_platform' },
+          ...(engineType === 'binary' ? [] : [{ name: 'prisma:client:load_engine' }]),
+          {
+            name: 'prisma:client:connect',
+            children:
+              engineType == 'binary'
+                ? [{ name: 'prisma:client:start_engine', children: [engineConnect()] }]
+                : [engineConnect()],
+          },
+        ])
+      })
     })
 
     // $disconnect is a no-op with Data Proxy
