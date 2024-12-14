@@ -19,7 +19,7 @@ export type EngineSpanId = string
 
 export type HrTime = [number, number]
 
-export type EngineSpanKind = 'internal' | 'client'
+export type EngineSpanKind = 'client' | 'internal'
 
 export type EngineSpan = {
   id: EngineSpanId
