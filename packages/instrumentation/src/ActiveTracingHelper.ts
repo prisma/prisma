@@ -7,6 +7,7 @@ import {
   SpanOptions,
   trace,
   Tracer,
+  TracerProvider,
 } from '@opentelemetry/api'
 import { EngineSpan, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
@@ -20,6 +21,7 @@ const nonSampledTraceParent = `00-10-10-00`
 
 type Options = {
   traceMiddleware: boolean
+  tracerProvider: TracerProvider
 }
 
 function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind {
@@ -33,9 +35,12 @@ function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind 
 }
 
 export class ActiveTracingHelper implements TracingHelper {
-  private traceMiddleware: boolean
-  constructor({ traceMiddleware }: Options) {
+  traceMiddleware: boolean
+  tracerProvider: TracerProvider
+
+  constructor({ traceMiddleware, tracerProvider }: Options) {
     this.traceMiddleware = traceMiddleware
+    this.tracerProvider = tracerProvider
   }
 
   isEnabled(): boolean {
@@ -51,7 +56,7 @@ export class ActiveTracingHelper implements TracingHelper {
   }
 
   dispatchEngineSpans(spans: EngineSpan[]): void {
-    const tracer = trace.getTracer('prisma')
+    const tracer = this.tracerProvider.getTracer('prisma')
     const linkIds = new Map<string, string>()
     const roots = spans.filter((span) => span.parentId === null)
 
@@ -77,7 +82,7 @@ export class ActiveTracingHelper implements TracingHelper {
       return callback()
     }
 
-    const tracer = trace.getTracer('prisma')
+    const tracer = this.tracerProvider.getTracer('prisma')
     const context = options.context ?? this.getActiveContext()
     const name = `prisma:client:${options.name}`
     // these spans will not be nested by default even in recursive calls
