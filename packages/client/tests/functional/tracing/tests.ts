@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { Attributes, context, trace } from '@opentelemetry/api'
+import { Attributes, context, SpanKind, trace } from '@opentelemetry/api'
 import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
@@ -23,6 +23,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 type Tree = {
   name: string
+  kind?: string | undefined
   attributes?: Attributes
   children?: Tree[]
 }
@@ -47,6 +48,10 @@ function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
 
   if (Object.keys(rootSpan.attributes).length > 0) {
     tree.attributes = rootSpan.attributes
+  }
+
+  if (rootSpan.kind !== SpanKind.INTERNAL) {
+    tree.kind = SpanKind[rootSpan.kind]
   }
 
   return tree
@@ -122,6 +127,7 @@ testMatrix.setupTestSuite(
     function dbQuery(statement: string, driverAdapterChildSpans = AdapterQueryChildSpans.ArgsAndResult): Tree {
       const span = {
         name: 'prisma:engine:db_query',
+        kind: 'CLIENT',
         attributes: {
           'db.query.text': statement,
           'db.system': dbSystemExpectation(),
@@ -138,6 +144,7 @@ testMatrix.setupTestSuite(
 
         children.push({
           name: 'prisma:engine:js:query:args',
+          kind: 'CLIENT',
           attributes: {
             'db.query.params.count': expect.toBeNumber(),
           },
@@ -155,6 +162,7 @@ testMatrix.setupTestSuite(
 
         children.push({
           name: 'prisma:engine:js:query:sql',
+          kind: 'CLIENT',
           attributes: {
             'db.query.text': statement,
             'db.system': dbSystemExpectation(),
