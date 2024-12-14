@@ -278,10 +278,6 @@ testMatrix.setupTestSuite(
       return dbQuery(expect.stringContaining(statement))
     }
 
-    function itxExecuteSingle(children: Tree[]) {
-      return { name: 'prisma:engine:itx_execute_single', children }
-    }
-
     function createDbQueries(tx = true) {
       if (isMongoDb) {
         return [
@@ -580,26 +576,15 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [
               clientSerialize(),
-              engine([
-                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
-                ...engineSerializeFinalResponse(),
-              ]),
+              engine([...createDbQueries(false), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
             ]),
             operation('User', 'findMany', [
               clientSerialize(),
-              engine([
-                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
-                ...engineSerializeFinalResponse(),
-              ]),
+              engine([findManyDbQuery(), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
             ]),
             {
               name: 'prisma:engine:commit_transaction',
-              children: [
-                {
-                  name: 'prisma:engine:itx_commit',
-                  children: isMongoDb ? undefined : [txCommit()],
-                },
-              ],
+              children: isMongoDb ? undefined : [txCommit()],
             },
             {
               name: 'prisma:engine:start_transaction',
@@ -640,26 +625,15 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [
               clientSerialize(),
-              engine([
-                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
-                ...engineSerializeFinalResponse(),
-              ]),
+              engine([...createDbQueries(false), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
             ]),
             operation('User', 'findMany', [
               clientSerialize(),
-              engine([
-                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
-                ...engineSerializeFinalResponse(),
-              ]),
+              engine([findManyDbQuery(), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
             ]),
             {
               name: 'prisma:engine:rollback_transaction',
-              children: [
-                {
-                  name: 'prisma:engine:itx_rollback',
-                  children: isMongoDb ? undefined : [txRollback()],
-                },
-              ],
+              children: isMongoDb ? undefined : [txRollback()],
             },
             {
               name: 'prisma:engine:start_transaction',
