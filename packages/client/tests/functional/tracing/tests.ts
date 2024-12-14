@@ -819,8 +819,6 @@ testMatrix.setupTestSuite(
         await _prisma.$connect()
 
         await waitForSpanTree([
-          { name: 'prisma:client:detect_platform' },
-          ...(engineType === 'binary' ? [] : [{ name: 'prisma:client:load_engine' }]),
           {
             name: 'prisma:client:connect',
             children:
@@ -828,6 +826,8 @@ testMatrix.setupTestSuite(
                 ? [{ name: 'prisma:client:start_engine', children: [engineConnect()] }]
                 : [engineConnect()],
           },
+          { name: 'prisma:client:detect_platform' },
+          ...(engineType === 'binary' ? [] : [{ name: 'prisma:client:load_engine' }]),
         ])
       })
     })
