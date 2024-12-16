@@ -127,16 +127,15 @@ export class LibraryEngine implements Engine<undefined> {
   private wrapEngine(engine: QueryEngineInstance) {
     return {
       applyPendingMigrations: engine.applyPendingMigrations?.bind(engine),
-      commitTransaction: this.withRequestId(engine.commitTransaction?.bind(engine)),
-      connect: this.withRequestId(engine.connect?.bind(engine)),
-      disconnect: this.withRequestId(engine.disconnect?.bind(engine)),
-      dmmf: engine.dmmf?.bind(engine),
+      commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
+      connect: this.withRequestId(engine.connect.bind(engine)),
+      disconnect: this.withRequestId(engine.disconnect.bind(engine)),
       metrics: engine.metrics?.bind(engine),
-      query: this.withRequestId(engine.query?.bind(engine)),
-      rollbackTransaction: this.withRequestId(engine.rollbackTransaction?.bind(engine)),
+      query: this.withRequestId(engine.query.bind(engine)),
+      rollbackTransaction: this.withRequestId(engine.rollbackTransaction.bind(engine)),
       sdlSchema: engine.sdlSchema?.bind(engine),
-      startTransaction: this.withRequestId(engine.startTransaction?.bind(engine)),
-      trace: engine.trace?.bind(engine),
+      startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
+      trace: engine.trace.bind(engine),
     }
   }
 
@@ -162,7 +161,7 @@ export class LibraryEngine implements Engine<undefined> {
   async applyPendingMigrations(): Promise<void> {
     if (TARGET_BUILD_TYPE === 'react-native') {
       await this.start()
-      await this.engine?.applyPendingMigrations()
+      await this.engine?.applyPendingMigrations!()
     } else {
       throw new Error('Cannot call this method from this type of engine instance')
     }
@@ -597,7 +596,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async metrics(options: MetricsOptionsPrometheus): Promise<string>
   async metrics(options: EngineMetricsOptions): Promise<Metrics | string> {
     await this.start()
-    const responseString = await this.engine!.metrics(JSON.stringify(options))
+    // TODO: add `metrics` method stub in c-abi engine and make it non-optional.
+    // The stub should return an error like in WASM so we handle this gracefully.
+    const responseString = await this.engine!.metrics!(JSON.stringify(options))
     if (options.format === 'prometheus') {
       return responseString
     }
