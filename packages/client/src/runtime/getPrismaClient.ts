@@ -358,7 +358,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._globalOmit = optionsArg?.omit
-      this._tracingHelper = getTracingHelper(this._previewFeatures)
+      this._tracingHelper = getTracingHelper()
       const envPaths = {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
