@@ -18,8 +18,8 @@ importers:
         specifier: 9.5.0
         version: 9.5.0
       '@microsoft/api-extractor':
-        specifier: 7.47.11
-        version: 7.47.11(@types/node@20.12.7)
+        specifier: 7.48.1
+        version: 7.48.1(@types/node@20.12.7)
       '@prisma/engines':
         specifier: workspace:*
         version: link:packages/engines
@@ -529,8 +529,8 @@ importers:
         specifier: 6.0.1
         version: 6.0.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.6.0
+        version: 5.6.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -622,8 +622,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
-        version: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
+        specifier: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
+        version: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -649,8 +649,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
-        version: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
+        specifier: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
+        version: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -811,8 +811,8 @@ importers:
         specifier: 10.9.2
         version: 10.9.2(@swc/core@1.6.13)(@types/node@18.19.31)(typescript@5.4.5)
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.6.0
+        version: 5.6.0
       tsd:
         specifier: 0.31.2
         version: 0.31.2
@@ -868,8 +868,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
-        version: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
+        specifier: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
+        version: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -905,8 +905,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
-        version: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
+        specifier: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
+        version: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,24 +1088,21 @@ importers:
         specifier: 2.1.1
         version: 2.1.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.6.0
+        version: 5.6.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
 
   packages/instrumentation:
     dependencies:
-      '@opentelemetry/api':
-        specifier: ^1.8
-        version: 1.9.0
       '@opentelemetry/instrumentation':
-        specifier: ^0.49 || ^0.50 || ^0.51 || ^0.52.0 || ^0.53.0
-        version: 0.52.1(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-trace-base':
-        specifier: ^1.22
-        version: 1.26.0(@opentelemetry/api@1.9.0)
+        specifier: ^0.52.0 || ^0.53.0 || ^0.54.0 || ^0.55.0 || ^0.56.0
+        version: 0.55.0(@opentelemetry/api@1.9.0)
     devDependencies:
+      '@opentelemetry/api':
+        specifier: 1.9.0
+        version: 1.9.0
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
@@ -1230,8 +1227,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
-        version: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
+        specifier: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
+        version: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1384,8 +1381,8 @@ importers:
         specifier: 10.9.2
         version: 10.9.2(@swc/core@1.2.204)(@types/node@18.19.31)(typescript@5.4.5)
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.6.0
+        version: 5.6.0
       ts-toolbelt:
         specifier: 9.6.0
         version: 9.6.0
@@ -1402,8 +1399,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
-        version: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
+        specifier: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
+        version: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1481,8 +1478,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       mongoose:
-        specifier: 8.8.3
-        version: 8.8.3(socks@2.7.1)
+        specifier: 8.9.0
+        version: 8.9.0(socks@2.7.1)
       mssql:
         specifier: 11.0.1
         version: 11.0.1
@@ -1505,8 +1502,8 @@ importers:
         specifier: 1.0.1
         version: 1.0.1
       ts-pattern:
-        specifier: 5.2.0
-        version: 5.2.0
+        specifier: 5.6.0
+        version: 5.6.0
       typescript:
         specifier: 5.4.5
         version: 5.4.5
@@ -1554,8 +1551,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
-        version: 6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85
+        specifier: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
+        version: 6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -2602,21 +2599,21 @@ packages:
     resolution: {integrity: sha512-4ySo4CjzStuprMwk35H5pPbkymjv1SF3jGLj6rAHp/xT/RF7TL7bd9CTm1xDY49K2qF7jmR/g7k+SkLETP6opA==}
     hasBin: true
 
-  '@microsoft/api-extractor-model@7.29.8':
-    resolution: {integrity: sha512-t3Z/xcO6TRbMcnKGVMs4uMzv/gd5j0NhMiJIGjD4cJMeFJ1Hf8wnLSx37vxlRlL0GWlGJhnFgxvnaL6JlS+73g==}
+  '@microsoft/api-extractor-model@7.30.1':
+    resolution: {integrity: sha512-CTS2PlASJHxVY8hqHORVb1HdECWOEMcMnM6/kDkPr0RZapAFSIHhg9D4jxuE8g+OWYHtPc10LCpmde5pylTRlA==}
 
-  '@microsoft/api-extractor@7.47.11':
-    resolution: {integrity: sha512-lrudfbPub5wzBhymfFtgZKuBvXxoSIAdrvS2UbHjoMT2TjIEddq6Z13pcve7A03BAouw0x8sW8G4txdgfiSwpQ==}
+  '@microsoft/api-extractor@7.48.1':
+    resolution: {integrity: sha512-HN9Osa1WxqLM66RaqB5nPAadx+nTIQmY/XtkFdaJvusjG8Tus++QqZtD7KPZDSkhEMGHsYeSyeU8qUzCDUXPjg==}
     hasBin: true
 
-  '@microsoft/tsdoc-config@0.17.0':
-    resolution: {integrity: sha512-v/EYRXnCAIHxOHW+Plb6OWuUoMotxTN0GLatnpOb1xq0KuTNw/WI3pamJx/UbsoJP5k9MCw1QxvvhPcF9pH3Zg==}
+  '@microsoft/tsdoc-config@0.17.1':
+    resolution: {integrity: sha512-UtjIFe0C6oYgTnad4q1QP4qXwLhe6tIpNTRStJ2RZEPIkqQPREAwE5spzVxsdn9UaEMUqhh0AqSx3X4nWAKXWw==}
 
-  '@microsoft/tsdoc@0.15.0':
-    resolution: {integrity: sha512-HZpPoABogPvjeJOdzCOSJsXeL/SMCBgBZMVC3X3d7YYp2gf31MfxhUoYUNwf1ERPJOnQc0wkFn9trqI6ZEdZuA==}
+  '@microsoft/tsdoc@0.15.1':
+    resolution: {integrity: sha512-4aErSrCR/On/e5G2hDP0wjooqDdauzEbIq8hIkIe5pXV0rtWJZvdCEKL0ykZxex+IxIwBp0eGeV48hQN07dXtw==}
 
-  '@mongodb-js/saslprep@1.1.5':
-    resolution: {integrity: sha512-XLNOMH66KhJzUJNwT/qlMnS4WsNDWD5ASdyaSH3EtK+F4r/CFGa3jT4GNi4mfOitGvWXtdLgQJkQjxSVrio+jA==}
+  '@mongodb-js/saslprep@1.1.9':
+    resolution: {integrity: sha512-tVkljjeEaAhCqTzajSdgbQ6gE6f3oneVwa3iXR6csiEwXXOFsiC6Uh9iAjAhXPtqa/XMDHWjjeNH/77m/Yq2dw==}
 
   '@napi-rs/wasm-runtime@0.2.5':
     resolution: {integrity: sha512-kwUxR7J9WLutBbulqg1dfOrMTwhMdXLdcGUhcbCcGwnPLt3gz19uHVdwH1syKVDbE022ZS2vZxOWflFLS0YTjw==}
@@ -2647,10 +2644,6 @@ packages:
     engines: {node: '>=10'}
     deprecated: This functionality has been moved to @npmcli/fs
 
-  '@opentelemetry/api-logs@0.52.1':
-    resolution: {integrity: sha512-qnSqB2DQ9TPP96dl8cDubDvrUyWc0/sK81xHTK8eSUspzDM3bsewX903qclQFvVhgStjRWdC5bLb3kQqMkfV5A==}
-    engines: {node: '>=14'}
-
   '@opentelemetry/api-logs@0.55.0':
     resolution: {integrity: sha512-3cpa+qI45VHYcA5c0bHM6VHo9gicv3p5mlLHNG3rLyjQU8b7e0st1rWtrUn3JbZ3DwwCfhKop4eQ9UuYlC6Pkg==}
     engines: {node: '>=14'}
@@ -2665,23 +2658,11 @@ packages:
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 
-  '@opentelemetry/core@1.26.0':
-    resolution: {integrity: sha512-1iKxXXE8415Cdv0yjG3G6hQnB5eVEsJce3QaawX8SjDn0mAS0ZM8fAbZZJD4ajvhC15cePvosSCut404KrIIvQ==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.10.0'
-
   '@opentelemetry/core@1.28.0':
     resolution: {integrity: sha512-ZLwRMV+fNDpVmF2WYUdBHlq0eOWtEaUJSusrzjGnBt7iSRvfjFE3RXYUZJrqou/wIDWV0DwQ5KIfYe9WXg9Xqw==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
-
-  '@opentelemetry/instrumentation@0.52.1':
-    resolution: {integrity: sha512-uXJbYU/5/MBHjMp1FqrILLRuiJCs3Ofk0MeRDk8g1S1gD47U8X3JnSwcMO1rtRo1x1a7zKaQHaoYu49p/4eSKw==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': ^1.3.0
 
   '@opentelemetry/instrumentation@0.55.0':
     resolution: {integrity: sha512-YDCMlaQRZkziLL3t6TONRgmmGxDx6MyQDXRD0dknkkgUZtOK5+8MWft1OXzmNu6XfBOdT12MKN5rz+jHUkafKQ==}
@@ -2689,20 +2670,8 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.3.0
 
-  '@opentelemetry/resources@1.26.0':
-    resolution: {integrity: sha512-CPNYchBE7MBecCSVy0HKpUISEeJOniWqcHaAHpmasZ3j9o6V3AyBzhRc90jdmemq0HOxDr6ylhUbDhBqqPpeNw==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.10.0'
-
   '@opentelemetry/resources@1.28.0':
     resolution: {integrity: sha512-cIyXSVJjGeTICENN40YSvLDAq4Y2502hGK3iN7tfdynQLKWb3XWZQEkPc+eSx47kiy11YeFAlYkEfXwR1w8kfw==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.10.0'
-
-  '@opentelemetry/sdk-trace-base@1.26.0':
-    resolution: {integrity: sha512-olWQldtvbK4v22ymrKLbIcBi9L2SpMO84sCPY54IVsJhP9fRsxJT194C/AVaAuJzLE30EdhhM1VmvVYR7az+cw==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
@@ -2780,19 +2749,19 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  '@prisma/engines-version@6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85':
-    resolution: {integrity: sha512-CiTmkeEpXwXNbkDK/+DiibKsw1xuEvBtpi6qTzrqfaPR0i3Lq4knWtMaT4M/VOoTGb9l60wLxDptp9+cyqdWxA==}
+  '@prisma/engines-version@6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d':
+    resolution: {integrity: sha512-M07VId2kI/yU9aHU9poPevaxFnR/IH8GSRG5L41kkY8331m9QsPktec9y8Vf+Me3IwWe5DBaHNaK3VVKF+dv+A==}
 
   '@prisma/mini-proxy@0.9.5':
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
     engines: {node: '>=16'}
     hasBin: true
 
-  '@prisma/prisma-schema-wasm@6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85':
-    resolution: {integrity: sha512-8quaBNl2xCLSJ2+2QRa2R2NYvHu8925z2VC1qiZhsLPVtXL7icj4OPlCwrcfyv7IIzowGVcuAkYNzzMYaeZmPQ==}
+  '@prisma/prisma-schema-wasm@6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d':
+    resolution: {integrity: sha512-Bt0iw1NfUSvP+3UcBRXzoFDjal0dvj052WoZHzzGZETTbSfFPKQXEsJ4LEQZ/V3autqryMzWeyKJDqgU39ScKw==}
 
-  '@prisma/query-engine-wasm@6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85':
-    resolution: {integrity: sha512-fbFPHoQnM9JdJq++g8g1mXG4y/MlpynBSyWcvPN+2cQCTrAJS4kFSRQ2iDn18Guo0TS/9uHbsZ2GLO/aSEnr7g==}
+  '@prisma/query-engine-wasm@6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d':
+    resolution: {integrity: sha512-Urnt60p0suY/aIIHPtIzYykQ6T87U/APUzfyH0bYNynNLk2Yr0Q6IkDVXQFCV9hLFb4QzLlE4PSdB4ON7tAqeg==}
 
   '@prisma/studio-common@0.503.0':
     resolution: {integrity: sha512-YLI4uf8hNIg5RaX7lPPSH6qLeSknygMB/2aEqfnWA1kWCHvkTkYEtSoSXLEAIbVc0LWWDawCcDPxFH12v6oSnA==}
@@ -2814,8 +2783,8 @@ packages:
   '@prisma/studio@0.503.0':
     resolution: {integrity: sha512-9BObluG/vRQGPE0SaMSMfgKs+kqvpKc4ID827UTLvTM7Yaz7I0T3KhEbbc5pPQq9OqTZwaUwVGtcDoxTGtm6lQ==}
 
-  '@rushstack/node-core-library@5.9.0':
-    resolution: {integrity: sha512-MMsshEWkTbXqxqFxD4gcIUWQOCeBChlGczdZbHfqmNZQFLHB3yWxDFSMHFUdu2/OB9NUk7Awn5qRL+rws4HQNg==}
+  '@rushstack/node-core-library@5.10.1':
+    resolution: {integrity: sha512-BSb/KcyBHmUQwINrgtzo6jiH0HlGFmrUy33vO6unmceuVKTEyL2q+P0fQq2oB5hvXVWOEUhxB2QvlkZluvUEmg==}
     peerDependencies:
       '@types/node': '*'
     peerDependenciesMeta:
@@ -2825,16 +2794,16 @@ packages:
   '@rushstack/rig-package@0.5.3':
     resolution: {integrity: sha512-olzSSjYrvCNxUFZowevC3uz8gvKr3WTpHQ7BkpjtRpA3wK+T0ybep/SRUMfr195gBzJm5gaXw0ZMgjIyHqJUow==}
 
-  '@rushstack/terminal@0.14.2':
-    resolution: {integrity: sha512-2fC1wqu1VCExKC0/L+0noVcFQEXEnoBOtCIex1TOjBzEDWcw8KzJjjj7aTP6mLxepG0XIyn9OufeFb6SFsa+sg==}
+  '@rushstack/terminal@0.14.4':
+    resolution: {integrity: sha512-NxACqERW0PHq8Rpq1V6v5iTHEwkRGxenjEW+VWqRYQ8T9puUzgmGHmEZUaUEDHAe9Qyvp0/Ew04sAiQw9XjhJg==}
     peerDependencies:
       '@types/node': '*'
     peerDependenciesMeta:
       '@types/node':
         optional: true
 
-  '@rushstack/ts-command-line@4.23.0':
-    resolution: {integrity: sha512-jYREBtsxduPV6ptNq8jOKp9+yx0ld1Tb/Tkdnlj8gTjazl1sF3DwX2VbluyYrNd0meWIL0bNeer7WDf5tKFjaQ==}
+  '@rushstack/ts-command-line@4.23.2':
+    resolution: {integrity: sha512-JJ7XZX5K3ThBBva38aomgsPv1L7FV6XmSOcR6HtM7HDFZJkepqT65imw26h9ggGqMjsY0R9jcl30tzKcVj9aOQ==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -3221,9 +3190,6 @@ packages:
 
   '@types/rimraf@3.0.2':
     resolution: {integrity: sha512-F3OznnSLAUxFrCEu/L5PY8+ny8DtcFRjx7fZZ9bycvXRi3KPTRS9HOitGZwvPg0juRhXFWIeKX58cnX5YqLohQ==}
-
-  '@types/shimmer@1.0.2':
-    resolution: {integrity: sha512-dKkr1bTxbEsFlh2ARpKzcaAmsYixqt9UyCdoEZk8rHyE4iQYcDCyvSjDSf7JUWJHlJiTtbIoQjxKh6ViywqDAg==}
 
   '@types/shimmer@1.2.0':
     resolution: {integrity: sha512-UE7oxhQLLd9gub6JKIAhDq06T0F6FnztwMNRvYgjeQSBeMc1ZG/tA47EwfduvkuQS8apbkM/lpLpWsaCeYsXVg==}
@@ -3660,8 +3626,8 @@ packages:
   bser@2.1.1:
     resolution: {integrity: sha512-gQxTNE/GAfIIrmHLUE3oJyp5FO6HRBfhjnw4/wMmA63ZGDJnWBmgY/lyQBpnDUkGmAhbSe39tx2d/iTOAfglwQ==}
 
-  bson@6.7.0:
-    resolution: {integrity: sha512-w2IquM5mYzYZv6rs3uN2DZTOBe2a0zXLj53TGDqwF4l6Sz/XsISrisXOJihArF9+BZ6Cq/GjVht7Sjfmri7ytQ==}
+  bson@6.10.1:
+    resolution: {integrity: sha512-P92xmHDQjSKPLHqFxefqMxASNq/aWJMEZugpCjf+AF/pgcUpMMQCg7t7+ewko0/u8AapvF3luf/FoehddEK+sA==}
     engines: {node: '>=16.20.1'}
 
   buffer-crc32@0.2.13:
@@ -5612,12 +5578,12 @@ packages:
   mongodb-connection-string-url@3.0.0:
     resolution: {integrity: sha512-t1Vf+m1I5hC2M5RJx/7AtxgABy1cZmIPQRMXw+gEIPn/cZNF3Oiy+l0UIypUwVB5trcWHq3crg2g3uAR9aAwsQ==}
 
-  mongodb@6.10.0:
-    resolution: {integrity: sha512-gP9vduuYWb9ZkDM546M+MP2qKVk5ZG2wPF63OvSRuUbqCR+11ZCAE1mOfllhlAG0wcoJY5yDL/rV3OmYEwXIzg==}
+  mongodb@6.12.0:
+    resolution: {integrity: sha512-RM7AHlvYfS7jv7+BXund/kR64DryVI+cHbVAy9P61fnb1RcWZqOW1/Wj2YhqMCx+MuYhqTRGv7AwHBzmsCKBfA==}
     engines: {node: '>=16.20.1'}
     peerDependencies:
       '@aws-sdk/credential-providers': ^3.188.0
-      '@mongodb-js/zstd': ^1.1.0
+      '@mongodb-js/zstd': ^1.1.0 || ^2.0.0
       gcp-metadata: ^5.2.0
       kerberos: ^2.0.1
       mongodb-client-encryption: '>=6.0.0 <7'
@@ -5639,8 +5605,8 @@ packages:
       socks:
         optional: true
 
-  mongoose@8.8.3:
-    resolution: {integrity: sha512-/I4n/DcXqXyIiLRfAmUIiTjj3vXfeISke8dt4U4Y8Wfm074Wa6sXnQrXN49NFOFf2mM1kUdOXryoBvkuCnr+Qw==}
+  mongoose@8.9.0:
+    resolution: {integrity: sha512-b58zY3PLNBcoz6ZXFckr0leJcVVBMAOBvD+7Bj2ZjghAwntXmNnqwlDixTKQU3UYoQIGTv+AQx/0ThsvaeVrCA==}
     engines: {node: '>=16.20.1'}
 
   mpath@0.9.0:
@@ -6403,11 +6369,6 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  semver@7.6.2:
-    resolution: {integrity: sha512-FNAIBWCx9qcRhoHcgcJ0gvU7SN1lYU2ZXuSfl04bSC5OpvDHFyJCjdNHomPXxjQlCBU67YW64PzY7/VIEH7F2w==}
-    engines: {node: '>=10'}
-    hasBin: true
-
   semver@7.6.3:
     resolution: {integrity: sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==}
     engines: {node: '>=10'}
@@ -6820,8 +6781,8 @@ packages:
       '@swc/wasm':
         optional: true
 
-  ts-pattern@5.2.0:
-    resolution: {integrity: sha512-aGaSpOlDcns7ZoeG/OMftWyQG1KqPVhgplhJxNCvyIXqWrumM5uIoOSarw/hmmi/T1PnuQ/uD8NaFHvLpHicDg==}
+  ts-pattern@5.6.0:
+    resolution: {integrity: sha512-SL8u60X5+LoEy9tmQHWCdPc2hhb2pKI6I1tU5Jue3v8+iRqZdcT3mWPwKKJy1fMfky6uha82c8ByHAE8PMhKHw==}
 
   ts-toolbelt@9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
@@ -8373,23 +8334,23 @@ snapshots:
       - encoding
       - supports-color
 
-  '@microsoft/api-extractor-model@7.29.8(@types/node@20.12.7)':
+  '@microsoft/api-extractor-model@7.30.1(@types/node@20.12.7)':
     dependencies:
-      '@microsoft/tsdoc': 0.15.0
-      '@microsoft/tsdoc-config': 0.17.0
-      '@rushstack/node-core-library': 5.9.0(@types/node@20.12.7)
+      '@microsoft/tsdoc': 0.15.1
+      '@microsoft/tsdoc-config': 0.17.1
+      '@rushstack/node-core-library': 5.10.1(@types/node@20.12.7)
     transitivePeerDependencies:
       - '@types/node'
 
-  '@microsoft/api-extractor@7.47.11(@types/node@20.12.7)':
+  '@microsoft/api-extractor@7.48.1(@types/node@20.12.7)':
     dependencies:
-      '@microsoft/api-extractor-model': 7.29.8(@types/node@20.12.7)
-      '@microsoft/tsdoc': 0.15.0
-      '@microsoft/tsdoc-config': 0.17.0
-      '@rushstack/node-core-library': 5.9.0(@types/node@20.12.7)
+      '@microsoft/api-extractor-model': 7.30.1(@types/node@20.12.7)
+      '@microsoft/tsdoc': 0.15.1
+      '@microsoft/tsdoc-config': 0.17.1
+      '@rushstack/node-core-library': 5.10.1(@types/node@20.12.7)
       '@rushstack/rig-package': 0.5.3
-      '@rushstack/terminal': 0.14.2(@types/node@20.12.7)
-      '@rushstack/ts-command-line': 4.23.0(@types/node@20.12.7)
+      '@rushstack/terminal': 0.14.4(@types/node@20.12.7)
+      '@rushstack/ts-command-line': 4.23.2(@types/node@20.12.7)
       lodash: 4.17.21
       minimatch: 3.0.8
       resolve: 1.22.8
@@ -8399,16 +8360,16 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@microsoft/tsdoc-config@0.17.0':
+  '@microsoft/tsdoc-config@0.17.1':
     dependencies:
-      '@microsoft/tsdoc': 0.15.0
+      '@microsoft/tsdoc': 0.15.1
       ajv: 8.12.0
       jju: 1.4.0
       resolve: 1.22.8
 
-  '@microsoft/tsdoc@0.15.0': {}
+  '@microsoft/tsdoc@0.15.1': {}
 
-  '@mongodb-js/saslprep@1.1.5':
+  '@mongodb-js/saslprep@1.1.9':
     dependencies:
       sparse-bitfield: 3.0.3
 
@@ -8449,10 +8410,6 @@ snapshots:
       rimraf: 3.0.2
     optional: true
 
-  '@opentelemetry/api-logs@0.52.1':
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-
   '@opentelemetry/api-logs@0.55.0':
     dependencies:
       '@opentelemetry/api': 1.9.0
@@ -8463,27 +8420,10 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.0
 
-  '@opentelemetry/core@1.26.0(@opentelemetry/api@1.9.0)':
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/semantic-conventions': 1.27.0
-
   '@opentelemetry/core@1.28.0(@opentelemetry/api@1.9.0)':
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/semantic-conventions': 1.27.0
-
-  '@opentelemetry/instrumentation@0.52.1(@opentelemetry/api@1.9.0)':
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/api-logs': 0.52.1
-      '@types/shimmer': 1.0.2
-      import-in-the-middle: 1.8.1
-      require-in-the-middle: 7.2.0
-      semver: 7.6.2
-      shimmer: 1.2.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@opentelemetry/instrumentation@0.55.0(@opentelemetry/api@1.9.0)':
     dependencies:
@@ -8497,23 +8437,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@opentelemetry/resources@1.26.0(@opentelemetry/api@1.9.0)':
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/core': 1.26.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.27.0
-
   '@opentelemetry/resources@1.28.0(@opentelemetry/api@1.9.0)':
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 1.28.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/semantic-conventions': 1.27.0
-
-  '@opentelemetry/sdk-trace-base@1.26.0(@opentelemetry/api@1.9.0)':
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/core': 1.26.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/resources': 1.26.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.27.0
 
   '@opentelemetry/sdk-trace-base@1.28.0(@opentelemetry/api@1.9.0)':
@@ -8564,13 +8491,13 @@ snapshots:
 
   '@planetscale/database@1.18.0': {}
 
-  '@prisma/engines-version@6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85': {}
+  '@prisma/engines-version@6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d': {}
 
   '@prisma/mini-proxy@0.9.5': {}
 
-  '@prisma/prisma-schema-wasm@6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85': {}
+  '@prisma/prisma-schema-wasm@6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d': {}
 
-  '@prisma/query-engine-wasm@6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85': {}
+  '@prisma/query-engine-wasm@6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d': {}
 
   '@prisma/studio-common@0.503.0':
     dependencies:
@@ -8603,7 +8530,7 @@ snapshots:
 
   '@prisma/studio@0.503.0': {}
 
-  '@rushstack/node-core-library@5.9.0(@types/node@20.12.7)':
+  '@rushstack/node-core-library@5.10.1(@types/node@20.12.7)':
     dependencies:
       ajv: 8.13.0
       ajv-draft-04: 1.0.0(ajv@8.13.0)
@@ -8621,16 +8548,16 @@ snapshots:
       resolve: 1.22.8
       strip-json-comments: 3.1.1
 
-  '@rushstack/terminal@0.14.2(@types/node@20.12.7)':
+  '@rushstack/terminal@0.14.4(@types/node@20.12.7)':
     dependencies:
-      '@rushstack/node-core-library': 5.9.0(@types/node@20.12.7)
+      '@rushstack/node-core-library': 5.10.1(@types/node@20.12.7)
       supports-color: 8.1.1
     optionalDependencies:
       '@types/node': 20.12.7
 
-  '@rushstack/ts-command-line@4.23.0(@types/node@20.12.7)':
+  '@rushstack/ts-command-line@4.23.2(@types/node@20.12.7)':
     dependencies:
-      '@rushstack/terminal': 0.14.2(@types/node@20.12.7)
+      '@rushstack/terminal': 0.14.4(@types/node@20.12.7)
       '@types/argparse': 1.0.38
       argparse: 1.0.10
       string-argv: 0.3.2
@@ -9019,8 +8946,6 @@ snapshots:
     dependencies:
       '@types/glob': 8.0.0
       '@types/node': 20.12.7
-
-  '@types/shimmer@1.0.2': {}
 
   '@types/shimmer@1.2.0': {}
 
@@ -9581,7 +9506,7 @@ snapshots:
     dependencies:
       node-int64: 0.4.0
 
-  bson@6.7.0: {}
+  bson@6.10.1: {}
 
   buffer-crc32@0.2.13: {}
 
@@ -12187,19 +12112,19 @@ snapshots:
       '@types/whatwg-url': 11.0.4
       whatwg-url: 13.0.0
 
-  mongodb@6.10.0(socks@2.7.1):
+  mongodb@6.12.0(socks@2.7.1):
     dependencies:
-      '@mongodb-js/saslprep': 1.1.5
-      bson: 6.7.0
+      '@mongodb-js/saslprep': 1.1.9
+      bson: 6.10.1
       mongodb-connection-string-url: 3.0.0
     optionalDependencies:
       socks: 2.7.1
 
-  mongoose@8.8.3(socks@2.7.1):
+  mongoose@8.9.0(socks@2.7.1):
     dependencies:
-      bson: 6.7.0
+      bson: 6.10.1
       kareem: 2.6.3
-      mongodb: 6.10.0(socks@2.7.1)
+      mongodb: 6.12.0(socks@2.7.1)
       mpath: 0.9.0
       mquery: 5.0.0
       ms: 2.1.3
@@ -12959,8 +12884,6 @@ snapshots:
     dependencies:
       lru-cache: 6.0.0
 
-  semver@7.6.2: {}
-
   semver@7.6.3: {}
 
   send@0.17.2:
@@ -13466,7 +13389,7 @@ snapshots:
       '@swc/core': 1.6.13
     optional: true
 
-  ts-pattern@5.2.0: {}
+  ts-pattern@5.6.0: {}
 
   ts-toolbelt@9.6.0: {}
 

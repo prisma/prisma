@@ -6,7 +6,7 @@ import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicEr
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { disabledTracingHelper } from '../../tracing/TracingHelper'
 import { LibraryEngine } from './LibraryEngine'
-import { LibraryLoader } from './types/Library'
+import { LibraryLoader, QueryEngineInstance } from './types/Library'
 
 const dummyQuery = { modelName: 'Foo', action: 'findMany', query: { selection: {} } } as const
 
@@ -27,7 +27,9 @@ function setupMockLibraryEngine() {
     startTransaction: jest.fn().mockResolvedValue('{}'),
     commitTransaction: jest.fn().mockResolvedValue('{}'),
     rollbackTransaction: jest.fn().mockResolvedValue('{}'),
-  }
+    trace: jest.fn().mockResolvedValue('{}'),
+    metrics: jest.fn().mockResolvedValue('{}'),
+  } satisfies QueryEngineInstance
 
   const loader: LibraryLoader = {
     loadLibrary() {

@@ -6,4 +6,4 @@ export const VERSION = version as string
 
 export const NAME = name as string
 
-export const MODULE_NAME = 'prisma'
+export const MODULE_NAME = '@prisma/client'

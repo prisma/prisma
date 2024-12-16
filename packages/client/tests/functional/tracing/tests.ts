@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { Attributes, context, trace } from '@opentelemetry/api'
+import { Attributes, context, SpanKind, trace } from '@opentelemetry/api'
 import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
@@ -10,7 +10,7 @@ import {
   SimpleSpanProcessor,
   SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { ClientEngineType } from '@prisma/internals'
 
@@ -23,6 +23,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 type Tree = {
   name: string
+  kind?: string | undefined
   attributes?: Attributes
   children?: Tree[]
 }
@@ -49,6 +50,10 @@ function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
     tree.attributes = rootSpan.attributes
   }
 
+  if (rootSpan.kind !== SpanKind.INTERNAL) {
+    tree.kind = SpanKind[rootSpan.kind]
+  }
+
   return tree
 }
 
@@ -66,8 +71,8 @@ beforeAll(() => {
 
   const basicTracerProvider = new BasicTracerProvider({
     resource: new Resource({
-      [SEMRESATTRS_SERVICE_NAME]: 'test-name',
-      [SEMRESATTRS_SERVICE_VERSION]: '1.0.0',
+      [ATTR_SERVICE_NAME]: 'test-name',
+      [ATTR_SERVICE_VERSION]: '1.0.0',
     }),
   })
 
@@ -98,14 +103,18 @@ testMatrix.setupTestSuite(
       inMemorySpanExporter.reset()
     })
 
-    async function waitForSpanTree(expectedTree: Tree): Promise<void> {
+    async function waitForSpanTree(expectedTree: Tree | Tree[]): Promise<void> {
       await waitFor(async () => {
         await processor.forceFlush()
         const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree(rootSpan, spans)
+        const rootSpans = spans.filter((span) => !span.parentSpanId)
+        const trees = rootSpans.map((rootSpan) => buildTree(rootSpan, spans))
 
-        expect(tree).toEqual(expectedTree)
+        if (Array.isArray(expectedTree)) {
+          expect(expectedTree).toEqual(trees)
+        } else {
+          expect(expectedTree).toEqual(trees[0])
+        }
       })
     }
 
@@ -118,8 +127,9 @@ testMatrix.setupTestSuite(
     function dbQuery(statement: string, driverAdapterChildSpans = AdapterQueryChildSpans.ArgsAndResult): Tree {
       const span = {
         name: 'prisma:engine:db_query',
+        kind: 'CLIENT',
         attributes: {
-          'db.statement': statement,
+          'db.query.text': statement,
           'db.system': dbSystemExpectation(),
         },
       }
@@ -133,20 +143,29 @@ testMatrix.setupTestSuite(
         const children = [] as Tree[]
 
         children.push({
-          name: 'js:query:args',
+          name: 'prisma:engine:js:query:args',
+          kind: 'CLIENT',
+          attributes: {
+            'prisma.db_query.params.count': expect.toBeNumber(),
+          },
         })
 
         // result span only exists for returning queries
         if (driverAdapterChildSpans !== AdapterQueryChildSpans.ArgsOnly) {
           children.push({
-            name: 'js:query:result',
+            name: 'prisma:engine:js:query:result',
+            kind: 'CLIENT',
+            attributes: {
+              'db.response.returned_rows': expect.toBeNumber(),
+            },
           })
         }
 
         children.push({
-          name: 'js:query:sql',
+          name: 'prisma:engine:js:query:sql',
+          kind: 'CLIENT',
           attributes: {
-            'db.statement': statement,
+            'db.query.text': statement,
             'db.system': dbSystemExpectation(),
           },
         })
@@ -258,10 +277,6 @@ testMatrix.setupTestSuite(
       const statement = isMongoDb ? 'db.User.aggregate' : 'SELECT'
 
       return dbQuery(expect.stringContaining(statement))
-    }
-
-    function itxExecuteSingle(children: Tree[]) {
-      return { name: 'prisma:engine:itx_execute_single', children }
     }
 
     function createDbQueries(tx = true) {
@@ -523,15 +538,17 @@ testMatrix.setupTestSuite(
             method: '$transaction',
           },
           children: [
-            operation('User', 'create', [clientSerialize()]),
-            operation('User', 'findMany', [clientSerialize()]),
-            engine([
-              engineConnection(),
-              ...expectedDbQueries,
-              ...engineSerializeFinalResponse(),
-              engineSerializeQueryResult(),
-              engineSerializeQueryResult(),
+            operation('User', 'create', [
+              clientSerialize(),
+              engine([
+                engineConnection(),
+                ...expectedDbQueries,
+                ...engineSerializeFinalResponse(),
+                engineSerializeQueryResult(),
+                engineSerializeQueryResult(),
+              ]),
             ]),
+            operation('User', 'findMany', [clientSerialize()]),
           ],
         })
       })
@@ -560,26 +577,15 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [
               clientSerialize(),
-              engine([
-                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
-                ...engineSerializeFinalResponse(),
-              ]),
+              engine([...createDbQueries(false), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
             ]),
             operation('User', 'findMany', [
               clientSerialize(),
-              engine([
-                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
-                ...engineSerializeFinalResponse(),
-              ]),
+              engine([findManyDbQuery(), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
             ]),
             {
               name: 'prisma:engine:commit_transaction',
-              children: [
-                {
-                  name: 'prisma:engine:itx_commit',
-                  children: isMongoDb ? undefined : [txCommit()],
-                },
-              ],
+              children: isMongoDb ? undefined : [txCommit()],
             },
             {
               name: 'prisma:engine:start_transaction',
@@ -620,26 +626,15 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [
               clientSerialize(),
-              engine([
-                itxExecuteSingle([...createDbQueries(false), engineSerializeQueryResult()]),
-                ...engineSerializeFinalResponse(),
-              ]),
+              engine([...createDbQueries(false), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
             ]),
             operation('User', 'findMany', [
               clientSerialize(),
-              engine([
-                itxExecuteSingle([findManyDbQuery(), engineSerializeQueryResult()]),
-                ...engineSerializeFinalResponse(),
-              ]),
+              engine([findManyDbQuery(), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
             ]),
             {
               name: 'prisma:engine:rollback_transaction',
-              children: [
-                {
-                  name: 'prisma:engine:itx_rollback',
-                  children: isMongoDb ? undefined : [txRollback()],
-                },
-              ],
+              children: isMongoDb ? undefined : [txRollback()],
             },
             {
               name: 'prisma:engine:start_transaction',
@@ -778,13 +773,37 @@ testMatrix.setupTestSuite(
           },
         })
 
-        await waitForSpanTree(
+        await waitForSpanTree([
+          { name: 'prisma:client:detect_platform' },
+          ...(engineType === 'binary' ? [] : [{ name: 'prisma:client:load_engine' }]),
           operation('User', 'findMany', [
-            { name: 'prisma:client:connect', children: [engineConnect()] },
+            {
+              name: 'prisma:client:connect',
+              children:
+                engineType == 'binary'
+                  ? [{ name: 'prisma:client:start_engine', children: [engineConnect()] }]
+                  : [engineConnect()],
+            },
             clientSerialize(),
             engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
-        )
+        ])
+      })
+
+      test('should trace the explicit $connect call', async () => {
+        await _prisma.$connect()
+
+        await waitForSpanTree([
+          {
+            name: 'prisma:client:connect',
+            children:
+              engineType == 'binary'
+                ? [{ name: 'prisma:client:start_engine', children: [engineConnect()] }]
+                : [engineConnect()],
+          },
+          { name: 'prisma:client:detect_platform' },
+          ...(engineType === 'binary' ? [] : [{ name: 'prisma:client:load_engine' }]),
+        ])
       })
     })
 

@@ -1,3 +1,4 @@
+import { trace, TracerProvider } from '@opentelemetry/api'
 import {
   InstrumentationBase,
   InstrumentationConfig,
@@ -15,8 +16,14 @@ export interface PrismaInstrumentationConfig {
 type Config = PrismaInstrumentationConfig & InstrumentationConfig
 
 export class PrismaInstrumentation extends InstrumentationBase {
+  private tracerProvider: TracerProvider | undefined
+
   constructor(config: Config = {}) {
     super(NAME, VERSION, config)
+  }
+
+  setTracerProvider(tracerProvider: TracerProvider): void {
+    this.tracerProvider = tracerProvider
   }
 
   init() {
@@ -29,7 +36,10 @@ export class PrismaInstrumentation extends InstrumentationBase {
     const config = this._config as Config
 
     const globalValue: PrismaInstrumentationGlobalValue = {
-      helper: new ActiveTracingHelper({ traceMiddleware: config.middleware ?? false }),
+      helper: new ActiveTracingHelper({
+        traceMiddleware: config.middleware ?? false,
+        tracerProvider: this.tracerProvider ?? trace.getTracerProvider(),
+      }),
     }
 
     global[GLOBAL_KEY] = globalValue

@@ -38,7 +38,7 @@
     "log-update": "4.0.0",
     "mariadb": "3.3.1",
     "mock-stdin": "1.0.0",
-    "mongoose": "8.8.3",
+    "mongoose": "8.9.0",
     "mssql": "11.0.1",
     "ora": "5.4.1",
     "pg": "8.11.5",
@@ -46,7 +46,7 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "tempy": "1.0.1",
-    "ts-pattern": "5.2.0",
+    "ts-pattern": "5.6.0",
     "typescript": "5.4.5",
     "wrangler": "3.91.0"
   },
@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.1.0-5.c74f8976aaa3212c16a61537319f9024d0c21e85",
+    "@prisma/engines-version": "6.1.0-14.79c7f7d747a2f7e2c27ca452405ffdad1be6da2d",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
