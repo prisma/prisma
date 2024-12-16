@@ -146,7 +146,7 @@ testMatrix.setupTestSuite(
           name: 'prisma:engine:js:query:args',
           kind: 'CLIENT',
           attributes: {
-            'db.query.params.count': expect.toBeNumber(),
+            'prisma.db_query.params.count': expect.toBeNumber(),
           },
         })
 
