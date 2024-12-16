@@ -1,7 +1,7 @@
 import { getTracingHelper } from './TracingHelper'
 
 it('should return 00 traceparent when tracing is disabled', () => {
-  const helper = getTracingHelper([])
+  const helper = getTracingHelper()
 
   const result = helper.getTraceParent()
 
