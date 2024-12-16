@@ -757,8 +757,8 @@ importers:
         specifier: 3.3.1
         version: 3.3.1
       memfs:
-        specifier: 4.9.3
-        version: 4.9.3
+        specifier: 4.15.0
+        version: 4.15.0
       mssql:
         specifier: 11.0.1
         version: 11.0.1
@@ -2539,8 +2539,8 @@ packages:
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/util@1.1.2':
-    resolution: {integrity: sha512-HOGa9wtE6LEz2I5mMQ2pMSjth85PmD71kPbsecs02nEUq3/Kw0wRK3gmZn5BCEB8mFLXByqPxjHgApoMwIPMKQ==}
+  '@jsonjoy.com/util@1.5.0':
+    resolution: {integrity: sha512-ojoNsrIuPI9g6o8UxhraZQSyF2ByJanAY4cTFbc8Mf2AXEF4aQRGY1dJxyJpuyav8r9FGflEt/Ff3u5Nt6YMPA==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -5422,8 +5422,8 @@ packages:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
 
-  memfs@4.9.3:
-    resolution: {integrity: sha512-bsYSSnirtYTWi1+OPMFb0M048evMKyUYe0EbtuGQgq6BVQM1g1W8/KIUJCCvjgI/El0j6Q4WsmMiBwLUBSw8LA==}
+  memfs@4.15.0:
+    resolution: {integrity: sha512-q9MmZXd2rRWHS6GU3WEm3HyiXZyyoA1DqdOhEq0lxPBmKb5S7IAOwX0RgUCwJfqjelDCySa5h8ujOy24LqsWcw==}
     engines: {node: '>= 4.0.0'}
 
   memory-pager@1.5.0:
@@ -8238,21 +8238,21 @@ snapshots:
 
   '@js-joda/core@5.6.3': {}
 
-  '@jsonjoy.com/base64@1.1.1(tslib@2.6.2)':
+  '@jsonjoy.com/base64@1.1.1(tslib@2.6.3)':
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.6.3
 
-  '@jsonjoy.com/json-pack@1.0.3(tslib@2.6.2)':
+  '@jsonjoy.com/json-pack@1.0.3(tslib@2.6.3)':
     dependencies:
-      '@jsonjoy.com/base64': 1.1.1(tslib@2.6.2)
-      '@jsonjoy.com/util': 1.1.2(tslib@2.6.2)
+      '@jsonjoy.com/base64': 1.1.1(tslib@2.6.3)
+      '@jsonjoy.com/util': 1.5.0(tslib@2.6.3)
       hyperdyperid: 1.2.0
-      thingies: 1.21.0(tslib@2.6.2)
-      tslib: 2.6.2
+      thingies: 1.21.0(tslib@2.6.3)
+      tslib: 2.6.3
 
-  '@jsonjoy.com/util@1.1.2(tslib@2.6.2)':
+  '@jsonjoy.com/util@1.5.0(tslib@2.6.3)':
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.6.3
 
   '@libsql/client@0.8.0':
     dependencies:
@@ -11936,12 +11936,12 @@ snapshots:
 
   media-typer@0.3.0: {}
 
-  memfs@4.9.3:
+  memfs@4.15.0:
     dependencies:
-      '@jsonjoy.com/json-pack': 1.0.3(tslib@2.6.2)
-      '@jsonjoy.com/util': 1.1.2(tslib@2.6.2)
-      tree-dump: 1.0.1(tslib@2.6.2)
-      tslib: 2.6.2
+      '@jsonjoy.com/json-pack': 1.0.3(tslib@2.6.3)
+      '@jsonjoy.com/util': 1.5.0(tslib@2.6.3)
+      tree-dump: 1.0.1(tslib@2.6.3)
+      tslib: 2.6.3
 
   memory-pager@1.5.0: {}
 
@@ -13255,9 +13255,9 @@ snapshots:
 
   text-table@0.2.0: {}
 
-  thingies@1.21.0(tslib@2.6.2):
+  thingies@1.21.0(tslib@2.6.3):
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.6.3
 
   through@2.3.8: {}
 
@@ -13285,9 +13285,9 @@ snapshots:
     dependencies:
       punycode: 2.3.0
 
-  tree-dump@1.0.1(tslib@2.6.2):
+  tree-dump@1.0.1(tslib@2.6.3):
     dependencies:
-      tslib: 2.6.2
+      tslib: 2.6.3
 
   trim-newlines@3.0.1: {}
 
