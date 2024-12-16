@@ -48,8 +48,8 @@ export type QueryEngineConfig = {
   datasourceOverrides: Record<string, string>
   env: Record<string, string | undefined>
   logLevel: QueryEngineLogLevel
-  telemetry?: QueryEngineTelemetry
   engineProtocol: EngineProtocol
+  enableTracing: boolean
 }
 
 export type QueryEngineTelemetry = {

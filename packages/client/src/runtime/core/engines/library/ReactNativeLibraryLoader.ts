@@ -12,6 +12,7 @@ type PrismaCreateOptions = {
   ignoreEnvVarErrors: boolean
   datasourceOverrides: object | string
   env: object | string
+  enableTracing: boolean
 }
 
 type QueryEngineObject = object
@@ -46,6 +47,7 @@ class ReactNativeQueryEngine implements QueryEngineInstance {
       logLevel: config.logLevel,
       logQueries: config.logQueries ?? false,
       logCallback: logger,
+      enableTracing: config.enableTracing,
     })
   }
 
