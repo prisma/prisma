@@ -154,6 +154,7 @@ testMatrix.setupTestSuite(
         if (driverAdapterChildSpans !== AdapterQueryChildSpans.ArgsOnly) {
           children.push({
             name: 'prisma:engine:js:query:result',
+            kind: 'CLIENT',
             attributes: {
               'db.response.returned_rows': expect.toBeNumber(),
             },
