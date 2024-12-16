@@ -90,7 +90,7 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter, relationMode, engineType }, _suiteMeta, clientMeta) => {
+  ({ provider, driverAdapter, relationMode, engineType, clientRuntime }, _suiteMeta, clientMeta) => {
     const isMongoDb = provider === Providers.MONGODB
     const isMySql = provider === Providers.MYSQL
     const isSqlServer = provider === Providers.SQLSERVER
@@ -270,7 +270,27 @@ testMatrix.setupTestSuite(
     }
 
     function engineConnect() {
-      return { name: 'prisma:engine:connect', children: [engineConnection()] }
+      const connectSpan = { name: 'prisma:engine:connect', children: [engineConnection()] }
+
+      if (engineType !== 'binary') {
+        return connectSpan
+      }
+
+      return { name: 'prisma:client:start_engine', children: [connectSpan] }
+    }
+
+    function detectPlatform() {
+      if (clientRuntime === 'wasm') {
+        return []
+      }
+      return [{ name: 'prisma:client:detect_platform' }]
+    }
+
+    function loadEngine() {
+      if (engineType === 'binary') {
+        return []
+      }
+      return [{ name: 'prisma:client:load_engine' }]
     }
 
     function findManyDbQuery() {
@@ -774,15 +794,12 @@ testMatrix.setupTestSuite(
         })
 
         await waitForSpanTree([
-          { name: 'prisma:client:detect_platform' },
-          ...(engineType === 'binary' ? [] : [{ name: 'prisma:client:load_engine' }]),
+          ...detectPlatform(),
+          ...loadEngine(),
           operation('User', 'findMany', [
             {
               name: 'prisma:client:connect',
-              children:
-                engineType == 'binary'
-                  ? [{ name: 'prisma:client:start_engine', children: [engineConnect()] }]
-                  : [engineConnect()],
+              children: [engineConnect()],
             },
             clientSerialize(),
             engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
@@ -796,13 +813,10 @@ testMatrix.setupTestSuite(
         await waitForSpanTree([
           {
             name: 'prisma:client:connect',
-            children:
-              engineType == 'binary'
-                ? [{ name: 'prisma:client:start_engine', children: [engineConnect()] }]
-                : [engineConnect()],
+            children: [engineConnect()],
           },
-          { name: 'prisma:client:detect_platform' },
-          ...(engineType === 'binary' ? [] : [{ name: 'prisma:client:load_engine' }]),
+          ...detectPlatform(),
+          ...loadEngine(),
         ])
       })
     })
@@ -831,9 +845,6 @@ testMatrix.setupTestSuite(
   },
 
   {
-    skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', 'Tracing is not supported for wasm engine, many spans are missing')
-    },
     skipDriverAdapter: {
       from: ['js_d1'],
       reason:
