@@ -301,7 +301,7 @@ export function computeLibSSLSpecificPaths(args: ComputeLibSSLSpecificPathsParam
     .with({ familyDistro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
-      return ['/lib']
+      return ['/lib', '/usr/lib']
     })
     .with({ familyDistro: 'debian' }, ({ archFromUname }) => {
       /* Linux Debian, Ubuntu, etc */
@@ -372,7 +372,7 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
     /**
      * Fall back to the rhel-specific paths (although `familyDistro` isn't detected as rhel) when the `ldconfig` command fails.
      */
-    libsslFilename = await findLibSSLInLocations(['/lib64', '/usr/lib64', '/lib'])
+    libsslFilename = await findLibSSLInLocations(['/lib64', '/usr/lib64', '/lib', '/usr/lib'])
   }
 
   if (libsslFilename) {

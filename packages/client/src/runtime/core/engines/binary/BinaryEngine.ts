@@ -7,7 +7,7 @@ import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
-import { blue, bold, green, red } from 'kleur/colors'
+import { bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
 import type { Readable } from 'stream'
 
@@ -127,36 +127,6 @@ export class BinaryEngine implements Engine<undefined> {
 
     initHooks()
 
-    // See also warnOnDeprecatedFeatureFlag at
-    // https://github.com/prisma/prisma/blob/9e5cc5bfb9ef0eb8251ab85a56302e835f607711/packages/sdk/src/engine-commands/getDmmf.ts#L179
-    const removedFlags = [
-      'middlewares',
-      'aggregateApi',
-      'distinct',
-      'aggregations',
-      'insensitiveFilters',
-      'atomicNumberOperations',
-      'transactionApi',
-      'transaction',
-      'connectOrCreate',
-      'uncheckedScalarInputs',
-      'nativeTypes',
-      'createMany',
-      'groupBy',
-      'referentialActions',
-      'microsoftSqlServer',
-    ]
-    const removedFlagsUsed = this.previewFeatures.filter((e) => removedFlags.includes(e))
-
-    if (removedFlagsUsed.length > 0 && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-      console.log(
-        `${blue(bold('info'))} The preview flags \`${removedFlagsUsed.join(
-          '`, `',
-        )}\` were removed, you can now safely remove them from your schema.prisma.`,
-      )
-    }
-
-    this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = config.engineEndpoint
 
     if (this.binaryTarget) {
