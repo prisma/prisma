@@ -52,11 +52,6 @@ class DynamicTracingHelper implements TracingHelper {
   }
 }
 
-export function getTracingHelper(previewFeatures: string[]): TracingHelper {
-  if (!previewFeatures.includes('tracing')) {
-    // no preview feature - tracing is disabled and can never be enabled
-    return disabledTracingHelper
-  }
-  // preview feature is enabled - tracing is enabled if PRISMA_INSTRUMENTATION global is set
+export function getTracingHelper(): TracingHelper {
   return new DynamicTracingHelper()
 }

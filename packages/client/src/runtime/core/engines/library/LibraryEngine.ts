@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, EngineTrace } from '@prisma/internals'
+import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -81,6 +81,7 @@ export class LibraryEngine implements Engine<undefined> {
   logLevel: QueryEngineLogLevel
   lastQuery?: string
   loggerRustPanic?: any
+  tracingHelper: TracingHelper
 
   versionInfo?: {
     commit: string
@@ -109,6 +110,7 @@ export class LibraryEngine implements Engine<undefined> {
     this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
+    this.tracingHelper = config.tracingHelper
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -147,11 +149,11 @@ export class LibraryEngine implements Engine<undefined> {
       try {
         return await fn(...args, requestId)
       } finally {
-        if (this.config.tracingHelper.isEnabled()) {
+        if (this.tracingHelper.isEnabled()) {
           const traceJson = await this.engine?.trace(requestId)
           if (traceJson) {
             const trace = JSON.parse(traceJson) as EngineTrace
-            this.config.tracingHelper.dispatchEngineSpans(trace.spans)
+            this.tracingHelper.dispatchEngineSpans(trace.spans)
           }
         }
       }
@@ -231,7 +233,7 @@ export class LibraryEngine implements Engine<undefined> {
 
     this.binaryTarget = await this.getCurrentBinaryTarget()
 
-    await this.config.tracingHelper.runInChildSpan('load_engine', () => this.loadEngine())
+    await this.tracingHelper.runInChildSpan('load_engine', () => this.loadEngine())
 
     this.version()
   }
@@ -239,7 +241,7 @@ export class LibraryEngine implements Engine<undefined> {
   private async getCurrentBinaryTarget() {
     if (TARGET_BUILD_TYPE === 'library') {
       if (this.binaryTarget) return this.binaryTarget
-      const binaryTarget = await this.config.tracingHelper.runInChildSpan('detect_platform', () =>
+      const binaryTarget = await this.tracingHelper.runInChildSpan('detect_platform', () =>
         getBinaryTargetForCurrentPlatform(),
       )
       if (!knownBinaryTargets.includes(binaryTarget)) {
@@ -306,6 +308,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             logLevel: this.logLevel,
             configDir: this.config.cwd,
             engineProtocol: 'json',
+            enableTracing: this.tracingHelper.isEnabled(),
           },
           (log) => {
             weakThis.deref()?.logger(log)
@@ -399,7 +402,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       try {
         const headers = {
-          traceparent: this.config.tracingHelper.getTraceParent(),
+          traceparent: this.tracingHelper.getTraceParent(),
         }
 
         await this.engine?.connect(JSON.stringify(headers))
@@ -422,7 +425,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
     }
 
-    this.libraryStartingPromise = this.config.tracingHelper.runInChildSpan('connect', startFn)
+    this.libraryStartingPromise = this.tracingHelper.runInChildSpan('connect', startFn)
 
     return this.libraryStartingPromise
   }
@@ -446,7 +449,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       debug('library stopping')
 
       const headers = {
-        traceparent: this.config.tracingHelper.getTraceParent(),
+        traceparent: this.tracingHelper.getTraceParent(),
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
@@ -457,7 +460,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       debug('library stopped')
     }
 
-    this.libraryStoppingPromise = this.config.tracingHelper.runInChildSpan('disconnect', stopFn)
+    this.libraryStoppingPromise = this.tracingHelper.runInChildSpan('disconnect', stopFn)
 
     return this.libraryStoppingPromise
   }
