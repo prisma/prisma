@@ -229,39 +229,42 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
       extensions.logs.forEach((log) => {
         switch (log.level) {
           case 'debug':
-          case 'error':
           case 'trace':
-          case 'warn':
-          case 'info':
-            // TODO these are propagated into the response.errors key
+            debug(log)
             break
+
+          case 'error':
+          case 'warn':
+          case 'info': {
+            this.logEmitter.emit(log.level, {
+              timestamp: dateFromEngineTimestamp(log.timestamp),
+              message: log.attributes.message ?? '',
+              target: log.target,
+            })
+            break
+          }
+
           case 'query': {
-            let dbQuery = typeof log.attributes.query === 'string' ? log.attributes.query : ''
-
-            if (!this.tracingHelper.isEnabled()) {
-              // The engine uses tracing to consolidate logs
-              //  - and so we should strip the generated traceparent
-              //  - if tracing is disabled.
-              // Example query: 'SELECT /* traceparent=00-123-0-01 */'
-              const [query] = dbQuery.split('/* traceparent')
-              dbQuery = query
-            }
-
             this.logEmitter.emit('query', {
-              query: dbQuery,
+              query: log.attributes.query ?? '',
               // first part is in seconds, second is in nanoseconds, we need to convert both to milliseconds
               timestamp: dateFromEngineTimestamp(log.timestamp),
-              duration: Number(log.attributes.duration_ms),
-              params: log.attributes.params,
-              target: log.attributes.target,
+              duration: log.attributes.duration_ms ?? 0,
+              params: log.attributes.params ?? '',
+              target: log.target,
             })
+
+            break
           }
+
+          default:
+            log.level satisfies never
         }
       })
     }
 
     if (extensions?.traces?.length) {
-      this.tracingHelper.createEngineSpan({ span: true, spans: extensions.traces })
+      this.tracingHelper.dispatchEngineSpans(extensions.traces)
     }
   }
 
