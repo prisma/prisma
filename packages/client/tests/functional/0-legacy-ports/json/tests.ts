@@ -147,7 +147,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlserver', 'sqlite'],
+      from: ['sqlserver'],
       reason: 'They do not support JSON',
     },
   },

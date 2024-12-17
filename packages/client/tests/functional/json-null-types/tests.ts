@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(
           Invalid \`prisma.requiredJsonField.create()\` invocation in
           /client/tests/functional/json-null-types/tests.ts:0:0
 
-            XX 
+            XX
             XX test('DbNull', async () => {
             XX   await expect(
           → XX     prisma.requiredJsonField.create({
@@ -86,9 +86,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlite', 'sqlserver', 'mongodb'],
+      from: ['sqlserver', 'mongodb'],
       reason: `
-        sqlite - connector does not support Json type
         sqlserver - connector does not support Json type
         mongodb - doesn't use DbNull/JsonNull
       `,
