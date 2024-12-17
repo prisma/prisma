@@ -13,16 +13,16 @@ export function getColumnTypes(columnNames: string[], rows: unknown[][]): Column
       const candidateValue = rows[rowIndex][columnIndex] as Value
       if (candidateValue !== null) {
         const inferred = inferColumnType(candidateValue)
-        // JSON is sometimes returned as plain values like numbers by D1. If we have multiple
-        // rows, we could end up inferring different types for the same column. In order to avoid
-        // that, we lift the column type to text if any of the rows contain a text value. The text
-        // value is then correctly handled in the query engine.
-        if (inferred === ColumnTypeEnum.Text) {
+        // JSON values that represent plain numbers are returned as JS numbers by D1.
+        // This can cause issues if different rows have differently shaped JSON, leading to
+        // different inferred types for the same column. To avoid this, we set the column
+        // type to text if any row contains a text value.
+        if (columnTypes[columnIndex] === undefined || inferred === ColumnTypeEnum.Text) {
           columnTypes[columnIndex] = inferred
-          // we can move on to the next column if we found a text value
+        }
+        if (inferred !== ColumnTypeEnum.UnknownNumber) {
+          // We can move on to the next column if we found a non-number.
           continue columnLoop
-        } else if (columnTypes[columnIndex] === undefined) {
-          columnTypes[columnIndex] = inferred
         }
       }
     }
@@ -85,7 +85,7 @@ function inferStringType(value: string): ColumnType {
 }
 
 function inferNumberType(_: number): ColumnType {
-  return ColumnTypeEnum.Double
+  return ColumnTypeEnum.UnknownNumber
 }
 
 function inferObjectType(value: Object): ColumnType {
