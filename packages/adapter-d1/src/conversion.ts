@@ -8,17 +8,29 @@ export function getColumnTypes(columnNames: string[], rows: unknown[][]): Column
   const columnTypes: (ColumnType | null)[] = []
 
   columnLoop: for (let columnIndex = 0; columnIndex < columnNames.length; columnIndex++) {
-    // No declared column type in db schema, infer using first non-null value
+    // No declared column type in db schema, try inferring it.
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       const candidateValue = rows[rowIndex][columnIndex] as Value
       if (candidateValue !== null) {
-        columnTypes[columnIndex] = inferColumnType(candidateValue)
-        continue columnLoop
+        const inferred = inferColumnType(candidateValue)
+        // JSON is sometimes returned as plain values like numbers by D1. If we have multiple
+        // rows, we could end up inferring different types for the same column. In order to avoid
+        // that, we lift the column type to text if any of the rows contain a text value. The text
+        // value is then correctly handled in the query engine.
+        if (inferred === ColumnTypeEnum.Text) {
+          columnTypes[columnIndex] = inferred
+          // we can move on to the next column if we found a text value
+          continue columnLoop
+        } else if (columnTypes[columnIndex] === undefined) {
+          columnTypes[columnIndex] = inferred
+        }
       }
     }
 
-    // No non-null value found for this column, fall back to int32 to mimic what quaint does
-    columnTypes[columnIndex] = ColumnTypeEnum.Int32
+    if (columnTypes[columnIndex] === undefined) {
+      // No non-null value found for this column, fall back to int32 to mimic what quaint does
+      columnTypes[columnIndex] = ColumnTypeEnum.Int32
+    }
   }
 
   return columnTypes as ColumnType[]
@@ -107,6 +119,11 @@ export function mapRow(result: unknown[], columnTypes: ColumnType[]): unknown[] 
       !Number.isInteger(value)
     ) {
       result[i] = Math.trunc(value)
+      continue
+    }
+
+    if (typeof value === 'number' && columnTypes[i] === ColumnTypeEnum.Text) {
+      result[i] = value.toString()
       continue
     }
 
