@@ -1,4 +1,4 @@
-FROM node:18 as base
+FROM node:22 as base
 
 FROM base as dependencies
 

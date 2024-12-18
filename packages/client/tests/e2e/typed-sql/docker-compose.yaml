@@ -7,7 +7,7 @@ services:
         condition: service_healthy
 
   postgres:
-    image: postgres:16
+    image: postgres:17
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
