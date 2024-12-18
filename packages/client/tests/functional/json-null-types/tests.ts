@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(
           Invalid \`prisma.requiredJsonField.create()\` invocation in
           /client/tests/functional/json-null-types/tests.ts:0:0
 
-            XX
+            XX 
             XX test('DbNull', async () => {
             XX   await expect(
           → XX     prisma.requiredJsonField.create({
