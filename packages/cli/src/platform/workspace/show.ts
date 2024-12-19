@@ -15,32 +15,42 @@ export class Show implements Command {
       ...platformParameters.global,
     })
     const token = await getTokenOrThrow(args)
-    const { me } = await requestOrThrow<{
-      me: {
-        workspaces: {
-          __typename: string
-          id: string
-          displayName: string
-          createdAt: string
-        }[]
-      }
-    }>({
-      token,
-      body: {
-        query: /* GraphQL */ `
-          query {
-            me {
-              __typename
-              workspaces {
-                id
-                displayName
-                createdAt
-              }
+    const userWorkspaces = await getUserWorkspaces({ token })
+
+    return messages.resourceList(userWorkspaces)
+  }
+}
+
+export const getUserWorkspaces = async (input: { token: string }) => {
+  const { token } = input
+  const { me } = await requestOrThrow<{
+    me: {
+      workspaces: {
+        __typename: string
+        id: string
+        displayName: string
+        createdAt: string
+        isDefault: boolean
+      }[]
+    }
+  }>({
+    token,
+    body: {
+      query: /* GraphQL */ `
+        query {
+          me {
+            __typename
+            workspaces {
+              id
+              displayName
+              createdAt
+              isDefault
             }
           }
-        `,
-      },
-    })
-    return messages.resourceList(me.workspaces)
-  }
+        }
+      `,
+    },
+  })
+
+  return me.workspaces
 }

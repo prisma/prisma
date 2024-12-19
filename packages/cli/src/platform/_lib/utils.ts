@@ -8,10 +8,12 @@ export const platformParameters = {
   global: {
     // TODO Remove this from global once we have a way for parents to strip out flags upon parsing.
     '--token': String,
+    '--json': Boolean,
   },
   workspace: {
     '--token': String,
     '--workspace': String,
+    '--json': Boolean,
     '-w': '--workspace',
   },
   project: {
@@ -62,4 +64,34 @@ export const generateConnectionString = (apiKey: string) => {
   const url = new URL(accelerateConnectionStringUrl)
   url.searchParams.set('api_key', apiKey)
   return bold(url.href)
+}
+
+export const poll = async <F extends () => Promise<R>, R>(
+  fn: F,
+  until: (res: R) => boolean,
+  waitMs: number,
+  timeoutMs: number,
+  message?: string,
+) => {
+  const endTime = new Date().getMilliseconds() + timeoutMs
+  const waitTime = new Date().getMilliseconds() + waitMs
+
+  const wait = () =>
+    new Promise((resolve) => {
+      setTimeout(resolve, waitMs)
+    })
+
+  let result = await fn()
+  while (!until(result)) {
+    console.log(result)
+    if (waitTime > endTime) {
+      throw new Error(`polling timed out after ${timeoutMs}ms`)
+    }
+    if (message) console.log(message)
+    result = await wait().then(fn)
+  }
+
+  if (isError(result)) throw result
+
+  return result
 }
