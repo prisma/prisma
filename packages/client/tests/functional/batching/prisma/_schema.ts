@@ -15,11 +15,21 @@ export default testMatrix.setupSchema(({ provider }) => {
   model User {
     id ${idForProvider(provider)}
     email String @unique
+    posts Post[]
+    comments Comment[]
   }
 
 
   model Post {
     id ${idForProvider(provider)}
+    authorId  String?
+    author    User?    @relation(fields: [authorId], references: [id])
+  }
+
+  model Comment {
+    id ${idForProvider(provider)}
+    authorId  String?
+    author    User?    @relation(fields: [authorId], references: [id])
   }
   `
 })
