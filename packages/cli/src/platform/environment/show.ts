@@ -67,22 +67,27 @@ export class Show implements Command {
 export const getEnvironment = async (input: { token: string; environmentId: string }) => {
   const { token, environmentId } = input
 
-  const { environment } = await requestOrThrow<{
-    environment: {
-      __typename: string
-      id: string
-      createdAt: string
-      displayName: string
-      ppg: {
-        status: string
-      }
-      accelerate: {
-        status: {
-          enabled: boolean
+  const { environment } = await requestOrThrow<
+    {
+      environment: {
+        __typename: string
+        id: string
+        createdAt: string
+        displayName: string
+        ppg: {
+          status: string
+        }
+        accelerate: {
+          status: {
+            enabled: boolean
+          }
         }
       }
+    },
+    {
+      id: string
     }
-  }>({
+  >({
     token,
     body: {
       query: /* GraphQL */ `

@@ -347,6 +347,7 @@ export class Init implements Command {
       const credentials = await credentialsFile.load()
       if (isError(credentials)) throw credentials
 
+      // TODO: Add interactive login/signup prompt
       if (!credentials) {
         const authenticationResult = await PlatformCommands.loginOrSignup()
         console.log(authenticationResult.message)
@@ -364,10 +365,10 @@ export class Init implements Command {
       console.log('Creating project and provisioning PPG...')
       const project = await PlatformCommands.Project.createProject({
         token: platformToken,
-        displayName: 'Prisma init',
+        displayName: 'Prisma init', // TODO: Add interactive name prompt
         workspaceId: defaultWorkspace.id,
         allowRemoteDatabases: false,
-        ppgRegion: 'us-east-1', // TODO: Add prompt
+        ppgRegion: 'us-east-1', // TODO: Add interactive region prompt
       })
       console.log(successMessage(`Project ${project.displayName} created`))
 
