@@ -23,9 +23,9 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlserver', 'sqlite', 'mongodb'],
+      from: ['sqlserver', 'mongodb'],
       reason: `
-        sqlserver, sqlite - JSON column is not supported
+        sqlserver JSON column is not supported
         mongodb - DbNull is not supported
       `,
     },
