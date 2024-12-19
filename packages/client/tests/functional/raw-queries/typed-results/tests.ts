@@ -111,7 +111,12 @@ testMatrix.setupTestSuite(
       })
 
       const result = await getAllEntries()
-      expect(result![0].bInt === BigInt('9007199254740991')).toBe(true)
+
+      if (driverAdapter === 'js_d1') {
+        expect(result![0].bInt == 9007199254740991).toBe(true)
+      } else {
+        expect(result![0].bInt === BigInt('9007199254740991')).toBe(true)
+      }
     })
 
     test('query model with a BigInt = -MAX_SAFE_INTEGER', async () => {
@@ -122,7 +127,14 @@ testMatrix.setupTestSuite(
       })
 
       const result = await getAllEntries()
-      expect(result![0].bInt === BigInt('-9007199254740991')).toBe(true)
+
+      if (driverAdapter === 'js_d1') {
+        // It's a number
+        expect(result![0].bInt == -9007199254740991).toBe(true)
+      } else {
+        // It's a bigint
+        expect(result![0].bInt === BigInt('-9007199254740991')).toBe(true)
+      }
     })
 
     describe('when BigInt value is not a safe integer', () => {
