@@ -7,7 +7,7 @@ services:
         condition: service_healthy
 
   mongo:
-    image: mongo:7.0
+    image: mongo:8.0
     command: ['--replSet', 'rs0', '--bind_ip_all', '--port', '27017', '--setParameter', 'notablescan=1']
     healthcheck:
       test: 'mongosh --port 27017 --eval "try { rs.status() } catch (err) { rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"localhost:27017\"}]}); throw err; }"'
