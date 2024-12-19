@@ -83,7 +83,6 @@ export const poll = async <F extends () => Promise<R>, R>(
 
   let result = await fn()
   while (!until(result)) {
-    console.log(result)
     if (waitTime > endTime) {
       throw new Error(`polling timed out after ${timeoutMs}ms`)
     }
