@@ -77,3 +77,55 @@ export class Create implements Command {
     return messages.sections([messages.resourceCreated(resource), messages.info(serviceTokenCreate.value)])
   }
 }
+
+export const create = async (input: { environmentId: string; displayName: string; token: string }) => {
+  const { environmentId, displayName, token } = input
+  const { serviceTokenCreate } = await requestOrThrow<
+    {
+      serviceTokenCreate: {
+        value: string
+        serviceToken: {
+          __typename: string
+          id: string
+          createdAt: string
+          displayName: string
+        }
+      }
+    },
+    {
+      displayName?: string
+      environmentId?: string
+    }
+  >({
+    token,
+    body: {
+      query: /* GraphQL */ `
+        mutation ($input: MutationServiceTokenCreateInput!) {
+          serviceTokenCreate(input: $input) {
+            __typename
+            ... on Error {
+              message
+            }
+            ... on ServiceTokenWithValue {
+              value
+              serviceToken {
+                __typename
+                id
+                createdAt
+                displayName
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        input: {
+          displayName,
+          environmentId,
+        },
+      },
+    },
+  })
+
+  return serviceTokenCreate
+}
