@@ -42,7 +42,8 @@
         "edge-light": "./default.js",
         "workerd": "./default.js",
         "worker": "./default.js",
-        "browser": "./index-browser.js"
+        "browser": "./index-browser.js",
+        "default": "./default.js"
       },
       "import": {
         "types": "./default.d.ts",
@@ -50,7 +51,8 @@
         "edge-light": "./default.js",
         "workerd": "./default.js",
         "worker": "./default.js",
-        "browser": "./index-browser.js"
+        "browser": "./index-browser.js",
+        "default": "./default.js"
       },
       "default": "./default.js"
     },
