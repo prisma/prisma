@@ -11,6 +11,9 @@ import { BinaryType } from './BinaryType'
 const debug = Debug('prisma:fetch-engine:cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {
+  if (process.env.PRISMA_DOWNLOAD_CACHE_DIR) {
+    return process.env.PRISMA_DOWNLOAD_CACHE_DIR
+  }
   if (os.platform() === 'win32') {
     const cacheDir = findCacheDir({ name: 'prisma', create: true })
     if (cacheDir) {
@@ -90,7 +93,7 @@ export async function overwriteFile(sourcePath: string, targetPath: string) {
     await removeFileIfExists(targetPath)
     await fs.promises.copyFile(sourcePath, targetPath)
   } else {
-    let tempPath = `${targetPath}.tmp${process.pid}`
+    const tempPath = `${targetPath}.tmp${process.pid}`
     await fs.promises.copyFile(sourcePath, tempPath)
     await fs.promises.rename(tempPath, targetPath)
   }
