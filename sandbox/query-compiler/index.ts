@@ -44,6 +44,14 @@ async function main() {
     }),
   )
 
+  const nestedQuery = prisma.user.findMany({
+    include: {
+      posts: true
+    }
+  })
+
+  console.log(await prisma.$debugQueryPlan(nestedQuery))
+
   // --------------
   // timings
   // --------------

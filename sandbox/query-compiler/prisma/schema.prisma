@@ -13,7 +13,7 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   createdAt DateTime @default(now())
-  Post      Post[]
+  posts     Post[]
 }
 
 model Post {
