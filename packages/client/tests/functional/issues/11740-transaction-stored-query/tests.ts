@@ -30,8 +30,8 @@ testMatrix.setupTestSuite(
       })
 
       const fn = async () => {
-        await (query as any).requestTransaction({ kind: 'batch', lock: Promise.resolve() })
-        await (query as any).requestTransaction({ kind: 'batch', lock: Promise.resolve() })
+        await (query as any).requestTransaction({ kind: 'batch', lock: Promise.resolve(), id: 'tx-0', index: 0 })
+        await (query as any).requestTransaction({ kind: 'batch', lock: Promise.resolve(), id: 'tx-1', index: 1 })
       }
 
       await expect(fn()).rejects.toMatchPrismaErrorSnapshot()
