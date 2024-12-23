@@ -144,6 +144,7 @@ export class LibraryEngine implements Engine<undefined> {
       sdlSchema: engine.sdlSchema?.bind(engine),
       startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
       trace: engine.trace.bind(engine),
+      compile: engine.compile.bind(engine),
     }
   }
 

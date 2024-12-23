@@ -66,7 +66,7 @@ export type EngineProtocol = 'graphql' | 'json'
  * `__internalParams.customDataProxyFetch` to its own type anyway (probably for
  * exactly this reason), our definition is never actually used and is completely
  * ignored, so it doesn't matter, and we can just use `unknown` as the type of
- * `fetch` here. 
+ * `fetch` here.
  */
 export type CustomDataProxyFetch = (fetch: unknown) => unknown
 
@@ -90,75 +90,6 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
 
 export type BatchQueryEngineResult<T> = QueryEngineResultData<T> | Error
 
-export type QueryPlanBinding = {
-  name: string
-  expr: QueryPlanNode
-}
-
-export type QueryPlanDbQuery = {
-  query: string
-  params: PrismaValue[]
-}
-
-export type PrismaValue =
-  | string
-  | boolean
-  | number
-  | PrismaValue[]
-  | null
-  | Record<string, unknown>
-  | { prisma__type: 'param'; prisma__value: { name: string; type: string } }
-
-export type QueryPlanNode =
-  | {
-      type: 'Seq'
-      args: QueryPlanNode[]
-    }
-  | {
-      type: 'Get'
-      args: {
-        name: string
-      }
-    }
-  | {
-      type: 'Let'
-      args: {
-        expr: QueryPlanNode
-      }
-    }
-  | {
-      type: 'GetFirstNonEmpty'
-      args: {
-        names: string[]
-      }
-    }
-  | {
-      type: 'Query'
-      args: QueryPlanDbQuery
-    }
-  | {
-      type: 'Execute'
-      args: QueryPlanDbQuery
-    }
-  | {
-      type: 'Sum'
-      args: QueryPlanNode[]
-    }
-  | {
-      type: 'Concat'
-      args: QueryPlanNode[]
-    }
-
-export type QueryPlanBinding = {
-  name: string
-  expr: QueryPlanNode
-}
-
-export type QueryPlanDbQuery = {
-  query: string
-  params: PrismaValue[]
-}
-
 export type PrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
 
 export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePlaceholder {
@@ -173,6 +104,16 @@ export type PrismaValue =
   | null
   | Record<string, unknown>
   | PrismaValuePlaceholder
+
+export type QueryPlanBinding = {
+  name: string
+  expr: QueryPlanNode
+}
+
+export type QueryPlanDbQuery = {
+  query: string
+  params: PrismaValue[]
+}
 
 export type QueryPlanNode =
   | {
