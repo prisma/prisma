@@ -160,9 +160,9 @@ function placeholderTypeToArgType(type: string): ArgType {
     Object: 'Json',
     Bytes: 'Bytes',
     Array: 'Array',
-  }
+  } satisfies Record<string, ArgType>
 
-  const mappedType = typeMap[type]
+  const mappedType = typeMap[type] as ArgType | undefined
 
   if (!mappedType) {
     throw new Error(`Unknown placeholder type: ${type}`)
