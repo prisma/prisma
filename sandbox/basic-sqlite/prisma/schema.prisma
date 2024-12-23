@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../node_modules/.prisma/client"
-  previewFeatures = ["driverAdapters"]
+  previewFeatures = []
 }
 
 datasource db {
@@ -9,16 +9,23 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-model User {
-  id    Int    @id @default(autoincrement())
-  email String @unique
+model Link {
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
-  Post  Post[]
+  updatedAt DateTime @updatedAt
+  url       String
+  shortUrl  String
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
 }
 
-model Post {
-  id     Int    @id @default(autoincrement())
-  title  String
-  userId Int
-  user   User   @relation(fields: [userId], references: [id])
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String?
+  email     String   @unique
+  links     Link[]
+  date      DateTime?
+  decimal   Decimal?
 }
