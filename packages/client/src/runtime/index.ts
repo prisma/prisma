@@ -22,6 +22,7 @@ export {
   type Metrics,
   MetricsClient,
 } from './core/metrics/MetricsClient'
+export { createParam } from './core/model/Param'
 export { dmmfToRuntimeDataModel, type RuntimeDataModel } from './core/runtimeDataModel'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'

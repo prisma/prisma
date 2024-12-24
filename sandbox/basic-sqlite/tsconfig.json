@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "./**/*"
+  ],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "types": [
+      "node_modules/@types/**",
+      "./types.d.ts",
+    ]
+  }
+}
