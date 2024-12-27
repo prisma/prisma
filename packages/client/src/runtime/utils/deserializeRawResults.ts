@@ -13,6 +13,9 @@ function deserializeValue(type: QueryIntrospectionBuiltinType, value: unknown): 
   }
 
   switch (type) {
+    case 'int':
+      return Number(value as string)
+
     case 'bigint':
       return BigInt(value as string)
 
@@ -31,6 +34,8 @@ function deserializeValue(type: QueryIntrospectionBuiltinType, value: unknown): 
     case 'time':
       return new Date(`1970-01-01T${value}Z`)
 
+    case 'int-array':
+      return (value as unknown[]).map((v: unknown) => deserializeValue('int', v))
     case 'bigint-array':
       return (value as unknown[]).map((v: unknown) => deserializeValue('bigint', v))
     case 'bytes-array':
