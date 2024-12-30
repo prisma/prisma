@@ -181,7 +181,6 @@ const dmmf: DMMF.Document = {
         plural: 'users',
         update: 'updateOneUser',
         updateMany: 'updateManyUser',
-        updateManyAndReturn: 'updateManyUserAndReturn',
         upsert: 'upsertOneUser',
       },
     ],
