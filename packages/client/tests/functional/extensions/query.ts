@@ -1556,6 +1556,20 @@ testMatrix.setupTestSuite(
 
                   return data
                 }
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                if (operation === 'updateManyAndReturn') {
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  const data = await query(args)
+
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                  expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
+
+                  return data
+                }
                 if (operation === 'upsert') {
                   const data = await query(args)
 
