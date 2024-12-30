@@ -1738,6 +1738,7 @@ testMatrix.setupTestSuite(
 
                   return data
                 }
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
                 if (model === 'User' && operation === 'updateManyAndReturn') {
                   // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
                   const data = await query(args)
