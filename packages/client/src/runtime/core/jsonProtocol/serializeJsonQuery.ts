@@ -44,6 +44,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   createManyAndReturn: 'createManyAndReturn',
   update: 'updateOne',
   updateMany: 'updateMany',
+  updateManyAndReturn: 'updateManyAndReturn',
   upsert: 'upsertOne',
   delete: 'deleteOne',
   deleteMany: 'deleteMany',

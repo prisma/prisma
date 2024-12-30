@@ -477,7 +477,7 @@ export const ABeautifulEnum: typeof $Enums.ABeautifulEnum
 
 /**
  * ##  Prisma Client ʲˢ
- * 
+ *
  * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
@@ -486,7 +486,7 @@ export const ABeautifulEnum: typeof $Enums.ABeautifulEnum
  * const posts = await prisma.post.findMany()
  * \`\`\`
  *
- * 
+ *
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */
 export class PrismaClient<
@@ -498,7 +498,7 @@ export class PrismaClient<
 
     /**
    * ##  Prisma Client ʲˢ
-   * 
+   *
    * Type-safe database client for TypeScript & Node.js
    * @example
    * \`\`\`
@@ -507,7 +507,7 @@ export class PrismaClient<
    * const posts = await prisma.post.findMany()
    * \`\`\`
    *
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
    */
 
@@ -537,7 +537,7 @@ export class PrismaClient<
    * \`\`\`
    * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
@@ -549,7 +549,7 @@ export class PrismaClient<
    * \`\`\`
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
@@ -560,7 +560,7 @@ export class PrismaClient<
    * \`\`\`
    * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
@@ -572,7 +572,7 @@ export class PrismaClient<
    * \`\`\`
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
@@ -1251,6 +1251,10 @@ export namespace Prisma {
             args: Prisma.PostUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.PostUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PostPayload>[]
+          }
           upsert: {
             args: Prisma.PostUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$PostPayload>
@@ -1320,6 +1324,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.UserUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPayload>[]
           }
           upsert: {
             args: Prisma.UserUpsertArgs<ExtArgs>
@@ -1391,6 +1399,10 @@ export namespace Prisma {
             args: Prisma.MUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.MUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MPayload>[]
+          }
           upsert: {
             args: Prisma.MUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$MPayload>
@@ -1460,6 +1472,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.NUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.NUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NPayload>[]
           }
           upsert: {
             args: Prisma.NUpsertArgs<ExtArgs>
@@ -1531,6 +1547,10 @@ export namespace Prisma {
             args: Prisma.OneOptionalUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.OneOptionalUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>[]
+          }
           upsert: {
             args: Prisma.OneOptionalUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OneOptionalPayload>
@@ -1600,6 +1620,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.ManyRequiredUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ManyRequiredUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ManyRequiredPayload>[]
           }
           upsert: {
             args: Prisma.ManyRequiredUpsertArgs<ExtArgs>
@@ -1671,6 +1695,10 @@ export namespace Prisma {
             args: Prisma.OptionalSide1UpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.OptionalSide1UpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>[]
+          }
           upsert: {
             args: Prisma.OptionalSide1UpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$OptionalSide1Payload>
@@ -1740,6 +1768,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.OptionalSide2UpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.OptionalSide2UpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OptionalSide2Payload>[]
           }
           upsert: {
             args: Prisma.OptionalSide2UpsertArgs<ExtArgs>
@@ -1811,6 +1843,10 @@ export namespace Prisma {
             args: Prisma.AUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.AUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$APayload>[]
+          }
           upsert: {
             args: Prisma.AUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$APayload>
@@ -1880,6 +1916,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.BUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BPayload>[]
           }
           upsert: {
             args: Prisma.BUpsertArgs<ExtArgs>
@@ -1951,6 +1991,10 @@ export namespace Prisma {
             args: Prisma.CUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.CUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CPayload>[]
+          }
           upsert: {
             args: Prisma.CUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$CPayload>
@@ -2021,6 +2065,10 @@ export namespace Prisma {
             args: Prisma.DUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
+          updateManyAndReturn: {
+            args: Prisma.DUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DPayload>[]
+          }
           upsert: {
             args: Prisma.DUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$DPayload>
@@ -2090,6 +2138,10 @@ export namespace Prisma {
           updateMany: {
             args: Prisma.EUpdateManyArgs<ExtArgs>
             result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.EUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EPayload>[]
           }
           upsert: {
             args: Prisma.EUpsertArgs<ExtArgs>
@@ -2218,6 +2270,7 @@ export namespace Prisma {
     | 'createManyAndReturn'
     | 'update'
     | 'updateMany'
+    | 'updateManyAndReturn'
     | 'upsert'
     | 'delete'
     | 'deleteMany'
@@ -2616,6 +2669,16 @@ export namespace Prisma {
     author?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["post"]>
 
+  export type PostSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    title?: boolean
+    content?: boolean
+    published?: boolean
+    authorId?: boolean
+    author?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["post"]>
+
   export type PostSelectScalar = {
     id?: boolean
     createdAt?: boolean
@@ -2629,6 +2692,9 @@ export namespace Prisma {
     author?: boolean | UserDefaultArgs<ExtArgs>
   }
   export type PostIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    author?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type PostIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     author?: boolean | UserDefaultArgs<ExtArgs>
   }
 
@@ -2650,7 +2716,7 @@ export namespace Prisma {
 
   type PostGetPayload<S extends boolean | null | undefined | PostDefaultArgs> = $Result.GetResult<Prisma.$PostPayload, S>
 
-  type PostCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type PostCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<PostFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: PostCountAggregateInputType | true
     }
@@ -2671,7 +2737,7 @@ export namespace Prisma {
     findUnique<T extends PostFindUniqueArgs>(args: SelectSubset<T, PostFindUniqueArgs<ExtArgs>>): Prisma__PostClient<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one Post that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one Post that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {PostFindUniqueOrThrowArgs} args - Arguments to find a Post
      * @example
@@ -2773,7 +2839,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Posts and only return the \`id\`
-     * const postWithIdOnly = await prisma.post.createManyAndReturn({ 
+     * const postWithIdOnly = await prisma.post.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -2848,6 +2914,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends PostUpdateManyArgs>(args: SelectSubset<T, PostUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Posts and returns the data updated in the database.
+     * @param {PostUpdateManyAndReturnArgs} args - Arguments to update many Posts.
+     * @example
+     * // Update many Posts
+     * const post = await prisma.post.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Posts and only return the \`id\`
+     * const postWithIdOnly = await prisma.post.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PostUpdateManyAndReturnArgs>(args: SelectSubset<T, PostUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one Post.
@@ -3308,6 +3404,28 @@ export namespace Prisma {
   }
 
   /**
+   * Post updateManyAndReturn
+   */
+  export type PostUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Post
+     */
+    select?: PostSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update Posts.
+     */
+    data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyInput>
+    /**
+     * Filter which Posts to update
+     */
+    where?: PostWhereInput
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PostIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
    * Post upsert
    */
   export type PostUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3675,6 +3793,23 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }, ExtArgs["result"]["user"]>
 
+  export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    int?: boolean
+    optionalInt?: boolean
+    float?: boolean
+    optionalFloat?: boolean
+    string?: boolean
+    optionalString?: boolean
+    json?: boolean
+    optionalJson?: boolean
+    enum?: boolean
+    optionalEnum?: boolean
+    boolean?: boolean
+    optionalBoolean?: boolean
+  }, ExtArgs["result"]["user"]>
+
   export type UserSelectScalar = {
     id?: boolean
     email?: boolean
@@ -3697,6 +3832,7 @@ export namespace Prisma {
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type UserIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
@@ -3724,7 +3860,7 @@ export namespace Prisma {
 
   type UserGetPayload<S extends boolean | null | undefined | UserDefaultArgs> = $Result.GetResult<Prisma.$UserPayload, S>
 
-  type UserCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type UserCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<UserFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: UserCountAggregateInputType | true
     }
@@ -3745,7 +3881,7 @@ export namespace Prisma {
     findUnique<T extends UserFindUniqueArgs>(args: SelectSubset<T, UserFindUniqueArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one User that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one User that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
      * @example
@@ -3847,7 +3983,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Users and only return the \`id\`
-     * const userWithIdOnly = await prisma.user.createManyAndReturn({ 
+     * const userWithIdOnly = await prisma.user.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -3922,6 +4058,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends UserUpdateManyArgs>(args: SelectSubset<T, UserUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Users and returns the data updated in the database.
+     * @param {UserUpdateManyAndReturnArgs} args - Arguments to update many Users.
+     * @example
+     * // Update many Users
+     * const user = await prisma.user.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Users and only return the \`id\`
+     * const userWithIdOnly = await prisma.user.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserUpdateManyAndReturnArgs>(args: SelectSubset<T, UserUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one User.
@@ -4386,6 +4552,24 @@ export namespace Prisma {
   }
 
   /**
+   * User updateManyAndReturn
+   */
+  export type UserUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update Users.
+     */
+    data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyInput>
+    /**
+     * Filter which Users to update
+     */
+    where?: UserWhereInput
+  }
+
+  /**
    * User upsert
    */
   export type UserUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4764,6 +4948,22 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }, ExtArgs["result"]["m"]>
 
+  export type MSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    int?: boolean
+    optionalInt?: boolean
+    float?: boolean
+    optionalFloat?: boolean
+    string?: boolean
+    optionalString?: boolean
+    json?: boolean
+    optionalJson?: boolean
+    enum?: boolean
+    optionalEnum?: boolean
+    boolean?: boolean
+    optionalBoolean?: boolean
+  }, ExtArgs["result"]["m"]>
+
   export type MSelectScalar = {
     id?: boolean
     int?: boolean
@@ -4785,6 +4985,7 @@ export namespace Prisma {
     _count?: boolean | MCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type MIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type MIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $MPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "M"
@@ -4811,7 +5012,7 @@ export namespace Prisma {
 
   type MGetPayload<S extends boolean | null | undefined | MDefaultArgs> = $Result.GetResult<Prisma.$MPayload, S>
 
-  type MCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type MCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<MFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: MCountAggregateInputType | true
     }
@@ -4832,7 +5033,7 @@ export namespace Prisma {
     findUnique<T extends MFindUniqueArgs>(args: SelectSubset<T, MFindUniqueArgs<ExtArgs>>): Prisma__MClient<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one M that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one M that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {MFindUniqueOrThrowArgs} args - Arguments to find a M
      * @example
@@ -4934,7 +5135,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Ms and only return the \`id\`
-     * const mWithIdOnly = await prisma.m.createManyAndReturn({ 
+     * const mWithIdOnly = await prisma.m.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -5009,6 +5210,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends MUpdateManyArgs>(args: SelectSubset<T, MUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Ms and returns the data updated in the database.
+     * @param {MUpdateManyAndReturnArgs} args - Arguments to update many Ms.
+     * @example
+     * // Update many Ms
+     * const m = await prisma.m.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Ms and only return the \`id\`
+     * const mWithIdOnly = await prisma.m.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MUpdateManyAndReturnArgs>(args: SelectSubset<T, MUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one M.
@@ -5472,6 +5703,24 @@ export namespace Prisma {
   }
 
   /**
+   * M updateManyAndReturn
+   */
+  export type MUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the M
+     */
+    select?: MSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update MS.
+     */
+    data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyInput>
+    /**
+     * Filter which MS to update
+     */
+    where?: MWhereInput
+  }
+
+  /**
    * M upsert
    */
   export type MUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5850,6 +6099,22 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }, ExtArgs["result"]["n"]>
 
+  export type NSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    int?: boolean
+    optionalInt?: boolean
+    float?: boolean
+    optionalFloat?: boolean
+    string?: boolean
+    optionalString?: boolean
+    json?: boolean
+    optionalJson?: boolean
+    enum?: boolean
+    optionalEnum?: boolean
+    boolean?: boolean
+    optionalBoolean?: boolean
+  }, ExtArgs["result"]["n"]>
+
   export type NSelectScalar = {
     id?: boolean
     int?: boolean
@@ -5871,6 +6136,7 @@ export namespace Prisma {
     _count?: boolean | NCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type NIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type NIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $NPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "N"
@@ -5897,7 +6163,7 @@ export namespace Prisma {
 
   type NGetPayload<S extends boolean | null | undefined | NDefaultArgs> = $Result.GetResult<Prisma.$NPayload, S>
 
-  type NCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type NCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<NFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: NCountAggregateInputType | true
     }
@@ -5918,7 +6184,7 @@ export namespace Prisma {
     findUnique<T extends NFindUniqueArgs>(args: SelectSubset<T, NFindUniqueArgs<ExtArgs>>): Prisma__NClient<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one N that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one N that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {NFindUniqueOrThrowArgs} args - Arguments to find a N
      * @example
@@ -6020,7 +6286,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Ns and only return the \`id\`
-     * const nWithIdOnly = await prisma.n.createManyAndReturn({ 
+     * const nWithIdOnly = await prisma.n.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -6095,6 +6361,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends NUpdateManyArgs>(args: SelectSubset<T, NUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Ns and returns the data updated in the database.
+     * @param {NUpdateManyAndReturnArgs} args - Arguments to update many Ns.
+     * @example
+     * // Update many Ns
+     * const n = await prisma.n.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Ns and only return the \`id\`
+     * const nWithIdOnly = await prisma.n.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends NUpdateManyAndReturnArgs>(args: SelectSubset<T, NUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one N.
@@ -6558,6 +6854,24 @@ export namespace Prisma {
   }
 
   /**
+   * N updateManyAndReturn
+   */
+  export type NUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the N
+     */
+    select?: NSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update NS.
+     */
+    data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyInput>
+    /**
+     * Filter which NS to update
+     */
+    where?: NWhereInput
+  }
+
+  /**
    * N upsert
    */
   export type NUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6936,6 +7250,22 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }, ExtArgs["result"]["oneOptional"]>
 
+  export type OneOptionalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    int?: boolean
+    optionalInt?: boolean
+    float?: boolean
+    optionalFloat?: boolean
+    string?: boolean
+    optionalString?: boolean
+    json?: boolean
+    optionalJson?: boolean
+    enum?: boolean
+    optionalEnum?: boolean
+    boolean?: boolean
+    optionalBoolean?: boolean
+  }, ExtArgs["result"]["oneOptional"]>
+
   export type OneOptionalSelectScalar = {
     id?: boolean
     int?: boolean
@@ -6957,6 +7287,7 @@ export namespace Prisma {
     _count?: boolean | OneOptionalCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OneOptionalIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type OneOptionalIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $OneOptionalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "OneOptional"
@@ -6983,7 +7314,7 @@ export namespace Prisma {
 
   type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalDefaultArgs> = $Result.GetResult<Prisma.$OneOptionalPayload, S>
 
-  type OneOptionalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type OneOptionalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<OneOptionalFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OneOptionalCountAggregateInputType | true
     }
@@ -7004,7 +7335,7 @@ export namespace Prisma {
     findUnique<T extends OneOptionalFindUniqueArgs>(args: SelectSubset<T, OneOptionalFindUniqueArgs<ExtArgs>>): Prisma__OneOptionalClient<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one OneOptional that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one OneOptional that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {OneOptionalFindUniqueOrThrowArgs} args - Arguments to find a OneOptional
      * @example
@@ -7106,7 +7437,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many OneOptionals and only return the \`id\`
-     * const oneOptionalWithIdOnly = await prisma.oneOptional.createManyAndReturn({ 
+     * const oneOptionalWithIdOnly = await prisma.oneOptional.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -7181,6 +7512,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends OneOptionalUpdateManyArgs>(args: SelectSubset<T, OneOptionalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OneOptionals and returns the data updated in the database.
+     * @param {OneOptionalUpdateManyAndReturnArgs} args - Arguments to update many OneOptionals.
+     * @example
+     * // Update many OneOptionals
+     * const oneOptional = await prisma.oneOptional.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more OneOptionals and only return the \`id\`
+     * const oneOptionalWithIdOnly = await prisma.oneOptional.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends OneOptionalUpdateManyAndReturnArgs>(args: SelectSubset<T, OneOptionalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one OneOptional.
@@ -7644,6 +8005,24 @@ export namespace Prisma {
   }
 
   /**
+   * OneOptional updateManyAndReturn
+   */
+  export type OneOptionalUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OneOptional
+     */
+    select?: OneOptionalSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update OneOptionals.
+     */
+    data: XOR<OneOptionalUpdateManyMutationInput, OneOptionalUncheckedUpdateManyInput>
+    /**
+     * Filter which OneOptionals to update
+     */
+    where?: OneOptionalWhereInput
+  }
+
+  /**
    * OneOptional upsert
    */
   export type OneOptionalUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8035,6 +8414,24 @@ export namespace Prisma {
     one?: boolean | ManyRequired$oneArgs<ExtArgs>
   }, ExtArgs["result"]["manyRequired"]>
 
+  export type ManyRequiredSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    oneOptionalId?: boolean
+    int?: boolean
+    optionalInt?: boolean
+    float?: boolean
+    optionalFloat?: boolean
+    string?: boolean
+    optionalString?: boolean
+    json?: boolean
+    optionalJson?: boolean
+    enum?: boolean
+    optionalEnum?: boolean
+    boolean?: boolean
+    optionalBoolean?: boolean
+    one?: boolean | ManyRequired$oneArgs<ExtArgs>
+  }, ExtArgs["result"]["manyRequired"]>
+
   export type ManyRequiredSelectScalar = {
     id?: boolean
     oneOptionalId?: boolean
@@ -8056,6 +8453,9 @@ export namespace Prisma {
     one?: boolean | ManyRequired$oneArgs<ExtArgs>
   }
   export type ManyRequiredIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    one?: boolean | ManyRequired$oneArgs<ExtArgs>
+  }
+  export type ManyRequiredIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     one?: boolean | ManyRequired$oneArgs<ExtArgs>
   }
 
@@ -8085,7 +8485,7 @@ export namespace Prisma {
 
   type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredDefaultArgs> = $Result.GetResult<Prisma.$ManyRequiredPayload, S>
 
-  type ManyRequiredCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type ManyRequiredCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<ManyRequiredFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ManyRequiredCountAggregateInputType | true
     }
@@ -8106,7 +8506,7 @@ export namespace Prisma {
     findUnique<T extends ManyRequiredFindUniqueArgs>(args: SelectSubset<T, ManyRequiredFindUniqueArgs<ExtArgs>>): Prisma__ManyRequiredClient<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one ManyRequired that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one ManyRequired that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {ManyRequiredFindUniqueOrThrowArgs} args - Arguments to find a ManyRequired
      * @example
@@ -8208,7 +8608,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many ManyRequireds and only return the \`id\`
-     * const manyRequiredWithIdOnly = await prisma.manyRequired.createManyAndReturn({ 
+     * const manyRequiredWithIdOnly = await prisma.manyRequired.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -8283,6 +8683,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends ManyRequiredUpdateManyArgs>(args: SelectSubset<T, ManyRequiredUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ManyRequireds and returns the data updated in the database.
+     * @param {ManyRequiredUpdateManyAndReturnArgs} args - Arguments to update many ManyRequireds.
+     * @example
+     * // Update many ManyRequireds
+     * const manyRequired = await prisma.manyRequired.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ManyRequireds and only return the \`id\`
+     * const manyRequiredWithIdOnly = await prisma.manyRequired.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ManyRequiredUpdateManyAndReturnArgs>(args: SelectSubset<T, ManyRequiredUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one ManyRequired.
@@ -8751,6 +9181,28 @@ export namespace Prisma {
   }
 
   /**
+   * ManyRequired updateManyAndReturn
+   */
+  export type ManyRequiredUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ManyRequired
+     */
+    select?: ManyRequiredSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update ManyRequireds.
+     */
+    data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyInput>
+    /**
+     * Filter which ManyRequireds to update
+     */
+    where?: ManyRequiredWhereInput
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ManyRequiredIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
    * ManyRequired upsert
    */
   export type ManyRequiredUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9137,6 +9589,24 @@ export namespace Prisma {
     opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
   }, ExtArgs["result"]["optionalSide1"]>
 
+  export type OptionalSide1SelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    optionalSide2Id?: boolean
+    int?: boolean
+    optionalInt?: boolean
+    float?: boolean
+    optionalFloat?: boolean
+    string?: boolean
+    optionalString?: boolean
+    json?: boolean
+    optionalJson?: boolean
+    enum?: boolean
+    optionalEnum?: boolean
+    boolean?: boolean
+    optionalBoolean?: boolean
+    opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
+  }, ExtArgs["result"]["optionalSide1"]>
+
   export type OptionalSide1SelectScalar = {
     id?: boolean
     optionalSide2Id?: boolean
@@ -9158,6 +9628,9 @@ export namespace Prisma {
     opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
   }
   export type OptionalSide1IncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
+  }
+  export type OptionalSide1IncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
   }
 
@@ -9187,7 +9660,7 @@ export namespace Prisma {
 
   type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1DefaultArgs> = $Result.GetResult<Prisma.$OptionalSide1Payload, S>
 
-  type OptionalSide1CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type OptionalSide1CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<OptionalSide1FindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OptionalSide1CountAggregateInputType | true
     }
@@ -9208,7 +9681,7 @@ export namespace Prisma {
     findUnique<T extends OptionalSide1FindUniqueArgs>(args: SelectSubset<T, OptionalSide1FindUniqueArgs<ExtArgs>>): Prisma__OptionalSide1Client<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one OptionalSide1 that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one OptionalSide1 that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {OptionalSide1FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide1
      * @example
@@ -9310,7 +9783,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many OptionalSide1s and only return the \`id\`
-     * const optionalSide1WithIdOnly = await prisma.optionalSide1.createManyAndReturn({ 
+     * const optionalSide1WithIdOnly = await prisma.optionalSide1.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -9385,6 +9858,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends OptionalSide1UpdateManyArgs>(args: SelectSubset<T, OptionalSide1UpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OptionalSide1s and returns the data updated in the database.
+     * @param {OptionalSide1UpdateManyAndReturnArgs} args - Arguments to update many OptionalSide1s.
+     * @example
+     * // Update many OptionalSide1s
+     * const optionalSide1 = await prisma.optionalSide1.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more OptionalSide1s and only return the \`id\`
+     * const optionalSide1WithIdOnly = await prisma.optionalSide1.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends OptionalSide1UpdateManyAndReturnArgs>(args: SelectSubset<T, OptionalSide1UpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one OptionalSide1.
@@ -9853,6 +10356,28 @@ export namespace Prisma {
   }
 
   /**
+   * OptionalSide1 updateManyAndReturn
+   */
+  export type OptionalSide1UpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OptionalSide1
+     */
+    select?: OptionalSide1SelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update OptionalSide1s.
+     */
+    data: XOR<OptionalSide1UpdateManyMutationInput, OptionalSide1UncheckedUpdateManyInput>
+    /**
+     * Filter which OptionalSide1s to update
+     */
+    where?: OptionalSide1WhereInput
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OptionalSide1IncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
    * OptionalSide1 upsert
    */
   export type OptionalSide1UpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10225,6 +10750,22 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }, ExtArgs["result"]["optionalSide2"]>
 
+  export type OptionalSide2SelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    int?: boolean
+    optionalInt?: boolean
+    float?: boolean
+    optionalFloat?: boolean
+    string?: boolean
+    optionalString?: boolean
+    json?: boolean
+    optionalJson?: boolean
+    enum?: boolean
+    optionalEnum?: boolean
+    boolean?: boolean
+    optionalBoolean?: boolean
+  }, ExtArgs["result"]["optionalSide2"]>
+
   export type OptionalSide2SelectScalar = {
     id?: boolean
     int?: boolean
@@ -10245,6 +10786,7 @@ export namespace Prisma {
     opti?: boolean | OptionalSide2$optiArgs<ExtArgs>
   }
   export type OptionalSide2IncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type OptionalSide2IncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $OptionalSide2Payload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "OptionalSide2"
@@ -10271,7 +10813,7 @@ export namespace Prisma {
 
   type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2DefaultArgs> = $Result.GetResult<Prisma.$OptionalSide2Payload, S>
 
-  type OptionalSide2CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type OptionalSide2CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<OptionalSide2FindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OptionalSide2CountAggregateInputType | true
     }
@@ -10292,7 +10834,7 @@ export namespace Prisma {
     findUnique<T extends OptionalSide2FindUniqueArgs>(args: SelectSubset<T, OptionalSide2FindUniqueArgs<ExtArgs>>): Prisma__OptionalSide2Client<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one OptionalSide2 that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one OptionalSide2 that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {OptionalSide2FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide2
      * @example
@@ -10394,7 +10936,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many OptionalSide2s and only return the \`id\`
-     * const optionalSide2WithIdOnly = await prisma.optionalSide2.createManyAndReturn({ 
+     * const optionalSide2WithIdOnly = await prisma.optionalSide2.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -10469,6 +11011,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends OptionalSide2UpdateManyArgs>(args: SelectSubset<T, OptionalSide2UpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OptionalSide2s and returns the data updated in the database.
+     * @param {OptionalSide2UpdateManyAndReturnArgs} args - Arguments to update many OptionalSide2s.
+     * @example
+     * // Update many OptionalSide2s
+     * const optionalSide2 = await prisma.optionalSide2.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more OptionalSide2s and only return the \`id\`
+     * const optionalSide2WithIdOnly = await prisma.optionalSide2.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends OptionalSide2UpdateManyAndReturnArgs>(args: SelectSubset<T, OptionalSide2UpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one OptionalSide2.
@@ -10932,6 +11504,24 @@ export namespace Prisma {
   }
 
   /**
+   * OptionalSide2 updateManyAndReturn
+   */
+  export type OptionalSide2UpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OptionalSide2
+     */
+    select?: OptionalSide2SelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update OptionalSide2s.
+     */
+    data: XOR<OptionalSide2UpdateManyMutationInput, OptionalSide2UncheckedUpdateManyInput>
+    /**
+     * Filter which OptionalSide2s to update
+     */
+    where?: OptionalSide2WhereInput
+  }
+
+  /**
    * OptionalSide2 upsert
    */
   export type OptionalSide2UpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11279,6 +11869,18 @@ export namespace Prisma {
     inc_bInt?: boolean
   }, ExtArgs["result"]["a"]>
 
+  export type ASelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    email?: boolean
+    name?: boolean
+    int?: boolean
+    sInt?: boolean
+    bInt?: boolean
+    inc_int?: boolean
+    inc_sInt?: boolean
+    inc_bInt?: boolean
+  }, ExtArgs["result"]["a"]>
+
   export type ASelectScalar = {
     id?: boolean
     email?: boolean
@@ -11317,7 +11919,7 @@ export namespace Prisma {
 
   type AGetPayload<S extends boolean | null | undefined | ADefaultArgs> = $Result.GetResult<Prisma.$APayload, S>
 
-  type ACountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type ACountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<AFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ACountAggregateInputType | true
     }
@@ -11338,7 +11940,7 @@ export namespace Prisma {
     findUnique<T extends AFindUniqueArgs>(args: SelectSubset<T, AFindUniqueArgs<ExtArgs>>): Prisma__AClient<$Result.GetResult<Prisma.$APayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one A that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one A that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {AFindUniqueOrThrowArgs} args - Arguments to find a A
      * @example
@@ -11440,7 +12042,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many As and only return the \`id\`
-     * const aWithIdOnly = await prisma.a.createManyAndReturn({ 
+     * const aWithIdOnly = await prisma.a.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -11515,6 +12117,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends AUpdateManyArgs>(args: SelectSubset<T, AUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more As and returns the data updated in the database.
+     * @param {AUpdateManyAndReturnArgs} args - Arguments to update many As.
+     * @example
+     * // Update many As
+     * const a = await prisma.a.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more As and only return the \`id\`
+     * const aWithIdOnly = await prisma.a.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends AUpdateManyAndReturnArgs>(args: SelectSubset<T, AUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$APayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one A.
@@ -11945,6 +12577,24 @@ export namespace Prisma {
   }
 
   /**
+   * A updateManyAndReturn
+   */
+  export type AUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the A
+     */
+    select?: ASelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update AS.
+     */
+    data: XOR<AUpdateManyMutationInput, AUncheckedUpdateManyInput>
+    /**
+     * Filter which AS to update
+     */
+    where?: AWhereInput
+  }
+
+  /**
    * A upsert
    */
   export type AUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -12221,6 +12871,14 @@ export namespace Prisma {
     numFloat?: boolean
   }, ExtArgs["result"]["b"]>
 
+  export type BSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    float?: boolean
+    dFloat?: boolean
+    decFloat?: boolean
+    numFloat?: boolean
+  }, ExtArgs["result"]["b"]>
+
   export type BSelectScalar = {
     id?: boolean
     float?: boolean
@@ -12245,7 +12903,7 @@ export namespace Prisma {
 
   type BGetPayload<S extends boolean | null | undefined | BDefaultArgs> = $Result.GetResult<Prisma.$BPayload, S>
 
-  type BCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type BCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<BFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: BCountAggregateInputType | true
     }
@@ -12266,7 +12924,7 @@ export namespace Prisma {
     findUnique<T extends BFindUniqueArgs>(args: SelectSubset<T, BFindUniqueArgs<ExtArgs>>): Prisma__BClient<$Result.GetResult<Prisma.$BPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one B that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one B that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {BFindUniqueOrThrowArgs} args - Arguments to find a B
      * @example
@@ -12368,7 +13026,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Bs and only return the \`id\`
-     * const bWithIdOnly = await prisma.b.createManyAndReturn({ 
+     * const bWithIdOnly = await prisma.b.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -12443,6 +13101,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends BUpdateManyArgs>(args: SelectSubset<T, BUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Bs and returns the data updated in the database.
+     * @param {BUpdateManyAndReturnArgs} args - Arguments to update many Bs.
+     * @example
+     * // Update many Bs
+     * const b = await prisma.b.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Bs and only return the \`id\`
+     * const bWithIdOnly = await prisma.b.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BUpdateManyAndReturnArgs>(args: SelectSubset<T, BUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one B.
@@ -12869,6 +13557,24 @@ export namespace Prisma {
   }
 
   /**
+   * B updateManyAndReturn
+   */
+  export type BUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the B
+     */
+    select?: BSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update BS.
+     */
+    data: XOR<BUpdateManyMutationInput, BUncheckedUpdateManyInput>
+    /**
+     * Filter which BS to update
+     */
+    where?: BWhereInput
+  }
+
+  /**
    * B upsert
    */
   export type BUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13117,6 +13823,16 @@ export namespace Prisma {
     uuid?: boolean
   }, ExtArgs["result"]["c"]>
 
+  export type CSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    char?: boolean
+    vChar?: boolean
+    text?: boolean
+    bit?: boolean
+    vBit?: boolean
+    uuid?: boolean
+  }, ExtArgs["result"]["c"]>
+
   export type CSelectScalar = {
     id?: boolean
     char?: boolean
@@ -13145,7 +13861,7 @@ export namespace Prisma {
 
   type CGetPayload<S extends boolean | null | undefined | CDefaultArgs> = $Result.GetResult<Prisma.$CPayload, S>
 
-  type CCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type CCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<CFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: CCountAggregateInputType | true
     }
@@ -13166,7 +13882,7 @@ export namespace Prisma {
     findUnique<T extends CFindUniqueArgs>(args: SelectSubset<T, CFindUniqueArgs<ExtArgs>>): Prisma__CClient<$Result.GetResult<Prisma.$CPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one C that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one C that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {CFindUniqueOrThrowArgs} args - Arguments to find a C
      * @example
@@ -13268,7 +13984,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Cs and only return the \`id\`
-     * const cWithIdOnly = await prisma.c.createManyAndReturn({ 
+     * const cWithIdOnly = await prisma.c.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -13343,6 +14059,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends CUpdateManyArgs>(args: SelectSubset<T, CUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Cs and returns the data updated in the database.
+     * @param {CUpdateManyAndReturnArgs} args - Arguments to update many Cs.
+     * @example
+     * // Update many Cs
+     * const c = await prisma.c.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Cs and only return the \`id\`
+     * const cWithIdOnly = await prisma.c.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CUpdateManyAndReturnArgs>(args: SelectSubset<T, CUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one C.
@@ -13771,6 +14517,24 @@ export namespace Prisma {
   }
 
   /**
+   * C updateManyAndReturn
+   */
+  export type CUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the C
+     */
+    select?: CSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update CS.
+     */
+    data: XOR<CUpdateManyMutationInput, CUncheckedUpdateManyInput>
+    /**
+     * Filter which CS to update
+     */
+    where?: CWhereInput
+  }
+
+  /**
    * C upsert
    */
   export type CUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14041,6 +14805,16 @@ export namespace Prisma {
     list?: boolean
   }, ExtArgs["result"]["d"]>
 
+  export type DSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    bool?: boolean
+    byteA?: boolean
+    xml?: boolean
+    json?: boolean
+    jsonb?: boolean
+    list?: boolean
+  }, ExtArgs["result"]["d"]>
+
   export type DSelectScalar = {
     id?: boolean
     bool?: boolean
@@ -14069,7 +14843,7 @@ export namespace Prisma {
 
   type DGetPayload<S extends boolean | null | undefined | DDefaultArgs> = $Result.GetResult<Prisma.$DPayload, S>
 
-  type DCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type DCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<DFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: DCountAggregateInputType | true
     }
@@ -14090,7 +14864,7 @@ export namespace Prisma {
     findUnique<T extends DFindUniqueArgs>(args: SelectSubset<T, DFindUniqueArgs<ExtArgs>>): Prisma__DClient<$Result.GetResult<Prisma.$DPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one D that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one D that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {DFindUniqueOrThrowArgs} args - Arguments to find a D
      * @example
@@ -14192,7 +14966,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Ds and only return the \`id\`
-     * const dWithIdOnly = await prisma.d.createManyAndReturn({ 
+     * const dWithIdOnly = await prisma.d.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -14267,6 +15041,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends DUpdateManyArgs>(args: SelectSubset<T, DUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Ds and returns the data updated in the database.
+     * @param {DUpdateManyAndReturnArgs} args - Arguments to update many Ds.
+     * @example
+     * // Update many Ds
+     * const d = await prisma.d.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Ds and only return the \`id\`
+     * const dWithIdOnly = await prisma.d.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DUpdateManyAndReturnArgs>(args: SelectSubset<T, DUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one D.
@@ -14695,6 +15499,24 @@ export namespace Prisma {
   }
 
   /**
+   * D updateManyAndReturn
+   */
+  export type DUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the D
+     */
+    select?: DSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to update DS.
+     */
+    data: XOR<DUpdateManyMutationInput, DUncheckedUpdateManyInput>
+    /**
+     * Filter which DS to update
+     */
+    where?: DWhereInput
+  }
+
+  /**
    * D upsert
    */
   export type DUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14916,6 +15738,13 @@ export namespace Prisma {
     ts?: boolean
   }, ExtArgs["result"]["e"]>
 
+  export type ESelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    date?: boolean
+    time?: boolean
+    ts?: boolean
+  }, ExtArgs["result"]["e"]>
+
   export type ESelectScalar = {
     id?: boolean
     date?: boolean
@@ -14938,7 +15767,7 @@ export namespace Prisma {
 
   type EGetPayload<S extends boolean | null | undefined | EDefaultArgs> = $Result.GetResult<Prisma.$EPayload, S>
 
-  type ECountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type ECountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<EFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ECountAggregateInputType | true
     }
@@ -14959,7 +15788,7 @@ export namespace Prisma {
     findUnique<T extends EFindUniqueArgs>(args: SelectSubset<T, EFindUniqueArgs<ExtArgs>>): Prisma__EClient<$Result.GetResult<Prisma.$EPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one E that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one E that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {EFindUniqueOrThrowArgs} args - Arguments to find a E
      * @example
@@ -15061,7 +15890,7 @@ export namespace Prisma {
      * })
      * 
      * // Create many Es and only return the \`id\`
-     * const eWithIdOnly = await prisma.e.createManyAndReturn({ 
+     * const eWithIdOnly = await prisma.e.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -15136,6 +15965,36 @@ export namespace Prisma {
      * 
      */
     updateMany<T extends EUpdateManyArgs>(args: SelectSubset<T, EUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Es and returns the data updated in the database.
+     * @param {EUpdateManyAndReturnArgs} args - Arguments to update many Es.
+     * @example
+     * // Update many Es
+     * const e = await prisma.e.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Es and only return the \`id\`
+     * const eWithIdOnly = await prisma.e.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends EUpdateManyAndReturnArgs>(args: SelectSubset<T, EUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EPayload<ExtArgs>, T, "updateManyAndReturn">>
 
     /**
      * Create or update one E.
@@ -15550,6 +16409,24 @@ export namespace Prisma {
    * E updateMany
    */
   export type EUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ES.
+     */
+    data: XOR<EUpdateManyMutationInput, EUncheckedUpdateManyInput>
+    /**
+     * Filter which ES to update
+     */
+    where?: EWhereInput
+  }
+
+  /**
+   * E updateManyAndReturn
+   */
+  export type EUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the E
+     */
+    select?: ESelectUpdateManyAndReturn<ExtArgs> | null
     /**
      * The data used to update ES.
      */

@@ -771,6 +771,7 @@ testMatrix.setupTestSuite(
                 | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
                 | 'updateMany'
+                | 'updateManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'upsert'
                 | 'delete'
                 | 'deleteMany'
@@ -828,7 +829,7 @@ testMatrix.setupTestSuite(
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
 
-              expectTypeOf(operation).toMatchTypeOf<
+              expectTypeOf(operation).toMatchTypeOf <
                 | 'findFirst'
                 | 'findFirstOrThrow'
                 | 'findUnique'
@@ -839,6 +840,7 @@ testMatrix.setupTestSuite(
                 | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
                 | 'updateMany'
+                | 'updateManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'upsert'
                 | 'delete'
                 | 'deleteMany'
@@ -1379,6 +1381,19 @@ testMatrix.setupTestSuite(
 
                 return data
               },
+              // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+              async updateManyAndReturn({ args, query, operation }) {
+                const data = await query(args)
+
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
+
+                return data
+              },
               async upsert({ args, query, operation }) {
                 const data = await query(args)
 
@@ -1709,6 +1724,19 @@ testMatrix.setupTestSuite(
 
                   return data
                 }
+                if (model === 'User' && operation === 'updateManyAndReturn') {
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  const data = await query(args)
+
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                  expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
+
+                  return data
+                }
                 if (model === 'User' && operation === 'upsert') {
                   const data = await query(args)
 
@@ -1899,6 +1927,21 @@ testMatrix.setupTestSuite(
                 expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                return data
+              },
+              // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+              async updateManyAndReturn({ args, query, operation, model }) {
+                if (model !== 'User') return query(args)
+
+                const data = await query(args)
+
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                 return data
               },

@@ -164,6 +164,7 @@ const dmmf: DMMF.Document = {
         plural: 'posts',
         update: 'updateOnePost',
         updateMany: 'updateManyPost',
+        updateManyAndReturn: 'updateManyPostAndReturn',
         upsert: 'upsertOnePost',
       },
       {
@@ -180,6 +181,7 @@ const dmmf: DMMF.Document = {
         plural: 'users',
         update: 'updateOneUser',
         updateMany: 'updateManyUser',
+        updateManyAndReturn: 'updateManyUserAndReturn',
         upsert: 'upsertOneUser',
       },
     ],
