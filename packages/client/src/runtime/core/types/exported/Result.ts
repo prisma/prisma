@@ -18,6 +18,7 @@ export type Operation =
 // updates
 | 'update'
 | 'updateMany'
+| 'updateManyAndReturn'
 | 'upsert'
 // deletes
 | 'delete'
@@ -156,6 +157,7 @@ export type GetResult<Payload extends OperationPayload, Args, OperationName exte
   createManyAndReturn: GetFindResult<Payload, Args, ClientOptions>[],
   update: GetFindResult<Payload, Args, ClientOptions>,
   updateMany: GetBatchResult,
+  updateManyAndReturn: GetFindResult<Payload, Args, ClientOptions>[],
   upsert: GetFindResult<Payload, Args, ClientOptions>,
   delete: GetFindResult<Payload, Args, ClientOptions>,
   deleteMany: GetBatchResult,
