@@ -534,6 +534,7 @@ class SerializeContext {
       case 'createManyAndReturn':
       case 'create':
       case 'update':
+      case 'updateManyAndReturn':
       case 'delete':
         return true
       case 'executeRaw':
