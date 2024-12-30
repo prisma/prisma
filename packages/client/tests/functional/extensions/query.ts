@@ -1381,7 +1381,6 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-              // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
               async updateManyAndReturn({ args, query, operation }) {
                 const data = await query(args)
 
@@ -1945,7 +1944,6 @@ testMatrix.setupTestSuite(
 
                 return data
               },
-              // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
               async updateManyAndReturn({ args, query, operation, model }) {
                 if (model !== 'User') return query(args)
 
