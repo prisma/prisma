@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.2.0-6.cc0167b764494213f0e42d0867d48643c39c83b6",
+    "@prisma/engines-version": "6.2.0-9.feat-sqlite-enum-de83b89d1d4a474e646feab1929290e26fdf82d7",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
