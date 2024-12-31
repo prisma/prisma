@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">=18.18",
-    "pnpm": ">=8.6.7 <9"
+    "pnpm": ">=9.14.4 <10"
   },
   "scripts": {
     "build": "pnpm -r build",
@@ -33,7 +33,7 @@
     "@eslint/compat": "1.2.3",
     "@eslint/eslintrc": "3.1.0",
     "@eslint/js": "9.5.0",
-    "@microsoft/api-extractor": "7.47.11",
+    "@microsoft/api-extractor": "7.48.1",
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "9.0.0",
@@ -60,7 +60,7 @@
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.29.1",
-    "eslint-plugin-jest": "28.9.0",
+    "eslint-plugin-jest": "28.10.0",
     "eslint-plugin-local-rules": "2.0.1",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-simple-import-sort": "12.1.1",
@@ -71,7 +71,7 @@
     "globby": "11.1.0",
     "graphviz-mit": "0.0.9",
     "husky": "9.1.7",
-    "is-ci": "3.0.1",
+    "is-ci": "4.1.0",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
     "lint-staged": "15.2.10",

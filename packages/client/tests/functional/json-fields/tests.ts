@@ -56,9 +56,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlite', 'sqlserver'],
+      from: ['sqlserver'],
       reason: `
-        sqlite - connector does not support Json type
         sqlserver - connector does not support Json type
       `,
     },
