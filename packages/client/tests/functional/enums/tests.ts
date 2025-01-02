@@ -56,7 +56,7 @@ testMatrix.setupTestSuite(
     testIf(provider == Providers.SQLITE)(
       'fails at runtime when an invalid entry is entered manually in SQLite',
       async () => {
-        // @ts-test-if: provider === Providers.SQLITE
+        // @ts-test-if: provider !== Providers.MONGODB
         await prisma.$executeRaw`INSERT INTO "User" ("id", "plan") VALUES ('2', 'NONFREE')`
         const result = await prisma.user.findMany().catch((e) => e)
 
