@@ -408,7 +408,7 @@ function getDbUrl(provider: Providers): string {
     case Providers.SQLSERVER:
       return requireEnvVariable('TEST_FUNCTIONAL_MSSQL_URI')
     default:
-      assertNever(provider, `No URL for provider ${provider} configured`)
+      return assertNever(provider, `No URL for provider ${provider} configured`)
   }
 }
 
