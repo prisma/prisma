@@ -96,17 +96,7 @@ Invalid \`prisma.resource.create()\` invocation in
 Unique constraint failed on the (not available)"
 `;
 
-exports[`issues.11740-transaction-stored-query (provider=postgresql) stored query trigger .requestTransaction twice should fail 1`] = `
-"
-Invalid \`prisma.resource.create()\` invocation in
-/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
-
-  XX })
-  XX 
-  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
-→ XX   const query = prisma.resource.create(
-Unique constraint failed on the fields: (\`email\`)"
-`;
+exports[`issues.11740-transaction-stored-query (provider=postgresql) stored query trigger .requestTransaction twice should fail 1`] = `"Unique constraint failed on the fields: (\`email\`)"`;
 
 exports[`issues.11740-transaction-stored-query (provider=postgresql) stored query triggered twice should fail but not exit process 1`] = `
 "
