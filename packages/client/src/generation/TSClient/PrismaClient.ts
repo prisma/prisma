@@ -84,6 +84,7 @@ function clientTypeMapModelsResultDefinition(
   if (action === 'createMany') return ts.namedType('BatchPayload')
   if (action === 'createManyAndReturn') return ts.array(payloadToResult(modelName))
   if (action === 'updateMany') return ts.namedType('BatchPayload')
+  if (action === 'updateManyAndReturn') return ts.array(payloadToResult(modelName))
   if (action === 'findMany') return ts.array(payloadToResult(modelName))
   if (action === 'findFirst') return ts.unionType([payloadToResult(modelName), ts.nullType])
   if (action === 'findUnique') return ts.unionType([payloadToResult(modelName), ts.nullType])
@@ -262,7 +263,7 @@ function queryRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
@@ -274,7 +275,7 @@ function queryRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;`
@@ -293,7 +294,7 @@ function executeRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
@@ -305,7 +306,7 @@ function executeRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
@@ -357,7 +358,7 @@ function metricDefinition(context: GenerateContext) {
     .setDocComment(
       ts.docComment`
         Gives access to the client metrics in json or prometheus format.
-        
+
         @example
         \`\`\`
         const metrics = await prisma.$metrics.json()
@@ -390,7 +391,7 @@ function runCommandRawDefinition(context: GenerateContext) {
         explain: false,
       })
       \`\`\`
-   
+
       Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
     `)
 
@@ -445,7 +446,7 @@ export class PrismaClientClass implements Generable {
 
     return `/**
  * ##  Prisma Client ʲˢ
- * 
+ *
  * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
@@ -454,7 +455,7 @@ export class PrismaClientClass implements Generable {
  * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
  * \`\`\`
  *
- * 
+ *
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */`
   }
@@ -584,6 +585,7 @@ export type PrismaAction =
   | 'createManyAndReturn'
   | 'update'
   | 'updateMany'
+  | 'updateManyAndReturn'
   | 'upsert'
   | 'delete'
   | 'deleteMany'
@@ -652,7 +654,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
              \`\`\`
              // Defaults to stdout
              log: ['query', 'info', 'warn', 'error']
-            
+
              // Emit as events
              log: [
                { emit: 'stdout', level: 'query' },

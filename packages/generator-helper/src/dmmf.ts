@@ -247,6 +247,7 @@ export namespace DMMF {
     createManyAndReturn?: string | null
     update?: string | null
     updateMany?: string | null
+    updateManyAndReturn?: string | null
     upsert?: string | null
     delete?: string | null
     deleteMany?: string | null
@@ -268,6 +269,7 @@ export namespace DMMF {
     createManyAndReturn = 'createManyAndReturn',
     update = 'update',
     updateMany = 'updateMany',
+    updateManyAndReturn = 'updateManyAndReturn',
     upsert = 'upsert',
     delete = 'delete',
     deleteMany = 'deleteMany',

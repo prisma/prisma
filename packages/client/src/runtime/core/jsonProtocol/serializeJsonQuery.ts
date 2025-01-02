@@ -44,6 +44,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   createManyAndReturn: 'createManyAndReturn',
   update: 'updateOne',
   updateMany: 'updateMany',
+  updateManyAndReturn: 'updateManyAndReturn',
   upsert: 'upsertOne',
   delete: 'deleteOne',
   deleteMany: 'deleteMany',
@@ -533,6 +534,7 @@ class SerializeContext {
       case 'createManyAndReturn':
       case 'create':
       case 'update':
+      case 'updateManyAndReturn':
       case 'delete':
         return true
       case 'executeRaw':
