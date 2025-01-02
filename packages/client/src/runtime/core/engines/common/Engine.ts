@@ -66,7 +66,7 @@ export type EngineProtocol = 'graphql' | 'json'
  * `__internalParams.customDataProxyFetch` to its own type anyway (probably for
  * exactly this reason), our definition is never actually used and is completely
  * ignored, so it doesn't matter, and we can just use `unknown` as the type of
- * `fetch` here. 
+ * `fetch` here.
  */
 export type CustomDataProxyFetch = (fetch: unknown) => unknown
 
@@ -90,6 +90,72 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
 
 export type BatchQueryEngineResult<T> = QueryEngineResultData<T> | Error
 
+export type PrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
+
+export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePlaceholder {
+  return typeof value === 'object' && value !== null && value['prisma__type'] === 'param'
+}
+
+export type PrismaValue =
+  | string
+  | boolean
+  | number
+  | PrismaValue[]
+  | null
+  | Record<string, unknown>
+  | PrismaValuePlaceholder
+
+export type QueryPlanBinding = {
+  name: string
+  expr: QueryPlanNode
+}
+
+export type QueryPlanDbQuery = {
+  query: string
+  params: PrismaValue[]
+}
+
+export type QueryPlanNode =
+  | {
+      type: 'Seq'
+      args: QueryPlanNode[]
+    }
+  | {
+      type: 'Get'
+      args: {
+        name: string
+      }
+    }
+  | {
+      type: 'Let'
+      args: {
+        bindings: QueryPlanBinding[]
+        expr: QueryPlanNode
+      }
+    }
+  | {
+      type: 'GetFirstNonEmpty'
+      args: {
+        names: string[]
+      }
+    }
+  | {
+      type: 'Query'
+      args: QueryPlanDbQuery
+    }
+  | {
+      type: 'Execute'
+      args: QueryPlanDbQuery
+    }
+  | {
+      type: 'Sum'
+      args: QueryPlanNode[]
+    }
+  | {
+      type: 'Concat'
+      args: QueryPlanNode[]
+    }
+
 export interface Engine<InteractiveTransactionPayload = unknown> {
   /** The name of the engine. This is meant to be consumed externally */
   readonly name: string
@@ -97,6 +163,8 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   start(): Promise<void>
   stop(): Promise<void>
   version(forceRun?: boolean): Promise<string> | string
+  prepare(query: JsonQuery): Promise<QueryPlanNode>
+  debugQueryPlan(query: JsonQuery): Promise<string>
   request<T>(
     query: JsonQuery,
     options: RequestOptions<InteractiveTransactionPayload>,

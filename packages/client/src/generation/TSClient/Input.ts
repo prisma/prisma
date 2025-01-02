@@ -104,7 +104,22 @@ function buildAllFieldTypes(
 
   const tsInputObjectTypes = inputObjectTypes.map((type) => buildSingleFieldType(type, context.genericArgsInfo, source))
 
-  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, context.genericArgsInfo, source))
+  const tsOtherTypes = otherTypes.map((type) => {
+    buildSingleFieldType(type, context.genericArgsInfo, source)
+    const typeWithoutParams = buildSingleFieldType(type, context.genericArgsInfo, source)
+
+    if (type.location === 'scalar') {
+      // type is currently 'createdAt: string | Date'.
+      // I want `createdAt: string | Date | Prisma.Param<string | Date, any>`.
+      const withParams = ts.unionType([
+        typeWithoutParams,
+        ts.namedType('Prisma.Param').addGenericArgument(typeWithoutParams).addGenericArgument(ts.anyType),
+      ])
+      return withParams
+    }
+
+    return typeWithoutParams
+  })
 
   if (tsOtherTypes.length === 0) {
     return xorTypes(tsInputObjectTypes)

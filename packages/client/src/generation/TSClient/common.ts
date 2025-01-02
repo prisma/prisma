@@ -35,7 +35,8 @@ import {
   defineDmmfProperty,
   Public,
   getRuntime,
-  skip
+  skip,
+  Param
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
@@ -45,7 +46,8 @@ const {
   makeStrictEnum,
   Public,
   getRuntime,
-  skip
+  skip,
+  Param
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
@@ -69,7 +71,8 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
-  getRuntime
+  getRuntime,
+  createParam,
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
 }
@@ -123,6 +126,7 @@ Prisma.NullTypes = {
   AnyNull: objectEnumValues.classes.AnyNull
 }
 
+${buildPrismaParamJs()}
 ${buildPrismaSkipJs(generator.previewFeatures)}
 `
 
@@ -180,6 +184,7 @@ export import join = runtime.join
 export import raw = runtime.raw
 export import Sql = runtime.Sql
 
+${buildPrismaParamTs()}
 ${buildPrismaSkipTs(generator.previewFeatures)}
 
 /**
@@ -190,7 +195,7 @@ export import Decimal = runtime.Decimal
 export type DecimalJsLike = runtime.DecimalJsLike
 
 /**
- * Metrics 
+ * Metrics
  */
 export type Metrics = runtime.Metrics
 export type Metric<T> = runtime.Metric<T>
@@ -215,7 +220,7 @@ export type PrismaVersion = {
   client: string
 }
 
-export const prismaVersion: PrismaVersion 
+export const prismaVersion: PrismaVersion
 
 /**
  * Utility Types
@@ -231,7 +236,7 @@ export import InputJsonValue = runtime.InputJsonValue
 
 /**
  * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
- * 
+ *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 namespace NullTypes {
@@ -244,21 +249,21 @@ ${buildNullClass('AnyNull')}
 
 /**
  * Helper for filtering JSON entries that have \`null\` on the database (empty on the db)
- * 
+ *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 export const DbNull: NullTypes.DbNull
 
 /**
  * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
- * 
+ *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 export const JsonNull: NullTypes.JsonNull
 
 /**
  * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
- * 
+ *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 export const AnyNull: NullTypes.AnyNull
@@ -564,9 +569,9 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 function buildNullClass(name: string) {
   const source = `/**
 * Type of \`Prisma.${name}\`.
-* 
+*
 * You cannot use other instances of this class. Please use the \`Prisma.${name}\` value.
-* 
+*
 * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
 */
 class ${name} {
@@ -597,4 +602,19 @@ Prisma.skip = skip
   }
 
   return ''
+}
+
+function buildPrismaParamTs() {
+  return /* typescript */ `
+/**
+ * Prisma.Param
+ */
+export import Param = runtime.Param
+`
+}
+
+function buildPrismaParamJs() {
+  return /* javascript */ `
+Prisma.Param = createParam
+`
 }
