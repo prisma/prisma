@@ -4,6 +4,7 @@ import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } fr
 import { engineEnvVarMap } from '@prisma/internals'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
+import { version as typeScriptVersion } from 'typescript'
 
 import packageJson from '../../../package.json'
 
@@ -126,6 +127,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
   str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
+  str = str.replace(new RegExp(`(TypeScript\\s+:) ${typeScriptVersion}`, 'g'), '$1 TYPESCRIPT_VERSION')
 
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')

@@ -9,6 +9,7 @@ export {
   getSchemaWithPath,
   getSchemaWithPathOptional,
 } from './cli/getSchema'
+export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
 export { HelpError } from './cli/Help'

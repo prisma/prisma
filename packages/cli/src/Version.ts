@@ -10,6 +10,7 @@ import {
   getEnginesMetaInfo,
   getSchema,
   getSchemaWithPath,
+  getTypescriptVersion,
   HelpError,
   isError,
   loadEnvFile,
@@ -88,6 +89,7 @@ export class Version implements Command {
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
+    const typescriptVersion = await getTypescriptVersion()
 
     const rows = [
       [packageJson.name, packageJson.version],
@@ -96,6 +98,7 @@ export class Version implements Command {
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
+      ['TypeScript', typescriptVersion],
 
       ...enginesRows,
       ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
