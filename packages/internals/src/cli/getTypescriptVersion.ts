@@ -1,8 +1,6 @@
 async function getProcessObject() {
-  if (typeof process === 'object') return process
-
-  // On deno 1.X the process global is not directly available but has to be imported explicitly.
   try {
+    // On deno 2.X `process` is directly globally available but not in deno 1.X!
     return await import('node:process')
   } catch (_) {
     return null
