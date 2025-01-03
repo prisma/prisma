@@ -130,7 +130,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8 lowdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -586,7 +586,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mariadb mssql lowdb
 
       - name: Install & build
         uses: ./.github/actions/setup
