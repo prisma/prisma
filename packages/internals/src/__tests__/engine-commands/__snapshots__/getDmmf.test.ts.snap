@@ -214,6 +214,7 @@ exports[`getDMMF success @@id model 1`] = `
         "groupBy": "groupByUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
+        "updateManyAndReturn": "updateManyUser1AndReturn",
         "updateOne": "updateOneUser1",
         "upsertOne": "upsertOneUser1",
       },
@@ -232,6 +233,7 @@ exports[`getDMMF success @@id model 1`] = `
         "groupBy": "groupByUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
+        "updateManyAndReturn": "updateManyUser2AndReturn",
         "updateOne": "updateOneUser2",
         "upsertOne": "upsertOneUser2",
       },
@@ -5664,7 +5666,97 @@ exports[`getDMMF success @@id model 1`] = `
               },
             },
           ],
+          "name": "UpdateManyUser1AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
           "name": "CreateManyUser2AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
+          "name": "UpdateManyUser2AndReturnOutputType",
         },
       ],
       "prisma": [
@@ -7038,6 +7130,50 @@ exports[`getDMMF success @@id model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1UpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUser1AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUser1AndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereInput",
                     },
                   ],
@@ -7346,6 +7482,50 @@ exports[`getDMMF success @@id model 1`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUser2AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUser2AndReturnOutputType",
               },
             },
             {
@@ -8281,6 +8461,7 @@ exports[`getDMMF success @@map model 2`] = `
         "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
+        "updateManyAndReturn": "updateManyUserAndReturn",
         "updateOne": "updateOneUser",
         "upsertOne": "upsertOneUser",
       },
@@ -11378,6 +11559,31 @@ exports[`getDMMF success @@map model 2`] = `
           ],
           "name": "CreateManyUserAndReturnOutputType",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "email",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyUserAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -12219,6 +12425,50 @@ exports[`getDMMF success @@map model 2`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "UserUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUserAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUserAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "UserWhereInput",
                     },
                   ],
@@ -13012,6 +13262,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "groupBy": "groupByPost",
         "model": "Post",
         "updateMany": "updateManyPost",
+        "updateManyAndReturn": "updateManyPostAndReturn",
         "updateOne": "updateOnePost",
         "upsertOne": "upsertOnePost",
       },
@@ -13030,6 +13281,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
+        "updateManyAndReturn": "updateManyUserAndReturn",
         "updateOne": "updateOneUser",
         "upsertOne": "upsertOneUser",
       },
@@ -13048,6 +13300,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "groupBy": "groupByUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
+        "updateManyAndReturn": "updateManyUser1AndReturn",
         "updateOne": "updateOneUser1",
         "upsertOne": "upsertOneUser1",
       },
@@ -13066,6 +13319,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "groupBy": "groupByUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
+        "updateManyAndReturn": "updateManyUser2AndReturn",
         "updateOne": "updateOneUser2",
         "upsertOne": "upsertOneUser2",
       },
@@ -22833,6 +23087,62 @@ exports[`getDMMF success @@unique model 1`] = `
             {
               "args": [],
               "isNullable": false,
+              "name": "authorId",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "published",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "author",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+          ],
+          "name": "UpdateManyPostAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
               "name": "email",
               "outputType": {
                 "isList": false,
@@ -22842,6 +23152,31 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "name": "CreateManyUserAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "email",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyUserAndReturnOutputType",
         },
         {
           "fields": [
@@ -22931,7 +23266,97 @@ exports[`getDMMF success @@unique model 1`] = `
               },
             },
           ],
+          "name": "UpdateManyUser1AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
           "name": "CreateManyUser2AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
+          "name": "UpdateManyUser2AndReturnOutputType",
         },
       ],
       "prisma": [
@@ -25367,6 +25792,50 @@ exports[`getDMMF success @@unique model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "PostUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyPostAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyPostAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "PostWhereInput",
                     },
                   ],
@@ -25675,6 +26144,50 @@ exports[`getDMMF success @@unique model 1`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUserAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUserAndReturnOutputType",
               },
             },
             {
@@ -26003,6 +26516,50 @@ exports[`getDMMF success @@unique model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1UpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUser1AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUser1AndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereInput",
                     },
                   ],
@@ -26311,6 +26868,50 @@ exports[`getDMMF success @@unique model 1`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUser2AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUser2AndReturnOutputType",
               },
             },
             {
@@ -27741,7 +28342,7 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `154156458`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `159611340`;
 
 exports[`getDMMF success chinook introspected schema 1`] = `993396`;
 
@@ -27988,6 +28589,7 @@ exports[`getDMMF success multiple files 1`] = `
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
+        "updateManyAndReturn": "updateManyAAndReturn",
         "updateOne": "updateOneA",
         "upsertOne": "upsertOneA",
       },
@@ -28006,6 +28608,7 @@ exports[`getDMMF success multiple files 1`] = `
         "groupBy": "groupByB",
         "model": "B",
         "updateMany": "updateManyB",
+        "updateManyAndReturn": "updateManyBAndReturn",
         "updateOne": "updateOneB",
         "upsertOne": "upsertOneB",
       },
@@ -31679,6 +32282,31 @@ exports[`getDMMF success multiple files 1`] = `
               "outputType": {
                 "isList": false,
                 "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyAAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
                 "type": "String",
               },
             },
@@ -31694,6 +32322,31 @@ exports[`getDMMF success multiple files 1`] = `
             },
           ],
           "name": "CreateManyBAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyBAndReturnOutputType",
         },
       ],
       "prisma": [
@@ -33043,6 +33696,50 @@ exports[`getDMMF success multiple files 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "AUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyAAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "AWhereInput",
                     },
                   ],
@@ -33327,6 +34024,50 @@ exports[`getDMMF success multiple files 1`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyBAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyBAndReturnOutputType",
               },
             },
             {
@@ -33884,7 +34625,7 @@ exports[`getDMMF success multiple files 1`] = `
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `137324072`;
+exports[`getDMMF success odoo introspected schema 1`] = `137815019`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -46321,6 +47062,7 @@ exports[`getDMMF success simple model, postgresql 2`] = `
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
+        "updateManyAndReturn": "updateManyAAndReturn",
         "updateOne": "updateOneA",
         "upsertOne": "upsertOneA",
       },
@@ -49418,6 +50160,31 @@ exports[`getDMMF success simple model, postgresql 2`] = `
           ],
           "name": "CreateManyAAndReturnOutputType",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyAAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -50249,6 +51016,50 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyAAndReturnOutputType",
               },
             },
             {
@@ -54872,6 +55683,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
+        "updateManyAndReturn": "updateManyAAndReturn",
         "updateOne": "updateOneA",
         "upsertOne": "upsertOneA",
       },
@@ -57717,6 +58529,31 @@ exports[`getDMMF success simple model, sqlite 2`] = `
           ],
           "name": "CreateManyAAndReturnOutputType",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyAAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -58524,6 +59361,50 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyAAndReturnOutputType",
               },
             },
             {

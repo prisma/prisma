@@ -471,7 +471,7 @@ export const ABeautifulEnum: typeof $Enums.ABeautifulEnum
 
 /**
  * ##  Prisma Client ʲˢ
- * 
+ *
  * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
@@ -480,7 +480,7 @@ export const ABeautifulEnum: typeof $Enums.ABeautifulEnum
  * const posts = await prisma.post.findMany()
  * \`\`\`
  *
- * 
+ *
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */
 export class PrismaClient<
@@ -492,7 +492,7 @@ export class PrismaClient<
 
     /**
    * ##  Prisma Client ʲˢ
-   * 
+   *
    * Type-safe database client for TypeScript & Node.js
    * @example
    * \`\`\`
@@ -501,7 +501,7 @@ export class PrismaClient<
    * const posts = await prisma.post.findMany()
    * \`\`\`
    *
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
    */
 
@@ -2303,6 +2303,7 @@ export namespace Prisma {
     | 'createManyAndReturn'
     | 'update'
     | 'updateMany'
+    | 'updateManyAndReturn'
     | 'upsert'
     | 'delete'
     | 'deleteMany'
@@ -2527,6 +2528,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["embed"]>
 
 
+
   export type EmbedSelectScalar = {
     text?: boolean
     boolean?: boolean
@@ -2594,6 +2596,7 @@ export namespace Prisma {
     text?: boolean
     boolean?: boolean
   }, ExtArgs["result"]["embedEmbed"]>
+
 
 
   export type EmbedEmbedSelectScalar = {
@@ -2815,6 +2818,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["post"]>
 
 
+
   export type PostSelectScalar = {
     id?: boolean
     createdAt?: boolean
@@ -2846,7 +2850,7 @@ export namespace Prisma {
 
   type PostGetPayload<S extends boolean | null | undefined | PostDefaultArgs> = $Result.GetResult<Prisma.$PostPayload, S>
 
-  type PostCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type PostCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<PostFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: PostCountAggregateInputType | true
     }
@@ -2867,7 +2871,7 @@ export namespace Prisma {
     findUnique<T extends PostFindUniqueArgs>(args: SelectSubset<T, PostFindUniqueArgs<ExtArgs>>): Prisma__PostClient<$Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one Post that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one Post that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {PostFindUniqueOrThrowArgs} args - Arguments to find a Post
      * @example
@@ -3045,7 +3049,7 @@ export namespace Prisma {
      * @param {PostFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const post = await prisma.post.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: PostFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -3867,6 +3871,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["user"]>
 
 
+
   export type UserSelectScalar = {
     id?: boolean
     email?: boolean
@@ -3919,7 +3924,7 @@ export namespace Prisma {
 
   type UserGetPayload<S extends boolean | null | undefined | UserDefaultArgs> = $Result.GetResult<Prisma.$UserPayload, S>
 
-  type UserCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type UserCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<UserFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: UserCountAggregateInputType | true
     }
@@ -3940,7 +3945,7 @@ export namespace Prisma {
     findUnique<T extends UserFindUniqueArgs>(args: SelectSubset<T, UserFindUniqueArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one User that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one User that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
      * @example
@@ -4118,7 +4123,7 @@ export namespace Prisma {
      * @param {UserFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const user = await prisma.user.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: UserFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -4846,6 +4851,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["embedHolder"]>
 
 
+
   export type EmbedHolderSelectScalar = {
     id?: boolean
     time?: boolean
@@ -4878,7 +4884,7 @@ export namespace Prisma {
 
   type EmbedHolderGetPayload<S extends boolean | null | undefined | EmbedHolderDefaultArgs> = $Result.GetResult<Prisma.$EmbedHolderPayload, S>
 
-  type EmbedHolderCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type EmbedHolderCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<EmbedHolderFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: EmbedHolderCountAggregateInputType | true
     }
@@ -4899,7 +4905,7 @@ export namespace Prisma {
     findUnique<T extends EmbedHolderFindUniqueArgs>(args: SelectSubset<T, EmbedHolderFindUniqueArgs<ExtArgs>>): Prisma__EmbedHolderClient<$Result.GetResult<Prisma.$EmbedHolderPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one EmbedHolder that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one EmbedHolder that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {EmbedHolderFindUniqueOrThrowArgs} args - Arguments to find a EmbedHolder
      * @example
@@ -5077,7 +5083,7 @@ export namespace Prisma {
      * @param {EmbedHolderFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const embedHolder = await prisma.embedHolder.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: EmbedHolderFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -5904,6 +5910,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["m"]>
 
 
+
   export type MSelectScalar = {
     id?: boolean
     n_ids?: boolean
@@ -5952,7 +5959,7 @@ export namespace Prisma {
 
   type MGetPayload<S extends boolean | null | undefined | MDefaultArgs> = $Result.GetResult<Prisma.$MPayload, S>
 
-  type MCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type MCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<MFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: MCountAggregateInputType | true
     }
@@ -5973,7 +5980,7 @@ export namespace Prisma {
     findUnique<T extends MFindUniqueArgs>(args: SelectSubset<T, MFindUniqueArgs<ExtArgs>>): Prisma__MClient<$Result.GetResult<Prisma.$MPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one M that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one M that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {MFindUniqueOrThrowArgs} args - Arguments to find a M
      * @example
@@ -6151,7 +6158,7 @@ export namespace Prisma {
      * @param {MFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const m = await prisma.m.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: MFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -6988,6 +6995,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["n"]>
 
 
+
   export type NSelectScalar = {
     id?: boolean
     m_ids?: boolean
@@ -7036,7 +7044,7 @@ export namespace Prisma {
 
   type NGetPayload<S extends boolean | null | undefined | NDefaultArgs> = $Result.GetResult<Prisma.$NPayload, S>
 
-  type NCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type NCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<NFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: NCountAggregateInputType | true
     }
@@ -7057,7 +7065,7 @@ export namespace Prisma {
     findUnique<T extends NFindUniqueArgs>(args: SelectSubset<T, NFindUniqueArgs<ExtArgs>>): Prisma__NClient<$Result.GetResult<Prisma.$NPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one N that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one N that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {NFindUniqueOrThrowArgs} args - Arguments to find a N
      * @example
@@ -7235,7 +7243,7 @@ export namespace Prisma {
      * @param {NFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const n = await prisma.n.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: NFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -8068,6 +8076,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["oneOptional"]>
 
 
+
   export type OneOptionalSelectScalar = {
     id?: boolean
     int?: boolean
@@ -8114,7 +8123,7 @@ export namespace Prisma {
 
   type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalDefaultArgs> = $Result.GetResult<Prisma.$OneOptionalPayload, S>
 
-  type OneOptionalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type OneOptionalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<OneOptionalFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OneOptionalCountAggregateInputType | true
     }
@@ -8135,7 +8144,7 @@ export namespace Prisma {
     findUnique<T extends OneOptionalFindUniqueArgs>(args: SelectSubset<T, OneOptionalFindUniqueArgs<ExtArgs>>): Prisma__OneOptionalClient<$Result.GetResult<Prisma.$OneOptionalPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one OneOptional that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one OneOptional that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {OneOptionalFindUniqueOrThrowArgs} args - Arguments to find a OneOptional
      * @example
@@ -8313,7 +8322,7 @@ export namespace Prisma {
      * @param {OneOptionalFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const oneOptional = await prisma.oneOptional.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: OneOptionalFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -9152,6 +9161,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["manyRequired"]>
 
 
+
   export type ManyRequiredSelectScalar = {
     id?: boolean
     oneOptionalId?: boolean
@@ -9199,7 +9209,7 @@ export namespace Prisma {
 
   type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredDefaultArgs> = $Result.GetResult<Prisma.$ManyRequiredPayload, S>
 
-  type ManyRequiredCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type ManyRequiredCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<ManyRequiredFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ManyRequiredCountAggregateInputType | true
     }
@@ -9220,7 +9230,7 @@ export namespace Prisma {
     findUnique<T extends ManyRequiredFindUniqueArgs>(args: SelectSubset<T, ManyRequiredFindUniqueArgs<ExtArgs>>): Prisma__ManyRequiredClient<$Result.GetResult<Prisma.$ManyRequiredPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one ManyRequired that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one ManyRequired that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {ManyRequiredFindUniqueOrThrowArgs} args - Arguments to find a ManyRequired
      * @example
@@ -9398,7 +9408,7 @@ export namespace Prisma {
      * @param {ManyRequiredFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const manyRequired = await prisma.manyRequired.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: ManyRequiredFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -10233,6 +10243,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["optionalSide1"]>
 
 
+
   export type OptionalSide1SelectScalar = {
     id?: boolean
     optionalSide2Id?: boolean
@@ -10280,7 +10291,7 @@ export namespace Prisma {
 
   type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1DefaultArgs> = $Result.GetResult<Prisma.$OptionalSide1Payload, S>
 
-  type OptionalSide1CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type OptionalSide1CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<OptionalSide1FindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OptionalSide1CountAggregateInputType | true
     }
@@ -10301,7 +10312,7 @@ export namespace Prisma {
     findUnique<T extends OptionalSide1FindUniqueArgs>(args: SelectSubset<T, OptionalSide1FindUniqueArgs<ExtArgs>>): Prisma__OptionalSide1Client<$Result.GetResult<Prisma.$OptionalSide1Payload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one OptionalSide1 that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one OptionalSide1 that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {OptionalSide1FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide1
      * @example
@@ -10479,7 +10490,7 @@ export namespace Prisma {
      * @param {OptionalSide1FindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const optionalSide1 = await prisma.optionalSide1.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: OptionalSide1FindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -11306,6 +11317,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["optionalSide2"]>
 
 
+
   export type OptionalSide2SelectScalar = {
     id?: boolean
     int?: boolean
@@ -11351,7 +11363,7 @@ export namespace Prisma {
 
   type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2DefaultArgs> = $Result.GetResult<Prisma.$OptionalSide2Payload, S>
 
-  type OptionalSide2CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type OptionalSide2CountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<OptionalSide2FindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: OptionalSide2CountAggregateInputType | true
     }
@@ -11372,7 +11384,7 @@ export namespace Prisma {
     findUnique<T extends OptionalSide2FindUniqueArgs>(args: SelectSubset<T, OptionalSide2FindUniqueArgs<ExtArgs>>): Prisma__OptionalSide2Client<$Result.GetResult<Prisma.$OptionalSide2Payload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one OptionalSide2 that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one OptionalSide2 that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {OptionalSide2FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide2
      * @example
@@ -11550,7 +11562,7 @@ export namespace Prisma {
      * @param {OptionalSide2FindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const optionalSide2 = await prisma.optionalSide2.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: OptionalSide2FindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -12323,6 +12335,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["a"]>
 
 
+
   export type ASelectScalar = {
     id?: boolean
     email?: boolean
@@ -12355,7 +12368,7 @@ export namespace Prisma {
 
   type AGetPayload<S extends boolean | null | undefined | ADefaultArgs> = $Result.GetResult<Prisma.$APayload, S>
 
-  type ACountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type ACountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<AFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ACountAggregateInputType | true
     }
@@ -12376,7 +12389,7 @@ export namespace Prisma {
     findUnique<T extends AFindUniqueArgs>(args: SelectSubset<T, AFindUniqueArgs<ExtArgs>>): Prisma__AClient<$Result.GetResult<Prisma.$APayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one A that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one A that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {AFindUniqueOrThrowArgs} args - Arguments to find a A
      * @example
@@ -12554,7 +12567,7 @@ export namespace Prisma {
      * @param {AFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const a = await prisma.a.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: AFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -13236,6 +13249,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["b"]>
 
 
+
   export type BSelectScalar = {
     id?: boolean
     float?: boolean
@@ -13256,7 +13270,7 @@ export namespace Prisma {
 
   type BGetPayload<S extends boolean | null | undefined | BDefaultArgs> = $Result.GetResult<Prisma.$BPayload, S>
 
-  type BCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type BCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<BFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: BCountAggregateInputType | true
     }
@@ -13277,7 +13291,7 @@ export namespace Prisma {
     findUnique<T extends BFindUniqueArgs>(args: SelectSubset<T, BFindUniqueArgs<ExtArgs>>): Prisma__BClient<$Result.GetResult<Prisma.$BPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one B that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one B that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {BFindUniqueOrThrowArgs} args - Arguments to find a B
      * @example
@@ -13455,7 +13469,7 @@ export namespace Prisma {
      * @param {BFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const b = await prisma.b.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: BFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -14128,6 +14142,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["c"]>
 
 
+
   export type CSelectScalar = {
     id?: boolean
     char?: boolean
@@ -14156,7 +14171,7 @@ export namespace Prisma {
 
   type CGetPayload<S extends boolean | null | undefined | CDefaultArgs> = $Result.GetResult<Prisma.$CPayload, S>
 
-  type CCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type CCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<CFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: CCountAggregateInputType | true
     }
@@ -14177,7 +14192,7 @@ export namespace Prisma {
     findUnique<T extends CFindUniqueArgs>(args: SelectSubset<T, CFindUniqueArgs<ExtArgs>>): Prisma__CClient<$Result.GetResult<Prisma.$CPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one C that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one C that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {CFindUniqueOrThrowArgs} args - Arguments to find a C
      * @example
@@ -14355,7 +14370,7 @@ export namespace Prisma {
      * @param {CFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const c = await prisma.c.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: CFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -15054,6 +15069,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["d"]>
 
 
+
   export type DSelectScalar = {
     id?: boolean
     bool?: boolean
@@ -15082,7 +15098,7 @@ export namespace Prisma {
 
   type DGetPayload<S extends boolean | null | undefined | DDefaultArgs> = $Result.GetResult<Prisma.$DPayload, S>
 
-  type DCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type DCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<DFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: DCountAggregateInputType | true
     }
@@ -15103,7 +15119,7 @@ export namespace Prisma {
     findUnique<T extends DFindUniqueArgs>(args: SelectSubset<T, DFindUniqueArgs<ExtArgs>>): Prisma__DClient<$Result.GetResult<Prisma.$DPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one D that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one D that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {DFindUniqueOrThrowArgs} args - Arguments to find a D
      * @example
@@ -15281,7 +15297,7 @@ export namespace Prisma {
      * @param {DFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const d = await prisma.d.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: DFindRawArgs): Prisma.PrismaPromise<JsonObject>
@@ -15934,6 +15950,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["e"]>
 
 
+
   export type ESelectScalar = {
     id?: boolean
     date?: boolean
@@ -15956,7 +15973,7 @@ export namespace Prisma {
 
   type EGetPayload<S extends boolean | null | undefined | EDefaultArgs> = $Result.GetResult<Prisma.$EPayload, S>
 
-  type ECountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+  type ECountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
     Omit<EFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: ECountAggregateInputType | true
     }
@@ -15977,7 +15994,7 @@ export namespace Prisma {
     findUnique<T extends EFindUniqueArgs>(args: SelectSubset<T, EFindUniqueArgs<ExtArgs>>): Prisma__EClient<$Result.GetResult<Prisma.$EPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one E that matches the filter or throw an error with \`error.code='P2025'\` 
+     * Find one E that matches the filter or throw an error with \`error.code='P2025'\`
      * if no matches were found.
      * @param {EFindUniqueOrThrowArgs} args - Arguments to find a E
      * @example
@@ -16155,7 +16172,7 @@ export namespace Prisma {
      * @param {EFindRawArgs} args - Select which filters you would like to apply.
      * @example
      * const e = await prisma.e.findRaw({
-     *   filter: { age: { $gt: 25 } } 
+     *   filter: { age: { $gt: 25 } }
      * })
      */
     findRaw(args?: EFindRawArgs): Prisma.PrismaPromise<JsonObject>
