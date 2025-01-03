@@ -7,6 +7,7 @@ import {
   format,
   getCommandWithExecutor,
   HelpError,
+  isError,
   link,
   logger,
   protocolToConnectorType,
@@ -16,7 +17,6 @@ import fs from 'fs'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 import { match, P } from 'ts-pattern'
-import { isError } from 'util'
 
 import { printError } from './utils/prompt/utils/print'
 
