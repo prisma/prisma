@@ -252,3 +252,15 @@ services:
       interval: 5s
       timeout: 2s
       retries: 20
+
+  lowdb:
+    image: node:14
+    restart: unless-stopped
+    volumes:
+      - ./lowdb_data:/data
+    command: sh -c "npm install lowdb && node -e 'const { Low, JSONFile } = require(\"lowdb\"); const adapter = new JSONFile(\"/data/db.json\"); const db = new Low(adapter); db.read().then(() => { db.data ||= { posts: [] }; db.write(); });'"
+    healthcheck:
+      test: ['CMD-SHELL', 'node -e "const { Low, JSONFile } = require(\"lowdb\"); const adapter = new JSONFile(\"/data/db.json\"); const db = new Low(adapter); db.read().then(() => { if (!db.data) { process.exit(1); } });"']
+      interval: 5s
+      timeout: 2s
+      retries: 20
