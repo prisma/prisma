@@ -1,1 +1,1 @@
-export const WARMUP_ITERATIONS = 200
+export const WARMUP_ITERATIONS = 1500
