@@ -19,6 +19,7 @@ const writeMap: Record<JsonQueryAction, boolean> = {
   queryRaw: false,
   runCommandRaw: true,
   updateMany: true,
+  updateManyAndReturn: true,
   updateOne: true,
   upsertOne: true,
 }

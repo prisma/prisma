@@ -99,8 +99,8 @@ importers:
         specifier: 2.29.1
         version: 2.29.1(@typescript-eslint/parser@7.15.0(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)
       eslint-plugin-jest:
-        specifier: 28.9.0
-        version: 28.9.0(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)(jest@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.10.1)(@types/node@20.12.7)(typescript@5.4.5)))(typescript@5.4.5)
+        specifier: 28.10.0
+        version: 28.10.0(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)(jest@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.10.1)(@types/node@20.12.7)(typescript@5.4.5)))(typescript@5.4.5)
       eslint-plugin-local-rules:
         specifier: 2.0.1
         version: 2.0.1
@@ -622,8 +622,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-        version: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
+        specifier: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
+        version: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -649,8 +649,8 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-engine-wasm':
-        specifier: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-        version: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
+        specifier: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
+        version: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -868,8 +868,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-        version: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
+        specifier: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
+        version: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -905,8 +905,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-        version: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
+        specifier: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
+        version: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1227,8 +1227,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-        version: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
+        specifier: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
+        version: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1399,8 +1399,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-        version: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
+        specifier: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
+        version: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1551,8 +1551,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-        version: 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
+        specifier: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
+        version: 6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f
       fs-extra:
         specifier: 11.1.1
         version: 11.1.1
@@ -2755,19 +2755,19 @@ packages:
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
 
-  '@prisma/engines-version@6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959':
-    resolution: {integrity: sha512-PdJqmYM2Fd8K0weOOtQThWylwjsDlTig+8Pcg47/jszMuLL9iLIaygC3cjWJLda69siRW4STlCTMSgOjZzvKPQ==}
+  '@prisma/engines-version@6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f':
+    resolution: {integrity: sha512-rti9pHqH8qEupAXZwBQiIdbD/zP4rxT59iuDg4dlTaAKGimSg8WcyHu4DQoXJj4pwQKGeFDb+ZGoZNorXeke7g==}
 
   '@prisma/mini-proxy@0.9.5':
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
     engines: {node: '>=16'}
     hasBin: true
 
-  '@prisma/prisma-schema-wasm@6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959':
-    resolution: {integrity: sha512-DFVf1Xxv/IHP9eBQSEVZ+MSugOu7/86+re6RwzZ5JIQk5xrU5xzMgD0yPDqGxAQIySWLf5aQVfCelmRPQkdA8g==}
+  '@prisma/prisma-schema-wasm@6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f':
+    resolution: {integrity: sha512-OjePLqgrtq1U7DVxjhJNRAnfmnwJRJGLh17dJA2Cth63zmclzm5WPhYs4bZJQ+b031M3edYkCwRuUqr7OPGeGA==}
 
-  '@prisma/query-engine-wasm@6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959':
-    resolution: {integrity: sha512-pJw7h1EDZlber/MkYIyavX+vizxW4ctnUC1j/b6m7mUe4Tp6l7FlKlzINJIQOUIjK63H7s3I072v+jp8tTJC5Q==}
+  '@prisma/query-engine-wasm@6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f':
+    resolution: {integrity: sha512-eggPTTcMQx3BewY+Z2+xR75ugg5qCcDJ2lw8VcTK/7CoUslj2FLwMNUlW8BgMfUDv7tVh7NdFXIulcLGHjmJ2g==}
 
   '@prisma/studio-common@0.503.0':
     resolution: {integrity: sha512-YLI4uf8hNIg5RaX7lPPSH6qLeSknygMB/2aEqfnWA1kWCHvkTkYEtSoSXLEAIbVc0LWWDawCcDPxFH12v6oSnA==}
@@ -4215,8 +4215,8 @@ packages:
       '@typescript-eslint/parser':
         optional: true
 
-  eslint-plugin-jest@28.9.0:
-    resolution: {integrity: sha512-rLu1s1Wf96TgUUxSw6loVIkNtUjq1Re7A9QdCCHSohnvXEBAjuL420h0T/fMmkQlNsQP2GhQzEUpYHPfxBkvYQ==}
+  eslint-plugin-jest@28.10.0:
+    resolution: {integrity: sha512-hyMWUxkBH99HpXT3p8hc7REbEZK3D+nk8vHXGgpB+XXsi0gO4PxMSP+pjfUzb67GnV9yawV9a53eUmcde1CCZA==}
     engines: {node: ^16.10.0 || ^18.12.0 || >=20.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -8501,13 +8501,13 @@ snapshots:
 
   '@planetscale/database@1.18.0': {}
 
-  '@prisma/engines-version@6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959': {}
+  '@prisma/engines-version@6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f': {}
 
   '@prisma/mini-proxy@0.9.5': {}
 
-  '@prisma/prisma-schema-wasm@6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959': {}
+  '@prisma/prisma-schema-wasm@6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f': {}
 
-  '@prisma/query-engine-wasm@6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959': {}
+  '@prisma/query-engine-wasm@6.2.0-11.c49e56c20818c325095752dd0ae895b0dc7bad9f': {}
 
   '@prisma/studio-common@0.503.0':
     dependencies:
@@ -10203,7 +10203,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-jest@28.9.0(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)(jest@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.10.1)(@types/node@20.12.7)(typescript@5.4.5)))(typescript@5.4.5):
+  eslint-plugin-jest@28.10.0(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)(typescript@5.4.5))(eslint@9.5.0)(jest@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.10.1)(@types/node@20.12.7)(typescript@5.4.5)))(typescript@5.4.5):
     dependencies:
       '@typescript-eslint/utils': 7.15.0(eslint@9.5.0)(typescript@5.4.5)
       eslint: 9.5.0
