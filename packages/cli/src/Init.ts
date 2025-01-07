@@ -354,14 +354,13 @@ export class Init implements Command {
       const credentials = await credentialsFile.load()
       if (isError(credentials)) throw credentials
 
-      // TODO: Add interactive login/signup prompt
       if (!credentials) {
         console.log('This will create a project for you on console.prisma.io and requires you to be authenticated.')
         const authAnswer = await confirm({
           message: 'Would you like to authenticate?',
         })
         if (!authAnswer) {
-          return 'Project creation aborted. You need to authenticate to use Prisma Postgres'
+          return 'Project creation aborted. You need to authenticate to use Prisma Postgres©'
         }
         const authenticationResult = await PlatformCommands.loginOrSignup()
         console.log(authenticationResult.message)
@@ -404,7 +403,7 @@ export class Init implements Command {
       })
       console.log(successMessage(`Project ${project.displayName} created`))
 
-      console.log(`Checking the status of Prisma Postgres instance...`)
+      console.log(`Checking the status of Prisma Postgres© instance...`)
       await poll(
         () =>
           PlatformCommands.Environment.getEnvironment({
@@ -415,9 +414,9 @@ export class Init implements Command {
           environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
         5000, // Poll every 5 seconds
         120000, // if it takes more than two minutes, bail with an error
-        'Checking the status of Prisma Postgres instance...',
+        'Checking the status of Prisma Postgres© instance...',
       )
-      console.log(successMessage('Prisma Postgres provisioning complete'))
+      console.log(successMessage('Prisma Postgres© provisioning complete'))
 
       console.log('Creating PPG API key...')
       const serviceToken = await PlatformCommands.ServiceToken.create({
