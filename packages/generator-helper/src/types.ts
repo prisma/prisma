@@ -71,7 +71,6 @@ export type ConnectorType =
   | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
   | 'sqlserver'
   | 'cockroachdb'
-  | 'prismapostgres'
 
 export type ActiveConnectorType = Exclude<ConnectorType, 'postgres'>
 

@@ -23,8 +23,10 @@ import { credentialsFile } from './platform/_lib/credentials'
 import { successMessage } from './platform/_lib/messages'
 import { printError } from './utils/prompt/utils/print'
 
+type ConnectorTypeOrPrismaPostgres = ConnectorType | 'prismapostgres'
+
 export const defaultSchema = (props?: {
-  datasourceProvider?: ConnectorType
+  datasourceProvider?: ConnectorTypeOrPrismaPostgres
   generatorProvider?: string
   previewFeatures?: string[]
   output?: string
@@ -110,7 +112,7 @@ export const defaultEnv = (
   return env
 }
 
-export const defaultPort = (datasourceProvider: ConnectorType) => {
+export const defaultPort = (datasourceProvider: ConnectorTypeOrPrismaPostgres) => {
   switch (datasourceProvider) {
     case 'mysql':
       return 3306
@@ -122,13 +124,15 @@ export const defaultPort = (datasourceProvider: ConnectorType) => {
       return 5432
     case 'cockroachdb':
       return 26257
+    case 'prismapostgres':
+      return null
   }
 
   return undefined
 }
 
 export const defaultURL = (
-  datasourceProvider: ConnectorType,
+  datasourceProvider: ConnectorTypeOrPrismaPostgres,
   port = defaultPort(datasourceProvider),
   schema = 'public',
 ) => {
@@ -287,7 +291,7 @@ export class Init implements Command {
               `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
             )
           }
-          const datasourceProvider = datasourceProviderLowercase as ConnectorType
+          const datasourceProvider = datasourceProviderLowercase as ConnectorTypeOrPrismaPostgres
           const url = defaultURL(datasourceProvider)
           return Promise.resolve({
             datasourceProvider,
