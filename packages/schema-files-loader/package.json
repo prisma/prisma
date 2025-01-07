@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "6.2.0-12.51db5cf11ad393407e86084764bced274b48b27d",
+    "@prisma/prisma-schema-wasm": "6.2.0-13.integration-sql-nested-transactions4-fa6eebbccfd5b45ef639efcb0fe328c189735aa4",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
