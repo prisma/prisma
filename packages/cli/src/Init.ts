@@ -23,10 +23,8 @@ import { credentialsFile } from './platform/_lib/credentials'
 import { successMessage } from './platform/_lib/messages'
 import { printError } from './utils/prompt/utils/print'
 
-type ConnectorTypeOrPrismaPostgres = ConnectorType | 'prismapostgres'
-
 export const defaultSchema = (props?: {
-  datasourceProvider?: ConnectorTypeOrPrismaPostgres
+  datasourceProvider?: ConnectorType
   generatorProvider?: string
   previewFeatures?: string[]
   output?: string
@@ -112,7 +110,7 @@ export const defaultEnv = (
   return env
 }
 
-export const defaultPort = (datasourceProvider: ConnectorTypeOrPrismaPostgres) => {
+export const defaultPort = (datasourceProvider: ConnectorType) => {
   switch (datasourceProvider) {
     case 'mysql':
       return 3306
@@ -124,7 +122,7 @@ export const defaultPort = (datasourceProvider: ConnectorTypeOrPrismaPostgres) =
       return 5432
     case 'cockroachdb':
       return 26257
-    case 'prismapostgres':
+    case 'prisma+postgres':
       return null
   }
 
@@ -132,7 +130,7 @@ export const defaultPort = (datasourceProvider: ConnectorTypeOrPrismaPostgres) =
 }
 
 export const defaultURL = (
-  datasourceProvider: ConnectorTypeOrPrismaPostgres,
+  datasourceProvider: ConnectorType,
   port = defaultPort(datasourceProvider),
   schema = 'public',
 ) => {
@@ -291,7 +289,7 @@ export class Init implements Command {
               `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
             )
           }
-          const datasourceProvider = datasourceProviderLowercase as ConnectorTypeOrPrismaPostgres
+          const datasourceProvider = datasourceProviderLowercase as ConnectorType
           const url = defaultURL(datasourceProvider)
           return Promise.resolve({
             datasourceProvider,
@@ -334,7 +332,7 @@ export class Init implements Command {
     const previewFeatures = args['--preview-feature']
     const output = args['--output']
 
-    if (datasourceProvider === `prismapostgres`) {
+    if (datasourceProvider === `prisma+postgres`) {
       /**
        * Flow:
        * 1. Check authentication status
