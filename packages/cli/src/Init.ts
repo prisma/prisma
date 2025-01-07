@@ -18,6 +18,7 @@ import { bold, dim, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
+import { poll } from './platform/_'
 import { credentialsFile } from './platform/_lib/credentials'
 import { successMessage } from './platform/_lib/messages'
 import { printError } from './utils/prompt/utils/print'
@@ -353,7 +354,6 @@ export class Init implements Command {
         console.log(authenticationResult.message)
       }
 
-      // TODO: Figure better namespacing
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
 
       const workspaces = await PlatformCommands.Workspace.getUserWorkspaces({ token: platformToken })
@@ -373,7 +373,7 @@ export class Init implements Command {
       console.log(successMessage(`Project ${project.displayName} created`))
 
       console.log(`Checking the status of Prisma Postgres instance...`)
-      await PlatformCommands.poll(
+      await poll(
         () =>
           PlatformCommands.Environment.getEnvironment({
             environmentId: project.defaultEnvironment.id,
