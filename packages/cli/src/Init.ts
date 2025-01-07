@@ -398,9 +398,9 @@ export class Init implements Command {
       console.log(successMessage('Project has been successfully created!'))
       console.log(`Your database URL is:`)
       console.table(databaseUrl)
-      console.log(`We've also included this in .env.prisma`)
 
       // TODO: Handle file creations
+      // console.log(`We've also included this in .env.prisma`)
 
       return
     }
