@@ -281,9 +281,16 @@ export class Init implements Command {
         (input) => {
           const datasourceProviderLowercase = input['--datasource-provider'].toLowerCase()
           if (
-            !['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb', 'prismapostgres'].includes(
-              datasourceProviderLowercase,
-            )
+            ![
+              'postgresql',
+              'mysql',
+              'sqlserver',
+              'sqlite',
+              'mongodb',
+              'cockroachdb',
+              'prismapostgres',
+              'prisma+postgres',
+            ].includes(datasourceProviderLowercase)
           ) {
             throw new Error(
               `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
