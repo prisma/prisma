@@ -366,7 +366,7 @@ export class Init implements Command {
         throw new Error('No default workspace found')
       }
 
-      console.log('Creating project and provisioning PPG...')
+      console.log('Creating a project and provisioning a Prisma Postgres© instance...')
       const project = await PlatformCommands.Project.createProject({
         token: platformToken,
         displayName: 'Prisma init', // TODO: Add interactive name prompt
@@ -376,7 +376,7 @@ export class Init implements Command {
       })
       console.log(successMessage(`Project ${project.displayName} created`))
 
-      console.log(`Checking the status of Prisma Postgres instance...`)
+      console.log(`Checking the status of Prisma Postgres© instance...`)
       await poll(
         () =>
           PlatformCommands.Environment.getEnvironment({
@@ -387,9 +387,9 @@ export class Init implements Command {
           environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
         5000, // Poll every 5 seconds
         120000, // if it takes more than two minutes, bail with an error
-        'Checking the status of Prisma Postgres instance...',
+        'Checking the status of Prisma Postgres© instance...',
       )
-      console.log(successMessage('Prisma Postgres provisioning complete'))
+      console.log(successMessage('Prisma Postgres© provisioning complete'))
 
       console.log('Creating PPG API key...')
       const serviceToken = await PlatformCommands.ServiceToken.create({
