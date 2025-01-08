@@ -1,3 +1,4 @@
+import { confirm, input, select } from '@inquirer/prompts'
 import type { ConnectorType } from '@prisma/generator-helper'
 import {
   arg,
@@ -21,6 +22,7 @@ import { match, P } from 'ts-pattern'
 import { poll } from './platform/_'
 import { credentialsFile } from './platform/_lib/credentials'
 import { successMessage } from './platform/_lib/messages'
+import { getPrismaPostgresRegionsOrThrow } from './platform/accelerate/regions'
 import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (props?: {
@@ -357,23 +359,46 @@ export class Init implements Command {
       const credentials = await credentialsFile.load()
       if (isError(credentials)) throw credentials
 
-      // TODO: Add interactive login/signup prompt
       if (!credentials) {
+        console.log('This will create a project for you on console.prisma.io and requires you to be authenticated.')
+        const authAnswer = await confirm({
+          message: 'Would you like to authenticate?',
+        })
+        if (!authAnswer) {
+          return 'Project creation aborted. You need to authenticate to use Prisma Postgres®'
+        }
         const authenticationResult = await PlatformCommands.loginOrSignup()
         console.log(authenticationResult.message)
       }
 
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
-
       const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
+      const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
 
+      const ppgRegionSelection = await select({
+        message: 'Select your region:',
+        default: 'us-east-1',
+        choices: regions.map((region) => ({
+          name: `${region.id} - ${region.displayName}`,
+          value: region.id,
+          disabled: region.ppgStatus === 'unavailable',
+        })),
+        loop: true,
+      })
+
+      const projectDisplayNameAnswer = await input({
+        message: 'Enter a project name:',
+        default: 'Prisma init',
+      })
+
+      console.log('Creating project and provisioning PPG...')
       console.log('Creating a project and provisioning a Prisma Postgres® instance...')
       const project = await PlatformCommands.Project.createProjectOrThrow({
         token: platformToken,
-        displayName: 'Prisma init', // TODO: Add interactive name prompt
+        displayName: projectDisplayNameAnswer,
         workspaceId: defaultWorkspace.id,
         allowRemoteDatabases: false,
-        ppgRegion: 'us-east-1', // TODO: Add interactive region prompt
+        ppgRegion: ppgRegionSelection,
       })
       console.log(successMessage(`Project ${project.displayName} created`))
 
