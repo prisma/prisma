@@ -1,6 +1,6 @@
 import { requestOrThrow } from '../_lib/pdp'
 
-export const getRegions = async (input: { token: string }) => {
+export const getRegionsOrThrow = async (input: { token: string }) => {
   const { token } = input
 
   const { system } = await requestOrThrow<{
@@ -33,4 +33,10 @@ export const getRegions = async (input: { token: string }) => {
   })
 
   return system.accelerate.regions
+}
+
+export const getPrismaPostgresRegionsOrThrow = async (input: { token: string }) => {
+  const regions = await getRegionsOrThrow(input)
+  const ppgRegions = regions.filter((_) => _.ppgStatus !== 'unsupported')
+  return ppgRegions
 }
