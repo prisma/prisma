@@ -365,14 +365,10 @@ export class Init implements Command {
 
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
 
-      const workspaces = await PlatformCommands.Workspace.getUserWorkspaces({ token: platformToken })
-      const defaultWorkspace = workspaces.find((_) => _.isDefault)
-      if (!defaultWorkspace) {
-        throw new Error('No default workspace found')
-      }
+      const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
 
       console.log('Creating a project and provisioning a Prisma Postgres© instance...')
-      const project = await PlatformCommands.Project.createProject({
+      const project = await PlatformCommands.Project.createProjectOrThrow({
         token: platformToken,
         displayName: 'Prisma init', // TODO: Add interactive name prompt
         workspaceId: defaultWorkspace.id,
@@ -384,11 +380,11 @@ export class Init implements Command {
       console.log(`Checking the status of Prisma Postgres© instance...`)
       await poll(
         () =>
-          PlatformCommands.Environment.getEnvironment({
+          PlatformCommands.Environment.getEnvironmentOrThrow({
             environmentId: project.defaultEnvironment.id,
             token: platformToken,
           }),
-        (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironment>>) =>
+        (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironmentOrThrow>>) =>
           environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
         5000, // Poll every 5 seconds
         120000, // if it takes more than two minutes, bail with an error
@@ -397,7 +393,7 @@ export class Init implements Command {
       console.log(successMessage('Prisma Postgres© provisioning complete'))
 
       console.log('Creating PPG API key...')
-      const serviceToken = await PlatformCommands.ServiceToken.create({
+      const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
         token: platformToken,
         environmentId: project.defaultEnvironment.id,
         displayName: `database-setup-prismaPostgres-api-key`,

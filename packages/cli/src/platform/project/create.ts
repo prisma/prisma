@@ -19,7 +19,7 @@ export class Create implements Command {
     const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
 
-    const project = await createProject({
+    const project = await createProjectOrThrow({
       token: await getTokenOrThrow(args),
       workspaceId,
       displayName,
@@ -29,7 +29,7 @@ export class Create implements Command {
   }
 }
 
-export const createProject = async (input: {
+export const createProjectOrThrow = async (input: {
   token: string
   workspaceId: string
   displayName?: string

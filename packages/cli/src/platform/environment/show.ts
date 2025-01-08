@@ -64,7 +64,7 @@ export class Show implements Command {
   }
 }
 
-export const getEnvironment = async (input: { token: string; environmentId: string }) => {
+export const getEnvironmentOrThrow = async (input: { token: string; environmentId: string }) => {
   const { token, environmentId } = input
 
   const { environment } = await requestOrThrow<

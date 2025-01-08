@@ -15,13 +15,13 @@ export class Show implements Command {
       ...platformParameters.global,
     })
     const token = await getTokenOrThrow(args)
-    const userWorkspaces = await getUserWorkspaces({ token })
+    const userWorkspaces = await getUserWorkspacesOrThrow({ token })
 
     return messages.resourceList(userWorkspaces)
   }
 }
 
-export const getUserWorkspaces = async (input: { token: string }) => {
+export const getUserWorkspacesOrThrow = async (input: { token: string }) => {
   const { token } = input
   const { me } = await requestOrThrow<{
     me: {
@@ -53,4 +53,44 @@ export const getUserWorkspaces = async (input: { token: string }) => {
   })
 
   return me.workspaces
+}
+
+export const getDefaultWorkspaceOrThrow = async (input: { token: string }) => {
+  const { token } = input
+  const { me } = await requestOrThrow<{
+    me: {
+      workspaces: {
+        __typename: string
+        id: string
+        displayName: string
+        createdAt: string
+        isDefault: boolean
+      }[]
+    }
+  }>({
+    token,
+    body: {
+      query: /* GraphQL */ `
+        query {
+          me {
+            __typename
+            workspaces {
+              id
+              displayName
+              createdAt
+              isDefault
+            }
+          }
+        }
+      `,
+    },
+  })
+
+  const defaultWorkspace = me.workspaces.find((_) => _.isDefault)
+
+  if (!defaultWorkspace) {
+    throw new Error('No default workspace found')
+  }
+
+  return defaultWorkspace
 }
