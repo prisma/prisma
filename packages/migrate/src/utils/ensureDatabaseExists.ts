@@ -14,7 +14,14 @@ import { ConnectorType } from './printDatasources'
 import { getSocketFromDatabaseCredentials } from './unixSocket'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
-export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB' | 'MongoDB'
+export type PrettyProvider =
+  | 'MySQL'
+  | 'PostgreSQL'
+  | 'Prisma Postgres'
+  | 'SQLite'
+  | 'SQL Server'
+  | 'CockroachDB'
+  | 'MongoDB'
 
 // TODO: extract functions in their own files?
 
@@ -241,6 +248,8 @@ export function prettifyProvider(provider: ConnectorType): PrettyProvider {
     case 'postgres':
     case 'postgresql':
       return `PostgreSQL`
+    case 'prisma+postgres':
+      return `Prisma Postgres`
     case 'sqlite':
       return `SQLite`
     case 'cockroachdb':

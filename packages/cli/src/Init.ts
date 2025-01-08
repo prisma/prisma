@@ -22,13 +22,11 @@ import { match, P } from 'ts-pattern'
 import { poll } from './platform/_'
 import { credentialsFile } from './platform/_lib/credentials'
 import { successMessage } from './platform/_lib/messages'
-import { getRegions } from './platform/accelerate/regions'
+import { getPrismaPostgresRegionsOrThrow } from './platform/accelerate/regions'
 import { printError } from './utils/prompt/utils/print'
 
-type ConnectorTypeOrPrismaPostgres = ConnectorType | 'prismapostgres'
-
 export const defaultSchema = (props?: {
-  datasourceProvider?: ConnectorTypeOrPrismaPostgres
+  datasourceProvider?: ConnectorType
   generatorProvider?: string
   previewFeatures?: string[]
   output?: string
@@ -114,7 +112,7 @@ export const defaultEnv = (
   return env
 }
 
-export const defaultPort = (datasourceProvider: ConnectorTypeOrPrismaPostgres) => {
+export const defaultPort = (datasourceProvider: ConnectorType) => {
   switch (datasourceProvider) {
     case 'mysql':
       return 3306
@@ -126,7 +124,7 @@ export const defaultPort = (datasourceProvider: ConnectorTypeOrPrismaPostgres) =
       return 5432
     case 'cockroachdb':
       return 26257
-    case 'prismapostgres':
+    case 'prisma+postgres':
       return null
   }
 
@@ -134,7 +132,7 @@ export const defaultPort = (datasourceProvider: ConnectorTypeOrPrismaPostgres) =
 }
 
 export const defaultURL = (
-  datasourceProvider: ConnectorTypeOrPrismaPostgres,
+  datasourceProvider: ConnectorType,
   port = defaultPort(datasourceProvider),
   schema = 'public',
 ) => {
@@ -285,15 +283,22 @@ export class Init implements Command {
         (input) => {
           const datasourceProviderLowercase = input['--datasource-provider'].toLowerCase()
           if (
-            !['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb', 'prismapostgres'].includes(
-              datasourceProviderLowercase,
-            )
+            ![
+              'postgresql',
+              'mysql',
+              'sqlserver',
+              'sqlite',
+              'mongodb',
+              'cockroachdb',
+              'prismapostgres',
+              'prisma+postgres',
+            ].includes(datasourceProviderLowercase)
           ) {
             throw new Error(
               `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
             )
           }
-          const datasourceProvider = datasourceProviderLowercase as ConnectorTypeOrPrismaPostgres
+          const datasourceProvider = datasourceProviderLowercase as ConnectorType
           const url = defaultURL(datasourceProvider)
           return Promise.resolve({
             datasourceProvider,
@@ -336,7 +341,7 @@ export class Init implements Command {
     const previewFeatures = args['--preview-feature']
     const output = args['--output']
 
-    if (datasourceProvider === `prismapostgres`) {
+    if (datasourceProvider === `prisma+postgres`) {
       /**
        * Flow:
        * 1. Check authentication status
@@ -367,20 +372,13 @@ export class Init implements Command {
       }
 
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
-
-      const workspaces = await PlatformCommands.Workspace.getUserWorkspaces({ token: platformToken })
-      const defaultWorkspace = workspaces.find((_) => _.isDefault)
-      if (!defaultWorkspace) {
-        throw new Error('No default workspace found')
-      }
-
-      const regions = await getRegions({ token: platformToken })
-      const ppgRegions = regions.filter((_) => _.ppgStatus !== 'unsupported')
+      const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
+      const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
 
       const ppgRegionSelection = await select({
         message: 'Select your region:',
         default: 'us-east-1',
-        choices: ppgRegions.map((region) => ({
+        choices: regions.map((region) => ({
           name: `${region.id} - ${region.displayName}`,
           value: region.id,
           disabled: region.ppgStatus === 'unavailable',
@@ -394,7 +392,8 @@ export class Init implements Command {
       })
 
       console.log('Creating project and provisioning PPG...')
-      const project = await PlatformCommands.Project.createProject({
+      console.log('Creating a project and provisioning a Prisma Postgres® instance...')
+      const project = await PlatformCommands.Project.createProjectOrThrow({
         token: platformToken,
         displayName: projectDisplayNameAnswer,
         workspaceId: defaultWorkspace.id,
@@ -403,23 +402,23 @@ export class Init implements Command {
       })
       console.log(successMessage(`Project ${project.displayName} created`))
 
-      console.log(`Checking the status of Prisma Postgres© instance...`)
+      console.log(`Checking the status of Prisma Postgres® instance...`)
       await poll(
         () =>
-          PlatformCommands.Environment.getEnvironment({
+          PlatformCommands.Environment.getEnvironmentOrThrow({
             environmentId: project.defaultEnvironment.id,
             token: platformToken,
           }),
-        (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironment>>) =>
+        (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironmentOrThrow>>) =>
           environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
         5000, // Poll every 5 seconds
         120000, // if it takes more than two minutes, bail with an error
-        'Checking the status of Prisma Postgres© instance...',
+        'Checking the status of Prisma Postgres® instance...',
       )
-      console.log(successMessage('Prisma Postgres© provisioning complete'))
+      console.log(successMessage('Prisma Postgres® provisioning complete'))
 
       console.log('Creating PPG API key...')
-      const serviceToken = await PlatformCommands.ServiceToken.create({
+      const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
         token: platformToken,
         environmentId: project.defaultEnvironment.id,
         displayName: `database-setup-prismaPostgres-api-key`,
@@ -428,12 +427,11 @@ export class Init implements Command {
       const databaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Project has been successfully created!'))
       console.log(`Your database URL is:`)
-      console.table(databaseUrl)
 
       // TODO: Handle file creations
       // console.log(`We've also included this in .env.prisma`)
 
-      return
+      return databaseUrl
     }
 
     /**
