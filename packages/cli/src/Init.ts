@@ -365,7 +365,7 @@ export class Init implements Command {
           message: 'Would you like to authenticate?',
         })
         if (!authAnswer) {
-          return 'Project creation aborted. You need to authenticate to use Prisma Postgres©'
+          return 'Project creation aborted. You need to authenticate to use Prisma Postgres®'
         }
         const authenticationResult = await PlatformCommands.loginOrSignup()
         console.log(authenticationResult.message)
