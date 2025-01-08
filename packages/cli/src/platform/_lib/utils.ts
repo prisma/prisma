@@ -74,7 +74,6 @@ export const poll = async <F extends () => Promise<R>, R>(
   message?: string,
 ) => {
   const endTime = new Date().getMilliseconds() + timeoutMs
-  const waitTime = new Date().getMilliseconds() + waitMs
 
   const wait = () =>
     new Promise((resolve) => {
@@ -83,6 +82,7 @@ export const poll = async <F extends () => Promise<R>, R>(
 
   let result = await fn()
   while (!until(result)) {
+    const waitTime = new Date().getMilliseconds() + waitMs
     if (waitTime > endTime) {
       throw new Error(`polling timed out after ${timeoutMs}ms`)
     }
