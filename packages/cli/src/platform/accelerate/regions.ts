@@ -37,6 +37,9 @@ export const getRegionsOrThrow = async (input: { token: string }) => {
 
 export const getPrismaPostgresRegionsOrThrow = async (input: { token: string }) => {
   const regions = await getRegionsOrThrow(input)
-  const ppgRegions = regions.filter((_) => _.ppgStatus !== 'unsupported')
+  const ppgRegions = regions
+    .filter((_) => _.ppgStatus !== 'unsupported')
+    .sort((a, b) => b.displayName.localeCompare(a.displayName))
+
   return ppgRegions
 }
