@@ -402,12 +402,11 @@ export class Init implements Command {
       const databaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Project has been successfully created!'))
       console.log(`Your database URL is:`)
-      console.table(databaseUrl)
 
       // TODO: Handle file creations
       // console.log(`We've also included this in .env.prisma`)
 
-      return
+      return databaseUrl
     }
 
     /**
