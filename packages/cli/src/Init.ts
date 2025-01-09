@@ -183,6 +183,7 @@ export class Init implements Command {
 
              -h, --help   Display this help message
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
+                   --db   Creates a Prisma Postgres® project on Prisma Data Platform (https://console.prisma.io)
    --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
       --preview-feature   Define a preview feature to use.
                --output   Define Prisma Client generator output path to use.
@@ -226,6 +227,7 @@ export class Init implements Command {
       '--preview-feature': [String],
       '--output': String,
       '--with-model': Boolean,
+      '--db': Boolean,
     })
 
     if (isError(args) || args['--help']) {
@@ -341,19 +343,8 @@ export class Init implements Command {
     const previewFeatures = args['--preview-feature']
     const output = args['--output']
 
-    if (datasourceProvider === `prisma+postgres`) {
-      /**
-       * Flow:
-       * 1. Check authentication status
-       * 2. If not authed, run login or signup
-       * 3. Find default organization
-       * 4. Create project
-       * 5. Create environment with PPG input
-       * 6. Start polling environment status
-       * 7. Create schema.prisma with PPG data source provider
-       * 8. Create .env.prisma file with PPG URL
-       * 9. Print success message
-       */
+    let prismaPostgresDatabaseUrl: string | undefined
+    if (args['--db'] || datasourceProvider === `prisma+postgres`) {
       const PlatformCommands = await import(`./platform/_`)
 
       const credentials = await credentialsFile.load()
@@ -424,14 +415,10 @@ export class Init implements Command {
         displayName: `database-setup-prismaPostgres-api-key`,
       })
 
-      const databaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
+      prismaPostgresDatabaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Project has been successfully created!'))
       console.log(`Your database URL is:`)
-
-      // TODO: Handle file creations
-      // console.log(`We've also included this in .env.prisma`)
-
-      return databaseUrl
+      console.log(prismaPostgresDatabaseUrl)
     }
 
     /**
@@ -457,10 +444,11 @@ export class Init implements Command {
       }),
     )
 
+    const databaseUrl = prismaPostgresDatabaseUrl || url
     const warnings: string[] = []
     const envPath = path.join(outputDir, '.env')
     if (!fs.existsSync(envPath)) {
-      fs.writeFileSync(envPath, defaultEnv(url))
+      fs.writeFileSync(envPath, defaultEnv(databaseUrl))
     } else {
       const envFile = fs.readFileSync(envPath, { encoding: 'utf8' })
       const config = dotenv.parse(envFile) // will return an object
@@ -471,7 +459,7 @@ export class Init implements Command {
           )}`,
         )
       } else {
-        fs.appendFileSync(envPath, `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(url))
+        fs.appendFileSync(envPath, `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(databaseUrl))
       }
     }
 
