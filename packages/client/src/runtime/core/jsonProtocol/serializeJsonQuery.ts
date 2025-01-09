@@ -118,11 +118,8 @@ function serializeFieldSelection(
   { select, include, ...args }: JsArgs = {},
   context: SerializeContext,
 ): JsonFieldSelection {
-  let omit: Omission | undefined
-  if (context.isPreviewFeatureOn('omitApi')) {
-    omit = args.omit
-    delete args.omit
-  }
+  const omit = args.omit
+  delete args.omit
   return {
     arguments: serializeArgumentsObject(args, context),
     selection: serializeSelectionSet(select, include, omit, context),
@@ -143,7 +140,7 @@ function serializeSelectionSet(
         secondField: 'select',
         selectionPath: context.getSelectionPath(),
       })
-    } else if (omit && context.isPreviewFeatureOn('omitApi')) {
+    } else if (omit) {
       context.throwValidationError({
         kind: 'MutuallyExclusiveFields',
         firstField: 'omit',
@@ -173,9 +170,7 @@ function createImplicitSelection(
     addIncludedRelations(selectionSet, include, context)
   }
 
-  if (context.isPreviewFeatureOn('omitApi')) {
-    omitFields(selectionSet, omit, context)
-  }
+  omitFields(selectionSet, omit, context)
 
   return selectionSet
 }
