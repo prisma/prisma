@@ -182,8 +182,8 @@ export class Init implements Command {
   ${bold('Options')}
 
              -h, --help   Display this help message
+                   --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
-                   --db   Creates a Prisma Postgres® project on Prisma Data Platform (https://console.prisma.io)
    --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
       --preview-feature   Define a preview feature to use.
                --output   Define Prisma Client generator output path to use.
@@ -359,7 +359,11 @@ export class Init implements Command {
           return 'Project creation aborted. You need to authenticate to use Prisma Postgres®'
         }
         const authenticationResult = await PlatformCommands.loginOrSignup()
-        console.log(authenticationResult.message)
+        console.log(
+          `Successfully authenticated as ${bold(
+            authenticationResult.email,
+          )}. Let's set up your Prisma Postgres database!`,
+        )
       }
 
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
@@ -379,7 +383,7 @@ export class Init implements Command {
 
       const projectDisplayNameAnswer = await input({
         message: 'Enter a project name:',
-        default: 'Prisma init',
+        default: 'My Prisma Project',
       })
 
       console.log(`Creating project ${projectDisplayNameAnswer}...`)
@@ -416,14 +420,13 @@ export class Init implements Command {
 
       prismaPostgresDatabaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Project has been successfully created!'))
-      const summary = {
-        ['Database URL']: prismaPostgresDatabaseUrl,
-        ['Link to project']: `https://console.prisma.io/${defaultWorkspace.id}/${project.id}/${project.defaultEnvironment.id}/dashboard`,
-      }
-      console.log('-------------------------')
-      console.log(`Database URL: ${summary['Database URL']}`)
-      console.log(`Link to Project: ${summary['Link to project']}`)
-      console.log('-------------------------')
+      console.log(`-------------------------
+${bold('Database URL:')}
+${prismaPostgresDatabaseUrl}
+\n
+${bold('Project link:')}
+https://console.prisma.io/${defaultWorkspace.id}/${project.id}/${project.defaultEnvironment.id}/dashboard
+-------------------------`)
     }
 
     /**
