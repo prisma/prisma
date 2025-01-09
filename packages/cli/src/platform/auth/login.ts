@@ -148,3 +148,76 @@ const decodeUser = (stringifiedUser: string) => {
     return null
   }
 }
+
+export const loginOrSignup = async () => {
+  console.info('Authenticating to Prisma Platform via browser.\n')
+
+  const server = http.createServer()
+  /**
+   * When passing 0 as a port to listen, the OS will assign a random available port
+   */
+  const randomPort = 0
+  const redirectUrl = await listen(server, randomPort, '127.0.0.1')
+  const loginUrl = await createLoginUrl({ connection: 'github', redirectTo: redirectUrl.href })
+
+  console.info('Visit the following URL in your browser to authenticate:')
+  console.info(link(loginUrl.href))
+
+  const callbackResult = await Promise.all([
+    new Promise<CallbackData>((resolve, reject) => {
+      server.once('request', (req, res) => {
+        server.close()
+        res.setHeader('connection', 'close')
+        const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
+        const token = searchParams.get('token') ?? ''
+        const error = searchParams.get('error')
+        const location = getBaseAuthUrl()
+
+        if (error) {
+          location.pathname += '/error'
+          location.searchParams.set('error', error)
+          reject(new Error(error))
+        } else {
+          // TODO: Consider getting the user via Console API instead of passing it via query params
+          const user = decodeUser(searchParams.get('user') ?? '')
+          if (user) {
+            searchParams.delete('token')
+            searchParams.delete('user')
+            location.pathname += '/success'
+            const nextSearchParams = new URLSearchParams({
+              ...Object.fromEntries(searchParams.entries()),
+              email: user.email,
+            })
+            location.search = nextSearchParams.toString()
+            resolve({ token, user })
+          } else {
+            location.pathname += '/error'
+            location.searchParams.set('error', 'Invalid user')
+            reject(new Error('Invalid user'))
+          }
+        }
+
+        res.statusCode = 302
+        res.setHeader('location', location.href)
+        res.end()
+      })
+      server.once('error', reject)
+    }),
+    open(loginUrl.href),
+  ])
+    .then((results) => results[0])
+    .catch(unknownToError)
+
+  if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`) // prettier-ignore
+
+  {
+    const writeResult = await credentialsFile.save({ token: callbackResult.token })
+    if (isError(writeResult)) throw new Error('Writing credentials to disk failed', { cause: writeResult })
+  }
+
+  return {
+    message: successMessage(`Authentication successful for ${callbackResult.user.email}`),
+    email: callbackResult.user.email,
+    token: callbackResult.token,
+  }
+}
