@@ -217,6 +217,7 @@ export const loginOrSignup = async () => {
 
   return {
     message: successMessage(`Authentication successful for ${callbackResult.user.email}`),
+    email: callbackResult.user.email,
     token: callbackResult.token,
   }
 }
