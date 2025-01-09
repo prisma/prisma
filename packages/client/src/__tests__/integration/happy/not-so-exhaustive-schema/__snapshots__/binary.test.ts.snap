@@ -4736,6 +4736,7 @@ export namespace Prisma {
      * Filter which User to delete.
      */
     where: UserWhereUniqueInput
+    limit?: number
   }
 
   /**
@@ -4746,6 +4747,7 @@ export namespace Prisma {
      * Filter which Users to delete
      */
     where?: UserWhereInput
+    limit?: number
   }
 
   /**
@@ -5950,6 +5952,7 @@ export namespace Prisma {
      * Filter which MS to delete
      */
     where?: MWhereInput
+    limit?: number
   }
 
   /**
@@ -7154,6 +7157,7 @@ export namespace Prisma {
      * Filter which NS to delete
      */
     where?: NWhereInput
+    limit?: number
   }
 
   /**
@@ -8358,6 +8362,7 @@ export namespace Prisma {
      * Filter which OneOptionals to delete
      */
     where?: OneOptionalWhereInput
+    limit?: number
   }
 
   /**
@@ -9591,6 +9596,7 @@ export namespace Prisma {
      * Filter which ManyRequireds to delete
      */
     where?: ManyRequiredWhereInput
+    limit?: number
   }
 
   /**
@@ -10819,6 +10825,7 @@ export namespace Prisma {
      * Filter which OptionalSide1s to delete
      */
     where?: OptionalSide1WhereInput
+    limit?: number
   }
 
   /**
@@ -12016,6 +12023,7 @@ export namespace Prisma {
      * Filter which OptionalSide2s to delete
      */
     where?: OptionalSide2WhereInput
+    limit?: number
   }
 
   /**
@@ -13134,6 +13142,7 @@ export namespace Prisma {
      * Filter which AS to delete
      */
     where?: AWhereInput
+    limit?: number
   }
 
   /**
@@ -14163,6 +14172,7 @@ export namespace Prisma {
      * Filter which BS to delete
      */
     where?: BWhereInput
+    limit?: number
   }
 
   /**
@@ -15172,6 +15182,7 @@ export namespace Prisma {
      * Filter which CS to delete
      */
     where?: CWhereInput
+    limit?: number
   }
 
   /**
@@ -16203,6 +16214,7 @@ export namespace Prisma {
      * Filter which DS to delete
      */
     where?: DWhereInput
+    limit?: number
   }
 
   /**
@@ -17173,6 +17185,7 @@ export namespace Prisma {
      * Filter which ES to delete
      */
     where?: EWhereInput
+    limit?: number
   }
 
   /**

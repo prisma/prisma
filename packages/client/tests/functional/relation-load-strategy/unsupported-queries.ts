@@ -249,6 +249,7 @@ testMatrix.setupTestSuite(
                       relationLoadStrategy: "query",
                       ~~~~~~~~~~~~~~~~~~~~
                     ? where?: UserWhereInput
+                    ? limit?: Int
                     })
 
           Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
