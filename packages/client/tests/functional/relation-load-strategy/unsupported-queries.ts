@@ -248,7 +248,7 @@ testMatrix.setupTestSuite(
           → XX     prisma.user.deleteMany({
                       relationLoadStrategy: "query",
                       ~~~~~~~~~~~~~~~~~~~~
-                    ? where?: UserWhereInput
+                    ? where?: UserWhereInput,
                     ? limit?: Int
                     })
 

@@ -3553,6 +3553,7 @@ export namespace Prisma {
      * Filter which Posts to delete
      */
     where?: PostWhereInput
+    limit?: number
   }
 
   /**
@@ -4736,7 +4737,6 @@ export namespace Prisma {
      * Filter which User to delete.
      */
     where: UserWhereUniqueInput
-    limit?: number
   }
 
   /**
