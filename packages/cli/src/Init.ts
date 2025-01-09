@@ -382,8 +382,7 @@ export class Init implements Command {
         default: 'Prisma init',
       })
 
-      console.log('Creating project and provisioning PPG...')
-      console.log('Creating a project and provisioning a Prisma Postgres® instance...')
+      console.log(`Creating project ${projectDisplayNameAnswer}...`)
       const project = await PlatformCommands.Project.createProjectOrThrow({
         token: platformToken,
         displayName: projectDisplayNameAnswer,
@@ -408,7 +407,7 @@ export class Init implements Command {
       )
       console.log(successMessage('Prisma Postgres® provisioning complete'))
 
-      console.log('Creating PPG API key...')
+      console.log('Creating Prisma Postgres® API key...')
       const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
         token: platformToken,
         environmentId: project.defaultEnvironment.id,
@@ -417,8 +416,14 @@ export class Init implements Command {
 
       prismaPostgresDatabaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Project has been successfully created!'))
-      console.log(`Your database URL is:`)
-      console.log(prismaPostgresDatabaseUrl)
+      const summary = {
+        ['Database URL']: prismaPostgresDatabaseUrl,
+        ['Link to project']: `https://console.prisma.io/${defaultWorkspace.id}/${project.id}/${project.defaultEnvironment.id}/dashboard`,
+      }
+      console.log('-------------------------')
+      console.log(`Database URL: ${summary['Database URL']}`)
+      console.log(`Link to Project: ${summary['Link to project']}`)
+      console.log('-------------------------')
     }
 
     /**
