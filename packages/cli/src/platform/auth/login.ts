@@ -153,10 +153,10 @@ const decodeUser = (stringifiedUser: string) => {
 export const loginOrSignup = async () => {
   const providerAnswer = await select({
     message: 'Select an authentication method',
-    default: 'github',
+    default: 'google',
     choices: [
-      { name: 'GitHub', value: 'github' },
       { name: 'Google', value: 'google' },
+      { name: 'GitHub', value: 'github' },
     ],
   })
   console.info('Authenticating to Prisma Platform via browser.\n')
