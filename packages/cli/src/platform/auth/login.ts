@@ -51,7 +51,7 @@ export class Login implements Command {
      */
     const randomPort = 0
     const redirectUrl = await listen(server, randomPort, '127.0.0.1')
-    const loginUrl = await createLoginUrl({ oauthProvider: 'github', redirectTo: redirectUrl.href })
+    const loginUrl = await createLoginUrl({ connection: 'github', redirectTo: redirectUrl.href })
 
     console.info('Visit the following URL in your browser to authenticate:')
     console.info(link(loginUrl.href))
@@ -114,7 +114,7 @@ export class Login implements Command {
 
 const getBaseAuthUrl = () => new URL('/auth/cli', consoleUrl)
 
-const createLoginUrl = async (params: { oauthProvider: string; redirectTo: string }) => {
+const createLoginUrl = async (params: { connection: string; redirectTo: string }) => {
   const userAgent = await getUserAgent()
   const state: State = {
     client: userAgent,
@@ -129,7 +129,7 @@ const createLoginUrl = async (params: { oauthProvider: string; redirectTo: strin
 
 interface State {
   client: string
-  oauthProvider: string
+  connection: string
   redirectTo: string
 }
 
@@ -167,7 +167,7 @@ export const loginOrSignup = async () => {
    */
   const randomPort = 0
   const redirectUrl = await listen(server, randomPort, '127.0.0.1')
-  const loginUrl = await createLoginUrl({ oauthProvider: providerAnswer, redirectTo: redirectUrl.href })
+  const loginUrl = await createLoginUrl({ connection: providerAnswer, redirectTo: redirectUrl.href })
 
   console.info('Visit the following URL in your browser to authenticate:')
   console.info(link(loginUrl.href))
