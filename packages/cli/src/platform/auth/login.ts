@@ -155,8 +155,8 @@ export const loginOrSignup = async () => {
     message: 'Select an authentication method',
     default: 'github',
     choices: [
-      { name: 'Google', value: 'google' },
       { name: 'GitHub', value: 'github' },
+      { name: 'Google', value: 'google' },
     ],
   })
   console.info('Authenticating to Prisma Platform via browser.\n')
