@@ -329,8 +329,8 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
       undici:
-        specifier: 5.28.4
-        version: 5.28.4
+        specifier: 7.2.1
+        version: 7.2.1
 
   packages/bundle-size:
     dependencies:
@@ -823,8 +823,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       undici:
-        specifier: 5.28.4
-        version: 5.28.4
+        specifier: 7.2.1
+        version: 7.2.1
       wrangler:
         specifier: 3.91.0
         version: 3.91.0(@cloudflare/workers-types@4.20240614.0)
@@ -6873,6 +6873,10 @@ packages:
   undici@5.28.4:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
     engines: {node: '>=14.0'}
+
+  undici@7.2.1:
+    resolution: {integrity: sha512-U2k0XHLJfaciARRxDcqTk2AZQsGXerHzdvfCZcy1hNhSf5KCAF4jIQQxL+apQviOekhRFPqED6Of5/+LcUSLzQ==}
+    engines: {node: '>=20.18.1'}
 
   unenv-nightly@2.0.0-20241121-161142-806b5c0:
     resolution: {integrity: sha512-RnFOasE/O0Q55gBkNB1b84OgKttgLEijGO0JCWpbn+O4XxpyCQg89NmcqQ5RGUiy4y+rMIrKzePTquQcLQF5pQ==}
@@ -13475,6 +13479,8 @@ snapshots:
   undici@5.28.4:
     dependencies:
       '@fastify/busboy': 2.0.0
+
+  undici@7.2.1: {}
 
   unenv-nightly@2.0.0-20241121-161142-806b5c0:
     dependencies:
