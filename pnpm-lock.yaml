@@ -457,8 +457,8 @@ importers:
         specifier: 18.19.31
         version: 18.19.31
       '@types/rimraf':
-        specifier: 3.0.2
-        version: 3.0.2
+        specifier: 4.0.5
+        version: 4.0.5
       async-listen:
         specifier: 3.0.1
         version: 3.0.1
@@ -3100,9 +3100,6 @@ packages:
   '@types/geojson@7946.0.14':
     resolution: {integrity: sha512-WCfD5Ht3ZesJUsONdhvm84dmzWOiOzOAqOncN0++w0lBw1o8OuDNJF2McvvCef/yBqb/HYRahp1BYtODFQ8bRg==}
 
-  '@types/glob@8.0.0':
-    resolution: {integrity: sha512-l6NQsDDyQUVeoTynNpC9uRvCUint/gSUXQA2euwmTuWGvPY5LSDUu6tkCtJB2SvGQlJQzLaKqcGZP4//7EDveA==}
-
   '@types/graceful-fs@4.1.5':
     resolution: {integrity: sha512-anKkLmZZ+xm4p8JWBf4hElkM4XR+EZeA2M9BAkkTldmcyDY4mbdIJnRghDJH3Ov5ooY7/UAoENtmdMSkaAd7Cw==}
 
@@ -3132,9 +3129,6 @@ packages:
 
   '@types/jsonfile@6.1.1':
     resolution: {integrity: sha512-GSgiRCVeapDN+3pqA35IkQwasaCh/0YFH5dEF6S88iDvEn901DjOeH3/QPY+XYP1DFzDZPvIvfeEgk+7br5png==}
-
-  '@types/minimatch@5.1.2':
-    resolution: {integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==}
 
   '@types/minimist@1.2.2':
     resolution: {integrity: sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==}
@@ -3187,8 +3181,9 @@ packages:
   '@types/retry@0.12.0':
     resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
 
-  '@types/rimraf@3.0.2':
-    resolution: {integrity: sha512-F3OznnSLAUxFrCEu/L5PY8+ny8DtcFRjx7fZZ9bycvXRi3KPTRS9HOitGZwvPg0juRhXFWIeKX58cnX5YqLohQ==}
+  '@types/rimraf@4.0.5':
+    resolution: {integrity: sha512-DTCZoIQotB2SUJnYgrEx43cQIUYOlNZz0AZPbKU4PSLYTUdML5Gox0++z4F9kQocxStrCmRNhi4x5x/UlwtKUA==}
+    deprecated: This is a stub types definition. rimraf provides its own type definitions, so you do not need this installed.
 
   '@types/shimmer@1.2.0':
     resolution: {integrity: sha512-UE7oxhQLLd9gub6JKIAhDq06T0F6FnztwMNRvYgjeQSBeMc1ZG/tA47EwfduvkuQS8apbkM/lpLpWsaCeYsXVg==}
@@ -8828,11 +8823,6 @@ snapshots:
 
   '@types/geojson@7946.0.14': {}
 
-  '@types/glob@8.0.0':
-    dependencies:
-      '@types/minimatch': 5.1.2
-      '@types/node': 20.12.7
-
   '@types/graceful-fs@4.1.5':
     dependencies:
       '@types/node': 20.12.7
@@ -8865,8 +8855,6 @@ snapshots:
   '@types/jsonfile@6.1.1':
     dependencies:
       '@types/node': 20.12.7
-
-  '@types/minimatch@5.1.2': {}
 
   '@types/minimist@1.2.2': {}
 
@@ -8930,10 +8918,9 @@ snapshots:
 
   '@types/retry@0.12.0': {}
 
-  '@types/rimraf@3.0.2':
+  '@types/rimraf@4.0.5':
     dependencies:
-      '@types/glob': 8.0.0
-      '@types/node': 20.12.7
+      rimraf: 3.0.2
 
   '@types/shimmer@1.2.0': {}
 
