@@ -27,8 +27,8 @@ importers:
         specifier: 1.1.2
         version: 1.1.2
       '@size-limit/file':
-        specifier: 9.0.0
-        version: 9.0.0(size-limit@9.0.0)
+        specifier: 11.1.6
+        version: 11.1.6(size-limit@9.0.0)
       '@slack/webhook':
         specifier: 7.0.3
         version: 7.0.3
@@ -2821,11 +2821,11 @@ packages:
   '@sinonjs/fake-timers@10.0.2':
     resolution: {integrity: sha512-SwUDyjWnah1AaNl7kxsa7cfLhlTYoiyhDAIgyh+El30YvXs/o7OLXpYH88Zdhyx9JExKrmHDJ+10bwIcY80Jmw==}
 
-  '@size-limit/file@9.0.0':
-    resolution: {integrity: sha512-oM2UaH2FRq4q22k+R+P6xCpzET10T94LFdSjb9svVu/vOD7NaB9LGcG6se8TW1BExXiyXO4GEhLsBt3uMKM3qA==}
+  '@size-limit/file@11.1.6':
+    resolution: {integrity: sha512-ojzzJMrTfcSECRnaTjGy0wNIolTCRdyqZTSWG9sG5XEoXG6PNgHXDDS6gf6YNxnqb+rWfCfVe93u6aKi3wEocQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      size-limit: 9.0.0
+      size-limit: 11.1.6
 
   '@slack/types@2.9.0':
     resolution: {integrity: sha512-YfZGo0xVOmI7CHhiwCmEC33HzjQl1lakNmyo5GPGb4KHKEaUoY7zenAdKsYCJqYwdaM9OL+hqYt/tZ2zgvVc7g==}
@@ -8572,9 +8572,8 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 2.0.0
 
-  '@size-limit/file@9.0.0(size-limit@9.0.0)':
+  '@size-limit/file@11.1.6(size-limit@9.0.0)':
     dependencies:
-      semver: 7.5.4
       size-limit: 9.0.0
 
   '@slack/types@2.9.0': {}
