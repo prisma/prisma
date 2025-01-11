@@ -942,8 +942,8 @@ importers:
         specifier: 11.1.1
         version: 11.1.1
       hasha:
-        specifier: 5.2.2
-        version: 5.2.2
+        specifier: 6.0.0
+        version: 6.0.0
       http-proxy-agent:
         specifier: 7.0.2
         version: 7.0.2
@@ -4675,9 +4675,9 @@ packages:
     resolution: {integrity: sha512-f2dvO0VU6Oej7RkWJGrehjbzMAjFp5/VKPp5tTpWIV4JHHZK1/BxbFRtf/siA2SWTe09caDmVtYYzWEIbBS4zw==}
     engines: {node: '>= 0.4.0'}
 
-  hasha@5.2.2:
-    resolution: {integrity: sha512-Hrp5vIK/xr5SkeN2onO32H0MgNZ0f17HRNH39WfL0SYUNOTZ5Lz1TJ8Pajo/87dYGEFlLMm7mIc/k/s6Bvz9HQ==}
-    engines: {node: '>=8'}
+  hasha@6.0.0:
+    resolution: {integrity: sha512-MLydoyGp9QJcjlhE5lsLHXYpWayjjWqkavzju2ZWD2tYa1CgmML1K1gWAu22BLFa2eZ0OfvJ/DlfoVjaD54U2Q==}
+    engines: {node: '>=18'}
 
   hasown@2.0.0:
     resolution: {integrity: sha512-vUptKVTpIJhcczKBbgnS+RtcuYMB8+oNzPK2/Hp3hanz8JmpATdmmgLgSaadVREkDm+e2giHwY3ZRkyjSIDDFA==}
@@ -10709,10 +10709,10 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  hasha@5.2.2:
+  hasha@6.0.0:
     dependencies:
-      is-stream: 2.0.1
-      type-fest: 0.8.1
+      is-stream: 3.0.0
+      type-fest: 4.11.0
 
   hasown@2.0.0:
     dependencies:
