@@ -697,8 +697,8 @@ importers:
         specifier: 2.1.4
         version: 2.1.4
       ci-info:
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 4.1.0
+        version: 4.1.0
       decimal.js:
         specifier: 10.4.3
         version: 10.4.3
