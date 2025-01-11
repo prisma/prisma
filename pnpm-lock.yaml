@@ -1243,8 +1243,8 @@ importers:
         version: 2.4.2
     devDependencies:
       '@antfu/ni':
-        specifier: 0.21.12
-        version: 0.21.12
+        specifier: 0.23.2
+        version: 0.23.2
       '@babel/helper-validator-identifier':
         specifier: 7.24.7
         version: 7.24.7
@@ -1574,8 +1574,8 @@ packages:
     resolution: {integrity: sha512-qRmjj8nj9qmLTQXXmaR1cck3UXSRMPrbsLJAasZpF+t3riI71BXed5ebIOYwQntykeZuhjsdweEc9BxH5Jc26w==}
     engines: {node: '>=6.0.0'}
 
-  '@antfu/ni@0.21.12':
-    resolution: {integrity: sha512-2aDL3WUv8hMJb2L3r/PIQWsTLyq7RQr3v9xD16fiz6O8ys1xEyLhhTOv8gxtZvJiTzjTF5pHoArvRdesGL1DMQ==}
+  '@antfu/ni@0.23.2':
+    resolution: {integrity: sha512-FSEVWXvwroExDXUu8qV6Wqp2X3D1nJ0Li4LFymCyvCVrm7I3lNfG0zZWSWvGU1RE7891eTnFTyh31L3igOwNKQ==}
     hasBin: true
 
   '@azure/abort-controller@1.1.0':
@@ -7167,7 +7167,7 @@ snapshots:
       '@jridgewell/gen-mapping': 0.1.1
       '@jridgewell/trace-mapping': 0.3.22
 
-  '@antfu/ni@0.21.12': {}
+  '@antfu/ni@0.23.2': {}
 
   '@azure/abort-controller@1.1.0':
     dependencies:
