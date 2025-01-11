@@ -28,7 +28,7 @@ importers:
         version: 1.1.2
       '@size-limit/file':
         specifier: 9.0.0
-        version: 9.0.0(size-limit@9.0.0)
+        version: 9.0.0(size-limit@11.1.6)
       '@slack/webhook':
         specifier: 7.0.3
         version: 7.0.3
@@ -174,8 +174,8 @@ importers:
         specifier: 7.6.3
         version: 7.6.3
       size-limit:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 11.1.6
+        version: 11.1.6
       spdx-exceptions:
         specifier: 2.5.0
         version: 2.5.0
@@ -4379,6 +4379,14 @@ packages:
   fb-watchman@2.0.2:
     resolution: {integrity: sha512-p5161BqbuCaSnB8jIbzQHOlpgsPmK5rJVDfDKO91Axs5NC1uu3HRQm6wt9cd9/+GtQQIO53JdGXXoyDpTAsgYA==}
 
+  fdir@6.4.2:
+    resolution: {integrity: sha512-KnhMXsKSPZlAhp7+IjUkRZKPb4fUyccpDrdFXbi4QL1qkmFh9kVY09Yox+n4MaOb3lHZ1Tv829C3oaaXoMYPDQ==}
+    peerDependencies:
+      picomatch: ^3 || ^4
+    peerDependenciesMeta:
+      picomatch:
+        optional: true
+
   fetch-blob@3.2.0:
     resolution: {integrity: sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ==}
     engines: {node: ^12.20 || >= 14.13}
@@ -5166,6 +5174,10 @@ packages:
       node-notifier:
         optional: true
 
+  jiti@2.4.2:
+    resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
+    hasBin: true
+
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
 
@@ -5283,10 +5295,6 @@ packages:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
     cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
-
-  lilconfig@2.1.0:
-    resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
-    engines: {node: '>=10'}
 
   lilconfig@3.1.2:
     resolution: {integrity: sha512-eop+wDAvpItUys0FWkHIKeC9ybYrTGbU41U5K7+bttZZeohvnY7M9dZ5kB21GNWiFT2q1OoPTvncPCgSOVO5ow==}
@@ -5981,6 +5989,9 @@ packages:
   picocolors@1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
 
+  picocolors@1.1.1:
+    resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
+
   picomatch@2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
@@ -6414,8 +6425,8 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  size-limit@9.0.0:
-    resolution: {integrity: sha512-DrA7o2DeRN3s+vwCA9nn7Ck9Y4pn9t0GNUwQRpKqBtBmNkl6LA2s/NlNCdtKHrEkRTeYA1ZQ65mnYveo9rUqgA==}
+  size-limit@11.1.6:
+    resolution: {integrity: sha512-S5ux2IB8rU26xwVgMskmknGMFkieaIAqDLuwgKiypk6oa4lFsie8yFPrzRFV+yrLDY2GddjXuCaVk5PveVOHiQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
@@ -6710,6 +6721,10 @@ packages:
   timeout-signal@2.0.0:
     resolution: {integrity: sha512-YBGpG4bWsHoPvofT6y/5iqulfXIiIErl5B0LdtHT1mGXDFTAhhRrbUpTvBgYbovr+3cKblya2WAOcpoy90XguA==}
     engines: {node: '>=16'}
+
+  tinyglobby@0.2.10:
+    resolution: {integrity: sha512-Zc+8eJlFMvgatPZTl6A9L/yht8QqdmUNtURHaKZLmKBE12hNPSrqNkUp2cs3M/UKmNVVAMFQYSjYIVHDjW5zew==}
+    engines: {node: '>=12.0.0'}
 
   tmp@0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}
@@ -8572,10 +8587,10 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 2.0.0
 
-  '@size-limit/file@9.0.0(size-limit@9.0.0)':
+  '@size-limit/file@9.0.0(size-limit@11.1.6)':
     dependencies:
       semver: 7.5.4
-      size-limit: 9.0.0
+      size-limit: 11.1.6
 
   '@slack/types@2.9.0': {}
 
@@ -10414,6 +10429,10 @@ snapshots:
     dependencies:
       bser: 2.1.1
 
+  fdir@6.4.2(picomatch@4.0.2):
+    optionalDependencies:
+      picomatch: 4.0.2
+
   fetch-blob@3.2.0:
     dependencies:
       node-domexception: 1.0.0
@@ -11653,6 +11672,8 @@ snapshots:
       - supports-color
       - ts-node
 
+  jiti@2.4.2: {}
+
   jju@1.4.0: {}
 
   js-base64@3.7.5: {}
@@ -11774,8 +11795,6 @@ snapshots:
       '@libsql/linux-x64-gnu': 0.3.10
       '@libsql/linux-x64-musl': 0.3.10
       '@libsql/win32-x64-msvc': 0.3.10
-
-  lilconfig@2.1.0: {}
 
   lilconfig@3.1.2: {}
 
@@ -12156,7 +12175,7 @@ snapshots:
 
   nanospinner@1.1.0:
     dependencies:
-      picocolors: 1.0.0
+      picocolors: 1.1.1
 
   native-duplexpair@1.0.0: {}
 
@@ -12525,6 +12544,8 @@ snapshots:
       split2: 4.1.0
 
   picocolors@1.0.0: {}
+
+  picocolors@1.1.1: {}
 
   picomatch@2.3.1: {}
 
@@ -12931,14 +12952,15 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  size-limit@9.0.0:
+  size-limit@11.1.6:
     dependencies:
       bytes-iec: 3.1.1
-      chokidar: 3.6.0
-      globby: 11.1.0
-      lilconfig: 2.1.0
+      chokidar: 4.0.1
+      jiti: 2.4.2
+      lilconfig: 3.1.2
       nanospinner: 1.1.0
-      picocolors: 1.0.0
+      picocolors: 1.1.1
+      tinyglobby: 0.2.10
 
   slash@3.0.0: {}
 
@@ -13259,6 +13281,11 @@ snapshots:
   through@2.3.8: {}
 
   timeout-signal@2.0.0: {}
+
+  tinyglobby@0.2.10:
+    dependencies:
+      fdir: 6.4.2(picomatch@4.0.2)
+      picomatch: 4.0.2
 
   tmp@0.0.33:
     dependencies:
