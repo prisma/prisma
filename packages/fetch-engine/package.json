@@ -30,7 +30,7 @@
     "jest": "29.7.0",
     "kleur": "4.1.5",
     "node-fetch": "3.3.2",
-    "p-filter": "2.1.0",
+    "p-filter": "4.1.0",
     "p-map": "4.0.0",
     "p-retry": "4.6.2",
     "progress": "2.0.3",
