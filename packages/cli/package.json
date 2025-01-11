@@ -69,7 +69,7 @@
     "prisma": "build/index.js"
   },
   "devDependencies": {
-    "@inquirer/prompts": "5.0.5",
+    "@inquirer/prompts": "5.5.0",
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
