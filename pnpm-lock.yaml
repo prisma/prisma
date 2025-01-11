@@ -550,8 +550,8 @@ importers:
         specifier: 4.20240614.0
         version: 4.20240614.0
       '@codspeed/benchmark.js-plugin':
-        specifier: 3.1.1
-        version: 3.1.1(benchmark@2.1.4)
+        specifier: 4.0.0
+        version: 4.0.0(benchmark@2.1.4)
       '@faker-js/faker':
         specifier: 8.4.1
         version: 8.4.1
@@ -1043,8 +1043,8 @@ importers:
         version: link:../debug
     devDependencies:
       '@codspeed/benchmark.js-plugin':
-        specifier: 3.1.1
-        version: 3.1.1(benchmark@2.1.4)
+        specifier: 4.0.0
+        version: 4.0.0(benchmark@2.1.4)
       '@swc/core':
         specifier: 1.10.1
         version: 1.10.1
@@ -1862,13 +1862,13 @@ packages:
   '@cloudflare/workers-types@4.20240614.0':
     resolution: {integrity: sha512-fnV3uXD1Hpq5EWnY7XYb+smPcjzIoUFiZpTSV/Tk8qKL3H+w6IqcngZwXQBZ/2U/DwYkDilXHW3FfPhnyD7FZA==}
 
-  '@codspeed/benchmark.js-plugin@3.1.1':
-    resolution: {integrity: sha512-L0CWavJTUD01coFyl+HksdmkW4knzpX+8xiG+9nasH7bSGZzdd5ijf9fc6yTa9BBF/uc7GQKQEyyQ3VnHA34jw==}
+  '@codspeed/benchmark.js-plugin@4.0.0':
+    resolution: {integrity: sha512-1nzkRfvsA2rI1NsqYmkXEnQ/P3NL2JlAqRs/RLWLyeGtmE+4JN8w4ndgUpeb3g9Q+Kki/njmPUf7YsHUAQpUXA==}
     peerDependencies:
       benchmark: ^2.1.0
 
-  '@codspeed/core@3.1.1':
-    resolution: {integrity: sha512-ONhERVDAtkm0nc+FYPivDozoMOlNUP2BWRBFDJYATGA18Iap5Kd2mZ1/Lwz54RB5+g+3YDOpsvotHa4hd3Q+7Q==}
+  '@codspeed/core@4.0.0':
+    resolution: {integrity: sha512-B3zwdwLG8rcV0ORfYKX1wDP6ZCWf9C6ySidSf61q2vm9v5Lj2cWwRvj7vX+w/UyFHWKjp/zSyWTEed/r3Fv4Tg==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -3539,9 +3539,6 @@ packages:
     resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}
     engines: {node: '>= 0.4'}
 
-  axios@1.6.7:
-    resolution: {integrity: sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==}
-
   axios@1.7.4:
     resolution: {integrity: sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==}
 
@@ -4434,15 +4431,6 @@ packages:
 
   fnv-plus@1.3.1:
     resolution: {integrity: sha512-Gz1EvfOneuFfk4yG458dJ3TLJ7gV19q3OM/vVvvHf7eT02Hm1DleB4edsia6ahbKgAYxO9gvyQ1ioWZR+a00Yw==}
-
-  follow-redirects@1.15.4:
-    resolution: {integrity: sha512-Cr4D/5wlrb0z9dgERpUL3LrmPKVDsETIJhaCMeDfuFYcqa5bldGV6wBsAN6X/vxlXQtFBMrXdXxdL8CbDTGniw==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
 
   follow-redirects@1.15.6:
     resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
@@ -7530,18 +7518,18 @@ snapshots:
 
   '@cloudflare/workers-types@4.20240614.0': {}
 
-  '@codspeed/benchmark.js-plugin@3.1.1(benchmark@2.1.4)':
+  '@codspeed/benchmark.js-plugin@4.0.0(benchmark@2.1.4)':
     dependencies:
-      '@codspeed/core': 3.1.1
+      '@codspeed/core': 4.0.0
       benchmark: 2.1.4
       lodash: 4.17.21
       stack-trace: 1.0.0-pre2
     transitivePeerDependencies:
       - debug
 
-  '@codspeed/core@3.1.1':
+  '@codspeed/core@4.0.0':
     dependencies:
-      axios: 1.6.7
+      axios: 1.7.4
       find-up: 6.3.0
       form-data: 4.0.0
       node-gyp-build: 4.6.0
@@ -9353,14 +9341,6 @@ snapshots:
 
   available-typed-arrays@1.0.5: {}
 
-  axios@1.6.7:
-    dependencies:
-      follow-redirects: 1.15.4
-      form-data: 4.0.0
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
   axios@1.7.4:
     dependencies:
       follow-redirects: 1.15.6
@@ -10482,8 +10462,6 @@ snapshots:
   flatted@3.3.1: {}
 
   fnv-plus@1.3.1: {}
-
-  follow-redirects@1.15.4: {}
 
   follow-redirects@1.15.6: {}
 
