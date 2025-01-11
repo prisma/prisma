@@ -89,7 +89,7 @@
     "@types/rimraf": "3.0.2",
     "async-listen": "3.0.1",
     "checkpoint-client": "1.1.33",
-    "chokidar": "3.6.0",
+    "chokidar": "4.0.3",
     "debug": "4.3.7",
     "dotenv": "16.4.7",
     "esbuild": "0.24.0",
