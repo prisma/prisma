@@ -159,8 +159,8 @@ importers:
         specifier: 3.1.2
         version: 3.1.2
       redis-lock:
-        specifier: 0.1.4
-        version: 0.1.4
+        specifier: 1.0.0
+        version: 1.0.0
       regenerator-runtime:
         specifier: 0.14.1
         version: 0.14.1
@@ -6212,9 +6212,9 @@ packages:
     resolution: {integrity: sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w==}
     engines: {node: '>=4'}
 
-  redis-lock@0.1.4:
-    resolution: {integrity: sha512-7/+zu86XVQfJVx1nHTzux5reglDiyUCDwmW7TSlvVezfhH2YLc/Rc8NE0ejQG+8/0lwKzm29/u/4+ogKeLosiA==}
-    engines: {node: '>=0.6'}
+  redis-lock@1.0.0:
+    resolution: {integrity: sha512-zfI+Il36jXwRT/W8SBsG132Bc2yp3tMuf3KTGjSzXimadI17NEGBvb/KrDkCuAC2hzVxW5uR5ns/rxuqiWeV3Q==}
+    engines: {node: '>=12'}
 
   redis-parser@3.0.0:
     resolution: {integrity: sha512-DJnGAeenTdpMEH6uAJRK/uiyEIH9WVsUmoLwzudwGJUwZPp80PDBWPHXSAGNPwNvIXAbe7MSUB1zQFugFml66A==}
@@ -12728,7 +12728,7 @@ snapshots:
 
   redis-errors@1.2.0: {}
 
-  redis-lock@0.1.4: {}
+  redis-lock@1.0.0: {}
 
   redis-parser@3.0.0:
     dependencies:
