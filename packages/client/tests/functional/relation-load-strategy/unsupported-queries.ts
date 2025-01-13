@@ -224,7 +224,8 @@ testMatrix.setupTestSuite(
                       data: {
                         login: "user"
                       },
-                    ? where?: UserWhereInput
+                    ? where?: UserWhereInput,
+                    ? limit?: Int
                     })
 
           Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
