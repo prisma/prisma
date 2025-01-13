@@ -1,3 +1,4 @@
+/// <reference path="types.d.ts" />
 import { Prisma, PrismaClient } from '.prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'

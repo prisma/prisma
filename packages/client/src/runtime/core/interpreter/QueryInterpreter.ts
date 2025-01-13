@@ -12,16 +12,16 @@ export class QueryInterpreter {
 
   private async interpretNode(node: QueryPlanNode, env: Record<string, unknown>): Promise<unknown> {
     switch (node.type) {
-      case 'Seq': {
+      case 'seq': {
         const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
         return results[results.length - 1]
       }
 
-      case 'Get': {
+      case 'get': {
         return env[node.args.name]
       }
 
-      case 'Let': {
+      case 'let': {
         const bindings: Record<string, unknown> = Object.create(env)
         await Promise.all(
           node.args.bindings.map(async (binding) => {
@@ -31,7 +31,7 @@ export class QueryInterpreter {
         return this.interpretNode(node.args.expr, bindings)
       }
 
-      case 'GetFirstNonEmpty': {
+      case 'getFirstNonEmpty': {
         for (const name of node.args.names) {
           const value = env[name]
           if (!isEmpty(value)) {
@@ -41,17 +41,17 @@ export class QueryInterpreter {
         return []
       }
 
-      case 'Concat': {
+      case 'concat': {
         const parts: unknown[] = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
         return parts.reduce<unknown[]>((acc, part) => acc.concat(asList(part)), [])
       }
 
-      case 'Sum': {
+      case 'sum': {
         const parts: unknown[] = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
         return parts.reduce((acc, part) => asNumber(acc) + asNumber(part))
       }
 
-      case 'Execute': {
+      case 'execute': {
         const result = await this.adapter.executeRaw(toQuery(node.args, env))
         if (result.ok) {
           return result.value
@@ -60,13 +60,17 @@ export class QueryInterpreter {
         }
       }
 
-      case 'Query': {
+      case 'query': {
         const result = await this.adapter.queryRaw(toQuery(node.args, env))
         if (result.ok) {
           return serialize(result.value)
         } else {
           throw result.error
         }
+      }
+
+      default: {
+        throw new Error(`Unexpected node type: ${node['type']}`)
       }
     }
   }
