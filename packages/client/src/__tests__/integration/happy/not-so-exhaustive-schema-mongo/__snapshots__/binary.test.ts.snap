@@ -3555,6 +3555,9 @@ export namespace Prisma {
      * Filter which Posts to update
      */
     where?: PostWhereInput
+    /**
+     * Limit how many Posts to update.
+     */
     limit?: number
   }
 
@@ -3618,6 +3621,9 @@ export namespace Prisma {
      * Filter which Posts to delete
      */
     where?: PostWhereInput
+    /**
+     * Limit how many Posts to delete.
+     */
     limit?: number
   }
 
@@ -4682,6 +4688,9 @@ export namespace Prisma {
      * Filter which Users to update
      */
     where?: UserWhereInput
+    /**
+     * Limit how many Users to update.
+     */
     limit?: number
   }
 
@@ -4745,6 +4754,9 @@ export namespace Prisma {
      * Filter which Users to delete
      */
     where?: UserWhereInput
+    /**
+     * Limit how many Users to delete.
+     */
     limit?: number
   }
 
@@ -5677,6 +5689,9 @@ export namespace Prisma {
      * Filter which EmbedHolders to update
      */
     where?: EmbedHolderWhereInput
+    /**
+     * Limit how many EmbedHolders to update.
+     */
     limit?: number
   }
 
@@ -5740,6 +5755,9 @@ export namespace Prisma {
      * Filter which EmbedHolders to delete
      */
     where?: EmbedHolderWhereInput
+    /**
+     * Limit how many EmbedHolders to delete.
+     */
     limit?: number
   }
 
@@ -6809,6 +6827,9 @@ export namespace Prisma {
      * Filter which MS to update
      */
     where?: MWhereInput
+    /**
+     * Limit how many MS to update.
+     */
     limit?: number
   }
 
@@ -6872,6 +6893,9 @@ export namespace Prisma {
      * Filter which MS to delete
      */
     where?: MWhereInput
+    /**
+     * Limit how many MS to delete.
+     */
     limit?: number
   }
 
@@ -7941,6 +7965,9 @@ export namespace Prisma {
      * Filter which NS to update
      */
     where?: NWhereInput
+    /**
+     * Limit how many NS to update.
+     */
     limit?: number
   }
 
@@ -8004,6 +8031,9 @@ export namespace Prisma {
      * Filter which NS to delete
      */
     where?: NWhereInput
+    /**
+     * Limit how many NS to delete.
+     */
     limit?: number
   }
 
@@ -9066,6 +9096,9 @@ export namespace Prisma {
      * Filter which OneOptionals to update
      */
     where?: OneOptionalWhereInput
+    /**
+     * Limit how many OneOptionals to update.
+     */
     limit?: number
   }
 
@@ -9129,6 +9162,9 @@ export namespace Prisma {
      * Filter which OneOptionals to delete
      */
     where?: OneOptionalWhereInput
+    /**
+     * Limit how many OneOptionals to delete.
+     */
     limit?: number
   }
 
@@ -10200,6 +10236,9 @@ export namespace Prisma {
      * Filter which ManyRequireds to update
      */
     where?: ManyRequiredWhereInput
+    /**
+     * Limit how many ManyRequireds to update.
+     */
     limit?: number
   }
 
@@ -10263,6 +10302,9 @@ export namespace Prisma {
      * Filter which ManyRequireds to delete
      */
     where?: ManyRequiredWhereInput
+    /**
+     * Limit how many ManyRequireds to delete.
+     */
     limit?: number
   }
 
@@ -11329,6 +11371,9 @@ export namespace Prisma {
      * Filter which OptionalSide1s to update
      */
     where?: OptionalSide1WhereInput
+    /**
+     * Limit how many OptionalSide1s to update.
+     */
     limit?: number
   }
 
@@ -11392,6 +11437,9 @@ export namespace Prisma {
      * Filter which OptionalSide1s to delete
      */
     where?: OptionalSide1WhereInput
+    /**
+     * Limit how many OptionalSide1s to delete.
+     */
     limit?: number
   }
 
@@ -12447,6 +12495,9 @@ export namespace Prisma {
      * Filter which OptionalSide2s to update
      */
     where?: OptionalSide2WhereInput
+    /**
+     * Limit how many OptionalSide2s to update.
+     */
     limit?: number
   }
 
@@ -12510,6 +12561,9 @@ export namespace Prisma {
      * Filter which OptionalSide2s to delete
      */
     where?: OptionalSide2WhereInput
+    /**
+     * Limit how many OptionalSide2s to delete.
+     */
     limit?: number
   }
 
@@ -13463,6 +13517,9 @@ export namespace Prisma {
      * Filter which AS to update
      */
     where?: AWhereInput
+    /**
+     * Limit how many AS to update.
+     */
     limit?: number
   }
 
@@ -13518,6 +13575,9 @@ export namespace Prisma {
      * Filter which AS to delete
      */
     where?: AWhereInput
+    /**
+     * Limit how many AS to delete.
+     */
     limit?: number
   }
 
@@ -14405,6 +14465,9 @@ export namespace Prisma {
      * Filter which BS to update
      */
     where?: BWhereInput
+    /**
+     * Limit how many BS to update.
+     */
     limit?: number
   }
 
@@ -14460,6 +14523,9 @@ export namespace Prisma {
      * Filter which BS to delete
      */
     where?: BWhereInput
+    /**
+     * Limit how many BS to delete.
+     */
     limit?: number
   }
 
@@ -15353,6 +15419,9 @@ export namespace Prisma {
      * Filter which CS to update
      */
     where?: CWhereInput
+    /**
+     * Limit how many CS to update.
+     */
     limit?: number
   }
 
@@ -15408,6 +15477,9 @@ export namespace Prisma {
      * Filter which CS to delete
      */
     where?: CWhereInput
+    /**
+     * Limit how many CS to delete.
+     */
     limit?: number
   }
 
@@ -16323,6 +16395,9 @@ export namespace Prisma {
      * Filter which DS to update
      */
     where?: DWhereInput
+    /**
+     * Limit how many DS to update.
+     */
     limit?: number
   }
 
@@ -16378,6 +16453,9 @@ export namespace Prisma {
      * Filter which DS to delete
      */
     where?: DWhereInput
+    /**
+     * Limit how many DS to delete.
+     */
     limit?: number
   }
 
@@ -17238,6 +17316,9 @@ export namespace Prisma {
      * Filter which ES to update
      */
     where?: EWhereInput
+    /**
+     * Limit how many ES to update.
+     */
     limit?: number
   }
 
@@ -17293,6 +17374,9 @@ export namespace Prisma {
      * Filter which ES to delete
      */
     where?: EWhereInput
+    /**
+     * Limit how many ES to delete.
+     */
     limit?: number
   }
 
