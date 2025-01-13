@@ -106,6 +106,7 @@ export namespace DMMF {
     relationFromFields?: string[]
     relationToFields?: string[]
     relationOnDelete?: string
+    relationOnUpdate?: string
     relationName?: string
     documentation?: string
   }>

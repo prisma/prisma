@@ -34733,7 +34733,7 @@ exports[`getDMMF success multiple files 1`] = `
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `137835179`;
+exports[`getDMMF success odoo introspected schema 1`] = `137850659`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
