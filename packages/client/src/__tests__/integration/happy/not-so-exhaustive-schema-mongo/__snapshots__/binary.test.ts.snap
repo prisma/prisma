@@ -3555,6 +3555,7 @@ export namespace Prisma {
      * Filter which Posts to update
      */
     where?: PostWhereInput
+    limit?: number
   }
 
   /**
@@ -4681,6 +4682,7 @@ export namespace Prisma {
      * Filter which Users to update
      */
     where?: UserWhereInput
+    limit?: number
   }
 
   /**
@@ -5675,6 +5677,7 @@ export namespace Prisma {
      * Filter which EmbedHolders to update
      */
     where?: EmbedHolderWhereInput
+    limit?: number
   }
 
   /**
@@ -6806,6 +6809,7 @@ export namespace Prisma {
      * Filter which MS to update
      */
     where?: MWhereInput
+    limit?: number
   }
 
   /**
@@ -7937,6 +7941,7 @@ export namespace Prisma {
      * Filter which NS to update
      */
     where?: NWhereInput
+    limit?: number
   }
 
   /**
@@ -9061,6 +9066,7 @@ export namespace Prisma {
      * Filter which OneOptionals to update
      */
     where?: OneOptionalWhereInput
+    limit?: number
   }
 
   /**
@@ -10194,6 +10200,7 @@ export namespace Prisma {
      * Filter which ManyRequireds to update
      */
     where?: ManyRequiredWhereInput
+    limit?: number
   }
 
   /**
@@ -11322,6 +11329,7 @@ export namespace Prisma {
      * Filter which OptionalSide1s to update
      */
     where?: OptionalSide1WhereInput
+    limit?: number
   }
 
   /**
@@ -12439,6 +12447,7 @@ export namespace Prisma {
      * Filter which OptionalSide2s to update
      */
     where?: OptionalSide2WhereInput
+    limit?: number
   }
 
   /**
@@ -13454,6 +13463,7 @@ export namespace Prisma {
      * Filter which AS to update
      */
     where?: AWhereInput
+    limit?: number
   }
 
   /**
@@ -14395,6 +14405,7 @@ export namespace Prisma {
      * Filter which BS to update
      */
     where?: BWhereInput
+    limit?: number
   }
 
   /**
@@ -15342,6 +15353,7 @@ export namespace Prisma {
      * Filter which CS to update
      */
     where?: CWhereInput
+    limit?: number
   }
 
   /**
@@ -16311,6 +16323,7 @@ export namespace Prisma {
      * Filter which DS to update
      */
     where?: DWhereInput
+    limit?: number
   }
 
   /**
@@ -17225,6 +17238,7 @@ export namespace Prisma {
      * Filter which ES to update
      */
     where?: EWhereInput
+    limit?: number
   }
 
   /**
