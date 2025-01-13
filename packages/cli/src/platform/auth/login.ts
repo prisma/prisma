@@ -1,3 +1,4 @@
+import { select } from '@inquirer/prompts'
 import Debug from '@prisma/debug'
 import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
@@ -150,6 +151,14 @@ const decodeUser = (stringifiedUser: string) => {
 }
 
 export const loginOrSignup = async () => {
+  const providerAnswer = await select({
+    message: 'Select an authentication method',
+    default: 'google',
+    choices: [
+      { name: 'Google', value: 'google' },
+      { name: 'GitHub', value: 'github' },
+    ],
+  })
   console.info('Authenticating to Prisma Platform via browser.\n')
 
   const server = http.createServer()
@@ -158,7 +167,7 @@ export const loginOrSignup = async () => {
    */
   const randomPort = 0
   const redirectUrl = await listen(server, randomPort, '127.0.0.1')
-  const loginUrl = await createLoginUrl({ connection: 'github', redirectTo: redirectUrl.href })
+  const loginUrl = await createLoginUrl({ connection: providerAnswer, redirectTo: redirectUrl.href })
 
   console.info('Visit the following URL in your browser to authenticate:')
   console.info(link(loginUrl.href))
