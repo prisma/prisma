@@ -641,13 +641,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     // type Result = T extends PrismaPromise<infer R, any> ? R : never
     // type Spec = T extends PrismaPromise<any, infer R> ? R : never
-    async $prepare<T extends PrismaPromise<any, PrismaOperationSpec<unknown, JsonQueryAction>>>(operation: T) {
+    async $prepare<T extends PrismaPromise<any, PrismaOperationSpec<unknown, Action>>>(operation: T) {
       const { model: modelName, action, args } = operation.spec
 
       const request = serializeJsonQuery({
         modelName,
         runtimeDataModel: this._runtimeDataModel,
-        action: action as Action, // TODO
+        action,
         args: args as JsArgs,
         clientMethod: action,
         callsite: undefined,
@@ -677,6 +677,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         const result = await interpreter.run(queryPlan)
 
         switch (operation.spec.action) {
+          case 'create':
+            return asList(result).at(0)
           case 'createMany': {
             if (typeof result !== 'number') {
               throw new Error(`Expected result of createMany to be a number, got ${typeof result}`)
