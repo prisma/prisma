@@ -117,42 +117,42 @@ export type QueryPlanDbQuery = {
 
 export type QueryPlanNode =
   | {
-      type: 'Seq'
+      type: 'seq'
       args: QueryPlanNode[]
     }
   | {
-      type: 'Get'
+      type: 'get'
       args: {
         name: string
       }
     }
   | {
-      type: 'Let'
+      type: 'let'
       args: {
         bindings: QueryPlanBinding[]
         expr: QueryPlanNode
       }
     }
   | {
-      type: 'GetFirstNonEmpty'
+      type: 'getFirstNonEmpty'
       args: {
         names: string[]
       }
     }
   | {
-      type: 'Query'
+      type: 'query'
       args: QueryPlanDbQuery
     }
   | {
-      type: 'Execute'
+      type: 'execute'
       args: QueryPlanDbQuery
     }
   | {
-      type: 'Sum'
+      type: 'sum'
       args: QueryPlanNode[]
     }
   | {
-      type: 'Concat'
+      type: 'concat'
       args: QueryPlanNode[]
     }
 
