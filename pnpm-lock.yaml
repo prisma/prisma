@@ -655,8 +655,8 @@ importers:
         specifier: 6.3.0-9.8d21d25179a728cc75328c17b6b643eabbac8818
         version: 6.3.0-9.8d21d25179a728cc75328c17b6b643eabbac8818
       '@snaplet/copycat':
-        specifier: 0.17.3
-        version: 0.17.3
+        specifier: 5.1.1
+        version: 5.1.1
       '@swc-node/register':
         specifier: 1.10.9
         version: 1.10.9(@swc/core@1.10.1)(@swc/types@0.1.17)(typescript@5.4.5)
@@ -2874,8 +2874,8 @@ packages:
     resolution: {integrity: sha512-qRPMq3In5znBpRLw4IQvYy8M3+CRd8/FKfZjA0BoNx/Q1qm4+kom8BTaOz+HMoRpnywMbr+4B/Tc5JR3nUJ+ew==}
     engines: {node: '>= 18', npm: '>= 8.6.0'}
 
-  '@snaplet/copycat@0.17.3':
-    resolution: {integrity: sha512-cwX6zphBd1KNuOPmILggXkddLf+juIrXsFhfOz0nMDIIAkWyoFQAqwt4pn5lS2RNMJTzT7IZRKplnFt/D2t8zw==}
+  '@snaplet/copycat@5.1.1':
+    resolution: {integrity: sha512-sRxkzKIYJ6Q7hL4c8m+2u7oS/jE0FW/24HUa4a23IAuiopNc/nf5bm1Lecyra2xMVcCWrucE40AlQLnNNCO+iw==}
 
   '@swc-node/core@1.13.3':
     resolution: {integrity: sha512-OGsvXIid2Go21kiNqeTIn79jcaX4l0G93X2rAnas4LFoDyA9wAwVK7xZdm+QsKoMn5Mus2yFLCc4OtX2dD/PWA==}
@@ -4422,8 +4422,8 @@ packages:
     resolution: {integrity: sha512-7yAQpD2UMJzLi1Dqv7qFYnPbaPx7ZfFK6PiIxQ4PfkGPyNyl2Ugx+a/umUonmKqjhM4DnfbMvdX6otXq83soQQ==}
     engines: {node: ^12.20 || >= 14.13}
 
-  fictional@0.8.4:
-    resolution: {integrity: sha512-wSYTdLJkQ/h4NOMI6FCp9xxjMzEcCxwSjIK4f5zZveOKFUPAxi4/sAb3pyjaiz3fCSA2PGEGLY6ZWQplRl7ygQ==}
+  fictional@2.1.1:
+    resolution: {integrity: sha512-lHrMISII22AXlro16kjq0tTEr+LWWQwPVT3h3H8Xxd1pDr3sTI+ZxNOpp/SQm1wrY1jr5A7taOxJAOXvnLdjVQ==}
 
   file-entry-cache@8.0.0:
     resolution: {integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==}
@@ -5325,6 +5325,7 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
+    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -8675,11 +8676,12 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@snaplet/copycat@0.17.3':
+  '@snaplet/copycat@5.1.1':
     dependencies:
       '@faker-js/faker': 8.4.1
-      fictional: 0.8.4
-      uuid: 8.3.2
+      fictional: 2.1.1
+      string-argv: 0.3.2
+      uuid: 9.0.1
 
   '@swc-node/core@1.13.3(@swc/core@1.10.1)(@swc/types@0.1.17)':
     dependencies:
@@ -10507,7 +10509,7 @@ snapshots:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.2.1
 
-  fictional@0.8.4:
+  fictional@2.1.1:
     dependencies:
       decimal.js: 10.4.3
       fast-json-stable-stringify: 2.1.0
