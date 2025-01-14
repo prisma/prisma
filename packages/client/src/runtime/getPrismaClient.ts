@@ -18,7 +18,7 @@ import {
   PrismaClientValidationError,
 } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, JsonQueryAction, Options } from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
 import { CustomDataProxyFetch, WasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
@@ -35,7 +35,6 @@ import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
-import { QueryInterpreter } from './core/interpreter/QueryInterpreter'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -51,7 +50,6 @@ import {
 } from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromiseFactory } from './core/request/createPrismaPromise'
 import {
-  PrismaOperationSpec,
   PrismaPromise,
   PrismaPromiseInteractiveTransaction,
   PrismaPromiseTransaction,
@@ -61,7 +59,7 @@ import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
-import { Action, JsArgs, JsInputValue } from './core/types/exported/JsApi'
+import { JsInputValue } from './core/types/exported/JsApi'
 import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
 import { UnknownTypedSql } from './core/types/exported/TypedSql'
 import { getLogLevel } from './getLogLevel'
@@ -637,99 +635,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         checkAlter(this._activeProvider, query, values, 'prisma.$executeRawUnsafe(<SQL>, [...values])')
         return this.$executeRawInternal(transaction, '$executeRawUnsafe', [query, ...values])
       })
-    }
-
-    // type Result = T extends PrismaPromise<infer R, any> ? R : never
-    // type Spec = T extends PrismaPromise<any, infer R> ? R : never
-    async $prepare<T extends PrismaPromise<any, PrismaOperationSpec<unknown, Action>>>(operation: T) {
-      const { model: modelName, action, args } = operation.spec
-
-      const request = serializeJsonQuery({
-        modelName,
-        runtimeDataModel: this._runtimeDataModel,
-        action,
-        args: args as JsArgs,
-        clientMethod: action,
-        callsite: undefined,
-        extensions: this._extensions,
-        errorFormat: this._errorFormat,
-        clientVersion: this._clientVersion,
-        previewFeatures: this._previewFeatures,
-        globalOmit: this._globalOmit,
-      })
-
-      const queryPlan = await this._engine.prepare(request)
-
-      const asList = (result: unknown): unknown[] => {
-        if (Array.isArray(result)) {
-          return result
-        } else {
-          throw new Error(`Expected result to be an array, got ${typeof result}`)
-        }
-      }
-
-      return async (values: Record<string, unknown>) => {
-        if (!this._engineConfig.adapter) {
-          throw new Error('A driver adapter must be configured to execute compiled queries')
-        }
-
-        const interpreter = new QueryInterpreter(this._engineConfig.adapter, values)
-        const result = await interpreter.run(queryPlan)
-
-        switch (operation.spec.action) {
-          case 'create':
-            return asList(result).at(0)
-          case 'createMany': {
-            if (typeof result !== 'number') {
-              throw new Error(`Expected result of createMany to be a number, got ${typeof result}`)
-            }
-            return result
-          }
-          case 'createManyAndReturn':
-            return asList(result)
-          case 'findUniqueOrThrow': {
-            const results = asList(result)
-            if (results.length !== 1) {
-              throw new Error('Expected at least one result')
-            }
-            return results.at(0)
-          }
-          case 'findFirstOrThrow': {
-            const results = asList(result)
-            if (results.length === 0) {
-              throw new Error('Expected at least one result')
-            }
-            return results.at(0)
-          }
-          case 'findFirst':
-          case 'findUnique':
-            return asList(result).at(0)
-          case 'findMany':
-            return asList(result)
-          default:
-            throw new Error(`Not supported yet: ${operation.spec.action}`)
-        }
-      }
-    }
-
-    $debugQueryPlan<T extends PrismaPromise<any, PrismaOperationSpec<unknown, JsonQueryAction>>>(operation: T) {
-      const { model: modelName, action, args } = operation.spec
-
-      const request = serializeJsonQuery({
-        modelName,
-        runtimeDataModel: this._runtimeDataModel,
-        action: action as Action, // TODO
-        args: args as JsArgs,
-        clientMethod: action,
-        callsite: undefined,
-        extensions: this._extensions,
-        errorFormat: this._errorFormat,
-        clientVersion: this._clientVersion,
-        previewFeatures: this._previewFeatures,
-        globalOmit: this._globalOmit,
-      })
-
-      return this._engine.debugQueryPlan(request)
     }
 
     /**

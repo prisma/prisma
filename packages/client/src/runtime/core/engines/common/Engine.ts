@@ -163,8 +163,6 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   start(): Promise<void>
   stop(): Promise<void>
   version(forceRun?: boolean): Promise<string> | string
-  prepare(query: JsonQuery): Promise<QueryPlanNode>
-  debugQueryPlan(query: JsonQuery): Promise<string>
   request<T>(
     query: JsonQuery,
     options: RequestOptions<InteractiveTransactionPayload>,

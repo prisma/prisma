@@ -501,51 +501,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return this.library?.debugPanic(message) as Promise<never>
   }
 
-  async prepare(query: JsonQuery): Promise<QueryPlanNode> {
-    try {
-      await this.start()
-      const response = await this.engine!.compile(JSON.stringify(query), false)
-      return JSON.parse(response)
-    } catch (e: any) {
-      if (e instanceof PrismaClientInitializationError) {
-        throw e
-      }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
-        throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
-      }
-      const error = this.parseRequestError(e.message)
-      if (typeof error === 'string') {
-        throw e
-      } else {
-        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
-          clientVersion: this.config.clientVersion!,
-        })
-      }
-    }
-  }
-
-  async debugQueryPlan(query: JsonQuery): Promise<string> {
-    try {
-      await this.start()
-      return await this.engine!.compile(JSON.stringify(query), true)
-    } catch (e: any) {
-      if (e instanceof PrismaClientInitializationError) {
-        throw e
-      }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
-        throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
-      }
-      const error = this.parseRequestError(e.message)
-      if (typeof error === 'string') {
-        throw e
-      } else {
-        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
-          clientVersion: this.config.clientVersion!,
-        })
-      }
-    }
-  }
-
   async request<T>(
     query: JsonQuery,
     // TODO: support traceparent and interactiveTransaction!

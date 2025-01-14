@@ -1,4 +1,3 @@
-/// <reference path="types.d.ts" />
 import { Prisma, PrismaClient } from '.prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
@@ -20,30 +19,10 @@ async function main() {
   const query = prisma.user.findMany({
     where: {
       createdAt: {
-        gt: Prisma.Param('startDate'),
+        gt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
       },
     },
   })
-
-  console.log(await prisma.$debugQueryPlan(query))
-
-  const compiledQuery = await prisma.$prepare(query)
-
-  console.log(
-    'last day:',
-    (
-      await compiledQuery({
-        startDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      })
-    ).length,
-  )
-
-  console.log(
-    'last second:',
-    await compiledQuery({
-      startDate: new Date(Date.now() - 1000).toISOString(),
-    }),
-  )
 
   const nestedQuery = prisma.user.findMany({
     include: {
@@ -51,7 +30,6 @@ async function main() {
     }
   })
 
-  console.log(await prisma.$debugQueryPlan(nestedQuery))
 
   // --------------
   // timings
@@ -60,25 +38,11 @@ async function main() {
   // warm up native connector
   await prisma.user.findMany()
 
-  console.log()
-
   // console.time('old way')
-  const [, oldWayMs] = await benchmark(() => prisma.user.findMany())
+  const [, timing] = await benchmark(() => query)
   // console.timeEnd('old way')
-  console.log('old way', oldWayMs)
+  console.log('timing', timing)
 
-  // console.time('compilation')
-  const [findAllCompiled, compilationMs] = await benchmark(() => prisma.$prepare(prisma.user.findMany()))
-  // console.timeEnd('compilation')
-  console.log('compilation', compilationMs)
-
-  // console.time('compiled')
-  const [, compiledMs] = await benchmark(() => findAllCompiled({}))
-  // console.timeEnd('compiled')
-  console.log('compiled', compiledMs)
-
-  console.log()
-  console.log(`The old way is ${(oldWayMs / compiledMs).toFixed(2)} times slower than the new compiled one!`);
 
   /// --------------
   /// misc
