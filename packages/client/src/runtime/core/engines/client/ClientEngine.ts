@@ -40,6 +40,8 @@ import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstanc
 import { wasmLibraryLoader } from '../library/WasmLibraryLoader'
 
 const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
+const CLIENT_ENGINE_ERROR = 'P2038'
+
 const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
@@ -95,6 +97,14 @@ export class ClientEngine implements Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
+    if (!config.previewFeatures?.includes('driverAdapters')) {
+      throw new PrismaClientInitializationError(
+        'EngineType `client` requires the driverAdapters preview feature to be enabled.',
+        config.clientVersion!,
+        CLIENT_ENGINE_ERROR,
+      )
+    }
+
     if (TARGET_BUILD_TYPE === 'react-native') {
       this.libraryLoader = reactNativeLibraryLoader
     } else if (TARGET_BUILD_TYPE === 'library') {
@@ -292,18 +302,24 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       this.library = await this.libraryLoader.loadLibrary(this.config)
       this.QueryEngineConstructor = this.library.QueryEngine
     }
+
+    const { adapter } = this.config
+    if (!adapter) {
+      throw new PrismaClientInitializationError(
+        'Missing configured driver adapter. Engine type `client` requires an active driver adapter. Please check your PrismaClient initialization code.',
+        this.config.clientVersion!,
+        CLIENT_ENGINE_ERROR,
+      )
+    } else {
+      debug('Using driver adapter: %O', adapter)
+    }
+
     try {
       // Using strong reference to `this` inside of log callback will prevent
       // this instance from being GCed while native engine is alive. At the
       // same time, `this.engine` field will prevent native instance from
       // being GCed. Using weak ref helps to avoid this cycle
       const weakThis = new WeakRef(this)
-      const { adapter } = this.config
-
-      if (adapter) {
-        debug('Using driver adapter: %O', adapter)
-      }
-
       this.engine = this.wrapEngine(
         new this.QueryEngineConstructor(
           {
