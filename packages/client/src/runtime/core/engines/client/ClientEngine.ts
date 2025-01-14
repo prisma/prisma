@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { ErrorRecord } from '@prisma/driver-adapter-utils'
+import { type ErrorCapturingDriverAdapter, ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
@@ -10,6 +10,7 @@ import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownReq
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
+import { QueryInterpreter } from '../../interpreter/QueryInterpreter'
 import type {
   BatchQueryEngineResult,
   EngineConfig,
@@ -80,6 +81,7 @@ export class ClientEngine implements Engine<undefined> {
   QueryEngineConstructor?: QueryEngineConstructor
   libraryLoader: LibraryLoader
   library?: Library
+  driverAdapter: ErrorCapturingDriverAdapter
   logEmitter: LogEmitter
   libQueryEnginePath?: string
   binaryTarget?: BinaryTarget
@@ -103,6 +105,17 @@ export class ClientEngine implements Engine<undefined> {
         config.clientVersion!,
         CLIENT_ENGINE_ERROR,
       )
+    }
+    const { adapter } = config
+    if (!adapter) {
+      throw new PrismaClientInitializationError(
+        'Missing configured driver adapter. Engine type `client` requires an active driver adapter. Please check your PrismaClient initialization code.',
+        config.clientVersion!,
+        CLIENT_ENGINE_ERROR,
+      )
+    } else {
+      this.driverAdapter = adapter
+      debug('Using driver adapter: %O', adapter)
     }
 
     if (TARGET_BUILD_TYPE === 'react-native') {
@@ -303,17 +316,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       this.QueryEngineConstructor = this.library.QueryEngine
     }
 
-    const { adapter } = this.config
-    if (!adapter) {
-      throw new PrismaClientInitializationError(
-        'Missing configured driver adapter. Engine type `client` requires an active driver adapter. Please check your PrismaClient initialization code.',
-        this.config.clientVersion!,
-        CLIENT_ENGINE_ERROR,
-      )
-    } else {
-      debug('Using driver adapter: %O', adapter)
-    }
-
     try {
       // Using strong reference to `this` inside of log callback will prevent
       // this instance from being GCed while native engine is alive. At the
@@ -336,7 +338,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           (log) => {
             weakThis.deref()?.logger(log)
           },
-          adapter,
+          this.driverAdapter,
         ),
       )
     } catch (_e) {
@@ -546,32 +548,28 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   async request<T>(
     query: JsonQuery,
-    { traceparent, interactiveTransaction }: RequestOptions<undefined>,
+    // TODO: support traceparent and interactiveTransaction!
+    { traceparent: _traceparent, interactiveTransaction: _interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-    const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(query)
 
     try {
       await this.start()
 
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
+      const queryPlanString = await this.engine!.compile(queryStr, false)
+      const queryPlan: QueryPlanNode = JSON.parse(queryPlanString)
 
-      this.lastQuery = queryStr
-      const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
+      debug(`query plan created: ${queryPlanString}`)
 
-      if (data.errors) {
-        if (data.errors.length === 1) {
-          throw this.buildQueryError(data.errors[0])
-        }
-        // this case should not happen, as the query engine only returns one error
-        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
-          clientVersion: this.config.clientVersion!,
-        })
-      } else if (this.loggerRustPanic) {
-        throw this.loggerRustPanic
-      }
-      return { data }
+      // TODO: actually support the usage of `Prisma.Param` to reuse compiled queries with different values
+      const placeholderValues = {}
+      const interpreter = new QueryInterpreter(this.driverAdapter, placeholderValues)
+      const result = await interpreter.run(queryPlan)
+
+      debug(`query plan executed`)
+
+      return { data: { [query.action]: result } as T }
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
         throw e
