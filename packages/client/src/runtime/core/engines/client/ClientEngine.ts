@@ -1,15 +1,13 @@
 import Debug from '@prisma/debug'
-import { type ErrorCapturingDriverAdapter, ErrorRecord } from '@prisma/driver-adapter-utils'
+import { type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
+import { EngineTrace, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
-import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import { QueryInterpreter } from '../../interpreter/QueryInterpreter'
 import type {
   BatchQueryEngineResult,
@@ -30,17 +28,13 @@ import type {
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
-import { RequestError } from '../common/types/RequestError'
 import type * as Tx from '../common/types/Transaction'
-import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
-import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from '../library/DefaultLibraryLoader'
 import { reactNativeLibraryLoader } from '../library/ReactNativeLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from '../library/types/Library'
 import { wasmLibraryLoader } from '../library/WasmLibraryLoader'
 
-const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
 const CLIENT_ENGINE_ERROR = 'P2038'
 
 const debug = Debug('prisma:client:libraryEngine')
@@ -214,41 +208,12 @@ export class ClientEngine implements Engine<undefined> {
     headers: Tx.TransactionHeaders,
     info: Tx.InteractiveTransactionInfo<undefined>,
   ): Promise<undefined>
-  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
-    await this.start()
-
-    const headerStr = JSON.stringify(headers)
-
-    let result: string | undefined
-    if (action === 'start') {
-      const jsonOptions = JSON.stringify({
-        max_wait: arg.maxWait,
-        timeout: arg.timeout,
-        isolation_level: arg.isolationLevel,
-      })
-
-      result = await this.engine?.startTransaction(jsonOptions, headerStr)
-    } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, headerStr)
-    } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, headerStr)
-    }
-
-    const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
-
-    if (isUserFacingError(response)) {
-      const externalError = this.getExternalAdapterError(response)
-      if (externalError) {
-        throw externalError.error
-      }
-      throw new PrismaClientKnownRequestError(response.message, {
-        code: response.error_code as string,
-        clientVersion: this.config.clientVersion as string,
-        meta: response.meta,
-      })
-    }
-
-    return response as Tx.InteractiveTransactionInfo<undefined> | undefined
+  transaction(
+    _action: any,
+    _headers: Tx.TransactionHeaders,
+    _arg?: any,
+  ): Promise<Tx.InteractiveTransactionInfo<undefined> | undefined> {
+    throw new Error('Method not implemented.')
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -543,77 +508,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  async requestBatch<T>(
-    queries: JsonQuery[],
-    { transaction, traceparent }: RequestBatchOptions<undefined>,
+  requestBatch<T>(
+    _queries: JsonQuery[],
+    { transaction: _transaction, traceparent: _traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')
-    const request = getBatchRequestPayload(queries, transaction)
-    await this.start()
-
-    this.lastQuery = JSON.stringify(request)
-
-    this.executingQueryPromise = this.engine!.query(
-      this.lastQuery,
-      JSON.stringify({ traceparent }),
-      getInteractiveTransactionId(transaction),
-    )
-
-    const result = await this.executingQueryPromise
-    const data = this.parseEngineResponse<any>(result)
-
-    if (data.errors) {
-      if (data.errors.length === 1) {
-        throw this.buildQueryError(data.errors[0])
-      }
-      // this case should not happen, as the query engine only returns one error
-      throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
-        clientVersion: this.config.clientVersion!,
-      })
-    }
-
-    const { batchResult, errors } = data
-    if (Array.isArray(batchResult)) {
-      return batchResult.map((result) => {
-        if (result.errors && result.errors.length > 0) {
-          return this.loggerRustPanic ?? this.buildQueryError(result.errors[0])
-        }
-        return {
-          data: result,
-        }
-      })
-    } else {
-      if (errors && errors.length === 1) {
-        throw new Error(errors[0].error)
-      }
-      throw new Error(JSON.stringify(data))
-    }
-  }
-
-  private buildQueryError(error: RequestError) {
-    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm') {
-      return new PrismaClientRustPanicError(
-        getErrorMessageWithLink(this, error.user_facing_error.message),
-        this.config.clientVersion!,
-      )
-    }
-
-    const externalError = this.getExternalAdapterError(error.user_facing_error)
-
-    return externalError
-      ? externalError.error
-      : prismaGraphQLToJSError(error, this.config.clientVersion!, this.config.activeProvider!)
-  }
-
-  private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {
-    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
-      const id = error.meta?.id
-      assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
-      const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
-      assertAlways(errorRecord, `External error with reported id was not registered`)
-      return errorRecord
-    }
-    return undefined
+    throw new Error('Method not implemented.')
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
@@ -628,10 +528,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
     return this.parseEngineResponse(responseString)
   }
-}
-
-function isUserFacingError(e: unknown): e is RequestError['user_facing_error'] {
-  return typeof e === 'object' && e !== null && e['error_code'] !== undefined
 }
 
 function getErrorMessageWithLink(engine: ClientEngine, title: string) {
