@@ -34,20 +34,25 @@ type ExtractDriverNames<
 
 type PrismaCoreConfig<
   EnvDictionary extends { [key: string]: string },
-  Step1ConfigDefn extends DriversDeclaration<EnvDictionary>
+  DriversDeclarationDefn extends DriversDeclaration<EnvDictionary>
 > = {
   client: {
-    adapter: ExtractDriverNames<EnvDictionary, Step1ConfigDefn>
+    adapter: ExtractDriverNames<EnvDictionary, DriversDeclarationDefn>
   },
   seed?: {
-    adapter: ExtractDriverNames<EnvDictionary, Step1ConfigDefn>
+    adapter: ExtractDriverNames<EnvDictionary, DriversDeclarationDefn>
   },
   studio?: {
-    adapter: ExtractDriverNames<EnvDictionary, Step1ConfigDefn>
+    adapter: ExtractDriverNames<EnvDictionary, DriversDeclarationDefn>
   },
-  migrations?: {
-    adapters: ExtractDriverNames<EnvDictionary, Step1ConfigDefn>[] // TODO: restrict to tuple of maximum size 2
-  }
+  schemaEngine?: (
+    {
+      adapter: ExtractDriverNames<EnvDictionary, DriversDeclarationDefn>
+    } |
+    {
+      adapters: ExtractDriverNames<EnvDictionary, DriversDeclarationDefn>[] // TODO: restrict to tuple of maximum size 2
+    }
+  ),
 }
 
 type DefinePrismaConfig<EnvDictionary extends { [key: string]: string }> = 
@@ -101,10 +106,19 @@ export default definePrismaConfig({
 	  }
   ],
 })({
+  // @prisma/client config
   client: {
     adapter: 'pg',
+  }, 
+  // `prisma db`, `prisma migrate` commands config
+  schemaEngine: {
+    // If two adapters are declared, the first adapter is used by default.
+    // To use the second adapter, specify it explicitly via a new `--adapter` argument,
+    // which refers to the adapter's unique label.
+    // 
+    // Example: `prisma migrate dev --adapter=neon:ws`
+    adapters: ['pg', 'neon:ws'],
   },
-  migrations: {
-    adapters: ['neon:ws', 'pg'],
-  },
+  // TODO: define location for `schema.prisma`:
+  // schema: './prisma/schema.prisma',
 })
