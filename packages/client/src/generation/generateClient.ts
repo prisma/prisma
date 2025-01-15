@@ -728,6 +728,10 @@ function getNodeRuntimeName(engineType: ClientEngineType) {
     return 'library'
   }
 
+  if (engineType === ClientEngineType.Client) {
+    return 'library' // TODO: eventually use dedicated client runtime bundle
+  }
+
   assertNever(engineType, 'Unknown engine type')
 }
 

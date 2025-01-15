@@ -10,7 +10,6 @@ import type {
   CustomDataProxyFetch,
   EngineConfig,
   InteractiveTransactionOptions,
-  QueryPlanNode,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
@@ -314,16 +313,6 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
         })
       }
     })
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async prepare(_query: JsonQuery): Promise<QueryPlanNode> {
-    throw new Error('not implemented')
-  }
-
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async debugQueryPlan(_query: JsonQuery): Promise<string> {
-    throw new Error('not implemented')
   }
 
   request<T>(

@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import {
-  BatchQueryEngineResult,
-  Engine,
-  EngineConfig,
-  QueryPlanNode,
-  RequestBatchOptions,
-  RequestOptions,
-} from '../common/Engine'
+import { BatchQueryEngineResult, Engine, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineResultData } from '../common/types/QueryEngine'
@@ -58,14 +51,6 @@ export class AccelerateEngine implements Engine<any> {
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
   metrics(_options: unknown): Promise<string | Metrics> {
-    throw new PrismaClientInitializationError(ERROR_MESSAGE, this.config.clientVersion)
-  }
-
-  prepare(_query: JsonQuery): Promise<QueryPlanNode> {
-    throw new PrismaClientInitializationError(ERROR_MESSAGE, this.config.clientVersion)
-  }
-
-  debugQueryPlan(_query: JsonQuery): Promise<string> {
     throw new PrismaClientInitializationError(ERROR_MESSAGE, this.config.clientVersion)
   }
 
