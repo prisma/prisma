@@ -105,8 +105,8 @@ importers:
         specifier: 2.0.1
         version: 2.0.1
       eslint-plugin-prettier:
-        specifier: 4.2.1
-        version: 4.2.1(eslint-config-prettier@9.1.0(eslint@9.5.0))(eslint@9.5.0)(prettier@2.8.8)
+        specifier: 5.2.2
+        version: 5.2.2(eslint-config-prettier@9.1.0(eslint@9.5.0))(eslint@9.5.0)(prettier@2.8.8)
       eslint-plugin-simple-import-sort:
         specifier: 12.1.1
         version: 12.1.1(eslint@9.5.0)
@@ -2789,6 +2789,10 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@pkgr/core@0.1.1':
+    resolution: {integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==}
+    engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
   '@planetscale/database@1.18.0':
     resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
     engines: {node: '>=16'}
@@ -4269,14 +4273,17 @@ packages:
   eslint-plugin-local-rules@2.0.1:
     resolution: {integrity: sha512-AJhGd+GcI5r2dbjiGPixM8jnBl0XFxqoVbqzwKbYz+nTk+Cj5dNE3+OlhC176bl5r25KsGsIthLi1VqIW5Ga+A==}
 
-  eslint-plugin-prettier@4.2.1:
-    resolution: {integrity: sha512-f/0rXLXUt0oFYs8ra4w49wYZBG5GKZpAYsJSm6rnYL5uVDjd+zowwMwVZHnAjf4edNrKpCDYfXDgmRE/Ak7QyQ==}
-    engines: {node: '>=12.0.0'}
+  eslint-plugin-prettier@5.2.2:
+    resolution: {integrity: sha512-1yI3/hf35wmlq66C8yOyrujQnel+v5l1Vop5Cl2I6ylyNTT1JbuUUnV3/41PzwTzcyDp/oF0jWE3HXvcH5AQOQ==}
+    engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      eslint: '>=7.28.0'
+      '@types/eslint': '>=8.0.0'
+      eslint: '>=8.0.0'
       eslint-config-prettier: '*'
-      prettier: '>=2.0.0'
+      prettier: '>=3.0.0'
     peerDependenciesMeta:
+      '@types/eslint':
+        optional: true
       eslint-config-prettier:
         optional: true
 
@@ -5331,6 +5338,7 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
+    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -6686,6 +6694,10 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+
+  synckit@0.9.2:
+    resolution: {integrity: sha512-vrozgXDQwYO72vHjUb/HnFbQx1exDjoKzqx23aXEg2a9VIg2TSFZ8FmeZpTjUCFMYw7mpX4BE2SFu8wI7asYsw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
 
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
@@ -8574,6 +8586,8 @@ snapshots:
   '@oxc-resolver/binding-win32-x64-msvc@1.10.2':
     optional: true
 
+  '@pkgr/core@0.1.1': {}
+
   '@planetscale/database@1.18.0': {}
 
   '@prisma/engines-version@6.3.0-12.5700ed66e57e87de647fcb5177ba803e2e2eae27': {}
@@ -10292,11 +10306,12 @@ snapshots:
 
   eslint-plugin-local-rules@2.0.1: {}
 
-  eslint-plugin-prettier@4.2.1(eslint-config-prettier@9.1.0(eslint@9.5.0))(eslint@9.5.0)(prettier@2.8.8):
+  eslint-plugin-prettier@5.2.2(eslint-config-prettier@9.1.0(eslint@9.5.0))(eslint@9.5.0)(prettier@2.8.8):
     dependencies:
       eslint: 9.5.0
       prettier: 2.8.8
       prettier-linter-helpers: 1.0.0
+      synckit: 0.9.2
     optionalDependencies:
       eslint-config-prettier: 9.1.0(eslint@9.5.0)
 
@@ -13276,6 +13291,11 @@ snapshots:
       supports-color: 7.2.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  synckit@0.9.2:
+    dependencies:
+      '@pkgr/core': 0.1.1
+      tslib: 2.6.3
 
   tapable@2.2.1: {}
 
