@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { EngineTrace, TracingHelper } from '@prisma/internals'
+import { TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -20,11 +20,11 @@ import { Engine } from '../common/Engine'
 import { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type {
+import {
   QueryEngineEvent,
+  QueryEngineLogEvent,
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
-  QueryEngineQueryEvent,
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
@@ -39,9 +39,6 @@ const CLIENT_ENGINE_ERROR = 'P2038'
 
 const debug = Debug('prisma:client:libraryEngine')
 
-function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
-  return event['item_type'] === 'query' && 'query' in event
-}
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   if ('level' in event) {
     return event.level === 'error' && event['message'] === 'PANIC'
@@ -52,20 +49,11 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 
-const MAX_REQUEST_ID = 0xffffffffffffffffn
-let NEXT_REQUEST_ID = 1n
-
-function nextRequestId(): bigint {
-  const requestId = NEXT_REQUEST_ID++
-  if (NEXT_REQUEST_ID > MAX_REQUEST_ID) {
-    NEXT_REQUEST_ID = 1n
-  }
-  return requestId
-}
+const PSEUDO_REQUEST_ID = '1'
 
 export class ClientEngine implements Engine<undefined> {
   name = 'ClientEngine' as const
-  engine?: ReturnType<typeof this.wrapEngine>
+  engine?: QueryEngineInstance
   libraryInstantiationPromise?: Promise<void>
   libraryStartingPromise?: Promise<void>
   libraryStoppingPromise?: Promise<void>
@@ -149,48 +137,8 @@ export class ClientEngine implements Engine<undefined> {
     this.libraryInstantiationPromise = this.instantiateLibrary()
   }
 
-  private wrapEngine(engine: QueryEngineInstance) {
-    return {
-      applyPendingMigrations: engine.applyPendingMigrations?.bind(engine),
-      commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
-      connect: this.withRequestId(engine.connect.bind(engine)),
-      disconnect: this.withRequestId(engine.disconnect.bind(engine)),
-      metrics: engine.metrics?.bind(engine),
-      query: this.withRequestId(engine.query.bind(engine)),
-      rollbackTransaction: this.withRequestId(engine.rollbackTransaction.bind(engine)),
-      sdlSchema: engine.sdlSchema?.bind(engine),
-      startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
-      trace: engine.trace.bind(engine),
-      compile: engine.compile.bind(engine),
-    }
-  }
-
-  private withRequestId<T extends unknown[], U>(
-    fn: (...args: [...T, string]) => Promise<U>,
-  ): (...args: T) => Promise<U> {
-    return async (...args) => {
-      const requestId = nextRequestId().toString()
-      try {
-        return await fn(...args, requestId)
-      } finally {
-        if (this.tracingHelper.isEnabled()) {
-          const traceJson = await this.engine?.trace(requestId)
-          if (traceJson) {
-            const trace = JSON.parse(traceJson) as EngineTrace
-            this.tracingHelper.dispatchEngineSpans(trace.spans)
-          }
-        }
-      }
-    }
-  }
-
-  async applyPendingMigrations(): Promise<void> {
-    if (TARGET_BUILD_TYPE === 'react-native') {
-      await this.start()
-      await this.engine?.applyPendingMigrations!()
-    } else {
-      throw new Error('Cannot call this method from this type of engine instance')
-    }
+  applyPendingMigrations(): Promise<void> {
+    throw new Error('Cannot call applyPendingMigrations on engine type client.')
   }
 
   async transaction(
@@ -287,24 +235,22 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       // same time, `this.engine` field will prevent native instance from
       // being GCed. Using weak ref helps to avoid this cycle
       const weakThis = new WeakRef(this)
-      this.engine = this.wrapEngine(
-        new this.QueryEngineConstructor(
-          {
-            datamodel: this.datamodel,
-            env: process.env,
-            logQueries: this.config.logQueries ?? false,
-            ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverrides ?? {},
-            logLevel: this.logLevel,
-            configDir: this.config.cwd,
-            engineProtocol: 'json',
-            enableTracing: this.tracingHelper.isEnabled(),
-          },
-          (log) => {
-            weakThis.deref()?.logger(log)
-          },
-          this.driverAdapter,
-        ),
+      this.engine = new this.QueryEngineConstructor(
+        {
+          datamodel: this.datamodel,
+          env: process.env,
+          logQueries: this.config.logQueries ?? false,
+          ignoreEnvVarErrors: true,
+          datasourceOverrides: this.datasourceOverrides ?? {},
+          logLevel: this.logLevel,
+          configDir: this.config.cwd,
+          engineProtocol: 'json',
+          enableTracing: this.tracingHelper.isEnabled(),
+        },
+        (log) => {
+          weakThis.deref()?.logger(log)
+        },
+        this.driverAdapter,
       )
     } catch (_e) {
       const e = _e as Error
@@ -318,19 +264,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private logger(log: string) {
-    const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
+    const event = this.parseEngineResponse<QueryEngineLogEvent | QueryEnginePanicEvent | null>(log)
     if (!event) return
 
     event.level = event?.level.toLowerCase() ?? 'unknown'
-    if (isQueryEvent(event)) {
-      this.logEmitter.emit('query', {
-        timestamp: new Date(),
-        query: event.query,
-        params: event.params,
-        duration: Number(event.duration_ms),
-        target: event.module_path,
-      })
-    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm') {
+    if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm') {
       // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
         getErrorMessageWithLink(
@@ -395,7 +333,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           traceparent: this.tracingHelper.getTraceParent(),
         }
 
-        await this.engine?.connect(JSON.stringify(headers))
+        await this.engine?.connect(JSON.stringify(headers), PSEUDO_REQUEST_ID)
 
         this.libraryStarted = true
 
@@ -442,7 +380,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         traceparent: this.tracingHelper.getTraceParent(),
       }
 
-      await this.engine?.disconnect(JSON.stringify(headers))
+      await this.engine?.disconnect(JSON.stringify(headers), PSEUDO_REQUEST_ID)
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
@@ -480,7 +418,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       const queryPlanString = await this.engine!.compile(queryStr, false)
       const queryPlan: QueryPlanNode = JSON.parse(queryPlanString)
 
-      debug(`query plan created: ${queryPlanString}`)
+      debug(`query plan created`, queryPlanString)
 
       // TODO: actually support the usage of `Prisma.Param` to reuse compiled queries with different values
       const placeholderValues = {}
