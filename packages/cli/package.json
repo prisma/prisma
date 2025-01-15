@@ -92,7 +92,7 @@
     "chokidar": "3.6.0",
     "debug": "4.3.7",
     "dotenv": "16.4.7",
-    "esbuild": "0.24.0",
+    "esbuild": "0.24.2",
     "execa": "5.1.1",
     "fast-glob": "3.3.2",
     "fs-extra": "11.1.1",
