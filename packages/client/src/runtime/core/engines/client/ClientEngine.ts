@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { TracingHelper } from '@prisma/internals'
+import { assertNever, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -34,6 +34,7 @@ import { defaultLibraryLoader } from '../library/DefaultLibraryLoader'
 import { reactNativeLibraryLoader } from '../library/ReactNativeLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from '../library/types/Library'
 import { wasmLibraryLoader } from '../library/WasmLibraryLoader'
+import { TransactionManager } from './TransactionManager'
 
 const CLIENT_ENGINE_ERROR = 'P2038'
 
@@ -64,6 +65,7 @@ export class ClientEngine implements Engine<undefined> {
   libraryLoader: LibraryLoader
   library?: Library
   driverAdapter: ErrorCapturingDriverAdapter
+  transactionManager: TransactionManager
   logEmitter: LogEmitter
   libQueryEnginePath?: string
   binaryTarget?: BinaryTarget
@@ -135,6 +137,8 @@ export class ClientEngine implements Engine<undefined> {
     }
 
     this.libraryInstantiationPromise = this.instantiateLibrary()
+
+    this.transactionManager = new TransactionManager(this.driverAdapter)
   }
 
   applyPendingMigrations(): Promise<void> {
@@ -156,12 +160,26 @@ export class ClientEngine implements Engine<undefined> {
     headers: Tx.TransactionHeaders,
     info: Tx.InteractiveTransactionInfo<undefined>,
   ): Promise<undefined>
-  transaction(
-    _action: any,
+  async transaction(
+    action: 'start' | 'commit' | 'rollback',
     _headers: Tx.TransactionHeaders,
-    _arg?: any,
+    arg?: any,
   ): Promise<Tx.InteractiveTransactionInfo<undefined> | undefined> {
-    throw new Error('Method not implemented.')
+    let result: Tx.InteractiveTransactionInfo<undefined> | undefined
+    if (action === 'start') {
+      const options: Tx.Options = arg
+      result = await this.transactionManager.startTransaction(options)
+    } else if (action === 'commit') {
+      const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
+      await this.transactionManager.commitTransaction(txInfo.id)
+    } else if (action === 'rollback') {
+      const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
+      await this.transactionManager.rollbackTransaction(txInfo.id)
+    } else {
+      assertNever(action, 'Invalid transaction action.')
+    }
+
+    return result
   }
 
   private async instantiateLibrary(): Promise<void> {
