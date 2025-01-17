@@ -28,7 +28,7 @@ on:
       pnpmVersion:
         description: pnpm package manager version
         type: string
-        default: '8.15.5'
+        default: '9'
       engineHash:
         description: Customly-built engine hash to use
         type: string
@@ -107,7 +107,7 @@ jobs:
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
         previewFeatures: ['', 'relationJoins']
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
@@ -180,7 +180,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -243,7 +243,7 @@ jobs:
         clientRuntime: ['node', 'wasm']
         flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20] #[16, 18, 20]
+        node: [20]
         previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
     steps:
       - uses: actions/checkout@v4
@@ -299,7 +299,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -439,7 +439,7 @@ jobs:
       matrix:
         relationMode: ['', 'foreignKeys', 'prisma']
         os: [ubuntu-latest]
-        node: [16]
+        node: [18]
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
       JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -514,7 +514,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -540,7 +540,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -568,7 +568,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -614,7 +614,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -660,7 +660,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -706,7 +706,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -751,12 +751,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
         include:
           - os: windows-latest
-            version: 16
+            version: 18
           - os: macos-latest
-            version: 16
+            version: 18
     steps:
       - uses: actions/checkout@v4
 
@@ -783,7 +783,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -854,7 +854,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [16]
+        node: [18]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
     if: |
@@ -925,7 +925,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [16]
+        node: [18]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
     steps:
       - uses: actions/checkout@v4

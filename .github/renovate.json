@@ -17,16 +17,10 @@
   "reviewers": ["@prisma/orm-ts-maintain"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "pin",
-  "ignoreDeps": [
-    "sqlite3",
-    "@prisma/engines-version",
-    "@prisma/prisma-schema-wasm",
-    "redis",
-    "@types/redis"
-  ],
+  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-schema-wasm", "redis", "@types/redis"],
   "ignorePaths": ["sandbox/**"],
   "constraints": {
-    "pnpm": "8"
+    "pnpm": "9"
   },
   "configMigration": true,
   "packageRules": [
@@ -36,11 +30,7 @@
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch"],
       "schedule": ["before 7am on Wednesday"],
-      "matchPackageNames": [
-        "!@prisma/studio",
-        "!@prisma/studio-server",
-        "!checkpoint-client"
-      ]
+      "matchPackageNames": ["!@prisma/studio", "!@prisma/studio-server", "!checkpoint-client"]
     },
     {
       "groupName": "dependencies patch (non-major)",
@@ -108,7 +98,6 @@
         "find-up",
         "get-stdin",
         "globby",
-        "has-yarn",
         "indent-string",
         "log-update",
         "new-github-issue-url",
@@ -179,11 +168,7 @@
     {
       "groupName": "opentelemetry packages for instrumentation package",
       "matchFileNames": ["packages/instrumentation/**"],
-      "matchPackageNames": [
-        "@opentelemetry/api",
-        "@opentelemetry/instrumentation",
-        "@opentelemetry/sdk-trace-base"
-      ],
+      "matchPackageNames": ["@opentelemetry/api", "@opentelemetry/instrumentation", "@opentelemetry/sdk-trace-base"],
       "rangeStrategy": "auto"
     },
     {
@@ -247,13 +232,7 @@
     },
     {
       "groupName": "JS drivers",
-      "matchPackageNames": [
-        "@libsql/client",
-        "@neondatabase/serverless",
-        "@planetscale/database",
-        "pg",
-        "@types/pg"
-      ],
+      "matchPackageNames": ["@libsql/client", "@neondatabase/serverless", "@planetscale/database", "pg", "@types/pg"],
       "schedule": ["before 7am on Wednesday"]
     },
     {

@@ -25,7 +25,7 @@ import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
-import { type O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import clientPkg from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
@@ -558,6 +558,8 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
       'PrismaClient',
       'Prisma',
       // JavaScript keywords
+      'async',
+      'await',
       'break',
       'case',
       'catch',
@@ -596,6 +598,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
       'throw',
       'true',
       'try',
+      'using',
       'typeof',
       'var',
       'void',

@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { green } from 'kleur/colors'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import { getConfig, getEffectiveUrl, getSchemaWithPath, link } from '..'
 import { resolveUrl } from '../engine-commands/getConfig'

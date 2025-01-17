@@ -4,6 +4,7 @@ import Decimal from 'decimal.js'
 import { DecimalJsLike } from './DecimalJsLike'
 import { FieldRef } from './FieldRef'
 import { ObjectEnumValue } from './ObjectEnums'
+import { Skip } from './Skip'
 
 export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 
@@ -22,6 +23,7 @@ export type JsInputValue =
   | JsonConvertible
   | FieldRef<string, unknown>
   | JsInputValue[]
+  | Skip
   | { [key: string]: JsInputValue }
 
 export interface JsonConvertible {
@@ -35,9 +37,9 @@ export type JsArgs = {
   [argName: string]: JsInputValue
 }
 
-export type Selection = Record<string, boolean | JsArgs>
+export type Selection = Record<string, boolean | Skip | JsArgs>
 
-export type Omission = Record<string, boolean>
+export type Omission = Record<string, boolean | Skip>
 
 export type RawParameters = {
   __prismaRawParameters__: true

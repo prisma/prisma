@@ -1,5 +1,6 @@
 import { JsonObject } from './Json'
 import { OperationPayload } from './Payload'
+import { Skip } from './Skip'
 import { Compute, Equals, PatchFlat, Select } from './Utils'
 
 // prettier-ignore
@@ -17,6 +18,7 @@ export type Operation =
 // updates
 | 'update'
 | 'updateMany'
+| 'updateManyAndReturn'
 | 'upsert'
 // deletes
 | 'delete'
@@ -54,7 +56,7 @@ export type GetFindResult<P extends OperationPayload, A, ClientOptions> =
   | { select: infer S extends object } & Record<string, unknown>
   | { include: infer I extends object } & Record<string, unknown>
   ? {
-      [K in keyof S | keyof I as (S & I)[K] extends false | undefined | null ? never : K]:
+      [K in keyof S | keyof I as (S & I)[K] extends false | undefined | Skip | null ? never : K]:
         (S & I)[K] extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
           ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], ClientOptions>[] : never
@@ -72,7 +74,16 @@ export type GetFindResult<P extends OperationPayload, A, ClientOptions> =
               : K extends '_count'
                 ? Count<P['objects']>
                 : never
-    } & (A extends { include: any } & Record<string, unknown> ? DefaultSelection<P, A, ClientOptions> : unknown)
+    } & (
+      A extends { include: any } & Record<string, unknown>
+        // The `A & { omit: ['omit'] }` hack is necessary because otherwise, when we have nested `select` or `include`,
+        // TypeScript at some point gives up remembering what keys `A` has exactly and discards the `omit` for whatever
+        // reason. Splitting the top-level conditional type above into two separate branches and handling `select` and
+        // `include` separately so we don't need to use `A extends { include: any } & Record<string, unknown>` above in
+        // this branch here makes zero difference. Re-adding the `omit` key here makes TypeScript remember it.
+        ? DefaultSelection<P, A & { omit: A['omit'] }, ClientOptions>
+        : unknown
+    )
   : DefaultSelection<P, A, ClientOptions>
 
 // prettier-ignore
@@ -82,7 +93,7 @@ export type SelectablePayloadFields<K extends PropertyKey, O> =
 
 // prettier-ignore
 export type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> =
-  P extends { objects: Record<K, any> } 
+  P extends { objects: Record<K, any> }
   ? P['objects'][K]
   : P extends { composites: Record<K, any> }
     ? P['composites'][K]
@@ -98,7 +109,7 @@ export type DefaultSelection<Payload extends OperationPayload, Args = {}, Client
 
 // prettier-ignore
 export type UnwrapPayload<P> = {} extends P ? unknown : {
-  [K in keyof P]: 
+  [K in keyof P]:
     P[K] extends { scalars: infer S, composites: infer C }[]
     ? Array<S & UnwrapPayload<C>>
     : P[K] extends { scalars: infer S, composites: infer C } | null
@@ -130,7 +141,7 @@ export type GetBatchResult = { count: number }
 export type GetGroupByResult<P extends OperationPayload, A> =
   A extends { by: string[] }
   ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
-  : A extends { by: string } 
+  : A extends { by: string }
     ? Array<GetAggregateResult<P, A> & { [K in A['by']]: P['scalars'][K]}>
     : {}[]
 
@@ -146,6 +157,7 @@ export type GetResult<Payload extends OperationPayload, Args, OperationName exte
   createManyAndReturn: GetFindResult<Payload, Args, ClientOptions>[],
   update: GetFindResult<Payload, Args, ClientOptions>,
   updateMany: GetBatchResult,
+  updateManyAndReturn: GetFindResult<Payload, Args, ClientOptions>[],
   upsert: GetFindResult<Payload, Args, ClientOptions>,
   delete: GetFindResult<Payload, Args, ClientOptions>,
   deleteMany: GetBatchResult,

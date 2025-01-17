@@ -7,17 +7,18 @@ export default testMatrix.setupSchema(({ provider }) => {
         provider = "prisma-client-js"
         previewFeatures = ["typedSql"]
       }
-      
+
       datasource db {
         provider = "${provider}"
         url      = env("DATABASE_URI_${provider}")
       }
-      
+
       model TestModel {
         id ${idForProvider(provider)}
         string String
         int Int
         bytes Bytes
+        json Json
         double Float
         bool Boolean
         bigInt BigInt

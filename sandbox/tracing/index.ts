@@ -1,8 +1,7 @@
 import { context, trace } from '@opentelemetry/api'
-import { debug } from 'console'
 
 import { otelSetup } from './otelSetup'
-import { Prisma, PrismaClient } from '.prisma/client'
+import { PrismaClient } from '.prisma/client'
 
 otelSetup()
 

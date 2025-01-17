@@ -18,9 +18,9 @@ import {
   PrismaClientValidationError,
 } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { WasmLoadingConfig } from './core/engines/common/Engine'
+import { CustomDataProxyFetch, WasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
@@ -176,7 +176,7 @@ export type InternalRequestParams = {
   /** Used to convert args for middleware and back */
   middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>
   /** Used for Accelerate client extension via Data Proxy */
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 export type MiddlewareArgsMapper<RequestArgs, MiddlewareArgs> = {
@@ -358,7 +358,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._globalOmit = optionsArg?.omit
-      this._tracingHelper = getTracingHelper(this._previewFeatures)
+      this._tracingHelper = getTracingHelper()
       const envPaths = {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),

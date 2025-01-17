@@ -32,7 +32,7 @@ testMatrix.setupTestSuite(
           int: 42,
           bInt: BigInt('12345'),
           float: 0.125,
-          bytes: Buffer.from([1, 2, 3]),
+          bytes: Uint8Array.from([1, 2, 3]),
           bool: true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: new Prisma.Decimal('0.0625'),
@@ -50,39 +50,7 @@ testMatrix.setupTestSuite(
           // Jest is updated to at least 30.0.0-alpha.6 (which ships https://github.com/jestjs/jest/pull/15191).
           bInt: expect.anything(),
           float: 0.125,
-          // TODO: The buffer binary data does not match the expected one
-          // testModel![0].bytes.constructor shows different things, see below
-          // wasm:
-          // [Function: C] {
-          //   TYPED_ARRAY_SUPPORT: true,
-          //   poolSize: 8192,
-          //   from: [Function (anonymous)],
-          //   alloc: [Function (anonymous)],
-          //   allocUnsafe: [Function (anonymous)],
-          //   allocUnsafeSlow: [Function (anonymous)],
-          //   isBuffer: [Function (anonymous)],
-          //   compare: [Function (anonymous)],
-          //   isEncoding: [Function (anonymous)],
-          //   concat: [Function (anonymous)],
-          //   byteLength: [Function: In]
-          // }
-          // library:
-          // [Function: Buffer] {
-          //   poolSize: 8192,
-          //   from: [Function: from],
-          //   copyBytesFrom: [Function: copyBytesFrom],
-          //   of: [Function: of],
-          //   alloc: [Function: alloc],
-          //   allocUnsafe: [Function: allocUnsafe],
-          //   allocUnsafeSlow: [Function: allocUnsafeSlow],
-          //   isBuffer: [Function: isBuffer],
-          //   compare: [Function: compare],
-          //   isEncoding: [Function: isEncoding],
-          //   concat: [Function: concat],
-          //   byteLength: [Function: byteLength],
-          //   [Symbol(kIsEncodingSymbol)]: [Function: isEncoding]
-          // }
-          bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
+          bytes: Uint8Array.from([1, 2, 3]),
           bool: driverAdapter === 'js_d1' || provider === Providers.MYSQL ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: driverAdapter === 'js_d1' ? 0.0625 : new Prisma.Decimal('0.0625'),
@@ -144,7 +112,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1') {
+      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
         expect(result![0].bInt === 9007199254740991).toBe(true)
       } else {
         expect(result![0].bInt === BigInt('9007199254740991')).toBe(true)
@@ -160,7 +128,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1') {
+      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
         // It's a number
         expect(result![0].bInt === -9007199254740991).toBe(true)
       } else {
@@ -248,15 +216,6 @@ testMatrix.setupTestSuite(
       from: [Providers.MONGODB],
       reason: `
         $queryRaw only works on SQL based providers
-      `,
-    },
-    skipDataProxy: {
-      runtimes: ['edge'],
-      reason: `
-        This test is broken with the edge client. It needs to be updated to
-        send ArrayBuffers and expect them as results, and the client might need
-        to be fixed to return ArrayBuffers and not polyfilled Buffers in
-        query results.
       `,
     },
   },

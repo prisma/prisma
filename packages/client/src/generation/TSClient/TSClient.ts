@@ -4,10 +4,10 @@ import ciInfo from 'ci-info'
 import crypto from 'crypto'
 import indent from 'indent-string'
 import path from 'path'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
-import { DMMFHelper } from '../dmmf'
+import { datamodelEnumToSchemaEnum, DMMFHelper } from '../dmmf'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
 import type { buildClient } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
@@ -23,7 +23,6 @@ import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
-import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
 import { type Generable } from './Generable'
@@ -133,7 +132,9 @@ ${buildRequirePath(edge)}
  * Enums
  */
 ${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.datamodel.enums
+  .map((datamodelEnum) => new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toJS())
+  .join('\n\n')}
 
 ${new Enum(
   {
@@ -173,7 +174,6 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
-      defaultArgsAliases: new DefaultArgsAliases(),
     })
 
     const prismaClientClass = new PrismaClientClass(
@@ -198,12 +198,14 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
-    for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
-      modelEnums.push(new Enum(enumType, false).toTS())
+    for (const datamodelEnum of this.dmmf.datamodel.enums) {
+      modelEnums.push(new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toTS())
       modelEnumsAliases.push(
-        ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, ts.namedType(`$Enums.${enumType.name}`)))),
         ts.stringify(
-          ts.moduleExport(ts.constDeclaration(enumType.name, ts.namedType(`typeof $Enums.${enumType.name}`))),
+          ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
+        ),
+        ts.stringify(
+          ts.moduleExport(ts.constDeclaration(datamodelEnum.name, ts.namedType(`typeof $Enums.${datamodelEnum.name}`))),
         ),
       )
     }
@@ -298,23 +300,15 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType(inputType, this.genericsInfo).overrideName(`${inputType.name}Base`).toTS())
+      acc.push(new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS())
     } else {
-      acc.push(new InputType(inputType, this.genericsInfo).toTS())
+      acc.push(new InputType(inputType, context).toTS())
     }
     return acc
   }, [] as string[])
   .join('\n')}
 
-${
-  this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
-  ''
-}
-
-/**
- * Aliases for legacy arg types
- */
-${context.defaultArgsAliases.generateAliases()}
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany

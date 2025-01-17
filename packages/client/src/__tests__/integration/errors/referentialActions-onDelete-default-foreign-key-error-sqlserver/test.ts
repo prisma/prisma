@@ -61,7 +61,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-fo
           47 
           48 try {
         → 49   await prisma.user.delete(
-        Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
+        Foreign key constraint violated: \`Post_authorId_fkey (index)\`
       `)
     }
   })

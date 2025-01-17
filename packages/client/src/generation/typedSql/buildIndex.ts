@@ -7,7 +7,7 @@ import { DbEnumsList } from './buildDbEnums'
 export function buildIndexTs(queries: SqlQueryOutput[], enums: DbEnumsList) {
   const file = ts.file()
   if (!enums.isEmpty()) {
-    file.add(ts.moduleExportFrom('./$DbEnums').asNamespace('$DbEnums'))
+    file.add(ts.moduleExportFrom('./$DbEnums').named('$DbEnums'))
   }
   for (const query of queries) {
     file.add(ts.moduleExportFrom(`./${query.name}`))

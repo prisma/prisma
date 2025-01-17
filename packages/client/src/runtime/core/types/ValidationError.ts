@@ -26,4 +26,19 @@ export type IncludeOnScalarError = {
   selectionPath: string[]
   outputType?: OutputTypeDescription
 }
-export type ValidationError = MutuallyExclusiveFieldsError | IncludeOnScalarError | EngineValidationError
+
+/**
+ * Invalid value is passed to selection field
+ */
+export type InvalidSelectionValueError = {
+  kind: 'InvalidSelectionValue'
+  selectionPath: string[]
+
+  underlyingError: string
+}
+
+export type ValidationError =
+  | MutuallyExclusiveFieldsError
+  | InvalidSelectionValueError
+  | IncludeOnScalarError
+  | EngineValidationError

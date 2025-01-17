@@ -31,7 +31,7 @@ import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import { getRandomPromotion } from './utils/handlePromotions'
+import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
 import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
@@ -267,9 +267,9 @@ Please make sure they have the same version.`
           hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
-Start by importing your Prisma Client (See: http://pris.ly/d/importing-client)
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-${promotion.text} ${promotion.link}
+${renderPromotion(promotion)}
 ${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
         }
       }

@@ -1,4 +1,5 @@
 import { QueryIntrospectionBuiltinType, QueryIntrospectionType } from '@prisma/generator-helper'
+import { isValidJsIdentifier } from '@prisma/internals'
 
 import * as ts from '../ts-builders'
 import { DbEnumsList } from './buildDbEnums'
@@ -9,7 +10,7 @@ type TypeMappingConfig = {
 }
 
 const decimal = ts.namedType('$runtime.Decimal')
-const buffer = ts.namedType('Buffer')
+const uint8Array = ts.namedType('Uint8Array')
 const date = ts.namedType('Date')
 const inputJsonValue = ts.namedType('$runtime.InputJsonObject')
 const jsonValue = ts.namedType('$runtime.JsonValue')
@@ -32,7 +33,7 @@ const typeMappings: Record<QueryIntrospectionBuiltinType, TypeMappingConfig | ts
   float: ts.numberType,
   double: ts.numberType,
   enum: ts.stringType, // TODO:
-  bytes: buffer,
+  bytes: uint8Array,
   bool: ts.booleanType,
   char: ts.stringType,
   json: {
@@ -60,7 +61,7 @@ const typeMappings: Record<QueryIntrospectionBuiltinType, TypeMappingConfig | ts
   'float-array': ts.array(ts.numberType),
   'double-array': ts.array(ts.numberType),
   'char-array': ts.array(ts.stringType),
-  'bytes-array': ts.array(buffer),
+  'bytes-array': ts.array(uint8Array),
   'bool-array': ts.array(ts.booleanType),
   'date-array': ts.array(date),
   'time-array': ts.array(date),
@@ -107,7 +108,7 @@ function getMappingConfig(
 
   if (!config) {
     if (enums.hasEnum(introspectionType)) {
-      const type = ts.namedType(`$DbEnums.${introspectionType}`)
+      const type = getEnumType(introspectionType)
 
       return { in: type, out: type }
     }
@@ -120,4 +121,11 @@ function getMappingConfig(
   }
 
   return config
+}
+
+function getEnumType(name: string) {
+  if (isValidJsIdentifier(name)) {
+    return ts.namedType(`$DbEnums.${name}`)
+  }
+  return ts.namedType('$DbEnums').subKey(name)
 }
