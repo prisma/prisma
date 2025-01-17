@@ -376,6 +376,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     fields: {
       data: (singular, plural) => `The data used to update ${plural}.`,
       where: (singular, plural) => `Filter which ${plural} to update`,
+      limit: (singular, plural) => `Limit how many ${plural} to update.`,
     },
   },
   updateManyAndReturn: {
@@ -412,6 +413,7 @@ ${undefinedNote}
     fields: {
       data: (singular, plural) => `The data used to update ${plural}.`,
       where: (singular, plural) => `Filter which ${plural} to update`,
+      limit: (singular, plural) => `Limit how many ${plural} to update.`,
     },
   },
   deleteMany: {
@@ -428,6 +430,7 @@ const { count } = await ${ctx.method}({
 `,
     fields: {
       where: (singular, plural) => `Filter which ${plural} to delete`,
+      limit: (singular, plural) => `Limit how many ${plural} to delete.`,
     },
   },
   aggregateRaw: {

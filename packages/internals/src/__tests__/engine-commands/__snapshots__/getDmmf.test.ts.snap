@@ -7112,6 +7112,18 @@ exports[`getDMMF success @@id model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser1",
@@ -7156,6 +7168,18 @@ exports[`getDMMF success @@id model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser1AndReturn",
@@ -7180,6 +7204,18 @@ exports[`getDMMF success @@id model 1`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -7474,6 +7510,18 @@ exports[`getDMMF success @@id model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser2",
@@ -7518,6 +7566,18 @@ exports[`getDMMF success @@id model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser2AndReturn",
@@ -7542,6 +7602,18 @@ exports[`getDMMF success @@id model 1`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -12407,6 +12479,18 @@ exports[`getDMMF success @@map model 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser",
@@ -12451,6 +12535,18 @@ exports[`getDMMF success @@map model 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUserAndReturn",
@@ -12475,6 +12571,18 @@ exports[`getDMMF success @@map model 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -25774,6 +25882,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyPost",
@@ -25818,6 +25938,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyPostAndReturn",
@@ -25842,6 +25974,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -26136,6 +26280,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser",
@@ -26180,6 +26336,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUserAndReturn",
@@ -26204,6 +26372,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -26498,6 +26678,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser1",
@@ -26542,6 +26734,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser1AndReturn",
@@ -26566,6 +26770,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -26860,6 +27076,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser2",
@@ -26904,6 +27132,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser2AndReturn",
@@ -26928,6 +27168,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -28342,9 +28594,9 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `159611340`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `161427180`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `993396`;
+exports[`getDMMF success chinook introspected schema 1`] = `996036`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -33678,6 +33930,18 @@ exports[`getDMMF success multiple files 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -33722,6 +33986,18 @@ exports[`getDMMF success multiple files 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyAAndReturn",
@@ -33746,6 +34022,18 @@ exports[`getDMMF success multiple files 1`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -34016,6 +34304,18 @@ exports[`getDMMF success multiple files 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyB",
@@ -34060,6 +34360,18 @@ exports[`getDMMF success multiple files 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyBAndReturn",
@@ -34084,6 +34396,18 @@ exports[`getDMMF success multiple files 1`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -34625,7 +34949,7 @@ exports[`getDMMF success multiple files 1`] = `
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `137815019`;
+exports[`getDMMF success odoo introspected schema 1`] = `137890979`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -38525,6 +38849,18 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -38549,6 +38885,18 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -42720,6 +43068,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -42744,6 +43104,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -46612,6 +46984,18 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -46636,6 +47020,18 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -51008,6 +51404,18 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -51052,6 +51460,18 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyAAndReturn",
@@ -51076,6 +51496,18 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -55163,6 +55595,18 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -55187,6 +55631,18 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -59353,6 +59809,18 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -59397,6 +59865,18 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyAAndReturn",
@@ -59421,6 +59901,18 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,

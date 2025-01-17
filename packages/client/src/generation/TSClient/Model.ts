@@ -346,11 +346,12 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     const { model } = this
     const isComposite = this.dmmf.isComposite(model.name)
 
-    const omitType = this.context.isPreviewFeatureOn('omitApi')
-      ? ts.stringify(buildOmitType({ modelName: this.model.name, context: this.context, fields: this.type.fields }), {
-          newLine: 'leading',
-        })
-      : ''
+    const omitType = ts.stringify(
+      buildOmitType({ modelName: this.model.name, context: this.context, fields: this.type.fields }),
+      {
+        newLine: 'leading',
+      },
+    )
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
@@ -478,16 +479,13 @@ export class ModelDelegate implements Generable {
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
 
-    const genericDelegateParams = [extArgsParam]
+    const genericDelegateParams = [extArgsParam, ts.genericParameter('ClientOptions').default(ts.objectType())]
 
-    const excludedArgsForCount = ['select', 'include', 'distinct']
-    if (this.context.isPreviewFeatureOn('omitApi')) {
-      excludedArgsForCount.push('omit')
-      genericDelegateParams.push(ts.genericParameter('ClientOptions').default(ts.objectType()))
-    }
+    const excludedArgsForCount = ['select', 'include', 'distinct', 'omit']
     if (this.context.isPreviewFeatureOn('relationJoins')) {
       excludedArgsForCount.push('relationLoadStrategy')
     }
+
     const excludedArgsForCountType = excludedArgsForCount.map((name) => `'${name}'`).join(' | ')
 
     return `\
@@ -617,7 +615,7 @@ function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelActio
     .method(actionName)
     .setDocComment(ts.docComment(getMethodJSDocBody(actionName, mapping, modelOrType)))
     .addParameter(getNonAggregateMethodArgs(modelName, actionName))
-    .setReturnType(getReturnType({ modelName, actionName, context }))
+    .setReturnType(getReturnType({ modelName, actionName }))
 
   const generic = getNonAggregateMethodGenericParam(modelName, actionName)
   if (generic) {
@@ -627,7 +625,6 @@ function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelActio
 }
 
 function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelAction) {
-  getReturnType
   const makeParameter = (type: ts.TypeBuilder) => ts.parameter('args', type)
   if (actionName === DMMF.ModelAction.count) {
     const type = ts.omit(
@@ -683,7 +680,6 @@ function getNonAggregateMethodGenericParam(modelName: string, actionName: DMMF.M
 type GetReturnTypeOptions = {
   modelName: string
   actionName: DMMF.ModelAction
-  context: GenerateContext
   isChaining?: boolean
   isNullable?: boolean
 }
@@ -696,7 +692,6 @@ type GetReturnTypeOptions = {
 export function getReturnType({
   modelName,
   actionName,
-  context,
   isChaining = false,
   isNullable = false,
 }: GetReturnTypeOptions): ts.TypeBuilder {
@@ -728,7 +723,7 @@ export function getReturnType({
    * Important: We handle findMany or isList special, as we don't want chaining from there
    */
   if (isList) {
-    let result: ts.TypeBuilder = getResultType(modelName, actionName, context)
+    let result: ts.TypeBuilder = getResultType(modelName, actionName)
     if (isChaining) {
       result = ts.unionType(result).addVariant(ts.namedType('Null'))
     }
@@ -738,45 +733,34 @@ export function getReturnType({
 
   if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
     const nullType = isNullable ? ts.nullType : ts.namedType('Null')
-    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName, context)).addVariant(nullType)
-    return getFluentWrapper(modelName, context, result, nullType)
+    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName)).addVariant(nullType)
+    return getFluentWrapper(modelName, result, nullType)
   }
 
   if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
-    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName, context)).addVariant(ts.nullType)
-    return getFluentWrapper(modelName, context, result, ts.nullType)
+    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName)).addVariant(ts.nullType)
+    return getFluentWrapper(modelName, result, ts.nullType)
   }
 
-  return getFluentWrapper(modelName, context, getResultType(modelName, actionName, context))
+  return getFluentWrapper(modelName, getResultType(modelName, actionName))
 }
 
-function getFluentWrapper(
-  modelName: string,
-  context: GenerateContext,
-  resultType: ts.TypeBuilder,
-  nullType: ts.TypeBuilder = ts.neverType,
-) {
-  const result = ts
+function getFluentWrapper(modelName: string, resultType: ts.TypeBuilder, nullType: ts.TypeBuilder = ts.neverType) {
+  return ts
     .namedType(fluentWrapperName(modelName))
     .addGenericArgument(resultType)
     .addGenericArgument(nullType)
     .addGenericArgument(extArgsParam.toArgument())
-  if (context.isPreviewFeatureOn('omitApi')) {
-    result.addGenericArgument(ts.namedType('ClientOptions'))
-  }
-  return result
+    .addGenericArgument(ts.namedType('ClientOptions'))
 }
 
-function getResultType(modelName: string, actionName: DMMF.ModelAction, context: GenerateContext) {
-  const result = ts
+function getResultType(modelName: string, actionName: DMMF.ModelAction) {
+  return ts
     .namedType('$Result.GetResult')
     .addGenericArgument(ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument()))
     .addGenericArgument(ts.namedType('T'))
     .addGenericArgument(ts.stringLiteral(actionName))
-  if (context.isPreviewFeatureOn('omitApi')) {
-    result.addGenericArgument(ts.namedType('ClientOptions'))
-  }
-  return result
+    .addGenericArgument(ts.namedType('ClientOptions'))
 }
 
 function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.OutputType, context: GenerateContext) {
@@ -785,11 +769,8 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
     .addGenericParameter(ts.genericParameter('T'))
     .addGenericParameter(ts.genericParameter('Null').default(ts.neverType))
     .addGenericParameter(extArgsParam)
+    .addGenericParameter(ts.genericParameter('ClientOptions').default(ts.objectType()))
     .extends(ts.prismaPromise(ts.namedType('T')))
-
-  if (context.isPreviewFeatureOn('omitApi')) {
-    definition.addGenericParameter(ts.genericParameter('ClientOptions').default(ts.objectType()))
-  }
 
   definition.add(ts.property(ts.toStringTag, ts.stringLiteral('PrismaPromise')).readonly())
   definition.addMultiple(
@@ -815,7 +796,6 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
               modelName: field.outputType.type,
               actionName: field.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
               isChaining: true,
-              context: context,
               isNullable: field.isNullable,
             }),
           )
