@@ -1,10 +1,12 @@
 import Debug from '@prisma/debug'
-import { DriverAdapter, Transaction } from '@prisma/driver-adapter-utils'
+import { DriverAdapter, Query, Transaction } from '@prisma/driver-adapter-utils'
 import { assertNever } from '@prisma/internals'
 import crypto from 'crypto'
 
 import type * as Tx from '../common/types/Transaction'
+import { IsolationLevel } from '../common/types/Transaction'
 import {
+  InvalidTransactionIsolationLevelError,
   TransactionAlreadyCommittedError,
   TransactionClosedError,
   TransactionDriverAdapterError,
@@ -17,6 +19,14 @@ import {
 
 const MAX_CLOSED_TRANSACTIONS = 100
 
+const isolationLevelMap = {
+  ReadUncommitted: 'READ UNCOMMITTED',
+  ReadCommitted: 'READ COMMITTED',
+  RepeatableRead: 'REPEATABLE READ',
+  Snapshot: 'SNAPSHOT',
+  Serializable: 'SERIALIZABLE',
+}
+
 type TransactionWrapper = {
   id: string
   status: 'waiting' | 'running' | 'committed' | 'rolled_back' | 'timed_out'
@@ -25,6 +35,14 @@ type TransactionWrapper = {
 }
 
 const debug = Debug('prisma:client:transactionManager')
+
+const COMMIT_QUERY = (): Query => ({ sql: 'COMMIT', args: [], argTypes: [] })
+const ROLLBACK_QUERY = (): Query => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
+const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): Query => ({
+  sql: 'SET TRANSACTION ISOLATION LEVEL ' + isolationLevelMap[isolationLevel],
+  args: [],
+  argTypes: [],
+})
 
 export class TransactionManager {
   // The map of active transactions.
@@ -39,10 +57,7 @@ export class TransactionManager {
   }
 
   async startTransaction(options: Tx.Options): Promise<Tx.InteractiveTransactionInfo<undefined>> {
-    // Supplying timeout default values is cared for upstream already.
-    if (!options.timeout) throw new TransactionManagerError('Timeout is required')
-    if (!options.maxWait) throw new TransactionManagerError('maxWait is required')
-    // TODO: care about transaction isolation levels?
+    const validatedOptions = this.validateOptions(options)
 
     const transaction: TransactionWrapper = {
       id: crypto.randomUUID(),
@@ -53,13 +68,26 @@ export class TransactionManager {
     this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
-    transaction.timeout = this.startTransactionTimeout(transaction.id, options.maxWait)
+    transaction.timeout = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait)
 
     const txContext = await this.driverAdapter.transactionContext()
     if (!txContext.ok) throw new TransactionDriverAdapterError('Failed to start transaction.', txContext.error)
+
+    if (this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
+      await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
+    }
+
     const startedTransaction = await txContext.value.startTransaction()
     if (!startedTransaction.ok)
       throw new TransactionDriverAdapterError('Failed to start transaction.', startedTransaction.error)
+
+    if (!startedTransaction.value.options.usePhantomQuery) {
+      await startedTransaction.value.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+
+      if (!this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
+        await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
+      }
+    }
 
     // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
@@ -70,7 +98,7 @@ export class TransactionManager {
         transaction.status = 'running'
 
         // Start timeout to wait for transaction to be finished.
-        transaction.timeout = this.startTransactionTimeout(transaction.id, options.timeout)
+        transaction.timeout = this.startTransactionTimeout(transaction.id, validatedOptions.timeout)
 
         return { id: transaction.id, payload: undefined }
       case 'timed_out':
@@ -151,9 +179,15 @@ export class TransactionManager {
     if (tx.transaction && status === 'committed') {
       const result = await tx.transaction.commit()
       if (!result.ok) throw new TransactionDriverAdapterError('Failed to commit transaction.', result.error)
+      if (!tx.transaction.options.usePhantomQuery) {
+        await tx.transaction.executeRaw(COMMIT_QUERY())
+      }
     } else if (tx.transaction) {
       const result = await tx.transaction.rollback()
       if (!result.ok) throw new TransactionDriverAdapterError('Failed to rollback transaction.', result.error)
+      if (!tx.transaction.options.usePhantomQuery) {
+        await tx.transaction.executeRaw(ROLLBACK_QUERY())
+      }
     }
 
     clearTimeout(tx.timeout)
@@ -165,5 +199,33 @@ export class TransactionManager {
     if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
       this.closedTransactions.shift()
     }
+  }
+
+  private validateOptions(options: Tx.Options) {
+    // Supplying timeout default values is cared for upstream already.
+    if (!options.timeout) throw new TransactionManagerError('timeout is required')
+    if (!options.maxWait) throw new TransactionManagerError('maxWait is required')
+
+    // Snapshot level only supported for MS SQL Server, which is not supported via driver adapters so far.
+    if (options.isolationLevel === IsolationLevel.Snapshot)
+      throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
+
+    // SQLite only has serializable isolation level.
+    if (
+      this.driverAdapter.provider === 'sqlite' &&
+      options.isolationLevel &&
+      options.isolationLevel !== IsolationLevel.Serializable
+    )
+      throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
+
+    return {
+      ...options,
+      timeout: options.timeout,
+      maxWait: options.maxWait,
+    }
+  }
+
+  private requiresSettingIsolationLevelFirst() {
+    return this.driverAdapter.provider === 'mysql'
   }
 }

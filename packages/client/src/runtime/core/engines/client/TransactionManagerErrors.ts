@@ -45,3 +45,9 @@ export class TransactionInternalConsistencyError extends TransactionManagerError
     super(`Internal Consistency Error: ${message}`)
   }
 }
+
+export class InvalidTransactionIsolationLevelError extends TransactionManagerError {
+  constructor(isolationLevel: string) {
+    super(`Invalid isolation level: ${isolationLevel}`)
+  }
+}
