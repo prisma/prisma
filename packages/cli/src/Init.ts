@@ -182,7 +182,7 @@ export class Init implements Command {
   ${bold('Options')}
 
              -h, --help   Display this help message
-                   --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
+                   --db   Provisions a fully managed Prisma Postgres® database on the Prisma Data Platform.
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
    --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
       --preview-feature   Define a preview feature to use.
@@ -362,10 +362,11 @@ export class Init implements Command {
         console.log(
           `Successfully authenticated as ${bold(
             authenticationResult.email,
-          )}. Let's set up your Prisma Postgres database!`,
+          )}. Let's set up your Prisma Postgres® database!`,
         )
       }
 
+      console.log("Let's set up your Prisma Postgres® database!")
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
       const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
       const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
@@ -488,42 +489,67 @@ https://console.prisma.io/${defaultWorkspace.id}/${project.id}/${project.default
 
     const steps: string[] = []
 
-    if (datasourceProvider === 'mongodb') {
-      steps.push(`Define models in the schema.prisma file.`)
+    if (args['--db'] || datasourceProvider === 'prisma+postgres') {
+      steps.push(`
+${bold('1. Use Example Project:')}
+- Don't have your own database yet? Explore our example project: https://pris.ly/d/getting-started
+
+${bold('2. Start your own project:')}
+- Open the ${bold('prisma.schema')} file in your favourite code editor.
+- Define your models to match your database needs.
+
+${bold(`3. Apply migrations:`)}
+- Once your models are ready, run the following command to create and apply a migration:  ${green(
+        'npx prisma migrate dev --name init',
+      )}
+
+${bold(`4. Preview your database:`)}
+- View your database in Studio via Console: https://console.prisma.io/${'todo'}.
+- Or run Studio locally with: ${green('npx prisma studio')}
+
+${bold('Need help?')}
+Check out our documentation: ${link('https://pris.ly/d/getting-started')}
+`)
     } else {
-      steps.push(
-        `Run ${green(getCommandWithExecutor('prisma db pull'))} to turn your database schema into a Prisma schema.`,
-      )
-    }
-
-    steps.push(
-      `Run ${green(
-        getCommandWithExecutor('prisma generate'),
-      )} to generate the Prisma Client. You can then start querying your database.`,
-    )
-
-    steps.push(
-      `Tip: Explore how you can extend the ${green(
-        'ORM',
-      )} with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm`,
-    )
-
-    if (!url || args['--datasource-provider']) {
-      if (!args['--datasource-provider']) {
-        steps.unshift(
-          `Set the ${green('provider')} of the ${green('datasource')} block in ${green(
-            'schema.prisma',
-          )} to match your database: ${green('postgresql')}, ${green('mysql')}, ${green('sqlite')}, ${green(
-            'sqlserver',
-          )}, ${green('mongodb')} or ${green('cockroachdb')}.`,
+      if (datasourceProvider === 'mongodb') {
+        steps.push(`Define models in the schema.prisma file.`)
+      } else {
+        steps.push(
+          `Run ${green(getCommandWithExecutor('prisma db pull'))} to turn your database schema into a Prisma schema.`,
         )
       }
 
-      steps.unshift(
-        `Set the ${green('DATABASE_URL')} in the ${green(
-          '.env',
-        )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started`,
+      steps.push(
+        `Run ${green(
+          getCommandWithExecutor('prisma generate'),
+        )} to generate the Prisma Client. You can then start querying your database.`,
       )
+
+      steps.push(
+        `Tip: Explore how you can extend the ${green(
+          'ORM',
+        )} with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm`,
+      )
+
+      if (!url || args['--datasource-provider']) {
+        if (!args['--datasource-provider']) {
+          steps.unshift(
+            `Set the ${green('provider')} of the ${green('datasource')} block in ${green(
+              'schema.prisma',
+            )} to match your database: ${green('postgresql')}, ${green('mysql')}, ${green('sqlite')}, ${green(
+              'sqlserver',
+            )}, ${green('mongodb')} or ${green('cockroachdb')}.`,
+          )
+        }
+
+        steps.unshift(
+          `Set the ${green('DATABASE_URL')} in the ${green(
+            '.env',
+          )} file to point to your existing database. If your database has no tables yet, read ${link(
+            'https://pris.ly/d/getting-started',
+          )}`,
+        )
+      }
     }
 
     return `
