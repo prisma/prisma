@@ -19,7 +19,7 @@ import { bold, dim, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
-import { poll } from './platform/_'
+import { poll, printPpgInitOutput } from './platform/_'
 import { credentialsFile } from './platform/_lib/credentials'
 import { successMessage } from './platform/_lib/messages'
 import { getPrismaPostgresRegionsOrThrow } from './platform/accelerate/regions'
@@ -342,12 +342,13 @@ export class Init implements Command {
     const generatorProvider = args['--generator-provider']
     const previewFeatures = args['--preview-feature']
     const output = args['--output']
+    const isPpgCommand = args['--db'] || datasourceProvider === 'prisma+postgres'
 
     let prismaPostgresDatabaseUrl: string | undefined
     let workspaceId = ``
     let projectId = ``
     let environmentId = ``
-    if (args['--db'] || datasourceProvider === `prisma+postgres`) {
+    if (isPpgCommand) {
       const PlatformCommands = await import(`./platform/_`)
 
       const credentials = await credentialsFile.load()
@@ -427,13 +428,6 @@ export class Init implements Command {
 
       prismaPostgresDatabaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Project has been successfully created!'))
-      console.log(`-------------------------
-${bold('Database URL:')}
-${prismaPostgresDatabaseUrl}
-\n
-${bold('Project link:')}
-https://console.prisma.io/${defaultWorkspace.id}/${project.id}/${project.defaultEnvironment.id}/dashboard
--------------------------`)
     }
 
     /**
@@ -495,23 +489,6 @@ https://console.prisma.io/${defaultWorkspace.id}/${project.id}/${project.default
 
     const steps: string[] = []
 
-    const ppgNextSteps = `
-${bold('1. Use Example Project:')}
-- Don't have your own database yet? Explore our example project: https://pris.ly/d/getting-started
-
-${bold('2. Start your own project:')}
-- Open the ${green('prisma.schema')} file in your favourite code editor.
-- Define your models to match your database needs.
-
-${bold(`3. Apply migrations:`)}
-- Once your models are ready, run the following command to create and apply a migration:  ${green(
-      'npx prisma migrate dev --name init',
-    )}
-
-${bold(`4. Preview your database:`)}
-- View your database in Studio via Console: https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/studio.
-- Or run Studio locally with: ${green('npx prisma studio')}
-`
     if (datasourceProvider === 'mongodb') {
       steps.push(`Define models in the schema.prisma file.`)
     } else {
@@ -556,16 +533,14 @@ ${bold(`4. Preview your database:`)}
 ✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
 ${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : ''}
-${bold('Next steps:')}
 ${
-  args['--db'] || datasourceProvider === 'prisma+postgres'
-    ? ppgNextSteps
-    : steps.map((s, i) => `${i + 1}. ${s}`).join('\n')
-}
-
+  isPpgCommand
+    ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
+    : `${bold('Next steps:')}
+${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 More information in our documentation:
-${link('https://pris.ly/d/getting-started')}
-    `
+${link('https://pris.ly/d/getting-started')}`
+}`
   }
 
   // help message
