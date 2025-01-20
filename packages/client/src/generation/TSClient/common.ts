@@ -35,8 +35,7 @@ import {
   defineDmmfProperty,
   Public,
   getRuntime,
-  skip,
-  Param
+  skip
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
     ? `
@@ -46,8 +45,7 @@ const {
   makeStrictEnum,
   Public,
   getRuntime,
-  skip,
-  Param
+  skip
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
     : `
