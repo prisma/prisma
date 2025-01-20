@@ -2,6 +2,8 @@ import { Prisma, PrismaClient } from '.prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 
+import util from 'node:util'
+
 async function main() {
   const prisma = new PrismaClient({
     adapter: new PrismaPg(
@@ -12,8 +14,24 @@ async function main() {
   })
 
   const email = `user.${Date.now()}@prisma.io`
-  await prisma.user.create({
+  const user =  await prisma.user.create({
     data: { email },
+  })
+
+  // TODO: `create` currently returns an array instead of a single record, this is a bug
+  const userId = user[0].id
+
+  await prisma.post.createMany({
+    data: [
+      {
+        title: 'First post',
+        userId,
+      },
+      {
+        title: 'Second post',
+        userId,
+      },
+    ]
   })
 
   const query = prisma.user.findMany({
@@ -24,11 +42,13 @@ async function main() {
     },
   })
 
-  const nestedQuery = prisma.user.findMany({
+  const nestedQuery = await prisma.user.findMany({
     include: {
       posts: true
     }
   })
+
+  console.log(util.inspect(nestedQuery, { depth: null }))
 
 
   // --------------
