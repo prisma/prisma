@@ -49,6 +49,7 @@ describe('--early-access flag', () => {
                apikey   Manage API keys
            accelerate   Manage Prisma Accelerate
                 pulse   Manage Prisma Pulse
+               policy   Manage Prisma Policy
 
       Options
 
