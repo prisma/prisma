@@ -363,11 +363,7 @@ export class Init implements Command {
           return 'Project creation aborted. You need to authenticate to use Prisma Postgres®'
         }
         const authenticationResult = await PlatformCommands.loginOrSignup()
-        console.log(
-          `Successfully authenticated as ${bold(
-            authenticationResult.email,
-          )}. Let's set up your Prisma Postgres® database!`,
-        )
+        console.log(`Successfully authenticated as ${bold(authenticationResult.email)}.`)
       }
 
       console.log("Let's set up your Prisma Postgres® database!")
@@ -536,7 +532,7 @@ ${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : '
 ${
   isPpgCommand
     ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
-    : `${bold('Next steps:')}
+    : `Next steps:
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
 More information in our documentation:
