@@ -69,6 +69,7 @@
     "prisma": "build/index.js"
   },
   "devDependencies": {
+    "@antfu/ni": "0.21.12",
     "@inquirer/prompts": "5.0.5",
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",

@@ -22,6 +22,7 @@ export class $ implements Command {
       // ['serviceToken', 'Manage service tokens'],
       ['accelerate', 'Manage Prisma Accelerate'],
       ['pulse', 'Manage Prisma Pulse'],
+      ['policy', 'Manage Prisma Policy'],
     ],
     options: [
       ['--early-access', '', 'Enable early access features'],
