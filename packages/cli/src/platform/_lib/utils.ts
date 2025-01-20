@@ -130,4 +130,7 @@ View your database in Studio via Console: ${link(
   `https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/studio`,
 )}.
 Or run Studio locally with: ${green('npx prisma studio')}
+
+Find more information in our documentation:
+${link('https://pris.ly/d/getting-started')}
 `

@@ -538,6 +538,7 @@ ${
     ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
     : `${bold('Next steps:')}
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
 More information in our documentation:
 ${link('https://pris.ly/d/getting-started')}`
 }`
