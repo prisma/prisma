@@ -1,10 +1,10 @@
-import { ArgType, ErrorCapturingDriverAdapter, Query } from '@prisma/driver-adapter-utils'
+import { ArgType, Query, Queryable } from '@prisma/driver-adapter-utils'
 
 import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery, QueryPlanNode } from '../engines/common/Engine'
 import { serialize } from './serializer'
 
 export class QueryInterpreter {
-  constructor(private adapter: ErrorCapturingDriverAdapter, private params: Record<string, unknown>) {}
+  constructor(private queryable: Queryable, private params: Record<string, unknown>) {}
 
   async run(queryPlan: QueryPlanNode): Promise<unknown> {
     return this.interpretNode(queryPlan, this.params)
@@ -52,7 +52,7 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const result = await this.adapter.executeRaw(toQuery(node.args, env))
+        const result = await this.queryable.executeRaw(toQuery(node.args, env))
         if (result.ok) {
           return result.value
         } else {
@@ -61,7 +61,7 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const result = await this.adapter.queryRaw(toQuery(node.args, env))
+        const result = await this.queryable.queryRaw(toQuery(node.args, env))
         if (result.ok) {
           return serialize(result.value)
         } else {

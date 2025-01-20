@@ -140,6 +140,12 @@ export class TransactionManager {
     await this.closeTransaction(txw, 'rolled_back')
   }
 
+  getTransaction(txInfo: Tx.InteractiveTransactionInfo<unknown>, operation: string): Transaction {
+    const tx = this.getActiveTransaction(txInfo.id, operation)
+    if (!tx.transaction) throw new TransactionNotFoundError({ clientVersion: this.clientVersion })
+    return tx.transaction
+  }
+
   private getActiveTransaction(transactionId: string, operation: string): TransactionWrapper {
     const transaction = this.transactions.get(transactionId)
 

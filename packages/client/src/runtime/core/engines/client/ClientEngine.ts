@@ -25,10 +25,12 @@ import {
   QueryEngineLogEvent,
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
+  type QueryEngineResultData,
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { InteractiveTransactionInfo } from '../common/types/Transaction'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { defaultLibraryLoader } from '../library/DefaultLibraryLoader'
 import { reactNativeLibraryLoader } from '../library/ReactNativeLibraryLoader'
@@ -146,43 +148,6 @@ export class ClientEngine implements Engine<undefined> {
 
   applyPendingMigrations(): Promise<void> {
     throw new Error('Cannot call applyPendingMigrations on engine type client.')
-  }
-
-  async transaction(
-    action: 'start',
-    headers: Tx.TransactionHeaders,
-    options: Tx.Options,
-  ): Promise<Tx.InteractiveTransactionInfo<undefined>>
-  async transaction(
-    action: 'commit',
-    headers: Tx.TransactionHeaders,
-    info: Tx.InteractiveTransactionInfo<undefined>,
-  ): Promise<undefined>
-  async transaction(
-    action: 'rollback',
-    headers: Tx.TransactionHeaders,
-    info: Tx.InteractiveTransactionInfo<undefined>,
-  ): Promise<undefined>
-  async transaction(
-    action: 'start' | 'commit' | 'rollback',
-    _headers: Tx.TransactionHeaders,
-    arg?: any,
-  ): Promise<Tx.InteractiveTransactionInfo<undefined> | undefined> {
-    let result: Tx.InteractiveTransactionInfo<undefined> | undefined
-    if (action === 'start') {
-      const options: Tx.Options = arg
-      result = await this.transactionManager.startTransaction(options)
-    } else if (action === 'commit') {
-      const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
-      await this.transactionManager.commitTransaction(txInfo.id)
-    } else if (action === 'rollback') {
-      const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
-      await this.transactionManager.rollbackTransaction(txInfo.id)
-    } else {
-      assertNever(action, 'Invalid transaction action.')
-    }
-
-    return result
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -425,10 +390,47 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return this.library?.debugPanic(message) as Promise<never>
   }
 
+  async transaction(
+    action: 'start',
+    headers: Tx.TransactionHeaders,
+    options: Tx.Options,
+  ): Promise<Tx.InteractiveTransactionInfo<undefined>>
+  async transaction(
+    action: 'commit',
+    headers: Tx.TransactionHeaders,
+    info: Tx.InteractiveTransactionInfo<undefined>,
+  ): Promise<undefined>
+  async transaction(
+    action: 'rollback',
+    headers: Tx.TransactionHeaders,
+    info: Tx.InteractiveTransactionInfo<undefined>,
+  ): Promise<undefined>
+  async transaction(
+    action: 'start' | 'commit' | 'rollback',
+    _headers: Tx.TransactionHeaders,
+    arg?: any,
+  ): Promise<Tx.InteractiveTransactionInfo<undefined> | undefined> {
+    let result: Tx.InteractiveTransactionInfo<undefined> | undefined
+    if (action === 'start') {
+      const options: Tx.Options = arg
+      result = await this.transactionManager.startTransaction(options)
+    } else if (action === 'commit') {
+      const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
+      await this.transactionManager.commitTransaction(txInfo.id)
+    } else if (action === 'rollback') {
+      const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
+      await this.transactionManager.rollbackTransaction(txInfo.id)
+    } else {
+      assertNever(action, 'Invalid transaction action.')
+    }
+
+    return result
+  }
+
   async request<T>(
     query: JsonQuery,
     // TODO: support traceparent and interactiveTransaction!
-    { traceparent: _traceparent, interactiveTransaction: _interactiveTransaction }: RequestOptions<undefined>,
+    { traceparent: _traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const queryStr = JSON.stringify(query)
@@ -441,9 +443,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       debug(`query plan created`, queryPlanString)
 
+      const queryable = interactiveTransaction
+        ? this.transactionManager.getTransaction(interactiveTransaction, query.action)
+        : this.driverAdapter
+
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
-      const interpreter = new QueryInterpreter(this.driverAdapter, placeholderValues)
+      const interpreter = new QueryInterpreter(queryable, placeholderValues)
       const result = await interpreter.run(queryPlan)
 
       debug(`query plan executed`)
@@ -467,12 +473,41 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  requestBatch<T>(
-    _queries: JsonQuery[],
-    { transaction: _transaction, traceparent: _traceparent }: RequestBatchOptions<undefined>,
+  async requestBatch<T>(
+    queries: JsonQuery[],
+    { transaction, traceparent: _traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
-    debug('requestBatch')
-    throw new Error('Method not implemented.')
+    const queriesWithPlans = await Promise.all(
+      queries.map(async (query) => {
+        const queryStr = JSON.stringify(query)
+        const queryPlanString = await this.engine!.compile(queryStr, false)
+        return { query, plan: JSON.parse(queryPlanString) as QueryPlanNode }
+      }),
+    )
+
+    let txInfo: InteractiveTransactionInfo<undefined>
+    if (transaction?.kind === 'itx') {
+      // If we are already in an interactive transaction we do not nest transactions
+      txInfo = transaction.options
+    } else {
+      const txOptions = transaction?.options.isolationLevel
+        ? { ...this.config.transactionOptions, isolationLevel: transaction.options.isolationLevel }
+        : this.config.transactionOptions
+      txInfo = await this.transaction('start', {}, txOptions)
+    }
+
+    const results: BatchQueryEngineResult<T>[] = []
+    for (const { query, plan } of queriesWithPlans) {
+      const queryable = this.transactionManager.getTransaction(txInfo, query.action)
+      const interpreter = new QueryInterpreter(queryable, {})
+      results.push((await interpreter.run(plan)) as QueryEngineResultData<T>)
+    }
+
+    if (transaction?.kind !== 'itx') {
+      await this.transaction('commit', {}, txInfo)
+    }
+
+    return results
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
