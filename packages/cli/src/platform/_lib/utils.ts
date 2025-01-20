@@ -1,5 +1,5 @@
 import { getCommandWithExecutor, isError, link } from '@prisma/internals'
-import { bold, green, underline } from 'kleur/colors'
+import { bold, green } from 'kleur/colors'
 
 import { getOptionalParameter } from './cli/parameters'
 import { credentialsFile } from './credentials'
@@ -115,7 +115,7 @@ ${link(`https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/d
 ${bold('Next steps')}
 ${bold('1. Define your database schema')}
 Open the ${green('schema.prisma')} file and define your first models. Go to ${link(
-  underline('pris.ly/ppg-quickstart'),
+  'https://pris.ly/ppg-quickstart',
 )} if you need inspiration.
 
 ${bold('2. Apply migrations')}
