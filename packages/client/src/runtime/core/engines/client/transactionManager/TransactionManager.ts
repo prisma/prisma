@@ -3,8 +3,8 @@ import { DriverAdapter, Query, Transaction } from '@prisma/driver-adapter-utils'
 import { assertNever } from '@prisma/internals'
 import crypto from 'crypto'
 
-import type * as Tx from '../common/types/Transaction'
-import { IsolationLevel } from '../common/types/Transaction'
+import type * as Tx from '../../common/types/Transaction'
+import { IsolationLevel } from '../../common/types/Transaction'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,

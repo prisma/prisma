@@ -9,9 +9,9 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { ok } from '@prisma/driver-adapter-utils'
 
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import type * as Tx from '../common/types/Transaction'
-import { IsolationLevel } from '../common/types/Transaction'
+import { PrismaClientKnownRequestError } from '../../../errors/PrismaClientKnownRequestError'
+import type * as Tx from '../../common/types/Transaction'
+import { IsolationLevel } from '../../common/types/Transaction'
 import { TransactionManager } from './TransactionManager'
 import {
   InvalidTransactionIsolationLevelError,

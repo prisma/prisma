@@ -34,7 +34,7 @@ import { defaultLibraryLoader } from '../library/DefaultLibraryLoader'
 import { reactNativeLibraryLoader } from '../library/ReactNativeLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from '../library/types/Library'
 import { wasmLibraryLoader } from '../library/WasmLibraryLoader'
-import { TransactionManager } from './TransactionManager'
+import { TransactionManager } from './transactionManager/TransactionManager'
 
 const CLIENT_ENGINE_ERROR = 'P2038'
 

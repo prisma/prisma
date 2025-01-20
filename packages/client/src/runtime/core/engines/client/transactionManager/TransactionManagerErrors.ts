@@ -1,6 +1,6 @@
 import { Error } from '@prisma/driver-adapter-utils'
 
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
+import { PrismaClientKnownRequestError } from '../../../errors/PrismaClientKnownRequestError'
 
 type ErrorParams = { clientVersion: string }
 
