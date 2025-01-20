@@ -98,7 +98,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
       case Providers.MYSQL:
         if (cliMeta.previewFeatures.includes('relationJoins')) {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT \`t1\`.\`id\`, \`t1\`.\`email\`, \`t1\`.\`age\`, \`t1\`.\`name\` FROM \`\`.\`User\` AS \`t1\` WHERE \`t0\`.\`email\` IN (?,?,?,?)"`,
+            `"SELECT \`t1\`.\`id\`, \`t1\`.\`email\`, \`t1\`.\`age\`, \`t1\`.\`name\` FROM \`\`.\`User\` AS \`t1\` WHERE \`t1\`.\`email\` IN (?,?,?,?)"`,
           )
         } else {
           expect(executedBatchQuery).toMatchInlineSnapshot(
