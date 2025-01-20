@@ -423,7 +423,7 @@ export class Init implements Command {
       })
 
       prismaPostgresDatabaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
-      console.log(successMessage('Project has been successfully created!'))
+      console.log(successMessage('Prisma Postgres® is ready to be used! 🚀'))
     }
 
     /**
