@@ -9,15 +9,18 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { ok } from '@prisma/driver-adapter-utils'
 
+import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import type * as Tx from '../common/types/Transaction'
 import { IsolationLevel } from '../common/types/Transaction'
 import { TransactionManager } from './TransactionManager'
 import {
   InvalidTransactionIsolationLevelError,
-  TransactionAlreadyCommittedError,
+  TransactionClosedError,
+  TransactionExecutionTimeoutError,
+  TransactionManagerError,
   TransactionNotFoundError,
   TransactionRolledBackError,
-  TransactionTimedOutError,
+  TransactionStartTimoutError,
 } from './TransactionManagerErrors'
 
 jest.useFakeTimers()
@@ -94,7 +97,7 @@ async function startTransaction(transactionManager: TransactionManager, options:
 
 test('transaction executes normally', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   const id = await startTransaction(transactionManager)
 
@@ -106,13 +109,13 @@ test('transaction executes normally', async () => {
   expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('COMMIT')
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
-  await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionAlreadyCommittedError)
-  await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionAlreadyCommittedError)
+  await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
+  await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
 })
 
 test('transaction is rolled back', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   const id = await startTransaction(transactionManager)
 
@@ -130,7 +133,7 @@ test('transaction is rolled back', async () => {
 
 test('when driver adapter requires phantom queries does not execute transaction statements', async () => {
   const driverAdapter = new MockDriverAdapter({ usePhantomQuery: true })
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   const id = await startTransaction(transactionManager)
 
@@ -140,13 +143,13 @@ test('when driver adapter requires phantom queries does not execute transaction 
   expect(driverAdapter.executeRawMock).not.toHaveBeenCalled()
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
-  await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionAlreadyCommittedError)
-  await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionAlreadyCommittedError)
+  await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
+  await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
 })
 
 test('with explicit isolation level', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
 
@@ -159,13 +162,13 @@ test('with explicit isolation level', async () => {
   expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
-  await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionAlreadyCommittedError)
-  await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionAlreadyCommittedError)
+  await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
+  await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
 })
 
 test('for MySQL with explicit isolation level requires isolation level set before BEGIN', async () => {
   const driverAdapter = new MockDriverAdapter({ provider: 'mysql' })
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
 
@@ -177,7 +180,7 @@ test('for MySQL with explicit isolation level requires isolation level set befor
 
 test('for SQLite with unsupported isolation level', async () => {
   const driverAdapter = new MockDriverAdapter({ provider: 'sqlite' })
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   await expect(
     startTransaction(transactionManager, { isolationLevel: IsolationLevel.RepeatableRead }),
@@ -186,7 +189,7 @@ test('for SQLite with unsupported isolation level', async () => {
 
 test('with the only by MS SQL Server supported isolation level "snapshot"', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   await expect(
     startTransaction(transactionManager, { isolationLevel: IsolationLevel.Snapshot }),
@@ -195,28 +198,28 @@ test('with the only by MS SQL Server supported isolation level "snapshot"', asyn
 
 test('transaction times out during starting', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   await expect(startTransaction(transactionManager, { maxWait: START_TRANSACTION_TIME / 2 })).rejects.toBeInstanceOf(
-    TransactionTimedOutError,
+    TransactionStartTimoutError,
   )
 })
 
 test('transaction times out during execution', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   const id = await startTransaction(transactionManager)
 
   await jest.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT + 100)
 
-  await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionTimedOutError)
-  await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionTimedOutError)
+  await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
+  await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
 })
 
 test('trying to commit or rollback invalid transaction id fails with TransactionNotFoundError', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager(driverAdapter)
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 
   await expect(transactionManager.commitTransaction('invalid-tx-id')).rejects.toBeInstanceOf(TransactionNotFoundError)
   await expect(transactionManager.rollbackTransaction('invalid-tx-id')).rejects.toBeInstanceOf(TransactionNotFoundError)
@@ -224,4 +227,14 @@ test('trying to commit or rollback invalid transaction id fails with Transaction
   expect(driverAdapter.executeRawMock).not.toHaveBeenCalled()
   expect(driverAdapter.commitMock).not.toHaveBeenCalled()
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
+})
+
+test('TransactionManagerErrors are PrismaClientKnownRequestError', () => {
+  const error = new TransactionManagerError('test message', { clientVersion: '1.0.0', meta: { foo: 'bar' } })
+
+  expect(error).toBeInstanceOf(PrismaClientKnownRequestError)
+  expect(error.code).toEqual('P2028')
+  expect(error.message).toEqual('Transaction API error: test message')
+  expect(error.clientVersion).toEqual('1.0.0')
+  expect(error.meta).toEqual({ foo: 'bar' })
 })

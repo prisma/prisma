@@ -138,7 +138,10 @@ export class ClientEngine implements Engine<undefined> {
 
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
-    this.transactionManager = new TransactionManager(this.driverAdapter)
+    this.transactionManager = new TransactionManager({
+      driverAdapter: this.driverAdapter,
+      clientVersion: this.config.clientVersion,
+    })
   }
 
   applyPendingMigrations(): Promise<void> {
