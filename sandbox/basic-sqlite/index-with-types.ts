@@ -15,7 +15,7 @@ async function main() {
   const result$DebugQueryPlan = prisma.$debugQueryPlan(
     prisma.user.findMany({
       where: {
-        email: Prisma.Param('email'),
+        email: 'foo@prisma.io',
       },
     }),
   )

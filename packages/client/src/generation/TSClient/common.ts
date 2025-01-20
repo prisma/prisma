@@ -126,7 +126,6 @@ Prisma.NullTypes = {
   AnyNull: objectEnumValues.classes.AnyNull
 }
 
-${buildPrismaParamJs()}
 ${buildPrismaSkipJs(generator.previewFeatures)}
 `
 
@@ -184,7 +183,6 @@ export import join = runtime.join
 export import raw = runtime.raw
 export import Sql = runtime.Sql
 
-${buildPrismaParamTs()}
 ${buildPrismaSkipTs(generator.previewFeatures)}
 
 /**
@@ -602,19 +600,4 @@ Prisma.skip = skip
   }
 
   return ''
-}
-
-function buildPrismaParamTs() {
-  return /* typescript */ `
-/**
- * Prisma.Param
- */
-export import Param = runtime.Param
-`
-}
-
-function buildPrismaParamJs() {
-  return /* javascript */ `
-Prisma.Param = createParam
-`
 }

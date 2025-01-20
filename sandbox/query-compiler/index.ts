@@ -49,30 +49,6 @@ async function main() {
   /// --------------
 
   // console.log(
-  //   await prisma.$debugQueryPlan(
-  //     prisma.user.findMany({
-  //       where: {
-  //         email: Prisma.Param('email'),
-  //         createdAt: {
-  //           gt: Prisma.Param('startDate'),
-  //         },
-  //       },
-  //     }),
-  //   ),
-  // )
-
-  // const newQuery = await prisma.$prepare(
-  //   prisma.user.findMany({
-  //     where: {
-  //       email: Prisma.Param('email'),
-  //       createdAt: {
-  //         gt: Prisma.Param('startDate'),
-  //       },
-  //     },
-  //   }),
-  // )
-
-  // console.log(
   //   await newQuery({
   //     email: 'user.1730130638271@prisma.io',
   //     startDate: new Date(Date.now() - 60 * 60 * 1000).toISOString(),

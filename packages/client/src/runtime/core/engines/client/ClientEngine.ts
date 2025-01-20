@@ -420,7 +420,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       debug(`query plan created`, queryPlanString)
 
-      // TODO: actually support the usage of `Prisma.Param` to reuse compiled queries with different values
+      // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
       const interpreter = new QueryInterpreter(this.driverAdapter, placeholderValues)
       const result = await interpreter.run(queryPlan)
