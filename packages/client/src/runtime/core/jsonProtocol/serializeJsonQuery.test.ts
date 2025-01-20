@@ -126,6 +126,38 @@ test('createManyAndReturn', () => {
   `)
 })
 
+test('updateMany', () => {
+  expect(serialize({ modelName: 'User', action: 'updateMany', args: {} })).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "updateMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('updateManyAndReturn', () => {
+  expect(serialize({ modelName: 'User', action: 'updateManyAndReturn', args: {} })).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "updateManyAndReturn",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
 test('delete', () => {
   expect(serialize({ modelName: 'User', action: 'delete', args: {} })).toMatchInlineSnapshot(`
     "{
@@ -1068,7 +1100,6 @@ test('omit', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { omit: { name: true } },
     }),
   ).toMatchInlineSnapshot(`
@@ -1092,7 +1123,6 @@ test('omit(false)', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { omit: { name: false } },
     }),
   ).toMatchInlineSnapshot(`
@@ -1116,7 +1146,6 @@ test('omit + include', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { include: { posts: true }, omit: { name: true } },
     }),
   ).toMatchInlineSnapshot(`
@@ -1147,7 +1176,6 @@ test('nested omit', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { include: { posts: { omit: { title: true } } } },
     }),
   ).toMatchInlineSnapshot(`
@@ -1178,7 +1206,6 @@ test('exclusion with extension', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { omit: { name: true } },
       extensions: MergedExtensionsList.single({
         result: {
@@ -1211,7 +1238,6 @@ test('exclusion with extension while excluding computed field too', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { omit: { name: true, fullName: true } },
       extensions: MergedExtensionsList.single({
         result: {
@@ -1245,7 +1271,6 @@ test('globalOmit', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       globalOmit: {
         user: {
           name: true,
@@ -1273,7 +1298,6 @@ test('globalOmit + local omit', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: {
         omit: {
           name: false,
@@ -1306,7 +1330,6 @@ test('globalOmit + local select', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: {
         select: {
           name: true,
@@ -1337,7 +1360,6 @@ test('nested globalOmit (include)', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { include: { posts: true } },
       globalOmit: {
         post: {
@@ -1373,7 +1395,6 @@ test('nested globalOmit (select)', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { select: { posts: true } },
       globalOmit: {
         post: {
@@ -1520,7 +1541,6 @@ test(`Prisma.skip in omit`, () => {
       modelName: 'User',
       action: 'findMany',
       args: { where: { name: 'Steve' }, omit: { password: true, name: skip } },
-      previewFeatures: ['omitApi'],
     }),
   ).toMatchInlineSnapshot(`
     "{
