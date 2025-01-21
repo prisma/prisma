@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { TracingHelper } from '@prisma/internals'
+import { PRISMA_POSTGRES_PROTOCOL, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
@@ -517,7 +517,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
     const { protocol, host, searchParams } = url
 
-    if (protocol !== 'prisma:' && protocol !== 'prisma+postgres:') {
+    if (protocol !== 'prisma:' && protocol !== PRISMA_POSTGRES_PROTOCOL) {
       throw new InvalidDatasourceError(
         `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\``,
         errorInfo,
