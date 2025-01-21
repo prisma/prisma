@@ -6,7 +6,6 @@ import type { QueryEngineConfig } from '../../common/types/QueryEngine'
 export type QueryEngineInstance = {
   connect(headers: string, requestId: string): Promise<void>
   disconnect(headers: string, requestId: string): Promise<void>
-  compile(request: string, humanReadable: boolean): Promise<string>
   /**
    * @param requestStr JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
    * @param headersStr JSON.stringified `QueryEngineRequestHeaders`

@@ -138,9 +138,6 @@ export class LibraryEngine implements Engine<undefined> {
       sdlSchema: engine.sdlSchema?.bind(engine),
       startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
       trace: engine.trace.bind(engine),
-      compile: () => {
-        throw new Error('Not implemented. Use the ClientEngine for this.')
-      },
     }
   }
 
