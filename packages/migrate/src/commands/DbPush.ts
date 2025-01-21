@@ -262,7 +262,7 @@ ${bold(red('All data will be lost.'))}
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
+      await migrate.tryToRunGenerate(datasourceInfo)
     }
 
     return ``
