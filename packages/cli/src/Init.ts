@@ -11,6 +11,8 @@ import {
   isError,
   link,
   logger,
+  PRISMA_POSTGRES_PROTOCOL,
+  PRISMA_POSTGRES_PROVIDER,
   protocolToConnectorType,
 } from '@prisma/internals'
 import dotenv from 'dotenv'
@@ -124,7 +126,7 @@ export const defaultPort = (datasourceProvider: ConnectorType) => {
       return 5432
     case 'cockroachdb':
       return 26257
-    case 'prisma+postgres':
+    case PRISMA_POSTGRES_PROVIDER:
       return null
   }
 
@@ -344,7 +346,7 @@ export class Init implements Command {
     const output = args['--output']
 
     let prismaPostgresDatabaseUrl: string | undefined
-    if (args['--db'] || datasourceProvider === `prisma+postgres`) {
+    if (args['--db'] || datasourceProvider === PRISMA_POSTGRES_PROVIDER) {
       const PlatformCommands = await import(`./platform/_`)
 
       const credentials = await credentialsFile.load()
@@ -418,7 +420,7 @@ export class Init implements Command {
         displayName: `database-setup-prismaPostgres-api-key`,
       })
 
-      prismaPostgresDatabaseUrl = `prisma+postgres://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
+      prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Project has been successfully created!'))
       console.log(`-------------------------
 ${bold('Database URL:')}

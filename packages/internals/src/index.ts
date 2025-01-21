@@ -89,6 +89,7 @@ export { parseBinaryTargetsEnvValue, parseEnvValue } from './utils/parseEnvValue
 export { longestCommonPathPrefix, pathToPosix } from './utils/path'
 export { pick } from './utils/pick'
 export { printConfigWarnings } from './utils/printConfigWarnings'
+export { isPrismaPostgres, PRISMA_POSTGRES_PROTOCOL, PRISMA_POSTGRES_PROVIDER } from './utils/prismaPostgres'
 export {
   debugMultipleSchemaPaths,
   debugMultipleSchemas,

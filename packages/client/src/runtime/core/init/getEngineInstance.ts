@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, isPrismaPostgres, warnOnce } from '@prisma/internals'
 
 import { GetPrismaClientConfig } from '../../getPrismaClient'
 import { getRuntime } from '../../utils/getRuntime'
@@ -30,7 +30,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     // means we can't use the DataProxyEngine and will default to LibraryEngine
   }
 
-  const isAccelerateUrlScheme = Boolean(url?.startsWith('prisma://') || url?.startsWith('prisma+postgres://'))
+  const isAccelerateUrlScheme = Boolean(url?.startsWith('prisma://') || isPrismaPostgres(url))
 
   if (copyEngine && isAccelerateUrlScheme) {
     warnOnce(
