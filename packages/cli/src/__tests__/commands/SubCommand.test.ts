@@ -15,8 +15,8 @@ jest.useFakeTimers().setSystemTime(new Date('2025-01-01'))
 const getDayMillis = () => new Date().setHours(0, 0, 0, 0)
 
 beforeEach(async () => {
-  await rm('/tmp/sub-command@0.0.0', { recursive: true, force: true })
-  await rm(`/tmp/sub-command@latest-${getDayMillis()}`, { recursive: true, force: true })
+  await rm(join(tmpdir(), `sub-command@0.0.0`), { recursive: true, force: true })
+  await rm(join(tmpdir(), `sub-command@latest-${getDayMillis()}`), { recursive: true, force: true })
 })
 
 test('@<version>', async () => {
