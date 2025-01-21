@@ -115,6 +115,12 @@ export type QueryPlanDbQuery = {
   params: PrismaValue[]
 }
 
+export type JoinExpression = {
+  child: QueryPlanNode
+  on: [left: string, right: string][]
+  parentField: string
+}
+
 export type QueryPlanNode =
   | {
       type: 'seq'
@@ -148,12 +154,38 @@ export type QueryPlanNode =
       args: QueryPlanDbQuery
     }
   | {
+      type: 'reverse'
+      args: QueryPlanNode
+    }
+  | {
       type: 'sum'
       args: QueryPlanNode[]
     }
   | {
       type: 'concat'
       args: QueryPlanNode[]
+    }
+  | {
+      type: 'unique'
+      args: QueryPlanNode
+    }
+  | {
+      type: 'required'
+      args: QueryPlanNode
+    }
+  | {
+      type: 'join'
+      args: {
+        parent: QueryPlanNode
+        children: JoinExpression[]
+      }
+    }
+  | {
+      type: 'mapField'
+      args: {
+        field: string
+        records: QueryPlanNode
+      }
     }
 
 export interface Engine<InteractiveTransactionPayload = unknown> {

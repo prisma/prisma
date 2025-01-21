@@ -1,6 +1,8 @@
-import { ArgType, ErrorCapturingDriverAdapter, Query } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 
-import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery, QueryPlanNode } from '../engines/common/Engine'
+import { JoinExpression, QueryPlanNode } from '../engines/common/Engine'
+import { Env, PrismaObject, Value } from './env'
+import { renderQuery } from './renderQuery'
 import { serialize } from './serializer'
 
 export class QueryInterpreter {
@@ -10,7 +12,7 @@ export class QueryInterpreter {
     return this.interpretNode(queryPlan, this.params)
   }
 
-  private async interpretNode(node: QueryPlanNode, env: Record<string, unknown>): Promise<unknown> {
+  private async interpretNode(node: QueryPlanNode, env: Env): Promise<Value> {
     switch (node.type) {
       case 'seq': {
         const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
@@ -22,7 +24,7 @@ export class QueryInterpreter {
       }
 
       case 'let': {
-        const bindings: Record<string, unknown> = Object.create(env)
+        const bindings: Env = Object.create(env)
         await Promise.all(
           node.args.bindings.map(async (binding) => {
             bindings[binding.name] = await this.interpretNode(binding.expr, env)
@@ -42,17 +44,17 @@ export class QueryInterpreter {
       }
 
       case 'concat': {
-        const parts: unknown[] = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
-        return parts.reduce<unknown[]>((acc, part) => acc.concat(asList(part)), [])
+        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
+        return parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), [])
       }
 
       case 'sum': {
-        const parts: unknown[] = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
+        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
         return parts.reduce((acc, part) => asNumber(acc) + asNumber(part))
       }
 
       case 'execute': {
-        const result = await this.adapter.executeRaw(toQuery(node.args, env))
+        const result = await this.adapter.executeRaw(renderQuery(node.args, env))
         if (result.ok) {
           return result.value
         } else {
@@ -61,7 +63,7 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const result = await this.adapter.queryRaw(toQuery(node.args, env))
+        const result = await this.adapter.queryRaw(renderQuery(node.args, env))
         if (result.ok) {
           return serialize(result.value)
         } else {
@@ -69,108 +71,135 @@ export class QueryInterpreter {
         }
       }
 
+      case 'reverse': {
+        const value = await this.interpretNode(node.args, env)
+        return Array.isArray(value) ? value.reverse() : value
+      }
+
+      case 'unique': {
+        const value = await this.interpretNode(node.args, env)
+        if (!Array.isArray(value)) {
+          return value
+        }
+        if (value.length !== 1) {
+          throw new Error(`Expected exactly one element, got ${value.length}`)
+        }
+        return value[0]
+      }
+
+      case 'required': {
+        const value = await this.interpretNode(node.args, env)
+        if (isEmpty(value)) {
+          throw new Error('Required value is empty')
+        }
+        return value
+      }
+
+      case 'mapField': {
+        const value = await this.interpretNode(node.args.records, env)
+        return mapField(value, node.args.field)
+      }
+
+      case 'join': {
+        const parent = await this.interpretNode(node.args.parent, env)
+
+        const children = (await Promise.all(
+          node.args.children.map(async (joinExpr) => ({
+            joinExpr,
+            childRecords: await this.interpretNode(joinExpr.child, env),
+          })),
+        )) satisfies JoinExpressionWithRecords[]
+
+        if (Array.isArray(parent)) {
+          for (const record of parent) {
+            attachChildrenToParent(asRecord(record), children)
+          }
+          return parent
+        }
+
+        return attachChildrenToParent(asRecord(parent), children)
+      }
+
       default: {
-        throw new Error(`Unexpected node type: ${node['type']}`)
+        node satisfies never
+        throw new Error(`Unexpected node type: ${(node as { type: unknown }).type}`)
       }
     }
   }
 }
 
-function isEmpty(value: unknown): boolean {
+function isEmpty(value: Value): boolean {
   if (Array.isArray(value)) {
     return value.length === 0
   }
   return value == null
 }
 
-function asList(value: unknown): unknown[] {
+function asList(value: Value): Value[] {
   return Array.isArray(value) ? value : [value]
 }
 
-function asNumber(value: unknown): number {
+function asNumber(value: Value): number {
   if (typeof value === 'number') {
     return value
   }
+
   if (typeof value === 'string') {
     return Number(value)
   }
+
   throw new Error(`Expected number, got ${typeof value}`)
 }
 
-function toQuery({ query, params }: QueryPlanDbQuery, env: Record<string, unknown>): Query {
-  const args = params.map((param) => {
-    if (!isPrismaValuePlaceholder(param)) {
-      return param
-    }
-    const value = env[param.prisma__value.name]
-    if (value === undefined) {
-      throw new Error(`Missing value for query variable ${param.prisma__value.name}`)
-    }
-    return value
-  })
-
-  const argTypes = params.map((param) => toArgType(param))
-
-  return {
-    sql: query,
-    args,
-    argTypes,
+function asRecord(value: Value): PrismaObject {
+  if (typeof value === 'object' && value !== null) {
+    return value as PrismaObject
   }
+  throw new Error(`Expected object, got ${typeof value}`)
 }
 
-function toArgType(value: PrismaValue): ArgType {
-  if (value === null) {
-    return 'Int32' // TODO
-  }
-
-  if (typeof value === 'string') {
-    return 'Text'
-  }
-
-  if (typeof value === 'number') {
-    return 'Numeric'
-    // if (Number.isInteger(value)) {
-    //   return 'Int32'
-    // } else {
-    //   return 'Double'
-    // }
-  }
-
-  if (typeof value === 'boolean') {
-    return 'Boolean'
-  }
-
+function mapField(value: Value, field: string): Value {
   if (Array.isArray(value)) {
-    return 'Array'
+    return value.map((element) => mapField(element, field))
   }
 
-  if (isPrismaValuePlaceholder(value)) {
-    return placeholderTypeToArgType(value.prisma__value.type)
+  if (typeof value === 'object' && value !== null) {
+    return value[field] ?? null
   }
 
-  return 'Json'
+  return value
 }
 
-function placeholderTypeToArgType(type: string): ArgType {
-  const typeMap = {
-    Any: 'Json',
-    String: 'Text',
-    Int: 'Int32',
-    BigInt: 'Int64',
-    Float: 'Double',
-    Boolean: 'Boolean',
-    Decimal: 'Numeric',
-    Date: 'DateTime',
-    Object: 'Json',
-    Bytes: 'Bytes',
-    Array: 'Array',
-  } satisfies Record<string, ArgType>
+type JoinExpressionWithRecords = {
+  joinExpr: JoinExpression
+  childRecords: Value
+}
 
-  const mappedType = typeMap[type] as ArgType | undefined
-
-  if (!mappedType) {
-    throw new Error(`Unknown placeholder type: ${type}`)
+function attachChildrenToParent(parentRecord: PrismaObject, children: JoinExpressionWithRecords[]) {
+  for (const { joinExpr, childRecords } of children) {
+    parentRecord[joinExpr.parentField] = filterChildRecords(childRecords, parentRecord, joinExpr)
   }
+  return parentRecord
+}
 
-  return mappedType
+function filterChildRecords(records: Value, parentRecord: PrismaObject, joinExpr: JoinExpression) {
+  if (Array.isArray(records)) {
+    return records.filter((record) => childRecordMatchesParent(asRecord(record), parentRecord, joinExpr))
+  } else {
+    const record = asRecord(records)
+    return childRecordMatchesParent(record, parentRecord, joinExpr) ? record : null
+  }
+}
+
+function childRecordMatchesParent(
+  childRecord: PrismaObject,
+  parentRecord: PrismaObject,
+  joinExpr: JoinExpression,
+): boolean {
+  for (const [parentField, childField] of joinExpr.on) {
+    if (parentRecord[parentField] !== childRecord[childField]) {
+      return false
+    }
+  }
+  return true
 }
