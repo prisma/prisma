@@ -2,6 +2,7 @@ import * as ni from '@antfu/ni'
 import * as execa from 'execa'
 import { rm } from 'fs/promises'
 import { copy } from 'fs-extra'
+import { tmpdir } from 'os'
 import { join } from 'path'
 
 import { SubCommand } from '../../SubCommand'
@@ -23,7 +24,7 @@ test('@<version>', async () => {
   const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
-  const copyDest = '/tmp/sub-command@0.0.0'
+  const copyDest = join(tmpdir(), `sub-command@0.0.0`)
   await copy(copySrc, copyDest, { recursive: true })
 
   await cmd.parse(['@0.0.0', '--help'])
@@ -49,7 +50,7 @@ test('@latest', async () => {
   const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
-  const copyDest = `/tmp/sub-command@latest-${getDayMillis()}`
+  const copyDest = join(tmpdir(), `sub-command@latest-${getDayMillis()}`)
   await copy(copySrc, copyDest, { recursive: true })
 
   await cmd.parse(['--help'])
@@ -75,7 +76,7 @@ test('autoinstall', async () => {
   const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
-  const copyDest = `/tmp/sub-command@0.0.0`
+  const copyDest = join(tmpdir(), 'sub-command@0.0.0')
 
   jest.mocked(ni.getCommand).mockReturnValue('npm install sub-command --no-save --prefix /tmp/sub-command@0.0.0')
   // eslint-disable-next-line @typescript-eslint/unbound-method
