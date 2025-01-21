@@ -66,7 +66,7 @@ export type EngineProtocol = 'graphql' | 'json'
  * `__internalParams.customDataProxyFetch` to its own type anyway (probably for
  * exactly this reason), our definition is never actually used and is completely
  * ignored, so it doesn't matter, and we can just use `unknown` as the type of
- * `fetch` here. 
+ * `fetch` here.
  */
 export type CustomDataProxyFetch = (fetch: unknown) => unknown
 
@@ -89,6 +89,72 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
 }
 
 export type BatchQueryEngineResult<T> = QueryEngineResultData<T> | Error
+
+export type PrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
+
+export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePlaceholder {
+  return typeof value === 'object' && value !== null && value['prisma__type'] === 'param'
+}
+
+export type PrismaValue =
+  | string
+  | boolean
+  | number
+  | PrismaValue[]
+  | null
+  | Record<string, unknown>
+  | PrismaValuePlaceholder
+
+export type QueryPlanBinding = {
+  name: string
+  expr: QueryPlanNode
+}
+
+export type QueryPlanDbQuery = {
+  query: string
+  params: PrismaValue[]
+}
+
+export type QueryPlanNode =
+  | {
+      type: 'seq'
+      args: QueryPlanNode[]
+    }
+  | {
+      type: 'get'
+      args: {
+        name: string
+      }
+    }
+  | {
+      type: 'let'
+      args: {
+        bindings: QueryPlanBinding[]
+        expr: QueryPlanNode
+      }
+    }
+  | {
+      type: 'getFirstNonEmpty'
+      args: {
+        names: string[]
+      }
+    }
+  | {
+      type: 'query'
+      args: QueryPlanDbQuery
+    }
+  | {
+      type: 'execute'
+      args: QueryPlanDbQuery
+    }
+  | {
+      type: 'sum'
+      args: QueryPlanNode[]
+    }
+  | {
+      type: 'concat'
+      args: QueryPlanNode[]
+    }
 
 export interface Engine<InteractiveTransactionPayload = unknown> {
   /** The name of the engine. This is meant to be consumed externally */

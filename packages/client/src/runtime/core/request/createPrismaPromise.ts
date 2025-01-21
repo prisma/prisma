@@ -1,6 +1,6 @@
-import type { PrismaPromise, PrismaPromiseTransaction } from './PrismaPromise'
+import type { PrismaOperationSpec, PrismaPromise, PrismaPromiseTransaction } from './PrismaPromise'
 
-export type PrismaPromiseCallback = (transaction?: PrismaPromiseTransaction) => PrismaPromise<unknown>
+export type PrismaPromiseCallback = (transaction?: PrismaPromiseTransaction) => Promise<unknown>
 
 /**
  * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
@@ -11,7 +11,10 @@ export type PrismaPromiseCallback = (transaction?: PrismaPromiseTransaction) => 
  * @see [[PrismaPromise]]
  * @returns
  */
-export type PrismaPromiseFactory = (callback: PrismaPromiseCallback) => PrismaPromise<unknown>
+export type PrismaPromiseFactory = <T extends PrismaOperationSpec<unknown>>(
+  callback: PrismaPromiseCallback,
+  op?: T,
+) => PrismaPromise<unknown>
 
 /**
  * Creates a factory, that allows creating PrismaPromises, bound to a specific transactions
@@ -19,9 +22,12 @@ export type PrismaPromiseFactory = (callback: PrismaPromiseCallback) => PrismaPr
  * @returns
  */
 export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransaction): PrismaPromiseFactory {
-  return function createPrismaPromise(callback) {
+  return function createPrismaPromise<TSpec extends PrismaOperationSpec<unknown>>(
+    callback: PrismaPromiseCallback,
+    op?: TSpec,
+  ): PrismaPromise<unknown, TSpec> {
     let promise: PrismaPromise<unknown> | undefined
-    const _callback = (callbackTransaction = transaction) => {
+    const _callback = (callbackTransaction = transaction): PrismaPromise<unknown> => {
       try {
         // promises cannot be triggered twice after resolving
         if (callbackTransaction === undefined || callbackTransaction?.kind === 'itx') {
@@ -38,6 +44,10 @@ export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransactio
     }
 
     return {
+      get spec() {
+        return op!
+      },
+
       then(onFulfilled, onRejected) {
         return _callback().then(onFulfilled, onRejected)
       },
@@ -65,8 +75,8 @@ export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransactio
 
 function valueToPromise<T>(thing: T): PrismaPromise<T> {
   if (typeof thing['then'] === 'function') {
-    return thing as Promise<T>
+    return thing as PrismaPromise<T>
   }
 
-  return Promise.resolve(thing)
+  return Promise.resolve(thing) as PrismaPromise<T>
 }
