@@ -1,4 +1,4 @@
-import { ArgType, ErrorCapturingDriverAdapter, Query, Queryable } from '@prisma/driver-adapter-utils'
+import { Queryable } from '@prisma/driver-adapter-utils'
 
 import { JoinExpression, QueryPlanNode } from '../engines/common/Engine'
 import { Env, PrismaObject, Value } from './env'
