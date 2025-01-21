@@ -654,6 +654,9 @@ importers:
       '@prisma/pg-worker':
         specifier: workspace:*
         version: link:../pg-worker
+      '@prisma/query-compiler-wasm':
+        specifier: 6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e
+        version: 6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e
       '@prisma/query-engine-wasm':
         specifier: 6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e
         version: 6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e
@@ -2806,6 +2809,9 @@ packages:
 
   '@prisma/prisma-schema-wasm@6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e':
     resolution: {integrity: sha512-iD0svrdLdgOqP65HWkcS1GaKw6bcXLwPQi9q6oE6kMyHRM175sbRVF+MOLqL9OzcOWKBVKygy1g6GAtO4ObJBg==}
+
+  '@prisma/query-compiler-wasm@6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e':
+    resolution: {integrity: sha512-zCnRmgQQ5nNj9H6aPK+BdTHP6Eq1nzQQqaHIwUXXnE7rx3xH+JdP5zjAZTdJakk/lJVSfMnq0J9brjMCedLezw==}
 
   '@prisma/query-engine-wasm@6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e':
     resolution: {integrity: sha512-c27DChIpG3T1yOsKXyTVjJz0UK61RB54YRPv1zeDHLmycCO0bmuKHl20BbWd2V+9PSlab3Ei56UI/k6XTy3LAQ==}
@@ -8594,6 +8600,8 @@ snapshots:
   '@prisma/mini-proxy@0.9.5': {}
 
   '@prisma/prisma-schema-wasm@6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e': {}
+
+  '@prisma/query-compiler-wasm@6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e': {}
 
   '@prisma/query-engine-wasm@6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e': {}
 
