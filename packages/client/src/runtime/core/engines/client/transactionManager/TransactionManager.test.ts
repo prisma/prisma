@@ -187,7 +187,7 @@ test('for SQLite with unsupported isolation level', async () => {
   ).rejects.toBeInstanceOf(InvalidTransactionIsolationLevelError)
 })
 
-test('with the only by MS SQL Server supported isolation level "snapshot"', async () => {
+test('with isolation level only supported in MS SQL Server, "snapshot"', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
 

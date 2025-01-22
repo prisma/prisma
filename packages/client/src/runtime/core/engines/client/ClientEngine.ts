@@ -429,7 +429,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   async request<T>(
     query: JsonQuery,
-    // TODO: support traceparent and interactiveTransaction!
+    // TODO: support traceparent
     { traceparent: _traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
@@ -496,6 +496,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       txInfo = await this.transaction('start', {}, txOptions)
     }
 
+    // TODO: potentially could run batch queries in parallel if it's for sure not in a transaction
     const results: BatchQueryEngineResult<T>[] = []
     for (const { query, plan } of queriesWithPlans) {
       const queryable = this.transactionManager.getTransaction(txInfo, query.action)
