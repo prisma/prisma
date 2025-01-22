@@ -1,3 +1,5 @@
+import { ConnectionInfo, Flavour } from '@prisma/driver-adapter-utils'
+
 import { EngineConfig } from '../../common/Engine'
 
 export type QueryCompiler = {
@@ -6,11 +8,8 @@ export type QueryCompiler = {
 
 export type QueryCompilerOptions = {
   datamodel: string
-  flavour: 'mysql' | 'postgres' | 'sqlite'
-  connectionInfo: {
-    schemaName?: string
-    maxBindValues?: number
-  }
+  flavour: Flavour
+  connectionInfo: ConnectionInfo
 }
 
 export interface QueryCompilerConstructor {
