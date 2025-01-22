@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.10.1",
+    "@swc/core": "1.10.9",
     "@swc/jest": "0.2.37",
     "@types/jest": "29.5.14",
     "@types/node": "18.19.31",
@@ -38,7 +38,7 @@
     "log-update": "4.0.0",
     "mariadb": "3.3.1",
     "mock-stdin": "1.0.0",
-    "mongoose": "8.9.0",
+    "mongoose": "8.9.5",
     "mssql": "11.0.1",
     "ora": "5.4.1",
     "pg": "8.11.5",
@@ -46,7 +46,7 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "tempy": "1.0.1",
-    "ts-pattern": "5.6.0",
+    "ts-pattern": "5.6.2",
     "typescript": "5.4.5",
     "wrangler": "3.91.0"
   },
