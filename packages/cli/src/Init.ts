@@ -525,6 +525,12 @@ export class Init implements Command {
       )
     }
 
+    const defaultOutput = `Next steps:
+${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+More information in our documentation:
+${link('https://pris.ly/d/getting-started')}\n`
+
     return `
 ✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
@@ -532,11 +538,7 @@ ${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : '
 ${
   isPpgCommand
     ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
-    : `Next steps:
-${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
-
-More information in our documentation:
-${link('https://pris.ly/d/getting-started')}`
+    : defaultOutput
 }`
   }
 
