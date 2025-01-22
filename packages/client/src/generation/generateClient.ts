@@ -741,7 +741,7 @@ function getNodeRuntimeName(engineType: ClientEngineType) {
       )
     }
 
-    return 'client' // TODO: eventually use dedicated client runtime bundle
+    return 'client'
   }
 
   assertNever(engineType, 'Unknown engine type')
