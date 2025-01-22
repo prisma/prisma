@@ -1,4 +1,4 @@
-import { getCommandWithExecutor, isError } from '@prisma/internals'
+import { getCommandWithExecutor, isError, link } from '@prisma/internals'
 import { bold, green } from 'kleur/colors'
 
 import { getOptionalParameter } from './cli/parameters'
@@ -94,3 +94,43 @@ export const poll = async <F extends () => Promise<R>, R>(
 
   return result
 }
+
+export const printPpgInitOutput = ({
+  databaseUrl,
+  workspaceId,
+  projectId,
+  environmentId,
+}: {
+  databaseUrl: string
+  workspaceId: string
+  projectId: string
+  environmentId: string
+}) => `
+Database URL:
+${green(databaseUrl)}
+
+Project link:
+${link(`https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/dashboard`)}
+
+${bold('Next steps')}
+${bold('1. Define your database schema')}
+Open the ${green('schema.prisma')} file and define your first models. Go to ${link(
+  'https://pris.ly/ppg-quickstart',
+)} if you need inspiration.
+
+${bold('2. Apply migrations')}
+Run the following command to create and apply a migration:
+${green('npx prisma migrate dev --name init')}
+
+${bold(`3. Send queries with Prisma Client`)}
+As a next step, you can instantiate Prisma Client and start sending queries to your database from your application.
+
+${bold(`4. Manage your data`)}
+View your database in Studio via Console: ${link(
+  `https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/studio`,
+)}.
+Or run Studio locally with: ${green('npx prisma studio')}
+
+Find more information in our documentation:
+${link('https://pris.ly/d/getting-started')}
+`
