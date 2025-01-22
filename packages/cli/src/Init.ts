@@ -21,7 +21,7 @@ import { bold, dim, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
-import { poll } from './platform/_'
+import { poll, printPpgInitOutput } from './platform/_'
 import { credentialsFile } from './platform/_lib/credentials'
 import { successMessage } from './platform/_lib/messages'
 import { getPrismaPostgresRegionsOrThrow } from './platform/accelerate/regions'
@@ -184,7 +184,7 @@ export class Init implements Command {
   ${bold('Options')}
 
              -h, --help   Display this help message
-                   --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
+                   --db   Provisions a fully managed Prisma Postgres® database on the Prisma Data Platform.
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
    --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
       --preview-feature   Define a preview feature to use.
@@ -344,9 +344,13 @@ export class Init implements Command {
     const generatorProvider = args['--generator-provider']
     const previewFeatures = args['--preview-feature']
     const output = args['--output']
+    const isPpgCommand = args['--db'] || datasourceProvider === PRISMA_POSTGRES_PROVIDER
 
     let prismaPostgresDatabaseUrl: string | undefined
-    if (args['--db'] || datasourceProvider === PRISMA_POSTGRES_PROVIDER) {
+    let workspaceId = ``
+    let projectId = ``
+    let environmentId = ``
+    if (isPpgCommand) {
       const PlatformCommands = await import(`./platform/_`)
 
       const credentials = await credentialsFile.load()
@@ -361,13 +365,10 @@ export class Init implements Command {
           return 'Project creation aborted. You need to authenticate to use Prisma Postgres®'
         }
         const authenticationResult = await PlatformCommands.loginOrSignup()
-        console.log(
-          `Successfully authenticated as ${bold(
-            authenticationResult.email,
-          )}. Let's set up your Prisma Postgres database!`,
-        )
+        console.log(`Successfully authenticated as ${bold(authenticationResult.email)}.`)
       }
 
+      console.log("Let's set up your Prisma Postgres® database!")
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
       const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
       const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
@@ -396,6 +397,9 @@ export class Init implements Command {
         allowRemoteDatabases: false,
         ppgRegion: ppgRegionSelection,
       })
+      workspaceId = defaultWorkspace.id
+      projectId = project.id
+      environmentId = project.defaultEnvironment.id
       console.log(successMessage(`Project ${project.displayName} created`))
 
       console.log(`Checking the status of Prisma Postgres® instance...`)
@@ -420,15 +424,8 @@ export class Init implements Command {
         displayName: `database-setup-prismaPostgres-api-key`,
       })
 
-      prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
-      console.log(successMessage('Project has been successfully created!'))
-      console.log(`-------------------------
-${bold('Database URL:')}
-${prismaPostgresDatabaseUrl}
-\n
-${bold('Project link:')}
-https://console.prisma.io/${defaultWorkspace.id}/${project.id}/${project.defaultEnvironment.id}/dashboard
--------------------------`)
+      prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
+      console.log(successMessage('Prisma Postgres® is ready to be used! 🚀'))
     }
 
     /**
@@ -528,16 +525,21 @@ https://console.prisma.io/${defaultWorkspace.id}/${project.id}/${project.default
       )
     }
 
+    const defaultOutput = `Next steps:
+${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+More information in our documentation:
+${link('https://pris.ly/d/getting-started')}\n`
+
     return `
 ✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
 ${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : ''}
-Next steps:
-${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
-
-More information in our documentation:
-${link('https://pris.ly/d/getting-started')}
-    `
+${
+  isPpgCommand
+    ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
+    : defaultOutput
+}`
   }
 
   // help message
