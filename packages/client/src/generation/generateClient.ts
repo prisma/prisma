@@ -728,6 +728,16 @@ function getNodeRuntimeName(engineType: ClientEngineType) {
     return 'library'
   }
 
+  if (engineType === ClientEngineType.Client) {
+    if (!process.env.PRISMA_UNSTABLE_CLIENT_ENGINE_TYPE) {
+      throw new Error(
+        'Unstable Feature: engineType="client" is in a proof of concept phase and not ready to be used publicly yet!',
+      )
+    }
+
+    return 'library' // TODO: eventually use dedicated client runtime bundle
+  }
+
   assertNever(engineType, 'Unknown engine type')
 }
 
