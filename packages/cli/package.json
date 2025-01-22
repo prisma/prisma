@@ -135,5 +135,13 @@
   "optionalDependencies": {
     "fsevents": "2.3.3"
   },
+  "peerDependencies": {
+    "typescript": ">5.1.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
   "sideEffects": false
 }
