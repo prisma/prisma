@@ -436,11 +436,11 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/studio':
-        specifier: 0.503.0
-        version: 0.503.0
+        specifier: 0.504.0
+        version: 0.504.0
       '@prisma/studio-server':
-        specifier: 0.503.0
-        version: 0.503.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)
+        specifier: 0.504.0
+        version: 0.504.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)
       '@swc/core':
         specifier: 1.10.9
         version: 1.10.9
@@ -2810,25 +2810,25 @@ packages:
   '@prisma/query-engine-wasm@6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e':
     resolution: {integrity: sha512-c27DChIpG3T1yOsKXyTVjJz0UK61RB54YRPv1zeDHLmycCO0bmuKHl20BbWd2V+9PSlab3Ei56UI/k6XTy3LAQ==}
 
-  '@prisma/studio-common@0.503.0':
-    resolution: {integrity: sha512-YLI4uf8hNIg5RaX7lPPSH6qLeSknygMB/2aEqfnWA1kWCHvkTkYEtSoSXLEAIbVc0LWWDawCcDPxFH12v6oSnA==}
+  '@prisma/studio-common@0.504.0':
+    resolution: {integrity: sha512-DNRrnu/7+yJLTR7cHbg5vVhspJIovlIhxyOrkac8KYIPi8fXpjwgAmqCbu0oTdfGD+yOXzMgFXbLc0cioTL+JQ==}
     engines: {node: '>= 16.13'}
 
-  '@prisma/studio-pcw@0.503.0':
-    resolution: {integrity: sha512-Wck4+06stouloNC4DQyzTDXRM4bjSdO1vvLLVtNYbTXePSIteh/fYzYhClElGIwgUlnqWNepFVXw4ucHVib1cQ==}
+  '@prisma/studio-pcw@0.504.0':
+    resolution: {integrity: sha512-l4+qhvRHw/0PTX7q5A5G4RAdi+pBsILVGCLg/rkGIw7fvEnz176eMwF3X3NsYi5fSHFcS2j+Tjwr+gLH98914w==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/internals': '*'
 
-  '@prisma/studio-server@0.503.0':
-    resolution: {integrity: sha512-fkmJQmJ1jTxCC6okwX2EFcJyyjJFs2ve+TNb7EJ/TWqQkxRUHMptLniiXok6MJQVo64BeQenOiHggkdlgf6YHQ==}
+  '@prisma/studio-server@0.504.0':
+    resolution: {integrity: sha512-Zuy2eOKS6ywRNeeCWUrRwEkf0SOR4SSjtroZea6FdRSSos7LWyUg8lyHGFXVFYJ/wKemrrumQ9y7N/wHtmTm0Q==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/internals': '*'
 
-  '@prisma/studio@0.503.0':
-    resolution: {integrity: sha512-9BObluG/vRQGPE0SaMSMfgKs+kqvpKc4ID827UTLvTM7Yaz7I0T3KhEbbc5pPQq9OqTZwaUwVGtcDoxTGtm6lQ==}
+  '@prisma/studio@0.504.0':
+    resolution: {integrity: sha512-fnf164alT3eH95jw2TPyRffLD8S7clPiwxKEGbrkefzXykpsWu3cg823DDkPNUZiMsvrU3a1SJdWOZHqqA/WKw==}
 
   '@rushstack/node-core-library@5.10.1':
     resolution: {integrity: sha512-BSb/KcyBHmUQwINrgtzo6jiH0HlGFmrUy33vO6unmceuVKTEyL2q+P0fQq2oB5hvXVWOEUhxB2QvlkZluvUEmg==}
@@ -8597,11 +8597,11 @@ snapshots:
 
   '@prisma/query-engine-wasm@6.3.0-16.eb5bc5493ac383a8fe3c3e7fabfc93e4d44ca21e': {}
 
-  '@prisma/studio-common@0.503.0':
+  '@prisma/studio-common@0.504.0':
     dependencies:
       buffer: 6.0.3
 
-  '@prisma/studio-pcw@0.503.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)':
+  '@prisma/studio-pcw@0.504.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)':
     dependencies:
       '@prisma/client': link:packages/client
       '@prisma/internals': link:packages/internals
@@ -8610,12 +8610,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@prisma/studio-server@0.503.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)':
+  '@prisma/studio-server@0.504.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)':
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.503.0
-      '@prisma/studio-common': 0.503.0
-      '@prisma/studio-pcw': 0.503.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+      '@prisma/studio': 0.504.0
+      '@prisma/studio-common': 0.504.0
+      '@prisma/studio-pcw': 0.504.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       checkpoint-client: 1.1.33(encoding@0.1.13)
       cors: 2.8.5
       debug: 4.3.3
@@ -8626,7 +8626,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@prisma/studio@0.503.0': {}
+  '@prisma/studio@0.504.0': {}
 
   '@rushstack/node-core-library@5.10.1(@types/node@20.12.7)':
     dependencies:
