@@ -1,4 +1,4 @@
-import { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+import { Queryable } from '@prisma/driver-adapter-utils'
 
 import { JoinExpression, QueryPlanNode } from '../engines/common/Engine'
 import { Env, PrismaObject, Value } from './env'
@@ -6,7 +6,7 @@ import { renderQuery } from './renderQuery'
 import { serialize } from './serializer'
 
 export class QueryInterpreter {
-  constructor(private adapter: ErrorCapturingDriverAdapter, private params: Record<string, unknown>) {}
+  constructor(private queryable: Queryable, private params: Record<string, unknown>) {}
 
   async run(queryPlan: QueryPlanNode): Promise<unknown> {
     return this.interpretNode(queryPlan, this.params)
@@ -54,7 +54,7 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const result = await this.adapter.executeRaw(renderQuery(node.args, env))
+        const result = await this.queryable.executeRaw(renderQuery(node.args, env))
         if (result.ok) {
           return result.value
         } else {
@@ -63,7 +63,7 @@ export class QueryInterpreter {
       }
 
       case 'query': {
-        const result = await this.adapter.queryRaw(renderQuery(node.args, env))
+        const result = await this.queryable.queryRaw(renderQuery(node.args, env))
         if (result.ok) {
           return serialize(result.value)
         } else {
