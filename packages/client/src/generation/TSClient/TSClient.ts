@@ -32,16 +32,7 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-type RuntimeName =
-  | 'binary'
-  | 'library'
-  | 'wasm'
-  | 'edge'
-  | 'edge-esm'
-  | 'index-browser'
-  | 'react-native'
-  | 'client'
-  | String
+type RuntimeName = 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | 'react-native' | 'client'
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
@@ -173,6 +164,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 `
     return code
   }
+
   public toTS(): string {
     const { reusedTs } = this.options
 
