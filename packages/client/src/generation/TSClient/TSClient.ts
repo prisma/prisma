@@ -34,27 +34,9 @@ import { PrismaClientClass } from './PrismaClient'
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
-  runtimeNameJs:
-    | 'binary'
-    | 'library'
-    | 'wasm'
-    | 'edge'
-    | 'edge-esm'
-    | 'index-browser'
-    | 'react-native'
-    | 'client'
-    | String
+  runtimeNameJs: string // Usually one of: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | 'react-native' | 'client'
   /** More granular way to define TS runtime name */
-  runtimeNameTs:
-    | 'binary'
-    | 'library'
-    | 'wasm'
-    | 'edge'
-    | 'edge-esm'
-    | 'index-browser'
-    | 'react-native'
-    | 'client'
-    | String
+  runtimeNameTs: string
   /** When generating the browser client */
   browser: boolean
   /** When generating via the Deno CLI */
