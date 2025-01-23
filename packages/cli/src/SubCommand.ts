@@ -38,10 +38,7 @@ export class SubCommand implements Command {
     }
 
     // load the module and run it via the Runnable interface
-    const pkgPath = [prefix, 'node_modules', this.pkg]
-    const pkgJsonPath = [...pkgPath, 'package.json']
-    const pkgJson = require(pkgJsonPath.join('/'))
-    const modulePath = [...pkgPath, pkgJson.main]
+    const modulePath = [prefix, 'node_modules', this.pkg, 'dist', 'index.js']
     const module: Runnable = await import(modulePath.join('/'))
     await module.run(args)
 
