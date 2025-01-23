@@ -32,11 +32,22 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
+type RuntimeName =
+  | 'binary'
+  | 'library'
+  | 'wasm'
+  | 'edge'
+  | 'edge-esm'
+  | 'index-browser'
+  | 'react-native'
+  | 'client'
+  | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
-  runtimeNameJs: string // Usually one of: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | 'react-native' | 'client'
+  runtimeNameJs: RuntimeName
   /** More granular way to define TS runtime name */
-  runtimeNameTs: string
+  runtimeNameTs: RuntimeName
   /** When generating the browser client */
   browser: boolean
   /** When generating via the Deno CLI */
