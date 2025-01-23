@@ -271,10 +271,14 @@
     "zx": "7.2.3"
   },
   "peerDependencies": {
-    "prisma": "*"
+    "prisma": "*",
+    "typescript": ">=5.1.0"
   },
   "peerDependenciesMeta": {
     "prisma": {
+      "optional": true
+    },
+    "typescript": {
       "optional": true
     }
   },
