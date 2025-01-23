@@ -5,14 +5,7 @@ import { assertNever, TracingHelper } from '@prisma/internals'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
-import { QueryInterpreter } from '../../interpreter/QueryInterpreter'
-import type {
-  BatchQueryEngineResult,
-  EngineConfig,
-  QueryPlanNode,
-  RequestBatchOptions,
-  RequestOptions,
-} from '../common/Engine'
+import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
@@ -26,6 +19,8 @@ import {
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
+import { QueryInterpreter } from './interpreter/QueryInterpreter'
+import { QueryPlanNode } from './QueryPlan'
 import { TransactionManager } from './transactionManager/TransactionManager'
 import { QueryCompiler, QueryCompilerConstructor, QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'

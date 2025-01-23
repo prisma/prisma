@@ -1,6 +1,6 @@
 import { Queryable } from '@prisma/driver-adapter-utils'
 
-import { JoinExpression, QueryPlanNode } from '../engines/common/Engine'
+import { JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { Env, PrismaObject, Value } from './env'
 import { renderQuery } from './renderQuery'
 import { serialize } from './serializer'
