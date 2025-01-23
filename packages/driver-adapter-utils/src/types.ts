@@ -115,6 +115,8 @@ export type ConnectionInfo = {
   maxBindValues?: number
 }
 
+export type Flavour = 'mysql' | 'postgres' | 'sqlite'
+
 // Current list of official Prisma adapters
 // This list might get outdated over time.
 // It's only used for auto-completion.
@@ -128,7 +130,7 @@ const officialPrismaAdapters = [
 ] as const
 
 export interface Queryable {
-  readonly provider: 'mysql' | 'postgres' | 'sqlite'
+  readonly provider: Flavour
   readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
 
   /**
