@@ -23,7 +23,7 @@
     "@types/node": "18.19.31",
     "@types/pg": "8.11.6",
     "@types/sqlite3": "3.1.11",
-    "decimal.js": "10.4.3",
+    "decimal.js": "10.5.0",
     "esbuild": "0.24.2",
     "execa": "5.1.1",
     "fs-jetpack": "5.1.0",
