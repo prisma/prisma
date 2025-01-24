@@ -1,6 +1,6 @@
 import { ArgType, Query } from '@prisma/driver-adapter-utils'
 
-import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../engines/common/Engine'
+import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
 import { Env } from './env'
 import { renderQueryTemplate } from './renderQueryTemplate'
 
