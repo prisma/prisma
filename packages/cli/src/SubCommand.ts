@@ -33,12 +33,13 @@ export class SubCommand implements Command {
 
     // if the package is not installed yet, we install it otherwise we skip
     if (existsSync(prefix) === false) {
-      const installCmd = getCommand('npm', 'install', [pkg, '--no-save', '--prefix', prefix])
+      const installCmd = getCommand('npm', 'install', [pkg, '--no-save', '--prefix', prefix, '--userconfig', prefix])
       await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
     }
 
     // load the module and run it via the Runnable interface
-    const module: Runnable = await import(`${prefix}/node_modules/${this.pkg}`)
+    const modulePath = [prefix, 'node_modules', this.pkg, 'dist', 'index.js']
+    const module: Runnable = await import(modulePath.join('/'))
     await module.run(args)
 
     return ''
