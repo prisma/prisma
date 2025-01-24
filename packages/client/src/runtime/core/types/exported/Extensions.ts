@@ -429,7 +429,7 @@ export type { UserArgs }
 // TODO snippet for replacing PrismaClient text generated definition to reuse the full-dynamic type logic
 // export class PrismaClient<
 //   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-//   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
+//   const U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
 // > {
 //   constructor(options?: Prisma.Subset<T, Prisma.PrismaClientOptions>)
 //   $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
@@ -438,5 +438,5 @@ export type { UserArgs }
 // }
 // export interface PrismaClient<
 //   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-//   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
+//   const U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
 // > extends $Extensions.DynamicClientExtensionThis<Prisma.TypeMap, Prisma.TypeMapCb, $Extensions.DefaultArgs> {}
