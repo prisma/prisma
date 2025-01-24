@@ -546,10 +546,15 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
-  GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
-  : never
+export type CheckIsLogLevel<T> = T extends LogLevel ? T : never;
+
+export type GetLogType<T> = CheckIsLogLevel<
+  T extends LogDefinition ? T['level'] : T
+>;
+
+export type GetEvents<T extends any[]> = T extends Array<LogLevel | LogDefinition>
+  ? GetLogType<T[number]>
+  : never;
 
 export type QueryEvent = {
   timestamp: Date
