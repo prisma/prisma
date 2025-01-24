@@ -216,6 +216,10 @@ export class LibraryEngine implements Engine<undefined> {
         clientVersion: this.config.clientVersion as string,
         meta: response.meta,
       })
+    } else if (typeof response.message === 'string') {
+      throw new PrismaClientUnknownRequestError(response.message, {
+        clientVersion: this.config.clientVersion!,
+      })
     }
 
     return response as Tx.InteractiveTransactionInfo<undefined> | undefined
