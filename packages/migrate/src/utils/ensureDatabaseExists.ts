@@ -6,6 +6,7 @@ import {
   getEffectiveUrl,
   getMigrateConfigDir,
   getSchema,
+  PRISMA_POSTGRES_PROVIDER,
   uriToCredentials,
 } from '@prisma/internals'
 import { bold } from 'kleur/colors'
@@ -248,7 +249,7 @@ export function prettifyProvider(provider: ConnectorType): PrettyProvider {
     case 'postgres':
     case 'postgresql':
       return `PostgreSQL`
-    case 'prisma+postgres':
+    case PRISMA_POSTGRES_PROVIDER:
       return `Prisma Postgres`
     case 'sqlite':
       return `SQLite`

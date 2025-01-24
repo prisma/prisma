@@ -77,8 +77,8 @@ ${bold('Examples')}
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
     const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
-
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    const datasourceInfo = await getDatasourceInfo({ schemaPath })
+    printDatasource({ datasourceInfo })
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
@@ -135,7 +135,7 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
+      await migrate.tryToRunGenerate(datasourceInfo)
     }
 
     // Run if not skipped

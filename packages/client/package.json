@@ -199,7 +199,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "6.3.0-15.bc5b02143574be4ad16cc763de8ae69cf036fc4d",
+    "@prisma/engines-version": "6.3.0-17.acc0b9dd43eb689cbd20c9470515d719db10d0b0",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -208,10 +208,11 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
-    "@prisma/query-engine-wasm": "6.3.0-15.bc5b02143574be4ad16cc763de8ae69cf036fc4d",
+    "@prisma/query-compiler-wasm": "6.3.0-17.acc0b9dd43eb689cbd20c9470515d719db10d0b0",
+    "@prisma/query-engine-wasm": "6.3.0-17.acc0b9dd43eb689cbd20c9470515d719db10d0b0",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.10.9",
-    "@swc/core": "1.10.1",
+    "@swc/core": "1.10.9",
     "@swc/jest": "0.2.37",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.12",
@@ -252,7 +253,7 @@
     "pg": "8.11.5",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
-    "resolve": "1.22.8",
+    "resolve": "1.22.10",
     "rimraf": "3.0.2",
     "simple-statistics": "7.8.7",
     "sort-keys": "4.2.0",
@@ -262,18 +263,22 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.6.0",
+    "ts-pattern": "5.6.2",
     "tsd": "0.31.2",
     "typescript": "5.4.5",
-    "undici": "7.2.1",
+    "undici": "7.2.3",
     "wrangler": "3.91.0",
     "zx": "7.2.3"
   },
   "peerDependencies": {
-    "prisma": "*"
+    "prisma": "*",
+    "typescript": ">=5.1.0"
   },
   "peerDependenciesMeta": {
     "prisma": {
+      "optional": true
+    },
+    "typescript": {
       "optional": true
     }
   },

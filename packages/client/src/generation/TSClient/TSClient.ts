@@ -16,6 +16,7 @@ import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
+import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
 import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
@@ -31,11 +32,22 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
+type RuntimeName =
+  | 'binary'
+  | 'library'
+  | 'wasm'
+  | 'edge'
+  | 'edge-esm'
+  | 'index-browser'
+  | 'react-native'
+  | 'client'
+  | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
-  runtimeNameJs: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | 'react-native' | String
+  runtimeNameJs: RuntimeName
   /** More granular way to define TS runtime name */
-  runtimeNameTs: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | 'react-native' | String
+  runtimeNameTs: RuntimeName
   /** When generating the browser client */
   browser: boolean
   /** When generating via the Deno CLI */
@@ -150,6 +162,7 @@ const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}
+${buildQueryCompilerWasmModule(wasm, copyEngine, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
@@ -160,6 +173,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 `
     return code
   }
+
   public toTS(): string {
     const { reusedTs } = this.options
 

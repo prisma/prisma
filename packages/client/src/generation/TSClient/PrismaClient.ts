@@ -677,7 +677,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           `),
     )
 
-    if (this.runtimeNameTs === 'library.js' && this.context.isPreviewFeatureOn('driverAdapters')) {
+    if (['library.js', 'client.js'].includes(this.runtimeNameTs) && this.context.isPreviewFeatureOn('driverAdapters')) {
       clientOptions.add(
         ts
           .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))

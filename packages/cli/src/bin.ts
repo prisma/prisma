@@ -37,6 +37,7 @@ import { Platform } from './platform/_Platform'
   prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
 */
 import { Studio } from './Studio'
+import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
@@ -46,7 +47,6 @@ import { Version } from './Version'
 
 const debug = Debug('prisma:cli:bin')
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
 const commandArray = process.argv.slice(2)
@@ -86,6 +86,8 @@ async function main(): Promise<number> {
     {
       init: Init.new(),
       platform: Platform.$.new({
+        policy: new SubCommand('@prisma/cli-policy'),
+
         workspace: Platform.Workspace.$.new({
           show: Platform.Workspace.Show.new(),
         }),
