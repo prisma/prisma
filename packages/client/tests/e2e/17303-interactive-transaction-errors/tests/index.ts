@@ -7,5 +7,5 @@ test('should not create a Foo record because the database trigger always throws 
     prisma.$transaction(async (transactionClient: PrismaClient) => {
       await transactionClient.foo.create({})
     }),
-  ).rejects.toThrow('Query Error: ERROR: Foo cannot be created!')
+  ).rejects.toThrow('Error in connector: Error querying the database: ERROR: Foo cannot be created!')
 })
