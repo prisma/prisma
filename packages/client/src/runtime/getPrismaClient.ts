@@ -1,6 +1,11 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import { bindAdapter, type DriverAdapter, type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+import {
+  bindAdapter,
+  type DriverAdapter,
+  type ErrorCapturingDriverAdapter,
+  MongoDBDriverAdapter,
+} from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
@@ -520,6 +525,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return (this._appliedParent = applyModelsAndClientExtensions(this))
       // this applied client is also a custom constructor return value
     }
+
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
@@ -651,6 +657,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           `The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`,
           { clientVersion: this._clientVersion },
         )
+      }
+
+      if (isMongoDbDriverAdapter(this._engineConfig.adapter)) {
+        return this._engineConfig.adapter.executeRawCommand(command).then((result) => {
+          if (!result.ok) throw result.error
+          return result.value
+        })
       }
 
       return this._createPrismaPromise((transaction) => {
@@ -1068,4 +1081,8 @@ function toSql(query: TemplateStringsArray | Sql, values: unknown[]): [Sql, Midd
 
 function isTemplateStringArray(value: unknown): value is TemplateStringsArray {
   return Array.isArray(value) && Array.isArray(value['raw'])
+}
+
+function isMongoDbDriverAdapter(adapter?: DriverAdapter): adapter is MongoDBDriverAdapter {
+  return adapter?.provider === 'mongodb'
 }

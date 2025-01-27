@@ -1,0 +1,15 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../../node_modules/.prisma/client"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id   Int    @id @map("_id")
+  name String
+}

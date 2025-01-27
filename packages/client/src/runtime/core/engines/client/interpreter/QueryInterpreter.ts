@@ -1,4 +1,5 @@
 import { Queryable } from '@prisma/driver-adapter-utils'
+import { assertNever } from '@prisma/internals'
 
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { Env, PrismaObject, Value } from './env'
@@ -65,7 +66,14 @@ export class QueryInterpreter {
       case 'query': {
         const result = await this.queryable.queryRaw(renderQuery(node.args, env))
         if (result.ok) {
-          return serialize(result.value)
+          if (result.value.kind === 'sql') {
+            return serialize(result.value)
+          } else if (result.value.kind === 'mongodb') {
+            return result.value
+          } else {
+            assertNever(result.value, 'Unsupported kind of ResultSet received from driver adapter!')
+            break
+          }
         } else {
           throw result.error
         }

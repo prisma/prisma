@@ -16,6 +16,8 @@
 !d1/**
 !query-compiler
 !query-compiler/**
+!mongo-adapter
+!mongo-adapter/**
 
 # Ignore node_modules
 **/node_modules

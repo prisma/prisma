@@ -229,6 +229,19 @@ importers:
         specifier: 0.8.0
         version: 0.8.0
 
+  packages/adapter-mongodb:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+    devDependencies:
+      '@types/mongodb':
+        specifier: ^4.0.7
+        version: 4.0.7(socks@2.7.1)
+      mongodb:
+        specifier: ^6.12.0
+        version: 6.12.0(socks@2.7.1)
+
   packages/adapter-neon:
     dependencies:
       '@prisma/driver-adapter-utils':
@@ -3192,6 +3205,10 @@ packages:
 
   '@types/minimist@1.2.2':
     resolution: {integrity: sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==}
+
+  '@types/mongodb@4.0.7':
+    resolution: {integrity: sha512-lPUYPpzA43baXqnd36cZ9xxorprybxXDzteVKCPAdp14ppHtFJHnXYvNpmBvtMUTb5fKXVv6sVbzo1LHkWhJlw==}
+    deprecated: mongodb provides its own types. @types/mongodb is no longer needed.
 
   '@types/ms@0.7.31':
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
@@ -8986,6 +9003,18 @@ snapshots:
   '@types/minimatch@5.1.2': {}
 
   '@types/minimist@1.2.2': {}
+
+  '@types/mongodb@4.0.7(socks@2.7.1)':
+    dependencies:
+      mongodb: 6.12.0(socks@2.7.1)
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - socks
 
   '@types/ms@0.7.31': {}
 

@@ -23,6 +23,7 @@ export function renderQuery({ query, params }: QueryPlanDbQuery, env: Env): Quer
   const argTypes = expandedParams.map((param) => toArgType(param as PrismaValue))
 
   return {
+    kind: 'sql',
     sql: renderedQuery,
     args: expandedParams,
     argTypes,
