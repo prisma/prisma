@@ -400,60 +400,15 @@ export class Init implements Command {
 
       prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Prisma Postgres® is ready to be used! 🚀'))
+    }
 
-      const prismaSchemaExists = fs.existsSync(path.join(outputDir, 'schema.prisma'))
-
-      if (!prismaSchemaExists) {
-        if (!fs.existsSync(outputDir)) {
-          fs.mkdirSync(outputDir)
-        }
-
-        if (!fs.existsSync(prismaFolder)) {
-          fs.mkdirSync(prismaFolder)
-        }
-
-        fs.writeFileSync(
-          path.join(prismaFolder, 'schema.prisma'),
-          defaultSchema({
-            datasourceProvider,
-            generatorProvider,
-            previewFeatures,
-            output,
-            withModel: args['--with-model'],
-          }),
-        )
-      }
-
-      const envPath = path.join(outputDir, '.env')
-      if (!fs.existsSync(envPath)) {
-        fs.writeFileSync(envPath, defaultEnv(prismaPostgresDatabaseUrl))
-      } else {
-        const envFile = fs.readFileSync(envPath, { encoding: 'utf8' })
-        const config = dotenv.parse(envFile) // will return an object
-        if (Object.keys(config).includes('DATABASE_URL')) {
-          config.DATABASE_URL = prismaPostgresDatabaseUrl
-          fs.writeFileSync(envPath, JSON.stringify(config))
-        }
-        fs.appendFileSync(
-          envPath,
-          `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(prismaPostgresDatabaseUrl),
-        )
-      }
-
-      const gitignorePath = path.join(outputDir, '.gitignore')
-      try {
-        fs.writeFileSync(gitignorePath, defaultGitIgnore(), { flag: 'wx' })
-      } catch (e) {
-        if ((e as NodeJS.ErrnoException).code === 'EEXIST') {
-          console.log(
-            `${yellow(
-              'warn',
-            )} You already have a .gitignore file. Don't forget to add \`.env\` in it to not commit any private information.`,
-          )
-        } else {
-          console.error('Failed to write .gitignore file, reason: ', e)
-        }
-      }
+    if (
+      (isPpgCommand && (fs.existsSync(path.join(outputDir, 'schema.prisma')) || fs.existsSync(prismaFolder))) ||
+      fs.existsSync(path.join(prismaFolder, 'schema.prisma'))
+    ) {
+      console.log(`
+${yellow('warn')} A ${bold('Prisma schema')} file already exists in the project.
+${yellow('warn')} Please manually update your .env file with the new DATABASE_URL shown below.`)
 
       return printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
     }
