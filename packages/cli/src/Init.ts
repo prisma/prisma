@@ -17,7 +17,7 @@ import {
 } from '@prisma/internals'
 import dotenv from 'dotenv'
 import fs from 'fs'
-import { bold, dim, green, red, yellow } from 'kleur/colors'
+import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
@@ -406,9 +406,9 @@ export class Init implements Command {
       (isPpgCommand && (fs.existsSync(path.join(outputDir, 'schema.prisma')) || fs.existsSync(prismaFolder))) ||
       fs.existsSync(path.join(prismaFolder, 'schema.prisma'))
     ) {
-      console.log(`
-${yellow('warn')} A ${bold('Prisma schema')} file already exists in the project.
-${yellow('warn')} Please manually update your .env file with the new DATABASE_URL shown below.`)
+      console.info(`
+${blue('info')} A ${bold('Prisma schema')} file already exists in the project.
+${blue('info')} Please manually update your .env file with the new DATABASE_URL shown below.`)
 
       return printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
     }
