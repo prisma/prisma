@@ -34,7 +34,7 @@ class RollbackError extends Error {
 }
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
-  implements Queryable<SQLQuery, SQLResultSet>
+  implements Queryable<SQLQuery>
 {
   readonly provider = 'mysql'
   readonly adapterName = packageName
@@ -122,10 +122,7 @@ function parseErrorMessage(message: string) {
   }
 }
 
-class PlanetScaleTransaction
-  extends PlanetScaleQueryable<planetScale.Transaction>
-  implements Transaction<SQLQuery, SQLResultSet>
-{
+class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction<SQLQuery> {
   constructor(
     tx: planetScale.Transaction,
     readonly options: TransactionOptions,
@@ -152,7 +149,7 @@ class PlanetScaleTransaction
 
 class PlanetScaleTransactionContext
   extends PlanetScaleQueryable<planetScale.Connection>
-  implements TransactionContext<SQLQuery, SQLResultSet>
+  implements TransactionContext<SQLQuery>
 {
   constructor(private conn: planetScale.Connection) {
     super(conn)
@@ -166,7 +163,7 @@ class PlanetScaleTransactionContext
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    return new Promise<Result<Transaction<SQLQuery, SQLResultSet>>>((resolve, reject) => {
+    return new Promise<Result<Transaction<SQLQuery>>>((resolve, reject) => {
       const txResultPromise = this.conn
         .transaction(async (tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>()
@@ -210,7 +207,7 @@ const adapter = new PrismaPlanetScale(client)
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext<SQLQuery, SQLResultSet>>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     const conn = this.client.connection()
     const ctx = new PlanetScaleTransactionContext(conn)
     return ok(ctx)

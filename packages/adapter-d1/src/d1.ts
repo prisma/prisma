@@ -27,7 +27,7 @@ type D1ResultsWithColumnNames = [string[], unknown[][]]
 type PerformIOResult = D1ResultsWithColumnNames | D1Response
 type StdClient = D1Database
 
-class D1Queryable<ClientT extends StdClient> implements Queryable<SQLQuery, SQLResultSet> {
+class D1Queryable<ClientT extends StdClient> implements Queryable<SQLQuery> {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
@@ -114,7 +114,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable<SQLQuery, SQLR
   }
 }
 
-class D1Transaction extends D1Queryable<StdClient> implements Transaction<SQLQuery, SQLResultSet> {
+class D1Transaction extends D1Queryable<StdClient> implements Transaction<SQLQuery> {
   constructor(client: StdClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -132,12 +132,12 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction<SQLQue
   }
 }
 
-class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext<SQLQuery, SQLResultSet> {
+class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext<SQLQuery> {
   constructor(readonly client: StdClient) {
     super(client)
   }
 
-  async startTransaction(): Promise<Result<Transaction<SQLQuery, SQLResultSet>>> {
+  async startTransaction(): Promise<Result<Transaction<SQLQuery>>> {
     const options: TransactionOptions = {
       // TODO: D1 does not have a Transaction API.
       usePhantomQuery: true,
@@ -187,7 +187,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SQLDriverAdapter
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext<SQLQuery, SQLResultSet>>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     this.warnOnce(
       'D1 Transaction',
       "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",

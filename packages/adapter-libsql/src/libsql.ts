@@ -28,7 +28,7 @@ type TransactionClient = LibSqlTransactionRaw
 
 const LOCK_TAG = Symbol()
 
-class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable<SQLQuery, SQLResultSet> {
+class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable<SQLQuery> {
   readonly provider = 'sqlite'
   readonly adapterName = packageName;
 
@@ -97,7 +97,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
   }
 }
 
-class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction<SQLQuery, SQLResultSet> {
+class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction<SQLQuery> {
   constructor(client: TransactionClient, readonly options: TransactionOptions, readonly unlockParent: () => void) {
     super(client)
   }
@@ -129,15 +129,12 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   }
 }
 
-class LibSqlTransactionContext
-  extends LibSqlQueryable<StdClient>
-  implements TransactionContext<SQLQuery, SQLResultSet>
-{
+class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements TransactionContext<SQLQuery> {
   constructor(readonly client: StdClient, readonly release: () => void) {
     super(client)
   }
 
-  async startTransaction(): Promise<Result<Transaction<SQLQuery, SQLResultSet>>> {
+  async startTransaction(): Promise<Result<Transaction<SQLQuery>>> {
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
@@ -162,7 +159,7 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SQLDrive
     super(client)
   }
 
-  async transactionContext(): Promise<Result<TransactionContext<SQLQuery, SQLResultSet>>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     const release = await this[LOCK_TAG].acquire()
     return ok(new LibSqlTransactionContext(this.client, release))
   }

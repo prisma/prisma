@@ -18,7 +18,7 @@ import { name as packageName } from '../package.json'
 
 const debug = Debug('prisma:driver-adapter:mongodb')
 
-class MongoDBQueryable implements Queryable<MongoDBQuery, MongoDBResultSet> {
+class MongoDBQueryable implements Queryable<MongoDBQuery> {
   readonly provider = 'mongodb'
   readonly adapterName = packageName
 
@@ -52,7 +52,7 @@ class MongoDBQueryable implements Queryable<MongoDBQuery, MongoDBResultSet> {
   }
 }
 
-class MongoDBTransaction extends MongoDBQueryable implements Transaction<MongoDBQuery, MongoDBResultSet> {
+class MongoDBTransaction extends MongoDBQueryable implements Transaction<MongoDBQuery> {
   readonly options = { usePhantomQuery: true }
 
   constructor(client: MongoClient, database: string, private readonly session: ClientSession) {
@@ -82,12 +82,12 @@ class MongoDBTransaction extends MongoDBQueryable implements Transaction<MongoDB
   }
 }
 
-class MongoDBTransactionContext extends MongoDBQueryable implements TransactionContext<MongoDBQuery, MongoDBResultSet> {
+class MongoDBTransactionContext extends MongoDBQueryable implements TransactionContext<MongoDBQuery> {
   constructor(client: MongoClient, database: string) {
     super(client, database)
   }
 
-  async startTransaction(): Promise<Result<Transaction<MongoDBQuery, MongoDBResultSet>>> {
+  async startTransaction(): Promise<Result<Transaction<MongoDBQuery>>> {
     const session = this.client.startSession()
     return ok(new MongoDBTransaction(this.client, this.database, session))
   }
@@ -109,7 +109,7 @@ export class PrismaMongoDB extends MongoDBQueryable implements MongoDBDriverAdap
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext<MongoDBQuery, MongoDBResultSet>>> {
+  async transactionContext(): Promise<Result<TransactionContext<MongoDBQuery>>> {
     return ok(new MongoDBTransactionContext(this.client, this.database))
   }
 

@@ -38,6 +38,13 @@ export interface MongoDBResultSet {
   rows: Array<JSON>
 }
 
+// Helper type to automatically infer the correct ResultSet subtype based on the given Query subtype
+export type ResultSetFromQuery<T extends Query> = T extends SQLQuery
+  ? SQLResultSet
+  : T extends MongoDBQuery
+  ? MongoDBResultSet
+  : ResultSet
+
 /**
  * Original `quaint::ValueType` enum tag from Prisma's `quaint`.
  * Query arguments marked with this type are sanitized before being sent to the database.
@@ -162,7 +169,7 @@ const officialPrismaAdapters = [
   '@prisma/adapter-pg-worker',
 ] as const
 
-export interface Queryable<Q extends Query = Query, R extends ResultSet = ResultSet> {
+export interface Queryable<Q extends Query = Query> {
   readonly provider: Flavour
   readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
 
@@ -172,7 +179,7 @@ export interface Queryable<Q extends Query = Query, R extends ResultSet = Result
    *
    * This is the preferred way of executing `SELECT` queries.
    */
-  queryRaw(params: Q): Promise<Result<R>>
+  queryRaw(params: Q): Promise<Result<ResultSetFromQuery<Q>>>
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
@@ -184,18 +191,18 @@ export interface Queryable<Q extends Query = Query, R extends ResultSet = Result
   executeRaw(params: Q): Promise<Result<number>>
 }
 
-export interface TransactionContext<Q extends Query = Query, R extends ResultSet = ResultSet> extends Queryable<Q, R> {
+export interface TransactionContext<Q extends Query = Query> extends Queryable<Q> {
   /**
    * Starts new transaction.
    */
-  startTransaction(): Promise<Result<Transaction<Q, R>>>
+  startTransaction(): Promise<Result<Transaction<Q>>>
 }
 
-export interface DriverAdapter<Q extends Query = Query, R extends ResultSet = ResultSet> extends Queryable<Q, R> {
+export interface DriverAdapter<Q extends Query = Query> extends Queryable<Q> {
   /**
    * Starts new transaction.
    */
-  transactionContext(): Promise<Result<TransactionContext<Q, R>>>
+  transactionContext(): Promise<Result<TransactionContext<Q>>>
 
   /**
    * Optional method that returns extra connection info
@@ -203,11 +210,11 @@ export interface DriverAdapter<Q extends Query = Query, R extends ResultSet = Re
   getConnectionInfo?(): Result<ConnectionInfo>
 }
 
-export interface SQLDriverAdapter extends DriverAdapter<SQLQuery, SQLResultSet> {
+export interface SQLDriverAdapter extends DriverAdapter<SQLQuery> {
   provider: 'sqlite' | 'mysql' | 'postgres'
 }
 
-export interface MongoDBDriverAdapter extends DriverAdapter<MongoDBQuery, MongoDBResultSet> {
+export interface MongoDBDriverAdapter extends DriverAdapter<MongoDBQuery> {
   provider: 'mongodb'
 
   /**
@@ -225,7 +232,7 @@ export type TransactionOptions = {
   usePhantomQuery: boolean
 }
 
-export interface Transaction<Q extends Query = Query, R extends ResultSet = ResultSet> extends Queryable<Q, R> {
+export interface Transaction<Q extends Query = Query> extends Queryable<Q> {
   /**
    * Transaction options.
    */

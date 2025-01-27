@@ -26,7 +26,7 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
-class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable<SQLQuery, SQLResultSet> {
+class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable<SQLQuery> {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
@@ -141,7 +141,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
   }
 }
 
-class PgTransaction extends PgQueryable<TransactionClient> implements Transaction<SQLQuery, SQLResultSet> {
+class PgTransaction extends PgQueryable<TransactionClient> implements Transaction<SQLQuery> {
   constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -161,12 +161,12 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
-class PgTransactionContext extends PgQueryable<pg.PoolClient> implements TransactionContext<SQLQuery, SQLResultSet> {
+class PgTransactionContext extends PgQueryable<pg.PoolClient> implements TransactionContext<SQLQuery> {
   constructor(readonly conn: pg.PoolClient) {
     super(conn)
   }
 
-  async startTransaction(): Promise<Result<Transaction<SQLQuery, SQLResultSet>>> {
+  async startTransaction(): Promise<Result<Transaction<SQLQuery>>> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -200,7 +200,7 @@ const adapter = new PrismaPg(pool)
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext<SQLQuery, SQLResultSet>>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     const conn = await this.client.connect()
     return ok(new PgTransactionContext(conn))
   }

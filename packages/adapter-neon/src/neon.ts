@@ -27,7 +27,7 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
 /**
  * Base class for http client, ws client and ws transaction
  */
-abstract class NeonQueryable implements Queryable<SQLQuery, SQLResultSet> {
+abstract class NeonQueryable implements Queryable<SQLQuery> {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
@@ -150,7 +150,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
   }
 }
 
-class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction<SQLQuery, SQLResultSet> {
+class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction<SQLQuery> {
   constructor(client: neon.PoolClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -170,15 +170,12 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   }
 }
 
-class NeonTransactionContext
-  extends NeonWsQueryable<neon.PoolClient>
-  implements TransactionContext<SQLQuery, SQLResultSet>
-{
+class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements TransactionContext<SQLQuery> {
   constructor(readonly conn: neon.PoolClient) {
     super(conn)
   }
 
-  async startTransaction(): Promise<Result<Transaction<SQLQuery, SQLResultSet>>> {
+  async startTransaction(): Promise<Result<Transaction<SQLQuery>>> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -214,7 +211,7 @@ const adapter = new PrismaNeon(pool)
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext<SQLQuery, SQLResultSet>>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     const conn = await this.client.connect()
     return ok(new NeonTransactionContext(conn))
   }
@@ -258,7 +255,7 @@ export class PrismaNeonHTTP extends NeonQueryable implements SQLDriverAdapter {
     )
   }
 
-  transactionContext(): Promise<Result<TransactionContext<SQLQuery, SQLResultSet>>> {
+  transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
   }
 }
