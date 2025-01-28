@@ -407,7 +407,7 @@ export class Init implements Command {
       fs.existsSync(path.join(prismaFolder, 'schema.prisma'))
     ) {
       console.info(`
-${blue('info')} A ${bold('Prisma schema')} file already exists in the project.
+${blue('info')} A ${bold('prisma folder or prisma schema')} file already exists in the project.
 ${blue('info')} Please manually update your .env file with the new DATABASE_URL shown below.`)
 
       return printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
