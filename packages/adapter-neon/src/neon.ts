@@ -4,11 +4,11 @@ import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
   ConnectionInfo,
-  DriverAdapter,
-  Query,
   Queryable,
   Result,
-  ResultSet,
+  SQLDriverAdapter,
+  SQLQuery,
+  SQLResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -27,14 +27,14 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
 /**
  * Base class for http client, ws client and ws transaction
  */
-abstract class NeonQueryable implements Queryable {
+abstract class NeonQueryable implements Queryable<SQLQuery> {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: SQLQuery): Promise<Result<SQLResultSet>> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -61,6 +61,7 @@ abstract class NeonQueryable implements Queryable {
     }
 
     return ok({
+      kind: 'sql',
       columnNames,
       columnTypes,
       rows,
@@ -72,7 +73,7 @@ abstract class NeonQueryable implements Queryable {
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: SQLQuery): Promise<Result<number>> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
@@ -85,7 +86,7 @@ abstract class NeonQueryable implements Queryable {
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  abstract performIO(query: Query): Promise<Result<PerformIOResult>>
+  abstract performIO(query: SQLQuery): Promise<Result<PerformIOResult>>
 }
 
 /**
@@ -96,7 +97,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     super()
   }
 
-  override async performIO(query: Query): Promise<Result<PerformIOResult>> {
+  override async performIO(query: SQLQuery): Promise<Result<PerformIOResult>> {
     const { sql, args: values } = query
 
     try {
@@ -149,7 +150,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
   }
 }
 
-class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
+class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction<SQLQuery> {
   constructor(client: neon.PoolClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -169,12 +170,12 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   }
 }
 
-class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements TransactionContext {
+class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements TransactionContext<SQLQuery> {
   constructor(readonly conn: neon.PoolClient) {
     super(conn)
   }
 
-  async startTransaction(): Promise<Result<Transaction>> {
+  async startTransaction(): Promise<Result<Transaction<SQLQuery>>> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -190,7 +191,7 @@ export type PrismaNeonOptions = {
   schema?: string
 }
 
-export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdapter {
+export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements SQLDriverAdapter {
   private isRunning = true
 
   constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
@@ -210,7 +211,7 @@ const adapter = new PrismaNeon(pool)
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     const conn = await this.client.connect()
     return ok(new NeonTransactionContext(conn))
   }
@@ -224,12 +225,12 @@ const adapter = new PrismaNeon(pool)
   }
 }
 
-export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
+export class PrismaNeonHTTP extends NeonQueryable implements SQLDriverAdapter {
   constructor(private client: neon.NeonQueryFunction<any, any>) {
     super()
   }
 
-  override async performIO(query: Query): Promise<Result<PerformIOResult>> {
+  override async performIO(query: SQLQuery): Promise<Result<PerformIOResult>> {
     const { sql, args: values } = query
     return ok(
       await this.client(sql, values, {
@@ -254,7 +255,7 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
     )
   }
 
-  transactionContext(): Promise<Result<TransactionContext>> {
+  transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
   }
 }

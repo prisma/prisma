@@ -4,13 +4,13 @@ import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
   ConnectionInfo,
   Debug,
-  DriverAdapter,
   err,
   ok,
-  Query,
   Queryable,
   Result,
-  ResultSet,
+  SQLDriverAdapter,
+  SQLQuery,
+  SQLResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -27,7 +27,7 @@ type D1ResultsWithColumnNames = [string[], unknown[][]]
 type PerformIOResult = D1ResultsWithColumnNames | D1Response
 type StdClient = D1Database
 
-class D1Queryable<ClientT extends StdClient> implements Queryable {
+class D1Queryable<ClientT extends StdClient> implements Queryable<SQLQuery> {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
@@ -36,7 +36,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: SQLQuery): Promise<Result<SQLResultSet>> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -48,12 +48,13 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     })
   }
 
-  private convertData(ioResult: D1ResultsWithColumnNames): ResultSet {
+  private convertData(ioResult: D1ResultsWithColumnNames): SQLResultSet {
     const columnNames = ioResult[0]
     const results = ioResult[1]
 
     if (results.length === 0) {
       return {
+        kind: 'sql',
         columnNames: [],
         columnTypes: [],
         rows: [],
@@ -64,6 +65,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const rows = results.map((value) => mapRow(value, columnTypes))
 
     return {
+      kind: 'sql',
       columnNames,
       // * Note: without Object.values the array looks like
       // * columnTypes: [ id: 128 ],
@@ -79,7 +81,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: SQLQuery): Promise<Result<number>> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
@@ -87,7 +89,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     return res.map((result) => (result as D1Response).meta.changes ?? 0)
   }
 
-  private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
+  private async performIO(query: SQLQuery, executeRaw = false): Promise<Result<PerformIOResult>> {
     try {
       query.args = query.args.map((arg, i) => cleanArg(arg, query.argTypes[i]))
 
@@ -112,7 +114,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
   }
 }
 
-class D1Transaction extends D1Queryable<StdClient> implements Transaction {
+class D1Transaction extends D1Queryable<StdClient> implements Transaction<SQLQuery> {
   constructor(client: StdClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -130,12 +132,12 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
   }
 }
 
-class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext {
+class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext<SQLQuery> {
   constructor(readonly client: StdClient) {
     super(client)
   }
 
-  async startTransaction(): Promise<Result<Transaction>> {
+  async startTransaction(): Promise<Result<Transaction<SQLQuery>>> {
     const options: TransactionOptions = {
       // TODO: D1 does not have a Transaction API.
       usePhantomQuery: true,
@@ -148,7 +150,7 @@ class D1TransactionContext extends D1Queryable<StdClient> implements Transaction
   }
 }
 
-export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
+export class PrismaD1 extends D1Queryable<StdClient> implements SQLDriverAdapter {
   readonly tags = {
     error: red('prisma:error'),
     warn: yellow('prisma:warn'),
@@ -185,7 +187,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     this.warnOnce(
       'D1 Transaction',
       "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",

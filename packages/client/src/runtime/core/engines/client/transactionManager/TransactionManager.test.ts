@@ -1,7 +1,7 @@
 import type {
   DriverAdapter,
+  Flavour,
   Query,
-  Queryable,
   Result,
   ResultSet,
   Transaction,
@@ -30,14 +30,14 @@ const TRANSACTION_EXECUTION_TIMEOUT = 500
 
 class MockDriverAdapter implements DriverAdapter {
   adapterName = 'mock-adapter'
-  provider: Queryable['provider']
+  provider: Flavour
   private readonly usePhantomQuery: boolean
 
   executeRawMock: jest.MockedFn<(params: Query) => Promise<Result<number>>> = jest.fn().mockResolvedValue(ok(1))
   commitMock: jest.MockedFn<() => Promise<Result<void>>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<Result<void>>> = jest.fn().mockResolvedValue(ok(undefined))
 
-  constructor({ provider = 'postgres' as Queryable['provider'], usePhantomQuery = false } = {}) {
+  constructor({ provider = 'postgres' as Flavour, usePhantomQuery = false } = {}) {
     this.usePhantomQuery = usePhantomQuery
     this.provider = provider
   }
@@ -101,11 +101,13 @@ test('transaction executes normally', async () => {
 
   const id = await startTransaction(transactionManager)
 
+  if (driverAdapter.executeRawMock.mock.calls[0][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
 
   await transactionManager.commitTransaction(id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
+  if (driverAdapter.executeRawMock.mock.calls[1][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('COMMIT')
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
@@ -119,11 +121,13 @@ test('transaction is rolled back', async () => {
 
   const id = await startTransaction(transactionManager)
 
+  if (driverAdapter.executeRawMock.mock.calls[0][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
 
   await transactionManager.rollbackTransaction(id)
 
   expect(driverAdapter.rollbackMock).toHaveBeenCalled()
+  if (driverAdapter.executeRawMock.mock.calls[1][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('ROLLBACK')
   expect(driverAdapter.commitMock).not.toHaveBeenCalled()
 
@@ -153,12 +157,15 @@ test('with explicit isolation level', async () => {
 
   const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
 
+  if (driverAdapter.executeRawMock.mock.calls[0][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
+  if (driverAdapter.executeRawMock.mock.calls[1][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
 
   await transactionManager.commitTransaction(id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
+  if (driverAdapter.executeRawMock.mock.calls[2][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
@@ -172,7 +179,9 @@ test('for MySQL with explicit isolation level requires isolation level set befor
 
   const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
 
+  if (driverAdapter.executeRawMock.mock.calls[0][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
+  if (driverAdapter.executeRawMock.mock.calls[1][0].kind !== 'sql') throw new Error('Expected SQL query!')
   expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('BEGIN')
 
   await transactionManager.commitTransaction(id)

@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { DriverAdapter, Query, Transaction } from '@prisma/driver-adapter-utils'
+import { DriverAdapter, SQLQuery, Transaction } from '@prisma/driver-adapter-utils'
 import { assertNever } from '@prisma/internals'
 import crypto from 'crypto'
 
@@ -38,9 +38,10 @@ type TransactionWrapper = {
 
 const debug = Debug('prisma:client:transactionManager')
 
-const COMMIT_QUERY = (): Query => ({ sql: 'COMMIT', args: [], argTypes: [] })
-const ROLLBACK_QUERY = (): Query => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
-const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): Query => ({
+const COMMIT_QUERY = (): SQLQuery => ({ kind: 'sql', sql: 'COMMIT', args: [], argTypes: [] })
+const ROLLBACK_QUERY = (): SQLQuery => ({ kind: 'sql', sql: 'ROLLBACK', args: [], argTypes: [] })
+const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): SQLQuery => ({
+  kind: 'sql',
   sql: 'SET TRANSACTION ISOLATION LEVEL ' + isolationLevelMap[isolationLevel],
   args: [],
   argTypes: [],
@@ -95,7 +96,7 @@ export class TransactionManager {
       })
 
     if (!startedTransaction.value.options.usePhantomQuery) {
-      await startedTransaction.value.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+      await startedTransaction.value.executeRaw({ kind: 'sql', sql: 'BEGIN', args: [], argTypes: [] })
 
       if (!this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
         await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))

@@ -3,7 +3,12 @@ import { Result } from './result'
 
 export type ColumnType = (typeof ColumnTypeEnum)[keyof typeof ColumnTypeEnum]
 
-export interface ResultSet {
+export type JSON = Record<string, unknown> // TODO: refine or import one of our existing definitions
+
+export type ResultSet = SQLResultSet | MongoDBResultSet
+
+export interface SQLResultSet {
+  kind: 'sql'
   /**
    * List of column types appearing in a database query, in the same order as `columnNames`.
    * They are used within the Query Engine to convert values from JS to Quaint values.
@@ -27,6 +32,18 @@ export interface ResultSet {
    */
   lastInsertId?: string
 }
+
+export interface MongoDBResultSet {
+  kind: 'mongodb'
+  rows: Array<JSON>
+}
+
+// Helper type to automatically infer the correct ResultSet subtype based on the given Query subtype
+export type ResultSetFromQuery<T extends Query> = T extends SQLQuery
+  ? SQLResultSet
+  : T extends MongoDBQuery
+  ? MongoDBResultSet
+  : ResultSet
 
 /**
  * Original `quaint::ValueType` enum tag from Prisma's `quaint`.
@@ -71,10 +88,32 @@ export type ArgType =
   // A time value.
   | 'Time'
 
-export type Query = {
+export type Query = SQLQuery | MongoDBQuery
+
+export type SQLQuery = {
+  kind: 'sql'
   sql: string
   args: Array<unknown>
   argTypes: Array<ArgType>
+}
+
+export type MongoDBQuery = {
+  kind: 'mongodb'
+  // The table (aka collection) name.
+  collection: string
+  // Whether this will return a single document or a cursor to iterate over.
+  // The DriverAdapter will have to transform both into an array or numbers of affected rows.
+  returnType: 'document' | 'cursor'
+  // The actual action on the collection.
+  // As per MongoDB docu: https://mongodb.github.io/node-mongodb-native/6.12/classes/Collection.html
+  action: 'find' | 'findOne' | 'aggregate' | 'updateOne' | 'insertMany' // ...
+  // The query or filter statement.
+  // As per MongoDB docu: https://mongodb.github.io/node-mongodb-native/6.12/types/Filter.html
+  query?: JSON | JSON[]
+  // The data for update or insert operations.
+  data?: JSON | JSON[]
+  // The options object for the action.
+  options?: Record<string, unknown>
 }
 
 export type Error =
@@ -115,7 +154,8 @@ export type ConnectionInfo = {
   maxBindValues?: number
 }
 
-export type Flavour = 'mysql' | 'postgres' | 'sqlite'
+// TODO: I don't really like that we call this "flavour" in some places and "provider" in others. :/
+export type Flavour = 'mysql' | 'postgres' | 'sqlite' | 'mongodb'
 
 // Current list of official Prisma adapters
 // This list might get outdated over time.
@@ -129,7 +169,7 @@ const officialPrismaAdapters = [
   '@prisma/adapter-pg-worker',
 ] as const
 
-export interface Queryable {
+export interface Queryable<Q extends Query = Query> {
   readonly provider: Flavour
   readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
 
@@ -139,7 +179,7 @@ export interface Queryable {
    *
    * This is the preferred way of executing `SELECT` queries.
    */
-  queryRaw(params: Query): Promise<Result<ResultSet>>
+  queryRaw(params: Q): Promise<Result<ResultSetFromQuery<Q>>>
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
@@ -148,21 +188,21 @@ export interface Queryable {
    * This is the preferred way of executing `INSERT`, `UPDATE`, `DELETE` queries,
    * as well as transactional queries.
    */
-  executeRaw(params: Query): Promise<Result<number>>
+  executeRaw(params: Q): Promise<Result<number>>
 }
 
-export interface TransactionContext extends Queryable {
+export interface TransactionContext<Q extends Query = Query> extends Queryable<Q> {
   /**
    * Starts new transaction.
    */
-  startTransaction(): Promise<Result<Transaction>>
+  startTransaction(): Promise<Result<Transaction<Q>>>
 }
 
-export interface DriverAdapter extends Queryable {
+export interface DriverAdapter<Q extends Query = Query> extends Queryable<Q> {
   /**
    * Starts new transaction.
    */
-  transactionContext(): Promise<Result<TransactionContext>>
+  transactionContext(): Promise<Result<TransactionContext<Q>>>
 
   /**
    * Optional method that returns extra connection info
@@ -170,19 +210,39 @@ export interface DriverAdapter extends Queryable {
   getConnectionInfo?(): Result<ConnectionInfo>
 }
 
+export interface SQLDriverAdapter extends DriverAdapter<SQLQuery> {
+  provider: 'sqlite' | 'mysql' | 'postgres'
+}
+
+export interface MongoDBDriverAdapter extends DriverAdapter<MongoDBQuery> {
+  provider: 'mongodb'
+
+  /**
+   * Executes a raw MongoDB command.
+   *
+   * @see https://www.prisma.io/docs/orm/prisma-client/using-raw-sql/raw-queries#runcommandraw
+   * @see https://www.mongodb.com/docs/manual/reference/command/
+   *
+   * @param command
+   */
+  executeRawCommand(command: JSON): Promise<Result<JSON>>
+}
+
 export type TransactionOptions = {
   usePhantomQuery: boolean
 }
 
-export interface Transaction extends Queryable {
+export interface Transaction<Q extends Query = Query> extends Queryable<Q> {
   /**
    * Transaction options.
    */
   readonly options: TransactionOptions
+
   /**
    * Commit the transaction.
    */
   commit(): Promise<Result<void>>
+
   /**
    * Rolls back the transaction.
    */

@@ -5,11 +5,11 @@
 import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
-  DriverAdapter,
-  Query,
   Queryable,
   Result,
-  ResultSet,
+  SQLDriverAdapter,
+  SQLQuery,
+  SQLResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -34,7 +34,7 @@ class RollbackError extends Error {
 }
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
-  implements Queryable
+  implements Queryable<SQLQuery>
 {
   readonly provider = 'mysql'
   readonly adapterName = packageName
@@ -44,7 +44,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: SQLQuery): Promise<Result<SQLResultSet>> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -52,9 +52,10 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
     return ioResult.map(({ fields, insertId: lastInsertId, rows }) => {
       const columns = fields.map((field) => field.name)
       return {
+        kind: 'sql',
         columnNames: columns,
         columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
-        rows: rows as ResultSet['rows'],
+        rows: rows as SQLResultSet['rows'],
         lastInsertId,
       }
     })
@@ -65,7 +66,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: SQLQuery): Promise<Result<number>> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
@@ -77,7 +78,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<Result<planetScale.ExecutedQuery>> {
+  private async performIO(query: SQLQuery): Promise<Result<planetScale.ExecutedQuery>> {
     const { sql, args: values } = query
 
     try {
@@ -121,7 +122,7 @@ function parseErrorMessage(message: string) {
   }
 }
 
-class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
+class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction<SQLQuery> {
   constructor(
     tx: planetScale.Transaction,
     readonly options: TransactionOptions,
@@ -146,7 +147,10 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 }
 
-class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Connection> implements TransactionContext {
+class PlanetScaleTransactionContext
+  extends PlanetScaleQueryable<planetScale.Connection>
+  implements TransactionContext<SQLQuery>
+{
   constructor(private conn: planetScale.Connection) {
     super(conn)
   }
@@ -159,7 +163,7 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    return new Promise<Result<Transaction>>((resolve, reject) => {
+    return new Promise<Result<Transaction<SQLQuery>>>((resolve, reject) => {
       const txResultPromise = this.conn
         .transaction(async (tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>()
@@ -181,7 +185,7 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
   }
 }
 
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
+export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SQLDriverAdapter {
   constructor(client: planetScale.Client) {
     // this used to be a check for constructor name at same point (more reliable when having multiple copies
     // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
@@ -203,7 +207,7 @@ const adapter = new PrismaPlanetScale(client)
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     const conn = this.client.connection()
     const ctx = new PlanetScaleTransactionContext(conn)
     return ok(ctx)

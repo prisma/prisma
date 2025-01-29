@@ -5,11 +5,12 @@ import type {
   Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
 import type {
-  DriverAdapter,
   Query,
   Queryable,
   Result,
-  ResultSet,
+  SQLDriverAdapter,
+  SQLQuery,
+  SQLResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -27,7 +28,7 @@ type TransactionClient = LibSqlTransactionRaw
 
 const LOCK_TAG = Symbol()
 
-class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
+class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable<SQLQuery> {
   readonly provider = 'sqlite'
   readonly adapterName = packageName;
 
@@ -38,7 +39,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: SQLQuery): Promise<Result<SQLResultSet>> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -48,6 +49,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
       const columnTypes = getColumnTypes(declaredColumnTypes, rows)
 
       return {
+        kind: 'sql',
         columnNames: columns,
         columnTypes,
         rows: rows.map((row) => mapRow(row, columnTypes)),
@@ -95,7 +97,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
   }
 }
 
-class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction {
+class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction<SQLQuery> {
   constructor(client: TransactionClient, readonly options: TransactionOptions, readonly unlockParent: () => void) {
     super(client)
   }
@@ -127,12 +129,12 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   }
 }
 
-class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements TransactionContext {
+class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements TransactionContext<SQLQuery> {
   constructor(readonly client: StdClient, readonly release: () => void) {
     super(client)
   }
 
-  async startTransaction(): Promise<Result<Transaction>> {
+  async startTransaction(): Promise<Result<Transaction<SQLQuery>>> {
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
@@ -152,12 +154,12 @@ class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements Tra
   }
 }
 
-export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAdapter {
+export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SQLDriverAdapter {
   constructor(client: StdClient) {
     super(client)
   }
 
-  async transactionContext(): Promise<Result<TransactionContext>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     const release = await this[LOCK_TAG].acquire()
     return ok(new LibSqlTransactionContext(this.client, release))
   }

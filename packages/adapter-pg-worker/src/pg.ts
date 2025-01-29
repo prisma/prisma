@@ -3,11 +3,11 @@
 import type {
   ColumnType,
   ConnectionInfo,
-  DriverAdapter,
-  Query,
   Queryable,
   Result,
-  ResultSet,
+  SQLDriverAdapter,
+  SQLQuery,
+  SQLResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -24,7 +24,7 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
-class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
+class PgQueryable<ClientT extends StdClient | TransactionClient> implements Queryable<SQLQuery> {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
@@ -33,7 +33,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: SQLQuery): Promise<Result<SQLResultSet>> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -60,6 +60,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
     }
 
     return ok({
+      kind: 'sql',
       columnNames,
       columnTypes,
       rows,
@@ -71,7 +72,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: SQLQuery): Promise<Result<number>> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
@@ -84,7 +85,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<Result<pg.QueryArrayResult<any>>> {
+  private async performIO(query: SQLQuery): Promise<Result<pg.QueryArrayResult<any>>> {
     const { sql, args: values } = query
 
     try {
@@ -138,7 +139,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements Quer
   }
 }
 
-class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
+class PgTransaction extends PgQueryable<TransactionClient> implements Transaction<SQLQuery> {
   constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
     super(client)
   }
@@ -158,12 +159,12 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
-class PgTransactionContext extends PgQueryable<pg.PoolClient> implements TransactionContext {
+class PgTransactionContext extends PgQueryable<pg.PoolClient> implements TransactionContext<SQLQuery> {
   constructor(readonly conn: pg.PoolClient) {
     super(conn)
   }
 
-  async startTransaction(): Promise<Result<Transaction>> {
+  async startTransaction(): Promise<Result<Transaction<SQLQuery>>> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -179,7 +180,7 @@ export type PrismaPgOptions = {
   schema?: string
 }
 
-export class PrismaPg extends PgQueryable<StdClient> implements DriverAdapter {
+export class PrismaPg extends PgQueryable<StdClient> implements SQLDriverAdapter {
   constructor(client: pg.Pool, private options?: PrismaPgOptions) {
     if (!(client instanceof pg.Pool)) {
       throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
@@ -197,7 +198,7 @@ const adapter = new PrismaPg(pool)
     })
   }
 
-  async transactionContext(): Promise<Result<TransactionContext>> {
+  async transactionContext(): Promise<Result<TransactionContext<SQLQuery>>> {
     const conn = await this.client.connect()
     return ok(new PgTransactionContext(conn))
   }

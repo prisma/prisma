@@ -1,0 +1,46 @@
+{
+  "name": "@prisma/adapter-mongodb",
+  "version": "0.0.0",
+  "description": "Prisma's driver adapter for \"mongodb\"",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/adapter-mongodb"
+  },
+  "scripts": {
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [],
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "dependencies": {
+    "@prisma/driver-adapter-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^4.0.7",
+    "mongodb": "^6.12.0"
+  },
+  "peerDependencies": {
+    "mongodb": "^6.12.0"
+  }
+}
