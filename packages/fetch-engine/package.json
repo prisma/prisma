@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.3.0-17.acc0b9dd43eb689cbd20c9470515d719db10d0b0",
+    "@prisma/engines-version": "6.4.0-1.fix-cockroachdb-slow-migrations-workaround-7f2ebe4987f4376912fd7d7e638148a3943dbc78",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
