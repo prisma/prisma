@@ -7,7 +7,7 @@ import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicEr
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { LogEmitter } from '../common/types/Events'
+import { LogEmitter, QueryEvent } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import {
@@ -49,6 +49,8 @@ export class ClientEngine implements Engine<undefined> {
   lastStartedQuery?: string
   tracingHelper: TracingHelper
 
+  #emitQueryEvent?: (event: QueryEvent) => void
+
   constructor(config: EngineConfig, queryCompilerLoader?: QueryCompilerLoader) {
     if (!config.previewFeatures?.includes('driverAdapters')) {
       throw new PrismaClientInitializationError(
@@ -84,6 +86,12 @@ export class ClientEngine implements Engine<undefined> {
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
+    }
+
+    if (this.logQueries) {
+      this.#emitQueryEvent = (event: QueryEvent) => {
+        this.logEmitter.emit('query', event)
+      }
     }
 
     this.transactionManager = new TransactionManager({
@@ -219,7 +227,11 @@ export class ClientEngine implements Engine<undefined> {
 
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
-      const interpreter = new QueryInterpreter(queryable, placeholderValues)
+      const interpreter = new QueryInterpreter({
+        queryable,
+        placeholderValues,
+        onQuery: this.#emitQueryEvent,
+      })
       const result = await interpreter.run(queryPlan)
 
       debug(`query plan executed`)
@@ -262,7 +274,11 @@ export class ClientEngine implements Engine<undefined> {
       const results: BatchQueryEngineResult<T>[] = []
       for (const { query, plan } of queriesWithPlans) {
         const queryable = this.transactionManager.getTransaction(txInfo, query.action)
-        const interpreter = new QueryInterpreter(queryable, {})
+        const interpreter = new QueryInterpreter({
+          queryable,
+          placeholderValues: {},
+          onQuery: this.#emitQueryEvent,
+        })
         results.push((await interpreter.run(plan)) as QueryEngineResultData<T>)
       }
 
