@@ -71,7 +71,7 @@ export class ClientEngine implements Engine<undefined> {
       debug('Using driver adapter: %O', adapter)
     }
 
-    if (TARGET_BUILD_TYPE === 'client') {
+    if (TARGET_BUILD_TYPE === 'wasm') {
       this.queryCompilerLoader = queryCompilerLoader ?? wasmQueryCompilerLoader
     } else {
       throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)

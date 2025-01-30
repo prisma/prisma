@@ -28,7 +28,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
     bundle: true,
     minify: true,
     sourcemap: 'linked',
-    emitTypes: ['library', 'client'].includes(targetBuildType),
+    emitTypes: targetBuildType === 'library',
     define: {
       NODE_CLIENT: 'true',
       TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
@@ -216,7 +216,6 @@ void build([
   generatorBuildConfig,
   nodeRuntimeBuildConfig(ClientEngineType.Binary),
   nodeRuntimeBuildConfig(ClientEngineType.Library),
-  nodeRuntimeBuildConfig(ClientEngineType.Client),
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
