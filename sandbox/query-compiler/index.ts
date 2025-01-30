@@ -6,6 +6,7 @@ import util from 'node:util'
 
 async function main() {
   const prisma = new PrismaClient({
+    log: ['query'],
     adapter: new PrismaPg(
       new Pool({
         connectionString: process.env.TEST_POSTGRES_URI
