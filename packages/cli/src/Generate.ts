@@ -32,6 +32,7 @@ import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
+import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
@@ -285,6 +286,8 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         }
         throw new Error(message)
       } else {
+        await handleNpsSurvey()
+
         return message
       }
     } else {
