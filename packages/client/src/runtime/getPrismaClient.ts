@@ -76,7 +76,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native' | 'client'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native'
 }
 
 // used by esbuild for tree-shaking
@@ -520,6 +520,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return (this._appliedParent = applyModelsAndClientExtensions(this))
       // this applied client is also a custom constructor return value
     }
+
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
