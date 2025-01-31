@@ -15,7 +15,7 @@ import {
   validate,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
-import prompt from 'prompts'
+import prompt from 'prompts' 
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
@@ -130,56 +130,76 @@ ${bold('Examples')}
 
     const migrationIdsApplied: string[] = []
 
-    if (devDiagnostic.action.tag === 'reset') {
-      if (!args['--force']) {
-        if (!canPrompt()) {
-          migrate.stop()
-          throw new MigrateDevEnvNonInteractiveError()
+    //
+    // "--create-only" now only creates the SQL files for the user review, it wont reset or apply anything.
+    // it wouldn't make sense, we are just wanting to "create only" the migration file... for review...
+    //
+    if (!args['--create-only']) {
+      if (devDiagnostic.action.tag === 'reset') {
+        if (!args['--force']) {
+          if (!canPrompt()) {
+            migrate.stop()
+            throw new MigrateDevEnvNonInteractiveError()
+          }
+
+          const confirmedReset = await this.confirmReset({
+            datasourceInfo,
+            reason: devDiagnostic.action.reason,
+          })
+
+          process.stdout.write('\n') // empty line
+
+          if (!confirmedReset) {
+            process.stdout.write('Reset cancelled.\n')
+            migrate.stop()
+            // Return SIGINT exit code to signal that the process was cancelled.
+            process.exit(130)
+          }
         }
 
-        const confirmedReset = await this.confirmReset({
-          datasourceInfo,
-          reason: devDiagnostic.action.reason,
-        })
+        try {
+          const { appliedMigrationNames } = await migrate.applyMigrations()
+          migrationIdsApplied.push(...appliedMigrationNames)
 
-        process.stdout.write('\n') // empty line
-
-        if (!confirmedReset) {
-          process.stdout.write('Reset cancelled.\n')
+          // Inform user about applied migrations now
+          if (appliedMigrationNames.length > 0) {
+            console.info() // empty line
+            console.info(
+              `The following migration(s) have been applied:\n\n${chalk(
+                printFilesFromMigrationIds('migrations', appliedMigrationNames, {
+                  'migration.sql': '',
+                }),
+              )}`,
+            )
+          }
+        } catch (e) {
           migrate.stop()
-          // Return SIGINT exit code to signal that the process was cancelled.
-          process.exit(130)
-        }
+          throw e
+        } 
       }
 
       try {
-        // Do the reset
-        await migrate.reset()
+        const { appliedMigrationNames } = await migrate.applyMigrations()
+        migrationIdsApplied.push(...appliedMigrationNames)
+
+        // Inform user about applied migrations now
+        if (appliedMigrationNames.length > 0) {
+          process.stdout.write(
+            `\nThe following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
+              'migrations',
+              appliedMigrationNames,
+              {
+                'migration.sql': '',
+              },
+            )}\n`,
+          )
+        }
       } catch (e) {
         migrate.stop()
-        throw e
+        throw e 
       }
-    }
-
-    try {
-      const { appliedMigrationNames } = await migrate.applyMigrations()
-      migrationIdsApplied.push(...appliedMigrationNames)
-
-      // Inform user about applied migrations now
-      if (appliedMigrationNames.length > 0) {
-        process.stdout.write(
-          `\nThe following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
-            'migrations',
-            appliedMigrationNames,
-            {
-              'migration.sql': '',
-            },
-          )}\n`,
-        )
-      }
-    } catch (e) {
-      migrate.stop()
-      throw e
+    } else if (devDiagnostic.action.tag === 'reset') {
+      console.log('[!] A reset will be required before applying this migration!')
     }
 
     let evaluateDataLossResult: EngineResults.EvaluateDataLossOutput
