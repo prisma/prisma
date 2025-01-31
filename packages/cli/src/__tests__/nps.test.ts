@@ -188,7 +188,7 @@ describe('nps survey', () => {
     )
     expect(status).toHaveBeenCalledTimes(1)
     expect(readline.question).toHaveBeenCalledTimes(1)
-    expect(readline.write).toHaveBeenCalledWith('Not received a valid rating. Exiting.\n')
+    expect(readline.write).toHaveBeenCalledWith('Not received a valid rating. Exiting the survey.\n')
     expect(capture).toHaveBeenCalledTimes(0)
   })
 })

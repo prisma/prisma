@@ -33,6 +33,11 @@ const promptTimeoutSecs = 30
 const debug = Debug('prisma:cli:nps')
 
 export async function handleNpsSurvey() {
+  if (!process.stdin.isTTY) {
+    // no point in running the NPS survey if there's no TTY
+    return
+  }
+
   const now = new Date()
   const rl = readline.promises.createInterface({
     input: process.stdin,
@@ -41,19 +46,12 @@ export async function handleNpsSurvey() {
   const status = new ProdNpsStatusLookup()
   const eventCapture = new PosthogEventCapture()
 
-  const rlClose = new Promise((resolve) => {
-    rl.once('close', resolve)
-  })
-
-  const survey = await handleNpsSurveyImpl(now, status, rl, eventCapture)
+  await handleNpsSurveyImpl(now, status, rl, eventCapture)
     .catch((err) => {
       // we don't want to propagate NPS survey errors, so we catch them here and log them
       debug(`An error occurred while handling NPS survey: ${err}`)
     })
     .finally(() => rl.close())
-
-  // wait for either the survey or the readline interface to close
-  await Promise.race([survey, rlClose])
 }
 
 export async function handleNpsSurveyImpl(
@@ -104,7 +102,7 @@ async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> 
 
   const rating = parseInt(ratingAnswer.trim(), 10)
   if (isNaN(rating) || rating < 0 || rating > 10) {
-    rl.write('Not received a valid rating. Exiting.\n')
+    rl.write('Not received a valid rating. Exiting the survey.\n')
     return {}
   }
 
