@@ -28,7 +28,7 @@ type ReadlineInterface = {
   write: (message: string) => void
 }
 
-const promptTimeout = 30
+const promptTimeoutSecs = 30
 
 const debug = Debug('prisma:cli:nps')
 
@@ -86,12 +86,12 @@ async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> 
     'If you would like to rate how likely you are to recommend Prisma to a friend or colleague, ' +
       'enter a number from 0 to 10, where 0 means "not likely at all" and 10 means ' +
       '"extremely likely" and then press "Enter". This prompt will close automatically after ' +
-      `${promptTimeout} seconds.\n` +
+      `${promptTimeoutSecs} seconds.\n` +
       'Rating: ',
   )
-  const ratingAnswer = await timeout(question, promptTimeout * 1000)
+  const ratingAnswer = await timeout(question, promptTimeoutSecs * 1000)
   if (ratingAnswer === undefined) {
-    rl.write(`No response received within ${promptTimeout} seconds. Exiting.\n`)
+    rl.write(`No response received within ${promptTimeoutSecs} seconds. Exiting.\n`)
     return {}
   }
 
