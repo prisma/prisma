@@ -225,7 +225,7 @@
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "ci-info": "4.0.0",
-    "decimal.js": "10.4.3",
+    "decimal.js": "10.5.0",
     "detect-runtime": "1.0.4",
     "env-paths": "2.2.1",
     "esbuild": "0.24.2",
