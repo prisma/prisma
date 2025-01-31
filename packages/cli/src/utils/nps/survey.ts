@@ -55,7 +55,7 @@ export async function handleNpsSurveyImpl(
   rl: ReadlineInterface,
   eventCapture: EventCapture,
 ) {
-  if (isCi()) {
+  if (isCi() || process.stdin.isTTY || process.stdin.isRaw) {
     return
   }
 
