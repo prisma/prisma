@@ -402,24 +402,6 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
         : ''
 
     return `
-import * as runtime from '../runtime/library.js';
-import $Types = runtime.Types // general types
-import $Public = runtime.Types.Public
-import $Utils = runtime.Types.Utils
-import $Extensions = runtime.Types.Extensions
-import $Result = runtime.Types.Result
-import Decimal = runtime.Decimal
-import DecimalJsLike = runtime.DecimalJsLike
-import JsonObject = runtime.JsonObject
-import JsonArray = runtime.JsonArray
-import JsonValue = runtime.JsonValue
-import InputJsonObject = runtime.InputJsonObject
-import InputJsonArray = runtime.InputJsonArray
-import InputJsonValue = runtime.InputJsonValue
-
-import type * as $Enums from '../enums'
-import type * as Prisma from '../common'
-
 /**
  * Model ${model.name}
  */
