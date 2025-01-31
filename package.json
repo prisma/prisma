@@ -84,7 +84,7 @@
     "regenerator-runtime": "0.14.1",
     "resolve": "1.22.10",
     "safe-buffer": "5.2.1",
-    "semver": "7.6.3",
+    "semver": "7.7.0",
     "size-limit": "9.0.0",
     "spdx-exceptions": "2.5.0",
     "spdx-license-ids": "3.0.21",
