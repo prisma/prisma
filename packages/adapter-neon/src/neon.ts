@@ -135,7 +135,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
       debug('Error in performIO: %O', e)
       if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
         return err({
-          kind: 'Postgres',
+          kind: 'postgres',
           code: e.code,
           severity: e.severity,
           message: e.message,

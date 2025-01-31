@@ -9,7 +9,7 @@ export type PrismaObject = Record<string, unknown>
 export type Value = unknown
 
 /**
- * Environment in which a query plan node is interpreted. The names may come
+ * Scope in which a query plan node is interpreted. The names may come
  * from the query placeholders or from let bindings introduced in the query plan.
  */
-export type Env = Record<string, unknown>
+export type ScopeBindings = Record<string, unknown>

@@ -118,7 +118,7 @@ export class ClientEngine implements Engine<undefined> {
     try {
       this.queryCompiler = new this.QueryCompilerConstructor({
         datamodel: this.datamodel,
-        flavour: this.driverAdapter.provider,
+        provider: this.driverAdapter.provider,
         connectionInfo: {},
       })
     } catch (e) {
