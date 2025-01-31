@@ -235,7 +235,7 @@ export import InputJsonValue = runtime.InputJsonValue
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-namespace NullTypes {
+declare namespace NullTypes {
 ${buildNullClass('DbNull')}
 
 ${buildNullClass('JsonNull')}
@@ -335,13 +335,13 @@ export type SubsetIntersection<T, U, K> = {
 } &
   K
 
-type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+export type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 
 /**
  * XOR is needed to have a real mutually exclusive union type
  * https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
  */
-type XOR<T, U> =
+export type XOR<T, U> =
   T extends object ?
   U extends object ?
     (Without<T, U> & U) | (Without<U, T> & T)
@@ -351,7 +351,7 @@ type XOR<T, U> =
 /**
  * Is T a Record?
  */
-type IsObject<T extends any> = T extends Array<any>
+export type IsObject<T extends any> = T extends Array<any>
 ? False
 : T extends Date
 ? False
@@ -392,7 +392,7 @@ type _Either<
   0: EitherLoose<O, K>
 }[strict]
 
-type Either<
+export type Either<
   O extends object,
   K extends Key,
   strict extends Boolean = 1
@@ -400,7 +400,7 @@ type Either<
 
 export type Union = any
 
-type PatchUndefined<O extends object, O1 extends object> = {
+export type PatchUndefined<O extends object, O1 extends object> = {
   [K in keyof O]: O[K] extends undefined ? At<O1, K> : O[K]
 } & {}
 
@@ -444,7 +444,7 @@ type _Record<K extends keyof any, T> = {
 type NoExpand<T> = T extends unknown ? T : never;
 
 // this type assumes the passed object is entirely optional
-type AtLeast<O extends object, K extends string> = NoExpand<
+export type AtLeast<O extends object, K extends string> = NoExpand<
   O extends unknown
   ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
     | {[P in keyof O as P extends K ? P : never]-?: O[P]} & O
@@ -521,7 +521,7 @@ type FieldPaths<
   U = Omit<T, '_avg' | '_sum' | '_count' | '_min' | '_max'>
 > = IsObject<T> extends True ? U : T
 
-type GetHavingFields<T> = {
+export type GetHavingFields<T> = {
   [K in keyof T]: Or<
     Or<Extends<'OR', K>, Extends<'AND', K>>,
     Extends<'NOT', K>
@@ -542,17 +542,17 @@ type GetHavingFields<T> = {
  */
 type _TupleToUnion<T> = T extends (infer E)[] ? E : never
 type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
-type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
+export type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
 /**
  * Like \`Pick\`, but additionally can also accept an array of keys
  */
-type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma__Pick<T, MaybeTupleToUnion<K>>
+export type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma__Pick<T, MaybeTupleToUnion<K>>
 
 /**
  * Exclude all keys with underscores
  */
-type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
+export type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
 
 
 export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
