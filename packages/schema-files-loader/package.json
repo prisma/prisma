@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "6.4.0-4.e2a33755136ec1c2b3a5d7d322f86a8fb1205a40",
+    "@prisma/prisma-schema-wasm": "6.4.0-5.chore-rename-error-kinds-6be5d359e3dccb7e8b623fad8d36236047e2936f",
     "fs-extra": "11.1.1"
   },
   "devDependencies": {
